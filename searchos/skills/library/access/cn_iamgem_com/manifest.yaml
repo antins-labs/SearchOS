@@ -1,0 +1,44 @@
+description: >-
+  Access the G.E.M.邓紫棋 official website (cn.iamgem.com) — tour dates, music albums, tracks, posts, and videos via the WordPress REST API and HTML parsing.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_tours          Get all tour dates with venue/location (no extra params)
+        - get_albums         Get all music albums/categories with track counts (no extra params)
+        - get_album_tracks   Get all tracks in an album (requires album_id)
+        - get_posts          Get posts/songs (optional category_id, per_page, page)
+        - get_post           Get a single post/song by id (requires post_id)
+        - get_categories     Get all categories (no extra params)
+        - search             Search posts/songs by keyword (requires query, optional per_page)
+        - get_videos         Get video content from the videos page (no extra params)
+  album_id:
+    type: integer
+    required: false
+    description: Album/category ID. Required by get_album_tracks.
+  post_id:
+    type: integer
+    required: false
+    description: Post/song ID. Required by get_post.
+  query:
+    type: string
+    required: false
+    description: Search keyword. Required by search.
+  category_id:
+    type: integer
+    required: false
+    description: Category/album ID to filter posts. Optional for get_posts.
+  per_page:
+    type: integer
+    required: false
+    description: Results per page (max 100). Used by get_posts (default 100) and search (default 20).
+  page:
+    type: integer
+    required: false
+    description: Page number. Used by get_posts (default 1).
+  categories:
+    type: integer
+    required: false
+    description: WordPress category ID filter for the underlying posts API. Internal; prefer category_id on get_posts. Rarely set directly.

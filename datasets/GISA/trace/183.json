@@ -1,0 +1,70 @@
+{
+  "search": [
+    "east asian games"
+  ],
+  "result": {
+    "east asian games": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "The East Asian Games was a multi-sport event organized by the East Asian Games Association and held every four years from 1993 to 2013.",
+            "title": "East Asian Games",
+            "url": "https://en.wikipedia.org/wiki/East_Asian_Games"
+          },
+          {
+            "snippet": "The East Asian Games was a multi-sport event held every four years among athletes from East Asian countries, from 1993 and ended after the 2013 tournament.",
+            "title": "East Asian Games",
+            "url": "https://inside.fei.org/fei/games/cont-regional/east-asian"
+          },
+          {
+            "snippet": "The East Asian Games was a quadrennial multi-sport event organized for athletes from East Asian countries and territories, held from 1993 until its ...",
+            "title": "East Asian Games",
+            "url": "https://grokipedia.com/page/East_Asian_Games"
+          },
+          {
+            "snippet": "The East Asian Games also known as the Asian Development Games were multi-sport events organized by the Japan Association of Athletics Federations (JAAA).",
+            "title": "East Asian Games (Japan)",
+            "url": "https://en.wikipedia.org/wiki/East_Asian_Games_(Japan)"
+          },
+          {
+            "snippet": "1993 East Asian Games (1st East Asian Games) · 1997 East Asian Games · 2001 East Asian Games · 2005 East Asian Games · 2009 East Asian Games · 2013 East Asian Games.",
+            "title": "East Asian Games",
+            "url": "https://www.youtube.com/playlist?list=PLP3SQ-_De_seSVzK2LGrQ6XV5ro_jVq_v"
+          },
+          {
+            "snippet": "The Games featured 12 events, namely athletics, swimming (including diving), football (men's), basketball, badminton, gymnastics, weightlifting ...",
+            "title": "First East Asian Games opened in Shanghai",
+            "url": "https://www.ourchinastory.com/en/14735/First-East-Asian-Games-opened-in-Shanghai"
+          },
+          {
+            "snippet": "",
+            "title": "East Asian Games 2026 is coming!",
+            "url": "https://www.youtube.com/watch?v=e0G7NGujQxQ"
+          },
+          {
+            "snippet": "The East Asian Youth Games (EAYG) is a continental multi-sport event organised by the East Asian Olympic Committee (EAOC) and held every four years since ...",
+            "title": "East Asian Youth Games",
+            "url": "https://en.wikipedia.org/wiki/East_Asian_Youth_Games"
+          },
+          {
+            "snippet": "East Asian Games was a multi-sport which organized until 2013. The event halted after its sixth edition in Tianjin. The Games observed under OCA (Olympic ...",
+            "title": "East Asian Games",
+            "url": "https://athleticspodium.com/champs/east-asian-games"
+          },
+          {
+            "snippet": "East Asian Games Station is located on the Avenida da Nave Desportiva, near Macau East Asian Games Dome and major tourist and entertainment facilities. East ...",
+            "title": "East Asian Games Station",
+            "url": "https://www.mlm.com.mo/en/station_locationDetail/article/kblxo4hs.html"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>east asian games</search>",
+      "to": "https://en.wikipedia.org/wiki/East_Asian_Games"
+    }
+  ]
+}

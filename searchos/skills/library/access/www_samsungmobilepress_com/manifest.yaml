@@ -1,0 +1,21 @@
+description: Extract device specifications from Samsung Mobile Press website
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_specs   Get detailed specifications for a specific Samsung device\n\
+      \  - search   Search for Samsung devices by name or slug\n  - list   List common Galaxy device slugs\
+      \ available on Samsung Mobile Press"
+  slug:
+    type: string
+    required: false
+    description: Device slug/identifier (e.g., 'galaxy-s24', 'galaxy_note20')
+  query:
+    type: string
+    required: false
+    description: Search query (e.g., 'galaxy', 's24', 'note')
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of results to return
+    default: 20

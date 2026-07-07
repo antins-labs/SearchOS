@@ -1,0 +1,24 @@
+description: >-
+  Extract master's program information from the CUHK Business School Masters Programs website (masters.bschool.cuhk.edu.hk) using a stealth Playwright browser.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_programs          List all available master's programs (slug, name, url) — no extra params
+        - get_program            Get detailed info for one program (requires slug)
+        - search_programs        Search programs by keyword (requires query)
+        - get_multiple_programs  Get detailed info for several programs (requires slugs)
+  slug:
+    type: string
+    required: false
+    description: Program identifier, e.g. "mscba". Required by get_program.
+  query:
+    type: string
+    required: false
+    description: Search term matched against program name/slug. Required by search_programs.
+  slugs:
+    type: array
+    required: false
+    description: List of program slugs to fetch. Required by get_multiple_programs.

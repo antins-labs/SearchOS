@@ -1,0 +1,42 @@
+description: >-
+  Fetches book details, publisher catalogs, and author bibliographies from
+  Douban Books (book.douban.com), including ratings, ISBN, and publication info.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_book          获取单本图书详情，需提供 subject_id
+        - get_press_books   获取出版社图书列表，需提供 press_id，可选 page
+        - get_author_books  获取作者作品列表，需提供 author_id，可选 page 和 sortby
+        - search            搜索图书（可能需要登录），需提供 query
+  subject_id:
+    type: string
+    required: false
+    description: 图书的唯一标识ID，用于 get_book 功能，可从URL中提取
+  press_id:
+    type: string
+    required: false
+    description: 出版社的唯一标识ID，用于 get_press_books 功能，可从URL中提取
+  author_id:
+    type: string
+    required: false
+    description: 作者的唯一标识ID，用于 get_author_books 功能，可从URL中提取
+  page:
+    type: integer
+    required: false
+    description: 页码，用于分页获取出版社或作者作品列表，默认为1
+  sortby:
+    type: string
+    required: false
+    description: 作者作品的排序方式，可选值为 time(时间) 或 score(评分)，默认为 time
+  query:
+    type: string
+    required: false
+    description: 搜索关键词，用于 search 功能
+  start:
+    type: integer
+    required: false
+    description: 搜索结果的起始位置，用于 search 功能分页，默认为0

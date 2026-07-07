@@ -1,0 +1,24 @@
+description: Access J.D. Power vehicle ratings, awards, and specifications
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_studies   List available J.D. Power rating studies (Dependability,\
+      \ Quality, Performance)\n  - get_ratings   Get vehicle ratings and award winners for a specific\
+      \ study and year\n  - get_vehicle   Get ratings and specifications for a specific vehicle"
+  study:
+    type: string
+    required: false
+    description: Study type (dependability, quality, performance)
+  year:
+    type: integer
+    required: false
+    description: Model year (e.g., 2024, 2025)
+  make:
+    type: string
+    required: false
+    description: Vehicle make (e.g., 'toyota', 'bmw')
+  model:
+    type: string
+    required: false
+    description: Vehicle model (e.g., 'corolla', '3-series')

@@ -1,0 +1,85 @@
+description: >-
+  Fetches CNN press releases and announcements from cnnpressroom.blogs.cnn.com via WordPress REST API.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_post   获取单篇文章详情（需要post_id或slug）
+        - list_posts 列出文章列表，支持分类、作者、日期等过滤
+        - search_posts 按关键词搜索文章（需要query）
+        - list_categories 列出所有分类
+        - get_category 获取单个分类详情（需要category_id或slug）
+        - extract_announcement 提取新闻稿公告详情（需要post_id或slug）
+
+  post_id:
+    type: integer
+    required: false
+    description: 文章ID，用于get_post或extract_announcement
+
+  slug:
+    type: string
+    required: false
+    description: 文章或分类的URL slug，用于get_post、extract_announcement或get_category
+
+  per_page:
+    type: integer
+    required: false
+    description: 每页返回数量，默认10，最大100，用于list_posts、search_posts、list_categories
+
+  page:
+    type: integer
+    required: false
+    description: 页码，用于list_posts和search_posts分页
+
+  category_id:
+    type: integer
+    required: false
+    description: 分类ID，用于list_posts过滤或get_category
+
+  category_slug:
+    type: string
+    required: false
+    description: 分类slug，用于list_posts过滤或get_category
+
+  author_id:
+    type: integer
+    required: false
+    description: 作者ID，用于list_posts过滤
+
+  search:
+    type: string
+    required: false
+    description: 搜索关键词，用于list_posts过滤
+
+  query:
+    type: string
+    required: false
+    description: 搜索查询词，用于search_posts（必需参数）
+
+  after:
+    type: string
+    required: false
+    description: ISO日期，获取此日期之后的文章，用于list_posts过滤
+
+  before:
+    type: string
+    required: false
+    description: ISO日期，获取此日期之前的文章，用于list_posts过滤
+
+  include_content:
+    type: boolean
+    required: false
+    description: 是否包含文章完整内容，默认get_post为true、list_posts为false
+
+  embed:
+    type: boolean
+    required: false
+    description: 是否包含嵌入数据（作者、分类等），默认true
+
+  orderby:
+    type: string
+    required: false
+    description: 排序方式，如'count'按文章数排序，用于list_categories

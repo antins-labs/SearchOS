@@ -1,0 +1,38 @@
+description: >-
+  Fetches ACI World airport traffic rankings including top airports by passengers,
+  cargo, aircraft movements, and international passengers from blog.aci.aero.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_rankings     获取机场排名数据（乘客、货运、国际乘客）；需提供category参数
+        - get_statistics   获取全球机场流量关键统计数据
+        - get_article      获取完整文章内容和排名表图片链接；可选url参数
+        - get_ranking_tables 获取排名表图片URL；可选category参数指定特定类别
+        - search_airport   搜索特定机场排名；需提供query参数（机场名/代码/国家）
+        - get_all          获取所有可用数据：文章、排名、统计、图片链接
+  
+  category:
+    type: string
+    required: false
+    description: |
+      排名类别，用于get_rankings和get_ranking_tables函数。
+      可用值: passengers, cargo, international, all
+      默认值: all
+  
+  url:
+    type: string
+    required: false
+    description: |
+      文章URL，用于get_article函数。
+      不提供时使用默认URL: https://blog.aci.aero/airport-economics/busiest-airports-in-the-world-2024/
+  
+  query:
+    type: string
+    required: false
+    description: |
+      搜索关键词，用于search_airport函数。
+      支持机场名称、IATA代码或国家名。例如: "Atlanta", "DXB", "Japan"

@@ -1,0 +1,54 @@
+description: >-
+  Fetches ISHOF (International Swimming Hall of Fame) honoree biography records via WordPress REST API.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_honorees   分页获取名人堂成员列表，支持 page/per_page/include_ids/include_content 参数
+        - get_honoree     获取单个名人堂成员详情，需提供 id 或 slug 参数，可选 include_content
+        - search_honorees 按关键词搜索名人堂成员，需提供 query 参数，可选 per_page/include_content
+        - list_categories 获取所有名人堂类别（如 ISHOF Honoree、Masters Honoree、Team 等）
+        - honorees_by_category 按类别筛选名人堂成员，需提供 category（ID或slug），可选 page/per_page/include_content
+
+  id:
+    type: integer
+    required: false
+    description: 名人堂成员的 WordPress ID（用于 get_honoree）
+
+  slug:
+    type: string
+    required: false
+    description: 名人堂成员的 URL slug，如 'michael-phelps'（用于 get_honoree）
+
+  query:
+    type: string
+    required: false
+    description: 搜索关键词（用于 search_honorees）
+
+  category:
+    type: string
+    required: false
+    description: 类别 ID 或 slug，如 'ishof-honoree'、'masters-honoree'、'team'（用于 honorees_by_category）
+
+  page:
+    type: integer
+    required: false
+    description: 分页页码，默认为 1（用于 list_honorees、honorees_by_category）
+
+  per_page:
+    type: integer
+    required: false
+    description: 每页数量，默认 20，最大 100（用于 list_honorees、search_honorees、honorees_by_category）
+
+  include_content:
+    type: boolean
+    required: false
+    description: 是否包含完整传记内容，默认 list/search 为 false，get 为 true
+
+  include_ids:
+    type: string
+    required: false
+    description: 逗号分隔的 ID 列表，用于获取指定成员（用于 list_honorees）

@@ -1,0 +1,28 @@
+name: so_question
+invocation: agent_called
+description: Search api.stackexchange.com — so_question. REST API returns JSON inside
+  a HTML <pre> tag; requires query parameters to filter results.
+params_schema:
+  site:
+    type: string
+    required: false
+    default: stackoverflow
+    description: The Stack Exchange site to search (e.g., 'stackoverflow', 'serverfault',
+      'askubuntu').
+  query:
+    type: string
+    required: true
+    description: The search query string.
+  num_results:
+    type: integer
+    default: 5
+    description: Maximum number of results to return.
+category: access_skill
+entity_type: so_question
+fields:
+- title
+- url
+- score
+- answer_count
+- tags
+template: public_api

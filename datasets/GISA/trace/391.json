@@ -1,0 +1,98 @@
+{
+  "search": [
+    "Serie A clubs in Italy"
+  ],
+  "result": {
+    "Serie A clubs in Italy": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Clubs ; Inter Milan · Milan, 2nd in Serie A ; Juventus · Turin, 4th in Serie A ; Lazio · Rome, 7th in Serie A ; Lecce · Lecce, 17th in Serie A ...Read more",
+            "title": "Serie A",
+            "url": "https://en.wikipedia.org/wiki/Serie_A"
+          },
+          {
+            "snippet": "Soccer Teams · AC Milan · AS Roma · Atalanta · Bologna · Cagliari · Como · Cremonese · Fiorentina · FixturesStats · Genoa · FixturesStats · Hellas Verona.Read more",
+            "title": "Soccer Teams - Italian Serie A",
+            "url": "https://www.espn.com/soccer/teams/_/league/ita.1"
+          },
+          {
+            "snippet": "Clubs - Serie A 25/26 ; 1, Inter Milan · Inter ; 2, AC Milan ; 3, SSC Napoli · Napoli Italian Champion 2025 ; 4, Juventus FC, Juventus ...Read more",
+            "title": "Serie A 25/26",
+            "url": "https://www.transfermarkt.com/serie-a/startseite/wettbewerb/IT1"
+          },
+          {
+            "snippet": "3. Emilia-Romagna · Bologna, Parma and Sassuolo ; 2. Lazio · Roma and Lazio ; 2 · Piedmont · Juventus and Torino ; 2 · Tuscany · Fiorentina and Pisa.Read more",
+            "title": "2025–26 Serie A",
+            "url": "https://en.wikipedia.org/wiki/2025%E2%80%9326_Serie_A"
+          },
+          {
+            "snippet": "AC Milan · Atalanta · Bologna · Cagliari · Como 1907 · Fiorentina · Genoa · Inter Milan ...Read more",
+            "title": "Serie A Teams",
+            "url": "https://www.foxsports.com/soccer/serie-a/teams"
+          },
+          {
+            "snippet": "Italian Serie A ; 1, Inter Milan, 18 ; 2, AC Milan, 17 ; 3, Napoli, 18 ; 4, Juventus, 19 ...Read more",
+            "title": "Italian Serie A Table",
+            "url": "https://www.skysports.com/serie-a-table"
+          },
+          {
+            "snippet": "Italian Serie A – Teams · AC Milan · Atalanta · Bologna · Cagliari · Como 1907 · Cremonese · Fiorentina · Genoa · Hellas Verona · Inter Milan · Juventus · Lazio.Read more",
+            "title": "Italian Serie A | Teams",
+            "url": "https://www.footballwebpages.co.uk/italian-serie-a/teams"
+          },
+          {
+            "snippet": "Find out which football teams are leading the pack or at the foot of the table in the Serie A on BBC Sport.",
+            "title": "Serie A Table and Standings - Football - BBC Sport",
+            "url": "https://www.bbc.com/sport/football/italian-serie-a/table"
+          },
+          {
+            "snippet": "Clubs ; ATALANTA ; BOLOGNA ; CAGLIARI ; COMO ; CREMONESE.Read more",
+            "title": "Serie A Clubs - Information",
+            "url": "https://football-italia.net/clubs/"
+          },
+          {
+            "snippet": "1, Inter Milan · Inter ; 2, AC Milan ; 3, SSC Napoli · Napoli Italian Champion 2025 ; 4, Juventus FC, Juventus ...Read more",
+            "title": "Serie A - Map",
+            "url": "https://www.transfermarkt.com/serie-a/karte/wettbewerb/IT1"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>Serie A clubs in Italy</search>",
+      "to": "https://en.wikipedia.org/wiki/Serie_A"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Serie_A",
+      "to": "https://en.wikipedia.org/wiki/List_of_Italian_Football_Championship_clubs"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_Italian_Football_Championship_clubs",
+      "to": "https://en.wikipedia.org/wiki/List_of_Italian_Football_Championship_clubs#List_of_clubs"
+    },
+    {
+      "from": "<search>Serie A clubs in Italy</search>",
+      "to": "https://www.espn.com/soccer/teams/_/league/ita.1"
+    },
+    {
+      "from": "<search>Serie A clubs in Italy</search>",
+      "to": "https://en.wikipedia.org/wiki/2025%E2%80%9326_Serie_A"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Serie_A",
+      "to": "https://en.wikipedia.org/wiki/Coppa_Italia"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Serie_A",
+      "to": "https://en.wikipedia.org/wiki/Serie_A#Champions"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Serie_A#Champions",
+      "to": "https://en.wikipedia.org/wiki/Serie_A#By_region"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "candidate": "google_news_article",
+  "host": "news.google.com",
+  "passing": false,
+  "gates": [
+    {
+      "name": "A_agent",
+      "passed": false,
+      "reason": "executor_import:No module named 'feedparser'",
+      "detail": {}
+    }
+  ]
+}

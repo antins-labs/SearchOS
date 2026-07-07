@@ -1,0 +1,51 @@
+description: >-
+  Fetches aviation statistical bulletins (PDFs/Excel) from CAAC (Civil Aviation Administration of China) 
+  including monthly production statistics, annual development reports, and airport production data.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      功能名称。可选值:
+        - list_bulletins: 按类别列出统计公报
+        - get_bulletin: 获取特定公报详情（含附件链接）
+        - download_attachment: 下载附件文件（返回base64）
+        - search_bulletins: 关键词搜索公报
+  
+  category:
+    type: string
+    required: false
+    description: |
+      公报类别，用于 list_bulletins。
+      可选值: monthly_production (月度生产统计), annual_development (年度发展报告), annual_airport (年度机场生产公报)
+    default: monthly_production
+  
+  url:
+    type: string
+    required: false
+    description: |
+      公报页面或附件文件的完整URL。
+      get_bulletin 和 download_attachment 需要此参数。
+  
+  keywords:
+    type: string
+    required: false
+    description: |
+      搜索关键词，用于 search_bulletins。
+      将在公报标题中查找匹配项。
+  
+  year:
+    type: string
+    required: false
+    description: |
+      年份筛选，用于 search_bulletins。
+      可输入字符串或整数，如 "2024" 或 2024。
+  
+  max_size_mb:
+    type: integer
+    required: false
+    description: |
+      下载文件的最大大小限制（MB）。
+      用于 download_attachment，默认 10 MB。
+    default: 10

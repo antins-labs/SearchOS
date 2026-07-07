@@ -1,0 +1,22 @@
+description: >-
+  Fetch National Railway Main Indicators statistical data from China Railway's
+  official mobile site (wap.china-railway.com.cn), including passenger/freight
+  traffic and fixed asset investment statistics.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_reports   List all available indicator reports with titles, URLs, years and periods
+        - get_report     Get a specific report by URL or title keyword match; requires url or title_keyword
+        - get_latest     Get the most recent/updated indicator report; no additional params needed
+  url:
+    type: string
+    required: false
+    description: Full URL of the report page to fetch (used with get_report function)
+  title_keyword:
+    type: string
+    required: false
+    description: Keyword to search in report title for matching (used with get_report function instead of url)

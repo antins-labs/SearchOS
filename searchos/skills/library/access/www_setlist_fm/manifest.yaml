@@ -1,0 +1,19 @@
+description: >-
+  Fetches concert setlist data from setlist.fm including specific concert setlists
+  and average/tour setlists with song listings, venue information, and event details.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_setlist        根据URL获取特定演唱会的曲目单，需要提供setlist_url参数
+        - get_average_setlist 获取艺人或巡演的平均曲目单，需要提供average_setlist_url参数
+  setlist_url:
+    type: string
+    required: false
+    description: setlist.fm上特定演唱会页面URL (get_setlist使用)
+  average_setlist_url:
+    type: string
+    required: false
+    description: setlist.fm上平均曲目单页面URL，可包含tour参数 (get_average_setlist使用)

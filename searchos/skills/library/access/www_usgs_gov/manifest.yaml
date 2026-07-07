@@ -1,0 +1,56 @@
+description: >-
+  Extracts structured scientific data from U.S. Geological Survey (USGS) pages including
+  national park geology infoboxes, volcano observatory data, eruption alerts, and program
+  information. Uses browser automation due to AWS WAF protection.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - scrape           抓取指定USGS页面URL的结构化内容
+        - search           在USGS网站搜索相关内容
+        - get_park_geology 获取国家公园的地质信息（需要park_name参数）
+        - get_volcano_info 获取火山状态和监测信息（需要volcano_name参数）
+  
+  url:
+    type: string
+    required: false
+    description: >-
+      要抓取的USGS完整页面URL。用于scrape功能。
+      例如: https://www.usgs.gov/geology-and-ecology-of-national-parks/geology-congaree-national-park
+  
+  page_type:
+    type: string
+    required: false
+    description: >-
+      页面类型，用于scrape功能。可选值: auto(自动检测), park_geology(国家公园地质页), 
+      volcano_observatory(火山观测站), volcano(单个火山页), program(项目页面)。
+      默认为auto自动检测。
+  
+  query:
+    type: string
+    required: false
+    description: >-
+      搜索关键词。用于search功能。将在USGS网站搜索匹配内容。
+  
+  limit:
+    type: integer
+    required: false
+    description: >-
+      返回结果最大数量。用于search功能。默认为10。
+  
+  park_name:
+    type: string
+    required: false
+    description: >-
+      国家公园名称。用于get_park_geology功能。
+      例如: Congaree, Yellowstone, Grand Canyon
+  
+  volcano_name:
+    type: string
+    required: false
+    description: >-
+      火山名称。用于get_volcano_info功能。
+      例如: Kilauea, Mauna Loa, St. Helens

@@ -1,0 +1,39 @@
+description: 'Access skill for Baidu Baike (百度百科) - China''s largest encyclopedia.
+
+
+  This skill can search for encyclopedia entries (lemmas), extract detailed
+
+  information including infobox metadata (director, cast, release date, box office,
+
+  etc.), and provide structured data from movie and other encyclopedia entries.
+
+
+  Supports:
+
+  - Searching for lemmas by keyword
+
+  - Retrieving full lemma information including infobox data
+
+  - Extracting movie-specific metadata (convenience function)
+
+
+  Note: Uses browser automation due to JavaScript-rendered content.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - search   Search for encyclopedia entries in Baidu Baike by keyword.\n\
+      \  - get_lemma   Retrieve detailed information about an encyclopedia entry.\n  - get_movie_info\
+      \   Get movie-specific information from an encyclopedia entry."
+  keyword:
+    type: string
+    required: false
+    description: Search keyword (Chinese characters recommended)
+  url:
+    type: string
+    required: false
+    description: Full URL to the lemma page (e.g., https://baike.baidu.com/item/八佰)
+  lemma_id:
+    type: string
+    required: false
+    description: Lemma ID (limited support - use keyword or url instead)

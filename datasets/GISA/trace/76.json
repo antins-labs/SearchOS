@@ -1,0 +1,74 @@
+{
+  "search": [
+    "Bob Dylan official studio albums list by year"
+  ],
+  "result": {
+    "Bob Dylan official studio albums list by year": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "American singer-songwriter Bob Dylan has released 40 studio albums, 21 live albums, 18 volumes of The Bootleg Series, 44 compilation albums, ...",
+            "title": "Bob Dylan discography",
+            "url": "https://en.wikipedia.org/wiki/Bob_Dylan_discography"
+          },
+          {
+            "snippet": "Bob Dylan. 1962 ; The Freewheelin' Bob Dylan. 1963 ; The Times They Are A-Changin'. 1964 ; Another Side of Bob Dylan. 1964 ; Bringing It All Back Home. 1965 ...",
+            "title": "Albums",
+            "url": "https://www.bobdylan.com/albums/?filter=chronological"
+          },
+          {
+            "snippet": "To date, Bob Dylan has released 40 studio albums, starting in 1962. In order, they are: Bob Dylan (1962); The Freewheelin' Bob Dylan (1963) ...",
+            "title": "Bob Dylan albums in order: Full list of album releases",
+            "url": "https://www.radiotimes.com/audio/bob-dylan-albums-in-order-full-list-album-releases/"
+          },
+          {
+            "snippet": "Over his 64-year long recording career, Bob Dylan and his various bands have recorded many, many albums. This is a comprehensive list of all of them.",
+            "title": "Discography | Bob Dylan Wiki - Fandom",
+            "url": "https://bobdylan.fandom.com/wiki/Discography"
+          },
+          {
+            "snippet": "Bob Dylan 60's10. Bob Dylan Masterpieces Collection 1 - Early Years (1962-1978)19. Bob Dylan90's-00's10. CBS CD Rock Classics 10010. CBS Records, Artarmon13.",
+            "title": "Bob Dylan Discography: Vinyl, CDs, & More",
+            "url": "https://www.discogs.com/artist/59792-Bob-Dylan?srsltid=AfmBOooLcG-sBO5nnzrFr88YZnIeNLeik_uyCJIyHxRpIuv8BAYduP_o"
+          },
+          {
+            "snippet": "I've broken down Dylan's 40 studio albums (not including bootlegs, live albums, compilations, etc.) into discrete tiers in order to make sense ...",
+            "title": "Every Bob Dylan Studio Album, Ranked",
+            "url": "https://medium.com/commodorejones64/every-bob-dylan-studio-album-ranked-7cefb254539d"
+          },
+          {
+            "snippet": "Bob Dylan has 82 albums from 2017 to 2025 including The Bootleg Series Vol. 14: More Blood, More Tracks (Deluxe Edition), and Christmas in the Heart.",
+            "title": "Bob Dylan Albums and Discography",
+            "url": "https://genius.com/artists/Bob-dylan/albums"
+          },
+          {
+            "snippet": "Offical studio album Triplicate (2017), Fallen Angels (2016), Christmas in the Heart (2009), Introductory Remarks, I love this album.",
+            "title": "Studio Albums",
+            "url": "https://dylanchords.com/album-category/studio-albums"
+          },
+          {
+            "snippet": "1.Bob Dylan ... Blonde on Blonde (1966) ... The Freewheelin' Bob Dylan ... 2.Bob Dylan ... The Freewheelin' Bob Dylan (1963) ... Bringing It All Back Home ... 3.Bob Dylan.",
+            "title": "bob dylan studio albums in order from best to worst!",
+            "url": "https://rateyourmusic.com/list/aboutaboy/bob_dylan_studio_albums_in_order_from_best_to_worst_/"
+          },
+          {
+            "snippet": "We review every Dylan album including his self-titled debut, ''Highway 61 Revisited,'' ''Blood on the Tracks,'' and more",
+            "title": "Bob Dylan's discography",
+            "url": "https://ew.com/article/1991/03/29/bob-dylans-discography/?srsltid=AfmBOoopRwmDj3v0qrtfqHGWyuQaclWvOJG9aSxYIJ9_chXm9DZdiK7u"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>Bob Dylan official studio albums list by year</search>",
+      "to": "https://en.wikipedia.org/wiki/Bob_Dylan_discography"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Bob_Dylan_discography",
+      "to": "https://en.wikipedia.org/wiki/Bob_Dylan_discography#Studio_albums"
+    }
+  ]
+}

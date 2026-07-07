@@ -1,0 +1,11 @@
+description: ''
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_products   List known Bacardi rum product URLs\n  - get_product\
+      \   Get detailed product information from a Bacardi product page"
+  url:
+    type: string
+    required: false
+    description: Full URL of the product page (e.g., https://www.bacardi.com/us/en/our-rums/reserva-ocho-rum/)

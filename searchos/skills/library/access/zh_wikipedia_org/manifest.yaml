@@ -1,0 +1,33 @@
+description: "Access skill for Chinese Wikipedia (zh.wikipedia.org) that extracts structured data \nfrom\
+  \ pages including infoboxes, medal records, and competition tables.\n\nUses the MediaWiki Action API\
+  \ for reliable data retrieval with proper rate limiting\nand error handling."
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - search   Search for Wikipedia pages by keyword or phrase\n  - get_page\
+      \   Get comprehensive data from a Wikipedia page including infobox, tables, and medal records\n\
+      \  - get_extract   Get a brief text extract (summary) from a Wikipedia page"
+  query:
+    type: string
+    required: false
+    description: Search query string
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of results to return
+    default: 10
+  title:
+    type: string
+    required: false
+    description: Exact page title
+  include_html:
+    type: boolean
+    required: false
+    description: Whether to fetch and parse HTML content for structured data
+    default: true
+  sentences:
+    type: integer
+    required: false
+    description: Number of sentences in the extract
+    default: 5

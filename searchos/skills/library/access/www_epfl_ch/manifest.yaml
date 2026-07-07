@@ -1,0 +1,37 @@
+description: >-
+  Fetches contact information, campus locations, and page content from EPFL (École
+  Polytechnique Fédérale de Lausanne) official website at www.epfl.ch.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_contact_info   获取EPFL联系信息（电话、邮箱、部门等）；可选参数: lang (语言: en, fr, de)
+        - get_campus_location   获取EPFL校区位置和交通信息；可选参数: campus (lausanne, geneva, fribourg, neuchatel, valais, all)
+        - get_page_content   获取指定EPFL页面的结构化内容；必须参数: path (URL路径，如 /about/en/about/)
+        - search_pages   搜索EPFL网站页面；必须参数: query (搜索关键词)；可选参数: limit (结果数量限制)
+  lang:
+    type: string
+    required: false
+    description: 语言代码，用于 get_contact_info（en=英语, fr=法语, de=德语）
+    default: en
+  campus:
+    type: string
+    required: false
+    description: 校区名称，用于 get_campus_location（lausanne, geneva, fribourg, neuchatel, valais, all）
+    default: all
+  path:
+    type: string
+    required: false
+    description: URL路径，用于 get_page_content（如 /about/en/about/）
+  query:
+    type: string
+    required: false
+    description: 搜索关键词，用于 search_pages
+  limit:
+    type: integer
+    required: false
+    description: 搜索结果数量限制，用于 search_pages
+    default: 10

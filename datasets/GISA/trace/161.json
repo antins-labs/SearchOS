@@ -1,0 +1,70 @@
+{
+  "search": [
+    "count of UN Security Council resolutions veto"
+  ],
+  "result": {
+    "count of UN Security Council resolutions veto": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Security Council Data - Vetoes since 1946 The dataset provides an overview of all vetoes cast by the five permanent members of the Security Council since 1946 ...Read more",
+            "title": "UN Security Council Meetings & Outcomes Tables: Vetoes",
+            "url": "https://research.un.org/en/docs/sc/quick"
+          },
+          {
+            "snippet": "This is a list of United Nations Security Council Resolutions that have been vetoed by one of the five permanent members of the Security Council since 16 ...Read more",
+            "title": "List of vetoed United Nations Security Council resolutions",
+            "url": "https://en.wikipedia.org/wiki/List_of_vetoed_United_Nations_Security_Council_resolutions"
+          },
+          {
+            "snippet": "Data from 1946-2004 were taken from the official list of vetoes contained in document A/58/47, Annex III. * source: \"Peace and Security Data Hub: Security ...Read more",
+            "title": "Veto List",
+            "url": "https://www.un.org/depts/dhl/resguide/scact_veto_table_en.htm"
+          },
+          {
+            "snippet": "The US cast the first of its 82 vetoes to date on 17 March 1970 (S/9696 and Corr. 1 and 2). The USSR had by that point cast 107 vetoes. Since ...Read more",
+            "title": "The Veto : UN Security Council Working Methods",
+            "url": "https://www.securitycouncilreport.org/un-security-council-working-methods/the-veto.php"
+          },
+          {
+            "snippet": "If one of the permanent members votes against a resolution, it cannot be passed. This is the rule often referred to as the veto.Read more",
+            "title": "Resolutions and the veto - Security Council",
+            "url": "https://www.dagdok.org/w/dd/en/un-system/security-council/resolutions-and-the-veto"
+          },
+          {
+            "snippet": "Over the past decade, the UNSC has passed 454 resolutions and vetoed 30 resolutions on these 23 protracted crises. 8 out of 12 resolutions ...Read more",
+            "title": "UN Security Council casts nearly all vetoes last decade on ...",
+            "url": "https://www.oxfam.org/en/press-releases/un-security-council-casts-nearly-all-vetoes-last-decade-syria-palestine-and-ukraine"
+          },
+          {
+            "snippet": "Table 4 records all vetoes cast from 1946 to present. This listing is by number of proposals vetoed, with the running tally also shown for each permanent ...Read more",
+            "title": "Table 4: Vetoes Cast | unsc-procedure",
+            "url": "https://www.scprocedure.org/table-4-vetoes-cast"
+          },
+          {
+            "snippet": "Since the UN's establishment in 1945, the veto has been used over 300 times, primarily by the U.S., Russia (or the Soviet Union), and, to a ...Read more",
+            "title": "The History of the United Nations Security Council Veto",
+            "url": "https://betterworldcampaign.org/peace-and-security/un-explained-the-history-of-the-united-nations-security-council-veto"
+          },
+          {
+            "snippet": "Many have followed suit ever since, of which 220 have been vetoed by at least one of the Permanent Members.Read more",
+            "title": "Chart: Who Vetoed the Most in the UN?",
+            "url": "https://www.statista.com/chart/10758/un-security-council-resolutions-vetoed/?srsltid=AfmBOopU88cuuWRILh-706jTtv7SZpi4YRelDQ1hg6NdYvovjQSTduC3"
+          },
+          {
+            "snippet": "Counting the years when the Soviet Union held its seat, Russia has been the most frequent user of the veto, blocking 159 resolutions since the ...Read more",
+            "title": "The UN Security Council",
+            "url": "https://www.cfr.org/backgrounder/un-security-council"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>count of UN Security Council resolutions veto</search>",
+      "to": "https://research.un.org/en/docs/sc/quick"
+    }
+  ]
+}

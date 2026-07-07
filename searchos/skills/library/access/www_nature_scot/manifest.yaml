@@ -1,0 +1,22 @@
+description: >-
+  Access skill for NatureScot (www.nature.scot). Attempts to fetch protected area pages and reports; 
+  reports Cloudflare-block conditions when automated access is denied. Provides site access health 
+  diagnostics and robust fetch_page behavior aligned with observed Cloudflare protections.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - fetch_page   Fetch a single page by URL; reports Cloudflare status and diagnostics. Requires 'url'.
+        - check_access_health   Check NatureScot site accessibility and return Cloudflare status and diagnostics.
+  url:
+    type: string
+    required: false
+    description: Full URL to fetch (used by fetch_page).
+  timeout:
+    type: integer
+    required: false
+    description: Timeout in seconds for HTTP/browser operations; used by fetch_page/check_access_health.
+    default: 30

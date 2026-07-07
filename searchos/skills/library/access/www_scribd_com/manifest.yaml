@@ -1,0 +1,38 @@
+description: >-
+  Fetches document metadata and content from Scribd document pages. Attempts
+  multiple access strategies including browser automation and direct HTTP
+  requests to handle Scribd's anti-bot protection.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_document   Fetch document metadata and content from a Scribd URL or document ID
+        - extract_tables Extract ranking tables from document content (when table_data is provided)
+  url:
+    type: string
+    required: false
+    description: >
+      Full Scribd document URL (e.g., 
+      https://www.scribd.com/document/12345/document-title). Required for 
+      get_document function if doc_id is not provided.
+  doc_id:
+    type: string
+    required: false
+    description: >
+      Scribd document ID (e.g., 880794922). Required for get_document function 
+      if url is not provided.
+  table_data:
+    type: array
+    required: false
+    description: >
+      Array of table row objects for processing. Used by extract_tables 
+      function. Each row should have consistent keys representing columns.
+  max_pages:
+    type: integer
+    required: false
+    description: >
+      Maximum number of pages to extract content from. Default is all pages.
+      Used by get_document function.

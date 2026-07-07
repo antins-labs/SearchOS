@@ -1,0 +1,35 @@
+description: >-
+  Fetch product catalog data from www.lzljglobal.com - 泸州老窖国际发展（香港）有限公司,
+  including product listings, details, categories, and search functionality.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_products   获取产品列表，支持分类和分页，需要category_id参数，可选page参数
+        - get_product     获取单个产品详情，需要category_id和product_id参数
+        - search_products 跨分类搜索产品标题，需要query参数，可选category_id参数限制搜索范围
+        - get_categories  获取所有可用产品分类，无需额外参数
+  
+  category_id:
+    type: string
+    required: false
+    description: 产品分类ID，list_products和get_product必需，search_products可选。有效值为"15"(国窖1573)、"16"(泸州老窖头曲)、"17"(泸州老窖二曲)、"18"(泸州老窖特曲)
+  
+  product_id:
+    type: string
+    required: false
+    description: 产品ID，get_product功能必需，如"11"、"61"等
+  
+  page:
+    type: integer
+    required: false
+    description: 页码，list_products功能可选，默认为1
+    default: 1
+  
+  query:
+    type: string
+    required: false
+    description: 搜索关键词，search_products功能必需，用于在产品标题中搜索

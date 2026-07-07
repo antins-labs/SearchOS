@@ -1,0 +1,28 @@
+description: >-
+  Fetches Grammy Awards nomination and winner data from grammy.com, including
+  complete award ceremony listings with all categories and winners, and detailed
+  category pages with nominees and credits.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - fetch_award_ceremony   获取指定届次格莱美颁奖礼的所有奖项类别和获奖者; 需要url参数
+        - fetch_category_details 获取特定奖项类别的详细信息,包括获奖者和被提名者; 需要url参数
+        - search_awards_by_year  根据年份查找格莱美颁奖礼URL; 需要year参数
+  url:
+    type: string
+    required: false
+    description: >-
+      Grammy网站URL。用于fetch_award_ceremony和fetch_category_details功能。
+      颁奖礼URL格式: https://www.grammy.com/awards/58th-annual-grammy-awards/
+      类别URL格式: https://www.grammy.com/awards/categories/album-of-the-year/2016/
+  year:
+    type: integer
+    required: false
+    description: >-
+      格莱美颁奖礼的年份(电视转播年份)。用于search_awards_by_year功能。
+      例如: 2016对应第58届格莱美奖, 2020对应第62届格莱美奖。
+      格莱美奖始于1959年(第1届)。

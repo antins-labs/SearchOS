@@ -1,0 +1,26 @@
+description: Extract program information from University of Queensland's study portal including program
+  details, entry requirements, fees, and course information
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_program   Get detailed information about a specific program including\
+      \ description, fees, duration, entry requirements, and career outcomes\n  - search_programs   Search\
+      \ for programs by title or program code\n  - list_programs   List all available programs from the\
+      \ UQ program database"
+  program_code:
+    type: string
+    required: false
+    description: The program code (e.g., "5743" for Master of Civil Engineering)
+  year:
+    type: integer
+    required: false
+    description: The academic year (e.g., 2025, 2026). If not specified, returns data for available years.
+  title:
+    type: string
+    required: false
+    description: Search term to find in program titles
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of results to return (default 50)

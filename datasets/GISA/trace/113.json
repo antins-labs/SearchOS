@@ -1,0 +1,130 @@
+{
+  "search": [
+    "csgo world rank player"
+  ],
+  "result": {
+    "csgo world rank player": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "The biggest and most comprehensive player database of Counter-Strike stats in the world!",
+            "title": "Counter-Strike Player statistics database",
+            "url": "https://www.hltv.org/stats/players"
+          },
+          {
+            "snippet": "Started in 2010, Top 20 Players of the Year is HLTV's annual tradition of ranking the 20 best players of each year based on players' ...",
+            "title": "HLTV Top 20 Players of the Year",
+            "url": "https://liquipedia.net/counterstrike/HLTV/Top_20_Players"
+          },
+          {
+            "snippet": "CS:GO Player Rankings. Here you can see all professional counter strike players. Region. North America; South America; Europe; CIS; China; SEA & Oceania; MENA.",
+            "title": "CS:GO Player Rankings",
+            "url": "https://ggscore.com/en/csgo/player"
+          },
+          {
+            "snippet": "On December 24, we began unveiling the fifteenth edition of the Top 20 players of the year ranking. As is the tradition, one name was revealed each day in ...",
+            "title": "Top 20 players of 2025: Final list",
+            "url": "https://www.hltv.org/news/43492/top-20-players-of-2025-final-list"
+          },
+          {
+            "snippet": "Player Rankings is based on the results of the last 30 matches and their playing career experience. For each position (role) points are considered differently.",
+            "title": "CS 2 Players Ranking - Escorenews.com",
+            "url": "https://escorenews.com/en/csgo/player"
+          },
+          {
+            "snippet": "One of the top players among the global elite is s1mple, aka Oleksandr Kostylev, from the Natus Vincere team. This guy is generally recognized as one of the ...",
+            "title": "CS2 pro player rankings",
+            "url": "https://profilerr.net/cs-go/pro-players/"
+          },
+          {
+            "snippet": "Ranking All HLTV No. 1 Players From ALL Years? · s1mple 2018 · s1mple 2021 · ZywOo 2023 · ZywOo 2019 · coldzera 2017 · olofmeister 2015 · s1mple 2022.",
+            "title": "Ranking All HLTV No. 1 Players From ALL Years?",
+            "url": "https://www.reddit.com/r/GlobalOffensive/comments/1960r02/ranking_all_hltv_no_1_players_from_all_years/"
+          },
+          {
+            "snippet": "From Major MVPs to rising talents, this list ranks the top 20 CS2 pros based on recent performance, consistency, and team impact.",
+            "title": "Best CS2 Players of 2026 – TOP 20",
+            "url": "https://tradeit.gg/blog/best-cs2-players/?srsltid=AfmBOoqIIc8Kqi1OWtAvv9Mu9DuBg9_Oyjci5EdKNGNr1r3gVbfcEjPw"
+          },
+          {
+            "snippet": "Compete on your favorite games. Join matchmaking, leagues, daily tournaments and win prizes. Find or create competitions today!",
+            "title": "EU Rankings",
+            "url": "https://www.faceit.com/en/cs2/rank/matchmaking?country=none"
+          },
+          {
+            "snippet": "",
+            "title": "Ranking EVERY Counter-Strike Player",
+            "url": "https://www.youtube.com/watch?v=f77oDFVhxW0"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>csgo world rank player</search>",
+      "to": "https://www.hltv.org/stats/players"
+    },
+    {
+      "from": "https://www.hltv.org/stats/players",
+      "to": "https://www.hltv.org/stats/players/21167/donk"
+    },
+    {
+      "from": "https://www.hltv.org/stats/players/21167/donk",
+      "to": "https://www.hltv.org/stats/players/21167/donk?startDate=2024-01-01&endDate=2024-12-31"
+    },
+    {
+      "from": "https://www.hltv.org/stats/players/21167/donk",
+      "to": "https://www.hltv.org/stats/players/21167/donk?startDate=2024-01-01&endDate=2024-12-31"
+    },
+    {
+      "from": "https://www.hltv.org/stats/players/21167/donk?startDate=2024-01-01&endDate=2024-12-31",
+      "to": "https://www.hltv.org/stats/players/matches/21167/donk?startDate=2024-01-01&endDate=2024-12-31"
+    },
+    {
+      "from": "https://www.hltv.org/stats/players/21167/donk?startDate=2024-01-01&endDate=2024-12-31",
+      "to": "https://www.hltv.org/stats/players/matches/21167/donk?startDate=2024-01-01&endDate=2024-12-31"
+    },
+    {
+      "from": "https://www.hltv.org/stats/players/matches/21167/donk?startDate=2024-01-01&endDate=2024-12-31",
+      "to": "https://www.hltv.org/stats/matches/mapstatsid/187413/spirit-vs-g2?startDate=2024-01-01&endDate=2024-12-31&contextIds=21167&contextTypes=player"
+    },
+    {
+      "from": "https://www.hltv.org/stats/matches/mapstatsid/187413/spirit-vs-g2?startDate=2024-01-01&endDate=2024-12-31&contextIds=21167&contextTypes=player",
+      "to": "https://www.hltv.org/stats/players/matches/21167/donk?startDate=2024-01-01&endDate=2024-12-31"
+    },
+    {
+      "from": "https://www.hltv.org/stats/players/matches/21167/donk?startDate=2024-01-01&endDate=2024-12-31",
+      "to": "https://www.hltv.org/stats/matches/mapstatsid/184981/spirit-vs-astralis?startDate=2024-01-01&endDate=2024-12-31&contextIds=21167&contextTypes=player"
+    },
+    {
+      "from": "https://www.hltv.org/stats/matches/mapstatsid/184981/spirit-vs-astralis?startDate=2024-01-01&endDate=2024-12-31&contextIds=21167&contextTypes=player",
+      "to": "https://www.hltv.org/stats/players/matches/21167/donk?startDate=2024-01-01&endDate=2024-12-31"
+    },
+    {
+      "from": "https://www.hltv.org/stats/players/matches/21167/donk?startDate=2024-01-01&endDate=2024-12-31",
+      "to": "https://www.hltv.org/stats/matches/mapstatsid/183250/mibr-vs-spirit?startDate=2024-01-01&endDate=2024-12-31&contextIds=21167&contextTypes=player"
+    },
+    {
+      "from": "https://www.hltv.org/stats/players/matches/21167/donk?startDate=2024-01-01&endDate=2024-12-31",
+      "to": "https://www.hltv.org/stats/matches/mapstatsid/181193/spirit-vs-g2?startDate=2024-01-01&endDate=2024-12-31&contextIds=21167&contextTypes=player"
+    },
+    {
+      "from": "https://www.hltv.org/stats/matches/mapstatsid/181193/spirit-vs-g2?startDate=2024-01-01&endDate=2024-12-31&contextIds=21167&contextTypes=player",
+      "to": "https://www.hltv.org/stats/players/matches/21167/donk?startDate=2024-01-01&endDate=2024-12-31"
+    },
+    {
+      "from": "https://www.hltv.org/stats/players/matches/21167/donk?startDate=2024-01-01&endDate=2024-12-31",
+      "to": "https://www.hltv.org/stats/matches/mapstatsid/181127/the-mongolz-vs-spirit?startDate=2024-01-01&endDate=2024-12-31&contextIds=21167&contextTypes=player"
+    },
+    {
+      "from": "https://www.hltv.org/stats/matches/mapstatsid/181127/the-mongolz-vs-spirit?startDate=2024-01-01&endDate=2024-12-31&contextIds=21167&contextTypes=player",
+      "to": "https://www.hltv.org/stats/players/matches/21167/donk?startDate=2024-01-01&endDate=2024-12-31"
+    },
+    {
+      "from": "https://www.hltv.org/stats/matches/mapstatsid/179208/spirit-vs-g2?startDate=2024-01-01&endDate=2024-12-31&contextIds=21167&contextTypes=player",
+      "to": "https://www.hltv.org/stats/players/matches/21167/donk?startDate=2024-01-01&endDate=2024-12-31"
+    }
+  ]
+}

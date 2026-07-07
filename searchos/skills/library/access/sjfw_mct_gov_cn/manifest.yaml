@@ -1,0 +1,43 @@
+description: >-
+  Fetches tourism data from the Ministry of Culture and Tourism data portal
+  (sjfw.mct.gov.cn), including national 5A attractions, five-star hotels,
+  tourist resorts, ski resorts, leisure districts, and industrial tourism bases.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_types      列出所有可用的数据类型
+        - fetch           获取指定类型的全部数据（需提供 type_id）
+        - count           获取指定类型的数据条数（需提供 type_id）
+        - filter_province 按省份筛选数据（需提供 type_id 和 province_name）
+        - search          按名称搜索（需提供 type_id 和 name_keyword）
+
+  type_id:
+    type: integer
+    required: false
+    description: |
+      数据类型ID，用于 fetch、count、filter_province、search 功能。
+      可用值:
+        - 10:  国家5A级旅游景区
+        - 11:  五星级旅游饭店
+        - 54:  国家级旅游度假区
+        - 135: 国家级滑雪旅游度假地
+        - 138: 国家级旅游休闲街区
+        - 143: 国家工业旅游示范基地
+
+  province_name:
+    type: string
+    required: false
+    description: |
+      省份名称，用于 filter_province 功能筛选数据。
+      例如: "北京"、"上海"、"广东"、"浙江"
+
+  name_keyword:
+    type: string
+    required: false
+    description: |
+      名称关键词，用于 search 功能搜索数据。
+      例如: "长城"、"迪士尼"、"温泉"

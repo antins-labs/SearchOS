@@ -1,0 +1,19 @@
+Airline Name,Required Check-in,Reason for Check-in
+Aerolíneas Argentinas,Yes,Dimension
+Aeromexico,No,N/A
+Air Europa,Yes,Dimension
+Air France,Yes,Dimension
+China Airlines,Yes,Both
+China Eastern,Yes,Dimension
+Delta Air Lines,Yes,Dimension
+Garuda Indonesia,Yes,Both
+Kenya Airways,Yes,Dimension
+KLM,Yes,Dimension
+Korean Air,Yes,Dimension
+MEA,No,N/A
+SAS,Yes,Dimension
+Saudia,Yes,Weight
+TAROM,Yes,Dimension
+Vietnam Airlines,Yes,Dimension
+Virgin Atlantic,Yes,Dimension
+XiamenAir,Yes,Both

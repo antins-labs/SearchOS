@@ -1,0 +1,17 @@
+{
+  "host": "api.stackexchange.com",
+  "invocation": "agent_called",
+  "probe_urls": [
+    "https://api.stackexchange.com/2.3/search/advanced?site=stackoverflow&q=python+async&pagesize=3",
+    "https://api.stackexchange.com/2.3/search/advanced?site=serverfault&q=kubernetes&pagesize=3"
+  ],
+  "heldout_url": "https://api.stackexchange.com/2.3/search/advanced?site=serverfault&q=kubernetes&pagesize=3",
+  "declared_fields": [
+    "title",
+    "link",
+    "score",
+    "answer_count",
+    "tags",
+    "creation_date"
+  ]
+}

@@ -1,0 +1,40 @@
+description: >-
+  Extract structured film festival data from La Biennale di Venezia (Venice Film Festival)
+  including lineup sections, film listings, and detailed film information.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_lineup   获取指定年份的电影节单元列表（如Venezia 76、Orizzonti等）
+        - get_section  获取单元页面中的所有影片列表
+        - get_film     获取单个影片的详细信息（导演、演员、制作团队等）
+        - search_films 在指定年份的电影节中搜索影片
+  
+  year:
+    type: string
+    required: false
+    description: |
+      电影节年份（如2019、2020等）。用于get_lineup和search_films功能。
+      默认值为2019。
+  
+  url:
+    type: string
+    required: false
+    description: |
+      完整的页面URL。用于get_section和get_film功能，直接指定要抓取的页面。
+  
+  section_path:
+    type: string
+    required: false
+    description: |
+      单元路径名称（如venezia-76-competition、out-competition、orizzonti等）。
+      与year参数一起使用，用于构建get_section的URL。
+  
+  query:
+    type: string
+    required: false
+    description: |
+      搜索关键词（影片标题或导演名）。用于search_films功能，在指定年份的所有单元中搜索匹配的影片。

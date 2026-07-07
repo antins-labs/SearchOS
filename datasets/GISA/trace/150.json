@@ -1,0 +1,72 @@
+{
+  "search": [
+    "cites appendix ii"
+  ],
+  "result": {
+    "cites appendix ii": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Appendices I, II and III to the Convention are lists of species afforded different levels or types of protection from over-exploitation (see How CITES ...",
+            "title": "The CITES Appendices",
+            "url": "https://cites.org/eng/app/index.php"
+          },
+          {
+            "snippet": "This is a list of species of plants and animals protected by Appendix II of the Convention on International Trade in Endangered Species of Wild Fauna and Flora ...",
+            "title": "List of species protected by CITES Appendix II",
+            "url": "https://en.wikipedia.org/wiki/List_of_species_protected_by_CITES_Appendix_II"
+          },
+          {
+            "snippet": "Appendix II lists over 39,000 species which are not necessarily threatened with extinction but may become so unless trade is controlled. Their ...",
+            "title": "Conservation - Endangered Species Protection - CITES",
+            "url": "https://www.afcd.gov.hk/english/conservation/con_end/con_end_cites/con_end_cites.html"
+          },
+          {
+            "snippet": "CITES is a global treaty to ensure international trade in wild plants and animals is legal, traceable, and biologically sustainable.",
+            "title": "CITES Appendix II",
+            "url": "https://www.fws.gov/media/cites-appendix-ii"
+          },
+          {
+            "snippet": "CITES Appendix II​​ GENUS listing Abronia spp. Except the species included in Appendix I. Zero export quota for wild specimens for Abronia aurita, A. ...",
+            "title": "Checklist of CITES species",
+            "url": "https://checklist.cites.org/"
+          },
+          {
+            "snippet": "Appendix II lists \"all species which although not necessarily now threatened with extinction may become so unless trade in specimens of such species is subject ...",
+            "title": "Appendix II of the CITES",
+            "url": "https://www.era-comm.eu/Biodiversity_and_Wildlife_Trafficking/module_1/1_Chapter_4_appendix_II.html"
+          },
+          {
+            "snippet": "The vast majority of taxa listed under CITES are listed in Appendix II. ... List of species protected by CITES Appendix II · List of species protected by ...",
+            "title": "CITES",
+            "url": "https://en.wikipedia.org/wiki/CITES"
+          },
+          {
+            "snippet": "1. Appendices I, II and III list the species covered by the Convention and may be amended pursuant to Articles XV (Appendices I and II) and XVI (Appendix III).",
+            "title": "Appendix",
+            "url": "https://cites.org/eng/node/130903"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>cites appendix ii</search>",
+      "to": "https://cites.org/eng/app/index.php"
+    },
+    {
+      "from": "https://cites.org/eng/app/index.php",
+      "to": "https://cites.org/eng/app/appendices.php"
+    },
+    {
+      "from": "https://cites.org/eng/app/appendices.php",
+      "to": "https://cites.org/sites/default/files/eng/app/2025/E-Appendices-2025-02-07.pdf"
+    },
+    {
+      "from": "<search>cites appendix ii</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_species_protected_by_CITES_Appendix_II"
+    }
+  ]
+}

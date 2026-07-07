@@ -1,0 +1,82 @@
+description: >-
+  Fetches economic and development indicators from the World Bank API (api.worldbank.org) including GDP, population, health, education, and military expenditure data for countries worldwide.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_indicator_data   获取指定国家/地区的指标数据；需要 country_codes 和 indicator_code，可选 start_year、end_year、most_recent_only、per_page
+        - list_countries       列出所有可用国家/地区；可选 income_level、region、lending_type、per_page 筛选
+        - list_indicators      列出可用指标；可选 source、topic、per_page 筛选
+        - get_indicator_info   获取单个指标的详细信息；需要 indicator_code
+        - get_country_info     获取单个国家/地区的详细信息；需要 country_code
+
+  country_codes:
+    type: array
+    items:
+      type: string
+    required: false
+    description: |
+      国家代码列表（用于 get_indicator_data）。支持2字母或3字母代码，如 ['US']、['US', 'CN', 'JP']。
+      使用 ['all'] 可获取所有国家数据。也可传逗号或分号分隔的字符串如 "US;CN;JP"。
+
+  indicator_code:
+    type: string
+    required: false
+    description: |
+      世界银行指标代码（用于 get_indicator_data 和 get_indicator_info）。
+      常用指标：NY.GDP.MKTP.CD (GDP现价美元)、SP.POP.TOTL (总人口)、MS.MIL.XPND.CD (军事支出)。
+
+  start_year:
+    type: integer
+    required: false
+    description: 数据起始年份（用于 get_indicator_data，与 end_year 配合使用可指定日期范围）。
+
+  end_year:
+    type: integer
+    required: false
+    description: 数据结束年份（用于 get_indicator_data，与 start_year 配合使用可指定日期范围）。
+
+  most_recent_only:
+    type: boolean
+    required: false
+    default: false
+    description: 是否只返回最近的非空值（用于 get_indicator_data）。
+
+  per_page:
+    type: integer
+    required: false
+    default: 1000
+    description: 每页返回的结果数量，用于分页控制（适用于 get_indicator_data、list_countries、list_indicators）。
+
+  income_level:
+    type: string
+    required: false
+    description: 按收入水平筛选国家（用于 list_countries）。常见值：HIC (高收入)、MIC (中等收入)、LIC (低收入)。
+
+  region:
+    type: string
+    required: false
+    description: 按地区筛选国家（用于 list_countries）。常见值：EAS (东亚太平洋)、ECS (欧洲中亚)、NAC (北美)。
+
+  lending_type:
+    type: string
+    required: false
+    description: 按贷款类型筛选国家（用于 list_countries）。常见值：IBD、IDX、LNX。
+
+  source:
+    type: integer
+    required: false
+    description: 按数据来源ID筛选指标（用于 list_indicators）。例如 2 代表世界发展指标。
+
+  topic:
+    type: integer
+    required: false
+    description: 按主题ID筛选指标（用于 list_indicators）。
+
+  country_code:
+    type: string
+    required: false
+    description: 单个国家代码（用于 get_country_info）。支持2字母或3字母代码如 US 或 USA。

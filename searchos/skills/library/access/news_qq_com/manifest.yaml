@@ -1,0 +1,26 @@
+description: >-
+  Extracts full article content and comments from Tencent News (news.qq.com),
+  reliably parsing structured content including championship lists and tables
+  that generic readers may miss.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - fetch_article   获取单篇文章内容，需要 article_id 或 url 参数
+        - fetch_comments  获取文章评论列表，需要 article_id 或 url 参数，可选 req_num 参数
+        - fetch_full_article  同时获取文章内容和评论，需要 article_id 或 url 参数
+  article_id:
+    type: string
+    required: false
+    description: 文章ID，格式如 20240809A0A61900，可从URL中提取
+  url:
+    type: string
+    required: false
+    description: 文章完整URL，如 https://news.qq.com/rain/a/20240809A0A61900
+  req_num:
+    type: integer
+    required: false
+    description: 获取评论数量，仅在 function=fetch_comments 时使用，默认20

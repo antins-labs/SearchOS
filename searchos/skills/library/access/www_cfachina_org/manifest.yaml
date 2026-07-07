@@ -1,0 +1,55 @@
+description: >-
+  Access China Futures Association (CFA) monthly transaction statistics from www.cfachina.org,
+  including listing available monthly reports, retrieving report details, and downloading/parsing
+  Excel data files containing futures trading volume and value data across exchanges.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_reports   List available monthly transaction reports (params: page, max_pages)
+        - get_report     Get details of a specific report including summary text (params: url or report_id)
+        - download_excel Download and parse Excel data file (params: url or report_url, month)
+        - search_reports Search for reports by year and/or month (params: year, month, max_results)
+  
+  page:
+    type: integer
+    required: false
+    description: Page number for list_reports function (1-indexed, default: 1)
+  
+  max_pages:
+    type: integer
+    required: false
+    description: Maximum number of pages to fetch for list_reports (default: 1, max: 10)
+  
+  url:
+    type: string
+    required: false
+    description: Full URL of a report page or Excel file (used by get_report and download_excel)
+  
+  report_id:
+    type: string
+    required: false
+    description: Report ID from path for get_report (e.g., "202506/t20250611_80854")
+  
+  report_url:
+    type: string
+    required: false
+    description: Report page URL for download_excel (will extract Excel URL from it)
+  
+  month:
+    type: integer
+    required: false
+    description: Month number (1-12) to filter or extract specific sheet from Excel
+  
+  year:
+    type: integer
+    required: false
+    description: Year to filter reports (e.g., 2025) for search_reports
+  
+  max_results:
+    type: integer
+    required: false
+    description: Maximum number of results to return for search_reports (default: 50)

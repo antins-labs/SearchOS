@@ -1,0 +1,37 @@
+description: Access university ranking data from universityrankings.ch including QS, Times Higher Education,
+  Shanghai, and Leiden rankings with historical data
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_rankings          获取指定排名系统与年份的大学排名（需 system、year，可选 limit）
+        - get_institution       获取某机构的跨系统排名历史（需 institution_id）
+        - search_institutions   在指定排名中按名称/国家搜索机构（需 system、year，可选 query、country）
+        - list_available_years  列出某排名系统可用的年份（需 system）
+  system:
+    type: string
+    required: false
+    description: '排名系统:"QS" | "Times" | "Shanghai" | "Leiden"。用于 get_rankings / search_institutions / list_available_years。'
+  year:
+    type: string
+    required: false
+    description: '排名年份(如 "2024"、"2023")。用于 get_rankings / search_institutions。'
+  limit:
+    type: integer
+    required: false
+    default: 100
+    description: 返回结果上限。用于 get_rankings。
+  institution_id:
+    type: string
+    required: false
+    description: '机构 ID(如 "id6272-massachusetts_institute_of_technology_mit-usa")。用于 get_institution。'
+  query:
+    type: string
+    required: false
+    description: 机构名称搜索关键词。用于 search_institutions。
+  country:
+    type: string
+    required: false
+    description: 按国家名过滤。用于 search_institutions。

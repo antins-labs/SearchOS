@@ -1,0 +1,36 @@
+description: >-
+  Fetches company profile data from ZoomInfo pages. Note: ZoomInfo employs
+  aggressive bot detection (PerimeterX/Cloudflare), so company profile pages
+  (/c/) may return 403. Public pages (/about, /blog) are accessible and
+  contain some organizational data.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_company_profile  Attempts to fetch company profile from /c/ URL; requires url parameter
+        - get_public_page      Fetches public ZoomInfo pages (about, blog); requires url parameter
+        - search_companies     Searches ZoomInfo via Google/Bing cache; requires query parameter
+        - get_sitemap          Retrieves available sitemaps and public listing URLs
+  url:
+    type: string
+    required: false
+    description: Full ZoomInfo URL to fetch (e.g., https://www.zoominfo.com/c/company-name/id)
+  query:
+    type: string
+    required: false
+    description: Company name or keywords to search (used with search_companies)
+  company_name:
+    type: string
+    required: false
+    description: Company name (used with search_companies for better results)
+  company_id:
+    type: string
+    required: false
+    description: ZoomInfo company ID (numeric string in /c/ URLs)
+  include_contact_info:
+    type: boolean
+    required: false
+    description: Whether to include contact information in results (default: false)

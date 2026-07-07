@@ -1,0 +1,31 @@
+description: ''
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_rankings   Get the complete Top 50 ranking list for a specific\
+      \ category and year\n  - search_companies   Search for companies by name across one or all ranking\
+      \ lists\n  - get_company_details   Get rankings details for a specific company across all list types\n\
+      \  - get_list_info   Get information about available ranking lists and years"
+  list_type:
+    type: string
+    required: false
+    description: Type of ranking list - 'managers', 'owners', or 'builders'
+    default: managers
+  year:
+    type: integer
+    required: false
+    description: Year of the rankings (2020-2025 available)
+    default: 2025
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of results to return (optional)
+  query:
+    type: string
+    required: false
+    description: Company name search query (case-insensitive substring match)
+  company_name:
+    type: string
+    required: false
+    description: Exact or partial company name to look up

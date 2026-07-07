@@ -1,0 +1,70 @@
+description: >-
+  Fetches and parses BLS State and Area Employment (SM) bulk data files from download.bls.gov,
+  including time series data, series metadata, and reference code tables.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - fetch_data_file     Fetch time series data file for a specific state; requires state or file_path
+        - fetch_series_file   Fetch series metadata file with optional limit
+        - fetch_area_codes    Fetch geographic area codes reference file
+        - fetch_industry_codes Fetch industry codes reference file
+        - fetch_data_type_codes Fetch data type codes reference file
+        - fetch_footnote_codes Fetch footnote codes reference file
+        - parse_series_id     Parse a BLS series ID into component codes; requires series_id
+        - list_available_files List available state data files
+
+  state:
+    type: string
+    required: false
+    description: State name for data file (e.g., "Alabama", "California"); used by fetch_data_file
+    # Case-insensitive, will be normalized to match BLS naming convention
+
+  file_path:
+    type: string
+    required: false
+    description: Direct file path (e.g., "sm.data.1.Alabama"); alternative to state parameter; used by fetch_data_file
+
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of records to return; used by fetch_data_file, fetch_series_file
+    default: 10000
+
+  offset:
+    type: integer
+    required: false
+    description: Number of records to skip; used by fetch_data_file, fetch_series_file for pagination
+    default: 0
+
+  series_id:
+    type: string
+    required: false
+    description: BLS series ID to parse (e.g., "SMU01000000000000001"); used by parse_series_id
+
+  include_header:
+    type: boolean
+    required: false
+    description: Whether to include column headers in output; used by fetch_data_file, fetch_series_file
+    default: true
+
+  timeout:
+    type: integer
+    required: false
+    description: Request timeout in seconds
+    default: 60
+
+  retry_count:
+    type: integer
+    required: false
+    description: Number of retry attempts on failure
+    default: 3
+
+  retry_delay:
+    type: integer
+    required: false
+    description: Delay between retries in seconds
+    default: 5

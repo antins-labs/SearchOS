@@ -1,0 +1,31 @@
+{
+  "candidate": "exchange_rate_snapshot",
+  "host": "api.frankfurter.app",
+  "passing": false,
+  "gates": [
+    {
+      "name": "A_agent",
+      "passed": false,
+      "reason": "params_schema_missing_query",
+      "detail": {
+        "params_schema": {
+          "from": {
+            "type": "string",
+            "required": true,
+            "description": "The base currency code (e.g., USD, EUR)"
+          },
+          "to": {
+            "type": "string",
+            "required": true,
+            "description": "Comma-separated list of target currency codes (e.g., EUR,GBP,JPY)"
+          },
+          "amount": {
+            "type": "number",
+            "default": 1,
+            "description": "The amount of base currency to convert"
+          }
+        }
+      }
+    }
+  ]
+}

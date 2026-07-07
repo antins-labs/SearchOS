@@ -1,0 +1,28 @@
+description: >-
+  Fetches detailed product specifications from the Google Store (store.google.com),
+  including specs for Pixel phones, tablets, and audio devices.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_specs        获取指定产品的详细规格; 需要 product_slug 参数
+        - list_products    列出所有已知可用的产品规格页面
+        - search_products  搜索匹配查询的产品; 需要 query 参数
+  
+  product_slug:
+    type: string
+    required: false
+    description: >
+      产品标识符，用于 get_specs 功能。
+      例如: pixel_9a_specs, pixel_10_pro_specs, pixel_tablet_specs, pixel_buds_pro_2_specs
+      可以是完整的 slug 或 URL 的一部分。
+  
+  query:
+    type: string
+    required: false
+    description: >
+      搜索关键词，用于 search_products 功能。
+      例如: 'pixel 9', 'watch', 'tablet', 'buds'

@@ -1,0 +1,25 @@
+name: academic_paper
+invocation: agent_called
+description: >-
+  Search academic papers across Semantic Scholar, DBLP, and arXiv in
+  parallel. Deduplicates by title and returns papers with
+  title / authors / abstract / year / citation count / url / venue.
+params_schema:
+  query:
+    type: string
+    required: true
+    description: Free-text search query, e.g. "graph neural networks molecular property".
+  num_results:
+    type: integer
+    default: 5
+    description: Max papers per source (capped at 10).
+  year_range:
+    type: string
+    default: ""
+    description: >-
+      Year filter, e.g. "2023-2025" for 2023 through 2025 inclusive,
+      or "2024-" for 2024 onward. Empty = no year filter.
+  source:
+    type: string
+    default: all
+    description: One of "all" | "semantic_scholar" | "dblp" | "arxiv".

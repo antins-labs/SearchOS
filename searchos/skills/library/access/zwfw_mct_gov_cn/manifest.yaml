@@ -1,0 +1,55 @@
+description: >-
+  Query China Ministry of Culture and Tourism's 5-star hotel database for hotel listings and details.
+  Supports pagination, search by hotel name, and filtering by province. Returns comprehensive hotel 
+  information including hotel card ID, rating level, and location.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_hotels   列出酒店列表，支持分页和搜索，需要page_num、page_size、hotel_name、province参数
+        - get_hotel_detail   获取酒店详细信息，需要uuid参数
+        - search_hotels   搜索酒店并返回结果列表，需要query、province、max_results参数
+  
+  page_num:
+    type: integer
+    required: false
+    description: 页码，从1开始。用于list_hotels函数。
+    default: 1
+  
+  page_size:
+    type: integer
+    required: false
+    description: 每页数量，最大100。用于list_hotels函数。
+    default: 15
+  
+  hotel_name:
+    type: string
+    required: false
+    description: 酒店名称搜索关键词（部分匹配）。用于list_hotels函数。
+    default: ""
+  
+  province:
+    type: string
+    required: false
+    description: 省份筛选，如"北京"、"广东省"。用于list_hotels和search_hotels函数。
+    default: ""
+  
+  uuid:
+    type: string
+    required: false
+    description: 酒店唯一标识符。用于get_hotel_detail函数。
+  
+  query:
+    type: string
+    required: false
+    description: 酒店名称搜索关键词。用于search_hotels函数。
+    default: ""
+  
+  max_results:
+    type: integer
+    required: false
+    description: 最大返回结果数量。用于search_hotels函数。
+    default: 100

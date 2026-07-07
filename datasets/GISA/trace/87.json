@@ -1,0 +1,81 @@
+{
+  "search": [
+    "Vincent van Gogh The Museum of Modern Art (MoMA)"
+  ],
+  "result": {
+    "Vincent van Gogh The Museum of Modern Art (MoMA)": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "The Museum of Modern Art— Ninetieth Anniversary Edition Introduction by Glenn D. Lowry, 2019 Hardcover, 424 pages. Buy from the Design Store. Vincent van Gogh:Read more",
+            "title": "Vincent van Gogh",
+            "url": "https://www.moma.org/collection/artists/2206"
+          },
+          {
+            "snippet": "Vincent van Gogh. The Starry Night. Saint Rémy, June 1889. Oil on canvas. 29 x 36 1/4\" (73.7 x 92.1 cm). Acquired through the Lillie P. Bliss Bequest (by ...",
+            "title": "Vincent van Gogh. The Starry Night. Saint Rémy, June 1889",
+            "url": "https://www.moma.org/collection/works/79802"
+          },
+          {
+            "snippet": "The Starry Night, often called simply Starry Night, is an oil-on-canvas painting by the Dutch Post-Impressionist painter Vincent van Gogh, painted in June 1889.Read more",
+            "title": "The Starry Night",
+            "url": "https://en.wikipedia.org/wiki/The_Starry_Night"
+          },
+          {
+            "snippet": "On this day 90 years ago, the very first Vincent van Gogh exhibition opened at MoMA! Over 123000 people attended the exhibition, ...",
+            "title": "On this day 90 years ago, the very first Vincent van Gogh ...",
+            "url": "https://www.facebook.com/MuseumofModernArt/posts/on-this-day-90-years-ago-the-very-first-vincent-van-gogh-exhibition-opened-at-mo/1236698531830251/"
+          },
+          {
+            "snippet": "Vincent van Gogh With an introduction and notes selected from the letters of the artist, 1935 Out of print, 200 pages. Master checklist 74 pages.Read more",
+            "title": "Vincent van Gogh",
+            "url": "https://www.moma.org/calendar/exhibitions/1996"
+          },
+          {
+            "snippet": "",
+            "title": "Vincent Van Gogh's Starry Night at the MoMA | Artrageous ...",
+            "url": "https://www.youtube.com/watch?v=V7EAOnVkdbc"
+          },
+          {
+            "snippet": "On this day 90 years ago, the very first Vincent van Gogh exhibition opened at MoMA! Over 123,000 people attended the exhibition, ...Read more",
+            "title": "️ [1] Vincent van Gogh. “The Olive Trees. ...",
+            "url": "https://www.instagram.com/p/DQsK2GMAHa5/?hl=en"
+          },
+          {
+            "snippet": "During that time, the museum initiated many more exhibitions of noted artists, such as the lone Vincent van Gogh exhibition on November 4, 1935. Containing ...Read more",
+            "title": "Museum of Modern Art",
+            "url": "https://en.wikipedia.org/wiki/Museum_of_Modern_Art"
+          },
+          {
+            "snippet": "The gift, from the Henry and Rose Pearlman Foundation, includes works by Paul Cézanne, Vincent van Gogh, Amedeo Modigliani, Edgar Degas, Chaïm ...Read more",
+            "title": "MoMA, LACMA, and the Brooklyn Museum receive major ...",
+            "url": "https://www.artsy.net/article/artsy-editorial-moma-lacma-brooklyn-museum-receive-major-donation-including-van-gogh-modigliani-works"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>Vincent van Gogh The Museum of Modern Art (MoMA)</search>",
+      "to": "https://www.moma.org/collection/works/79802"
+    },
+    {
+      "from": "https://www.moma.org/collection/works/79802",
+      "to": "https://www.moma.org/artists/2206-vincent-van-gogh"
+    },
+    {
+      "from": "https://www.moma.org/artists/2206-vincent-van-gogh",
+      "to": "https://www.moma.org/collection/works/71621?artist_id=2206&page=1&sov_referrer=artist"
+    },
+    {
+      "from": "https://www.moma.org/artists/2206-vincent-van-gogh",
+      "to": "https://www.moma.org/collection/works/71621?artist_id=2206&page=1&sov_referrer=artist"
+    },
+    {
+      "from": "https://www.moma.org/artists/2206-vincent-van-gogh",
+      "to": "https://www.moma.org/collection/works/71621?artist_id=2206&page=1&sov_referrer=artist"
+    }
+  ]
+}

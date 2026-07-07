@@ -1,0 +1,24 @@
+description: 'Access Box Office Mojo yearly box office data including domestic and worldwide gross revenue,
+
+  theater counts, release dates, budget information, and distributor details for movies.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_yearly_box_office   Get complete box office rankings and data\
+      \ for a specific year\n  - list_top_movies   List top N movies for a given year\n  - get_movie_details\
+      \   Get detailed information about a specific movie release including worldwide gross, budget, opening\
+      \ weekend"
+  year:
+    type: integer
+    required: false
+    description: The year to retrieve box office data for (e.g., 2024, 2023)
+  count:
+    type: integer
+    required: false
+    description: Number of top movies to return (1-200)
+    default: 10
+  release_id:
+    type: string
+    required: false
+    description: The release ID from Box Office Mojo (e.g., 'rl3638199041')

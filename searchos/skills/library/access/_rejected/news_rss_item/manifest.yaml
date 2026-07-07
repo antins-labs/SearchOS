@@ -1,0 +1,20 @@
+name: news_rss_item
+invocation: agent_called
+description: "Search news.google.com \u2014 news_rss_item. RSS XML feed; requires\
+  \ XML parsing rather than HTML DOM traversal; no authentication needed."
+params_schema:
+  query:
+    type: string
+    required: true
+    description: The search query terms for news articles.
+  hl:
+    type: string
+    default: en-US
+    description: Language and region locale for the results (e.g., en-US).
+category: news
+entity_type: news_rss_item
+fields:
+- title
+- url
+- snippet
+- published

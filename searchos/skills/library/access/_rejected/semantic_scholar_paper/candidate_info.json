@@ -1,0 +1,17 @@
+{
+  "host": "api.semanticscholar.org",
+  "invocation": "agent_called",
+  "probe_urls": [
+    "https://api.semanticscholar.org/graph/v1/paper/search?query=graph+neural+networks&limit=3&fields=title,abstract,authors,year",
+    "https://api.semanticscholar.org/graph/v1/paper/search?query=climate+change&limit=3&fields=title,abstract,authors,year"
+  ],
+  "heldout_url": "https://api.semanticscholar.org/graph/v1/paper/search?query=climate+change&limit=3&fields=title,abstract,authors,year",
+  "declared_fields": [
+    "paper_id",
+    "title",
+    "abstract",
+    "year",
+    "authors",
+    "open_access_pdf_url"
+  ]
+}

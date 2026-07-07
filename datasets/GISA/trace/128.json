@@ -1,0 +1,320 @@
+{
+  "search": [
+    "ACL 2025 Best paper",
+    "A Theory of Response Sampling in LLMs: Part Descriptive and Part Prescriptive",
+    "Fairness through Difference Awareness: Measuring Desired Group Discrimination in LLMs",
+    "Language Models Resist Alignment: Evidence From Data Compression",
+    "Native Sparse Attention: Hardware-Aligned and Natively Trainable Sparse Attention"
+  ],
+  "result": {
+    "ACL 2025 Best paper": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Best Paper · A Theory of Response Sampling in LLMs: Part Descriptive and Part Prescriptive · Fairness through Difference Awareness: Measuring Desired Group ...Read more",
+            "title": "Awards",
+            "url": "https://2025.aclweb.org/program/awards/"
+          },
+          {
+            "snippet": "Just now, the NSA paper by Liang Wenfeng from DeepSeek and the team led by Yang Yaodong from Peking University won the Best Paper Award at ACL ...Read more",
+            "title": "DeepSeek's Liang Wenfeng & Peking University's Yang ...",
+            "url": "https://eu.36kr.com/en/p/3401632759482502"
+          },
+          {
+            "snippet": "by W Che · 2025 · Cited by 3 — Senior Area Chairs, Area Chairs, reviewers, and the Best Paper Committee (led by Rada Mihalcea and Roi Reichart), whose dedication ensured the ...Read more",
+            "title": "ACL 2025 The 63rd Annual Meeting of the Association for ...",
+            "url": "https://aclanthology.org/2025.acl-long.0.pdf"
+          },
+          {
+            "snippet": "We're excited to share that our work on multilingual resources has won two major awards at ACL 2025: Best Resource Paper and Best SemEval Task!",
+            "title": "GippLab wins ACL Best Paper Awards",
+            "url": "https://gipplab.uni-goettingen.de/gipplab-wins-acl-best-paper-awards/"
+          },
+          {
+            "snippet": "Deepseek just won the best paper award at ACL 2025 with a breakthrough innovation in long context, a model using this might come soon.Read more",
+            "title": "Deepseek just won the best paper award at ACL 2025 with ...",
+            "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mdn6dp/deepseek_just_won_the_best_paper_award_at_acl/"
+          },
+          {
+            "snippet": "Congratulations to all the outstanding and best paper award winners at #ACL2025NLP! [A few randomly selected photos from the awards session].Read more",
+            "title": "Congratulations to all the outstanding and best paper ...",
+            "url": "https://x.com/aclmeeting/status/1950745647214161930"
+          },
+          {
+            "snippet": "Best Paper Award at ACL 2025! Happy to share that our ACL paper, “Speed Without Sacrifice: Fine‑Tuning Language Models with Medusa and ...",
+            "title": "🏆 Best Paper Award at ACL 2025! 🏆 Happy to share that ...",
+            "url": "https://www.linkedin.com/posts/moran-beladev-762a2a176_best-paper-award-at-acl-2025-happy-activity-7356788038145863680-5gLV"
+          },
+          {
+            "snippet": "Record Breaking ACL 2025 Crowns Four Game-Changing Papers on Speed, Fairness & Safety for Next-Gen LLMs and Beyond | CSPaper Forum.Read more",
+            "title": "Record Breaking ACL 2025 Crowns Four Game-Changing ...",
+            "url": "https://forum.cspaper.org/topic/116/record-breaking-acl-2025-crowns-four-game-changing-papers-on-speed-fairness-safety-for-next-gen-llms-and-beyond"
+          },
+          {
+            "snippet": "by SH Muhammad · 2025 · Cited by 30 — In this paper, we present BRIGHTER–a collection of multi-labeled, emotion-annotated datasets in 28 different languages and across several domains.Read more",
+            "title": "BRIdging the Gap in Human-Annotated Textual Emotion ...",
+            "url": "https://aclanthology.org/2025.acl-long.436/"
+          },
+          {
+            "snippet": "Among the four best papers recognised by ACL, two author teams were from China. They included Liang's DeepSeek team and Yang Yaodong's team from ...Read more",
+            "title": "DeepSeek founder shares best paper award at top global ...",
+            "url": "https://www.scmp.com/tech/big-tech/article/3320255/deepseek-founder-shares-best-paper-award-top-global-ai-research-conference"
+          }
+        ]
+      }
+    ],
+    "A Theory of Response Sampling in LLMs: Part Descriptive and Part Prescriptive": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "by S Sivaprasad · 2024 · Cited by 1 — We study this sampling behavior and show that this underlying heuristics resembles that of human decision-making: comprising a descriptive component.Read more",
+            "title": "[2402.11005] A Theory of Response Sampling in LLMs",
+            "url": "https://arxiv.org/abs/2402.11005"
+          },
+          {
+            "snippet": "by S Sivaprasad · 2025 · Cited by 6 — We study this sampling behavior and show that this underlying heuristics resembles that of human decision-making: comprising a descriptive component.Read more",
+            "title": "A Theory of Response Sampling in LLMs: Part Descriptive ...",
+            "url": "https://aclanthology.org/2025.acl-long.1454/"
+          },
+          {
+            "snippet": "by S Sivaprasad · 2025 · Cited by 5 — When an LLM samples from multiple possibilities of a concept, the sampling heuristics is driven by a descriptive component (the statistical norm ...Read more",
+            "title": "A Theory of Response Sampling in LLMs: Part Descriptive ...",
+            "url": "https://aclanthology.org/2025.acl-long.1454.pdf"
+          },
+          {
+            "snippet": "by S Sivaprasad · Cited by 1 — We examine LLM response sampling and propose a theory that the sample of an LLM is driven by a descriptive component (the notion of statistical average) and ...",
+            "title": "Theory of LLM sampling: part descriptive and ...",
+            "url": "https://openreview.net/forum?id=ejvf3JrZuC"
+          },
+          {
+            "snippet": "Based on human cognitive studies, we propose a theory that explains the sampling heuristics to be part descriptive and part prescriptive. However, the exact ...Read more",
+            "title": "A Theory of Response Sampling in LLMs: Part Descriptive ...",
+            "url": "https://arxiv.org/html/2402.11005v4"
+          },
+          {
+            "snippet": "This supports the theory that an LLM's sampling behavior is influenced by a combination of descriptive norms-what is statistically likely-and ...Read more",
+            "title": "A Theory of Response Sampling in LLMs: Part Descriptive ...",
+            "url": "https://www.researchgate.net/publication/394272679_A_Theory_of_Response_Sampling_in_LLMs_Part_Descriptive_and_Part_Prescriptive"
+          },
+          {
+            "snippet": "By conceptualizing LLM sampling as a blend of descriptive and prescriptive influences, the theory offers a new lens for interpreting model ...",
+            "title": "A Theory of Response Sampling in LLMs",
+            "url": "https://chatpaper.com/paper/176850"
+          },
+          {
+            "snippet": "by S Sivaprasad · Cited by 1 — We study this heuristics and propose a theory that the sampling of an LLM is driven by a descriptive norm (the notion of statistical average) and a prescriptive ...Read more",
+            "title": "THEORY OF LLM SAMPLING: PART DESCRIPTIVE AND ...",
+            "url": "https://openreview.net/pdf/d3630fe1db2b6150ee2fe9da55ccb274cbf3c869.pdf"
+          },
+          {
+            "snippet": "",
+            "title": "PR-534: A Theory of Response Sampling in LLMs: Part ...",
+            "url": "https://www.youtube.com/watch?v=BTX4TO9bZ18"
+          },
+          {
+            "snippet": "Our paper, \"A Theory of Response Sampling in LLMs: Part Descriptive and Part Prescriptive\" has been accepted at ACL 2025 (Main Conference)!Read more",
+            "title": "Happy to report that our paper, \"A Theory of LLM Sampling",
+            "url": "https://x.com/pramod_kaushik/status/1926302792202731809"
+          }
+        ]
+      }
+    ],
+    "Fairness through Difference Awareness: Measuring Desired Group Discrimination in LLMs": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "by A Wang · 2025 · Cited by 13 — Fairness through Difference Awareness: Measuring Desired Group Discrimination in LLMs. Authors:Angelina Wang, Michelle Phan, Daniel E. Ho, Sanmi ...Read more",
+            "title": "[2502.01926] Fairness through Difference Awareness",
+            "url": "https://arxiv.org/abs/2502.01926"
+          },
+          {
+            "snippet": "by A Wang · 2025 · Cited by 13 — Fairness through Difference Awareness: Measuring Desired Group Discrimination in LLMs. In Proceedings of the 63rd Annual Meeting of the Association for ...Read more",
+            "title": "Fairness through Difference Awareness",
+            "url": "https://aclanthology.org/2025.acl-long.341/"
+          },
+          {
+            "snippet": "by A Wang · 2025 · Cited by 13 — Fairness through Difference Awareness: Measuring Desired Group Discrimination in LLMs. Angelina Wang. Stanford University, Cornell Tech.Read more",
+            "title": "Measuring Desired Group Discrimination in LLMs",
+            "url": "https://aclanthology.org/2025.acl-long.341.pdf"
+          },
+          {
+            "snippet": "Invited Talk: Fairness through Difference Awareness: Measuring Desired Group Discrimination in LLMs. Sanmi Koyejo · Angelina WangRead more",
+            "title": "Invited Talk: Fairness through Difference Awareness",
+            "url": "https://neurips.cc/virtual/2024/103988"
+          },
+          {
+            "snippet": "Difference-aware fairness offers an alternative perspective that explicitly acknowledges the importance of contextual differentiation. As argued ...Read more",
+            "title": "Measuring Desired Group Discrimination in LLMs",
+            "url": "https://www.researchgate.net/publication/394303187_Fairness_through_Difference_Awareness_Measuring_Desired_Group_Discrimination_in_LLMs"
+          },
+          {
+            "snippet": "Current generative AI models struggle to recognize when demographic distinctions matter—often leading to inaccurate and misleading outcomes.",
+            "title": "AI Fairness Through Difference Awareness - In Brief",
+            "url": "https://law.stanford.edu/stanford-lawyer/articles/ai-fairness-through-difference-awareness/"
+          },
+          {
+            "snippet": "This work introduces an important distinction between descriptive (fact-based), normative (value-based), and correlation (association-based) ...",
+            "title": "Measuring Desired Group Discrimination in LLMs",
+            "url": "https://www.semanticscholar.org/paper/2dfe534065f768b8b93fd40b6fac7677a9f70a05"
+          },
+          {
+            "snippet": "We present a benchmark suite composed of eight different scenarios for a total of 16k questions that enables us to assess difference awareness.Read more",
+            "title": "Measuring Desired Group Discrimination in LLMs",
+            "url": "https://arxiv.org/html/2502.01926v2"
+          },
+          {
+            "snippet": "Finally, we show results across ten models that demonstrate difference awareness is a distinct dimension to fairness where existing bias ...Read more",
+            "title": "Measuring Desired Group Discrimination in LLMs",
+            "url": "https://chatpaper.com/paper/175737"
+          },
+          {
+            "snippet": "The document discusses the importance of 'Difference Awareness' in algorithmic fairness, arguing that recognizing meaningful differences ...Read more",
+            "title": "Fairness Through Difference Awareness: Measuring ...",
+            "url": "https://www.scribd.com/document/905382595/Fairness-through-Difference-Awareness-Measuring-Desired-Group-Discrimination-in-LLMs"
+          }
+        ]
+      }
+    ],
+    "Language Models Resist Alignment: Evidence From Data Compression": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "by J Ji · 2024 · Cited by 13 — We formally deduce that fine-tuning disproportionately undermines alignment relative to pre-training, potentially by orders of magnitude.Read more",
+            "title": "Language Models Resist Alignment: Evidence From Data ...",
+            "url": "https://arxiv.org/abs/2406.06144"
+          },
+          {
+            "snippet": "by J Ji · 2025 · Cited by 13 — Large language models (LLMs) may exhibit unintended or undesirable behaviors. Recent works have concentrated on aligning LLMs to mitigate harmful outputs.Read more",
+            "title": "Language Models Resist Alignment: Evidence From Data ...",
+            "url": "https://aclanthology.org/2025.acl-long.1141/"
+          },
+          {
+            "snippet": "by J Ji · 2025 · Cited by 13 — Language models, fine-tuned with perturbations, exhibit an inverse relationship between normalized compression rate changes and dataset volume, ...Read more",
+            "title": "Language Models Resist Alignment: Evidence From Data ...",
+            "url": "https://aclanthology.org/2025.acl-long.1141.pdf"
+          },
+          {
+            "snippet": "by J Ji · 2024 · Cited by 8 — Language models, fine-tuned with perturbations, exhibit an inverse relationship between normalized compression rate changes and dataset volume, akin to that of ...Read more",
+            "title": "Language Models Resist Alignment",
+            "url": "https://arxiv.org/pdf/2406.06144"
+          },
+          {
+            "snippet": "Using compression theory, we formally derive that such fine-tuning process disproportionately undermines alignment compared to pre-training, ...Read more",
+            "title": "Language Models Resist Alignment",
+            "url": "https://openreview.net/forum?id=fuAJqdKXtQ&referrer=%5Bthe%20profile%20of%20Kaile%20Wang%5D(%2Fprofile%3Fid%3D~Kaile_Wang1)"
+          },
+          {
+            "snippet": "Large language models (LLMs) may exhibit unintended or undesirable behaviors. Recent works have concentrated on aligning LLMs to mitigate harmful outputs.Read more",
+            "title": "[ACL2025 Best Paper] Language Models Resist Alignment",
+            "url": "https://github.com/PKU-Alignment/llms-resist-alignment"
+          },
+          {
+            "snippet": "Regarding this ACL 2024 paper, this review summarizes LLM alignment resistance through compression theory, demonstrating elasticity and rebound ...Read more",
+            "title": "Language Models Resist Alignment: Evidence From Data ...",
+            "url": "https://liner.com/review/language-models-resist-alignment-evidence-from-data-compression"
+          },
+          {
+            "snippet": "Language Models Resist Alignment: Evidence From Data Compression. J Ji*, K Wang*, T Qiu*, B Chen*, J Zhou*, C Li, H Lou, Y Yang. ACL 2025 (Best Paper Award) ...Read more",
+            "title": "Tianyi Alex Qiu",
+            "url": "https://scholar.google.co.jp/citations?user=teiNc0sAAAAJ&hl=ja"
+          },
+          {
+            "snippet": "Fundamentally, our findings support a core assertion: language models exhibit elasticity, and thereby inherently resist alignment. Report issue ...Read more",
+            "title": "Language Models Resist Alignment: Evidence From Data ...",
+            "url": "https://arxiv.org/html/2406.06144v4"
+          },
+          {
+            "snippet": "Language Models Resist Alignment: Evidence From Data Compression ... Large language models (LLMs) may exhibit unintended or undesirable behaviors.Read more",
+            "title": "Language Models Resist Alignment",
+            "url": "https://x.com/Tianyi_Alex_Qiu/status/1950578516468105507"
+          }
+        ]
+      }
+    ],
+    "Native Sparse Attention: Hardware-Aligned and Natively Trainable Sparse Attention": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "by J Yuan · 2025 · Cited by 195 — We present NSA, a Natively trainable Sparse Attention mechanism that integrates algorithmic innovations with hardware-aligned optimizations to achieve ...Read more",
+            "title": "Hardware-Aligned and Natively Trainable Sparse Attention",
+            "url": "https://arxiv.org/abs/2502.11089"
+          },
+          {
+            "snippet": "by J Yuan · 2025 · Cited by 195 — We present NSA, a Natively trained Sparse Attention mechanism that integrates algorithmic innovations with hardware-aligned optimizations to achieve efficient ...Read more",
+            "title": "Hardware-Aligned and Natively Trainable Sparse Attention",
+            "url": "https://aclanthology.org/2025.acl-long.1126/"
+          },
+          {
+            "snippet": "by J Yuan · 2025 · Cited by 195 — We present NSA, a Natively trainable Sparse Attention mecha- nism that integrates algorithmic innovations with hardware-aligned optimizations to ...Read more",
+            "title": "Hardware-Aligned and Natively Trainable Sparse Attention",
+            "url": "https://aclanthology.org/2025.acl-long.1126.pdf"
+          },
+          {
+            "snippet": "by J Yuan · 2025 · Cited by 195 — Sparse attention offers a promising direction for improving efficiency while maintaining model capabilities. We present NSA, a Natively ...Read more",
+            "title": "Hardware-Aligned and Natively Trainable Sparse Attention",
+            "url": "https://arxiv.org/pdf/2502.11089"
+          },
+          {
+            "snippet": "Efficient Triton implementations for Native Sparse Attention: Hardware-Aligned and Natively Trainable Sparse Attention.Read more",
+            "title": "Efficient Triton implementations for \"Native Sparse Attention",
+            "url": "https://github.com/fla-org/native-sparse-attention"
+          },
+          {
+            "snippet": "Introducing NSA: A Hardware-Aligned and Natively Trainable Sparse Attention mechanism for ultra-fast long-context training & inference!Read more",
+            "title": "🚀 Introducing NSA: A Hardware-Aligned and Natively ...",
+            "url": "https://x.com/deepseek_ai/status/1891745487071609327?lang=en"
+          },
+          {
+            "snippet": "We present NSA, a Natively trainable Sparse Attention mechanism that integrates algorithmic innovations with hardware-aligned optimizations to achieve ...Read more",
+            "title": "Hardware-Aligned and Natively Trainable Sparse Attention ...",
+            "url": "https://www.reddit.com/r/MachineLearning/comments/1is9ufs/r_native_sparse_attention_hardwarealigned_and/"
+          },
+          {
+            "snippet": "Sparse attention offers a promising direction for improving efficiency while maintaining model capabilities. We present NSA, a Natively ...Read more",
+            "title": "Hardware-Aligned and Natively Trainable Sparse Attention",
+            "url": "https://arxiv.org/html/2502.11089v1"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>ACL 2025 Best paper</search>",
+      "to": "https://2025.aclweb.org/program/awards/"
+    },
+    {
+      "from": "<search>A Theory of Response Sampling in LLMs: Part Descriptive and Part Prescriptive</search>",
+      "to": "https://aclanthology.org/2025.acl-long.1454/"
+    },
+    {
+      "from": "https://aclanthology.org/2025.acl-long.1454/",
+      "to": "https://aclanthology.org/2025.acl-long.1454.pdf"
+    },
+    {
+      "from": "<search>Fairness through Difference Awareness: Measuring Desired Group Discrimination in LLMs</search>",
+      "to": "https://aclanthology.org/2025.acl-long.341.pdf"
+    },
+    {
+      "from": "<search>Language Models Resist Alignment: Evidence From Data Compression</search>",
+      "to": "https://aclanthology.org/2025.acl-long.1141/"
+    },
+    {
+      "from": "https://aclanthology.org/2025.acl-long.1141/",
+      "to": "https://aclanthology.org/2025.acl-long.1141v2.pdf"
+    },
+    {
+      "from": "<search>Native Sparse Attention: Hardware-Aligned and Natively Trainable Sparse Attention</search>",
+      "to": "https://aclanthology.org/2025.acl-long.1126/"
+    },
+    {
+      "from": "https://aclanthology.org/2025.acl-long.1126/",
+      "to": "https://aclanthology.org/2025.acl-long.1126.pdf"
+    }
+  ]
+}

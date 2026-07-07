@@ -1,0 +1,39 @@
+description: Access Chinese college admission scores and related educational data from dxsbb.com (大学生必备网).
+  This site provides comprehensive university admission scores (投档分数线), college entrance exam scores,
+  and admission rankings for universities across China by province and year.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - search   Search for admission score articles by province, year, and\
+      \ category. Returns matching articles with titles and URLs.\n  - get_article   Fetch a specific\
+      \ article with complete tabular admission score data. Returns structured table data including university\
+      \ codes, names, scores, and subjects.\n  - get_list   Get all articles in a specific category. Returns\
+      \ list of articles with titles, dates, and URLs.\n  - get_categories   Get list of all available\
+      \ categories with their IDs and URLs."
+  province:
+    type: string
+    required: false
+    description: Chinese province name (e.g., '北京', '上海', '广东')
+  year:
+    type: string
+    required: false
+    description: Year (e.g., '2024', '2023', '2022')
+  category:
+    type: string
+    required: false
+    description: Category to search (e.g., '投档分数', '高考分数', '一分一段')
+    default: 投档分数
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of results to return
+    default: 20
+  url:
+    type: string
+    required: false
+    description: Full URL of the article (e.g., 'https://www.dxsbb.com/news/106432.html')
+  category_id:
+    type: string
+    required: false
+    description: Category ID (e.g., '1001' for 投档分数, '180' for 高考分数)

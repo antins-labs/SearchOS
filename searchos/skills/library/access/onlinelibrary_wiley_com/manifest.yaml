@@ -1,0 +1,30 @@
+description: >-
+  Fetches journal article metadata from Wiley Online Library content using CrossRef
+  and Semantic Scholar APIs to bypass Cloudflare protection.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - fetch_article   获取单篇文章元数据; 需要 doi 或 url 参数
+        - fetch_articles  批量获取多篇文章元数据; 需要 dois 参数 (逗号分隔的字符串或列表)
+        - extract_doi     从 Wiley 或 doi.org URL 提取 DOI; 需要 url 参数
+  doi:
+    type: string
+    required: false
+    description: |
+      文章的 DOI 标识符 (如 "10.1111/ajes.12597")。用于 fetch_article 功能。
+      也可以是 Wiley Online Library 文章 URL 或 doi.org URL。
+  url:
+    type: string
+    required: false
+    description: |
+      文章 URL (支持 Wiley Online Library 或 doi.org 格式)。
+      用于 fetch_article 功能 (作为 doi 的替代) 或 extract_doi 功能。
+  dois:
+    type: array
+    required: false
+    description: |
+      DOI 字符串列表，用于 fetch_articles 功能批量获取多篇文章元数据。
+      也可以是逗号或换行分隔的字符串，会自动解析为列表。

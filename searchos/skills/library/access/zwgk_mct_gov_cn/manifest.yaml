@@ -1,0 +1,38 @@
+description: "Access skill for the Ministry of Culture and Tourism of the People's Republic of China's\
+  \ \ngovernment information disclosure portal. Extracts official announcements, regulations, \nand public\
+  \ notices including national 5A scenic area designations, tourism policies, \nand cultural heritage\
+  \ announcements."
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - fetch_document   Fetch and parse a single government document by URL\n\
+      \  - fetch_documents   Fetch and parse multiple government documents by URLs\n  - list_documents\
+      \   List available government documents from the portal"
+  url:
+    type: string
+    required: false
+    description: The document URL (full URL or relative path)
+  urls:
+    type: array
+    required: false
+    description: List of document URLs to fetch
+  category:
+    type: string
+    required: false
+    description: 'Optional category filter. Common categories include:
+
+      - zykf: 资源开发 (Resource Development)
+
+      - zcfg: 政策法规 (Policies and Regulations)
+
+      - bmgz: 部门规章 (Departmental Rules)
+
+      - scgl: 市场管理 (Market Management)
+
+      - tjxx: 统计信息 (Statistical Information)'
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of documents to return
+    default: 50

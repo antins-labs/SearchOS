@@ -1,0 +1,19 @@
+name: wechat_article
+invocation: agent_called
+description: >-
+  Search WeChat public-account articles via Sogou and extract full text.
+  Handles anti-spider redirects and multi-step URL resolution. Returns
+  a list of articles with title / url / publish_time / content.
+params_schema:
+  query:
+    type: string
+    required: true
+    description: Search query, Chinese or English.
+  num_results:
+    type: integer
+    default: 5
+    description: Max articles to return (capped at 10).
+  fetch_content:
+    type: boolean
+    default: true
+    description: Whether to fetch full article text (adds one HTTP round-trip per article).

@@ -1,0 +1,19 @@
+name: news_search
+invocation: agent_called
+description: >-
+  Search recent news articles. Uses NewsAPI when NEWSAPI_KEY is set,
+  otherwise falls back to Google News RSS. Returns a list of articles
+  with title / url / source / publish date / description.
+params_schema:
+  query:
+    type: string
+    required: true
+    description: Free-text search query, e.g. "Tesla Q4 earnings 2024".
+  num_results:
+    type: integer
+    default: 5
+    description: Max articles to return (capped at 10).
+  days_back:
+    type: integer
+    default: 7
+    description: How many days back to search (capped at 30).

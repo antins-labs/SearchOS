@@ -1,0 +1,32 @@
+description: >-
+  抓取软科(ShanghaiRanking)世界一流学科排名 GRAS 数据:学科列表、按学科的大学排名、按校名搜索。
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_subjects        列出所有可用学科及其 code;可选 year
+        - get_rankings         按学科获取大学排名;需要 subject_code,可选 year、limit、offset
+        - search_universities  按校名在排名内搜索;需要 query,可选 subject_code、year、limit
+  subject_code:
+    type: string
+    required: false
+    description: 学科代码(来自 list_subjects)。get_rankings 必填;search_universities 可选,限定在该学科内搜索。
+  query:
+    type: string
+    required: false
+    description: search_universities 的大学名称关键词(英文,部分匹配),该功能必填。
+  year:
+    type: integer
+    required: false
+    description: 排名年份。list_subjects 默认 2025;get_rankings 与 search_universities 默认 2024。
+  limit:
+    type: integer
+    required: false
+    description: 返回条数上限。get_rankings 默认 100,search_universities 默认 50。
+  offset:
+    type: integer
+    required: false
+    default: 0
+    description: get_rankings 的分页偏移量。

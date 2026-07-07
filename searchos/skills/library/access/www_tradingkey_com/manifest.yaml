@@ -1,0 +1,38 @@
+description: >-
+  Fetches analysis and news articles from TradingKey (www.tradingkey.com), extracting
+  structured metadata, full content, tables, key points, and financial figures.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to call. Available values:
+        - get_article: Fetches a single article by URL, extracting full content, tables, and metadata
+        - search_articles: Browses articles by category, optionally filtered by query string
+
+  url:
+    type: string
+    required: false
+    description: Full URL of the TradingKey article to fetch. Used by get_article function.
+
+  article_id:
+    type: string
+    required: false
+    description: Article ID number (extracted from URL). Not sufficient alone; provide full URL instead.
+
+  category:
+    type: string
+    required: false
+    description: Category filter - stocks, politics, economics, commodities, crypto, forex, or news. Used by both functions.
+
+  query:
+    type: string
+    required: false
+    description: Search query to filter articles by title. Used by search_articles function.
+
+  limit:
+    type: integer
+    required: false
+    default: 10
+    description: Maximum number of articles to return. Used by search_articles function.

@@ -1,0 +1,27 @@
+description: 'Extract GPU specifications from TechPowerUp''s industry-standard GPU database.
+
+  Retrieves architecture, clock speeds, core counts, memory details, and more.
+
+
+  Note: TechPowerUp uses bot protection that blocks full page access, but
+
+  Open Graph metadata containing key GPU specs remains accessible.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - fetch_gpu   Fetch specifications for a single GPU by URL\n  - fetch_multiple\
+      \   Fetch specifications for multiple GPUs concurrently\n  - search_by_id   Fetch GPU specifications\
+      \ by TechPowerUp GPU ID"
+  url:
+    type: string
+    required: false
+    description: TechPowerUp GPU specs URL (e.g., https://www.techpowerup.com/gpu-specs/radeon-rx-7900-xtx.c3941)
+  urls:
+    type: array
+    required: false
+    description: List of TechPowerUp GPU specs URLs
+  gpu_id:
+    type: string
+    required: false
+    description: Numeric GPU ID (e.g., "3941" for Radeon RX 7900 XTX)

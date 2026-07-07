@@ -1,0 +1,58 @@
+description: ''
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_series_data   Retrieve time series observations for a FRED series\n\
+      \  - get_series_metadata   Retrieve comprehensive metadata for a FRED series\n  - get_series_full\
+      \   Retrieve both metadata and data for a FRED series in a single call\n  - search_series   Search\
+      \ for FRED series by keyword"
+  series_id:
+    type: string
+    required: false
+    description: FRED series identifier (e.g., 'GFDEBTN', 'FYFR', 'GDP', 'UNRATE')
+  start_date:
+    type: string
+    required: false
+    description: Start date filter in YYYY-MM-DD format
+  end_date:
+    type: string
+    required: false
+    description: End date filter in YYYY-MM-DD format
+  transformation:
+    type: string
+    required: false
+    description: 'Data transformation option:
+
+      - ''lin'': Levels (default)
+
+      - ''chg'': Change
+
+      - ''ch1'': Change from Year Ago
+
+      - ''pch'': Percent Change
+
+      - ''pc1'': Percent Change from Year Ago
+
+      - ''pca'': Compounded Annual Rate of Change
+
+      - ''log'': Natural Log'
+  include_observations:
+    type: boolean
+    required: false
+    description: Whether to include full observations array or just summary stats
+    default: true
+  query:
+    type: string
+    required: false
+    description: Search query string
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of results to return
+    default: 20
+  offset:
+    type: integer
+    required: false
+    description: Offset for pagination
+    default: 0

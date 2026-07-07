@@ -1,0 +1,18 @@
+description: Extracts US presidential election statistics from The American Presidency Project, including
+  candidate information, electoral vote totals, popular vote totals, and state-by-state results.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_election   Get complete election data for a specific presidential\
+      \ election year, including all candidates and state-by-state results.\n  - get_state_results   Get\
+      \ election results for a specific state in a given year.\n  - list_elections   List information\
+      \ about available election years."
+  year:
+    type: integer
+    required: false
+    description: Presidential election year (e.g., 2000, 2004, 2008)
+  state:
+    type: string
+    required: false
+    description: State name (case-insensitive)

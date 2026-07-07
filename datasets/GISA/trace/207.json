@@ -1,0 +1,78 @@
+{
+  "search": [
+    "the andes mountain range"
+  ],
+  "result": {
+    "the andes mountain range": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "The Andes mountain range, the longest continental mountain system in the world, extends approximately 7,000 km (4,300 mi) along the western edge of South ...Read more",
+            "title": "Andes",
+            "url": "https://en.wikipedia.org/wiki/Andes"
+          },
+          {
+            "snippet": "The Andes Mountains are a series of extremely high plateaus surmounted by even higher peaks that form an unbroken rampart over a distance of some 5,500 miles ( ...Read more",
+            "title": "Andes Mountains | Definition, Map, Plate Boundary, & ...",
+            "url": "https://www.britannica.com/place/Andes-Mountains"
+          },
+          {
+            "snippet": "The range is over 7,000 km (4,300 miles) long, 200 km (120 miles) to 700 km (430 miles) wide and of an average height of about 4,000 m (13,000 ft). Over its ...Read more",
+            "title": "About the Andes | Adventure Alternative Expeditions",
+            "url": "https://www.adventurealternative.com/south-america/about-the-andes-mountains/"
+          },
+          {
+            "snippet": "The Andes Mountains is the mountainous spine which dramatically dissects South America in two from north to south, crossing seven countries.Read more",
+            "title": "10 Fascinating Facts About the Andes Mountains",
+            "url": "https://www.chimuadventures.com/en/blog/10-fascinating-facts-about-andes-mountains"
+          },
+          {
+            "snippet": "The Andes is the longest Mountain Range in the world and boasts some of the highest peaks. The massive continental range is born from a single mountain range ...Read more",
+            "title": "The Colombian Andean Mountains, “The Home of ...",
+            "url": "https://www.colombianhighlands.com/andes/"
+          },
+          {
+            "snippet": "The Andes are a prominent mountain range that stretches approximately 7,500 kilometers along the western edge of South America, spanning from Venezuela to ...Read more",
+            "title": "Andes | Research Starters",
+            "url": "https://www.ebsco.com/research-starters/geology/andes"
+          },
+          {
+            "snippet": "The Andes are the world's longest mountain range. They stretch over 4,500 miles (7,242 kilometers) from north to south. For comparison, the longest mountain ...Read more",
+            "title": "The Andes Mountains: Everything You Need to Know",
+            "url": "https://www.ultimatekilimanjaro.com/andes-mountains-everything-you-need-to-know/"
+          },
+          {
+            "snippet": "The Andes are the world's longest continental mountain range, about 9,000 km in all. They lie as a continuous chain of highland along the ...Read more",
+            "title": "and how, most notably, it portrays the Andes Mountains ...",
+            "url": "https://www.facebook.com/1000Places/posts/map-lovers-take-a-look-at-this-wonderful-geological-map-of-south-america-and-how/864354469316964/"
+          },
+          {
+            "snippet": "Just behind Asia's Himalayas, the Andes is the second highest mountain range in the world at an average height of 4,000m / 13,000'. The Andes are one of the ...Read more",
+            "title": "Highest Peaks of Peru Mountains - Global Basecamps",
+            "url": "https://www.globalbasecamps.com/peru-mountains"
+          },
+          {
+            "snippet": "The Andes Mountains are the world's longest continental mountain range stretching across 7 countries: Venezuela, Columbia, Ecuador, Peru, Bolivia, Chile and ...Read more",
+            "title": "Facts About the Andes Mountains",
+            "url": "https://www.kandooadventures.com/blog/facts-about-the-andes-mountains-1139.html"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>the andes mountain range</search>",
+      "to": "https://en.wikipedia.org/wiki/Andes"
+    },
+    {
+      "from": "<search>the andes mountain range</search>",
+      "to": "https://en.wikipedia.org/wiki/Andes"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Andes",
+      "to": "https://en.wikipedia.org/wiki/File:Cerro_Fitz_Roy,_Argentinien_(10423452643).jpg"
+    }
+  ]
+}

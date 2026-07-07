@@ -1,0 +1,23 @@
+description: >-
+  Fetches attraction/sight data from Ctrip (携程) including ticket prices, descriptions, and traveler notes.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to call. Available values:
+        - get_sight_info   Fetch sight/attraction info by ID or URL; requires sight_id
+
+  sight_id:
+    type: string
+    required: false
+    description: |
+      Sight/attraction ID or URL. Used by get_sight_info.
+      Can be a numeric ID (e.g., "109784") or a full URL 
+      (e.g., "https://gs.ctrip.com/html5/you/sight/shanghai2/109784.html")
+
+  timeout:
+    type: integer
+    required: false
+    description: Request timeout in seconds (default: 15)

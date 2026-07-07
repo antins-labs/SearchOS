@@ -1,0 +1,29 @@
+description: >-
+  Douban movie information extractor using the m.douban.com mobile API — movie details, rating statistics, cast/crew credits, and user reviews. Accepts a numeric ID or a Douban URL.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_detail    Get basic movie info (title, rating, directors, actors, plot, etc.)
+        - get_rating    Get rating statistics: vote distribution and genre rankings
+        - get_credits   Get detailed cast and crew with character names
+        - get_reviews   Get user reviews/comments (uses start, count, order_by)
+        - get_full      Get comprehensive info combining detail, rating, credits, and top reviews
+  movie_id:
+    type: string
+    required: true
+    description: Douban movie ID or URL, e.g. "27199894" or "https://m.douban.com/movie/subject/27199894/". Required by all functions.
+  start:
+    type: integer
+    required: false
+    description: Pagination start offset. Used by get_reviews (default 0).
+  count:
+    type: integer
+    required: false
+    description: Number of reviews to return (max 50). Used by get_reviews (default 10).
+  order_by:
+    type: string
+    required: false
+    description: Review sort order, "hot" or "latest". Used by get_reviews (default "hot").

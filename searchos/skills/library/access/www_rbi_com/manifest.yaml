@@ -1,0 +1,30 @@
+description: Access Restaurant Brands International's annual reports and financial documents via their
+  investor relations API.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_reports   List all annual reports with their associated documents\
+      \ (10-K, proxy statements, restaurant counts, etc.)\n  - list_years   List all available years for\
+      \ annual reports\n  - filter_reports   Filter and search reports by year, document type, category,\
+      \ or title\n  - get_document_urls   Get download URLs for all documents or filtered subset"
+  year:
+    type: integer
+    required: false
+    description: Filter by specific year (optional)
+  include_documents:
+    type: boolean
+    required: false
+    description: 'Include document details in response (default: true)'
+  document_type:
+    type: string
+    required: false
+    description: Filter by document type (e.g., 'PDF', 'XLSX')
+  document_category:
+    type: string
+    required: false
+    description: Filter by category (e.g., 'tenk', 'proxy', 'annualreport')
+  search:
+    type: string
+    required: false
+    description: Search term for report/document titles

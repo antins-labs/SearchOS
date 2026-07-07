@@ -1,0 +1,80 @@
+{
+  "search": [
+    "Total War: Warhammer III"
+  ],
+  "result": {
+    "Total War: Warhammer III": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "System Requirements · OS *: Windows 7 64-bit · Processor: Intel i3/Ryzen 3 series · Memory: 6 GB RAM · Graphics: Nvidia GTX 900/AMD RX 400 ...",
+            "title": "Total War: WARHAMMER III",
+            "url": "https://store.steampowered.com/app/1142710/Total_War_WARHAMMER_III/"
+          },
+          {
+            "snippet": "The cataclysmic conclusion to the Total War: WARHAMMER trilogy is here. Rally your forces and step into the Realm of Chaos, a dimension of mind-bending ...",
+            "title": "Total War: WARHAMMER III",
+            "url": "https://www.totalwar.com/games/total-war-warhammer-iii"
+          },
+          {
+            "snippet": "Total War: Warhammer III is a turn-based strategy and real-time tactics video game developed by Creative Assembly and published by Sega.",
+            "title": "Total War: Warhammer III",
+            "url": "https://en.wikipedia.org/wiki/Total_War:_Warhammer_III"
+          },
+          {
+            "snippet": "Warhammer 3 is a fully playable, fully explorable and complete version of the game. The previous titles, 1 & 2, along with DLCs, (one exception I think (blood ...",
+            "title": "What's the deal with Total War: Warhammer III?",
+            "url": "https://www.reddit.com/r/totalwarhammer/comments/1fldung/whats_the_deal_with_total_war_warhammer_iii/"
+          },
+          {
+            "snippet": "Total War: Warhammer 3's single-player mode presents us with a tense, challenging, multilayered campaign driven along by a compelling story and ...",
+            "title": "Total War: Warhammer 3 Single-Player Review",
+            "url": "https://www.ign.com/articles/total-war-warhammer-3-review"
+          },
+          {
+            "snippet": "Total War: Warhammer III (TWW3, WH3) is the third and final game in the Total War: Warhammer series, being developed by Creative Assembly.",
+            "title": "Total War: Warhammer III",
+            "url": "https://totalwarwarhammer.fandom.com/wiki/Total_War:_Warhammer_III"
+          },
+          {
+            "snippet": "RAISE A MIGHTY ARMY With seven unique races and hundreds of units under your command, raise an army and dominate in epic real-time battles ...",
+            "title": "Buy Total War: Warhammer III",
+            "url": "https://www.xbox.com/en-US/games/store/total-war-warhammer-iii/9nggb0gzpb9d"
+          },
+          {
+            "snippet": "The cataclysmic conclusion to the Total War: WARHAMMER trilogy is here. Rally your forces and step into the Realm of Chaos, a dimension of ...",
+            "title": "Total War: WARHAMMER III",
+            "url": "https://steamcommunity.com/app/1142710"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>Total War: Warhammer III</search>",
+      "to": "https://www.totalwar.com/games/total-war-warhammer-iii"
+    },
+    {
+      "from": "<search>Total War: Warhammer III</search>",
+      "to": "https://totalwarwarhammer.fandom.com/wiki/Total_War:_Warhammer_III"
+    },
+    {
+      "from": "https://totalwarwarhammer.fandom.com/wiki/Total_War:_Warhammer_III",
+      "to": "https://totalwarwarhammer.fandom.com/wiki/The_Realm_of_Chaos"
+    },
+    {
+      "from": "https://totalwarwarhammer.fandom.com/wiki/The_Realm_of_Chaos",
+      "to": "https://totalwarwarhammer.fandom.com/wiki/The_Maggot_Host"
+    },
+    {
+      "from": "https://totalwarwarhammer.fandom.com/wiki/The_Realm_of_Chaos",
+      "to": "https://totalwarwarhammer.fandom.com/wiki/The_Maggot_Host"
+    },
+    {
+      "from": "https://totalwarwarhammer.fandom.com/wiki/The_Realm_of_Chaos",
+      "to": "https://totalwarwarhammer.fandom.com/wiki/The_Maggot_Host"
+    }
+  ]
+}

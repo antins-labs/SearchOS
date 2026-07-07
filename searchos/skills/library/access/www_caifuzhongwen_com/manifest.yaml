@@ -1,0 +1,46 @@
+description: >-
+  Fetches Fortune Global 500 and China 500 company rankings and detailed company information from wealth500 intelligence center (caifuzhongwen.com)
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_rankings: 获取完整的企业排行榜。需参数: list_type, year
+        - get_company_detail: 根据公司ID获取详细企业信息。需参数: company_id, year, list_type
+        - get_company_by_rank: 根据排名位置获取企业详情。需参数: rank, year, list_type
+        - search_company: 按名称搜索企业（支持中英文模糊匹配）。需参数: query, year, list_type, limit
+  
+  list_type:
+    type: string
+    required: false
+    description: 排行榜类型，可选值为 'global500'（世界500强）或 'china500'（中国500强），默认为 'global500'
+    default: global500
+  
+  year:
+    type: integer
+    required: false
+    description: 排行年份，例如 2024、2023、2022，默认为 2024
+    default: 2024
+  
+  company_id:
+    type: string
+    required: false
+    description: 公司ID（从排行榜中获取），例如 '252' 表示中国铁道建筑集团
+  
+  rank:
+    type: integer
+    required: false
+    description: 排名位置（1-500），用于 get_company_by_rank 功能
+  
+  query:
+    type: string
+    required: false
+    description: 搜索关键词，支持企业名称中英文部分匹配，例如 '沃尔玛' 或 'walmart'
+  
+  limit:
+    type: integer
+    required: false
+    description: 搜索结果数量限制，默认为 10
+    default: 10

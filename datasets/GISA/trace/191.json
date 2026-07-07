@@ -1,0 +1,74 @@
+{
+  "search": [
+    "nobel prize in literature"
+  ],
+  "result": {
+    "nobel prize in literature": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "It is one of the five Nobel Prizes established by the will of Alfred Nobel in 1895. Literature is traditionally the final award presented at the Nobel Prize ...",
+            "title": "Nobel Prize in Literature",
+            "url": "https://en.wikipedia.org/wiki/Nobel_Prize_in_Literature"
+          },
+          {
+            "snippet": "The Nobel Prize in Literature has been awarded 118 times to 122 Nobel Prize laureates between 1901 and 2025. Click on the links to get more information. The ...",
+            "title": "All Nobel Prizes in Literature",
+            "url": "https://www.nobelprize.org/prizes/lists/all-nobel-prizes-in-literature/"
+          },
+          {
+            "snippet": "The Nobel Prize in Literature is awarded by the Swedish Academy, Stockholm, Sweden. See all literature laureates or learn about the nomination process.",
+            "title": "Nobel Prize in Literature",
+            "url": "https://www.nobelprize.org/prizes/literature/"
+          },
+          {
+            "snippet": "Holders of the post included Robert Frost, Elizabeth Bishop, Robert Hayden, and Gwendolyn Brooks. In 1985 the United States created an official poet laureate ...",
+            "title": "Winners of the Nobel Prize for Literature",
+            "url": "https://www.britannica.com/art/Winners-of-the-Nobel-Prize-for-Literature-1856938"
+          },
+          {
+            "snippet": "The Nobel prize in literature for 2025 has been awarded to the Hungarian author László Krasznahorkai, the Swedish Academy has announced.",
+            "title": "László Krasznahorkai wins the Nobel prize in literature 2025",
+            "url": "https://www.theguardian.com/books/2025/oct/09/laszlo-krasznahorkai-wins-the-nobel-prize-in-literature-2025"
+          },
+          {
+            "snippet": "As of 2024, the Nobel Prize in Literature has been awarded to 121 individuals. 18 women have been awarded the Nobel Prize in Literature, the second highest ...",
+            "title": "List of Nobel laureates in Literature",
+            "url": "https://en.wikipedia.org/wiki/List_of_Nobel_laureates_in_Literature"
+          },
+          {
+            "snippet": "",
+            "title": "Announcement of the 2025 Nobel Prize in Literature",
+            "url": "https://www.youtube.com/watch?v=SaWVus4DtLo"
+          },
+          {
+            "snippet": "The Nobel Committee announced Thursday that 71-year-old Hungarian writer László Krasznahorkai has won the 2025 Nobel Prize in literature.",
+            "title": "László Krasznahorkai wins 2025 Nobel Prize in literature",
+            "url": "https://www.npr.org/2025/10/08/nx-s1-5561746/nobel-prize-in-literature"
+          },
+          {
+            "snippet": "László Krasznahorkai has won this year's Nobel Prize in Literature. The Hungarian author was recognised \"for his compelling and visionary ...",
+            "title": "Hungarian author László Krasznahorkai wins Nobel Prize ...",
+            "url": "https://www.bbc.com/news/articles/c5y810rlmd8o"
+          },
+          {
+            "snippet": "Nobel Prize in literature awarded to Hungarian writer Laszlo Krasznahorkai. Krasznahorkai, 71, was recognised for his 'compelling and visionary ...",
+            "title": "Nobel Prize in literature awarded to Hungarian writer ...",
+            "url": "https://www.aljazeera.com/news/2025/10/9/nobel-prize-for-literature-awarded"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>nobel prize in literature</search>",
+      "to": "https://en.wikipedia.org/wiki/Nobel_Prize_in_Literature"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Nobel_Prize_in_Literature",
+      "to": "https://en.wikipedia.org/wiki/List_of_Nobel_laureates_in_Literature"
+    }
+  ]
+}

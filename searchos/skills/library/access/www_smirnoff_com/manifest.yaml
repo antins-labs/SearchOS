@@ -1,0 +1,29 @@
+description: Access product information from www.smirnoff.com including vodka, flavored spirits, and ready-to-drink
+  products.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_product   Get detailed information about a specific product by\
+      \ URL\n  - get_products   Get multiple products by their URLs\n  - list_products   List all products\
+      \ or products in a specific category\n  - search_products   Search products by name or keyword"
+  url:
+    type: string
+    required: false
+    description: Full URL of the product page
+  locale:
+    type: string
+    required: false
+    description: 'Locale code (default: en-us)'
+  urls:
+    type: array
+    required: false
+    description: List of product page URLs
+  category:
+    type: string
+    required: false
+    description: Product category filter (e.g., 'vodkas-and-flavors', 'ready-to-drink')
+  query:
+    type: string
+    required: false
+    description: Search query (matches against product URL/slug)

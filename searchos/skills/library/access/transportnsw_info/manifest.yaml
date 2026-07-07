@@ -1,0 +1,35 @@
+description: Access Transport NSW route information including timetables, stops, and route details via
+  GraphQL API
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_route   Get detailed information about a specific route by route\
+      \ number\n  - search_routes   Search for routes by name, number, or keyword\n  - get_alerts   Get\
+      \ page-specific alerts for a route page"
+  route_number:
+    type: string
+    required: false
+    description: Route number (e.g., "T6", "T7", "T8" or full format "020T6")
+  date:
+    type: string
+    required: false
+    description: Date in YYYY-MM-DD format (defaults to today)
+  include_geojson:
+    type: boolean
+    required: false
+    description: Whether to include GeoJSON line and stop coordinates
+    default: true
+  query:
+    type: string
+    required: false
+    description: Search query (e.g., "T6", "Bankstown", "Airport")
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of results to return
+    default: 10
+  path:
+    type: string
+    required: false
+    description: Page path (e.g., "/routes/details/sydney-trains-network/t6/020t6")

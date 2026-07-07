@@ -1,0 +1,28 @@
+description: Extract detailed vehicle specifications and configurations from car.autohome.com.cn
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_config   Get detailed configuration for a single vehicle series\n\
+      \  - get_multiple   Get configurations for multiple vehicle series\n  - compare   Get comparison\
+      \ table for different variants within a series"
+  url:
+    type: string
+    required: false
+    description: Full URL of the vehicle configuration page (e.g., https://car.autohome.com.cn/config/series/7806.html)
+  series_id:
+    type: string
+    required: false
+    description: Vehicle series ID (e.g., 7806)
+  timeout:
+    type: integer
+    required: false
+    description: 'Request timeout in seconds (default: 30)'
+  series_ids:
+    type: array
+    required: false
+    description: List of vehicle series IDs
+  spec_ids:
+    type: array
+    required: false
+    description: List of specific spec IDs to compare (optional, compares all if not specified)

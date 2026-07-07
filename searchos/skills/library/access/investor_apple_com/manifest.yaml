@@ -1,0 +1,65 @@
+description: 'Access Apple''s investor relations data including financial reports, SEC filings,
+
+  stock quotes, historical prices, earnings calls, and corporate events.
+
+
+  Uses Playwright browser automation to bypass Cloudflare protection and access
+
+  the Q4 Inc. investor relations platform APIs.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_financial_reports   Get quarterly or annual financial reports\
+      \ with downloadable documents\n  - get_financial_report_years   Get list of available years for\
+      \ financial reports\n  - get_sec_filings   Get SEC filings (10-K, 10-Q, 8-K, Form 4, etc.)\n  -\
+      \ get_sec_filing_years   Get list of available years for SEC filings\n  - get_stock_quote   Get\
+      \ current AAPL stock quote (delayed by 20 minutes)\n  - get_stock_history   Get historical daily\
+      \ stock prices for AAPL\n  - get_events   Get investor events including earnings calls, presentations,\
+      \ and press releases\n  - get_event_years   Get list of available years for investor events\n  -\
+      \ get_additional_reports   Get supplementary financial documents and reports"
+  report_type:
+    type: string
+    required: false
+    description: Type of report - "quarterly" or "annual"
+    default: quarterly
+  year:
+    type: integer
+    required: false
+    description: Year filter (-1 for all years)
+    default: -1
+  page_size:
+    type: integer
+    required: false
+    description: Number of results per page (-1 for all)
+    default: 50
+  page_number:
+    type: integer
+    required: false
+    description: Page number for pagination
+    default: 0
+  filing_type:
+    type: string
+    required: false
+    description: Filing type filter (e.g., "10-K", "10-Q", "8-K", "4")
+    default: ''
+  days:
+    type: integer
+    required: false
+    description: Number of trading days to retrieve (max 3000)
+    default: 30
+  include_financial_reports:
+    type: boolean
+    required: false
+    description: Include financial report events
+    default: true
+  include_presentations:
+    type: boolean
+    required: false
+    description: Include presentation events
+    default: true
+  include_press_releases:
+    type: boolean
+    required: false
+    description: Include press release events
+    default: true

@@ -1,0 +1,41 @@
+description: >-
+  Fetch financial and industry statistics from East Money Data Center (data.eastmoney.com),
+  including economic indicators like railway passenger volume, civil aviation data, and industry metrics.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_data   获取指标的历史时间序列数据 (需要indicator_id)
+        - list_indicators   列出可用的指标列表
+        - search   按关键词搜索指标 (需要keyword)
+        - get_info   获取指标的基本信息和最新值 (需要indicator_id)
+  
+  indicator_id:
+    type: string
+    required: false
+    description: |
+      指标ID，例如 "EMI00106130" 表示铁路客运量当月值。
+      用于 get_data 和 get_info 函数。
+  
+  keyword:
+    type: string
+    required: false
+    description: |
+      搜索关键词，用于在指标名称中搜索匹配项。
+      支持中文或英文，例如 "铁路", "客运", "passenger"。
+      用于 search 函数。
+  
+  page_size:
+    type: integer
+    required: false
+    description: 每页记录数，默认50，最大500。
+    default: 50
+  
+  page_number:
+    type: integer
+    required: false
+    description: 页码，从1开始。默认为1。
+    default: 1

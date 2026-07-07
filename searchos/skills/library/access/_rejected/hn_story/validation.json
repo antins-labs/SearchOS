@@ -1,0 +1,51 @@
+{
+  "candidate": "hn_story",
+  "host": "hn.algolia.com",
+  "passing": false,
+  "gates": [
+    {
+      "name": "A_agent",
+      "passed": true,
+      "reason": "",
+      "detail": {}
+    },
+    {
+      "name": "S_smoke",
+      "passed": false,
+      "reason": "only_1_of_3_queries_passed",
+      "detail": {
+        "queries": [
+          "What are the top stories for the query 'rust'?",
+          "Who authored the post about Discord switching to Rust?",
+          "How many points did the story 'Leaving Rust gamedev' receive?"
+        ],
+        "per_query": [
+          {
+            "query": "What are the top stories for the query 'rust'?",
+            "ok": true,
+            "count": 2,
+            "fields_populated": [
+              "title",
+              "url",
+              "author",
+              "points",
+              "num_comments"
+            ]
+          },
+          {
+            "query": "Who authored the post about Discord switching to Rust?",
+            "ok": false,
+            "reason": "empty_results"
+          },
+          {
+            "query": "How many points did the story 'Leaving Rust gamedev' receive?",
+            "ok": false,
+            "reason": "empty_results"
+          }
+        ],
+        "successes": 1,
+        "required": 2
+      }
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "search": [
+    "World Heritage Sites in China"
+  ],
+  "result": {
+    "World Heritage Sites in China": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "China has 60 World Heritage Sites on the list, ranking second in the world, just below Italy with 61 sites.Read more",
+            "title": "List of World Heritage Sites in China",
+            "url": "https://en.wikipedia.org/wiki/List_of_World_Heritage_Sites_in_China"
+          },
+          {
+            "snippet": "Badain Jaran Desert - Towers of Sand and Lakes (2024) · Chengjiang Fossil Site (2012) · China Danxia (2010) · Fanjingshan (2018) · Huanglong Scenic and Historic ...Read more",
+            "title": "China - UNESCO World Heritage Convention",
+            "url": "https://whc.unesco.org/en/statesparties/cn"
+          },
+          {
+            "snippet": "Capital Cities and Tombs of the Ancient Koguryo Kingdom · Cemetery of Confucius · Chengde Mountain Resort · Chengjiang · China Danxia · Church of Christ the King, ...Read more",
+            "title": "Category:World Heritage Sites in China",
+            "url": "https://en.wikipedia.org/wiki/Category:World_Heritage_Sites_in_China"
+          },
+          {
+            "snippet": "World Heritage Sites · Ancient Tea Plantations of Pu'er · Badain Jaran Desert · Beijing Central Axis · Chengjiang Fossil Site · China Danxia · Classical Gardens ...Read more",
+            "title": "UNESCO World Heritage Sites in China",
+            "url": "https://worldheritagesite.org/countries/china/"
+          },
+          {
+            "snippet": "Discover China's ancient wonders and scenic gems · 1. Great Wall of China, Beijing · 2. Forbidden City, Beijing · 3. Summer Palace, Beijing · 4.",
+            "title": "11 must-visit magnificent Unesco World Heritage sites in ...",
+            "url": "https://www.cathaypacific.com/cx/en_HK/inspiration/travel/11-must-visit-magnificent-unesco-world-heritage-sites-china.html"
+          },
+          {
+            "snippet": "China · Imperial Palaces of the Ming and Qing Dynasties in Beijing and Shenyang · Mausoleum of the First Qin Emperor · Mogao Caves · Mount Taishan · Peking Man Site ...Read more",
+            "title": "World Heritage List",
+            "url": "https://whc.unesco.org/en/list/"
+          },
+          {
+            "snippet": "China claims 55 of UNESCO world heritages with elected new site · Mount Wuyi, 1999 · Ancient Villages in southern Anhui - Xidi and Hongcun, 2000 · Imperial ...Read more",
+            "title": "World Heritage sites in China",
+            "url": "http://en.chinaculture.org/52worldheritage.html"
+          },
+          {
+            "snippet": "By 2026, China already has 60 UNESCO World Heritage Sites, gained since it acceded to the world heritage convention in 1985, now ranking top ...Read more",
+            "title": "Top 10 UNESCO World Heritage Sites in China 2026",
+            "url": "https://www.odynovotours.com/travel-blog/world-heritage-sites-in-china.html"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>World Heritage Sites in China</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_World_Heritage_Sites_in_China"
+    },
+    {
+      "from": "<search>World Heritage Sites in China</search>",
+      "to": "https://www.google.com.hk/"
+    }
+  ]
+}

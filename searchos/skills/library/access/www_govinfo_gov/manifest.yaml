@@ -1,0 +1,72 @@
+description: >-
+  Access government budget tables and documents from www.govinfo.gov, including
+  XLSX spreadsheet downloads, MODS metadata, and document listings.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to execute. Available functions:
+        - get_package_metadata: Get MODS metadata for a package
+        - get_granule_xlsx: Download and parse XLSX spreadsheet data
+        - get_granule_pdf_url: Get PDF download URL for a granule
+        - get_premis_metadata: Get PREMIS preservation metadata
+        - list_package_contents: List all granules in a package
+        - search_budget_tables: Search tables by title or section
+  
+  package_id:
+    type: string
+    required: false
+    description: |
+      Package identifier (e.g., 'BUDGET-2025-TAB').
+      Required for all functions except get_granule_pdf_url when granule_id contains full ID.
+  
+  granule_id:
+    type: string
+    required: false
+    description: |
+      Granule/document identifier (e.g., 'BUDGET-2025-TAB-2-1').
+      Required for get_granule_xlsx and get_granule_pdf_url.
+  
+  include_granules:
+    type: boolean
+    required: false
+    description: |
+      Include list of granules in metadata response.
+      Used by get_package_metadata. Default: true.
+  
+  max_rows:
+    type: integer
+    required: false
+    description: |
+      Maximum number of rows to return from XLSX parsing.
+      Used by get_granule_xlsx. Default: 100.
+  
+  raw_data:
+    type: boolean
+    required: false
+    description: |
+      Return raw XLSX bytes as base64 instead of parsed data.
+      Used by get_granule_xlsx. Default: false.
+  
+  query:
+    type: string
+    required: false
+    description: |
+      Search query for table titles (case-insensitive substring match).
+      Used by search_budget_tables.
+  
+  section:
+    type: string
+    required: false
+    description: |
+      Filter by section number (e.g., '1', '2', '3').
+      Used by search_budget_tables.
+  
+  max_results:
+    type: integer
+    required: false
+    description: |
+      Maximum number of search results to return.
+      Used by search_budget_tables. Default: 20.

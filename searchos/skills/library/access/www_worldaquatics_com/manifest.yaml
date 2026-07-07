@@ -1,0 +1,47 @@
+description: >-
+  访问世界泳联(World Aquatics,原 FINA)官方 API:运动员资料/奖牌/成绩、赛事详情/项目/奖牌榜、运动员搜索、实时成绩。
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_athlete            运动员资料;需要 athlete_id
+        - get_athlete_medals     运动员奖牌汇总;需要 athlete_id
+        - get_athlete_results    运动员历史成绩;需要 athlete_id
+        - search_athletes        按姓名搜索运动员;可选 name、limit、page
+        - get_competition        赛事详情;需要 competition_id
+        - get_competition_events 赛事项目结构(含预决赛轮次);需要 competition_id
+        - get_competition_medals 赛事奖牌榜;需要 competition_id
+        - list_competitions      赛事列表;可选 limit、page
+        - get_live_results       进行中赛事的实时成绩;可选 date_from、date_to
+  athlete_id:
+    type: integer
+    required: false
+    description: 运动员 ID。get_athlete / get_athlete_medals / get_athlete_results 必填。
+  competition_id:
+    type: integer
+    required: false
+    description: 赛事 ID。get_competition / get_competition_events / get_competition_medals 必填。
+  name:
+    type: string
+    required: false
+    description: search_athletes 的运动员姓名(姓或全名),可选。
+  limit:
+    type: integer
+    required: false
+    default: 20
+    description: 每页返回条数。search_athletes 与 list_competitions 使用,默认 20。
+  page:
+    type: integer
+    required: false
+    default: 0
+    description: 分页页码(从 0 开始)。search_athletes 与 list_competitions 使用。
+  date_from:
+    type: string
+    required: false
+    description: get_live_results 的起始日期(ISO 格式,如 2024-07-01T00:00:00Z),不填默认当天。
+  date_to:
+    type: string
+    required: false
+    description: get_live_results 的结束日期(ISO 格式),不填默认当天。

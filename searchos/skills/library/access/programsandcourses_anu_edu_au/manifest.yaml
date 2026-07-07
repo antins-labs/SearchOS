@@ -1,0 +1,24 @@
+description: 'Retrieves academic program and course information from the Australian National University''s
+
+  Programs and Courses website. Provides structured access to program requirements, units,
+
+  admission criteria, course lists, learning outcomes, prerequisites, and offerings.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_program   Retrieve detailed information about an academic program\
+      \ including title, codes,\n  - get_course   Retrieve detailed information about a course including\
+      \ title, units,\n  - search_programs   Get information about accessing the ANU Programs catalogue."
+  code:
+    type: string
+    required: false
+    description: Program code (e.g., 'NELENG', 'NENES', 'BBUS')
+  year:
+    type: string
+    required: false
+    description: Academic year (e.g., '2024'). If not provided, uses current year.
+  query:
+    type: string
+    required: false
+    description: Search query (not currently used by the site)

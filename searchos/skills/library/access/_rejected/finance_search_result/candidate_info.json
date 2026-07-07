@@ -1,0 +1,18 @@
+{
+  "host": "query2.finance.yahoo.com",
+  "invocation": "agent_called",
+  "probe_urls": [
+    "https://query2.finance.yahoo.com/v1/finance/search?q=AAPL&quotesCount=3",
+    "https://query2.finance.yahoo.com/v1/finance/search?q=tesla&quotesCount=3"
+  ],
+  "heldout_url": "https://query2.finance.yahoo.com/v1/finance/search?q=tesla&quotesCount=3",
+  "declared_fields": [
+    "symbol",
+    "shortname",
+    "exchange",
+    "quote_type",
+    "sector",
+    "industry",
+    "score"
+  ]
+}

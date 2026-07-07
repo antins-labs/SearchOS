@@ -1,0 +1,50 @@
+description: >-
+  Access the Ministry of Finance of China (财政部) official website to fetch 
+  transfer payment categories, financial news, policy documents, and official reports.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_transfer_categories   列出中央对地方转移支付管理平台的所有支付类别
+        - list_category_documents    列出特定支付类别下的文档列表，需要 category_url 参数
+        - list_news                  列出财政新闻文章，支持分页，可选 page 参数
+        - get_article                获取文章完整内容和元数据，需要 url 参数
+        - search_site                按类别名称搜索文档，可选 category 和 max_results 参数
+  
+  category_url:
+    type: string
+    required: false
+    description: |
+      支付类别的完整URL，用于 list_category_documents 功能。
+      例如: http://www.mof.gov.cn/zhuantihuigu/cczqzyzfglbf/ybxzyzf_7774/jhxxyzf/
+  
+  page:
+    type: integer
+    required: false
+    description: |
+      新闻列表的页码，用于 list_news 功能。
+      从0开始，0表示第一页（index.htm），1表示第二页（index_1.htm），以此类推。
+  
+  url:
+    type: string
+    required: false
+    description: |
+      文章的完整URL，用于 get_article 功能。
+      例如: http://www.mof.gov.cn/zhengwuxinxi/caizhengxinwen/202309/t20230904_3905364.htm
+  
+  category:
+    type: string
+    required: false
+    description: |
+      类别名称关键词，用于 search_site 功能进行筛选。
+      例如: "均衡性", "生态", "教育"
+  
+  max_results:
+    type: integer
+    required: false
+    description: |
+      搜索返回的最大结果数量，用于 search_site 功能。
+      默认值为20。

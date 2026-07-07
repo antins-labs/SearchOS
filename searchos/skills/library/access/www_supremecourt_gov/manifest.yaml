@@ -1,0 +1,22 @@
+description: ''
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_slip_opinions   Retrieve slip opinions for a given term\n  - get_relating_to_orders\
+      \   Retrieve opinions relating to orders for a given term\n  - download_pdf   Download a Supreme\
+      \ Court opinion PDF by URL or filename\n  - search_opinions   Search opinions by case name or docket\
+      \ number"
+  term:
+    type: string
+    required: false
+    description: Two-digit term year (e.g., "24" for 2024, "25" for 2025)
+    default: '24'
+  pdf_url:
+    type: string
+    required: false
+    description: Full URL to PDF or filename (e.g., "24pdf/606us2r67_8nka.pdf")
+  query:
+    type: string
+    required: false
+    description: Search query (case name or docket number)

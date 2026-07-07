@@ -1,0 +1,15 @@
+{
+  "host": "api.frankfurter.app",
+  "invocation": "agent_called",
+  "probe_urls": [
+    "https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,JPY",
+    "https://api.frankfurter.app/latest?from=EUR&to=USD,GBP"
+  ],
+  "heldout_url": "https://api.frankfurter.app/latest?from=EUR&to=USD,GBP",
+  "declared_fields": [
+    "source_amount",
+    "base_currency",
+    "rate_date",
+    "exchange_rates"
+  ]
+}

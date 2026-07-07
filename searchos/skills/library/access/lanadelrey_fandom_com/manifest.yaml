@@ -1,0 +1,46 @@
+description: >-
+  Fetches structured data from the Lana Del Rey Fandom Wiki including page info,
+  infoboxes, track listings, search results, and category pages via MediaWiki API.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_page          获取页面信息、目录结构、简介和infobox数据; 需要参数: page; 可选: include_content
+        - get_infobox       提取页面的结构化infobox数据(专辑信息、艺人信息等); 需要参数: page
+        - get_tracklist     获取专辑页面的曲目列表; 需要参数: page; 可选: section
+        - search            搜索wiki页面; 需要参数: query; 可选: limit
+        - get_category_pages 获取分类下的所有页面; 需要参数: category; 可选: limit
+        - get_section       获取指定章节的内容; 需要参数: page, section(序号或名称)
+
+  page:
+    type: string
+    required: false
+    description: 页面名称(如 Lana_Del_Rey, Ultraviolence_(album), Born_to_Die_(song)); 用于 get_page, get_infobox, get_tracklist, get_section
+
+  query:
+    type: string
+    required: false
+    description: 搜索关键词; 用于 search
+
+  category:
+    type: string
+    required: false
+    description: 分类名称(如 Albums, Songs), 可省略Category:前缀; 用于 get_category_pages
+
+  section:
+    type: string
+    required: false
+    description: 章节序号(数字)或章节名称(如 Track Listing); 用于 get_section, get_tracklist
+
+  include_content:
+    type: boolean
+    required: false
+    description: 是否包含页面简介内容; 用于 get_page
+
+  limit:
+    type: integer
+    required: false
+    description: 返回结果数量限制(默认10-20, 最大50); 用于 search, get_category_pages

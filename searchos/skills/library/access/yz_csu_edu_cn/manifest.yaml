@@ -1,0 +1,35 @@
+description: >-
+  抓取中南大学研究生招生网(yz.csu.edu.cn)各栏目的文章列表、文章正文(含结构化分数表)与关键词搜索。
+params_schema:
+  function:
+    type: string
+    required: false
+    default: list_categories
+    description: |
+      要调用的功能名。可用值(不填默认 list_categories):
+        - list_categories 列出所有栏目及其列表页 URL;无参数
+        - list_articles   抓取某栏目的文章列表;可选 category、page
+        - get_article     抓取单篇文章正文/表格/附件;需要 url
+        - search          按关键词跨栏目搜索文章;需要 query,可选 category、max_pages
+  category:
+    type: string
+    required: false
+    description: 栏目 key(来自 list_categories,如 master_notices)。list_articles 默认 master_notices;search 可选,限定单一栏目。
+  page:
+    type: integer
+    required: false
+    default: 1
+    description: list_articles 的页码(页 1 为最新内容),默认 1。
+  url:
+    type: string
+    required: false
+    description: 文章 URL。get_article 必填(支持相对路径)。
+  query:
+    type: string
+    required: false
+    description: search 的搜索关键词,该功能必填。
+  max_pages:
+    type: integer
+    required: false
+    default: 3
+    description: search 时每个栏目最多翻查的页数,默认 3。

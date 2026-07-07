@@ -1,0 +1,21 @@
+name: google_news_rss_item
+invocation: agent_called
+description: "Search news.google.com \u2014 google_news_rss_item. RSS feed requires\
+  \ XML parsing; article links are nested inside escaped HTML within the description\
+  \ field."
+params_schema:
+  query:
+    type: string
+    required: true
+    description: The search query for news articles (e.g., 'openai gpt').
+  hl:
+    type: string
+    default: en-US
+    description: Language and locale for the search results (e.g., 'en-US').
+category: news
+entity_type: google_news_rss_item
+fields:
+- title
+- url
+- published
+- source

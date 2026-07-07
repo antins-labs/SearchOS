@@ -1,0 +1,26 @@
+name: hn_story
+invocation: agent_called
+description: "Search hn.algolia.com \u2014 hn_story. Content is returned as a raw\
+  \ JSON payload inside a <pre> tag; CSS selectors are ineffective, requires JSON\
+  \ parsing."
+params_schema:
+  query:
+    type: string
+    required: true
+    description: The search query string.
+  tags:
+    type: string
+    default: story
+    description: Filter by tag (e.g., story, comment, poll).
+  num_results:
+    type: integer
+    default: 5
+    description: Maximum number of results to return.
+category: social
+entity_type: hn_story
+fields:
+- title
+- url
+- author
+- points
+- num_comments

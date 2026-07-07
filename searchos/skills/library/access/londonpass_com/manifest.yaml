@@ -1,0 +1,36 @@
+description: >-
+  Fetch London attractions directory from londonpass.com via Wayback Machine,
+  including attraction names, prices, descriptions, categories, locations, and
+  operating hours. Works around Cloudflare protection by using archived snapshots.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_attractions   List all London attractions with basic info (name, slug, price, category)
+        - get_attraction     Get detailed info for a specific attraction by slug
+        - search_attractions Search attractions by name or category
+        - get_categories     List all attraction categories
+  
+  slug:
+    type: string
+    required: false
+    description: Attraction slug for get_attraction function (e.g., 'tower-of-london', 'london-eye')
+  
+  query:
+    type: string
+    required: false
+    description: Search query for search_attractions function
+  
+  category:
+    type: string
+    required: false
+    description: Filter by category slug for search_attractions function
+  
+  limit:
+    type: integer
+    required: false
+    default: 20
+    description: Maximum number of results to return

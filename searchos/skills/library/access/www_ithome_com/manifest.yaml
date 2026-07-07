@@ -1,0 +1,30 @@
+description: >-
+  Extract articles from IT之家 (ithome.com) including title, content, metadata,
+  and images from Chinese tech news pages.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - fetch_article    获取单篇文章，需要 url 参数
+        - fetch_articles   批量获取多篇文章，需要 urls 参数（列表）
+  
+  url:
+    type: string
+    required: false
+    description: IT之家文章 URL（用于 fetch_article），格式如 https://www.ithome.com/0/663/928.htm
+  
+  urls:
+    type: array
+    required: false
+    description: IT之家文章 URL 列表（用于 fetch_articles）
+    items:
+      type: string
+  
+  format_summary:
+    type: boolean
+    required: false
+    description: 是否在结果中包含格式化的文本摘要（仅 fetch_article 有效）
+    default: false

@@ -1,0 +1,29 @@
+description: >-
+  Fetches Paris 2024 Olympic medal table from BBC Sport, including country rankings,
+  gold/silver/bronze counts, and standings sorted by various metrics.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_medal_table   获取完整奖牌榜; 无需其他参数
+        - get_country_medals 获取指定国家奖牌数; 需要 country_code 或 country_name
+        - get_top_countries  获取排名靠前的国家; 可选 limit 和 sort_by 参数
+  country_code:
+    type: string
+    required: false
+    description: 三字母国家代码 (如 US, CHN, GB, JPN), 用于 get_country_medals
+  country_name:
+    type: string
+    required: false
+    description: 国家名称 (如 "United States", "China", "Great Britain"), 用于 get_country_medals
+  limit:
+    type: integer
+    required: false
+    description: 返回国家数量上限, 默认10, 最大50, 用于 get_top_countries
+  sort_by:
+    type: string
+    required: false
+    description: 排序依据, 可选值 gold/silver/bronze/total, 默认 gold, 用于 get_top_countries

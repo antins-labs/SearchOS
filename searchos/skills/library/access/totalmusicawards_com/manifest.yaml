@@ -1,0 +1,53 @@
+description: >-
+  Fetches Grammy Award winners and nominees data from totalmusicawards.com,
+  a comprehensive database of Grammy winners and nominees organized by category and year.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_category     获取指定格莱美奖项类别的获奖者和提名者; 需要 category 参数
+        - list_categories  列出所有可用的格莱美奖项类别
+
+  category:
+    type: string
+    required: false
+    description: |
+      格莱美奖项类别名称或slug。例如:
+        - album-of-the-year
+        - best-new-artist  
+        - best-rap-album
+        - best-melodic-rap-performance
+        - best-pop-solo-performance
+        - record-of-the-year
+      用于 get_category 功能。
+
+  url:
+    type: string
+    required: false
+    description: |
+      直接指定奖项页面的完整URL，用于覆盖自动URL生成。
+      用于 get_category 功能。
+
+  year:
+    type: integer
+    required: false
+    description: |
+      筛选特定年份的获奖信息。
+      用于 get_category 功能。
+
+  min_year:
+    type: integer
+    required: false
+    description: |
+      筛选最小年份（包含）。
+      用于 get_category 功能。
+
+  max_year:
+    type: integer
+    required: false
+    description: |
+      筛选最大年份（包含）。
+      用于 get_category 功能。

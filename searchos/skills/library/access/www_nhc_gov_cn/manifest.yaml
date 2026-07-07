@@ -1,0 +1,42 @@
+description: >-
+  抓取国家卫健委(www.nhc.gov.cn)的医疗机构公告/官方文件列表、文件详情与站内搜索结果。
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_list     按栏目页抓取文档/公告列表;需要 url,可选 page、max_items
+        - get_detail   抓取某条文档/公告的完整正文;需要 url
+        - search       按关键词搜索文档(若站点支持);需要 keyword,可选 category、max_items
+  url:
+    type: string
+    required: false
+    description: 目标页面 URL。get_list(栏目页)与 get_detail(文档页)必填。
+  page:
+    type: integer
+    required: false
+    default: 1
+    description: get_list 的分页页码,从 1 开始。
+  max_items:
+    type: integer
+    required: false
+    description: 返回结果的最大条数。get_list 默认 50,search 默认 20。
+  keyword:
+    type: string
+    required: false
+    description: search 的搜索关键词,该功能必填。
+  category:
+    type: string
+    required: false
+    description: search 的可选栏目/分类过滤。
+  timeout:
+    type: integer
+    required: false
+    default: 60
+    description: 单次请求超时(秒),所有功能可用。
+  max_retries:
+    type: integer
+    required: false
+    default: 3
+    description: 突破反爬时的最大重试次数,所有功能可用。

@@ -1,0 +1,33 @@
+description: Access LAAX OPEN snowboard and freeski competition results via WordPress REST API
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_results   List all available competition results, optionally\
+      \ filtered by year\n  - get_event   Get detailed results for a specific event\n  - search   Search\
+      \ events by discipline, sport, gender, or year\n  - get_years   Get available years for competition\
+      \ results"
+  year:
+    type: integer
+    required: false
+    description: Filter by year (e.g., 2025, 2026)
+  event_id:
+    type: integer
+    required: false
+    description: WordPress post ID of the event
+  slug:
+    type: string
+    required: false
+    description: Event URL slug (e.g., finals-halfpipe-snowboard-men-2)
+  discipline:
+    type: string
+    required: false
+    description: Filter by discipline (halfpipe, slopestyle)
+  sport:
+    type: string
+    required: false
+    description: Filter by sport (snowboard, freeski)
+  gender:
+    type: string
+    required: false
+    description: Filter by gender (men, women)

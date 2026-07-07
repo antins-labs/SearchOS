@@ -1,0 +1,22 @@
+description: >-
+  Extract prices, opening times, and property details from English Heritage properties (english-heritage.org.uk).
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_property_info  获取单个 English Heritage 物业的价格、开放时间及详情;需要 url 或 property_slug
+        - get_properties_list 批量获取多个物业信息;需要 properties
+  url:
+    type: string
+    required: false
+    description: 物业页面 URL。仅 get_property_info 使用(与 property_slug 二选一)。
+  property_slug:
+    type: string
+    required: false
+    description: 物业 slug(如 "stonehenge")。仅 get_property_info 使用(与 url 二选一)。
+  properties:
+    type: array
+    required: false
+    description: 物业对象列表,每项含 'url' 或 'slug' 键。仅 get_properties_list 使用。

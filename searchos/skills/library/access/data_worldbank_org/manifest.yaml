@@ -1,0 +1,106 @@
+description: 'Access the World Bank Open Data API for development indicators, country statistics,
+
+  and global economic data. Provides comprehensive access to thousands of indicators
+
+  covering topics like GDP, population, health, education, environment, and more.
+
+
+  The World Bank API offers:
+
+  - 20,000+ indicators across 70+ data sources
+
+  - Data for 200+ countries and regions
+
+  - Time series data spanning 60+ years
+
+  - Topic-based categorization (Economy, Health, Education, etc.)
+
+  - Income level and lending type classifications'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_countries   List all countries and regions with optional filtering\
+      \ by income level, lending type, or region\n  - get_country   Get detailed information for a specific\
+      \ country by ISO2 or ISO3 code\n  - list_indicators   List available indicators with optional search\
+      \ and filtering\n  - get_indicator   Get detailed information for a specific indicator by its code\n\
+      \  - get_indicator_data   Get actual data values for an indicator, optionally filtered by countries\
+      \ and date range\n  - list_topics   List all indicator topic categories\n  - get_topic   Get details\
+      \ for a specific topic\n  - list_sources   List all data sources in the World Bank database\n  -\
+      \ list_regions   List all regional groupings\n  - list_income_levels   List income level classifications\n\
+      \  - list_lending_types   List lending type classifications\n  - search   Search for indicators\
+      \ by keyword\n  - compare_countries   Compare an indicator across multiple countries"
+  per_page:
+    type: integer
+    required: false
+    description: Number of results per page
+    default: 300
+  income_level:
+    type: string
+    required: false
+    description: Filter by income level code (HIC, UMC, LMC, LIC)
+  lending_type:
+    type: string
+    required: false
+    description: Filter by lending type code (IBD, IDA, LNX)
+  region:
+    type: string
+    required: false
+    description: Filter by region code
+  country_code:
+    type: string
+    required: false
+    description: Two-letter (US) or three-letter (USA) country code
+  page:
+    type: integer
+    required: false
+    description: Page number for pagination
+    default: 1
+  query:
+    type: string
+    required: false
+    description: Search query to filter indicators by name
+  source:
+    type: string
+    required: false
+    description: Filter by data source ID
+  topic:
+    type: string
+    required: false
+    description: Filter by topic ID
+  indicator_code:
+    type: string
+    required: false
+    description: Indicator code (e.g., NY.GDP.MKTP.CD for GDP current US$)
+  countries:
+    type: string
+    required: false
+    description: 'Country codes (semicolon-separated for multiple: ''US;CN;JP'') or ''all'''
+    default: all
+  date:
+    type: string
+    required: false
+    description: Year or range (e.g., '2023' or '2020:2023')
+  mrv:
+    type: integer
+    required: false
+    description: Most recent N values per country
+  gap_fill:
+    type: boolean
+    required: false
+    description: Fill gaps with older data if recent is unavailable
+    default: false
+  fetch_all:
+    type: boolean
+    required: false
+    description: Fetch all pages of results
+    default: false
+  max_pages:
+    type: integer
+    required: false
+    description: Maximum pages to fetch when fetch_all is true
+    default: 100
+  topic_id:
+    type: string
+    required: false
+    description: Topic ID (e.g., 3 for Economy & Growth)

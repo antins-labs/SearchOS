@@ -1,0 +1,28 @@
+description: "Access the official FIS (International Ski Federation) database for athlete biographies,\
+  \ \ncompetition results, and skiing rankings. Covers alpine skiing, freestyle skiing, \nsnowboarding,\
+  \ cross-country skiing, ski jumping, nordic combined, and speed skiing."
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_athlete_bio   Get athlete biography and competition results history\n\
+      \  - get_race_results   Get detailed results for a specific race/competition"
+  competitorid:
+    type: string
+    required: false
+    description: FIS competitor ID (e.g., "226193")
+  sectorcode:
+    type: string
+    required: false
+    description: Sport sector code (fs=freestyle, al=alpine, sb=snowboard, cc=cross-country, jp=ski jumping,
+      nc=nordic combined)
+    default: fs
+  type:
+    type: string
+    required: false
+    description: Result type (result, statistic, etc.)
+    default: result
+  raceid:
+    type: string
+    required: false
+    description: FIS race ID (e.g., "19025")

@@ -1,0 +1,33 @@
+description: >-
+  Fetches facility data from Recreation.gov for tickets/tours, site passes/park entrance fees, and campgrounds including details, pricing, availability, and campsite information.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_ticket_facility   Get ticket facility details (tours, timed entry); requires facility_id
+        - get_ticket_tours      Get tours available at a ticket facility; requires facility_id
+        - get_ticket_pricing    Get pricing information for ticket facility tours; requires facility_id
+        - get_ticket_availability   Get monthly availability summary for tickets; requires facility_id, optional year/month
+        - get_campground        Get campground details and metadata; requires facility_id
+        - get_campsites         Get list of campsites at a campground; requires facility_id
+        - get_sitepass_facility Get site pass/park entrance pass facility details; requires facility_id
+        - get_sitepass_types    Get pass types and pricing for a sitepass facility; requires facility_id
+        - get_facility_search   Get facility info via search API; requires facility_id
+
+  facility_id:
+    type: string
+    required: false
+    description: The numeric facility ID from Recreation.gov URL (e.g., "233362" for https://www.recreation.gov/ticket/facility/233362). Required for all functions except search.
+
+  year:
+    type: integer
+    required: false
+    description: Year for availability queries (used by get_ticket_availability). Defaults to current year if not specified.
+
+  month:
+    type: integer
+    required: false
+    description: Month for availability queries 1-12 (used by get_ticket_availability). Defaults to current month if not specified.

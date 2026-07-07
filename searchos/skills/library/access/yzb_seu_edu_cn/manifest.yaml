@@ -1,0 +1,25 @@
+description: 'Access Southeast University graduate admission score data including:
+
+  - Department-specific复试分数线 (department admission cut-offs)
+
+  - University-wide basic score requirements (复试基本线)
+
+
+  The site hosts structured score tables embedded in HTML pages and PDF documents.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_department_scores   Fetch department-specific admission score\
+      \ cut-offs for each major/research direction\n  - get_basic_scores   Fetch university-wide basic\
+      \ score requirements by academic category\n  - get_page   Generic page fetcher that auto-detects\
+      \ if page contains HTML table or PDF\n  - list_known_pages   List known score pages for reference"
+  url:
+    type: string
+    required: false
+    description: URL of the page containing department scores
+  timeout:
+    type: integer
+    required: false
+    description: Request timeout in seconds
+    default: 30

@@ -1,0 +1,15 @@
+description: >-
+  Fetches movie details and celebrity information from Douban Movies (movie.douban.com).
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_movie_detail    获取电影详情，包括标题、评分、导演、演员、剧情简介等
+        - get_movie_celebrities    获取电影的完整演职员列表，包括导演、编剧、演员、制片人等
+  subject_id:
+    type: string
+    required: true
+    description: 豆瓣电影条目的数字ID，例如 '1292052'（肖申克的救赎）。可从豆瓣电影URL中提取。

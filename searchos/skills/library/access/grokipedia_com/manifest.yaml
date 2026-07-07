@@ -1,0 +1,21 @@
+description: >-
+  Fetches and extracts structured content from Grokipedia wiki pages, including
+  sections, tables, lists, and metadata.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to call. Available values:
+        - get_page   Fetch a Grokipedia page by URL or slug, extracting structured content
+  
+  url:
+    type: string
+    required: false
+    description: Full URL to the Grokipedia page (e.g., https://grokipedia.com/page/i_am_gloria_world_tour)
+  
+  slug:
+    type: string
+    required: false
+    description: Page slug identifier (e.g., i_am_gloria_world_tour). Used if url not provided.

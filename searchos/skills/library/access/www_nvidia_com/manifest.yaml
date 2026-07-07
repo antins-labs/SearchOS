@@ -1,0 +1,31 @@
+description: >-
+  Fetches detailed GPU specifications from NVIDIA's official GeForce product pages.
+  Extracts data like CUDA cores, clock speeds, memory config, power requirements,
+  and display support from specialized specification pages.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - fetch_specs       获取指定GPU的完整规格数据；需要gpu_slug参数
+        - list_key_specs    提取GPU的核心规格概要；需要gpu_slug参数
+        - search_by_url     从完整URL直接获取规格数据；需要url参数
+  gpu_slug:
+    type: string
+    required: false
+    description: |
+      GPU的URL标识符，例如 'geforce-gtx-750-ti' 或 'gt-1030'。
+      用于fetch_specs和list_key_specs功能。
+  url:
+    type: string
+    required: false
+    description: |
+      NVIDIA规格页面的完整URL。
+      用于search_by_url功能。
+  timeout:
+    type: integer
+    required: false
+    default: 30
+    description: 请求超时时间（秒），默认30秒。

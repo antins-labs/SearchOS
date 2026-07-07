@@ -1,0 +1,40 @@
+description: 'Extracts Spotify Wrapped ranking data from Spotify''s newsroom website.
+
+  Provides structured access to top artists, songs, albums, podcasts, and audiobooks
+
+  by year (2023, 2024) and region (global, US).'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_wrapped   Get all ranking data for a specific Wrapped year\n \
+      \ - get_all   Get Wrapped ranking data for all available years\n  - search   Search within rankings\
+      \ with filters for category, region, and text query\n  - get_top   Get top N entries for a specific\
+      \ category and region"
+  year:
+    type: string
+    required: false
+    description: Year to fetch ("2023" or "2024")
+    default: '2024'
+  category:
+    type: string
+    required: false
+    description: Category filter (artists, songs, albums, podcasts, audiobooks, viral_songs, anticipated_podcasts)
+  region:
+    type: string
+    required: false
+    description: Region filter ("global" or "us")
+  query:
+    type: string
+    required: false
+    description: Text search query to match against names/titles/artists
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of results per section
+    default: 10
+  n:
+    type: integer
+    required: false
+    description: Number of entries to return
+    default: 10

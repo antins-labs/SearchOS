@@ -1,0 +1,26 @@
+description: Extract postgraduate course information from Prospects.ac.uk including entry requirements,
+  fees, duration, and contact details.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_course   Fetch and parse a single course page from Prospects.ac.uk\n\
+      \  - get_courses   Fetch and parse multiple course pages concurrently"
+  url:
+    type: string
+    required: false
+    description: Full URL to the Prospects course page
+  timeout:
+    type: integer
+    required: false
+    description: Request timeout in seconds
+    default: 30
+  urls:
+    type: array
+    required: false
+    description: List of full URLs to Prospects course pages
+  max_concurrent:
+    type: integer
+    required: false
+    description: Maximum number of concurrent requests
+    default: 5

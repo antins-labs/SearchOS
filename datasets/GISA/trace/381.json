@@ -1,0 +1,69 @@
+{
+  "search": [
+    "countries land area ranking"
+  ],
+  "result": {
+    "countries land area ranking": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "1. Russia, 17,098,246 (6,601,667) ; –, Antarctica, 14,200,000 (5,480,000) ; 2. Canada, 9,984,670 (3,855,100) ; 3/4 · China, 9,596,960 (3,705,410) ...Read more",
+            "title": "List of countries and dependencies by area",
+            "url": "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_area"
+          },
+          {
+            "snippet": "List of countries (and dependencies) ranked by area ; 1, Russia, 17,098,242 ; 2, Canada, 9,984,670 ; 3, China, 9,706,961 ; 4, United States, 9,372,610 ...Read more",
+            "title": "Largest Countries in the World by Area",
+            "url": "https://www.worldometers.info/geography/largest-countries-in-the-world/"
+          },
+          {
+            "snippet": "With a total area of 6,592,846 square miles (17,075,400 square km), Russia is the world's largest country. A distant second is Canada, with 3, ...Read more",
+            "title": "List of the world's largest countries and dependencies by ...",
+            "url": "https://www.britannica.com/topic/list-of-the-total-areas-of-the-worlds-countries-dependencies-and-territories-2130540"
+          },
+          {
+            "snippet": "The 15 Largest Countries in the World ; 1, Russia, 6,601,665 ; 2, Canada, 3,855,101 ; 3, China, 3,747,877 ; 4, United States, 3,618,783 ...Read more",
+            "title": "The 15 Largest Countries in the World",
+            "url": "https://www.ultimatekilimanjaro.com/largest-countries-in-the-world/"
+          },
+          {
+            "snippet": "After Antarctica, the next three countries are Canada, the U.S., and China; all between 9.5 and 10 million square kilometers.Read more",
+            "title": "Largest countries and territories in the world by area",
+            "url": "https://www.statista.com/statistics/262955/largest-countries-in-the-world/?srsltid=AfmBOopotlVWZdZLGMlB7woX8HmIZokKLY8RMMdbvLmON4DXkSH2isFq"
+          },
+          {
+            "snippet": "Top 100 largest countries by area ; 1, Russia, 17,098,242 ; 2, Canada, 9,984,670 ; 3, United States *, 9,857,348 ; 4, China, 9,596,961 ...Read more",
+            "title": "Top 100 largest countries by area",
+            "url": "https://www.countries-ofthe-world.com/largest-countries.html"
+          },
+          {
+            "snippet": "Rank, Country, sq km, Date of Information. 1, Russia, 17,098,242. 2, Antarctica, 14,200,000. 3, Canada, 9,984,670. 4, United States, 9,833,517.Read more",
+            "title": "Area Comparison - The World Factbook",
+            "url": "https://www.cia.gov/the-world-factbook/field/area/country-comparison/"
+          },
+          {
+            "snippet": "The five largest countries in the world are, in order: 1) Russia (17,098,242 km²), 2) Canada (9,984,670 km²), 3) the United States (9,833,517 ...Read more",
+            "title": "The 20 largest countries in the world by surface area - Navaway",
+            "url": "https://navaway.com/the-20-largest-countries-in-the-world-by-surface-area/"
+          },
+          {
+            "snippet": "Land area - Country rankings​​ The average for 2023 based on 196 countries was 656095 sq. km. The highest value was in Russia: 16376870 sq.Read more",
+            "title": "Land area - Country rankings",
+            "url": "https://www.theglobaleconomy.com/rankings/land_area/1000/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>countries land area ranking</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_area"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_area",
+      "to": "https://en.wikipedia.org/wiki/Danish_Realm"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+description: >-
+  Search Planned Parenthood health centers by location, get facility hours, and list available services via the plannedparenthood.org public API.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - search   搜索健康中心，需要location参数，可选service/channel/distance/page
+        - hours    获取设施开放时间，需要facility_ids参数
+        - services 获取可用服务类型列表
+  location:
+    type: string
+    required: false
+    description: 邮编、城市名或州名，用于search功能
+  service:
+    type: string
+    required: false
+    description: 服务类型过滤，如abortion/birth-control/std-testing等，用于search
+  channel:
+    type: string
+    required: false
+    description: 渠道过滤，可选值telehealth/onsite/ppdirect，用于search
+  distance:
+    type: integer
+    required: false
+    description: 最大搜索距离（英里），用于search
+  page:
+    type: integer
+    required: false
+    description: 分页页码，默认为1，用于search
+  facility_ids:
+    type: array
+    required: false
+    description: 设施ID列表（整数数组或逗号分隔字符串），用于hours功能

@@ -1,0 +1,126 @@
+{
+  "search": [
+    "elizabeth ii",
+    "Cabinet Secretaries of the United Kingdom"
+  ],
+  "result": {
+    "elizabeth ii": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Elizabeth II was Queen of the United Kingdom and other Commonwealth realms from 6 February 1952 until her death in 2022. She was queen regnant of 32 ...Read more",
+            "title": "Elizabeth II",
+            "url": "https://en.wikipedia.org/wiki/Elizabeth_II"
+          },
+          {
+            "snippet": "Elizabeth II, the longest-reigning British monarch, transformed the monarchy and served as a symbol of stability and continuity for over six ...",
+            "title": "Elizabeth II | Biography, Family, Reign, & Facts",
+            "url": "https://www.britannica.com/biography/Elizabeth-II"
+          },
+          {
+            "snippet": "Queen Elizabeth II's Life and Reign, Events following the death of The Queen, News, The State Funeral for Her Majesty The Queen 19 September 2022.Read more",
+            "title": "Queen Elizabeth",
+            "url": "https://www.royal.uk/queen-elizabeth"
+          },
+          {
+            "snippet": "8 Sept 2022 — Queen Elizabeth II, who has died age 96 after the longest reign in British history, will be mourned around the globe as one of the last ...",
+            "title": "Elizabeth II: The British Queen who weathered war and ...",
+            "url": "https://www.cnn.com/2022/09/08/europe/queen-elizabeth-ii-life-obituary-intl"
+          },
+          {
+            "snippet": "Queen Elizabeth II ruled for longer than any other Monarch in British history, becoming a much loved and respected figure across the globe.",
+            "title": "A Focus on the Life of Queen Elizabeth II",
+            "url": "https://www.rct.uk/schools/school-and-family-resources/a-focus-on-the-life-of-queen-elizabeth-ii"
+          },
+          {
+            "snippet": "8 Sept 2023 — Queen Elizabeth II was the longest-reigning monarch in British history, sitting on the throne for 71 years. She was succeeded by King Charles III in 2022.Read more",
+            "title": "Queen Elizabeth II - British Royal Family",
+            "url": "https://www.biography.com/royalty/queen-elizabeth-ii"
+          },
+          {
+            "snippet": "She was the first sovereign to reach the Sapphire Jubilee of her coronation and in 2015 she became the longest-reigning British monarch.Read more",
+            "title": "Elizabeth II",
+            "url": "https://www.westminster-abbey.org/abbey-commemorations/royals/elizabeth-ii/"
+          },
+          {
+            "snippet": "Her reign was the longest ever of a British monarch. She was married to her husband Prince Philip for 73 years until his death aged 99 on 9th April 2021. The ...Read more",
+            "title": "Queen Elizabeth II ( 1952 - 2022 )",
+            "url": "https://www.britroyals.com/kings.asp?id=elizabeth2"
+          }
+        ]
+      }
+    ],
+    "Cabinet Secretaries of the United Kingdom": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "The cabinet secretary is the most senior civil servant in the United Kingdom and is based in the Cabinet Office. The person in this role acts as the senior ...Read more",
+            "title": "Cabinet Secretary (United Kingdom)",
+            "url": "https://en.wikipedia.org/wiki/Cabinet_Secretary_(United_Kingdom)"
+          },
+          {
+            "snippet": "The Cabinet of the United Kingdom is the senior decision-making body of the Government of the United Kingdom.Read more",
+            "title": "Cabinet of the United Kingdom",
+            "url": "https://en.wikipedia.org/wiki/Cabinet_of_the_United_Kingdom"
+          },
+          {
+            "snippet": "This list details those MPs and Members of the House of Lords that hold a government post, their position and department.",
+            "title": "His Majesty's Government: The Cabinet - MPs and Lords",
+            "url": "https://members.parliament.uk/government/cabinet"
+          },
+          {
+            "snippet": "Read biographies and responsibilities of Cabinet ministers and all ministers by department, as well as the whips who help co-ordinate parliamentary business.Read more",
+            "title": "Ministers",
+            "url": "https://www.gov.uk/government/ministers"
+          },
+          {
+            "snippet": "The Cabinet Secretaries ; Lord Robert Armstrong 1979 – 1988 ; Lord Robin Butler 1988 – 1998 ; Lord Richard Wilson 1998 - 2002 ; Lord Andrew Turnbull 2002 - 2005.Read more",
+            "title": "The Cabinet Secretaries - Mile End Group",
+            "url": "https://www.cabinetsecretaries.com/"
+          },
+          {
+            "snippet": "The cabinet secretary is the most senior civil service adviser to the prime minister and cabinet. Their formal role is to support and advise on the running ...Read more",
+            "title": "Cabinet secretary",
+            "url": "https://www.instituteforgovernment.org.uk/explainer/cabinet-secretary"
+          },
+          {
+            "snippet": "Parliamentary Private Secretaries ; Catherine Fookes, Prime Minister, First Lord of the Treasury, Minister for the Civil Service, and Minister for the Union.Read more",
+            "title": "Cabinet",
+            "url": "https://labour.org.uk/about-us/the-cabinet/"
+          },
+          {
+            "snippet": "Our management ; Madeleine Alessandri CMG. Chair of the Joint Intelligence Committee ; Clara Swinson. Second Permanent Secretary, Cabinet Office ; Ross Maude.Read more",
+            "title": "Cabinet Office",
+            "url": "https://www.gov.uk/government/organisations/cabinet-office"
+          },
+          {
+            "snippet": "Lord Butler was Cabinet Secretary between 1988 and 1998, working with two Conservative Prime Ministers - Margaret Thatcher and John Major - and, ...Read more",
+            "title": "Cabinet Secretaries - History of government - GOV.UK blogs",
+            "url": "https://history.blog.gov.uk/category/cabinet-secretaries/"
+          },
+          {
+            "snippet": "12 Sept 2025 — Leaders and Cabinet Members ; King. CHARLES III ; Prime Minister, First Lord of the Treasury. Keir STARMER ; Deputy Prime Minister, Lord Chancellor ...Read more",
+            "title": "United Kingdom - World Leaders",
+            "url": "https://www.cia.gov/resources/world-leaders/foreign-governments/united-kingdom"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>elizabeth ii</search>",
+      "to": "https://en.wikipedia.org/wiki/Elizabeth_II"
+    },
+    {
+      "from": "<search>Cabinet Secretaries of the United Kingdom</search>",
+      "to": "https://en.wikipedia.org/wiki/Cabinet_Secretary_(United_Kingdom)"
+    },
+    {
+      "from": "<search>Cabinet Secretaries of the United Kingdom</search>",
+      "to": "https://en.wikipedia.org/wiki/Cabinet_Secretary_(United_Kingdom)"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+description: Access National Park Service visitation statistics from data.hereandthere.club including
+  recreation visits, overnight stays, camping data, and seasonal trends for US national parks, monuments,
+  and memorials.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_park_data   Get detailed visitation data for a specific national\
+      \ park or NPS unit\n  - list_parks   List available national parks and NPS units, optionally filtered\
+      \ by designation\n  - get_summary   Get summary statistics about national park visitation data"
+  park:
+    type: string
+    required: false
+    description: Park slug identifier (e.g., "zion", "yellowstone", "grand-canyon", "pearl-harbor-nmem",
+      "muir-woods")
+  year:
+    type: integer
+    required: false
+    description: Year of data (1979-2025, defaults to most recent if not specified)
+  designation:
+    type: string
+    required: false
+    description: Filter by park designation (e.g., "national-parks", "national-monuments", "national-memorials",
+      "national-recreation-areas")

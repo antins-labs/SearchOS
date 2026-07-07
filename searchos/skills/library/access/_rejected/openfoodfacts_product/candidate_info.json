@@ -1,0 +1,17 @@
+{
+  "host": "world.openfoodfacts.org_api",
+  "invocation": "agent_called",
+  "probe_urls": [
+    "https://world.openfoodfacts.org/cgi/search.pl?search_terms=chocolate&json=1&page_size=3",
+    "https://world.openfoodfacts.org/cgi/search.pl?search_terms=coffee&json=1&page_size=3"
+  ],
+  "heldout_url": "https://world.openfoodfacts.org/cgi/search.pl?search_terms=coffee&json=1&page_size=3",
+  "declared_fields": [
+    "product_id",
+    "brands",
+    "categories",
+    "keywords",
+    "additives_count",
+    "completeness"
+  ]
+}

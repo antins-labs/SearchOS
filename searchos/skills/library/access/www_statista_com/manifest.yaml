@@ -1,0 +1,32 @@
+description: >-
+  Fetch statistics, data tables, and metadata from Statista (www.statista.com).
+  Supports individual statistic extraction by URL/ID and search functionality.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_statistic   获取单个统计数据，需提供 url_or_id 参数
+        - search          搜索统计数据，需提供 query 参数
+
+  url_or_id:
+    type: string
+    required: false
+    description: >
+      Statista 统计页面的完整 URL 或统计 ID（如 "1058725"）。
+      当 function 为 get_statistic 时使用。也支持使用 url 或 statistic_id 作为别名。
+
+  query:
+    type: string
+    required: false
+    description: >
+      搜索关键词。当 function 为 search 时使用。
+
+  max_results:
+    type: integer
+    required: false
+    default: 20
+    description: >
+      搜索返回的最大结果数量。当 function 为 search 时使用。

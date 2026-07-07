@@ -1,0 +1,27 @@
+description: Access Moutai China product catalog and retrieve product listings, details, and categories
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_products   List products from a category with pagination support\n\
+      \  - get_product   Get detailed product information including full specifications\n  - get_categories\
+      \   Get all available product categories and series\n  - search   Search products by name (client-side\
+      \ filtering)"
+  category:
+    type: string
+    required: false
+    description: Product category to list
+    default: all
+  page:
+    type: integer
+    required: false
+    description: Page number (starting from 1)
+    default: 1
+  url:
+    type: string
+    required: false
+    description: URL of the product detail page
+  query:
+    type: string
+    required: false
+    description: Search query to match against product names

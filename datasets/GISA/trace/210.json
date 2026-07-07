@@ -1,0 +1,78 @@
+{
+  "search": [
+    "tropical cyclones globally the 20th century"
+  ],
+  "result": {
+    "tropical cyclones globally the 20th century": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Since the year 957, there have been at least 12,791 recorded tropical and subtropical cyclones in the Atlantic, Pacific, and Indian oceans, which are known as ...Read more",
+            "title": "Tropical cyclones by year",
+            "url": "https://en.wikipedia.org/wiki/Tropical_cyclones_by_year"
+          },
+          {
+            "snippet": "The annual number of tropical cyclones forming globally has decreased by approximately 13% during the 20th century, and scientists say the main cause is a rise ...Read more",
+            "title": "Research: Global warming contributed to decline in tropical ...",
+            "url": "https://research.noaa.gov/research-global-warming-contributed-to-a-decline-in-annual-tropical-cyclones-in-the-20th-century/"
+          },
+          {
+            "snippet": "The annual number of tropical cyclones forming globally has decreased by approximately 13% during the 20th century, and scientists say the main cause is a rise ...Read more",
+            "title": "Global warming contributed to decline in tropical cyclones ...",
+            "url": "https://www.climate.gov/news-features/feed/research-global-warming-contributed-decline-tropical-cyclones-20th-century"
+          },
+          {
+            "snippet": "Climate change has driven a 13% decline in the frequency of tropical cyclones since pre-industrial times, new research finds.Read more",
+            "title": "Tropical cyclones now '13% less frequent' due to climate ...",
+            "url": "https://www.carbonbrief.org/tropical-cyclones-now-13-less-frequent-due-to-climate-change/"
+          },
+          {
+            "snippet": "1) Storm Surge: sea level rise will lead to higher storm surge levels on average for the TCs that do occur, assuming all other factors are unchanged. 2) TC ...",
+            "title": "Tropical Cyclones and Climate Change: Historical Trends ...",
+            "url": "https://www.iogp.org/wp-content/uploads/2018/10/Presentation14_ThomasKnutson_Public.pdf"
+          },
+          {
+            "snippet": "In the first half of the 20th century the identification of tropical cyclones was based on changes in weather conditions, the state of the ...Read more",
+            "title": "Tropical cyclone - Location, Patterns, Forecasting",
+            "url": "https://www.britannica.com/science/tropical-cyclone/Location-and-patterns-of-tropical-cyclones"
+          },
+          {
+            "snippet": "Tropical cyclones are among the most devastating of natural disasters, frequently causing loss of human life and serious economic damage.Read more",
+            "title": "Tropical Cyclones in a Warmer Climate",
+            "url": "https://wmo.int/media/magazine-article/tropical-cyclones-warmer-climate"
+          },
+          {
+            "snippet": "The annual number of tropical cyclones forming globally decreased by about 13 per cent during the 20th century compared to the 19th, according to research ...Read more",
+            "title": "Research shows tropical cyclones have decreased ...",
+            "url": "https://www.eco-business.com/opinion/research-shows-tropical-cyclones-have-decreased-alongside-human-caused-global-warming-but-dont-celebrate-yet/"
+          },
+          {
+            "snippet": "Researchers have for the first time shown that the annual number of tropical cyclones dropped during the 20th century compared with the late 19 ...Read more",
+            "title": "Tropical Cyclones Are Dropping in Number, Study Says",
+            "url": "https://lamont.columbia.edu/news/tropical-cyclones-are-dropping-number-study-says"
+          },
+          {
+            "snippet": "The average annual number of cyclones fell by 13% across the 20th century, with steeper declines seen after 1950.Read more",
+            "title": "Cyclone numbers have fallen since start of 20th century ...",
+            "url": "https://www.theguardian.com/australia-news/2022/jun/28/cyclone-numbers-have-fallen-since-start-of-20th-century-study-suggests"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>tropical cyclones globally the 20th century</search>",
+      "to": "https://en.wikipedia.org/wiki/Tropical_cyclones_by_year"
+    },
+    {
+      "from": "<search>tropical cyclones globally the 20th century</search>",
+      "to": "https://en.wikipedia.org/wiki/Tropical_cyclones_by_year"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Tropical_cyclones_by_year",
+      "to": "https://en.wikipedia.org/wiki/Tropical_cyclones_by_year#1900s"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+description: >-
+  Fetch HKEX Monthly Market Highlights statistics from www.hkex.com.hk including
+  securities market data, turnover, stock connect, derivatives, and indices.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_months      列出所有可用的月份
+        - get_highlights   获取指定月份的市场亮点统计（返回结构化数据）
+        - get_raw_tables   获取指定月份的原始表格数据
+  month:
+    type: string
+    required: false
+    description: >-
+      月份名称，格式为 "Month Year"，例如 "May 2025"。
+      如果不指定，则返回最新月份的数据。用于 get_highlights 和 get_raw_tables。
+  month_guid:
+    type: string
+    required: false
+    description: >-
+      月份的唯一标识符(GUID)，可通过 list_months 获取。
+      如果不指定，则使用 month 参数或返回最新月份。
+      用于 get_highlights 和 get_raw_tables。

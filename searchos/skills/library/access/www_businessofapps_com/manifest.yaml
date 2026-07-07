@@ -1,0 +1,28 @@
+description: Fetches structured app market data tables (popular apps, revenue statistics, category rankings) from www.businessofapps.com
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to call. Available values:
+        - fetch_page      Fetch all tables from a specific data page path
+        - get_popular_apps  Get most popular apps by category
+        - get_app_revenue   Get app revenue statistics by year
+        - list_pages        List all available data pages on the site
+  
+  data_path:
+    type: string
+    required: false
+    description: |
+      Path to the data page (used with fetch_page function).
+      Examples: 'most-popular-apps', 'app-revenue', 'app-benchmarks'
+      Can include or omit 'data/' prefix and trailing slash.
+  
+  category:
+    type: string
+    required: false
+    description: |
+      Optional category filter for get_popular_apps function.
+      Filters tables by category name in title.
+      Examples: 'social', 'games', 'music', 'shopping', 'entertainment'

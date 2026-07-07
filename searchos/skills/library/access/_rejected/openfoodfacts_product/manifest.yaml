@@ -1,0 +1,21 @@
+name: openfoodfacts_product
+invocation: agent_called
+description: "Search world.openfoodfacts.org_api \u2014 openfoodfacts_product. Direct\
+  \ JSON API endpoint; structural parsing required, no HTML/CSS selectors applicable."
+params_schema:
+  query:
+    type: string
+    required: true
+    description: Search terms to find food products (e.g., 'chocolate', 'coffee')
+  num_results:
+    type: integer
+    default: 5
+    description: Maximum number of products to return
+category: commerce
+entity_type: openfoodfacts_product
+fields:
+- title
+- id
+- brand
+- url
+- snippet

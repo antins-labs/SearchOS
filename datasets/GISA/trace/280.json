@@ -1,0 +1,69 @@
+{
+  "search": [
+    "pharaohs of ancient egypt for whom a pyramid was constructed"
+  ],
+  "result": {
+    "pharaohs of ancient egypt for whom a pyramid was constructed": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "El-Kurru. Piye, the king of Kush who became the first ruler of the Twenty-fifth Dynasty, built a pyramid at El-Kurru. He was the first Egyptian pharaoh to be ...",
+            "title": "Egyptian pyramids",
+            "url": "https://en.wikipedia.org/wiki/Egyptian_pyramids"
+          },
+          {
+            "snippet": "It served as the tomb of pharaoh Khufu (\"Cheops\"), who ruled during the Fourth Dynasty of the Old Kingdom. Built c. 2600 BC over a period of about 26 years, ...",
+            "title": "Great Pyramid of Giza",
+            "url": "https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza"
+          },
+          {
+            "snippet": "When were the pyramids built, and who built them. Pharaoh Khufu was the first Egyptian king to commission a pyramid in Giza, a project he began in circa 2550 B.C. His Great Pyramid is the largest ...",
+            "title": "How were the Pyramids of Giza built?",
+            "url": "https://www.nationalgeographic.com/history/article/giza-pyramids"
+          },
+          {
+            "snippet": "The pyramids of Giza and others are thought to have been constructed to house the remains of the deceased pharaohs who ruled Ancient Egypt. A portion of the pharaoh's spirit called his ka was believed to remain with his corpse. Proper care of the remains was necessary in order for the \"former Pharaoh to perform his new ...",
+            "title": "Giza pyramid complex",
+            "url": "https://en.wikipedia.org/wiki/Giza_pyramid_complex"
+          },
+          {
+            "snippet": "The pyramids and the Great Sphinx rise inexplicably from the desert at Giza, relics of a vanished culture. They dwarf the approaching sprawl of modern Cairo, a city of 16 million. The largest pyramid, built for the Pharaoh Khufu around 2530 B.C. and intended to last an eternity, was until early in ...",
+            "title": "Who Built the Pyramids?",
+            "url": "https://www.harvardmagazine.com/2003/07/who-built-the-pyramids-html"
+          },
+          {
+            "snippet": "The pyramids of Giza were royal tombs built for three different pharaohs. The northernmost and oldest pyramid of the group was built for Khufu (Greek: Cheops).",
+            "title": "Who were the pyramids of Giza built for?",
+            "url": "https://www.britannica.com/question/Who-were-the-pyramids-of-Giza-built-for"
+          },
+          {
+            "snippet": "But you know, the Great Pyramid of Khufu is one hell of a barn. NOVA: Some of the theories of who built the pyramids suggest that the builders may not have been from Egypt. Can you respond to that?",
+            "title": "NOVA Online/Pyramids/Who Built the Pyramids?",
+            "url": "https://www.pbs.org/wgbh/nova/pyramid/explore/builders.html"
+          },
+          {
+            "snippet": "Who built pyramids in Egypt? The priest Iunu (Hem iunu) of Pharoah ...",
+            "title": "Did every Pharaoh have his own pyramid built?",
+            "url": "https://www.quora.com/Did-every-Pharaoh-have-his-own-pyramid-built"
+          },
+          {
+            "snippet": "Khufu or Cheops was the second pharaoh of the Fourth Dynasty of Egypt, reigning during the 26th century BC in the early Old Kingdom period. Khufu succeeded his father Sneferu as king. He is generally accepted as having commissioned the Great Pyramid of Giza, one of the Seven Wonders of the Ancient World, ...",
+            "title": "Khufu",
+            "url": "https://en.wikipedia.org/wiki/Khufu"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>pharaohs of ancient egypt for whom a pyramid was constructed</search>",
+      "to": "https://en.wikipedia.org/wiki/Egyptian_pyramids"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Egyptian_pyramids",
+      "to": "https://en.wikipedia.org/wiki/List_of_Egyptian_pyramids"
+    }
+  ]
+}

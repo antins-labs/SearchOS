@@ -1,0 +1,31 @@
+description: >-
+  Fetches college entrance exam (Gaokao) announcements, policy documents, 
+  and score distribution data from gaokao.chsi.com.cn (阳光高考). Supports 
+  article retrieval, list browsing, and external data source extraction.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_article   Fetch article metadata from gaokao.chsi.com.cn, extracts title, date, source, and external data links
+        - get_external_data   Fetch tabular data (如投档线、分数分布) from external education authority sites
+        - search_list   List recent announcements from specified category and province
+  
+  url:
+    type: string
+    required: false
+    description: Article URL for get_article or external source URL for get_external_data. Required for these functions.
+  
+  category:
+    type: string
+    required: false
+    description: Category code for search_list. Options include 'zc' (政策/policy), default is 'zc'.
+    default: "zc"
+  
+  province:
+    type: string
+    required: false
+    description: Province code for search_list. Options include 'ss' (综合/comprehensive), 'bj' (北京), 'sh' (上海), etc. Default is 'ss'.
+    default: "ss"

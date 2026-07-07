@@ -1,0 +1,22 @@
+name: openalex_work
+invocation: agent_called
+description: Search api.openalex.org — openalex_work. Returns raw JSON data instead
+  of HTML; standard CSS selectors are invalid.
+params_schema:
+  query:
+    type: string
+    required: true
+    description: The search query string (e.g., 'graph neural networks')
+  per_page:
+    type: integer
+    default: 3
+    description: Number of results to return per page
+category: access_skill
+entity_type: openalex_work
+fields:
+- title
+- url
+- publication_year
+- doi
+- type
+template: public_api

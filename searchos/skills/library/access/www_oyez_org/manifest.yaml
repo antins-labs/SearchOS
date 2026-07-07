@@ -1,0 +1,36 @@
+description: 'Access Supreme Court case data from Oyez.org including case details,
+
+  oral arguments, written opinions, voting records, and timeline information.
+
+  The Oyez database contains comprehensive information about U.S. Supreme Court
+
+  cases including full text of opinions, audio of oral arguments, and justice
+
+  voting patterns.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_case   Get detailed information about a specific Supreme Court\
+      \ case\n  - get_cases_by_term   Get a paginated list of cases for a specific court term\n  - search_cases\
+      \   Search for cases by name or docket number across recent terms"
+  term:
+    type: string
+    required: false
+    description: Court term year (e.g., "2024", "2023", "2022")
+  docket:
+    type: string
+    required: false
+    description: Docket number (e.g., "23-1239", "22-45", "21-476")
+  page:
+    type: integer
+    required: false
+    description: Page number (default 0, 30 cases per page)
+  query:
+    type: string
+    required: false
+    description: Search string (case name or docket number)
+  max_terms:
+    type: integer
+    required: false
+    description: Number of recent terms to search (default 5)

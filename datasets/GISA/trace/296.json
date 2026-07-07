@@ -1,0 +1,121 @@
+{
+  "search": [
+    "best selling game consoles"
+  ],
+  "result": {
+    "best selling game consoles": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Best-selling consoles · Sony's PlayStation 2 is the best-selling console, with more than 160 million units · The handheld Nintendo DS is the second-best-selling ...Read more",
+            "title": "List of best-selling game consoles",
+            "url": "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles"
+          },
+          {
+            "snippet": "Sep 9, 2025 — As our chart shows, the original PlayStation is the fourth best-selling home console of all time, beaten only by the PlayStation 4, the Nintendo ...Read more",
+            "title": "Chart: Sony & Nintendo Dominate Console Leaderboard",
+            "url": "https://www.statista.com/chart/18903/video-game-console-sales/?srsltid=AfmBOooRe2Y71i022tNLKpALikjnHREamQNH-kGnogSsUb0UPWNKiB1O"
+          },
+          {
+            "snippet": "Browse the top-ranked list of best selling video game consoles below along with associated reviews and opinions.Read more",
+            "title": "Best Selling Video Game Consoles",
+            "url": "https://www.bestbuy.com/site/shop/best-selling-video-game-consoles"
+          },
+          {
+            "snippet": "This list may not reflect recent changes. B. List of best-selling game consoles · List of best-selling game consoles by region. N. Nintendo DS sales · Last ...Read more",
+            "title": "Category:Video game console sales",
+            "url": "https://en.wikipedia.org/wiki/Category:Video_game_console_sales"
+          },
+          {
+            "snippet": "The consoles with the highest number of software units sold are Sony's PlayStation 2 and PlayStation, each with software sales exceeding 900 million units. The ...Read more",
+            "title": "Best selling game consoles | Video Game Sales Wiki - Fandom",
+            "url": "https://vgsales.fandom.com/wiki/Best_selling_game_consoles"
+          },
+          {
+            "snippet": "If we consider the whole range of Game Boy products (Original, Pocket, Color, Advance) we end up with Game Boy being the most sold console ever ...Read more",
+            "title": "A list of the 10 Highest-Selling Home Consoles of all time",
+            "url": "https://www.reddit.com/r/videogames/comments/1jdxdbz/a_list_of_the_10_highestselling_home_consoles_of/"
+          },
+          {
+            "snippet": "I recently made a list of the bestselling consoles in the U.S each year since 1986. Went through numerous different sources to find the most accurate data.Read more",
+            "title": "Bestselling Console In The United States By Year Since 1986",
+            "url": "https://gamrconnect.vgchartz.com/thread/247969/bestselling-console-in-the-united-states-by-year-since-1986/"
+          },
+          {
+            "snippet": "According to Statista, the PlayStation 2 remains the best-selling console ever with a whopping 160M units sold since its 2000 release. Right ...Read more",
+            "title": "Updated* Best-selling video game consoles of all time",
+            "url": "https://www.facebook.com/groups/558977328068750/posts/1833889127244224/"
+          },
+          {
+            "snippet": "As of today, the best-selling console is the Sony PlayStation 2 with about 150m units. It's possible that the Nintendo Switch outsells the PS2.Read more",
+            "title": "What is the greatest selling video game console of all time?",
+            "url": "https://www.quora.com/What-is-the-greatest-selling-video-game-console-of-all-time"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>best selling game consoles</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles"
+    },
+    {
+      "from": "<search>best selling game consoles</search>",
+      "to": "https://www.bestbuy.com/site/shop/best-selling-video-game-consoles"
+    },
+    {
+      "from": "<search>best selling game consoles</search>",
+      "to": "https://en.wikipedia.org/wiki/Category:Video_game_console_sales"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles",
+      "to": "https://en.wikipedia.org/wiki/PlayStation_2"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles",
+      "to": "https://en.wikipedia.org/wiki/Nintendo_DS"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles",
+      "to": "https://en.wikipedia.org/wiki/Nintendo_Switch"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles",
+      "to": "https://en.wikipedia.org/wiki/Game_Boy"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles",
+      "to": "https://en.wikipedia.org/wiki/PlayStation_4"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles",
+      "to": "https://en.wikipedia.org/wiki/PlayStation_4"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles",
+      "to": "https://en.wikipedia.org/wiki/Game_Boy_Color"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles",
+      "to": "https://en.wikipedia.org/wiki/Game_Boy_Color"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles",
+      "to": "https://en.wikipedia.org/wiki/PlayStation_(console)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles",
+      "to": "https://en.wikipedia.org/wiki/Wii"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles",
+      "to": "https://en.wikipedia.org/wiki/PlayStation_3"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles",
+      "to": "https://en.wikipedia.org/wiki/PlayStation_3"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+description: >-
+  Fetches reference profiles, file listings, and tabular CSV data from the NPS IRMA DataStore (irma.nps.gov).
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_reference_profile   获取参考档案的核心元数据；需要 reference_id
+        - get_file_holdings       列出参考档案的所有附件文件；需要 reference_id
+        - download_file           下载指定文件ID的文件；需要 file_id，可选 max_size_mb
+        - parse_csv_file          下载并解析CSV文件为结构化数据；需要 file_id，可选 max_rows, preview_rows
+        - get_full_profile        获取完整的参考档案，包含元数据和文件列表；需要 reference_id
+
+  reference_id:
+    type: string
+    required: false
+    description: IRMA DataStore参考档案的数字ID（如 2316680）；用于 get_reference_profile, get_file_holdings, get_full_profile
+
+  file_id:
+    type: string
+    required: false
+    description: IRMA DataStore文件的数字ID（如 753800）；用于 download_file, parse_csv_file
+
+  max_size_mb:
+    type: number
+    required: false
+    description: 下载文件时的最大文件大小限制（MB）；默认 50；用于 download_file
+
+  max_rows:
+    type: integer
+    required: false
+    description: 解析CSV时返回的最大行数；默认返回所有行；用于 parse_csv_file
+
+  preview_rows:
+    type: integer
+    required: false
+    description: CSV预览中显示的行数；默认 20；用于 parse_csv_file

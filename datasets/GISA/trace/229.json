@@ -1,0 +1,86 @@
+{
+  "search": [
+    "Which mainline games in the Super Mario series were released by Nintendo"
+  ],
+  "result": {
+    "Which mainline games in the Super Mario series were released by Nintendo": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Super Mario World was released for the Super Nintendo Entertainment System and consists of nine worlds displayed via a world map. It is a direct successor to ...",
+            "title": "Super Mario",
+            "url": "https://en.wikipedia.org/wiki/Super_Mario"
+          },
+          {
+            "snippet": "The series is developed by several Nintendo divisions. The main games have been developed by Nintendo Entertainment Analysis and Development, with the exception ...",
+            "title": "Super Mario (series)",
+            "url": "https://www.mariowiki.com/Super_Mario_(series)"
+          },
+          {
+            "snippet": "Mario 1-3 · Mario World · Mario 64 · Mario Sunshine · Mario Galaxy 1 and 2 · 3D Land and World · Mario Odyssey · Mario Wonder.",
+            "title": "How many (Mainline) Super Mario games are there?",
+            "url": "https://www.reddit.com/r/TwoBestFriendsPlay/comments/1d513ad/how_many_mainline_super_mario_games_are_there/"
+          },
+          {
+            "snippet": "Mainline games ; Super Mario Bros. (Sep. 13, 1985) ; Super Mario Bros. 2: The Lost Levels (Jun. 3, 1986) ; Super Mario Bros. 3 (Oct. 23, 1988) ; Super Mario World: ...",
+            "title": "Super Mario (series) | Mario Wiki - Fandom",
+            "url": "https://mario.fandom.com/wiki/Super_Mario_(series)"
+          },
+          {
+            "snippet": "However, as of 2024, there are 24 mainline Super Mario games, with each Nintendo console getting its own true Super Mario experience. Since 1985 ...",
+            "title": "Every Super Mario Game in Order: 24 Mainline Adventures",
+            "url": "https://www.forbes.com/sites/technology/article/mario-games-in-order/"
+          },
+          {
+            "snippet": "1985 Super Mario Bros. · 1988 Super Mario Bros. 2 · 1989 Super Mario Land · 1990 Super Mario Bros. 3 · 1991 Super Mario World · 1992 Super Mario Land 2: 6 Golden ...",
+            "title": "The official home of Super Mario™ – History - Nintendo",
+            "url": "https://mario.nintendo.com/history/"
+          },
+          {
+            "snippet": "Series; Year; Console; Genre; All. Super Mario Bros. Mario Kart; Mario Party; Mario Tennis; Paper Mario; Mario RPG; Mario Golf; ストライカーズ",
+            "title": "HISTORY | Mario Portal",
+            "url": "https://www.nintendo.com/jp/character/mario/en/history/index.html?srsltid=AfmBOoqWYAMEa14YLU6ys6RJ0rBF-lyLMy6nsT6n4Yw8AnPDsdd-WK9J"
+          },
+          {
+            "snippet": "Super Mario Party (2018). The first Mario Party title for Nintendo Switch is Super Mario Party, which was coined as a refresh of the beloved series. Contrary ...",
+            "title": "Every Mario Game on Nintendo Switch in 2025",
+            "url": "https://www.ign.com/articles/all-mario-games-on-nintendo-switch"
+          },
+          {
+            "snippet": "Super Mario 3D Land (2011 Nintendo 3DS game); New Super Mario Bros. 2 (2012 Nintendo 3DS game); New Super Mario Bros. U (2012 Wii U game) ...",
+            "title": "How to play Super Mario Brothers, Mario Kart, and ...",
+            "url": "https://www.thepopverse.com/gaming-nintendo-super-mario-bros-super-smash-bros-mario-kart-how-to-play-release-chronological-order"
+          },
+          {
+            "snippet": "Super Mario Odyssey would be the first game in the series to be released on the Nintendo Switch, and was released in 2017.",
+            "title": "Mario (franchise)",
+            "url": "https://en.wikipedia.org/wiki/Mario_(franchise)"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>Which mainline games in the Super Mario series were released by Nintendo</search>",
+      "to": "https://en.wikipedia.org/wiki/Super_Mario"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Super_Mario",
+      "to": "https://en.wikipedia.org/wiki/Super_Mario_Land"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Super_Mario",
+      "to": "https://en.wikipedia.org/wiki/New_Super_Mario_Bros._Wii"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Super_Mario",
+      "to": "https://en.wikipedia.org/wiki/Super_Mario_3D_Land"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Super_Mario_3D_Land",
+      "to": "https://en.wikipedia.org/wiki/Super_Mario"
+    }
+  ]
+}

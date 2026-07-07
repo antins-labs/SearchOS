@@ -1,0 +1,36 @@
+description: >-
+  抓取微软投资者关系数据(年报/季度财报/财务报表/股价),来源 www.microsoft.com 投资者关系页。
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - annual_reports          列出所有年报(1996 至今,含查看/下载 URL);无额外参数
+        - annual_report_detail    获取某一年年报详情;需要 year
+        - earnings                获取某财年某季度财报数据;需要 fiscal_year 和 quarter,可选 section
+        - current_quarter         获取微软当前财年/财季信息;无额外参数
+        - latest_earnings         自动获取最近一期可用财报;可选 section
+        - list_earnings_sections  列出某财年某季度可用的财报分节;需要 fiscal_year 和 quarter
+        - stock_quote             获取 MSFT 当前股价(价格/成交量/市值等);无额外参数
+  year:
+    type: integer
+    required: false
+    description: annual_report_detail 用(必填):年报年份,如 2024、2023。
+  fiscal_year:
+    type: integer
+    required: false
+    description: earnings / list_earnings_sections 用(必填):财年,如 2025、2026。
+  quarter:
+    type: integer
+    required: false
+    description: earnings / list_earnings_sections 用(必填):财季,取值 1-4。
+  section:
+    type: string
+    required: false
+    description: >-
+      earnings / latest_earnings 用:财报分节。可用值:press-release-webcast、income-statements、
+      comprehensive-income、balance-sheets、cash-flows、segment-revenues、performance、metrics、
+      productivity-and-business-processes-performance、intelligent-cloud-performance、
+      more-personal-computing-performance。
+    default: press-release-webcast

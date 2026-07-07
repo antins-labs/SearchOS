@@ -1,0 +1,37 @@
+description: 'Access skill for China National Railway Administration (NRA) railway statistics portal.
+
+  Extracts statistical tables on railway transport indicators, including passenger/freight volumes,
+
+  turnovers, and fixed asset investments.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_articles   List railway statistics articles with pagination\n\
+      \  - get_article   Get article details and extract statistical table data\n  - get_article_image\
+      \   Download table image for image-based articles\n  - get_stats_history   Get historical statistics\
+      \ by scanning multiple articles"
+  page:
+    type: integer
+    required: false
+    description: Page number (1-indexed)
+    default: 1
+  url:
+    type: string
+    required: false
+    description: Article URL
+  start_page:
+    type: integer
+    required: false
+    description: ''
+    default: 1
+  end_page:
+    type: integer
+    required: false
+    description: ''
+    default: 1
+  max_articles:
+    type: integer
+    required: false
+    description: ''
+    default: 10

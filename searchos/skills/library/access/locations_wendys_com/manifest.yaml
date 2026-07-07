@@ -1,0 +1,46 @@
+description: >-
+  SearchOS access skill for locations.wendys.com - navigates the directory structure
+  to list US states, cities within states, Wendy's locations within cities, and
+  detailed information for specific store locations including hours, phone, and coordinates.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_states - List all US states where Wendy's locations may exist
+        - list_cities - List cities within a state that have Wendy's locations; requires state parameter
+        - list_locations - List Wendy's locations within a city; requires state and city parameters
+        - get_location - Get detailed information for a specific Wendy's location; requires state, city, and location parameters
+        - search - Basic search functionality (limited)
+  
+  state:
+    type: string
+    required: false
+    description: |
+      Two-letter US state code (e.g., 'NY', 'CA', 'TX'). 
+      Required for list_cities, list_locations, and get_location functions.
+  
+  city:
+    type: string
+    required: false
+    description: |
+      City name or slug (e.g., 'new-york', 'los-angeles', 'chicago').
+      Required for list_locations and get_location functions.
+      Use lowercase hyphenated form (spaces replaced with hyphens).
+  
+  location:
+    type: string
+    required: false
+    description: |
+      Location slug/identifier (e.g., '111-fulton-street', '112-e-23rd-st').
+      Required for get_location function. 
+      Use lowercase hyphenated form, matching the URL path on locations.wendys.com.
+  
+  query:
+    type: string
+    required: false
+    description: |
+      Search query string. Used with search function for basic lookup.
+      Can be a state code, city name, or zip code.

@@ -1,0 +1,22 @@
+name: crossref_work
+invocation: agent_called
+description: Search api.crossref.org — crossref_work. Public REST API returning JSON;
+  requires parsing of JSON payload wrapped in <pre> tags.
+params_schema:
+  query:
+    type: string
+    required: true
+    description: Search query string (e.g., paper title, author, topic keywords)
+  rows:
+    type: integer
+    default: 5
+    description: Maximum number of results to return
+category: access_skill
+entity_type: crossref_work
+fields:
+- title
+- url
+- doi
+- snippet
+- citations
+template: public_api

@@ -1,0 +1,33 @@
+description: >-
+  Extracts viewership metrics, ratings data, and structured content from Nielsen News Center articles including Super Bowl historical viewership tables, TV measurement statistics, and audience data.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - extract_article: 从指定URL提取完整文章内容、指标和表格数据；需要url参数
+        - search_articles: 在RSS源中搜索匹配关键词的文章；需要query参数，可选max_results
+        - get_latest_articles: 获取最新的新闻文章列表；可选limit参数限制返回数量
+        - get_super_bowl_data: 提取超级碗历史收视率数据；可选url参数指定特定文章
+
+  url:
+    type: string
+    required: false
+    description: 文章的完整URL，用于extract_article和get_super_bowl_data功能
+
+  query:
+    type: string
+    required: false
+    description: 搜索关键词，用于search_articles功能
+
+  limit:
+    type: integer
+    required: false
+    description: 返回文章的最大数量，用于get_latest_articles功能，默认为10
+
+  max_results:
+    type: integer
+    required: false
+    description: 搜索结果的最大数量，用于search_articles功能，默认为20

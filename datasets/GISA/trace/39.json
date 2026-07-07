@@ -1,0 +1,74 @@
+{
+  "search": [
+    "the CCTV Spring Festival Gala host"
+  ],
+  "result": {
+    "the CCTV Spring Festival Gala host": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Directors and hosts ; 2021, February 11, Chen Linchun, Ren Luyu, Negmat Rahman, Li Sisi, Long Yang, Zhang Tao ; 2022, January 31, Liu Zhen ...",
+            "title": "CMG New Year's Gala",
+            "url": "https://en.wikipedia.org/wiki/CMG_New_Year%27s_Gala"
+          },
+          {
+            "snippet": "Guyi Li · Self - Performer · Sisi Li · Self - Host · Chi-Ling Lin · Self - Performer · Ruby Lin · Self - Performer · Tao Liu · Self - Performer.",
+            "title": "CCTV Spring Festival Gala (TV Special 2016)",
+            "url": "https://www.imdb.com/title/tt5442712/"
+          },
+          {
+            "snippet": "In a now-deleted photo, the Gala's host Neghmet Rakhman posted a picture of himself and several performers excitedly holding up iPhones for selfies.",
+            "title": "CCTV Spring Festival Gala Host Caught Using iPhone At ...",
+            "url": "https://www.8days.sg/entertainment/asian/cctv-spring-festival-gala-host-use-iphone-huawei-event-840591"
+          },
+          {
+            "snippet": "Fujian Bi · Self - Host ; Yihong Duan · Self ; Dawei Tong · Self ; Davy Williams · Self - Singer ; Fengyi Zhang · Self.",
+            "title": "2015 CCTV Spring Festival Gala (TV Special 2015)",
+            "url": "https://www.imdb.com/title/tt4386116/"
+          },
+          {
+            "snippet": "In addition, popular CCTV hosts Ren Luyu, Sa Beining, Nigemaiti Reheman, Long Yang, Ma Fanshu will co-host the gala's main event in Beijing.",
+            "title": "CMG holds press conference on 2025 Spring Festival Gala",
+            "url": "https://english.cctv.com/2025/01/20/ARTIgNm6UnAHLBznyTZiqNnu250120.shtml"
+          },
+          {
+            "snippet": "One of the presenters is Zhu Jun, who has held the role for the past 18 galas. He will be joined by Dong Qing, a television hostess who ...",
+            "title": "CCTV Appoints Hosts for Lunar New Year Gala, With ...",
+            "url": "https://archive.nytimes.com/sinosphere.blogs.nytimes.com/2015/02/03/cctv-appoints-hosts-for-lunar-new-year-gala-with-some-surprises/"
+          },
+          {
+            "snippet": "Veteran presenters from CCTV, including Zhu Jun, Zhou Tao, Dong Qing, Sa Beining, Li Sisi, Negmat, Zhu Xun, Ma Yue, Li Jiaming and Ren Luyu, ...",
+            "title": "CCTV announces Spring Festival Gala hosts",
+            "url": "https://www.facebook.com/cctvcom/posts/chinanightcctv-announces-spring-festival-gala-hostschina-central-television-has-/10153948537654759/?locale=zh_CN"
+          },
+          {
+            "snippet": "And actor Zhang Guoli is the new face on the host list. Television hosts Zhu Jun, Dong Qing, Bi Fujian, Li Sisi will continue on in their roles ...",
+            "title": "Zhang Guoli to host Spring Festival Gala - Culture",
+            "url": "https://www.chinadaily.com.cn/culture/2014-01/08/content_17223008.htm"
+          },
+          {
+            "snippet": "Huang Yihe, director in charge of singing and dancing programming at CCTV, stared out of the window of his temporary courtyard office in Beijing ...",
+            "title": "How China's New Year TV gala stole Spring Festival",
+            "url": "https://www.theworldofchinese.com/2023/01/how-the-tv-stole-spring-festival/"
+          },
+          {
+            "snippet": "Elsa Gessesse. Elsa has co-hosted with renowned CCTV hosts Huang Wei, Zi Tan, and An Ze.",
+            "title": "2025 Youth Spring Festival Program Selection (CCTV ...",
+            "url": "https://bigbangartwork.org/2025cctvnewyeargalaen/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>the CCTV Spring Festival Gala host</search>",
+      "to": "https://en.wikipedia.org/wiki/CMG_New_Year%27s_Gala"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/CMG_New_Year%27s_Gala",
+      "to": "https://en.wikipedia.org/wiki/CMG_New_Year%27s_Gala#Directors_and_hosts"
+    }
+  ]
+}

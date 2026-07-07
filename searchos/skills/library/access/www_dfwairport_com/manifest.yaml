@@ -1,0 +1,24 @@
+description: >-
+  Fetches DFW Airport traffic statistics including passenger, operations, and cargo 
+  reports from www.dfwairport.com/business/about/stats/
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_all_statistics   获取所有统计报告(Passenger/Operations/Cargo/Archive)
+        - get_passenger_statistics   仅获取乘客统计报告
+        - get_operations_statistics   仅获取运营统计报告
+        - get_cargo_statistics   仅获取货运统计报告
+        - get_latest_reports   获取各类别最新报告
+        - get_reports_by_period   根据时间段搜索报告(需要period参数)
+        - get_page_info   获取统计页面基本信息
+  
+  period:
+    type: string
+    required: false
+    description: |
+      要搜索的时间段(仅get_reports_by_period使用)。例如: "Apr 26", "Dec 25", "2024"。
+      支持大小写不敏感的部分匹配。

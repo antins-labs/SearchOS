@@ -1,0 +1,25 @@
+name: se_question
+invocation: agent_called
+description: "Search api.stackexchange.com \u2014 se_question. REST API returning\
+  \ JSON wrapped in HTML; requires query parameters; rate-limited by key/quota."
+params_schema:
+  site:
+    type: string
+    required: true
+    description: The Stack Exchange site to search (e.g., 'stackoverflow', 'serverfault')
+  query:
+    type: string
+    required: true
+    description: The search query string
+  num_results:
+    type: integer
+    default: 5
+    description: Maximum number of results to return
+category: social
+entity_type: se_question
+fields:
+- title
+- url
+- score
+- tags
+- author

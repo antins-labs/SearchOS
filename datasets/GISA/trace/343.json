@@ -1,0 +1,94 @@
+{
+  "search": [
+    "faculty members at the Gaoling School of Artificial Intelligence"
+  ],
+  "result": {
+    "faculty members at the Gaoling School of Artificial Intelligence": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Xu Chen obtained his PhD degree from Tsinghua University, China. Before joining Renmin University of China, he was a postdoc researcher at University ...Read more",
+            "title": "faculty & research",
+            "url": "http://ai.ruc.edu.cn/english/GSAI_FACULTY/f4dd75e4923942a7a974734119c572af.htm"
+          },
+          {
+            "snippet": "Professor Ji-Rong WEN received his bachelor's and master's degrees from School of Information at Renmin University of China in 1994 and 1996 respectively.Read more",
+            "title": "faculty & research",
+            "url": "http://ai.ruc.edu.cn/english/GSAI_FACULTY/20190813021.html"
+          },
+          {
+            "snippet": "◾ Xuefeng Cui, Zhiwu Lu, Sheng Wang, Jim Jing-Yan Wang, and Xin Gao, CMsearch: simultaneous exploration of protein sequence space and structure space improves ...Read more",
+            "title": "Gaoling School of Artificial Intelligence",
+            "url": "http://ai.ruc.edu.cn/english/GSAI_FACULTY/20191112001.html"
+          },
+          {
+            "snippet": "We are recruiting tenure-track professors cross the world. All FACULTY & RESEARCH · Ji-Rong Wen. Executive Dean of GSAI Tenured ...Read more",
+            "title": "Gaoling School of Artificial Intelligence",
+            "url": "http://ai.ruc.edu.cn/english/"
+          },
+          {
+            "snippet": "I'm tenure-track faculty at Gaoling School of Artificial Intelligence, Renmin University of China. Before that, I was previously a research scientist at Baidu ...Read more",
+            "title": "Di Hu",
+            "url": "https://dtaoo.github.io/"
+          },
+          {
+            "snippet": "We are recruiting tenure-track professors cross the world. All FACULTY & RESEARCH · Ji-Rong Wen. Executive Dean of GSAI Tenured ...Read more",
+            "title": "Gaoling School of Artificial Intelligence",
+            "url": "http://www.venetianylc.com/en/index.htm"
+          },
+          {
+            "snippet": "We aim to bring together scientists, scholars and practitioners to discuss some of the most pressing issues with today. Host by. Gaoling School ...Read more",
+            "title": "Gaoling School of Artificial Intelligence",
+            "url": "http://www.lianpp.com/ruc/mu_ai/english/gsainews/20230305100.html"
+          },
+          {
+            "snippet": "Yuyao Zhang. Department. Gaoling School of Artificial Intelligence. Fuzheng Zhang · Zheng Liu.Read more",
+            "title": "Xiaoxi LI | Renmin University of China, Beijing | RUC",
+            "url": "https://www.researchgate.net/profile/Xiaoxi-Li-27"
+          },
+          {
+            "snippet": "Tenure-track Associate Professor: Gaoling School of Artificial Intelligence, Renmin University of China, July 2020 to presentRead more",
+            "title": "Gaoling School of Artificial Intelligence",
+            "url": "http://ai.ruc.edu.cn/english/GSAI_FACULTY/2cbe4499da754b419213e19143161079.htm"
+          },
+          {
+            "snippet": "Faculty. Xu Chen. Ph.D Students. Xi Li. 2021 ... Gaoling School of Artificial Intelligence, Renmin University of China, Beijing 100872.Read more",
+            "title": "Xu Chen",
+            "url": "http://ai-engine-lab.com/team"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>faculty members at the Gaoling School of Artificial Intelligence</search>",
+      "to": "http://ai.ruc.edu.cn/english/GSAI_FACULTY/f4dd75e4923942a7a974734119c572af.htm"
+    },
+    {
+      "from": "<search>faculty members at the Gaoling School of Artificial Intelligence</search>",
+      "to": "http://ai.ruc.edu.cn/english/GSAI_FACULTY/20191112001.html"
+    },
+    {
+      "from": "http://ai.ruc.edu.cn/english/GSAI_FACULTY/20191112001.html",
+      "to": "https://gsai.ruc.edu.cn/addons/teacher/enhome.html"
+    },
+    {
+      "from": "https://gsai.ruc.edu.cn/addons/teacher/enhome.html",
+      "to": "https://gsai.ruc.edu.cn/english/zihe"
+    },
+    {
+      "from": "https://gsai.ruc.edu.cn/addons/teacher/enhome.html",
+      "to": "https://gsai.ruc.edu.cn/english/zihe"
+    },
+    {
+      "from": "https://gsai.ruc.edu.cn/addons/teacher/enhome.html",
+      "to": "https://gsai.ruc.edu.cn/english/zihe"
+    },
+    {
+      "from": "https://gsai.ruc.edu.cn/addons/teacher/enhome.html",
+      "to": "https://gsai.ruc.edu.cn/english/zihe"
+    }
+  ]
+}

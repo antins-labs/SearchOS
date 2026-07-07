@@ -1,0 +1,90 @@
+{
+  "search": [
+    "the alleged coup plot involving former President Jair Bolsonaro and seven of his key aides"
+  ],
+  "result": {
+    "the alleged coup plot involving former President Jair Bolsonaro and seven of his key aides": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "... Jair Bolsonaro's former aide-de-camp. The operation was part of ... \"Brazil police investigate ex-President Bolsonaro's top aides over alleged coup plot\".",
+            "title": "2022–2023 Brazilian coup plot",
+            "url": "https://en.wikipedia.org/wiki/2022%E2%80%932023_Brazilian_coup_plot"
+          },
+          {
+            "snippet": "The prosecution has also accused Bolsonaro's aides of planning to assassinate Lula before his swearing-in. Investigators say the evidence ...",
+            "title": "Why is Brazil's Jair Bolsonaro on trial — and what's next?",
+            "url": "https://www.aljazeera.com/news/2025/9/2/why-is-brazils-jair-bolsonaro-on-trial-and-whats"
+          },
+          {
+            "snippet": "Bolsonaro's close aides stand accused of drafting a plan to assassinate Mr. Lula before his swearing in. Investigators say the evidence ...",
+            "title": "What to Know About Jair Bolsonaro's Coup Plot Trial",
+            "url": "https://www.nytimes.com/2025/09/02/world/americas/jair-bolsonaro-coup-trial-what-to-know.html"
+          },
+          {
+            "snippet": "The alleged plot included plans to assassinate key political rivals, including current President ... His top former aide, Lt. Col. Mauro Cid, has ...",
+            "title": "Brazil's ex-President Bolsonaro coup trial begins",
+            "url": "https://www.npr.org/2025/09/02/nx-s1-5520615/bolsonaro-trial-brazil-coup-trump"
+          },
+          {
+            "snippet": "A key piece of evidence is the plea agreement by Lt. Col. Mauro Cid, former aide to Bolsonaro. His testimony tied the former president and ...",
+            "title": "Brazil Supreme Court opens Bolsonaro coup trial",
+            "url": "https://www.courthousenews.com/brazil-supreme-court-opens-bolsonaro-coup-trial/"
+          },
+          {
+            "snippet": "The former army captain will be tried along with seven former aides accused of playing key roles in the alleged plot. They include four former ...",
+            "title": "Brazil Supreme Court opens landmark coup trial against ...",
+            "url": "https://www.france24.com/en/americas/20250520-bolsonaro-coup-court-brazil"
+          },
+          {
+            "snippet": "",
+            "title": "Former president Bolsonaro, co-accused begin testifying in ...",
+            "url": "https://www.youtube.com/watch?v=XLZKnB8M9lE"
+          },
+          {
+            "snippet": "Bolsonaro said he and senior aides discussed alternatives to accepting the electoral results, including the possibility of deploying military ...",
+            "title": "Bolsonaro denies orchestrating Brazil coup in Supreme ...",
+            "url": "https://www.reuters.com/world/americas/bolsonaro-denies-orchestrating-brazil-coup-supreme-court-testimony-2025-06-10/"
+          },
+          {
+            "snippet": "This week, the eight defendants — including Bolsonaro — are taking the stand, with one former aide, Army Lt. Col. Mauro Cid, now cooperating as ...",
+            "title": "Bolsonaro takes the stand in historic Brazil coup trial",
+            "url": "https://www.gpb.org/news/2025/06/10/bolsonaro-takes-the-stand-in-historic-brazil-coup-trial"
+          },
+          {
+            "snippet": "In a historic trial, Brazil's Supreme Court judges former president and military allies for plot to overturn democracy. ... aide-de-camp), and ...",
+            "title": "Bolsonaro and military leaders stand trial for coup attempt",
+            "url": "https://www.brasildefato.com.br/2025/09/02/today-bolsonaro-and-military-leaders-stand-trial-for-coup-attempt/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>the alleged coup plot involving former President Jair Bolsonaro and seven of his key aides</search>",
+      "to": "https://en.wikipedia.org/wiki/2022%E2%80%932023_Brazilian_coup_plot"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Trial_for_the_2022%E2%80%932023_Brazilian_coup_plot",
+      "to": "https://en.wikipedia.org/wiki/Alexandre_de_Moraes"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Trial_for_the_2022%E2%80%932023_Brazilian_coup_plot",
+      "to": "https://en.wikipedia.org/wiki/Fl%C3%A1vio_Dino"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Trial_for_the_2022%E2%80%932023_Brazilian_coup_plot",
+      "to": "https://en.wikipedia.org/wiki/Luiz_Fux"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Trial_for_the_2022%E2%80%932023_Brazilian_coup_plot",
+      "to": "https://en.wikipedia.org/wiki/C%C3%A1rmen_L%C3%BAcia"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Trial_for_the_2022%E2%80%932023_Brazilian_coup_plot",
+      "to": "https://en.wikipedia.org/wiki/Cristiano_Zanin"
+    }
+  ]
+}

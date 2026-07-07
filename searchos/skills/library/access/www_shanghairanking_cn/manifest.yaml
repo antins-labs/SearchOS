@@ -1,0 +1,25 @@
+description: Access ShanghaiRanking's Global Ranking of Academic Subjects (GRAS) data
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_subjects   List all available subjects for GRAS ranking across\
+      \ 5 categories\n  - get_ranking   Get complete ranking data for a specific academic subject\n  -\
+      \ search_universities   Search for universities by name across rankings"
+  year:
+    type: integer
+    required: false
+    description: Ranking year (2017-2025)
+    default: 2024
+  subject_code:
+    type: string
+    required: false
+    description: Subject code (e.g., "AS0220" for Biological Engineering)
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of universities to return
+  keyword:
+    type: string
+    required: false
+    description: Search keyword (university name in Chinese or English)

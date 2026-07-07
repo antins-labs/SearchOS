@@ -1,0 +1,49 @@
+description: >-
+  Fetches eBay Inc. investor relations financial data including quarterly/annual
+  reports with downloadable PDFs, quarterly earnings press releases with parsed
+  financial tables, and key metrics extraction (revenue, EPS, guidance).
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_financial_reports      获取财务报告列表（季度和年度），包含PDF下载链接；可选参数: year, report_type, limit
+        - get_quarterly_earnings     获取季度财报新闻稿及解析的财务数据表格；可选参数: quarters, include_tables
+        - parse_financial_statement  解析特定季度的财务报表（损益表、资产负债表、指引）；可选参数: quarter, year, statement_type
+  
+  year:
+    type: integer
+    required: false
+    description: 筛选年份（如2025），用于 get_financial_reports 和 parse_financial_statement
+  
+  report_type:
+    type: string
+    required: false
+    description: 报告类型筛选，用于 get_financial_reports；可用值: 'quarterly', 'annual'，不指定则返回全部
+  
+  limit:
+    type: integer
+    required: false
+    description: 返回报告的最大数量，用于 get_financial_reports；默认20
+  
+  quarters:
+    type: integer
+    required: false
+    description: 获取最近几个季度的财报，用于 get_quarterly_earnings；默认4
+  
+  include_tables:
+    type: string
+    required: false
+    description: 是否包含解析的表格数据，用于 get_quarterly_earnings；默认 'true'
+  
+  quarter:
+    type: string
+    required: false
+    description: 指定季度（如 'Q1', 'First Quarter', 'first'），用于 parse_financial_statement；不指定则使用最新
+  
+  statement_type:
+    type: string
+    required: false
+    description: 财务报表类型，用于 parse_financial_statement；可用值: 'income', 'balance', 'guidance', 'all'；默认 'all'

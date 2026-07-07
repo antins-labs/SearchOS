@@ -1,0 +1,50 @@
+{
+  "candidate": "github_repository",
+  "host": "api.github.com",
+  "passing": false,
+  "gates": [
+    {
+      "name": "A_agent",
+      "passed": true,
+      "reason": "",
+      "detail": {}
+    },
+    {
+      "name": "S_smoke",
+      "passed": false,
+      "reason": "only_1_of_3_queries_passed",
+      "detail": {
+        "queries": [
+          "Search for repositories about machine learning",
+          "Find the GitHub URL for the 'awesome-machine-learning' repo",
+          "Who owns the 'rust-async' repository?"
+        ],
+        "per_query": [
+          {
+            "query": "Search for repositories about machine learning",
+            "ok": true,
+            "count": 3,
+            "fields_populated": [
+              "title",
+              "url",
+              "snippet",
+              "owner"
+            ]
+          },
+          {
+            "query": "Find the GitHub URL for the 'awesome-machine-learning' repo",
+            "ok": false,
+            "reason": "empty_results"
+          },
+          {
+            "query": "Who owns the 'rust-async' repository?",
+            "ok": false,
+            "reason": "empty_results"
+          }
+        ],
+        "successes": 1,
+        "required": 2
+      }
+    }
+  ]
+}

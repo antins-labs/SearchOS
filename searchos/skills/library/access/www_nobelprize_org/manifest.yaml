@@ -1,0 +1,18 @@
+description: Extract structured bibliographical and biographical data from Nobel Prize laureate bibliography
+  and bio-bibliography pages
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_bibliography   Get full structured bibliography data from a Nobel\
+      \ Prize page, including parsed entries with title, year, publisher, place, series, and translator\
+      \ information\n  - get_summary   Get a summary of bibliography entries (title, year, section) without\
+      \ full details\n  - search_entries   Search for bibliography entries matching a query string"
+  url:
+    type: string
+    required: false
+    description: URL of a Nobel Prize bibliography or bio-bibliography page
+  query:
+    type: string
+    required: false
+    description: Search query to match against entry fields

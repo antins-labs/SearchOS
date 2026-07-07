@@ -1,0 +1,34 @@
+description: >-
+  抓取 GSMArena.com 手机详细规格(网络/发布/机身/屏幕/平台/内存/相机/音频/电池等),来源 www.gsmarena.com。
+params_schema:
+  function:
+    type: string
+    required: false
+    description: |
+      要调用的功能名(缺省按 get_phone_specs 处理)。可用值:
+        - get_phone_specs        抓取一部手机的完整规格;需要 url 或 phone_id 之一
+        - parse_specs_structure  把原始规格解析成按类别分组的结构;需要 specs_data(或 specs_raw / specs_structured)
+  url:
+    type: string
+    required: false
+    description: >-
+      get_phone_specs 用:GSMArena 手机页完整 URL,如
+      https://www.gsmarena.com/samsung_galaxy_s20-10081.php。url 与 phone_id 至少提供一个。
+  phone_id:
+    type: string
+    required: false
+    description: >-
+      get_phone_specs 用:GSMArena 手机 ID(如 samsung_galaxy_s20-10081),用于拼接 URL。
+      url 与 phone_id 至少提供一个。
+  specs_data:
+    type: object
+    required: false
+    description: parse_specs_structure 用:来自 get_phone_specs 的原始规格数据(可为 list 或 dict)。
+  specs_raw:
+    type: array
+    required: false
+    description: parse_specs_structure 用:get_phone_specs 返回的 specs_raw,作为 specs_data 的备选输入。
+  specs_structured:
+    type: object
+    required: false
+    description: parse_specs_structure 用:get_phone_specs 返回的 specs_structured,作为 specs_data 的备选输入。

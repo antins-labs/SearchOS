@@ -1,0 +1,24 @@
+name: exchange_rate_snapshot
+invocation: agent_called
+description: "Search api.frankfurter.app \u2014 exchange_rate_snapshot. Direct public\
+  \ JSON API; requires query parameters to specify currency pair."
+params_schema:
+  from:
+    type: string
+    required: true
+    description: The base currency code (e.g., USD, EUR)
+  to:
+    type: string
+    required: true
+    description: Comma-separated list of target currency codes (e.g., EUR,GBP,JPY)
+  amount:
+    type: number
+    default: 1
+    description: The amount of base currency to convert
+category: finance
+entity_type: exchange_rate_snapshot
+fields:
+- amount
+- base
+- date
+- rates

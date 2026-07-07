@@ -1,0 +1,28 @@
+description: >-
+  Fetches article content and extracts rankings from Sohu.com travel ranking articles (www.sohu.com/a/xxx). Supports "Top N" lists and rank mentions extraction.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - fetch_article   获取搜狐文章内容及排名提取，需要url或article_id参数
+        - search_articles 搜索文章（暂不支持，需提供具体URL）
+  url:
+    type: string
+    required: false
+    description: 搜狐文章完整URL，如 https://www.sohu.com/a/748417406_484968（fetch_article使用）
+  article_id:
+    type: string
+    required: false
+    description: 文章ID，可替代完整URL（fetch_article使用，需配合media_id）
+  media_id:
+    type: string
+    required: false
+    description: 媒体/作者ID，配合article_id使用构建完整URL
+  extract_rankings:
+    type: boolean
+    required: false
+    default: true
+    description: 是否提取文章中的排名信息（fetch_article使用）

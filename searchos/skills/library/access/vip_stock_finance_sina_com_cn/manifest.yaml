@@ -1,0 +1,52 @@
+description: >-
+  Fetches detailed company bulletin reports and announcements from Sina Finance VIP stock portal (vip.stock.finance.sina.com.cn).
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_bulletin_detail: 获取单篇公告详细内容，需要 stockid 和 bulletin_id 参数
+        - list_bulletins: 列出股票的所有公告，需要 stockid 参数，可选 page 参数
+        - list_annual_reports: 列出股票的年度报告，需要 stockid 参数
+        - list_quarterly_reports: 列出股票的季度报告，需要 stockid 参数，可选 report_type 参数
+        - search_bulletins: 搜索/列出股票公告，需要 stockid 参数，可选 keyword 和 limit 参数
+  
+  stockid:
+    type: string
+    required: false
+    description: 股票代码（如 '688710', '301580'），用于 list_bulletins、list_annual_reports、list_quarterly_reports、search_bulletins、get_bulletin_detail
+  
+  bulletin_id:
+    type: string
+    required: false
+    description: 公告ID（如 '11079368'），仅用于 get_bulletin_detail
+  
+  page:
+    type: integer
+    required: false
+    default: 1
+    description: 页码，用于 list_bulletins 分页
+  
+  report_type:
+    type: string
+    required: false
+    description: 季度报告类型，用于 list_quarterly_reports。可选值：'yjdbg'（一季度报告）、'zqbg'（中期报告）、'sjdbg'（三季度报告）
+  
+  keyword:
+    type: string
+    required: false
+    description: 搜索关键词，用于 search_bulletins 过滤公告标题
+  
+  limit:
+    type: integer
+    required: false
+    default: 10
+    description: 返回结果数量限制，用于 search_bulletins
+  
+  include_html:
+    type: boolean
+    required: false
+    default: false
+    description: 是否在 get_bulletin_detail 结果中包含 HTML 内容

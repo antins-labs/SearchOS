@@ -1,0 +1,27 @@
+description: >-
+  Access airport operating statistics from Hartsfield-Jackson Atlanta International Airport
+  (ATL). Provides monthly traffic reports including passenger counts, aircraft operations,
+  cargo data, and carrier-specific breakdowns from www.atl.com (2013-2026).
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值(不传时默认 list_statistics):
+        - list_statistics    列出按年份组织的可用月度统计报告及 PDF 链接(可选 year)
+        - get_pdf_data       下载并解析指定月度统计 PDF(需要 pdf_url,或同时提供 year 和 month)
+        - get_latest_report  获取最近一期月度统计报告及解析数据(无需其他参数)
+        - get_page_content   获取统计页面的原始内容摘要(无需其他参数)
+    default: list_statistics
+  year:
+    type: integer
+    required: false
+    description: 报告年份(2013-2026)。list_statistics 用于按年过滤;get_pdf_data 与 month 配合定位报告。
+  month:
+    type: integer
+    required: false
+    description: 报告月份(1-12)。仅 get_pdf_data 使用,与 year 配合定位报告。
+  pdf_url:
+    type: string
+    required: false
+    description: 月度统计报告 PDF 的直接 URL。仅 get_pdf_data 使用,与 year+month 二选一。

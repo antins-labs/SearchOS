@@ -1,0 +1,38 @@
+description: 北京教育考试院（gk-stu.bjeea.cn）站点能力集合。 包含多个 functions：录取分数线查询、考生分数分布统计等。 使用 function 参数选择具体能力。
+params_schema:
+  function:
+    type: string
+    required: true
+    description: 要调用的功能名称。可选值见 skill.md 中的 Functions 列表。 当前可用：query_score_lines, query_score_distribution
+  year:
+    type: string
+    default: ''
+    description: 年份，如 "2024"
+  batch:
+    type: string
+    default: ''
+    description: 批次代码。"9"=本科普通批, "5"=本科提前批普通A段, "6"=本科提前批普通B段
+  keywords:
+    type: string
+    default: ''
+    description: 高校名称或代码关键词
+  province:
+    type: string
+    default: ''
+    description: 高校所在省份代码，如 "11"=北京
+  page:
+    type: integer
+    default: 1
+    description: 页码，每页最多 50 条
+  page_size:
+    type: integer
+    default: 50
+    description: 每页记录数，最大 50
+  list_years:
+    type: boolean
+    default: false
+    description: 设为 true 时返回可用年份列表（query_score_lines 专用）
+  list_batches:
+    type: boolean
+    default: false
+    description: 设为 true 时返回指定年份的批次列表（query_score_lines 专用，需同时传 year）

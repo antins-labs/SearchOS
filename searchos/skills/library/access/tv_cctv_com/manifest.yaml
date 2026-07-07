@@ -1,0 +1,54 @@
+description: >-
+  Fetches video and program metadata from tv.cctv.com (CCTV), supporting individual video pages, album/collection pages, and direct API queries for video info by GUID or album video lists.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - scrape_page       自动识别并抓取视频页或专辑页，返回完整元数据
+        - get_video_info    通过GUID获取单个视频的详细信息
+        - get_album_info    通过视频ID获取其所属专辑的信息
+        - get_album_videos  获取专辑内的所有视频列表
+  
+  url:
+    type: string
+    required: false
+    description: |
+      要抓取的tv.cctv.com页面URL（scrape_page功能使用）。
+      支持视频页（VIDE*开头）和专辑页（VIDA*开头）。
+      示例: https://tv.cctv.com/2024/04/08/VIDECKyK80JsMgJTjBcFlXLJ240408.shtml
+  
+  guid:
+    type: string
+    required: false
+    description: |
+      视频的GUID，32位十六进制字符串（get_video_info功能使用）。
+      示例: 0d90555d55bc4e809f05a0bde347c29a
+  
+  video_id:
+    type: string
+    required: false
+    description: |
+      视频ID，以VIDE开头的标识符（get_album_info功能使用）。
+      示例: VIDECKyK80JsMgJTjBcFlXLJ240408
+  
+  album_id:
+    type: string
+    required: false
+    description: |
+      专辑ID，以VIDA开头的标识符（get_album_videos功能使用）。
+      示例: VIDA7iCcwXiFGORbpjTBTEdc240407
+  
+  page:
+    type: integer
+    required: false
+    description: |
+      页码，从1开始（get_album_videos功能使用，默认为1）。
+  
+  page_size:
+    type: integer
+    required: false
+    description: |
+      每页返回的视频数量（get_album_videos功能使用，默认为100）。

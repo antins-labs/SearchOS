@@ -1,0 +1,49 @@
+description: >-
+  Fetches movie box office and financial data from The-Numbers.com including production budgets,
+  domestic/international/worldwide gross, opening weekend numbers, weekly box office charts,
+  and franchise financial summaries.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_movie   获取单部电影的详细票房和财务数据；需要 movie_title 或 movie_url
+        - get_franchise   获取系列/特许经营权下所有电影的票房数据；需要 franchise_name 或 franchise_url
+        - get_box_office_chart   获取当前或历史的票房排行榜；可选 chart_type (weekend/daily/weekly) 和 date
+
+  movie_title:
+    type: string
+    required: false
+    description: 电影标题（用于 get_movie）；建议同时提供 year 以提高匹配准确度
+
+  year:
+    type: integer
+    required: false
+    description: 电影上映年份（用于 get_movie 配合 movie_title 提高匹配准确度）
+
+  movie_url:
+    type: string
+    required: false
+    description: 电影页面的完整 URL（用于 get_movie 直接访问）；格式如 https://www.the-numbers.com/movie/Movie-Name-(Year)
+
+  franchise_name:
+    type: string
+    required: false
+    description: 系列名称（用于 get_franchise）；如 "Marvel Cinematic Universe"、"Star Wars"
+
+  franchise_url:
+    type: string
+    required: false
+    description: 系列页面的完整 URL（用于 get_franchise 直接访问）；格式如 https://www.the-numbers.com/movies/franchise/Franchise-Name
+
+  chart_type:
+    type: string
+    required: false
+    description: 票房排行榜类型（用于 get_box_office_chart）；可选值：weekend（周末）、daily（每日）、weekly（每周）；默认为 weekend
+
+  date:
+    type: string
+    required: false
+    description: 历史日期（用于 get_box_office_chart）；格式为 YYYY-MM-DD，如 "2024-06-15"

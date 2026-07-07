@@ -1,0 +1,26 @@
+{
+  "candidate": "crypto_quote",
+  "host": "api.coingecko.com",
+  "passing": false,
+  "gates": [
+    {
+      "name": "A_agent",
+      "passed": false,
+      "reason": "params_schema_missing_query",
+      "detail": {
+        "params_schema": {
+          "ids": {
+            "type": "string",
+            "required": true,
+            "description": "Comma-separated list of coin IDs (e.g., bitcoin,ethereum)"
+          },
+          "vs_currencies": {
+            "type": "string",
+            "default": "usd",
+            "description": "Comma-separated target currencies (e.g., usd,eur)"
+          }
+        }
+      }
+    }
+  ]
+}

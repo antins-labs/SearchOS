@@ -1,0 +1,38 @@
+description: >-
+  抓取中国研究生招生信息网(yz.chsi.com.cn)的研究生招生分数线数据:34 所自划线高校、国家线、按省份的院校列表与分数线详情页。
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_34_universities    列出 34 所自划线高校及历年分数线链接;可选 university、year 过滤
+        - list_national_lines     列出历年国家线;可选 year 过滤
+        - list_provinces          列出所有省份及其代码;无参数
+        - get_schools_by_province 按省份获取院校列表;需要 province_code 或 province_name
+        - get_score_line_detail   抓取分数线详情页(图片/PDF/正文);需要 url
+        - search_universities     跨省份按校名搜索院校;需要 name
+  university:
+    type: string
+    required: false
+    description: list_34_universities 的高校名称过滤(部分匹配),可选。
+  year:
+    type: string
+    required: false
+    description: 年份过滤(如 "2025")。list_34_universities 与 list_national_lines 可选。
+  province_code:
+    type: string
+    required: false
+    description: 省份代码(如北京为 "11")。get_schools_by_province 需要 province_code 或 province_name 之一。
+  province_name:
+    type: string
+    required: false
+    description: 省份中文名(如 "北京")。get_schools_by_province 需要 province_code 或 province_name 之一。
+  url:
+    type: string
+    required: false
+    description: 分数线详情页 URL。get_score_line_detail 必填。
+  name:
+    type: string
+    required: false
+    description: search_universities 的院校名称关键词(部分匹配),该功能必填。

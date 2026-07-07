@@ -1,0 +1,25 @@
+description: >-
+  Access ACI World (aci.aero) airport traffic rankings, press releases, and dataset info — data about the world's busiest airports for passenger traffic, cargo, and aircraft movements.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_press_releases   List recent press releases about airport rankings (uses limit)
+        - get_press_release     Get full content from a specific press release (requires url)
+        - get_ranking_data      Extract structured ranking data from latest or a specific press release (optional url)
+        - download_preview      Get preview-dataset download info and pricing (no extra params)
+        - search_news           Search ACI World news articles by keywords (requires keywords, uses limit)
+  url:
+    type: string
+    required: false
+    description: Press release URL. Required by get_press_release; optional for get_ranking_data (defaults to latest).
+  keywords:
+    type: string
+    required: false
+    description: Search terms. Required by search_news.
+  limit:
+    type: integer
+    required: false
+    description: Max number of results. Used by list_press_releases (default 20) and search_news (default 10).

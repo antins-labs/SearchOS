@@ -1,0 +1,28 @@
+description: >-
+  Fetches train timetable route details from railmaps.com.au, including route metadata,
+  station lists, provider information, and structured Schema.org data for Australian rail services.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_route_details   获取指定路线的详细信息，包括站名、运营者、元数据等；需要 table_select 参数
+        - search_routes       搜索可用的火车路线列表；可选 query 参数用于筛选路线名称
+
+  table_select:
+    type: integer
+    required: false
+    description: 路线ID（TableSelect参数值），例如 212=T7 Olympic Park line，1=The Indian Pacific；get_route_details 使用
+
+  include_timetable:
+    type: boolean
+    required: false
+    default: true
+    description: 是否尝试获取时刻表数据；get_route_details 使用
+
+  query:
+    type: string
+    required: false
+    description: 搜索关键词，用于筛选路线名称；search_routes 使用

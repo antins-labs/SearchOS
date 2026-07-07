@@ -1,0 +1,16 @@
+{
+  "host": "news.google.com",
+  "invocation": "agent_called",
+  "probe_urls": [
+    "https://news.google.com/rss/search?q=openai+gpt&hl=en-US",
+    "https://news.google.com/rss/search?q=climate+summit&hl=en-US"
+  ],
+  "heldout_url": "https://news.google.com/rss/search?q=climate+summit&hl=en-US",
+  "declared_fields": [
+    "title",
+    "link_url",
+    "source_name",
+    "published_date",
+    "guid"
+  ]
+}

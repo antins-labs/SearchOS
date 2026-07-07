@@ -1,0 +1,26 @@
+name: itunes_media_item
+invocation: agent_called
+description: "Search itunes.apple.com \u2014 itunes_media_item. Public JSON API; requires\
+  \ URL parameter construction for search queries."
+params_schema:
+  term:
+    type: string
+    required: true
+    description: The URL-encoded text string to search for (e.g., artist, album, or
+      movie title).
+  entity:
+    type: string
+    required: false
+    description: The type of results to return (e.g., album, movie, song, musicArtist).
+  limit:
+    type: integer
+    default: 5
+    description: The maximum number of search results to return.
+category: media
+entity_type: itunes_media_item
+fields:
+- title
+- artist
+- url
+- genre
+- release_date

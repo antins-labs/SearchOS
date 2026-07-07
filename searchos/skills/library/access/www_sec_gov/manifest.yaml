@@ -1,0 +1,65 @@
+description: 'SEC EDGAR access skill for retrieving company filings, financial data, and XBRL facts.
+
+
+  Provides structured access to:
+
+  - Company lookup by ticker or name
+
+  - Company information and filing history
+
+  - XBRL financial data (balance sheet, income statement, cash flows)
+
+  - Filing document retrieval with table extraction
+
+  - Financial concept history queries'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_company_by_ticker   Look up a company by its ticker symbol\n \
+      \ - get_cik_lookup   Search for companies by ticker or company name\n  - get_company_info   Get\
+      \ company details including recent filing history\n  - get_company_facts   Get available XBRL financial\
+      \ concepts for a company\n  - get_financial_data   Extract key financial metrics from XBRL data\n\
+      \  - get_concept_history   Get full history for a specific financial concept\n  - get_filing_document\
+      \   Fetch and parse a filing document with table extraction\n  - get_filings_by_type   Get recent\
+      \ filings of a specific type for a company\n  - parse_filing_url   Parse a SEC filing URL to extract\
+      \ CIK, accession number, and document"
+  ticker:
+    type: string
+    required: false
+    description: Stock ticker symbol (e.g., "AAPL", "UPB")
+  query:
+    type: string
+    required: false
+    description: Ticker or company name to search
+  cik:
+    type: string
+    required: false
+    description: Central Index Key (CIK) number
+  concepts:
+    type: array
+    required: false
+    description: List of XBRL concepts to fetch (uses defaults if not provided)
+  concept:
+    type: string
+    required: false
+    description: XBRL concept name (e.g., "Assets", "NetIncomeLoss")
+  taxonomy:
+    type: string
+    required: false
+    description: XBRL taxonomy
+    default: us-gaap
+  url:
+    type: string
+    required: false
+    description: Full URL to the filing document
+  form_type:
+    type: string
+    required: false
+    description: Filing form type (e.g., "10-K", "10-Q", "8-K")
+    default: 10-K
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of filings to return
+    default: 10

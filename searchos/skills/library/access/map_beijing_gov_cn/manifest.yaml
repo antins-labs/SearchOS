@@ -1,0 +1,27 @@
+description: >-
+  Fetches place/facility information from Beijing Government Map Service (map.beijing.gov.cn), 
+  extracting name, address, phone, office hours, and other details from place detail pages.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_place   根据placeId获取场所详细信息，需要place_id参数，可选category_id
+        - get_place_by_url   根据完整URL获取场所详细信息，需要url参数
+  
+  place_id:
+    type: string
+    required: false
+    description: 场所ID，用于get_place函数，如"5bc7f4cf080b851f908bb5d1"
+  
+  category_id:
+    type: string
+    required: false
+    description: 类别ID，用于get_place函数的可选参数，如"sjyljg"表示三级医疗机构
+  
+  url:
+    type: string
+    required: false
+    description: 完整的场所页面URL，用于get_place_by_url函数

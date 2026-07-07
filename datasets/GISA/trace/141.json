@@ -1,0 +1,192 @@
+{
+  "search": [
+    "NASA missions list",
+    "NASA missions list balloon"
+  ],
+  "result": {
+    "NASA missions list": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "All Missions. Search · A to Z List · Science Missions · Launches & Landings · Spaceships & Rockets; More. Communicating with Missions. A to Z List of NASA ...",
+            "title": "A to Z of NASA Missions",
+            "url": "https://www.nasa.gov/a-to-z-of-nasa-missions/"
+          },
+          {
+            "snippet": "This is a list of NASA missions, both crewed and robotic, since the establishment of NASA in 1957. There are over 80 currently active science missions.",
+            "title": "List of NASA missions",
+            "url": "https://en.wikipedia.org/wiki/List_of_NASA_missions"
+          },
+          {
+            "snippet": "Featured Missions · Chandra X-ray Observatory · Europa Clipper · Hubble Space Telescope · James Webb Space Telescope · Mars Perseverance Rover · OSIRIS-APEX · Quesst.",
+            "title": "Missions",
+            "url": "https://www.nasa.gov/nasa-missions/"
+          },
+          {
+            "snippet": "Mission Program · Airborne Science · Analog · Apollo · Artemis · Astrobiology · Astrophysics · Biological and Physical Sciences · Commercial Lunar.",
+            "title": "Missions",
+            "url": "https://www.nasa.gov/missions/"
+          },
+          {
+            "snippet": "A list of all NASA Missions is listed here. We have listed all NASA Missions from their inception till today with their application, launch date, satellite ...",
+            "title": "NASA Space Missions",
+            "url": "https://www.satnow.com/space-mission-organization-details/nasa"
+          },
+          {
+            "snippet": "Doing a research paper and trying to figure out my sample size, looking for a list of active NASA satellite missions that are still in ...",
+            "title": "List of current ongoing NASA satellite missions for research ...",
+            "url": "https://www.reddit.com/r/space/comments/1mg06gm/list_of_current_ongoing_nasa_satellite_missions/"
+          },
+          {
+            "snippet": "Mission Types. Airborne Science. Atmospheric Probe. Balloon. Demonstration Mission ; Mission Targets. Asteroid 16 Psyche. Asteroids. Auroras. Ceres ; Mission ...",
+            "title": "NASA Science Missions",
+            "url": "https://science.nasa.gov/science-missions/"
+          },
+          {
+            "snippet": "Missions ; Chandra X-ray Observatory · James Webb Space Telescope · Nancy Grace Roman Space Telescope ; 1999 · 2021 · 2027 ; Operational · Operational · In development.",
+            "title": "NASA large strategic science missions",
+            "url": "https://en.wikipedia.org/wiki/NASA_large_strategic_science_missions"
+          },
+          {
+            "snippet": "Current Missions ; Cyclone Global Navigation Satellite System (EVM-1) (CYGNSS) · Earth System Science Pathfinder Program · Earth Venture Class · Earth Venture- ...",
+            "title": "Current Missions",
+            "url": "https://eospso.nasa.gov/current-missions"
+          },
+          {
+            "snippet": "Here is a list to help you keep track of many current and scheduled space missions. We've gathered a selected group of high-profiles ones, listed them below, ...",
+            "title": "An updated list of space missions: Current and upcoming ...",
+            "url": "https://www.astronomy.com/space-exploration/space-missions-a-list-of-current-and-upcoming-voyages/"
+          }
+        ]
+      }
+    ],
+    "NASA missions list balloon": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "GUSTO is a scientific balloon mission that will measure emissions from the interstellar medium, the material between stars.",
+            "title": "LaunchSchedule",
+            "url": "https://www.nasa.gov/scientificballoons/launchschedule/"
+          },
+          {
+            "snippet": "NASA's Scientific Balloon Program provides a platform for scientific investigation and technology development. The program supports 3-5 campaigns each year with ...",
+            "title": "Scientific Balloons",
+            "url": "https://www.nasa.gov/scientificballoons/"
+          },
+          {
+            "snippet": "This is a list of NASA missions, both crewed and robotic, since the establishment of NASA in 1957. There are over 80 currently active science missions.",
+            "title": "List of NASA missions",
+            "url": "https://en.wikipedia.org/wiki/List_of_NASA_missions"
+          },
+          {
+            "snippet": "A to Z List · Science Missions · Launches & Landings · Spaceships & Rockets; More. Communicating with Missions ... B. BARREL (Balloon Array for Radiation-belt ...",
+            "title": "A to Z of NASA Missions",
+            "url": "https://www.nasa.gov/a-to-z-of-nasa-missions/"
+          },
+          {
+            "snippet": "A to Z List of Missions · Upcoming Launches and Landings · Spaceships ... The Balloon Program Office supports missions in all stages of ...",
+            "title": "Balloon Operations",
+            "url": "https://www.nasa.gov/scientificballoons/balloon-operations/"
+          },
+          {
+            "snippet": "Map labeled with international scientific balloon launch locations. NASA Our Community Fort Sumner Palestine Esrange Antarctica Wanaka Burns",
+            "title": "Balloon Launch Locations",
+            "url": "https://www.nasa.gov/scientificballoons/balloon-launch-locations/"
+          },
+          {
+            "snippet": "NASA launched two scientific balloon missions from the agency's Fort Sumner, New Mexico, launch facility Sunday, Sept. 14, 2025. This marks the first time two ...",
+            "title": "NASA Scientific Balloons Archives",
+            "url": "https://www.nasa.gov/blogs/scientific-balloons/"
+          },
+          {
+            "snippet": "The program is supporting two missions this year: the Payload for Ultrahigh Energy Observations (PUEO) and the General AntiParticle Spectrometer ...",
+            "title": "Two NASA Scientific Balloon Launches Planned From ...",
+            "url": "https://www.nasa.gov/blogs/wallops/2025/12/05/two-nasa-scientific-balloon-launches-planned-from-antarctica/"
+          },
+          {
+            "snippet": "Mission Types · Airborne Science · Analog Field Testing · Asteroid Deflection · Atmospheric Probe · Balloon · Commercial Crew · Commercial Resupply.",
+            "title": "Missions",
+            "url": "https://www.nasa.gov/missions/"
+          },
+          {
+            "snippet": "The NASA Balloon Program has provided high-altitude scientific balloon platforms for scientific and technological investigations.",
+            "title": "Scientific Balloons Overview",
+            "url": "https://www.nasa.gov/scientificballoons/overview/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>NASA missions list</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_NASA_missions"
+    },
+    {
+      "from": "<search>NASA missions list balloon</search>",
+      "to": "https://www.nasa.gov/scientificballoons/"
+    },
+    {
+      "from": "<search>NASA missions list balloon</search>",
+      "to": "https://www.nasa.gov/scientificballoons/launchschedule/"
+    },
+    {
+      "from": "<search>NASA missions list balloon</search>",
+      "to": "https://www.nasa.gov/scientificballoons/balloon-operations/"
+    },
+    {
+      "from": "<search>NASA missions list balloon</search>",
+      "to": "https://www.nasa.gov/missions/"
+    },
+    {
+      "from": "https://www.nasa.gov/missions/",
+      "to": "https://science.nasa.gov/mission/asthros/"
+    },
+    {
+      "from": "https://www.nasa.gov/missions/?terms=11947",
+      "to": "https://science.nasa.gov/mission/asthros/"
+    },
+    {
+      "from": "https://science.nasa.gov/mission/asthros/",
+      "to": "https://www.nasa.gov/missions/?terms=11947"
+    },
+    {
+      "from": "https://www.nasa.gov/missions/?terms=11947",
+      "to": "https://science.nasa.gov/mission/barrel/"
+    },
+    {
+      "from": "https://www.nasa.gov/missions/?terms=11947",
+      "to": "https://science.nasa.gov/mission/excite/"
+    },
+    {
+      "from": "https://www.nasa.gov/missions/?terms=11947",
+      "to": "https://science.nasa.gov/mission/gusto/"
+    },
+    {
+      "from": "https://www.nasa.gov/missions/?terms=10828%2C10879",
+      "to": "https://www.nasa.gov/missions/?terms=10828%2C10879#"
+    },
+    {
+      "from": "https://www.nasa.gov/missions/?terms=10828%2C10879&page=2",
+      "to": "https://www.nasa.gov/missions/?terms=10828%2C10879&page=2#"
+    },
+    {
+      "from": "https://www.nasa.gov/missions/?terms=10828%2C10879&page=3",
+      "to": "https://www.nasa.gov/missions/?terms=10828%2C10879&page=3#"
+    },
+    {
+      "from": "https://www.nasa.gov/missions/?terms=10828%2C10879&page=4",
+      "to": "https://www.nasa.gov/missions/?terms=10828%2C10879&page=4#"
+    },
+    {
+      "from": "https://www.nasa.gov/missions/?terms=10828%2C11947%2C10876%2C10879",
+      "to": "https://www.nasa.gov/missions/?terms=10828%2C11947%2C10876"
+    },
+    {
+      "from": "https://science.nasa.gov/mission/bepicolombo/",
+      "to": "https://www.nasa.gov/missions/?terms=10828%2C11947%2C10876"
+    }
+  ]
+}

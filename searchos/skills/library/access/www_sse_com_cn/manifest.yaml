@@ -1,0 +1,56 @@
+description: >-
+  Fetch IPO inquiry/pricing data, IPO process status, financing information,
+  dividend history, and rights issue details from Shanghai Stock Exchange (SSE)
+  via query.sse.com.cn JSONP API.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_ipo_inquiry_info: 获取指定证券代码的IPO询价信息(定价、投资者数量、配售数据)
+        - get_ipo_process_status: 获取指定证券代码的IPO流程时间线(询价、发行、上市日期)
+        - get_ipo_list: 获取IPO列表(支持分页和按板块筛选)
+        - get_financing_info: 获取公司融资信息(IPO首发和增发)
+        - get_dividend_info: 获取公司分红历史记录
+        - get_rights_issue_info: 获取公司配股信息
+  
+  security_code:
+    type: string
+    required: false
+    description: 6位证券代码(如"688710"、"600000");用于get_ipo_inquiry_info、get_ipo_process_status等功能
+  
+  company_code:
+    type: string
+    required: false
+    description: 6位公司代码(同security_code);用于get_financing_info、get_dividend_info、get_rights_issue_info等功能
+  
+  stock_type:
+    type: string
+    required: false
+    description: IPO板块类型筛选(用于get_ipo_list);可选值:""全部, "0"主板, "2"科创板
+  
+  page:
+    type: integer
+    required: false
+    description: 页码(从1开始);用于get_ipo_list分页查询
+    default: 1
+  
+  page_size:
+    type: integer
+    required: false
+    description: 每页记录数;用于get_ipo_list分页查询
+    default: 20
+  
+  list_board:
+    type: string
+    required: false
+    description: 上市板块(用于get_financing_info和get_rights_issue_info);可选值:"1"主板, "2"科创板
+    default: "2"
+  
+  is_star:
+    type: string
+    required: false
+    description: 是否科创板(用于get_dividend_info);可选值:"1"科创板, ""非科创板
+    default: "1"

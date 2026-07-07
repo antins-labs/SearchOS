@@ -1,0 +1,90 @@
+{
+  "search": [
+    "House of Savoy COunt of Geneva"
+  ],
+  "result": {
+    "House of Savoy COunt of Geneva": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "The House of Savoy is a royal house (formally a dynasty) of Franco-Italian origin that was established in 1003 in the historical region of Savoy, ...Read more",
+            "title": "House of Savoy",
+            "url": "https://en.wikipedia.org/wiki/House_of_Savoy"
+          },
+          {
+            "snippet": "The title Count of Geneva passed securely into the House of Savoy, where it is maintained as a courtesy title.Read more",
+            "title": "County of Geneva",
+            "url": "https://en.wikipedia.org/wiki/County_of_Geneva"
+          },
+          {
+            "snippet": "The Royal House of Savoy marked the millennium of its founding in 2003. Its pedigree traces back to an historical figure living in 1003, Humbert the ...Read more",
+            "title": "History of the Royal House of Savoy",
+            "url": "https://www.savoyireland.com/savoy-history"
+          },
+          {
+            "snippet": "At this time the Annecy region was not part of Savoy, it was run by the Counts of Geneva.Read more",
+            "title": "The House of Savoy",
+            "url": "https://stevehely.com/2025/04/19/the-house-of-savoy/"
+          },
+          {
+            "snippet": "The House of Savoy which at the present time rules the Kingdom of Italy takes its name from this country.Read more",
+            "title": "Savoy - Catholic Encyclopedia",
+            "url": "https://www.newadvent.org/cathen/13492a.htm"
+          },
+          {
+            "snippet": "A number of royals have taken refuge in Switzerland, and in particular, Geneva. The historian Bernard Lescaze says this is because of the city's advantages.Read more",
+            "title": "Geneva: a refuge for famous exiles",
+            "url": "https://www.swissinfo.ch/eng/history/geneva-a-refuge-for-famous-exiles/2533604"
+          },
+          {
+            "snippet": "2 Sept 2023 — ​SAVOY, HOUSE OF, a dynasty which ruled over the territory of Savoy and Piedmont for nine centuries, and now reigns over the kingdom of ...Read more",
+            "title": "1911 Encyclopædia Britannica/Savoy, House of - Wikisource",
+            "url": "https://en.wikisource.org/wiki/1911_Encyclop%C3%A6dia_Britannica/Savoy,_House_of"
+          },
+          {
+            "snippet": "Thomas I (c. 1177 – 1 March 1233) was Count of Savoy, ruling from 1189 until his death and thereby inheriting and consolidating feudal domains including the ...Read more",
+            "title": "Thomas, Count of Savoy",
+            "url": "https://grokipedia.com/page/Thomas,_Count_of_Savoy"
+          },
+          {
+            "snippet": "The Head of the House of Savoy and current Grand Master is H.R.H. Prince Emanuele Filiberto of Savoy, who succeeded his father Victor Emmanuel of Savoy, Prince ...Read more",
+            "title": "American Delegation of Savoy Orders",
+            "url": "https://savoy-delegation-usa.org/savoy-orders/"
+          },
+          {
+            "snippet": "The Dynastic Orders of the Royal House of Savoy, supported by their association, are historically dedicated to works of charity and solidarity in Italy and ...Read more",
+            "title": "The Dynastic Orders of the Royal House of Savoy",
+            "url": "https://www.ordinidinasticicasasavoia.it/en/the-dynastic-orders/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>House of Savoy COunt of Geneva</search>",
+      "to": "https://en.wikipedia.org/wiki/House_of_Savoy"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/House_of_Savoy",
+      "to": "https://en.wikipedia.org/wiki/House_of_Savoy#Counts_of_Savoy"
+    },
+    {
+      "from": "<search>House of Savoy COunt of Geneva</search>",
+      "to": "https://en.wikipedia.org/wiki/County_of_Geneva"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/County_of_Geneva",
+      "to": "https://en.wikipedia.org/wiki/County_of_Geneva#House_of_Savoy"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/County_of_Geneva#House_of_Savoy",
+      "to": "https://en.wikipedia.org/wiki/Marie_Jeanne_Baptiste_of_Savoy-Nemours"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Marie_Jeanne_Baptiste_of_Savoy-Nemours",
+      "to": "https://en.wikipedia.org/wiki/Charles_Emmanuel_II"
+    }
+  ]
+}

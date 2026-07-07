@@ -1,0 +1,44 @@
+{
+  "candidate": "openfoodfacts_product",
+  "host": "world.openfoodfacts.org_api",
+  "passing": false,
+  "gates": [
+    {
+      "name": "A_agent",
+      "passed": true,
+      "reason": "",
+      "detail": {}
+    },
+    {
+      "name": "S_smoke",
+      "passed": false,
+      "reason": "only_0_of_3_queries_passed",
+      "detail": {
+        "queries": [
+          "Search for dark chocolate products",
+          "Find product details for barcode 3046920029759",
+          "List coffee products with no additives"
+        ],
+        "per_query": [
+          {
+            "query": "Search for dark chocolate products",
+            "ok": false,
+            "reason": "empty_results"
+          },
+          {
+            "query": "Find product details for barcode 3046920029759",
+            "ok": false,
+            "reason": "skill_error:http_503"
+          },
+          {
+            "query": "List coffee products with no additives",
+            "ok": false,
+            "reason": "skill_error:http_503"
+          }
+        ],
+        "successes": 0,
+        "required": 2
+      }
+    }
+  ]
+}

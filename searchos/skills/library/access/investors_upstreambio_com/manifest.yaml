@@ -1,0 +1,41 @@
+description: >-
+  Extracts SEC filing data from investors.upstreambio.com, including filing lists,
+  individual filing details, and search functionality.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_sec_filings   Lists SEC filings with optional filter by filing type; requires no other params, optionally accepts filing_type and limit
+        - get_sec_filing_detail   Gets details of a specific SEC filing; requires filing_type and accession_number
+        - search_filings   Searches filings by query text; requires query, optionally accepts limit
+  
+  filing_type:
+    type: string
+    required: false
+    description: |
+      SEC filing type filter (e.g., 'S-1', '10-K', '8-K', 's-1a').
+      Used by list_sec_filings as optional filter and by get_sec_filing_detail as required parameter.
+  
+  accession_number:
+    type: string
+    required: false
+    description: |
+      SEC accession number for a specific filing (e.g., '0001193125-24-233296').
+      Required for get_sec_filing_detail function.
+  
+  query:
+    type: string
+    required: false
+    description: |
+      Search query text to find matching SEC filings.
+      Required for search_filings function.
+  
+  limit:
+    type: integer
+    required: false
+    description: |
+      Maximum number of results to return.
+      Optional for list_sec_filings and search_filings functions.

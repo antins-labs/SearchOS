@@ -1,0 +1,21 @@
+name: quote_search_match
+invocation: agent_called
+description: "Search query2.finance.yahoo.com \u2014 quote_search_match. Returns raw\
+  \ JSON data inside a <pre> tag; CSS selectors are invalid, requires JSON parsing."
+params_schema:
+  query:
+    type: string
+    required: true
+    description: Stock ticker symbol or company name to search for
+  quotes_count:
+    type: integer
+    default: 5
+    description: Maximum number of quote results to return
+category: finance
+entity_type: quote_search_match
+fields:
+- symbol
+- name
+- exchange
+- sector
+- industry

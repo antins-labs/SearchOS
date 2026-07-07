@@ -1,0 +1,35 @@
+description: >-
+  Access Congressional Budget Office (CBO) budget and economic data via the Internet Archive proxy.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_categories     列出所有可用数据分类;无需其他参数
+        - get_category_files  获取某个分类下的全部可下载文件;需要 category
+        - get_publication     获取某个 CBO 出版物的数据文件;需要 publication_id
+        - download_file       下载并解析一个 XLSX 数据文件;需要 url,可选 parse_content
+        - get_catalog         获取包含全部分类和文件的完整数据目录;无需其他参数
+        - search_sitemap      在 CBO sitemap 中搜索 URL;可选 pattern
+  category:
+    type: string
+    required: false
+    description: 数据分类名称(支持子串匹配)。仅 get_category_files 使用。
+  publication_id:
+    type: string
+    required: false
+    description: CBO 出版物编号(如 "59710")。仅 get_publication 使用。
+  url:
+    type: string
+    required: false
+    description: 要下载的 XLSX 文件 URL。仅 download_file 使用。
+  parse_content:
+    type: boolean
+    required: false
+    description: 是否解析 XLSX 内容(提取 sheet 名与文本)。仅 download_file 使用。
+    default: true
+  pattern:
+    type: string
+    required: false
+    description: 用于过滤 sitemap URL 的子串模式。仅 search_sitemap 使用。

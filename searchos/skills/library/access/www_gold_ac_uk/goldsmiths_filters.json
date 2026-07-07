@@ -1,0 +1,182 @@
+{
+  "Course level|courselevel": [
+    {
+      "label": "Undergraduate and Integrated Degrees(BA, BSc, BMus, LLB)",
+      "value": "Undergraduate and Integrated Degrees<br />(BA, BSc, BMus, LLB)"
+    },
+    {
+      "label": "Masters(MA, MSc, MMus, MRes, LLM)",
+      "value": "Masters<br />(MA, MSc, MMus, MRes, LLM)"
+    },
+    {
+      "label": "Graduate Diplomas, Postgraduate Diplomas and Certificates(GDip,PGDip and PGCert)",
+      "value": "Graduate Diplomas, Postgraduate Diplomas and Certificates<br />(GDip,PGDip and PGCert)"
+    },
+    {
+      "label": "Research degrees(PhD, MPhil)",
+      "value": "Research degrees<br />(PhD, MPhil)"
+    },
+    {
+      "label": "PGCE",
+      "value": "PGCE"
+    },
+    {
+      "label": "International Foundation Certificates(IFC)",
+      "value": "International Foundation Certificates<br />(IFC)"
+    }
+  ],
+  "Study mode|mode": [
+    {
+      "label": "CPD",
+      "value": "CPD"
+    },
+    {
+      "label": "Full-time",
+      "value": "Full-time"
+    },
+    {
+      "label": "Online",
+      "value": "Online"
+    },
+    {
+      "label": "Part-time",
+      "value": "Part-time"
+    }
+  ],
+  "Academic area|academicarea": [
+    {
+      "label": "Anthropology",
+      "value": "Anthropology"
+    },
+    {
+      "label": "Art",
+      "value": "Art"
+    },
+    {
+      "label": "Arts Administration and Cultural Policy",
+      "value": "Arts Administration and Cultural Policy"
+    },
+    {
+      "label": "Community Studies",
+      "value": "Community Studies"
+    },
+    {
+      "label": "Computing and Data Science",
+      "value": "Computing and Data Science"
+    },
+    {
+      "label": "Creative and Cultural Entrepreneurship",
+      "value": "Creative and Cultural Entrepreneurship"
+    },
+    {
+      "label": "Cultural Studies",
+      "value": "Cultural Studies"
+    },
+    {
+      "label": "Curating and History of Art",
+      "value": "Curating and History of Art"
+    },
+    {
+      "label": "Design",
+      "value": "Design"
+    },
+    {
+      "label": "Economics",
+      "value": "Economics"
+    },
+    {
+      "label": "Education",
+      "value": "Education"
+    },
+    {
+      "label": "English and Creative Writing",
+      "value": "English and Creative Writing"
+    },
+    {
+      "label": "History",
+      "value": "History"
+    },
+    {
+      "label": "Journalism",
+      "value": "Journalism"
+    },
+    {
+      "label": "Law",
+      "value": "Law"
+    },
+    {
+      "label": "Management and Marketing",
+      "value": "Management and Marketing"
+    },
+    {
+      "label": "Media and Communications",
+      "value": "Media and Communications"
+    },
+    {
+      "label": "Music",
+      "value": "Music"
+    },
+    {
+      "label": "Politics and International Relations",
+      "value": "Politics and International Relations"
+    },
+    {
+      "label": "Psychology",
+      "value": "Psychology"
+    },
+    {
+      "label": "Social Work",
+      "value": "Social Work"
+    },
+    {
+      "label": "Sociology and Criminology",
+      "value": "Sociology and Criminology"
+    },
+    {
+      "label": "Theatre and Performance",
+      "value": "Theatre and Performance"
+    },
+    {
+      "label": "Therapeutic Studies",
+      "value": "Therapeutic Studies"
+    },
+    {
+      "label": "Visual Cultures",
+      "value": "Visual Cultures"
+    }
+  ],
+  "School|courseschool": [
+    {
+      "label": "Art",
+      "value": "Art"
+    },
+    {
+      "label": "Computing",
+      "value": "Computing"
+    },
+    {
+      "label": "Creative Management",
+      "value": "Creative Management"
+    },
+    {
+      "label": "Design",
+      "value": "Design"
+    },
+    {
+      "label": "Global Change",
+      "value": "Global Change"
+    },
+    {
+      "label": "Media, Communications and Cultural Studies",
+      "value": "Media, Communications and Cultural Studies"
+    },
+    {
+      "label": "Mind, Body and Society",
+      "value": "Mind, Body and Society"
+    },
+    {
+      "label": "Music, English and Theatre",
+      "value": "Music, English and Theatre"
+    }
+  ]
+}

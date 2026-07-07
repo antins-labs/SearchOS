@@ -1,0 +1,70 @@
+{
+  "search": [
+    "the imdb top 250 tv shows"
+  ],
+  "result": {
+    "the imdb top 250 tv shows": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Top 250 TV shows · Breaking Bad · Planet Earth II · Planet Earth · Band of Brothers · Chernobyl · The Wire · Avatar: The Last Airbender · The Sopranos.",
+            "title": "Top 250 TV shows",
+            "url": "https://www.imdb.com/chart/toptv/"
+          },
+          {
+            "snippet": "Top 250 TV Series · 1. Breaking Bad · 2. Game of Thrones · 3. Chernobyl · 4. Band of Brothers · 5. Sherlock · 6. Avatar: The Last Airbender · 7. The Wire · 8.",
+            "title": "Top 250 TV Series",
+            "url": "https://www.imdb.com/list/ls008957859/"
+          },
+          {
+            "snippet": "All TV shows to have ever appeared in the IMDB Top 250 TV Shows · 1. Band of Brothers · 2. Planet Earth · 3. Breaking Bad · 4. Game of Thrones · 5. The Wire · 6 ...",
+            "title": "All TV shows to have ever appeared in the IMDB Top 250 ...",
+            "url": "https://www.imdb.com/list/ls031040958/"
+          },
+          {
+            "snippet": "IMDb TV Shows Top 250 · 绝命毒师第一季 · 地球脉动第二季 · 地球脉动第一季 · 兄弟连 · 火线第一季 · 降世神通第一季 · 黑道家族第一季 · 蓝色星球第二季.",
+            "title": "IMDb TV Shows Top 250",
+            "url": "https://m.douban.com/doulist/213727/"
+          },
+          {
+            "snippet": "Top 250 TV Series · 1. Breaking Bad · 2. Game of Thrones · 3. The Wire · 4. Rick and Morty · 5. Sherlock · 6. One Punch Man · 7. The Sopranos · 8. Avatar: The ...",
+            "title": "Top 250 TV Series",
+            "url": "https://www.imdb.com/list/ls063274204/"
+          },
+          {
+            "snippet": "This dataset is having the data of the top 250 Shows as per their IMDB rating listed on the official website of IMDB",
+            "title": "IMDB Top 250 Shows",
+            "url": "https://www.kaggle.com/datasets/karkavelrajaj/imdb-top-250-shows"
+          },
+          {
+            "snippet": "The IMDb Top 250 is a list of the top rated 250 films, based on ratings ... Since 2015, there has been a Top 250 list devoted to ranking television shows.",
+            "title": "IMDb",
+            "url": "https://en.wikipedia.org/wiki/IMDb"
+          },
+          {
+            "snippet": "Top 250 Series · 1. Breaking Bad · 2. Planet Earth II · 3. Planet Earth · 4. Band of Brothers · 5. Chernobyl · 6. The Wire · 7. Avatar: The Last Airbender · 8. Blue ...",
+            "title": "Top 250 Series",
+            "url": "https://www.imdb.com/list/ls525337878/"
+          },
+          {
+            "snippet": "1. Game of Thrones. 2011–2019 · (2.5M) ; 2. Breaking Bad. 2008–2013 · (2.5M) ; 3. Stranger Things. 2016–2025 · (1.6M) ; 4. Friends. 1994–2004 · (1.2M) ; 5. The Walking ...",
+            "title": "TV Series (Sorted by Number of ratings Descending)",
+            "url": "https://www.imdb.com/search/title/?sort=num_votes,desc&title_type=tv_series"
+          },
+          {
+            "snippet": "This dataset compiles details of the top 250 television shows as ranked on IMDb (Internet Movie Database) as of March 2025. It captures the highest-rated TV ...",
+            "title": "IMDb TV Shows",
+            "url": "https://www.kaggle.com/datasets/asmonline/imdb-tv-shows-dataset"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>the imdb top 250 tv shows</search>",
+      "to": "https://www.imdb.com/chart/toptv/"
+    }
+  ]
+}

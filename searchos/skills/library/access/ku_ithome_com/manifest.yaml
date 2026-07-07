@@ -1,0 +1,39 @@
+description: 'Extract device specifications and parameters from IT Home''s product encyclopedia (IT之家产品百科).
+
+  Specialized in structured parameter extraction from canshu (specification) pages for phones,
+
+  tablets, laptops, and other consumer electronics.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_item_specs   Extract complete specification tables from a product's\
+      \ parameters page\n  - get_item_overview   Get overview/summary page for an item including description\
+      \ and available pages\n  - search_items   Search for items in a category (limited support - category\
+      \ listing only)"
+  item_id:
+    type: string
+    required: false
+    description: Product ID from ku.ithome.com (e.g., '11168' for Redmi K20)
+  url:
+    type: string
+    required: false
+    description: Full URL to the item page (alternative to item_id)
+  sections:
+    type: array
+    required: false
+    description: List of section names to filter (e.g., ['硬件', '摄像头'])
+  category:
+    type: string
+    required: false
+    description: Category name (e.g., '手机', '平板', '笔记本')
+    default: 手机
+  brand:
+    type: string
+    required: false
+    description: Brand name filter (limited support)
+  page:
+    type: integer
+    required: false
+    description: Page number
+    default: 1

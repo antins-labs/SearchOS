@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SearchForge — 设计样张</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#F5F4EE; --surface:#FBFAF6; --surface-2:#EFEDE4;
+  --border:#E3E0D6; --border-strong:#D6D2C4;
+  --text:#28261F; --text-dim:#6B675C; --text-faint:#9A9488;
+  --accent:#C2603D; --accent-soft:#E8D5C4; --ok:#5E7C5A;
+  --serif:"Fraunces",Georgia,serif;
+  --sans:"Instrument Sans",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+  --r-card:12px; --r-sm:8px;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:var(--sans);font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;}
+
+/* ---------- shell ---------- */
+.shell{display:grid;grid-template-columns:260px 1fr 0fr;height:100vh;
+  transition:grid-template-columns .24s var(--ease);}
+.shell.drawer-open{grid-template-columns:240px 1fr 460px;}
+
+/* ---------- left rail ---------- */
+.rail{border-right:1px solid var(--border);padding:20px 12px;display:flex;flex-direction:column;gap:8px;background:var(--bg);}
+.wordmark{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing:-.01em;
+  padding:4px 8px 12px;color:var(--text);display:flex;align-items:center;gap:8px;}
+.wordmark .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);}
+.newchat{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border-strong);
+  border-radius:var(--r-sm);background:var(--surface);color:var(--text);font-size:14px;font-weight:500;cursor:pointer;}
+.newchat:hover{background:var(--surface-2);}
+.search{display:flex;align-items:center;gap:8px;padding:8px 12px;color:var(--text-faint);font-size:13px;}
+.group{margin-top:16px;}
+.group-label{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-faint);padding:4px 12px;}
+.sess{padding:8px 12px;border-radius:var(--r-sm);font-size:13.5px;color:var(--text-dim);cursor:pointer;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sess:hover{background:var(--surface-2);color:var(--text);}
+.sess.active{background:var(--accent-soft);color:var(--text);}
+
+/* ---------- center conversation ---------- */
+.conv{overflow-y:auto;}
+.conv-inner{max-width:720px;margin:0 auto;padding:48px 32px 120px;}
+.turn{margin-bottom:32px;animation:rise .2s var(--ease) both;}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.msg-user{display:flex;justify-content:flex-end;}
+.msg-user .bubble{background:var(--surface);border:1px solid var(--border);border-radius:14px 14px 4px 14px;
+  padding:12px 16px;max-width:80%;}
+.msg-asst{display:flex;gap:14px;}
+.avatar{flex:0 0 28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;
+  display:grid;place-items:center;font-family:var(--serif);font-size:14px;font-weight:600;margin-top:2px;}
+.asst-body{flex:1;min-width:0;}
+.asst-body p{margin:0 0 12px;}
+.asst-body h3{font-family:var(--serif);font-weight:600;font-size:19px;margin:4px 0 10px;letter-spacing:-.01em;}
+
+/* ---------- inline orchestration overview card ---------- */
+.orch{border:1px solid var(--border);background:var(--surface);border-radius:var(--r-card);
+  padding:14px 16px;margin:4px 0 18px;cursor:pointer;transition:border-color .15s,background .15s;}
+.orch:hover{border-color:var(--border-strong);background:var(--surface-2);}
+.orch-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.orch-title{display:flex;align-items:center;gap:8px;font-weight:500;font-size:13.5px;}
+.spinner{width:13px;height:13px;border:2px solid var(--accent-soft);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.orch-open{font-size:12.5px;color:var(--accent);display:flex;align-items:center;gap:4px;}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.pill{font-size:11.5px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);
+  color:var(--text-faint);background:var(--bg);}
+.pill.done{color:var(--text-dim);border-color:var(--border-strong);}
+.pill.active{color:#fff;background:var(--accent);border-color:var(--accent);
+  box-shadow:0 0 0 0 rgba(194,96,61,.5);animation:pulse 1.8s var(--ease) infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(194,96,61,.45)}70%{box-shadow:0 0 0 7px rgba(194,96,61,0)}100%{box-shadow:0 0 0 0 rgba(194,96,61,0)}}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.chip{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;
+  padding:4px 9px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--border);color:var(--text-dim);}
+.chip .sd{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+.chip.done .sd{background:var(--ok);}
+.counter{font-size:12.5px;color:var(--text-dim);}
+.counter b{color:var(--text);font-weight:600;}
+
+/* ---------- composer ---------- */
+.composer{position:sticky;bottom:0;max-width:720px;margin:0 auto;padding:0 32px 24px;}
+.composer-inner{border:1px solid var(--border-strong);background:var(--surface);border-radius:16px;
+  padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 14px rgba(40,38,31,.04);}
+.composer-inner input{flex:1;border:0;background:transparent;font-family:var(--sans);font-size:15px;color:var(--text);outline:none;}
+.composer-inner input::placeholder{color:var(--text-faint);}
+.send{width:32px;height:32px;border-radius:8px;border:0;background:var(--accent);color:#fff;cursor:pointer;display:grid;place-items:center;}
+
+/* ---------- right drawer ---------- */
+.drawer{overflow:hidden;border-left:1px solid var(--border);background:var(--surface);
+  box-shadow:-8px 0 24px rgba(40,38,31,.05);display:flex;flex-direction:column;}
+.shell:not(.drawer-open) .drawer{display:none;}
+.drawer-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.drawer-head .t{font-family:var(--serif);font-weight:600;font-size:16px;}
+.icon-btn{border:0;background:transparent;color:var(--text-faint);cursor:pointer;font-size:16px;padding:4px;}
+.icon-btn:hover{color:var(--text);}
+.drawer-body{overflow-y:auto;padding:16px 20px;}
+.sec-label{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-faint);margin:0 0 10px;}
+.agent-wall{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;}
+.acard{border:1px solid var(--border);border-radius:var(--r-card);padding:12px;background:var(--bg);cursor:pointer;}
+.acard:hover{border-color:var(--border-strong);}
+.acard .an{font-family:var(--mono);font-size:12px;color:var(--text);display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.acard .at{font-size:12px;color:var(--text-dim);line-height:1.45;}
+.acard .ameta{margin-top:8px;font-size:11px;color:var(--text-faint);display:flex;gap:10px;}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:14px;}
+.tab{padding:8px 12px;font-size:13px;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.tab.active{color:var(--text);border-bottom-color:var(--accent);font-weight:500;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);}
+th{color:var(--text-faint);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.04em;}
+td.num{font-family:var(--mono);}
+.cell-ok{color:var(--ok);} .cell-miss{color:var(--text-faint);}
+</style>
+</head>
+<body>
+<div class="shell" id="shell">
+
+  <!-- LEFT RAIL -->
+  <aside class="rail">
+    <div class="wordmark"><span class="dot"></span>SearchForge</div>
+    <button class="newchat">＋ 新对话</button>
+    <div class="search">🔍 搜索对话</div>
+    <div class="group">
+      <div class="group-label">今天</div>
+      <div class="sess active">对比这几家 AI 公司的估值</div>
+      <div class="sess">2024 各州可再生能源装机</div>
+    </div>
+    <div class="group">
+      <div class="group-label">昨天</div>
+      <div class="sess">整理 OSDI'25 系统论文清单</div>
+      <div class="sess">三家云厂商 GPU 实例价格表</div>
+    </div>
+  </aside>
+
+  <!-- CENTER CONVERSATION -->
+  <main class="conv">
+    <div class="conv-inner">
+      <div class="turn">
+        <div class="msg-user"><div class="bubble">帮我对比 OpenAI、Anthropic、Mistral、xAI 这几家的成立年份、最新估值和旗舰模型。</div></div>
+      </div>
+
+      <div class="turn">
+        <div class="msg-asst">
+          <div class="avatar">S</div>
+          <div class="asst-body">
+            <!-- inline orchestration overview card -->
+            <div class="orch" onclick="toggleDrawer(true)">
+              <div class="orch-head">
+                <div class="orch-title"><span class="spinner"></span> 正在编排搜索</div>
+                <div class="orch-open">查看执行过程 →</div>
+              </div>
+              <div class="pills">
+                <span class="pill done">warmup</span>
+                <span class="pill done">schema</span>
+                <span class="pill active">dispatch</span>
+                <span class="pill">evaluate</span>
+                <span class="pill">synthesize</span>
+              </div>
+              <div class="chips">
+                <span class="chip done"><span class="sd"></span>warmup_agent</span>
+                <span class="chip"><span class="sd"></span>search_agent_1</span>
+                <span class="chip"><span class="sd"></span>search_agent_2</span>
+                <span class="chip"><span class="sd"></span>search_agent_3</span>
+                <span class="chip done"><span class="sd"></span>search_agent_4</span>
+              </div>
+              <div class="counter"><b>4</b> 个 agent 在搜索 · <b>23</b> 个子任务 · 已覆盖 <b>12 / 40</b> 单元格</div>
+            </div>
+
+            <h3>初步结果</h3>
+            <p>已锁定四家公司的基础信息，正在补齐估值与旗舰模型的最新口径。下面是当前已确认的部分——</p>
+            <p>OpenAI 成立于 2015 年，最近一轮融资后估值约 …（流式中）</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="composer">
+      <div class="composer-inner">
+        <input placeholder="追问，或开始新的检索任务…" />
+        <button class="send">↑</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT DRAWER -->
+  <aside class="drawer">
+    <div class="drawer-head">
+      <div class="t">执行过程</div>
+      <button class="icon-btn" title="最大化">⤢</button>
+      <button class="icon-btn" onclick="toggleDrawer(false)" title="关闭">✕</button>
+    </div>
+    <div class="drawer-body">
+      <p class="sec-label">Subagents · 4 活跃</p>
+      <div class="agent-wall">
+        <div class="acard">
+          <div class="an"><span class="sd" style="width:6px;height:6px;border-radius:50%;background:var(--ok);display:inline-block"></span>warmup_agent</div>
+          <div class="at">建立 schema:company_comparison(4 行 × 5 列)</div>
+          <div class="ameta"><span>6 步</span><span>已完成</span></div>
+        </div>
+        <div class="acard">
+          <div class="an"><span class="sd" style="width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block"></span>search_agent_1</div>
+          <div class="at">search "Anthropic latest valuation 2026" → open techcrunch…</div>
+          <div class="ameta"><span>4 步</span><span>搜索中</span></div>
+        </div>
+        <div class="acard">
+          <div class="an"><span class="sd" style="width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block"></span>search_agent_2</div>
+          <div class="at">search "Mistral AI funding round" → find "Series C"…</div>
+          <div class="ameta"><span>3 步</span><span>搜索中</span></div>
+        </div>
+        <div class="acard">
+          <div class="an"><span class="sd" style="width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block"></span>search_agent_3</div>
+          <div class="at">search "xAI flagship model Grok" → open x.ai/blog…</div>
+          <div class="ameta"><span>5 步</span><span>搜索中</span></div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active">Coverage</div>
+        <div class="tab">Evidence</div>
+        <div class="tab">Files</div>
+        <div class="tab">Events</div>
+      </div>
+      <table>
+        <thead><tr><th>公司</th><th>成立</th><th>估值</th><th>旗舰模型</th></tr></thead>
+        <tbody>
+          <tr><td>OpenAI</td><td class="num cell-ok">2015</td><td class="num cell-ok">$300B</td><td class="cell-ok">GPT-5.2</td></tr>
+          <tr><td>Anthropic</td><td class="num cell-ok">2021</td><td class="num cell-miss">…</td><td class="cell-ok">Opus 4.8</td></tr>
+          <tr><td>Mistral</td><td class="num cell-ok">2023</td><td class="num cell-miss">…</td><td class="cell-miss">…</td></tr>
+          <tr><td>xAI</td><td class="num cell-ok">2023</td><td class="num cell-miss">…</td><td class="cell-ok">Grok 4</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+function toggleDrawer(open){
+  document.getElementById('shell').classList.toggle('drawer-open', open);
+}
+if(location.search.includes('drawer')||location.hash.includes('drawer')) toggleDrawer(true);
+</script>
+</body>
+</html>

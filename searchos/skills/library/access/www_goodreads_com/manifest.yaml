@@ -1,0 +1,24 @@
+description: >-
+  Extract structured book, author, and Choice Awards data from Goodreads pages
+  via direct HTTP parsing of HTML and embedded JSON data.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - parse_book   解析图书详情页，返回标题、作者、评分、简介、标签、奖项等
+        - parse_author  解析作者主页，返回作者信息及其作品列表
+        - parse_choice_awards  解析年度最佳图书评选页面，返回各奖项及获奖图书
+
+  url:
+    type: string
+    required: false
+    description: Goodreads 页面 URL（parse_book/parse_author 必填）
+    # 示例: https://www.goodreads.com/book/show/1
+
+  html:
+    type: string
+    required: false
+    description: 预抓取的 HTML 内容（可选，如未提供则自动请求 URL）

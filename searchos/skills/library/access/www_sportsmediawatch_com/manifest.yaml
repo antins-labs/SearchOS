@@ -1,0 +1,94 @@
+description: >-
+  Fetches sports TV ratings and viewership data from Sports Media Watch (www.sportsmediawatch.com)
+  via WordPress REST API, including posts, search, categories and tags for detailed ratings analysis.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_post_by_slug   根据URL slug获取文章，需要slug参数
+        - get_post_by_id     根据ID获取文章，需要post_id参数
+        - search_posts       搜索文章，需要query参数
+        - get_posts_by_category   获取指定分类的文章，需要category或category_id参数
+        - get_posts_by_tag        获取指定标签的文章，需要tag或tag_id参数
+        - list_categories    列出可用分类
+        - list_tags          列出可用标签
+        - get_recent_posts   获取最新文章
+
+  slug:
+    type: string
+    required: false
+    description: 文章URL slug，用于get_post_by_slug功能
+
+  post_id:
+    type: integer
+    required: false
+    description: 文章ID，用于get_post_by_id功能
+
+  query:
+    type: string
+    required: false
+    description: 搜索关键词，用于search_posts功能
+
+  category:
+    type: string
+    required: false
+    description: 分类名称(ratings, nfl, nba, mlb, cfb, espn, fox, cbs, nbc, tnt-sports等)，用于get_posts_by_category
+
+  category_id:
+    type: integer
+    required: false
+    description: 分类ID，用于get_posts_by_category
+
+  tag:
+    type: string
+    required: false
+    description: 标签名称(final-ratings, overnights, nfl-ratings, nba-ratings等)，用于get_posts_by_tag
+
+  tag_id:
+    type: integer
+    required: false
+    description: 标签ID，用于get_posts_by_tag
+
+  search:
+    type: string
+    required: false
+    description: 标签搜索关键词，用于list_tags功能
+
+  per_page:
+    type: integer
+    required: false
+    default: 10
+    description: 每页结果数量(1-100)
+
+  page:
+    type: integer
+    required: false
+    default: 1
+    description: 页码，用于分页
+
+  include_content:
+    type: boolean
+    required: false
+    default: false
+    description: 是否包含文章完整内容，默认只返回摘要
+
+  orderby:
+    type: string
+    required: false
+    default: count
+    description: 排序字段(count, name, id)，用于list_categories和list_tags
+
+  order:
+    type: string
+    required: false
+    default: desc
+    description: 排序方向(asc或desc)
+
+  hide_empty:
+    type: boolean
+    required: false
+    default: true
+    description: 是否隐藏空分类/标签，用于list_categories和list_tags

@@ -1,0 +1,34 @@
+description: >-
+  Fetches U.S. Supreme Court opinions and case listings from Justia (supreme.justia.com),
+  including year indices, volume listings, and detailed case pages with opinions and PDFs.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_year_cases    获取指定年份的所有案件，需要year参数
+        - get_case          获取特定案件的详细信息，需要volume和docket参数
+        - get_volume_cases  获取指定卷号的所有案件，需要volume参数
+        - search_cases      搜索案件，支持year参数进行年份筛选
+  
+  year:
+    type: integer
+    required: false
+    description: 年份（用于get_year_cases或search_cases），如2024、2025
+  
+  volume:
+    type: string
+    required: false
+    description: U.S. Reports卷号（用于get_case或get_volume_cases），如"605"、"600"
+  
+  docket:
+    type: string
+    required: false
+    description: 案件编号（用于get_case），如"24-394"、"23-1122"
+  
+  query:
+    type: string
+    required: false
+    description: 搜索关键词（用于search_cases，建议配合year使用）

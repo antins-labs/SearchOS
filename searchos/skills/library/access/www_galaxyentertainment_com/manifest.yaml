@@ -1,0 +1,41 @@
+description: >-
+  Fetches financial reports (annual, interim) and investor announcements from
+  Galaxy Entertainment Group's investor relations section at www.galaxyentertainment.com.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - financial_reports   获取年度报告和中期报告列表
+        - financial_results   获取最新公告、财务数据、月度回报等文件
+  
+  report_type:
+    type: string
+    required: false
+    description: |
+      报告类型筛选 (仅 financial_reports 使用)。常用值:
+        - Annual Report       年度报告
+        - Interim Report      中期报告
+        - Sustainability Report  可持续发展报告
+  
+  year:
+    type: integer
+    required: false
+    description: 报告年份筛选 (仅 financial_reports 使用)，如 2024、2023 等。
+  
+  doc_type:
+    type: string
+    required: false
+    description: |
+      文档类型筛选 (仅 financial_results 使用)。常用值:
+        - Monthly Return    月度股权变动回报
+        - Financial Data    财务数据展示
+        - Meeting Results   股东大会结果
+        - Directors         董事相关公告
+  
+  limit:
+    type: integer
+    required: false
+    description: 返回结果的最大数量限制，默认返回所有结果。

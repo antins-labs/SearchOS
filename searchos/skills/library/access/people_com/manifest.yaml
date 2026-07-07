@@ -1,0 +1,30 @@
+description: >-
+  Fetches sitemap index and robots.txt from people.com (entertainment news site).
+  Note: Article content is blocked by Cloudflare Turnstile protection.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - sitemap   获取 sitemap.xml 索引（列出所有子 sitemap）
+        - robots    获取 robots.txt 内容（爬虫规则）
+        - article   尝试获取指定文章（需要 url 参数；受 Cloudflare 保护限制）
+        - search    在 sitemap 中搜索匹配的 URL（需要 query 参数）
+
+  url:
+    type: string
+    required: false
+    description: 文章完整 URL（用于 article 功能）
+
+  query:
+    type: string
+    required: false
+    description: 搜索关键词（用于 search 功能，匹配 URL 中的词）
+
+  max_sitemaps:
+    type: integer
+    required: false
+    default: 5
+    description: 搜索时最多检查的子 sitemap 数量（用于 search 功能）

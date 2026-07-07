@@ -1,0 +1,46 @@
+description: >-
+  Fetches UNESCO World Heritage Site data from worldheritageexplorer.org including
+  site details, coordinates, inscription year, criteria, and listings.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_site      获取单个世界遗产地详细信息，需要 site_path 或 site_slug 参数
+        - list_sites    列出所有世界遗产地，可选 limit 和 offset 分页参数
+        - search_sites  按名称搜索遗产地，需要 query 参数，可选 limit 参数
+        - get_site_by_wh_id  按UNESCO ID查询（需先通过其他方式找到路径）
+
+  site_path:
+    type: string
+    required: false
+    description: 遗产地页面的URL路径，如 "/sites/carlsbad_caverns_national_park.html"。用于 get_site 功能。
+
+  site_slug:
+    type: string
+    required: false
+    description: 遗产地的标识符，如 "carlsbad_caverns_national_park"。用于 get_site 功能，会自动构造成完整路径。
+
+  query:
+    type: string
+    required: false
+    description: 搜索关键词，用于 search_sites 功能。不区分大小写的部分匹配。
+
+  limit:
+    type: integer
+    required: false
+    description: 返回结果的最大数量。用于 list_sites（默认100）和 search_sites（默认50）功能。
+    default: 100
+
+  offset:
+    type: integer
+    required: false
+    description: 分页偏移量。用于 list_sites 功能，默认为0。
+    default: 0
+
+  wh_id:
+    type: string
+    required: false
+    description: UNESCO世界遗产编号，如 "721" 代表卡尔斯巴德洞窟国家公园。用于 get_site_by_wh_id 功能。

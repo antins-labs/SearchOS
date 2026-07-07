@@ -1,0 +1,86 @@
+{
+  "search": [
+    "top 10 countries by total annual electricity consumption in 2022"
+  ],
+  "result": {
+    "top 10 countries by total annual electricity consumption in 2022": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Consumption by country ; Saudi Arabia, 422.83, 12.71 ; Iran, 380.28, 4.20 ; Mexico, 357.75, 2.76 ; Indonesia, 351.49, 1.25 ...Read more",
+            "title": "List of countries by electricity consumption",
+            "url": "https://en.wikipedia.org/wiki/List_of_countries_by_electricity_consumption"
+          },
+          {
+            "snippet": "Top 10 Countries that Consume the Most Electricity ... China is the world's largest consumer of electricity, using over 8.539 trillion kWh of energy annually.Read more",
+            "title": "Electricity Consumption by Country 2025",
+            "url": "https://worldpopulationreview.com/country-rankings/electricity-consumption-by-country"
+          },
+          {
+            "snippet": "China, the United States, and India accounted for more than half of the global share of electricity consumption. Japan and Russia followed with nearly twice the ...Read more",
+            "title": "Electric energy consumption",
+            "url": "https://en.wikipedia.org/wiki/Electric_energy_consumption"
+          },
+          {
+            "snippet": "China is the country with highest electricity consumption in the world, followed by the US and India.",
+            "title": "10 countries with highest electricity consumption,China in ...",
+            "url": "https://www.idnfinancials.com/news/58585/10-countries-with-highest-electricity-consumption-china-in-first-place"
+          },
+          {
+            "snippet": "Total energy consumption 2023 ; 1, China, 163 ; 2, United States, 94 ; 3, India, 36 ; 4, Russia, 33.Read more",
+            "title": "Total energy consumption 2023",
+            "url": "https://www.eia.gov/international/rankings/country/ESH?pid=44&aid=2&f=A&y=01%2F01%2F2023&u=0&v=none&pa=44"
+          },
+          {
+            "snippet": "What does electricity production say about these countries and their economies? We take a look at China versus America.",
+            "title": "Ranked: Top Countries by Electricity Production (1985–2024)",
+            "url": "https://www.visualcapitalist.com/ranked-top-countries-by-annual-electricity-production-1985-2024/"
+          },
+          {
+            "snippet": "Which countries consume the most electricity in the world? China has the highest electricity consumption, followed by the United States.",
+            "title": "Electricity consumption by country 2024",
+            "url": "https://www.statista.com/statistics/267081/electricity-consumption-in-selected-countries-worldwide/?srsltid=AfmBOooUxSY3ls04BlX8t-QU3gUU2liWgand6xo5jHD2qX8mHHyGenos"
+          },
+          {
+            "snippet": "The average for 2022 based on 190 countries was 139.5 billion kilowatthours. The highest value was in China: 8349.31 billion kilowatthours and the lowest value ...Read more",
+            "title": "Electricity consumption by country, around the world",
+            "url": "https://www.theglobaleconomy.com/rankings/electricity_consumption/"
+          },
+          {
+            "snippet": "by H Ritchie · 2020 · Cited by 683 — The largest energy consumers include Iceland, Norway, Canada, the United States, and wealthy nations in the Middle East such as Oman, Saudi Arabia, and Qatar.Read more",
+            "title": "Energy Production and Consumption",
+            "url": "https://ourworldindata.org/energy-production-consumption"
+          },
+          {
+            "snippet": "Electricity Statistics by Country ; 1, China, 5,563,928,540 ; 2, United States, 3,902,306,027 ; 3, India, 1,136,513,420 ; 4, Japan, 943,682,520 ...Read more",
+            "title": "Electricity Statistics by Country",
+            "url": "https://www.worldometers.info/electricity/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>top 10 countries by total annual electricity consumption in 2022</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_countries_by_electricity_consumption"
+    },
+    {
+      "from": "<search>top 10 countries by total annual electricity consumption in 2022</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_countries_by_electricity_consumption"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_countries_by_electricity_consumption",
+      "to": "https://en.wikipedia.org/wiki/Electric_energy_consumption"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_countries_by_electricity_consumption",
+      "to": "https://en.wikipedia.org/wiki/Electric_energy_consumption"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_countries_by_electricity_consumption",
+      "to": "https://en.wikipedia.org/wiki/Electric_energy_consumption"
+    }
+  ]
+}

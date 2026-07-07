@@ -1,0 +1,20 @@
+name: github_repository
+invocation: agent_called
+description: "Search api.github.com \u2014 github_repository. JSON REST API; strictly\
+  \ rate-limited to 60 req/hr without authentication token."
+params_schema:
+  query:
+    type: string
+    required: true
+    description: The search keywords to find repositories (e.g., 'machine learning').
+  num_results:
+    type: integer
+    default: 5
+    description: The maximum number of repository items to return per page.
+category: code
+entity_type: github_repository
+fields:
+- title
+- url
+- snippet
+- owner

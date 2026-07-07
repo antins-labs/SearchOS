@@ -1,0 +1,32 @@
+description: >-
+  Fetch exam notices, recruitment announcements, and official documents from 
+  四川省人事考试中心 (Sichuan Province Personnel Examination Center, www.scpta.com.cn).
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      功能名称。可用值:
+        - get_article   根据 news_id 获取单篇公告文章详情，需提供 news_id 参数
+        - list_articles 列出公告列表，可选填 category_id 和 page 参数
+  
+  news_id:
+    type: string
+    required: false
+    description: >
+      文章ID（get_article 使用）。32位十六进制字符串，可在文章URL中找到。
+      例如: 0a5c2590651844b7a2eaf3ee6e9f23e8
+  
+  category_id:
+    type: string
+    required: false
+    description: >
+      分类ID（list_articles 使用）。常见分类: "33" (通知公告), "56" (公务员招录),
+      "72" (三支一扶) 等。不填写则默认为 "33" (通知公告)。
+  
+  page:
+    type: integer
+    required: false
+    description: >
+      页码（list_articles 使用），从1开始，每页约30条记录。默认: 1

@@ -1,0 +1,29 @@
+description: >-
+  Access biography and encyclopedia pages from Britannica.com, extracting structured
+  data including names, dates, nationality, profession, notable works, and bibliographic
+  information with robust Cloudflare challenge handling.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - fetch   获取指定的Britannica页面并提取结构化传记数据; 需要url参数
+        - search  按姓名搜索传记并返回最佳匹配的URL; 需要name参数
+  
+  url:
+    type: string
+    required: false
+    description: 要获取的Britannica完整URL (例如 https://www.britannica.com/biography/Alice-Munro); fetch功能使用
+  
+  name:
+    type: string
+    required: false
+    description: 要搜索的人物姓名 (例如 "Alice Munro"); search功能使用
+  
+  max_wait:
+    type: integer
+    required: false
+    description: 等待页面内容加载的最大秒数 (默认60秒); fetch功能使用
+    default: 60

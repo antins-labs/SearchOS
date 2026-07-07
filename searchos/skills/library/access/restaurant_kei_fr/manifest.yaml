@@ -1,0 +1,43 @@
+description: >-
+  Fetches restaurant information (contact, hours) and browses the Shopify catalog
+  (gift cards, books, products) for Restaurant KEI in Paris by chef Kei Kobayashi.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      The function to call. Available values:
+        - fetch_home_page    Fetch restaurant info (address, hours, contact) from the home page
+        - get_contact_info   Get structured contact information for the restaurant
+        - list_products      List all products (gift cards, books, menus, etc.)
+        - get_product        Get details for a specific product by handle or ID
+        - list_collections   List all product collections
+        - get_collection     Get details for a specific collection by handle
+
+  lang:
+    type: string
+    required: false
+    description: Language code for home page (default: 'en', also supports 'fr')
+    default: en
+
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of items to return for list_products/list_collections (default: 50, max: 250)
+    default: 50
+
+  product_type:
+    type: string
+    required: false
+    description: Filter products by type (e.g., 'Carte Cadeau', 'Livre', 'Menu')
+
+  handle:
+    type: string
+    required: false
+    description: Product or collection handle/slug for get_product or get_collection
+
+  product_id:
+    type: string
+    required: false
+    description: Shopify product ID (alternative to handle for get_product)

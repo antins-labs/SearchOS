@@ -1,0 +1,70 @@
+{
+  "search": [
+    "the champions from Dota 2's premier tournament, The International"
+  ],
+  "result": {
+    "the champions from Dota 2's premier tournament, The International": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "",
+            "title": "The International (esports) - Wikipedia",
+            "url": "https://en.wikipedia.org/wiki/The_International_(esports)"
+          },
+          {
+            "snippet": "The first International drew attention due to its staggering $1.6 million USD prize pool, the highest prize pool of any single esports tournament at that time.",
+            "title": "The International - Liquipedia Dota 2 Wiki",
+            "url": "https://liquipedia.net/dota2/The_International"
+          },
+          {
+            "snippet": "Full list of all TI winners that have won the Dota 2 world championship. The International event has some of the biggest prize pool in esports.",
+            "title": "Dota 2 The International: All TI winners throughout the years",
+            "url": "https://www.oneesports.gg/dota2/the-international-all-ti-winners/"
+          },
+          {
+            "snippet": "Team Falcons has won The Internationals 2025 Dota 2 tournament after defeating Xtreme Gaming 3-2 in the Grand Finals.",
+            "title": "Team Falcons wins The International 2025",
+            "url": "https://esportsinsider.com/2025/09/team-falcons-win-the-international-2025"
+          },
+          {
+            "snippet": "Congratulations to Team Falcons, Grand Champions at The International 2025. After a year of mixed results, Team Falcons finally soared to ...",
+            "title": "The International 2025 Grand Champions",
+            "url": "https://www.dota2.com/newsentry/509591543575741517"
+          },
+          {
+            "snippet": "Team Falcons were one of the direct invites to The International 2025, and entered the tournament as the favourites to lift the Aegis.",
+            "title": "Team Falcons are The International 2025 Champions - BLAST.tv",
+            "url": "https://blast.tv/dota/news/team-falcons-are-the-international-2025-champions"
+          },
+          {
+            "snippet": "ShadowPlay Gaming wins the first ever Dota 2 Tournament in Bangladesh in Bellissimo Cyber Gaming Festival 2013. Congrats to No Enigma (NE) for ...",
+            "title": "14 years ago today in Germany, the legacy of Dota 2's ...",
+            "url": "https://www.facebook.com/wykrhmreddy/posts/14-years-ago-today-in-germany-the-legacy-of-dota-2s-grandest-and-oldest-tourname/1297885575023717/"
+          },
+          {
+            "snippet": "The Aegis of Champions is more than just a trophy; it's a symbol of supremacy in the fiercely competitive world of Dota 2.",
+            "title": "A look at how TI Champions fared in protecting their title",
+            "url": "https://www.gosugamers.net/dota2/features/72861-defenders-of-the-aegis-a-look-at-how-ti-champions-fared-in-protecting-their-title"
+          },
+          {
+            "snippet": "The International is an annual double-elimination LAN tournament hosted by Valve. 16 invited professional DotA teams fight for the title of best Dota 2 team.",
+            "title": "The International - Dota 2 Wiki - Fandom",
+            "url": "https://dota2.fandom.com/wiki/The_International"
+          },
+          {
+            "snippet": "In the penultimate day of TI11, Tundra defeated Secret, 2-1, in the upper bracket finals to become the first team in the grand finals. The final ...",
+            "title": "Tundra Esports sweep Team Secret 3-0 to become ...",
+            "url": "https://sg.news.yahoo.com/tundra-secret-ti11-dota-2-125333503.html"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>the champions from Dota 2's premier tournament, The International</search>",
+      "to": "https://en.wikipedia.org/wiki/The_International_(esports)"
+    }
+  ]
+}

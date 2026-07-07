@@ -1,0 +1,86 @@
+{
+  "search": [
+    "country land area greater than 100000 square kilometers"
+  ],
+  "result": {
+    "country land area greater than 100000 square kilometers": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Countries and dependencies by area ; 1. Russia, 17,098,246 (6,601,667) ; –, Antarctica, 14,200,000 (5,480,000) ; 2. Canada, 9,984,670 (3,855,100) ; 3/4 · China ...",
+            "title": "List of countries and dependencies by area",
+            "url": "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_area"
+          },
+          {
+            "snippet": "List of political and geographic subdivisions by total area from 100,000 to 1,000,000 square kilometers ... Largest country in the Caribbean. Uzbekistan ...",
+            "title": "List of political and geographic subdivisions by total area ...",
+            "url": "https://en.wikipedia.org/wiki/List_of_political_and_geographic_subdivisions_by_total_area_from_100,000_to_1,000,000_square_kilometers"
+          },
+          {
+            "snippet": "Russia is the largest country in the world with a total area of 17,098,242 square kilometers (6,601,665 square miles) and a land area of 16,377 ...",
+            "title": "List of Countries by Area",
+            "url": "https://statisticstimes.com/geography/countries-by-area.php"
+          },
+          {
+            "snippet": "The largest country in the world is Russia with a total area of 17,098,242 Km² (6,601,665 mi²) and a land area of 16,376,870 Km² (6,323,142 mi²), equivalent to ...",
+            "title": "Largest Countries in the World by Area",
+            "url": "https://www.worldometers.info/geography/largest-countries-in-the-world/"
+          },
+          {
+            "snippet": "Brazil ranked first for land area > sq. km amongst Hot countries in 2008. Monaco has ranked last for land area > sq. km since 1961. Russia ranked first ...",
+            "title": "Geography > Land area > Sq. km: Countries Compared",
+            "url": "https://www.nationmaster.com/country-info/stats/Geography/Land-area/Sq.-km"
+          },
+          {
+            "snippet": "Russia. 1. 17 095 000 Km2 ; Canada. 2. 9 982 000 Km2 ; United States. 3. 9 640 000 Km2 ; China. 4. 9 585 000 Km2.",
+            "title": "Area distribution @ Countries of the World",
+            "url": "https://studentsoftheworld.info/infopays/rank/area2.html"
+          },
+          {
+            "snippet": "With a total area of 6,592,850 square miles (17,075,400 square km), Russia is the world's largest country. A distant second is Canada, with 3, ...",
+            "title": "List of the world's largest countries and dependencies by ...",
+            "url": "https://www.britannica.com/topic/list-of-the-total-areas-of-the-worlds-countries-dependencies-and-territories-2130540"
+          },
+          {
+            "snippet": "Here are the largest country in the world. 1. Russia 2. Canada 3. China 4. United States of America 5. Brazil 6.",
+            "title": "List of seven largest countries by land mass",
+            "url": "https://www.facebook.com/groups/hollywoodandnollywoodauditionforyou/posts/3379129442234552/"
+          },
+          {
+            "snippet": "Total Russian area is 17,100,000 square kms BEFORE 2014. Today it might be 100,000 to 120,000 square kms more. 4 mos. Profile photo of Lah.",
+            "title": "🌏| Here's the list of Asian countries by land area (km² ...",
+            "url": "https://www.facebook.com/SEAheritagehistory/posts/-heres-the-list-of-asian-countries-by-land-area-km%C2%B2-ranked-from-largest-to-small/828610826502877/"
+          },
+          {
+            "snippet": "List of political and geographic subdivisions by total area from 100,000 to 200,000 square kilometers ; Bangladesh, 143,998, Country in Southeast Asia.",
+            "title": "List of political and geographic subdivisions by total area ...",
+            "url": "https://en.wikipedia.org/wiki/List_of_political_and_geographic_subdivisions_by_total_area_from_100,000_to_200,000_square_kilometers"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "https://en.wikipedia.org/wiki/British_Empire",
+      "to": "https://www.google.com/search?q=sovereign+countries+part+of+British+Emirre&oq=sovereign+countries+part+of+British+Emirre&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIJCAEQIRgKGKAB0gEKMTI3NjZqMGoxNagCCLACAQ&sourceid=chrome&ie=UTF-8"
+    },
+    {
+      "from": "https://www.google.com/search?q=sovereign+countries+part+of+British+Emirre&oq=sovereign+countries+part+of+British+Emirre&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIJCAEQIRgKGKAB0gEKMTI3NjZqMGoxNagCCLACAQ&sourceid=chrome&ie=UTF-8",
+      "to": "https://en.wikipedia.org/wiki/British_Overseas_Territories"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/British_Overseas_Territories",
+      "to": "https://www.google.com/search?q=sovereign+countries+part+of+British+Emirre&oq=sovereign+countries+part+of+British+Emirre&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIJCAEQIRgKGKAB0gEKMTI3NjZqMGoxNagCCLACAQ&sourceid=chrome&ie=UTF-8"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/British_Overseas_Territories",
+      "to": "https://en.wikipedia.org/wiki/List_of_countries_that_have_gained_independence_from_the_United_Kingdom"
+    },
+    {
+      "from": "<search>country land area greater than 100000 square kilometers</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_area"
+    }
+  ]
+}

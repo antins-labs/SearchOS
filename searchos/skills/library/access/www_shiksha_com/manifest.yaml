@@ -1,0 +1,20 @@
+description: >-
+  Fetches university rankings from Shiksha.com ranking pages including QS, THE, US News, and more.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_rankings: 获取指定大学的排名数据表格（QS/THE/US News等）
+        - get_university_info: 获取大学基本信息
+  country:
+    type: string
+    required: true
+    description: |
+      国家代码（小写）。例如: usa, uk, canada, australia, germany
+  university_slug:
+    type: string
+    required: true
+    description: |
+      大学的URL slug标识符。例如: the-university-of-texas-at-austin, massachusetts-institute-of-technology, university-of-oxford

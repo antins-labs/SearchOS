@@ -1,0 +1,35 @@
+description: Access UNESCO World Heritage Convention database including World Heritage List sites, States
+  Parties statistics, and sites in danger.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_sites   List World Heritage sites with optional filters by country,\
+      \ category, or danger status.\n  - get_site   Get details for a specific World Heritage site by\
+      \ ID.\n  - get_country_stats   Get World Heritage statistics for a specific country (States Parties).\n\
+      \  - get_statistics   Get overall World Heritage statistics including totals by category and countries\
+      \ represented.\n  - search_sites   Search World Heritage sites by name."
+  country_code:
+    type: string
+    required: false
+    description: ISO 3166-1 alpha-2 country code to filter results (e.g., 'us', 'fr', 'jp')
+  category:
+    type: string
+    required: false
+    description: Category filter - 'cultural', 'natural', or 'mixed'
+  in_danger:
+    type: boolean
+    required: false
+    description: Set to true to only return sites on the List of World Heritage in Danger
+  limit:
+    type: integer
+    required: false
+    description: 'Maximum number of results to return (default: 100)'
+  site_id:
+    type: integer
+    required: false
+    description: The UNESCO site ID number
+  query:
+    type: string
+    required: false
+    description: Search term to match against site names

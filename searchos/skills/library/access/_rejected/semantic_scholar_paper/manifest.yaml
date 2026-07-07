@@ -1,0 +1,24 @@
+name: semantic_scholar_paper
+invocation: agent_called
+description: "Search api.semanticscholar.org \u2014 semantic_scholar_paper. Raw JSON\
+  \ API response; requires query parameters for search; rate-limited without API key."
+params_schema:
+  query:
+    type: string
+    required: true
+    description: The search query string (e.g., 'graph neural networks').
+  num_results:
+    type: integer
+    default: 3
+    description: Maximum number of search results to return.
+  fields:
+    type: string
+    default: title,abstract,authors,year
+    description: Comma-separated list of fields to retrieve for each paper.
+category: academic
+entity_type: semantic_scholar_paper
+fields:
+- title
+- snippet
+- authors
+- year

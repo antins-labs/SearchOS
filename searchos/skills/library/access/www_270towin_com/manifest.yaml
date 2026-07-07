@@ -1,0 +1,20 @@
+description: 'Access historical U.S. presidential election data from 270toWin.com.
+
+  Retrieve election results, candidates, electoral votes, and popular votes
+
+  for every presidential election from 1789 to present.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_election   Get detailed results for a specific presidential election\
+      \ year\n  - list_elections   List all available historical presidential elections (1789-present)\n\
+      \  - search_elections   Search for elections by winner name or party"
+  year:
+    type: integer
+    required: false
+    description: Election year (1789-2024, every 4 years)
+  query:
+    type: string
+    required: false
+    description: Search term (president name or party name)

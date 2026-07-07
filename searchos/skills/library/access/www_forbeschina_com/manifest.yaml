@@ -1,0 +1,44 @@
+description: Access Forbes China wealth ranking lists and billionaire leaderboards
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_list   Retrieve complete list data with optional pagination\n\
+      \  - search_records   Search and filter list records by various criteria"
+  url:
+    type: string
+    required: false
+    description: Forbes China list URL (e.g., https://www.forbeschina.com/lists/1828) or list ID
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of records to return (null for all)
+  offset:
+    type: integer
+    required: false
+    description: Number of records to skip from the beginning
+    default: 0
+  query:
+    type: string
+    required: false
+    description: Search query for name matching (searches both English and Chinese names and wealth source)
+  country:
+    type: string
+    required: false
+    description: Filter by country/region (partial match)
+  min_rank:
+    type: integer
+    required: false
+    description: Minimum rank (inclusive)
+  max_rank:
+    type: integer
+    required: false
+    description: Maximum rank (inclusive)
+  min_wealth:
+    type: number
+    required: false
+    description: Minimum wealth in billions USD
+  max_wealth:
+    type: number
+    required: false
+    description: Maximum wealth in billions USD

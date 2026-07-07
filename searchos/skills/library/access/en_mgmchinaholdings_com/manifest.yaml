@@ -1,0 +1,36 @@
+description: >-
+  Fetches annual and interim financial reports (PDF) from MGM China Holdings 
+  investor relations website at en.mgmchinaholdings.com. Provides filtering by 
+  report type and year, with URL resolution to CDN location.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_all      列出所有可用的年度和中期报告
+        - list_annual   仅列出年度报告
+        - list_interim  仅列出中期报告
+        - get_by_year   获取指定年份的报告 (需要year参数)
+        - get_latest    获取最新的报告 (可选report_type参数)
+        - resolve_url   解析PDF URL获取最终CDN地址 (需要url参数)
+  
+  year:
+    type: integer
+    required: false
+    description: |
+      指定查询年份，用于get_by_year功能。例如: 2024
+
+  report_type:
+    type: string
+    required: false
+    description: |
+      报告类型，用于get_latest功能。可选值: "annual"(年度报告), "interim"(中期报告)。
+      默认为"annual"。
+
+  url:
+    type: string
+    required: false
+    description: |
+      PDF文件的URL地址，用于resolve_url功能解析最终CDN地址。

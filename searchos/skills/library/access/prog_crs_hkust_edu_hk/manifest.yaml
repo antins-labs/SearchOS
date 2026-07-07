@@ -1,0 +1,48 @@
+description: >-
+  Extract structured academic program data from the HKUST Postgraduate Program & Course
+  Catalog at prog-crs.hkust.edu.hk (requirements, fees, curriculum, deadlines, courses).
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_program      获取指定研究生项目的详细信息(需要 url 或 program_code,可选 academic_year/sections/include_courses/include_deadlines)
+        - list_programs    返回项目目录浏览链接(可选 academic_year/level)
+        - search_courses   在指定项目课程中搜索(需要 url 或 program_code,可选 search_term/academic_year)
+  url:
+    type: string
+    required: false
+    description: 完整项目页面 URL,如 https://prog-crs.hkust.edu.hk/pgprog/2026-27/msc-fofb/。get_program / search_courses 使用;与 program_code 二选一。
+  program_code:
+    type: string
+    required: false
+    description: 项目代码,如 msc-fofb、msc-mark。get_program / search_courses 使用;未提供 url 时必填。
+  academic_year:
+    type: string
+    required: false
+    description: 学年,如 2026-27。get_program / list_programs / search_courses 使用。
+    default: "2026-27"
+  sections:
+    type: array
+    required: false
+    description: 要提取的章节列表,仅 get_program 使用。可选值 general_info, introduction, learning_outcomes, curriculum, admission_requirements, application;不传则返回全部。
+  include_courses:
+    type: boolean
+    required: false
+    description: 是否包含课程详情。get_program 使用。
+    default: true
+  include_deadlines:
+    type: boolean
+    required: false
+    description: 是否解析申请截止日期。get_program 使用。
+    default: true
+  level:
+    type: string
+    required: false
+    description: 目录层级,仅 list_programs 使用。
+    default: pgprog
+  search_term:
+    type: string
+    required: false
+    description: 课程过滤关键词(按代码或名称匹配),仅 search_courses 使用。

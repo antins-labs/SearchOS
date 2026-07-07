@@ -1,0 +1,65 @@
+{
+  "search": [
+    "political leaders have been honored with the Nobel Peace Prize"
+  ],
+  "result": {
+    "political leaders have been honored with the Nobel Peace Prize": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Nobel Peace Prize Laureates ; Jimmy Carter (1924–2024), 2002 ; Dr. Mohammad Yunus. Muhammad Yunus (born 1940) · (interim leader). 2006 ; Martti Ahtisaari (1937–2023) ...",
+            "title": "List of heads of state and government Nobel laureates",
+            "url": "https://en.wikipedia.org/wiki/List_of_heads_of_state_and_government_Nobel_laureates"
+          },
+          {
+            "snippet": "Since the creation of the Nobel Peace Prize, four US Presidents and one Vice President have received the award, which is presented each year on December 10.",
+            "title": "and a VP – Received the Nobel Peace Prize",
+            "url": "https://obamawhitehouse.archives.gov/blog/2014/12/10/day-history-four-presidents-and-vp-received-nobel-peace-prize"
+          },
+          {
+            "snippet": "Four US Presidents have been honored with this distinguished prize, and interestingly, three of them have family ties to the state of Georgia.",
+            "title": "Nobel Peace Prize Presidents - Jimmy Carter ...",
+            "url": "https://www.nps.gov/jica/learn/historyculture/nobel-peace-prize-presidents.htm"
+          },
+          {
+            "snippet": "Theodore Roosevelt, Woodrow Wilson, Jimmy Carter, and Barack Obama all won the Nobel Peace Prize. Here's what the former presidents did to ...",
+            "title": "Only 4 US Presidents Have Won the Nobel Peace Prize",
+            "url": "https://www.biography.com/political-figures/a69031113/us-presidents-nobel-peace-prize-winners"
+          },
+          {
+            "snippet": "Vice Presidents Charles Dawes (1925) and Theodore Roosevelt (1906) were also Nobel Peace Prize recipients.",
+            "title": "Senators Who Received the Nobel Peace Prize",
+            "url": "https://www.senate.gov/senators/Nobel.htm"
+          },
+          {
+            "snippet": "The 2025 announcement for the honor is imminent, and President Trump has sought the prize for months.",
+            "title": "These U.S. presidents have won the Nobel Peace Prize",
+            "url": "https://www.axios.com/2025/10/10/nobel-peace-prize-winners-trump-presidents-obama"
+          },
+          {
+            "snippet": "María Corina Machado, the Venezuelan opposition leader and 2025 Nobel Peace Prize winner, dedicated her award to President Donald Trump, ...",
+            "title": "Four U.S. presidents have won the Nobel Peace Prize in its ...",
+            "url": "https://www.facebook.com/NBCMontana/posts/four-us-presidents-have-won-the-nobel-peace-prize-in-its-century-long-history-th/1404608531033876/"
+          },
+          {
+            "snippet": "The Nobel Peace Prize has been awarded 106 times to 143 Nobel Prize laureates between 1901 and 2025, 112 individuals and 31 organisations. ... Click on the links ...",
+            "title": "All Nobel Peace Prizes",
+            "url": "https://www.nobelprize.org/prizes/lists/all-nobel-peace-prizes/"
+          },
+          {
+            "snippet": "There have been several US Presidents who won the Nobel Peace Prize while in office including Teddy Roosevelt, Woodrow Wilson and Barack Obama.",
+            "title": "Have political leaders who were awarded the Nobel Peace ...",
+            "url": "https://www.quora.com/Have-political-leaders-who-were-awarded-the-Nobel-Peace-Prize-fared-well"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>political leaders have been honored with the Nobel Peace Prize</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_heads_of_state_and_government_Nobel_laureates"
+    }
+  ]
+}

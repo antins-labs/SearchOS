@@ -1,0 +1,61 @@
+description: >-
+  Fetches Supreme Court case data from SCOTUSblog's Sanity CMS API, including
+  case details, term statistics, opinions, and proceedings.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_terms: 列出所有最高法院开庭期及其案件数量
+        - get_term_cases: 获取指定开庭期的所有案件
+        - get_term_stats: 获取指定开庭期的统计数据
+        - get_case: 获取特定案件的详细信息
+        - search_cases: 按标题或案号搜索案件
+        - list_opinion_authors: 列出所有意见撰写人(大法官)
+        - get_cases_by_author: 获取特定大法官撰写的案件
+        - get_recent_decisions: 获取最近的判决
+        - get_upcoming_arguments: 获取待决案件列表
+        
+  term:
+    type: string
+    required: false
+    description: 开庭期标识符,如 ot2024、ot2025。get_term_cases、get_term_stats、get_recent_decisions、get_upcoming_arguments 可用。
+    
+  slug:
+    type: string
+    required: false
+    description: 案件 URL slug,如 dewberry-group-inc-v-dewberry-engineers-inc。get_case 可用。
+    
+  docket_number:
+    type: string
+    required: false
+    description: 案卷号,如 23-900。get_case 可用,作为 slug 的替代方案。
+    
+  query:
+    type: string
+    required: false
+    description: 搜索关键词,用于匹配案件标题或案卷号。search_cases 可用。
+    
+  author:
+    type: string
+    required: false
+    description: 大法官姓名或部分姓名。get_cases_by_author 可用。
+    
+  status:
+    type: string
+    required: false
+    description: 案件状态过滤。可选值: decided、pending、granted、denied。get_term_cases 可用。
+    
+  limit:
+    type: integer
+    required: false
+    default: 100
+    description: 返回结果的最大数量。
+    
+  offset:
+    type: integer
+    required: false
+    default: 0
+    description: 分页偏移量。get_term_cases 可用。

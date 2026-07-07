@@ -1,0 +1,16 @@
+description: >-
+  Extracts gaokao (高考) admission lines and score distribution tables from gaokao.eol.cn
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - fetch_page - Fetch any gaokao.eol.cn page and extract all table data
+        - get_admission_lines - Extract admission lines (投档线) with school/group/score data
+        - get_score_distribution - Extract score distribution (一分一段表) with score/count/cumulative data
+  url:
+    type: string
+    required: false
+    description: URL of the gaokao.eol.cn page to fetch (required for all functions)

@@ -1,0 +1,31 @@
+description: ''
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_athlete_profile   Get detailed profile information for an Olympic\
+      \ athlete including bio, medals, and competition results\n  - search_athletes   Search for athletes\
+      \ by name (requires browsing the athletes section)\n  - list_athletes_by_country   List athletes\
+      \ from a specific country"
+  athlete_slug:
+    type: string
+    required: false
+    description: The athlete URL slug (e.g., 'usain-bolt', 'long-ma')
+  language:
+    type: string
+    required: false
+    description: Language code for the page (e.g., 'en', 'zh', 'fr')
+    default: en
+  query:
+    type: string
+    required: false
+    description: Search query (athlete name)
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of results to return
+    default: 10
+  country_code:
+    type: string
+    required: false
+    description: Three-letter country code (e.g., 'JAM', 'USA', 'CHN')

@@ -1,0 +1,84 @@
+{
+  "search": [
+    "research stations in Antarctica"
+  ],
+  "result": {
+    "research stations in Antarctica": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Multiple governments have set up permanent research stations in Antarctica and these bases are widely distributed. Unlike the drifting ice stations set up ...Read more",
+            "title": "Research stations in Antarctica",
+            "url": "https://en.wikipedia.org/wiki/Research_stations_in_Antarctica"
+          },
+          {
+            "snippet": "There are more than 70 national research stations dotted around Antarctica, representing 29 signatories to the Antarctic Treaty. Although exact ...Read more",
+            "title": "10 Research Stations in Antarctica you should know about",
+            "url": "https://www.swoop-antarctica.com/blog/10-research-stations-in-antarctica-you-should-know-about/"
+          },
+          {
+            "snippet": "There are currently 70 permanent research stations scattered across the continent of Antarctica, which represent 29 countries from every continent on Earth.Read more",
+            "title": "A Look Into the International Research Stations of Antarctica",
+            "url": "https://oceanwide-expeditions.com/blog/a-look-into-the-international-research-stations-of-antarctica?srsltid=AfmBOooJqNgqTevNmO0NwMPJAzxixa2sjtibtefyJwTWQ7x4m-sOdNoi"
+          },
+          {
+            "snippet": "Learn about Australia's Antarctic and sub-Antarctic research stations (bases): Mawson, Davis, Casey, Macquarie Island – plus other areas ...",
+            "title": "Research stations and field locations",
+            "url": "https://www.antarctica.gov.au/antarctic-operations/stations-and-field-locations/"
+          },
+          {
+            "snippet": "Vostok Station, a high plateau research station ... The National Antarctic Programs operate a range of facilities in Antarctica in support of scientific research ...Read more",
+            "title": "Antarctic Facilities Information",
+            "url": "https://www.comnap.aq/antarctic-facilities-information"
+          },
+          {
+            "snippet": "Stations by number. 1. Vernadasky. Ukraine. 42 Gough Is. South Africa. 2. Palmer. United States. 43 Marion Is. South Africa. 3. Brown. Argentina. 44 Novo.Read more",
+            "title": "COMNAP Stations and Bases",
+            "url": "https://discoveringantarctica.org.uk/wp-content/uploads/2015/11/Research-stations-map.pdf"
+          },
+          {
+            "snippet": "Rothera Research Station​​ The largest British Antarctic facility is a centre for biological research and a hub for supporting deep-field science.Read more",
+            "title": "Polar research stations hub",
+            "url": "https://www.bas.ac.uk/polar-operations/polar-science-facilities/station/"
+          },
+          {
+            "snippet": "5 Research Stations You Can Visit in Antarctica · Antarctica's Research Presence · Vernadsky Station · González Videla Base · Brown Station.Read more",
+            "title": "5 Research Stations You Can Visit in Antarctica",
+            "url": "https://polar-latitudes.com/discover/sites/5-research-stations-antarctica/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>research stations in Antarctica</search>",
+      "to": "https://en.wikipedia.org/wiki/Research_stations_in_Antarctica"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Research_stations_in_Antarctica",
+      "to": "https://en.wikipedia.org/wiki/Belgrano_II_Base"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Research_stations_in_Antarctica",
+      "to": "https://en.wikipedia.org/wiki/Carlini_Base"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Research_stations_in_Antarctica",
+      "to": "https://en.wikipedia.org/wiki/Esperanza_Base"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Research_stations_in_Antarctica",
+      "to": "https://en.wikipedia.org/wiki/Marambio_Base"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Research_stations_in_Antarctica",
+      "to": "https://en.wikipedia.org/wiki/Orcadas_Base"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Research_stations_in_Antarctica",
+      "to": "https://en.wikipedia.org/wiki/San_Mart%C3%ADn_Base"
+    }
+  ]
+}

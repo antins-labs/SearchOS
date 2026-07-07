@@ -1,0 +1,70 @@
+{
+  "search": [
+    "What is the count of American citizens who have won the Nobel Prize in Physics since the year 2001?"
+  ],
+  "result": {
+    "What is the count of American citizens who have won the Nobel Prize in Physics since the year 2001?": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Since 1901, the Nobel Prize has been awarded to a total of 965 individuals and 27 organizations as of 2023. In 2025, The United States has the highest ...",
+            "title": "List of American Nobel laureates",
+            "url": "https://en.wikipedia.org/wiki/List_of_American_Nobel_laureates"
+          },
+          {
+            "snippet": "As of 2025, a total of 229 people have been awarded the prize.",
+            "title": "Nobel Prize in Physics",
+            "url": "https://en.wikipedia.org/wiki/Nobel_Prize_in_Physics"
+          },
+          {
+            "snippet": "The Nobel Prize in Physics has been awarded 119 times to 230 Nobel Prize laureates between 1901 and 2025. John Bardeen is the only laureate who has been ...",
+            "title": "All Nobel Prizes in Physics",
+            "url": "https://www.nobelprize.org/prizes/lists/all-nobel-prizes-in-physics/"
+          },
+          {
+            "snippet": "50% of Nobel Prize winners from the US were foreign-born. These four outstanding individuals won the Nobel in the fields of Physics, Chemistry, and Economic ...",
+            "title": "Previous years |... - Institute for Immigration Research",
+            "url": "https://iir.gmu.edu/publications/nobelprize/previous-years"
+          },
+          {
+            "snippet": "Between 1901 and 2024, 97 Americans have been awarded with the Nobel Prize in physics. There have furthermore been 28 Nobel Prize laureates in physics from ...",
+            "title": "Nobel Prize laureates in physics by nationality up to 2024",
+            "url": "https://www.statista.com/statistics/262900/nobel-prize-laureates-in-physics-by-nationality/?srsltid=AfmBOoo5dLSSkXBUqqNSTN4iIxMnCH3zsuDwmDMn4FNVpW1HKyCaE9YL"
+          },
+          {
+            "snippet": "They are widely regarded as the most prestigious awards given for intellectual achievement in the world and are conferred in six categories: physics,",
+            "title": "Nobel Prize Winners by Year | List, By Country, & Discipline",
+            "url": "https://www.britannica.com/topic/Nobel-Prize-Winners-by-Year-1856946"
+          },
+          {
+            "snippet": "Since 1901, immigrants have been awarded 36% of the U.S.. Nobel Prizes in physics, 35% in chemistry and 33% in medicine. These numbers do not include Nobel ...",
+            "title": "october 2020 - immigrants and nobel prizes",
+            "url": "https://nfap.com/wp-content/uploads/2020/10/Immigrants-and-Nobel-Prizes-1901-to-2020.NFAP-Policy-Brief.October-2020.pdf"
+          },
+          {
+            "snippet": "... Nobel Prize winners in the US increased from 52 to 126 [2]. Additionally, the United States has the highest Nobel Prize winning rate throughout the history ...",
+            "title": "The cumulative number of physics, chemistry and medicine ...",
+            "url": "https://www.researchgate.net/figure/The-cumulative-number-of-physics-chemistry-and-medicine-Nobel-prizes-per-country-Prizes_fig1_324471967"
+          },
+          {
+            "snippet": "Since 1901 at least one American has won the Nobel prize in science every year. In terms of total I think the US is above the next three or four ...",
+            "title": "Til that since 2020, 37 out of the total 66 Nobel laureates ...",
+            "url": "https://www.reddit.com/r/todayilearned/comments/1nzqx2a/til_that_since_2020_37_out_of_the_total_66_nobel/"
+          },
+          {
+            "snippet": "Between 1945 and 1974, 16 of the 30 U.S. winners of the Nobel Prize in physics were immigrants, according to NFAP. Between 1945 and 1974, 15 of ...",
+            "title": "Half Of The 2025 U.S. Nobel Prize Winners In Science Are ...",
+            "url": "https://www.forbes.com/sites/stuartanderson/2025/10/09/half-of-the-2025-us-nobel-prize-winners-in-science-are-immigrants/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>What is the count of American citizens who have won the Nobel Prize in Physics since the year 2001?</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_American_Nobel_laureates"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+description: 'Access company profile data from PitchBook including founded date, status, employees, deals,
+  and funding information. Note: PitchBook has aggressive Cloudflare protection and may require authenticated
+  session cookies for full access.'
+params_schema:
+  function:
+    type: string
+    required: false
+    description: "要调用的功能名。可用值:\n  - get_profile   Retrieve company profile data from PitchBook"
+  url:
+    type: string
+    required: false
+    description: PitchBook company profile URL or company ID (e.g., '123241-33' or 'https://pitchbook.com/profiles/company/123241-33')
+  cookies:
+    type: array
+    required: false
+    description: Optional list of cookies for authenticated session access
+  headless:
+    type: boolean
+    required: false
+    description: Run browser in headless mode
+    default: true
+  max_wait:
+    type: integer
+    required: false
+    description: Maximum seconds to wait for Cloudflare challenge completion
+    default: 40

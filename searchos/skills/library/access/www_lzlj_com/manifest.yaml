@@ -1,0 +1,19 @@
+description: >-
+  抓取泸州老窖(Luzhou Laojiao)品牌与产品信息(品牌列表/品牌下产品/产品详情),来源 www.lzlj.com。
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_brands         列出所有品牌分类;无额外参数
+        - list_products       列出某品牌下的所有产品;需要 brand_slug
+        - get_product_detail  获取单个产品详情;需要 product_url
+  brand_slug:
+    type: string
+    required: false
+    description: list_products 用(必填):品牌 slug,如 '1573'、'tequ'、'1952'。
+  product_url:
+    type: string
+    required: false
+    description: get_product_detail 用(必填):产品页完整 URL 或相对路径,如 /brand/1573/3742.html。

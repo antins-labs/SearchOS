@@ -1,0 +1,744 @@
+{
+  "search": [
+    "national parks of usa"
+  ],
+  "result": {
+    "national parks of usa": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "The United States has 63 national parks, which are congressionally designated protected areas operated by the National Park ServiceRead more",
+            "title": "List of national parks of the United States",
+            "url": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States"
+          },
+          {
+            "snippet": "Discover America's stories. Plan your visit and explore the diverse landscapes, national parks, and cultural treasures managed by the National Park Service.",
+            "title": "NPS.gov Homepage (U.S. National Park Service)",
+            "url": "https://www.nps.gov/"
+          },
+          {
+            "snippet": "1 Yosemite (California) · 2 Canyonlands (Utah) · 3 Arches (Utah) · 4 Wrangell-St. Elias (Alaska) · 5 Crater Lake (Oregon) · 6 Grand Canyon ( ...Read more",
+            "title": "All 63 US National Parks Ranked",
+            "url": "https://www.leeabbamonte.com/north-america/national-parks/all-63-us-national-parks-ranked.html"
+          },
+          {
+            "snippet": "Browse through the list of national parks, monuments and battlefields. Sites with entrance or day-use fees are covered by the America the Beautiful National ...Read more",
+            "title": "List of National Parks",
+            "url": "https://usparkpass.com/list-of-national-parks/"
+          },
+          {
+            "snippet": "The United States National Park System includes 63 officially designated National Parks, such as Yellowstone, Zion, Yosemite, Grand Canyon, and ...Read more",
+            "title": "List of National Parks in the United States 2026 and Map",
+            "url": "https://www.national-park.com/list-of-national-parks-in-the-united-states-2020/"
+          },
+          {
+            "snippet": "Best U.S. National Parks · Glacier National Park · Yellowstone National Park · Yosemite National Park · Grand Canyon National Park · Grand Teton National Park ...Read more",
+            "title": "The 19 Best U.S. National Parks. - U.S. News Travel",
+            "url": "https://travel.usnews.com/rankings/best-national-parks-in-the-usa/"
+          },
+          {
+            "snippet": "Find a national park by selecting from a list or choosing a state on the map.",
+            "title": "Find a Park",
+            "url": "https://www.nps.gov/findapark/index.htm"
+          },
+          {
+            "snippet": "Explore America's national parks. Discover our most treasured places, supported by people like you, and start your travel planning here by finding your park.Read more",
+            "title": "Explore America's national parks. ...",
+            "url": "https://www.nationalparks.org/explore/parks"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>national parks of usa</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States"
+    },
+    {
+      "from": "<search>national parks of usa</search>",
+      "to": "https://www.nationalparks.org/explore/parks"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States",
+      "to": "https://en.wikipedia.org/wiki/National_Park_of_American_Samoa"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#Parks_by_state_or_territory",
+      "to": "https://en.wikipedia.org/wiki/National_Park_of_American_Samoa"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#National_parks",
+      "to": "https://en.wikipedia.org/wiki/National_Park_of_American_Samoa"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#National_parks",
+      "to": "https://en.wikipedia.org/wiki/National_Park_of_American_Samoa"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks",
+      "to": "https://www.nationalparks.org/explore/parks?state=1618"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks",
+      "to": "https://www.nationalparks.org/explore/parks?state=1618"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks",
+      "to": "https://www.nationalparks.org/explore/parks?state=1618"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1618",
+      "to": "https://www.nationalparks.org/explore/parks/national-park-of-american-samoa"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks/national-park-of-american-samoa",
+      "to": "https://www.nps.gov/npsa/index.htm"
+    },
+    {
+      "from": "https://www.nps.gov/npsa/index.htm",
+      "to": "https://www.nps.gov/npsa/contacts.htm"
+    },
+    {
+      "from": "https://www.nps.gov/npsa/index.htm",
+      "to": "https://www.nps.gov/npsa/contacts.htm"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#National_parks",
+      "to": "https://en.wikipedia.org/wiki/Hot_Springs_National_Park"
+    },
+    {
+      "from": "https://www.nps.gov/hosp/index.htm",
+      "to": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#National_parks"
+    },
+    {
+      "from": "https://www.google.com/search?q=national+parks+of+usa&newwindow=1&sca_esv=412a660836333260&sxsrf=ANbL-n7WgKpU8JoVLvsucO4N5tEl0QcNNw%3A1769323398699&source=hp&ei=hrt1adWWKYjPkPIPhuywqAU&iflsig=AFdpzrgAAAAAaXXJlh2HRexbTYZFeI_H3V21SDXBthgv&oq=national+parks+of&gs_lp=Egdnd3Mtd2l6IhFuYXRpb25hbCBwYXJrcyBvZioCCAAyBRAAGIAEMgUQABiABDIFEAAYgAQyBRAAGIAEMgUQABiABDIFEAAYgAQyBRAAGIAEMgUQABiABDIFEC4YgAQyBRAAGIAESOtHUJQVWK07cAN4AJABAJgBywKgAcEqqgEGMi0xOC4yuAEByAEA-AEBmAIXoAL2KqgCCsICDRAjGPAFGJ4GGOoCGCfCAgcQIxjqAhgnwgIHEC4Y6gIYJ8ICDRAjGJ4GGPAFGOoCGCfCAgoQIxiABBiKBRgnwgIEECMYJ8ICCxAuGIAEGLEDGIMBwgILEAAYgAQYsQMYgwHCAhQQLhiABBiKBRixAxiDARjHARjRA8ICERAuGIAEGLEDGIMBGMcBGNEDwgIOEC4YgAQYigUYsQMYgwHCAg4QABiABBiKBRixAxiDAcICDhAuGMcBGLEDGNEDGIAEwgIIEAAYgAQYsQPCAgcQABiABBgKwgIIEC4YgAQYsQPCAg4QLhiABBixAxjHARjRA8ICBBAAGAPCAg0QLhiABBjHARjRAxgKwgILEC4YgAQYxwEYrwGYAwTxBQD4VwmRN-P7kgcIMy4wLjE4LjKgB97sAbIHBjItMTguMrgH7SrCBwYwLjIyLjHIByWACAE&sclient=gws-wiz",
+      "to": "https://www.nationalparks.org/explore/parks"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks",
+      "to": "https://www.nationalparks.org/explore/parks?state=1628"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks",
+      "to": "https://www.nationalparks.org/explore/parks?state=1628"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks/haleakala-national-park",
+      "to": "https://www.nps.gov/hale/index.htm"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks/haleakala-national-park",
+      "to": "https://www.nps.gov/hale/index.htm"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#National_parks",
+      "to": "https://en.wikipedia.org/wiki/Haleakal%C4%81_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Haleakal%C4%81_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Haleakal%C4%81_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Hawai%CA%BBi_Volcanoes_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Hawai%CA%BBi_Volcanoes_National_Park",
+      "to": "https://www.nps.gov/havo/index.htm"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Hawai%CA%BBi_Volcanoes_National_Park",
+      "to": "https://www.nps.gov/havo/index.htm"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Hawai%CA%BBi_Volcanoes_National_Park",
+      "to": "https://www.nps.gov/havo/index.htm"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/White_Sands_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/White_Sands_National_Park"
+    },
+    {
+      "from": "https://www.nps.gov/whsa/index.htm",
+      "to": "https://en.wikipedia.org/wiki/White_Sands_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Carlsbad_Caverns_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Carlsbad_Caverns_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Carlsbad_Caverns_National_Park",
+      "to": "https://www.nps.gov/cave/index.htm"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1628",
+      "to": "https://www.nationalparks.org/explore/parks?state=1660"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1628",
+      "to": "https://www.nationalparks.org/explore/parks?state=1660"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks/badlands-national-park",
+      "to": "https://www.nps.gov/badl/index.htm"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks/badlands-national-park",
+      "to": "https://www.nps.gov/badl/index.htm"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks/badlands-national-park",
+      "to": "https://www.nps.gov/badl/index.htm"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Badlands_National_Park"
+    },
+    {
+      "from": "https://translate.google.com/",
+      "to": "https://translate.google.com/?sl=fr&tl=zh-CN&text=Which%20states%20in%20the%20U.S.%20have%20fewer%20than%203%20national%20parks%3F%20For%20each%20national%20park%2C%20provide%20the%20official%20park%20mailing%20address%20and%20the%20establishment%20date%20as%20a%20national%20park%20(in%20MM-DD-YYYY%20format).&op=translate"
+    },
+    {
+      "from": "https://www.nps.gov/badl/index.htm",
+      "to": "https://www.nationalparks.org/explore/parks?state=1660"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Wind_Cave_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Wind_Cave_National_Park"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks/wind-cave-national-park",
+      "to": "https://www.nps.gov/wica/index.htm"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1660",
+      "to": "https://www.nationalparks.org/explore/parks?state=1662"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1660",
+      "to": "https://www.nationalparks.org/explore/parks?state=1662"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1660",
+      "to": "https://www.nationalparks.org/explore/parks?state=1662"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Big_Bend_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Big_Bend_National_Park"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks/big-bend-national-park",
+      "to": "https://www.nps.gov/bibe/index.htm"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1662",
+      "to": "https://www.nationalparks.org/explore/parks/guadalupe-mountains-national-park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Guadalupe_Mountains_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Guadalupe_Mountains_National_Park"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1643",
+      "to": "https://www.nationalparks.org/explore/parks/glacier-national-park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Glacier_National_Park_(U.S.)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Glacier_National_Park_(U.S.)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Glacier_National_Park_(U.S.)",
+      "to": "https://www.nps.gov/glac/index.htm"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Glacier_National_Park_(U.S.)",
+      "to": "https://www.nps.gov/glac/index.htm"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Yellowstone_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Yellowstone_National_Park",
+      "to": "https://www.nps.gov/yell/index.htm"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Yellowstone_National_Park",
+      "to": "https://www.nps.gov/yell/index.htm"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Great_Basin_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Great_Basin_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Great_Basin_National_Park",
+      "to": "https://www.nps.gov/grba/index.htm"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Death_Valley_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Death_Valley_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Death_Valley_National_Park",
+      "to": "https://www.nps.gov/deva/index.htm"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1645",
+      "to": "https://www.nationalparks.org/explore/parks?state=1671"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1645",
+      "to": "https://www.nationalparks.org/explore/parks?state=1671"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1645",
+      "to": "https://www.nationalparks.org/explore/parks?state=1671"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#National_parks",
+      "to": "https://en.wikipedia.org/wiki/Grand_Teton_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Grand_Teton_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Grand_Teton_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Grand_Teton_National_Park",
+      "to": "https://www.nps.gov/grte/index.htm"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1671",
+      "to": "https://www.nationalparks.org/explore/parks?state=1631"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1671",
+      "to": "https://www.nationalparks.org/explore/parks?state=1631"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1671",
+      "to": "https://www.nationalparks.org/explore/parks?state=1631"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Indiana_Dunes_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Indiana_Dunes_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Indiana_Dunes_National_Park",
+      "to": "https://www.nps.gov/indu/index.htm"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1631",
+      "to": "https://www.nationalparks.org/explore/parks?state=1634"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1631",
+      "to": "https://www.nationalparks.org/explore/parks?state=1634"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1631",
+      "to": "https://www.nationalparks.org/explore/parks?state=1634"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Mammoth_Cave_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Mammoth_Cave_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Mammoth_Cave_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Mammoth_Cave_National_Park",
+      "to": "https://www.nps.gov/maca/index.htm"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1634",
+      "to": "https://www.nationalparks.org/explore/parks?state=1636"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1634",
+      "to": "https://www.nationalparks.org/explore/parks?state=1636"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1634",
+      "to": "https://www.nationalparks.org/explore/parks?state=1636"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1634",
+      "to": "https://www.nationalparks.org/explore/parks?state=1636"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1634",
+      "to": "https://www.nationalparks.org/explore/parks?state=1636"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1634",
+      "to": "https://www.nationalparks.org/explore/parks?state=1636"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1634",
+      "to": "https://www.nationalparks.org/explore/parks?state=1636"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Acadia_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Acadia_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Acadia_National_Park",
+      "to": "https://www.nps.gov/acad/index.htm"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1636",
+      "to": "https://www.nationalparks.org/explore/parks?state=1639"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1636",
+      "to": "https://www.nationalparks.org/explore/parks?state=1639"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1636",
+      "to": "https://www.nationalparks.org/explore/parks?state=1639"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Isle_Royale_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Isle_Royale_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Isle_Royale_National_Park",
+      "to": "https://www.nps.gov/isro/index.htm"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1639",
+      "to": "https://www.nationalparks.org/explore/parks?state=1640"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1639",
+      "to": "https://www.nationalparks.org/explore/parks?state=1640"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1639",
+      "to": "https://www.nationalparks.org/explore/parks?state=1640"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1639",
+      "to": "https://www.nationalparks.org/explore/parks?state=1640"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Voyageurs_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Voyageurs_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Voyageurs_National_Park",
+      "to": "https://www.nps.gov/voya/index.htm"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1640",
+      "to": "https://www.nationalparks.org/explore/parks?state=1642"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1640",
+      "to": "https://www.nationalparks.org/explore/parks?state=1642"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1640",
+      "to": "https://www.nationalparks.org/explore/parks?state=1642"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Gateway_Arch_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Gateway_Arch_National_Park",
+      "to": "https://www.nps.gov/jeff/index.htm"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Gateway_Arch_National_Park",
+      "to": "https://www.nps.gov/jeff/index.htm"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Gateway_Arch_National_Park",
+      "to": "https://www.nps.gov/jeff/index.htm"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1642",
+      "to": "https://www.nationalparks.org/explore/parks?state=1651"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1642",
+      "to": "https://www.nationalparks.org/explore/parks?state=1651"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1642",
+      "to": "https://www.nationalparks.org/explore/parks?state=1651"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1642",
+      "to": "https://www.nationalparks.org/explore/parks?state=1651"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1642",
+      "to": "https://www.nationalparks.org/explore/parks?state=1651"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1642",
+      "to": "https://www.nationalparks.org/explore/parks?state=1651"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Theodore_Roosevelt_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Theodore_Roosevelt_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Theodore_Roosevelt_National_Park",
+      "to": "https://www.nps.gov/thro/index.htm"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Theodore_Roosevelt_National_Park",
+      "to": "https://www.nps.gov/thro/index.htm"
+    },
+    {
+      "from": "https://www.nps.gov/thro/index.htm",
+      "to": "https://en.wikipedia.org/wiki/Theodore_Roosevelt_National_Park"
+    },
+    {
+      "from": "https://www.nps.gov/thro/index.htm",
+      "to": "https://en.wikipedia.org/wiki/Theodore_Roosevelt_National_Park"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1651",
+      "to": "https://www.nationalparks.org/explore/parks?state=1650"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1651",
+      "to": "https://www.nationalparks.org/explore/parks?state=1650"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1651",
+      "to": "https://www.nationalparks.org/explore/parks?state=1650"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1651",
+      "to": "https://www.nationalparks.org/explore/parks?state=1650"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Great_Smoky_Mountains_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Great_Smoky_Mountains_National_Park"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1650",
+      "to": "https://www.nationalparks.org/explore/parks?state=1653"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1650",
+      "to": "https://www.nationalparks.org/explore/parks?state=1653"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1650",
+      "to": "https://www.nationalparks.org/explore/parks?state=1653"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1650",
+      "to": "https://www.nationalparks.org/explore/parks?state=1653"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Cuyahoga_Valley_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Crater_Lake_National_Park"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1653",
+      "to": "https://www.nationalparks.org/explore/parks?state=1655"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1653",
+      "to": "https://www.nationalparks.org/explore/parks?state=1655"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1653",
+      "to": "https://www.nationalparks.org/explore/parks?state=1655"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1653",
+      "to": "https://www.nationalparks.org/explore/parks?state=1655"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1655",
+      "to": "https://www.nationalparks.org/explore/parks?state=1659"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1655",
+      "to": "https://www.nationalparks.org/explore/parks?state=1659"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1655",
+      "to": "https://www.nationalparks.org/explore/parks?state=1659"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Congaree_National_Park"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Congaree_National_Park",
+      "to": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1659",
+      "to": "https://www.nationalparks.org/explore/parks?state=1663"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1659",
+      "to": "https://www.nationalparks.org/explore/parks?state=1663"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1659",
+      "to": "https://www.nationalparks.org/explore/parks?state=1663"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Virgin_Islands_National_Park"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1663",
+      "to": "https://www.nationalparks.org/explore/parks?state=1666"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1663",
+      "to": "https://www.nationalparks.org/explore/parks?state=1666"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1663",
+      "to": "https://www.nationalparks.org/explore/parks?state=1666"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1666",
+      "to": "https://www.nationalparks.org/explore/parks/page/2?state=1666"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/Shenandoah_National_Park"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks/page/2?state=1666",
+      "to": "https://www.nationalparks.org/explore/parks?state=1669"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks/page/2?state=1666",
+      "to": "https://www.nationalparks.org/explore/parks?state=1669"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks/page/2?state=1666",
+      "to": "https://www.nationalparks.org/explore/parks?state=1669"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks/page/2?state=1666",
+      "to": "https://www.nationalparks.org/explore/parks?state=1669"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/New_River_Gorge_National_Park_and_Preserve"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States#External_links",
+      "to": "https://en.wikipedia.org/wiki/New_River_Gorge_National_Park_and_Preserve"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1669",
+      "to": "https://www.nationalparks.org/explore/parks?state=1628"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1669",
+      "to": "https://www.nationalparks.org/explore/parks?state=1628"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1669",
+      "to": "https://www.nationalparks.org/explore/parks?state=1628"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1669",
+      "to": "https://www.nationalparks.org/explore/parks?state=1628"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1629",
+      "to": "https://www.nationalparks.org/explore/parks?state=1661"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1629",
+      "to": "https://www.nationalparks.org/explore/parks?state=1661"
+    },
+    {
+      "from": "https://www.nationalparks.org/explore/parks?state=1629",
+      "to": "https://www.nationalparks.org/explore/parks?state=1661"
+    }
+  ]
+}

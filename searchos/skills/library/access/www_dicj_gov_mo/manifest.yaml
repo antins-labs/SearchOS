@@ -1,0 +1,31 @@
+description: Access Macau Gaming Inspection and Coordination Bureau (DICJ) gaming statistics including
+  monthly revenue, quarterly statistics by game type, and concessionaire financial reports
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_monthly_revenue   Get monthly gross gaming revenue statistics\
+      \ for a specific year\n  - get_quarterly_statistics   Get quarterly gaming statistics including\
+      \ revenue by game type, betting volumes, and visitor statistics\n  - get_concessionaire_reports\
+      \   List available financial reports for a specific gaming concessionaire\n  - get_financial_report\
+      \   Get financial report content for a specific concessionaire and year\n  - list_concessionaires\
+      \   List all gaming concessionaires with their codes and names\n  - check_years   Check which years\
+      \ have available data for monthly or quarterly statistics"
+  year:
+    type: integer
+    required: false
+    description: Year to fetch (e.g., 2024)
+  lang:
+    type: string
+    required: false
+    description: Language code (cn=Chinese, en=English, pt=Portuguese)
+    default: en
+  concessionaire:
+    type: string
+    required: false
+    description: Concessionaire code (SJM, Wynn, Galaxy, Venetian, MGM, PBL, WingHing, SLOT)
+  data_type:
+    type: string
+    required: false
+    description: Type of data to check (monthly or quarterly)
+    default: monthly

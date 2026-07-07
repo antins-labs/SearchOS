@@ -1,0 +1,59 @@
+description: >-
+  Fetch exhibition information from m.onezh.com (第一展会网), a Chinese trade show and exhibition portal. 
+  Provides details on exhibitions including dates, venues, organizers, and contact information.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_detail   获取展会详情，需要 exhibition_id 参数
+        - search   搜索展会列表，可使用 city_id, industry_id, venue_id, area, start_date, end_date, page 参数筛选
+        - search_by_keyword   根据关键词搜索展会，需要 keyword 参数
+        - search_by_date   按日期范围搜索展会，需要 start_date 和 end_date 参数
+  
+  exhibition_id:
+    type: string
+    required: false
+    description: 展会ID，用于 get_detail 功能获取具体展会详情。例如 "85169"。
+  
+  city_id:
+    type: string
+    required: false
+    description: 城市ID，用于 search 功能筛选城市。0 表示全部城市。例如 1=北京, 2=上海 等。
+  
+  industry_id:
+    type: string
+    required: false
+    description: 行业ID，用于 search 功能筛选行业。0 表示全部行业。
+  
+  venue_id:
+    type: string
+    required: false
+    description: 场馆ID，用于 search 功能筛选展馆。0 表示全部展馆。
+  
+  area:
+    type: string
+    required: false
+    description: 区域参数，用于 search 功能。默认为 0。
+  
+  start_date:
+    type: string
+    required: false
+    description: 开始日期，格式 YYYYMMDD 或 0 表示不限。用于 search、search_by_date 功能。
+  
+  end_date:
+    type: string
+    required: false
+    description: 结束日期，格式 YYYYMMDD 或 0 表示不限。用于 search、search_by_date 功能。
+  
+  keyword:
+    type: string
+    required: false
+    description: 搜索关键词，用于 search_by_keyword 功能。例如 "珠宝"、"家博" 等。
+  
+  page:
+    type: integer
+    required: false
+    description: 页码，用于 search 功能分页。默认为 1。

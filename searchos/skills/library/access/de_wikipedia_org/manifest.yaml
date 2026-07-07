@@ -1,0 +1,18 @@
+description: Extracts structured tabular data from German Wikipedia pages, including award nominations/winners,
+  navigation tables, and general wikitable data.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - search   Fetch a Wikipedia page and return metadata including table\
+      \ count\n  - extract_tables   Extract all wikitable data from a Wikipedia page\n  - extract_awards\
+      \   Extract award nominations/winners data from Wikipedia pages (specialized for awards tables)\n\
+      \  - fetch_page   Fetch page and return raw HTML content"
+  url:
+    type: string
+    required: false
+    description: Full Wikipedia URL
+  page_title:
+    type: string
+    required: false
+    description: Wikipedia page title (will construct URL)

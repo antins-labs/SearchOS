@@ -1,0 +1,86 @@
+﻿Reactor Name,Country,Reactor Type,Net Capacity (MW),Construction Start Year,First Grid Connection Date,Commercial Operation Date,Current Status
+Astravets,Belarus,VVER-1200,1110,2012,2019-11-07,2021-06-10,Operational
+Atucha-2,Argentina,PHWR-German-SI,745,1981,2014-06-27,2016-05-26,Operational
+Barakah-1,UAE,APR-1400 PWR,1337,2012,2020-08-19,2021-04-01,Operational
+Barakah-2,UAE,APR-1400 PWR,1337,2013,2021-09-14,2022-03-24,Operational
+Barakah-3,UAE,APR-1400 PWR,1337,2014,2022-10-10,2023-02-24,Operational
+Barakah-4,UAE,APR-1400 PWR,1337,2015,2024-03-25,2024-09-05,Operational 
+Belarusian-1,Belarus,VVER-1200,1110,2013,2020-11-03,2021-06-10,Operational
+Belarusian-2,Belarus,VVER-1200,1110,2014,2023-05-13,2023-11-01,Operational
+Beloyarsk-4,Russia,BN-800 FBR,820,2006,2015-12-10,2016-11-01,Operational
+Bushehr-1,Iran,VVER-1000,915,1975,2011-09-03,2013-09-23,Operational
+Cernavoda-2,Romania,PHWR CANDU 6,650,1983,2007-08-07,2007-10-28,Operational
+Changjiang-1,China,CNP-600,601,2010,2015-11-07,2015-12-25,Operational 
+Changjiang-2,China,CNP-600,601,2010,2016-06-20,2016-08-12,Operational 
+Chashma-3,Pakistan,CNP-300 PWR,340,2011,2016-10-15,2016-12-15,Operational
+Chashma-4,Pakistan,CNP-300 PWR,340,2011,2017-06-27,2017-09-28,Operational
+Fangchenggang-3,China,Hualong One PWR,1180,2015,2023-01-10,2023-03-25,Operational
+Fangchenggang-4,China,HPR1000PWR,1180,2016,2024-04-09,2024-05-25,Operational
+Fangjiashan-1,China,CPR1000 PWR,1012,2008,2014-11-04,2014-12-15,Operational 
+Fangjiashan-2,China,CPR1000 PWR,1012,2009,2015-01-12,2015-02-12,Operational 
+Fuqing-1,China,CPR-1000 PWR,1089,2008,2014-08-20,2014-11-18,Operational
+Fuqing-2,China,CPR-1000 PWR,1089,2009,2015-08-06,2015-10-18,Operational
+Fuqing-3,China,CPR-1000 PWR,1000,2010,2016-09-08,2016-10-21,Operational
+Fuqing-4,China,CPR-1000 PWR,1000,2012,2017-07-29,2017-09-17,Operational
+Fuqing-5,China,Hualong One PWR,1075,2015,2020-11-27,2021-01-30,Operational
+Fuqing-6,China,Hualong One PWR,1075,2015,2022-01-01,2022-03-25,Operational
+Haiyang-1,China,AP1000 PWR,1170,2009,2018-08-17,2018-10-22,Operational
+Haiyang-2,China,AP1000 PWR,1170,2010,2018-10-13,2019-01-09,Operational
+Hongyanhe-1,China,CPR-1000 PWR,1061,2007,2013-02-17,2013-06-06,Operational
+Hongyanhe-2,China,CPR-1000 PWR,1061,2008,2013-11-23,2014-05-13,Operational
+Hongyanhe-3,China,CPR-1000 PWR,1061,2009,2015-03-23,2015-08-10,Operational
+Hongyanhe-4,China,CPR-1000 PWR,1061,2009,2016-04-01,2016-06-08,Operational
+Hongyanhe-5,China,ACPR-1000 PWR,1061,2015,2021-06-25,2021-07-31,Operational
+Hongyanhe-6,China,ACPR-1000 PWR,1061,2015,2022-05-02,2022-06-23,Operational
+Kakrapar-3,India,PHWR-700,630,2010,2021-01-10,2023-06-30,Operational
+Kakrapar-4,India,PHWR-700,630,2010,2024-02-20,2024-03-31,Operational
+Kalinin-4,Russia,VVER V-320,950,1986,2021-11-24,2012-12-25,Operational
+Karachi-2,Pakistan,Hualong One PWR,1100,2015,2021-03-18,2021-05-21,Operational
+Karachi-3,Pakistan,Hualong One PWR,1100,2016,2022-03-04,2022-04-18,Operational
+Kudankulam-1,India,VVER-1000,917,2002,2013-10-22,2014-12-31,Operational
+Kudankulam-2,India,VVER-1000,917,2002,2016-08-29,2017-03-31,Operational
+Leningrad-II-1,Russia,VVER-1200,1085,2008,2018-03-09,2018-10-29,Operational
+Leningrad-II-2,Russia,VVER-1200,1085,2010,2020-10-19,2021-03-22,Operational
+Ling Ao-3,China,CPR-1000 PWR,1007,2005,2010-07-15,2010-09-15,Operational
+Ling Ao-4,China,CPR-1000 PWR,1007,2006,2011-05-03,2011-08-07,Operational
+Mochovce-3,Slovakia,VVER-440 V-213,440,1987,2023-01-31,2023-10-18,Operational
+Ningde-1,China,CPR-1000 PWR,1020,2008,2012-12-28,2013-04-18,Operational
+Ningde-2,China,CPR-1000 PWR,1020,2008,2014-01-04,2014-05-04,Operational
+Ningde-3,China,CPR-1000 PWR,1020,2010,2015-03-21,2015-06-10,Operational
+Ningde-4,China,CPR-1000 PWR,1020,2010,2016-03-29,2016-07-21,Operational
+Novovoronezh-II-1,Russia,VVER-1200,1114,2008,2016-08-05,2017-02-27,Operational
+Novovoronezh-II-2,Russia,VVER-1200,1114,2009,2019-05-01,2019-11-01,Operational
+Olkiluoto-3,Finland,EPR PWR,1600,2005,2022-03-12,2023-05-01,Operational
+Qinshan II-3,China,CNP-600 PWR,650,2006,2010-03-07,2010-10-28,Operational
+Qinshan II-4,China,CNP-600 PWR,650,2007,2012-11-30,2012-12-25,Operational
+Rostov-2,Russia,VVER-1000,1000,1983/1999,2009-12-10,2010-12-18,Operational
+Rostov-3,Russia,VVER-1000,1000,2009,2014-12-27,2015-09-17,Operational
+Rostov-4,Russia,VVER-1000,1010,2010,2018-02-02,2018-09-28,Operational
+Saeul 2 (Shin-Kori-4),South Korea,APR-1400 PWR,1392,2009,2019-04-22,2019-08-29,Operational
+Saeul-1 (Shin-Kori 3),South Korea,APR-1400 PWR,1392,2008,2016-01-15,2016-12-20,Operational
+Sanmen-1,China,AP1000 PWR,1157,2009,2018-06-30,2018-09-21,Operational
+Sanmen-2,China,AP1000 PWR,1157,2009,2018-08-24,2018-11-05,Operational
+Shin-Hanul-1,South Korea,APR-1400,1340,2012,2022-06-09,2022-12-07,Operational
+Shin-Hanul-1,South Korea,APR-1400 PWR,1429,2012,2022-06-09,2022-12-07,Operational
+Shin-Hanul-2,South Korea,APR-1400,1340,2013,2023-12-21,2024-04-05,Operational
+Shin-Hanul-2,South Korea,APR-1400 PWR,1416,2013,2023-12-21,2024-04-05,Operational
+Shin-Kori-1,South Korea,OPR-1000 PWR,986,2006,2010-08-04,2011-02-28,Operational
+Shin-Kori-2,South Korea,OPR-1000 PWR,982,2007,2012-01-28,2012-07-20,Operational
+Shin-Wolsong-1,South Korea,OPR-1000,997,2007,2012-01-31,2012-07-31,Operational
+Shin-Wolsong-2,South Korea,OPR-1000,993,2008,2015-02-26,2015-07-24,Operational
+Taishan-1,China,EPR PWR,1660,2009,2018-06-29,2018-12-13,Operational
+Taishan-2,China,EPR PWR,1660,2010,2019-06-25,2019-09-07,Operational
+Tianwan-3,China,VVER-1000/428M (AES-91),1045,2012,2017-12-30,2018-02-14,Operational
+Tianwan-4,China,VVER-1000/428M (AES-91),1045,2013,2018-10-27,2018-12-22,Operational
+Tianwan-5,China,ACPR-1000PWR,1000,2015,2020-08-08,2020-09-08,Operational
+Tianwan-6,China,ACPR-1000PWR,1000,2016,2021-05-13,2021-06-02,Operational
+Tomari-3,japan,M (3-loop) PWR,866,2004,2009-03-20,2009-12-22,Long-term Shutdown
+Vogtle-3,USA,AP1000 PWR,1117,2013,2023-04-01,2023-07-31,Operational
+Vogtle-4,USA,AP1000 PWR,1117,2013,2024-03-01,2024-04-29,Operational 
+Watts-Bar-2,USA,PWR (WH 4-loop),1150,1973,2016-06-03,2016-10-19,Operational
+Yangjiang-1,China,CPR-1000 PWR,1000,2008,2013-12-31,2014-03-25,Operational
+Yangjiang-2,China,CPR-1000 PWR,1000,2009,2015-03-10,2015-06-13,Operational
+Yangjiang-3,China,CPR-1000 PWR,1000,2010,2015-10-18,2016-01-15,Operational
+Yangjiang-4,China,CPR-1000 PWR,1000,2012,2017-01-08,2017-03-15,Operational
+Yangjiang-5,China,ACPR-1000 PWR,1000,2013,2018-05-23,2018-07-12,Operational
+Yangjiang-6,China,ACPR-1000 PWR,1000,2013,2019-06-29,2019-07-24,Operational

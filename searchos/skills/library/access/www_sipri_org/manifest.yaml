@@ -1,0 +1,49 @@
+description: "Access SIPRI's comprehensive databases on military expenditure, arms industry, \nand arms\
+  \ transfers. Provides direct access to downloadable database files, \nembedded charts, and publications.\
+  \ Includes the complete Military Expenditure \nDatabase (1949-2025), Top 100 Arms Industry Companies,\
+  \ and related fact sheets."
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_databases   List all available databases and their download URLs\n\
+      \  - download_database   Download and parse a specific database (returns structured data)\n  - get_datawrapper_data\
+      \   Get data from embedded Datawrapper charts\n  - get_publication   Get publication metadata and\
+      \ download links\n  - search_publications   Search SIPRI publications"
+  database:
+    type: string
+    required: false
+    description: Database to download
+  chart_id:
+    type: string
+    required: false
+    description: Specific chart ID (e.g., "g7sno")
+  name:
+    type: string
+    required: false
+    description: Named chart identifier
+  version:
+    type: string
+    required: false
+    description: Chart version number
+    default: '12'
+  url:
+    type: string
+    required: false
+    description: Full publication URL or path
+  year:
+    type: string
+    required: false
+    description: Publication year
+  type:
+    type: string
+    required: false
+    description: Publication type (e.g., "sipri-fact-sheets")
+  title:
+    type: string
+    required: false
+    description: Publication title slug
+  query:
+    type: string
+    required: false
+    description: Search query

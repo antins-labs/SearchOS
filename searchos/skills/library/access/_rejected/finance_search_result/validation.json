@@ -1,0 +1,44 @@
+{
+  "candidate": "finance_search_result",
+  "host": "query2.finance.yahoo.com",
+  "passing": false,
+  "gates": [
+    {
+      "name": "A_agent",
+      "passed": true,
+      "reason": "",
+      "detail": {}
+    },
+    {
+      "name": "S_smoke",
+      "passed": false,
+      "reason": "only_0_of_3_queries_passed",
+      "detail": {
+        "queries": [
+          "What is the ticker symbol for Apple?",
+          "Find the stock exchange for Tesla",
+          "Get the sector and industry for Microsoft"
+        ],
+        "per_query": [
+          {
+            "query": "What is the ticker symbol for Apple?",
+            "ok": false,
+            "reason": "skill_error:http_429"
+          },
+          {
+            "query": "Find the stock exchange for Tesla",
+            "ok": false,
+            "reason": "skill_error:http_429"
+          },
+          {
+            "query": "Get the sector and industry for Microsoft",
+            "ok": false,
+            "reason": "skill_error:http_429"
+          }
+        ],
+        "successes": 0,
+        "required": 2
+      }
+    }
+  ]
+}

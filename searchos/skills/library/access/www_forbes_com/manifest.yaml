@@ -1,0 +1,49 @@
+description: 'Access structured data from Forbes World''s Billionaires List including rankings,
+
+  net worth, age, country, industry, and detailed profiles. Supports search, filtering
+
+  by industry/country/gender, and retrieval of individual billionaire profiles.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list   Get paginated list of billionaires with optional filters\n\
+      \  - profile   Get detailed profile of a specific billionaire by URI\n  - search   Search for billionaires\
+      \ by name\n  - top   Get the top N billionaires by net worth\n  - stats   Get statistics about the\
+      \ billionaires list"
+  limit:
+    type: integer
+    required: false
+    description: Number of results per page (default 100, max 500)
+  offset:
+    type: integer
+    required: false
+    description: Pagination offset for retrieving subsequent pages
+  year:
+    type: integer
+    required: false
+    description: Year of billionaires list (default 2026)
+  industry:
+    type: string
+    required: false
+    description: Filter by industry (e.g., "Technology", "Finance")
+  country:
+    type: string
+    required: false
+    description: Filter by country of citizenship
+  gender:
+    type: string
+    required: false
+    description: Filter by gender ("M" or "F")
+  uri:
+    type: string
+    required: false
+    description: Billionaire's URI slug (e.g., "elon-musk", "jeff-bezos")
+  query:
+    type: string
+    required: false
+    description: Search query (name or partial name)
+  count:
+    type: integer
+    required: false
+    description: Number of top billionaires to return (default 10)

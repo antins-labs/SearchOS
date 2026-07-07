@@ -1,0 +1,65 @@
+{
+  "search": [
+    "Archibald Prize"
+  ],
+  "result": {
+    "Archibald Prize": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "We acknowledge the Gadigal, the traditional custodians of the Country on which the Art Gallery of New South Wales stands. Continue. What's on · Visit · Art ...",
+            "title": "Archibald Prize | Art Gallery of NSW",
+            "url": "https://www.artgallery.nsw.gov.au/prizes/archibald/"
+          },
+          {
+            "snippet": "The Archibald Prize is an Australian portraiture art prize for painting, generally seen as the most prestigious portrait prize in Australia.Read more",
+            "title": "Archibald Prize",
+            "url": "https://en.wikipedia.org/wiki/Archibald_Prize"
+          },
+          {
+            "snippet": "Judged by the trustees of the Art Gallery of New South Wales, the prize is awarded to the best portrait painting. Since 1921, it has highlighted figures from ...Read more",
+            "title": "Archibald Prize 2026 tour | Art Gallery of NSW",
+            "url": "https://www.artgallery.nsw.gov.au/whats-on/touring-exhibitions/archibald-prize-2026-tour/"
+          },
+          {
+            "snippet": "The Archibald Prize has thus become not only a great slice of Australian art history but also a fascinating glimpse into Australian social history.Read more",
+            "title": "The Archibald Prize",
+            "url": "https://dictionaryofsydney.org/entry/the_archibald_prize"
+          },
+          {
+            "snippet": "Judged by the trustees of the Art Gallery of NSW, the prize is awarded to the best portrait painting. Since 1921, it has highlighted figures from all walks of ...Read more",
+            "title": "Archibald Prize 2025",
+            "url": "https://www.geelonggallery.org.au/archibald-prize-2025"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "https://www.artgallery.nsw.gov.au/prizes/archibald/",
+      "to": "https://www.artgallery.nsw.gov.au/prizes/archibald/2022/"
+    },
+    {
+      "from": "https://www.artgallery.nsw.gov.au/prizes/archibald/",
+      "to": "https://www.artgallery.nsw.gov.au/prizes/archibald/2023/"
+    },
+    {
+      "from": "<search>Archibald Prize</search>",
+      "to": "https://en.wikipedia.org/wiki/Archibald_Prize"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Archibald_Prize",
+      "to": "https://en.wikipedia.org/wiki/List_of_Archibald_Prize_winners"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_Archibald_Prize_winners",
+      "to": "https://en.wikipedia.org/wiki/List_of_Archibald_Prize_2023_finalists"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_Archibald_Prize_winners",
+      "to": "https://en.wikipedia.org/wiki/List_of_Archibald_Prize_2022_finalists"
+    }
+  ]
+}

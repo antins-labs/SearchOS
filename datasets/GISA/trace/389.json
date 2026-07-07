@@ -1,0 +1,84 @@
+{
+  "search": [
+    "Van Gogh Museum"
+  ],
+  "result": {
+    "Van Gogh Museum": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Discover the remarkable friendship between Vincent van Gogh and postman Joseph Roulin and his family through the many portraits Van Gogh made of them. Read more.Read more",
+            "title": "The Museum about Vincent van Gogh in Amsterdam",
+            "url": "https://www.vangoghmuseum.nl/en"
+          },
+          {
+            "snippet": "The Van Gogh Museum is a Dutch art museum dedicated to the works of Vincent van Gogh and his contemporaries in the Museum Square in Amsterdam South, ...Read more",
+            "title": "Van Gogh Museum",
+            "url": "https://en.wikipedia.org/wiki/Van_Gogh_Museum"
+          },
+          {
+            "snippet": "Ontdek het leven en werk van Vincent van Gogh. Welkom bij het Van Gogh Museum. Plan je bezoek en bestel je kaartjes online. Pas op voor online criminelen.Read more",
+            "title": "Het museum over Vincent van Gogh in Amsterdam",
+            "url": "https://www.vangoghmuseum.nl/nl"
+          },
+          {
+            "snippet": "Ticket prices: · Adults: € 25. · Visitors under 18: free. · Students: € 15 upon presentation of your (international) student card or proof of enrolment.Read more",
+            "title": "Tickets and Ticket Prices",
+            "url": "https://www.vangoghmuseum.nl/en/visit/tickets-and-ticket-prices"
+          },
+          {
+            "snippet": "The Van Gogh Museum in Amsterdam houses the largest collection of artworks by Vincent van Gogh (1853-1890) in the world. The permanent collection includes ...Read more",
+            "title": "Van Gogh Museum, Amsterdam, Netherlands",
+            "url": "https://artsandculture.google.com/partner/van-gogh-museum"
+          },
+          {
+            "snippet": "Discover the world's largest collection of works by Dutch painter Vincent van Gogh, featuring masterpieces such as Sunflowers, The Potato Eaters, ...Read more",
+            "title": "Van Gogh Museum (2026) - All You Need to Know ...",
+            "url": "https://www.tripadvisor.com/Attraction_Review-g188590-d190554-Reviews-or10-Van_Gogh_Museum-Amsterdam_North_Holland_Province.html"
+          },
+          {
+            "snippet": "From reproductions and books to scarves and jewelry - View our beautiful collection of Van Gogh products at the Official Van Gogh Museum Shop!",
+            "title": "Van Gogh Museum Shop",
+            "url": "https://www.vangogh.shop/?srsltid=AfmBOorrZgkussrMa98E7tKrp59jKXudrsrS1MIF6jeajVeeAd5e84lp"
+          },
+          {
+            "snippet": "Welcome to the official Van Gogh Museum account. Follow us for daily inspiration and share with us how Van Gogh inspires you via #vangoghinspires ...Read more",
+            "title": "Van Gogh Museum (@vangoghmuseum)",
+            "url": "https://www.instagram.com/vangoghmuseum/?hl=en"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>Van Gogh Museum</search>",
+      "to": "https://www.vangoghmuseum.nl/en"
+    },
+    {
+      "from": "<search>Van Gogh Museum</search>",
+      "to": "https://en.wikipedia.org/wiki/Van_Gogh_Museum"
+    },
+    {
+      "from": "https://www.vangoghmuseum.nl/en",
+      "to": "https://www.vangoghmuseum.nl/en/art-and-stories/art"
+    },
+    {
+      "from": "https://www.vangoghmuseum.nl/en/art-and-stories/art",
+      "to": "https://www.vangoghmuseum.nl/en/art-and-stories/art/vincent-van-gogh"
+    },
+    {
+      "from": "https://www.vangoghmuseum.nl/en/art-and-stories/art/vincent-van-gogh#paintings",
+      "to": "https://www.vangoghmuseum.nl/en/collection?q=&Artist=Vincent+van+Gogh&Genre=self-portrait&Type=painting"
+    },
+    {
+      "from": "https://www.vangoghmuseum.nl/en/collection?q=&Artist=Vincent+van+Gogh&Genre=self-portrait&Type=painting",
+      "to": "https://www.vangoghmuseum.nl/en/collection/s0022V1962"
+    },
+    {
+      "from": "https://www.vangoghmuseum.nl/en/collection?q=&Artist=Vincent+van+Gogh&Genre=self-portrait&Type=painting",
+      "to": "https://www.vangoghmuseum.nl/en/collection/s0065V1962"
+    }
+  ]
+}

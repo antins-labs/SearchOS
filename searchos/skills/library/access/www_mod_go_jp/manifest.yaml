@@ -1,0 +1,19 @@
+description: >-
+  Fetches current and previous Japan Ministry of Defense ministers, vice-ministers,
+  and parliamentary vice-ministers information from www.mod.go.jp in Japanese and English.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to call. Available options:
+        - get_current_ministers_ja: Get current defense minister, vice-minister, and parliamentary vice-ministers (Japanese)
+        - get_previous_ministers_ja: Get list of previous ministers and officials (Japanese)
+        - get_previous_ministers_en: Get list of previous ministers and officials (English)
+        - get_profile: Get detailed profile of a specific official by URL
+  
+  url:
+    type: string
+    required: false
+    description: Profile URL to fetch (required when function is 'get_profile'). URLs can be found in the profile_url field of minister data.

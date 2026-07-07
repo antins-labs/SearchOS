@@ -1,0 +1,70 @@
+description: >-
+  Access University of Chicago Press journal articles and table of contents via Crossref API.
+  Provides article metadata, references, and TOCs for journals like American Journal of Sociology,
+  Journal of Political Economy, and others. Uses Crossref as data source to bypass Cloudflare protection.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_journals        列出所有支持的期刊代码和名称
+        - get_article_metadata 获取单篇文章的完整元数据（标题、作者、期刊、卷期、页码等）
+        - get_toc_current      获取期刊当前期的目录（最新发表的文章列表）
+        - get_toc_issue        获取指定期卷的目录（需要期刊代码、卷号、期号）
+        - get_references       获取文章引用的参考文献列表
+        - search_articles      在期刊中搜索文章（支持标题和作者过滤）
+  
+  doi:
+    type: string
+    required: false
+    description: |
+      文章的DOI（数字对象标识符）。
+      用于 get_article_metadata 和 get_references 函数。
+      示例: "10.1086/739568" 或 "doi:10.1086/739568"
+  
+  journal_code:
+    type: string
+    required: false
+    description: |
+      期刊代码（小写字母）。
+      用于 get_toc_current, get_toc_issue 和 search_articles 函数。
+      常用代码: ajs (American Journal of Sociology), jpe (Journal of Political Economy),
+      jols (Journal of Law and Economics), jole (Journal of Labor Economics),
+      an (American Naturalist), ca (Current Anthropology), ijal (International Journal of American Linguistics),
+      ajsarch (American Journal of Archaeology), jop (Journal of Politics) 等。
+      使用 list_journals 函数获取完整列表。
+  
+  volume:
+    type: string
+    required: false
+    description: |
+      卷号（字符串形式）。
+      用于 get_toc_issue 函数。
+      示例: "131"
+  
+  issue:
+    type: string
+    required: false
+    description: |
+      期号（字符串形式）。
+      用于 get_toc_issue 函数。
+      示例: "4"
+  
+  query:
+    type: string
+    required: false
+    description: |
+      搜索关键词（可选）。
+      用于 search_articles 函数。
+      在文章标题和作者姓名中进行过滤。
+      示例: "immigration", "network analysis", "inequality"
+  
+  limit:
+    type: integer
+    required: false
+    description: |
+      返回结果数量限制。
+      用于 get_toc_current (默认50), get_references (默认100) 和 search_articles (默认20)。
+      最大值取决于具体函数。

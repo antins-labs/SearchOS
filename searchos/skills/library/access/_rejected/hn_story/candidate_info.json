@@ -1,0 +1,17 @@
+{
+  "host": "hn.algolia.com",
+  "invocation": "agent_called",
+  "probe_urls": [
+    "https://hn.algolia.com/api/v1/search?query=rust&tags=story&hitsPerPage=3",
+    "https://hn.algolia.com/api/v1/search?query=llm&tags=story&hitsPerPage=3"
+  ],
+  "heldout_url": "https://hn.algolia.com/api/v1/search?query=llm&tags=story&hitsPerPage=3",
+  "declared_fields": [
+    "title",
+    "url",
+    "author",
+    "points",
+    "num_comments",
+    "created_at"
+  ]
+}

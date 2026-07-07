@@ -1,0 +1,28 @@
+description: >-
+  Fetches car sales rankings and article content from dongchedi.com (懂车帝),
+  a Chinese automotive information platform.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_sales_ranking   获取汽车销量排行榜数据，支持全车型和新能源车型
+        - get_article         获取文章详情内容
+
+  ranking_type:
+    type: string
+    required: false
+    description: |
+      销量排行榜类型 (仅 get_sales_ranking 使用):
+        - sale (默认): 全部车型销量
+        - energy: 新能源车型销量 (含纯电、插混等)
+
+  article_id:
+    type: string
+    required: false
+    description: |
+      文章ID (仅 get_article 使用)，从URL中提取，例如:
+        https://www.dongchedi.com/article/7583347830648078873
+        中的 "7583347830648078873"

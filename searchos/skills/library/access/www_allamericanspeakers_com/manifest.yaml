@@ -1,0 +1,28 @@
+description: "Access speaker profiles, biographies, booking fees, and category listings from \nAll American\
+  \ Speakers Bureau - a speakers bureau and celebrity booking agency. \nExtracts detailed information\
+  \ about keynote speakers, celebrities, and performers \nincluding their categories, speaking fees, travel\
+  \ locations, and full biographies."
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_profile   Get detailed profile for a specific speaker including\
+      \ biography, fees, categories, and travel info\n  - get_category   Get list of speakers from a category\
+      \ page\n  - search_by_id   Search for a speaker by their ID number\n  - list_categories   List available\
+      \ speaker categories for browsing"
+  url:
+    type: string
+    required: false
+    description: Full URL to the speaker profile page (e.g., https://www.allamericanspeakers.com/celebritytalentbios/Nelly+Cheboi/464943)
+  speaker_id:
+    type: string
+    required: false
+    description: Speaker ID number (e.g., "464943")
+  speaker_name:
+    type: string
+    required: false
+    description: Speaker name for URL construction (used with speaker_id)
+  category:
+    type: string
+    required: false
+    description: Category path (e.g., "Technology/Artificial-Intelligence")

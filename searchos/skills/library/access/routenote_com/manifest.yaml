@@ -1,0 +1,35 @@
+description: >-
+  Access RouteNote Blog posts via WordPress REST API. Extract structured top lists for
+  music, podcasts, and audiobooks from Spotify Wrapped and other articles.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_post        按 slug 或 id 获取单篇博文(需要 slug 或 id)
+        - list_posts      列出最近的博文(可选 per_page/page)
+        - extract_lists   从单篇博文中提取结构化有序列表(榜单/排名)(需要 slug 或 id)
+        - search_posts    按关键词搜索博文(需要 search,可选 per_page)
+  slug:
+    type: string
+    required: false
+    description: 博文 URL slug。get_post / extract_lists 使用;与 id 二选一。
+  id:
+    type: integer
+    required: false
+    description: WordPress 博文 ID。get_post / extract_lists 使用;与 slug 二选一。
+  per_page:
+    type: integer
+    required: false
+    description: 每页返回数量(最大 100)。list_posts / search_posts 使用。
+    default: 10
+  page:
+    type: integer
+    required: false
+    description: 分页页码。仅 list_posts 使用。
+    default: 1
+  search:
+    type: string
+    required: false
+    description: 搜索关键词。仅 search_posts 使用,该 function 下必填。

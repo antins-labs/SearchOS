@@ -1,0 +1,20 @@
+description: >-
+  Fetches and parses NASA mission details and history articles from www.nasa.gov,
+  extracting structured data about crew, mission objectives, launch/landing details, and article content.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - fetch_mission_details   解析任务详情页，提取任务目标、乘员、发射轨道着陆数据等结构化信息 (需要 url 参数)
+        - fetch_history_article   解析历史新闻文章页，提取标题、作者、正文内容等 (需要 url 参数)
+        - fetch_page_auto         自动检测页面类型并解析 (需要 url 参数)
+  
+  url:
+    type: string
+    required: true
+    description: |
+      NASA 页面的完整 URL，必须是 www.nasa.gov 域名下的页面。
+      示例: https://www.nasa.gov/missions/apollo/apollo-8-mission-details/

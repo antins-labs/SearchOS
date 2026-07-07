@@ -1,0 +1,74 @@
+{
+  "search": [
+    "the Super Bowls held from 2020 to 2025"
+  ],
+  "result": {
+    "the Super Bowls held from 2020 to 2025": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "A total of 20 franchises, including teams that have relocated to another city or changed their name, have won the Super Bowl.Read more",
+            "title": "List of Super Bowl champions",
+            "url": "https://en.wikipedia.org/wiki/List_of_Super_Bowl_champions"
+          },
+          {
+            "snippet": "NFL History - Super Bowl Winners ; LIV, Feb. 2, 2020, Hard Rock Stadium (Miami) ; LV, Feb. 7, 2021, Raymond James Stadium (Tampa, Fla.) ; LVI, Feb. 13, 2022, SoFi ...Read more",
+            "title": "NFL History - Super Bowl Winners",
+            "url": "http://www.espn.com/nfl/superbowl/history/winners"
+          },
+          {
+            "snippet": "It has served as the final game of every NFL season since 1966, replacing the NFL Championship Game. Since 2022, the game has been played on the second Sunday ...Read more",
+            "title": "Super Bowl",
+            "url": "https://en.wikipedia.org/wiki/Super_Bowl"
+          },
+          {
+            "snippet": "Super Bowl Winners · Super Bowl Leaders, Super Bowl Standings ... Schools · All Player Colleges, High Schools ... NFL Coaches. Active Coaches: Andy Reid, Mike ...",
+            "title": "Super Bowl History",
+            "url": "https://www.pro-football-reference.com/super-bowl/"
+          },
+          {
+            "snippet": "Recent Super Bowl Champions (2020-2025)​​ The Philadelphia Eagles won Super Bowl LIX in 2025, defeating the Kansas City Chiefs 40-22 in New Orleans. This ended ...Read more",
+            "title": "Super Bowl Winners List - NFL Champions by Year",
+            "url": "https://www.topendsports.com/events/super-bowl/winners-list.htm"
+          },
+          {
+            "snippet": "The complete list of Super Bowl champions throughout NFL history. The Super Bowl locations, dates, losing teams, and final scores are also included ...",
+            "title": "Super Bowl Winners and Results",
+            "url": "https://www.foxsports.com/nfl-super-bowl-winners-and-results"
+          },
+          {
+            "snippet": "Super Bowl results ; LIII, 2018–19, New England Patriots (AFC) ; LIV, 2019–20, Kansas City Chiefs (AFC) ; LV, 2020–21, Tampa Bay Buccaneers (NFC) ; LVI, 2021–22 ...Read more",
+            "title": "Super Bowl | History, Appearances, Results, & Facts",
+            "url": "https://www.britannica.com/sports/Super-Bowl"
+          },
+          {
+            "snippet": "Which city has hosted the Super Bowl the most times? Miami has hosted the NFL's championship game the joint most times, along with 2025 host New Orleans.",
+            "title": "Super Bowl host cities 1967-2025",
+            "url": "https://www.statista.com/statistics/266515/host-of-the-super-bowl-of-the-nfl-since-1967/?srsltid=AfmBOooTRvMeggamL4GX7lJxCinJ5panBUCh8YVMn8Br_spTBjmKWI6W"
+          },
+          {
+            "snippet": "Here is the date that the Super Bowl is held each year since the first in 1967. The Super Bowl dates for 2028 onwards have not been officially released.Read more",
+            "title": "List of Super Bowl Dates - This Sport Life",
+            "url": "https://www.thissportlife.com/sports/football-american/super-bowl/dates.htm"
+          },
+          {
+            "snippet": "29 Sept 2025 — Super Bowl LIX (2025): Philadelphia Eagles defeated Kansas City Chiefs, 40-22, in New Orleans, Louisiana; Super Bowl LVIII (2024): Kansas City ...Read more",
+            "title": "The Last 10 Super Bowl Winners",
+            "url": "https://blog.ticketmaster.com/super-bowl-winners/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>the Super Bowls held from 2020 to 2025</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_Super_Bowl_champions"
+    },
+    {
+      "from": "<search>the Super Bowls held from 2020 to 2025</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_Super_Bowl_champions"
+    }
+  ]
+}

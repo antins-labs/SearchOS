@@ -1,0 +1,65 @@
+{
+  "search": [
+    "Galaxy S24 pixel density"
+  ],
+  "result": {
+    "Galaxy S24 pixel density": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "",
+            "title": "Samsung Galaxy S24 - Wikipedia",
+            "url": "https://en.wikipedia.org/wiki/Samsung_Galaxy_S24"
+          },
+          {
+            "snippet": "S24+ has 2k screen (1440 x 3120), S24 has normal HD (1080 x 2340). But yeah the default resolution is HD on S24+ and you will have to enable ...Read more",
+            "title": "IS THE DISPLAY ON S24 BETTER THAN S24 PLUS?",
+            "url": "https://www.reddit.com/r/samsung/comments/1e1zg8k/is_the_display_on_s24_better_than_s24_plus/"
+          },
+          {
+            "snippet": "Samsung Galaxy S24 Ultra ; Resolution, 1440 x 3120 pixels, 19.5:9 ratio (~505 ppi density) ; Protection, Corning Gorilla Armor ; OS, Android 14, up to 7 major ...Read more",
+            "title": "Samsung Galaxy S24 Ultra - Full phone specifications",
+            "url": "https://www.gsmarena.com/samsung_galaxy_s24_ultra-12771.php"
+          },
+          {
+            "snippet": "Galaxy S24 has a 6.2-inch screen with a screen size (resolution): 1080px × 2340px , 360px × 780px viewport 1, and a CSS Pixel Ratio of 3.Read more",
+            "title": "Galaxy S24: viewport, screen size, CSS pixel ratio ...",
+            "url": "https://blisk.io/devices/details/galaxy-s24"
+          },
+          {
+            "snippet": "Given the pixel density, this gives: 1080 pixels in width; 2340 pixels in height. Free HD mockup in PNG format. Free mockup ...Read more",
+            "title": "Features Samsung Galaxy S24 (2024)",
+            "url": "https://www.webmobilefirst.com/en/devices/samsung-galaxy-s24-2024/"
+          },
+          {
+            "snippet": "On the Samsung side, the Galaxy S24+ provides a larger 6.7-inch screen with a resolution of 3,120 by 1,440 pixels and a higher pixel density of ...Read more",
+            "title": "Google Pixel 9 vs. Samsung Galaxy S24",
+            "url": "https://www.pcmag.com/comparisons/google-pixel-9-vs-samsung-galaxy-s24-battle-of-the-android-super-phones"
+          },
+          {
+            "snippet": "Pixel density. 416 ppi. Samsung Galaxy S24. 501 ppi. Samsung Galaxy S24 Ultra. Pixel density is a measurement of a screen's resolution, expressed as the number ...Read more",
+            "title": "Pixel density: how does Samsung Galaxy S24 ...",
+            "url": "https://versus.com/en/samsung-galaxy-s24-vs-samsung-galaxy-s24-ultra/pixel-density"
+          },
+          {
+            "snippet": "Samsung Galaxy S24 resolution is 1080 x 2340 PX with ~ 416 pixel desnsity. Samsung Galaxy S24 viewport size is 360 x 780 PX with ~ 139 actual pixel density ...Read more",
+            "title": "Samsung S23 viewport size, resolution, PPI, screen specs ...",
+            "url": "https://yesviz.com/devices/samsung-s24/"
+          },
+          {
+            "snippet": "Resolution: 1080 x 2340 pixels, (~416 ppi density); Aspect ratio: 19.5:9; Refresh rate: 120 Hz. Scoring. Sub-scores and attributes included in ...Read more",
+            "title": "Samsung Galaxy S24 (Exynos) Display test",
+            "url": "https://www.dxomark.com/samsung-galaxy-s24-display-test/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>Galaxy S24 pixel density</search>",
+      "to": "https://en.wikipedia.org/wiki/Samsung_Galaxy_S24"
+    }
+  ]
+}

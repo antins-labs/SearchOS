@@ -1,0 +1,74 @@
+{
+  "search": [
+    "European Space Agency's Sentinel series Earth observation satellites that are capable of acquiring infrared images"
+  ],
+  "result": {
+    "European Space Agency's Sentinel series Earth observation satellites that are capable of acquiring infrared images": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "The Copernicus Sentinel-2 mission is based on a constellation of two identical satellites in the same orbit. Each satellite carries an innovative wide swath ...",
+            "title": "ESA - Sentinel-2",
+            "url": "https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-2"
+          },
+          {
+            "snippet": "Sentinel-2 is a European mission that utilizes wide-swath, high-resolution, multi-spectral imaging. Dedicated to Europe's Copernicus programme, the mission ...",
+            "title": "Sentinel-2 | Copernicus Data Space Ecosystem",
+            "url": "https://dataspace.copernicus.eu/data-collections/copernicus-sentinel-data/sentinel-2"
+          },
+          {
+            "snippet": "Sentinel-2 is an Earth observation mission from the Copernicus Programme that acquires optical imagery at high spatial resolution (10 m to 60 m) over land and ...",
+            "title": "Sentinel-2",
+            "url": "https://en.wikipedia.org/wiki/Sentinel-2"
+          },
+          {
+            "snippet": "To meet operational requirements, ESA developed the Sentinel family of satellites, as well as the Copernicus Ground Segment, which manages ...",
+            "title": "Copernicus Space Programme",
+            "url": "https://www.eoportal.org/satellite-missions/copernicus"
+          },
+          {
+            "snippet": "The European Sentinels consist of a fleet of satellites dedicated to providing imagery for Earth observation purposes. Sentinel-2 is part of the European ...",
+            "title": "Sentinel-2 Satellite - an overview",
+            "url": "https://www.sciencedirect.com/topics/social-sciences/sentinel-2-satellite"
+          },
+          {
+            "snippet": "Sentinel-2 is a system of two polar-orbiting satellites that will contribute to the continuity and improvement of the SPOT and Landsat series of multispectral ...",
+            "title": "(PDF) Sentinel-2 ESA's Optical High-Resolution Mission for ...",
+            "url": "https://www.researchgate.net/publication/272907479_Sentinel-2_ESA's_Optical_High-Resolution_Mission_for_GMES_Operational_Services"
+          },
+          {
+            "snippet": "Sentinel-2A satellite is the first optical Earth observation satellite in the European Copernicus program and was developed and built under the industrial ...",
+            "title": "Sentinel-2A (10m) Satellite Sensor",
+            "url": "https://www.satimagingcorp.com/satellite-sensors/other-satellite-sensors/sentinel-2a/"
+          },
+          {
+            "snippet": "The first images from Sentinel-2 have been delivered. Covering an area from central Europe and the Mediterranean, ending in Algeria.",
+            "title": "First Satellite Images from Sentinel-2 Delivered",
+            "url": "https://www.geographyrealm.com/first-satellite-images-from-sentinel-2-delivered/"
+          },
+          {
+            "snippet": "This article outlines the evolution of Earth observation satellites over time and where we stand today in the USA, Europe and Asia.",
+            "title": "Earth observation sensors and technology: the current ...",
+            "url": "https://www.gim-international.com/content/article/earth-observation-sensors-and-technology-the-current-state-of-play"
+          },
+          {
+            "snippet": "Sentinel-2B carries a large camera to image all land surfaces and coastal waters in visible and infrared light.",
+            "title": "Sentinel satellite launched to picture Planet Earth",
+            "url": "https://www.bbc.com/news/science-environment-39183353"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>European Space Agency's Sentinel series Earth observation satellites that are capable of acquiring infrared images</search>",
+      "to": "https://www.researchgate.net/publication/272907479_Sentinel-2_ESA's_Optical_High-Resolution_Mission_for_GMES_Operational_Services"
+    },
+    {
+      "from": "<search>European Space Agency's Sentinel series Earth observation satellites that are capable of acquiring infrared images</search>",
+      "to": "https://en.wikipedia.org/wiki/Sentinel-2"
+    }
+  ]
+}

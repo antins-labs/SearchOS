@@ -1,0 +1,20 @@
+description: >-
+  Fetches award winners, nominees, and show highlights from The Game Awards rewind
+  pages (thegameawards.com/rewind), extracting structured data for any year from
+  2014 onwards.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_years   列出所有可用的年份 (无需其他参数)
+        - get_rewind   获取指定年份的完整数据 (需要year参数)
+        - get_winners  仅获取指定年份的获奖者列表 (需要year参数)
+        - get_highlights  仅获取指定年份的精彩时刻 (需要year参数)
+  
+  year:
+    type: integer
+    required: false
+    description: 要查询的年份 (例如 2019, 2014)。list_years 不需要此参数；其他功能需要。

@@ -1,0 +1,44 @@
+description: 'Access Fortune Global 500 rankings data from MBA Lib Wiki.
+
+  Provides company rankings with revenue, profit, and country information.
+
+  Supports multiple years (2022-2024+) and both Traditional/Simplified Chinese.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_fortune_500   Get the complete Fortune Global 500 list with pagination\n\
+      \  - get_by_rank   Get a company at a specific rank position\n  - search_by_company   Search for\
+      \ companies by name (partial match)\n  - get_by_country   Get all companies from a specific country\n\
+      \  - list_countries   Get country distribution with company counts"
+  year:
+    type: integer
+    required: false
+    description: Year of the Fortune 500 list
+    default: 2024
+  lang:
+    type: string
+    required: false
+    description: Language variant (zh-tw for Traditional Chinese, zh-cn for Simplified)
+    default: zh-tw
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of entries to return
+  offset:
+    type: integer
+    required: false
+    description: Number of entries to skip for pagination
+    default: 0
+  rank:
+    type: integer
+    required: false
+    description: Rank position (1-500)
+  query:
+    type: string
+    required: false
+    description: Company name search query
+  country:
+    type: string
+    required: false
+    description: Country name (e.g., 美國, 中國, 日本)

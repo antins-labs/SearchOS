@@ -1,0 +1,44 @@
+{
+  "candidate": "quote_search_match",
+  "host": "query2.finance.yahoo.com",
+  "passing": false,
+  "gates": [
+    {
+      "name": "A_agent",
+      "passed": true,
+      "reason": "",
+      "detail": {}
+    },
+    {
+      "name": "S_smoke",
+      "passed": false,
+      "reason": "only_0_of_3_queries_passed",
+      "detail": {
+        "queries": [
+          "What is the stock symbol for Apple?",
+          "Find the exchange for Tesla",
+          "Show sector information for Microsoft"
+        ],
+        "per_query": [
+          {
+            "query": "What is the stock symbol for Apple?",
+            "ok": false,
+            "reason": "skill_error:http_429"
+          },
+          {
+            "query": "Find the exchange for Tesla",
+            "ok": false,
+            "reason": "skill_error:http_429"
+          },
+          {
+            "query": "Show sector information for Microsoft",
+            "ok": false,
+            "reason": "skill_error:http_429"
+          }
+        ],
+        "successes": 0,
+        "required": 2
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+description: >-
+  Extracts structured hospital profile data from haodf.com including hospital information,
+  rankings, statistics, departments, and campuses.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_hospital_basic_info   获取医院基本信息，包括名称、等级、地址、电话、简介等
+        - get_hospital_ranking      获取医院排名和统计数据，包括访问量、在线服务患者数等
+        - get_hospital_departments  获取医院科室列表，包括科室名称、医生数量等
+        - get_hospital_campuses     获取医院院区信息，包括各个院区的地址和坐标
+  
+  hospital_id:
+    type: integer
+    required: true
+    description: |
+      医院ID，从好大夫在线医院URL中提取的数字ID。
+      例如：北京大学人民医院的ID是21（URL为 https://www.haodf.com/hospital/21.html）
+      例如：北京潞河医院的ID是261（URL为 https://www.haodf.com/hospital/261.html）

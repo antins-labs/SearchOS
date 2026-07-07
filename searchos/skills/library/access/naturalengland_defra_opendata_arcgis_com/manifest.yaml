@@ -1,0 +1,47 @@
+description: 'Access geospatial datasets from Natural England and Defra''s ArcGIS Open Data portal.
+
+  Currently provides access to the Areas of Outstanding Natural Beauty (AONB) England dataset,
+
+  containing 34 designated AONB areas with detailed attribute information and polygon geometries.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_aonbs   List all Areas of Outstanding Natural Beauty in England\
+      \ with optional pagination\n  - get_aonb   Get a specific AONB by name or code\n  - search   Search\
+      \ AONBs by name substring and/or area range\n  - get_metadata   Get metadata about the dataset including\
+      \ field definitions and extent"
+  include_geometry:
+    type: boolean
+    required: false
+    description: Include polygon geometries in the response
+    default: false
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of records to return (dataset has 34 total)
+  offset:
+    type: integer
+    required: false
+    description: Offset for pagination
+    default: 0
+  name:
+    type: string
+    required: false
+    description: Name of the AONB (case-insensitive)
+  code:
+    type: string
+    required: false
+    description: 2-digit code of the AONB
+  query:
+    type: string
+    required: false
+    description: Search term for AONB name (case-insensitive substring match)
+  min_area:
+    type: number
+    required: false
+    description: Minimum statistical area in square kilometers
+  max_area:
+    type: number
+    required: false
+    description: Maximum statistical area in square kilometers

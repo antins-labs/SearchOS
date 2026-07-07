@@ -1,0 +1,70 @@
+{
+  "search": [
+    "University of Missouri Health Care female cell normal range"
+  ],
+  "result": {
+    "University of Missouri Health Care female cell normal range": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Reference or Target Ranges ; Adult female: 36.4-46.3 ; Adult male: 35.1-43.9 ; RED CELL DISTRIBUTION WIDTH (RDW). WHITE BLOOD CELL COUNT (WBC) ; Males. Males.",
+            "title": "CBC Reference Ranges",
+            "url": "https://muhealth.testcatalog.org/show/CBCREF"
+          },
+          {
+            "snippet": "University of Missouri Health Care provides leading-edge care for all of Missouri and beyond. Find big city care that's close to home.",
+            "title": "University of Missouri Health Care",
+            "url": "https://www.muhealth.org/"
+          },
+          {
+            "snippet": "The Department of Obstetrics, Gynecology and Women's Health provides outstanding health care services to women of all ages.",
+            "title": "Obstetrics, Gynecology and Women's Health",
+            "url": "https://medicine.missouri.edu/departments/obstetrics-gynecology-and-womens-health"
+          },
+          {
+            "snippet": "MU Health Care offers the region's most comprehensive sickle cell disease program for adults over age 18. We use the latest therapies and expertise in ...",
+            "title": "Sickle Cell Disease - MU Health Care",
+            "url": "https://www.muhealth.org/conditions-treatments/pediatrics/sickle-cell"
+          },
+          {
+            "snippet": "... level of care. It is a totally different type of nursing. The biggest difference between working state-side and working down range was the ...",
+            "title": "MU Health Care",
+            "url": "https://www.facebook.com/muhealthcare/posts/you-may-recognize-his-name-or-have-even-seen-it-on-our-hospital-building-above-t/1384119213274798/"
+          },
+          {
+            "snippet": "To set up an appointment, please call our clinic at 573.874.7249. Testing is available 5 days per week by appointment only.",
+            "title": "Clinical Testing & Treatment - City of Columbia Missouri",
+            "url": "https://www.como.gov/health/clinical-services/testing-treatment-services/"
+          },
+          {
+            "snippet": "Average pay. $65,676. University of Missouri Health Care. Employees by pay range. <$25K. $25-40K. $40-55K. $55-70K. $70-85K. $85-100K. $100-15K.",
+            "title": "University of Missouri Health Care salaries | Public Pay",
+            "url": "https://graphics.stltoday.com/apps/payrolls/salaries_2024/115/"
+          },
+          {
+            "snippet": "• Fully integrated with University of Missouri Health Care for seamless care coordination and access to clinicians 24 hours a day, 365 days ...",
+            "title": "Summary Plan Description: Custom Network Plan (CNP)",
+            "url": "https://www.umsystem.edu/sites/default/files/media/hr/BENEFITS/CURRENT/SPD-CNP.pdf"
+          },
+          {
+            "snippet": "The only hospital in Missouri exclusively dedicated to the health of women. The hospital was formerly home to MU Children's Hospital.",
+            "title": "University of Missouri Women's and Children's Hospital",
+            "url": "https://en.wikipedia.org/wiki/University_of_Missouri_Women%27s_and_Children%27s_Hospital"
+          },
+          {
+            "snippet": "Missouri. MAHEC increases the health care workforce by: ◇ Exposing Missouri's pre-college level youth to various health care professions, offering training ...",
+            "title": "Missouri Primary Care Needs Assessment (PCNA) 2020",
+            "url": "https://health.mo.gov/living/families/primarycare/pdf/primary-care-needs-assessment-2020.pdf"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>University of Missouri Health Care female cell normal range</search>",
+      "to": "https://muhealth.testcatalog.org/show/CBCREF"
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "search": [
+    "TGA"
+  ],
+  "result": {
+    "TGA": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Therapeutic Goods Administration (TGA). We are Australia's government authority responsible for evaluating, assessing and monitoring products that are defined ...",
+            "title": "Therapeutic Goods Administration (TGA) | Australian ...",
+            "url": "https://www.tga.gov.au/therapeutic-goods-administration-tga"
+          },
+          {
+            "snippet": "The Game Awards is an annual awards ceremony honoring achievements in the video game industry. Established in 2014, the shows are produced and hosted by ...Read more",
+            "title": "The Game Awards",
+            "url": "https://en.wikipedia.org/wiki/The_Game_Awards"
+          },
+          {
+            "snippet": "The global celebration of video games. Streams live on all platforms.",
+            "title": "The Game Awards - December 11, 2025",
+            "url": "https://www.thegameawards.com/"
+          },
+          {
+            "snippet": "View all winners for The Game Awards. Vote for your favorite games and creators.",
+            "title": "Winners",
+            "url": "https://thegameawards.com/winners"
+          },
+          {
+            "snippet": "",
+            "title": "THE GAME AWARDS 2025: Official 4K60FPS Livestream",
+            "url": "https://www.youtube.com/watch?v=d-BDeU3R5ic"
+          },
+          {
+            "snippet": "Study game development in a studio-simulated environment. Build playable games in teams and prepare for a career in the games industry.",
+            "title": "The Game Assembly | World-Class Game Development School",
+            "url": "https://thegameassembly.com/"
+          },
+          {
+            "snippet": "The Game Awards 2024 · The 10th anniversary spectacular with reveals from The Witcher 4, Intergalactic, Okami Sequel, Elden Ring: Nightreign and more, plus ...Read more",
+            "title": "thegameawards",
+            "url": "https://www.youtube.com/thegameawards"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>TGA</search>",
+      "to": "https://www.tga.gov.au/"
+    },
+    {
+      "from": "<search>TGA</search>",
+      "to": "https://en.wikipedia.org/wiki/The_Game_Awards"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/The_Game_Awards",
+      "to": "https://en.wikipedia.org/wiki/Dragon_Age:_Inquisition"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/The_Game_Awards",
+      "to": "https://en.wikipedia.org/wiki/The_Witcher_3:_Wild_Hunt"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/The_Game_Awards",
+      "to": "https://en.wikipedia.org/wiki/Overwatch_(video_game)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/The_Game_Awards",
+      "to": "https://en.wikipedia.org/wiki/The_Legend_of_Zelda:_Breath_of_the_Wild"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/The_Game_Awards",
+      "to": "https://en.wikipedia.org/wiki/God_of_War_(2018_video_game)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/The_Game_Awards",
+      "to": "https://en.wikipedia.org/wiki/Sekiro:_Shadows_Die_Twice"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/The_Game_Awards",
+      "to": "https://en.wikipedia.org/wiki/It_Takes_Two_(video_game)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/The_Game_Awards",
+      "to": "https://en.wikipedia.org/wiki/Elden_Ring"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/The_Game_Awards",
+      "to": "https://en.wikipedia.org/wiki/Baldur%27s_Gate_3"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/The_Game_Awards",
+      "to": "https://en.wikipedia.org/wiki/Astro_Bot"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/The_Game_Awards",
+      "to": "https://en.wikipedia.org/wiki/Clair_Obscur:_Expedition_33"
+    }
+  ]
+}

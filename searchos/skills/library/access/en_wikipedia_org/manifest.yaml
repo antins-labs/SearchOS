@@ -1,0 +1,32 @@
+description: "Extracts structured billionaire ranking data from Wikipedia's \"The World's Billionaires\"\
+  \ page.\nParses annual Forbes billionaire lists from 1990 to present, including net worth, age, \nnationality,\
+  \ and source of wealth for each ranking."
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_billionaires   Get billionaire rankings for a specific year or\
+      \ all years\n  - search_billionaire   Search for a billionaire by name across all years\n  - get_years\
+      \   Get list of available years with billionaire rankings"
+  year:
+    type: string
+    required: false
+    description: Specific year to retrieve (e.g., "2024"). If omitted, returns data for all years.
+  rank_limit:
+    type: integer
+    required: false
+    description: Maximum number of billionaires to return per year (max 100)
+    default: 10
+  name:
+    type: string
+    required: false
+    description: Name to search for (partial match, case-insensitive)
+  limit:
+    type: integer
+    required: false
+    description: Maximum results per year (max 10)
+    default: 3
+  max_years:
+    type: integer
+    required: false
+    description: Maximum number of years to search

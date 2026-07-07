@@ -1,0 +1,26 @@
+description: Northeastern University Graduate Admissions Portal - Extract admission score requirements
+  and program catalogs
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_score_requirements   Get graduate admission score requirements\
+      \ (复试分数线) published as images in articles\n  - get_program_catalog   Get the complete graduate program\
+      \ catalog with majors, research areas, and exam subjects\n  - search_programs   Search programs\
+      \ by keyword (department name, major code/name, or research area)"
+  url:
+    type: string
+    required: false
+    description: 'Article URL for score requirements (default: 2025 score requirements)'
+  limit_results:
+    type: boolean
+    required: false
+    description: 'Limit results to 100 entries (default: true)'
+  include_raw:
+    type: boolean
+    required: false
+    description: 'Include raw table data (default: false)'
+  keyword:
+    type: string
+    required: false
+    description: Search keyword

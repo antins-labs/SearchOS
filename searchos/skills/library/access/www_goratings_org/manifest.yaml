@@ -1,0 +1,41 @@
+description: >-
+  Fetches Go player rankings, ratings, and game history from goratings.org.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_rankings              获取整体排名榜（支持limit控制输出数量）
+        - get_ladies_rankings       获取女子排名榜
+        - get_player_info           获取选手详情与近期对局（需要player_id；可选include_history=True返回历史评分折线）
+        - get_player_rating_history 获取选手历史Elo评分数据（需要player_id）
+        - get_ladies_history        获取女子排名历史数据（用于历史折线绘制）
+        - search_player             按名称检索选手（需要name；可选limit限制扫描范围）
+
+  language:
+    type: string
+    required: false
+    description: 页面语言代码，默认'en'。用于get_rankings、get_ladies_rankings、get_player_info、search_player。
+    default: en
+
+  player_id:
+    type: string
+    required: false
+    description: 选手ID（数字字符串），用于get_player_info与get_player_rating_history。
+
+  include_history:
+    type: boolean
+    required: false
+    description: 是否在get_player_info中一并返回历史评分折线数据。默认false。
+
+  name:
+    type: string
+    required: false
+    description: 按名称检索时的查询字符串（search_player）。
+
+  limit:
+    type: integer
+    required: false
+    description: 限制返回或扫描数量。用于get_rankings（返回上限）与search_player（扫描上限）。

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Benchmark Leaderboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <div class="hero-inner centered">
+          <div class="hero-text">
+            <!-- <p class="eyebrow">New Benchmark</p> -->
+            <h1>GISA: A Benchmark for General Information-Seeking Assistant</h1>
+            <p class="subtitle">
+              Yutao Zhu<sup>1</sup>,
+              Xingshuo Zhang<sup>1</sup>, Maosen Zhang<sup>1</sup>, Jiajie Jin<sup>1</sup>,
+              Liancheng Zhang<sup>1</sup>, Xiaoshuai Song<sup>1</sup>, Kangzhi Zhao<sup>2</sup>,
+              Wencong Zeng<sup>2</sup>, Ruiming Tang<sup>2</sup>, Han Li<sup>2</sup>,
+              Ji-Rong Wen<sup>1</sup>, Zhicheng Dou<sup>1</sup>
+              <span class="affiliation">
+                Affiliation: <sup>1</sup> Gaoling School of Artificial Intelligence, Renmin University of China;
+                <sup>2</sup> Kuaishou Technology
+                <span class="contact-inline">
+                  Contact: <a href="mailto:yutaozhu94@gmail.com">yutaozhu94@gmail.com</a>
+                </span>
+              </span>
+            </p>
+            <div class="hero-actions">
+              <a class="badge-link" href="https://github.com/RUC-NLPIR/GISA" target="_blank" rel="noreferrer" aria-label="GitHub">
+                <img
+                  src="https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white"
+                  alt="GitHub badge"
+                />
+              </a>
+              <a class="badge-link" href="https://arxiv.org/abs/2602.08543" aria-label="arXiv paper">
+                <img
+                  src="https://img.shields.io/badge/arXiv-B31B1B?logo=arxiv&logoColor=white"
+                  alt="arXiv badge"
+                />
+              </a>
+              <a class="badge-link" href="https://huggingface.co/datasets/RUC-NLPIR/GISA" aria-label="Dataset">
+                <span class="custom-badge">
+                  <img class="badge-logo" src="hf-logo.png" alt="HuggingFace logo" />
+                  <span class="badge-text">Dataset</span>
+                </span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section id="paper" class="section">
+          <div class="section-header">
+            <h2>What is GISA?</h2>
+          </div>
+          <div class="paper-abstract">
+            <p class="intro">
+              GISA is a benchmark for General Information-Seeking Assistants with 373 human-crafted queries that
+              reflect real-world information needs. It includes both stable and live subsets, four structured answer
+              formats (item, set, list, table), and complete human search trajectories for every query.
+            </p>
+            <ul class="highlight-list">
+              <li>
+                <strong>Diverse answer formats with deterministic evaluation.</strong>
+                GISA uses four structured answer types (item, set, list, table) with strict matching metrics for
+                reproducible evaluation, avoiding subjective LLM judging while preserving task diversity.
+              </li>
+              <li>
+                <strong>Unified deep + wide search capabilities.</strong>
+                Tasks require both vertical reasoning and horizontal information aggregation across sources,
+                evaluating long-horizon exploration and summarization in one benchmark.
+              </li>
+              <li>
+                <strong>Dynamic, anti-static evaluation.</strong>
+                Queries are split into stable and live subsets; the live subset is periodically updated to reduce
+                memorization and keep the benchmark challenging over time.
+              </li>
+              <li>
+                <strong>Process-level supervision via human trajectories.</strong>
+                Full human search trajectories are provided for every query, serving as gold references for process
+                reward modeling and imitation learning while validating task solvability.
+              </li>
+            </ul>
+          </div>
+          <div class="paper-citation">
+            <div class="citation-header">
+              <h3>Citation</h3>
+              <button class="copy-btn" type="button" aria-label="Copy citation" id="copy-citation">Copy</button>
+            </div>
+            <pre class="citation-box" id="citation-text">@article{GISA,
+  title     = {GISA: A Benchmark for General Information Seeking Assistant},
+  author    = {Yutao Zhu and
+               Xingshuo Zhang and
+               Maosen Zhang and
+               Jiajie Jin and
+               Liancheng Zhang and
+               Xiaoshuai Song and
+               Kangzhi Zhao and
+               Wencong Zeng and
+               Ruiming Tang and
+               Han Li and
+               Ji-Rong Wen and
+               Zhicheng Dou},
+  journal      = {CoRR},
+  volume       = {abs/2602.08543},
+  year         = {2026},
+  url          = {https://doi.org/10.48550/arXiv.2602.08543},
+  doi          = {10.48550/ARXIV.2602.08543},
+  eprinttype    = {arXiv},
+  eprint       = {2602.08543}
+}</pre>
+          </div>
+        </section>
+
+        <section id="leaderboard" class="section">
+          <div class="section-header">
+            <h2>Leaderboard</h2>
+            <p class="section-subtitle">
+              Model rankings on the official test split. Click a column to sort. Use search to filter by model name.
+            </p>
+          </div>
+
+          <div class="controls">
+            <div class="search">
+              <input id="search" type="search" placeholder="Search models or orgs" />
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th rowspan="2" data-key="rank">Rank</th>
+                  <th rowspan="2" data-key="model">Model / System</th>
+                  <th rowspan="2" data-key="framework">Framework</th>
+                  <th rowspan="2" data-key="date">Date</th>
+                  <th rowspan="2" data-key="overall" class="is-sorted highlight-em">Overall EM</th>
+                  <th colspan="1">Item</th>
+                  <th colspan="2">Set</th>
+                  <th colspan="3">List</th>
+                  <th colspan="3">Table</th>
+                </tr>
+                <tr>
+                  <th data-key="item_em">EM</th>
+                  <th data-key="set_em">EM</th>
+                  <th data-key="set_f1">F1</th>
+                  <th data-key="list_em">EM</th>
+                  <th data-key="list_f1">F1</th>
+                  <th data-key="list_order">Order</th>
+                  <th data-key="table_em">EM</th>
+                  <th data-key="table_row_f1">Row-F1</th>
+                  <th data-key="table_item_f1">Item-F1</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboard-body"></tbody>
+            </table>
+          </div>
+
+          <!-- <div class="table-footnote">
+            <p>
+              Evaluation uses fixed seeds, identical preprocessing, and a standardized inference budget.
+              See the paper for details.
+            </p>
+          </div> -->
+        </section>
+
+        <section id="submit" class="section">
+          <div class="section-header">
+            <h2>Submit Results</h2>
+            <!-- <p class="section-subtitle">Follow our instructions and submit a PR to the GitHub repo.</p> -->
+          </div>
+          <p class="submit-text">
+            Please follow our submission instructions (link coming soon) and open a pull request on the
+            <a href="https://github.com/RUC-NLPIR/GISA" target="_blank" rel="noreferrer">GitHub repository</a>.
+            We review PRs periodically and merge approved results.
+          </p>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p>Maintained by <a href="https://RUC-NLPIR.github.io/" target="_blank" rel="noreferrer">RUC-NLPIR Lab</a></p>
+      </footer>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

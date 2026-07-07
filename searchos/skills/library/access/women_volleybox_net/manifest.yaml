@@ -1,0 +1,27 @@
+description: >-
+  Extracts tournament classifications, team tournament histories, and team information from women.volleybox.net - a comprehensive women's volleyball database.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_tournament_classification   获取锦标赛排名/分类表; 需要 tournament_url 参数
+        - get_team_tournaments            获取队伍参加的所有锦标赛列表; 需要 team_url 参数, 可选 limit 参数
+        - get_team_info                   获取队伍基本信息; 需要 team_url 参数
+  
+  tournament_url:
+    type: string
+    required: false
+    description: 锦标赛URL或标识符 (如 "women-the-olympics-2024-o30223" 或完整URL); 用于 get_tournament_classification
+  
+  team_url:
+    type: string
+    required: false
+    description: 队伍URL或标识符 (如 "usa-t1255" 或完整URL); 用于 get_team_tournaments 和 get_team_info
+  
+  limit:
+    type: integer
+    required: false
+    description: 返回的最大锦标赛数量; 用于 get_team_tournaments; 默认50

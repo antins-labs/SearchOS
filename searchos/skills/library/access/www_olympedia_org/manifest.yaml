@@ -1,0 +1,21 @@
+description: Access Olympedia database for Olympic athlete profiles and competition results
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_athlete   Get comprehensive athlete profile including biography,\
+      \ measurements, and Olympic results\n  - get_results   Get detailed results for an Olympic event\
+      \ including podium finishers and competition data\n  - search_athletes   Search for athletes by\
+      \ name or partial name"
+  athlete_id:
+    type: string
+    required: false
+    description: Olympedia athlete ID (e.g., "93860" for Michael Phelps)
+  event_id:
+    type: string
+    required: false
+    description: Olympedia event ID (e.g., "8466" for 200m Butterfly Men 2000)
+  query:
+    type: string
+    required: false
+    description: Search query (athlete name or partial name)

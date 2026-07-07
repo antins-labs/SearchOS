@@ -1,0 +1,86 @@
+{
+  "search": [
+    "mountains in the Himalayan range that exceed 8,000 meters in elevation"
+  ],
+  "result": {
+    "mountains in the Himalayan range that exceed 8,000 meters in elevation": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "The eight-thousanders are 14 mountains recognized by the International Mountaineering and Climbing Federation (UIAA) with summits that exceed 8,000 metres (26, ...Read more",
+            "title": "Eight-thousander",
+            "url": "https://en.wikipedia.org/wiki/Eight-thousander"
+          },
+          {
+            "snippet": "Finally, the Himalayas reach their western end in the dramatic 8000 m peak of Nanga Parbat, which rises over 8,000 m (26,000 ft) above the Indus valley and is ...Read more",
+            "title": "Himalayas",
+            "url": "https://en.wikipedia.org/wiki/Himalayas"
+          },
+          {
+            "snippet": "Fourteen mountain peaks on Earth stand taller than 8,000 meters (26,247 feet). ... All of them are found in either the Karakoram or Himalayan mountain ranges of ...Read more",
+            "title": "8000-meter Peaks of the Himalaya and Karakoram",
+            "url": "https://science.nasa.gov/earth/earth-observatory/8000-meter-peaks-of-the-himalaya-and-karakoram-82581/"
+          },
+          {
+            "snippet": "Mount #Everest (8,848.86m) – The world's highest mountain bordering Nepal and Tibet 2. #Kanchenjunga (8,586m) – Third highest bordering Sikkim, ...Read more",
+            "title": "Trekking In Nepal",
+            "url": "https://www.facebook.com/trekkinginnepalofficial/posts/which-peaks-do-you-want-to-climb-8000m-mountains-in-nepal-nepal-has-the-highest-/1037070765192435/"
+          },
+          {
+            "snippet": "K2 is the second highest peak in the world with a height of 8,611 meters and is known as ''The Savage Mountain'. K2. K2 or Mount Godwin-Austen is the second ...Read more",
+            "title": "Top 5 Highest 8000 Meters Peaks in the Himalayas",
+            "url": "https://himalayashelter.com/top-5-8000-meters-peaks"
+          },
+          {
+            "snippet": "Highest mountain under 8,000m. 16, Nuptse, \"West Peak\" in Tibetan, 7,864, 26,076, 305 ... The major peaks (not mountains) above 7,500 m (24,600 ft) height in ...Read more",
+            "title": "List of Himalayan peaks and passes",
+            "url": "https://en.wikipedia.org/wiki/List_of_Himalayan_peaks_and_passes"
+          },
+          {
+            "snippet": "Mount Everest Sagarmatha Region (8,848 metres). The world's highest mountain above the mean sea level at 8,848 metres (29,029 ft). It is located in the ...Read more",
+            "title": "8 Highest Peaks in Nepal Over 8000 M",
+            "url": "https://www.trekkingplus.com/blog/8-highest-peaks-in-nepal-over-8000-m"
+          },
+          {
+            "snippet": "Annapurna I 8091m / 26545ft. Gasherbrum I 8068m / 26469ft. Broad Peak 8047m / 26400ft. Gasherbrum II 8035m / 26362ft.Read more",
+            "title": "14 Highest Mountains in the World - Project Base8000",
+            "url": "https://projectbase8000.com/mountains/"
+          },
+          {
+            "snippet": "Everest – 8,848m ... Kangchenjunga – 8,586m ... Lhotse – 8,516m ... Makalu – 8,485m ... Cho Oyu – 8,188m ... Dhaulagiri I – 8,167m ... Manaslu – 8,163mRead more",
+            "title": "The 14 Highest Peaks on Earth 🏔️ Each rising above ...",
+            "url": "https://www.instagram.com/p/DKBWKnXP4x8/"
+          },
+          {
+            "snippet": "What Are the 14 Peaks Higher Than 8,000 Meters? ; 1. Everest · 2. K2 (Godwin Austen) · 3. Kangchenjunga ; Nepal/China (Tibet Autonomous Region) ...Read more",
+            "title": "14 Highest Peaks Above 8000 Meters Updated 2025",
+            "url": "https://www.infoplease.com/geography/worlds-14-highest-mountain-peaks-above-8000-meters"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>mountains in the Himalayan range that exceed 8,000 meters in elevation</search>",
+      "to": "https://himalayashelter.com/top-5-8000-meters-peaks"
+    },
+    {
+      "from": "<search>mountains in the Himalayan range that exceed 8,000 meters in elevation</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_Himalayan_peaks_and_passes"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Himalayas",
+      "to": "https://en.wikipedia.org/wiki/Himalayas#Geography_and_key_features"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Himalayas#Geography_and_key_features",
+      "to": "https://en.wikipedia.org/wiki/Himalayas#References"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Himalayas#References",
+      "to": "https://en.wikipedia.org/wiki/Himalayas#External_links"
+    }
+  ]
+}

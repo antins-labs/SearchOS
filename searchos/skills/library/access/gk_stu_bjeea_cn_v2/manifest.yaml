@@ -1,0 +1,67 @@
+description: 北京教育考试院 — 高考录取统计查询 (gk-stu.bjeea.cn)。 查询北京市 2022/2023/2024 年高考全国普通高等学校在京招生的提档分数线和录取分数分布 （按高校
+  / 专业组 / 专业，可按省份、选考科目、艺术类方向、分数区间或排名区间筛选）。
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_years              列出可查询的年份 (e.g. 2022/2023/2024)\n  - list_batches\
+      \            列出某年的批次 (本科普通批/艺术B段/...)，需 year\n  - list_provinces          列出某年的招生院校所在省份，需 year\n\
+      \  - list_elective_subjects  列出某年的选考科目 (物理/化学/...)，需 year\n  - list_art_exam_types     列出艺术类方向枚举\
+      \ (A=播音/C=舞蹈/E=美术 …)\n  - query_score_lines       主查询：分页返回院校录取分数线与分数分布；需 year + batch_code"
+  year:
+    type: string
+    required: false
+    description: 年份字符串，如 "2024"。被 list_batches/list_provinces/list_elective_subjects/query_score_lines
+      使用。
+  batch_code:
+    type: string
+    required: false
+    description: 批次 code (来自 list_batches)，例如 "9" = 本科普通批。query_score_lines 必填。
+  province_codes:
+    type: array
+    required: false
+    description: 院校所在省份代码数组 (来自 list_provinces)，留空 = 全部。
+  art_exam_types:
+    type: array
+    required: false
+    description: 艺术类方向 code 数组 (来自 list_art_exam_types)，仅艺术批次有意义；留空 = 全部。
+  elective_subject:
+    type: string
+    required: false
+    description: 选考科目 code (来自 list_elective_subjects)，可空。
+  by_score:
+    type: boolean
+    required: false
+    description: 是否启用按分数区间过滤；启用时配合 start_score / end_score。
+  by_ranking:
+    type: boolean
+    required: false
+    description: 是否启用按排名区间过滤；启用时配合 start_rank / end_rank。
+  start_score:
+    type: integer
+    required: false
+  end_score:
+    type: integer
+    required: false
+  start_rank:
+    type: integer
+    required: false
+  end_rank:
+    type: integer
+    required: false
+  keywords:
+    type: string
+    required: false
+    description: 高校名 / 高校代码 / 专业名 关键字，多个用 "、,;；，" 分隔。
+  page_size:
+    type: integer
+    required: false
+    description: 每页条数 (默认 20)。
+  cur_page:
+    type: integer
+    required: false
+    description: 当前页码，从 1 开始 (默认 1)。
+  full:
+    type: boolean
+    required: false
+    description: 若为 true，返回原始 API 字段而非简化结构 (默认 false)。

@@ -1,0 +1,27 @@
+description: >-
+  Fetches attorney job vacancy listings from the DOJ USAO Career Center at justice.gov.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to execute. Available values:
+        - list_jobs: Lists attorney job openings with optional state filter
+        - get_job_detail: Retrieves detailed information for a specific job posting
+  
+  state:
+    type: string
+    required: false
+    description: |
+      Two-letter state code to filter job listings (e.g., "VA", "CA", "NY").
+      Used only by list_jobs function. If omitted, returns all listings.
+  
+  job_url:
+    type: string
+    required: false
+    description: |
+      URL or relative path to a specific job posting.
+      Used only by get_job_detail function.
+      Accepts full URLs (https://www.justice.gov/legal-careers/job/...),
+      relative paths (/legal-careers/job/...), or job IDs.

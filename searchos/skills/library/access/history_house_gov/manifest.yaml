@@ -1,0 +1,44 @@
+description: >-
+  Fetches U.S. federal government shutdown data from the House History website
+  (history.house.gov), including dates, durations, and related legislation.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list       List all government shutdowns with optional filters (fiscal_year, min_duration, max_duration, procedures_followed)
+        - stats      Get summary statistics about government shutdowns
+        - search     Search shutdowns by keyword across all text fields (requires query parameter)
+        - longest    Get the longest government shutdowns sorted by duration (optional limit parameter)
+  
+  fiscal_year:
+    type: string
+    required: false
+    description: Filter shutdowns by fiscal year (e.g., "1996", "2019"). Used with 'list' function.
+  
+  min_duration:
+    type: integer
+    required: false
+    description: Minimum shutdown duration in days. Used with 'list' function.
+  
+  max_duration:
+    type: integer
+    required: false
+    description: Maximum shutdown duration in days. Used with 'list' function.
+  
+  procedures_followed:
+    type: boolean
+    required: false
+    description: Filter by whether shutdown procedures were followed (true/false). Used with 'list' function.
+  
+  query:
+    type: string
+    required: false
+    description: Search keyword to find in shutdown records. Required for 'search' function.
+  
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of results to return. Used with 'longest' function (default 5).

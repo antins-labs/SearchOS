@@ -1,0 +1,75 @@
+description: >-
+  Fetches budget data from the City of Los Angeles Open Budget portal
+  (openbudget.lacity.org), including department budgets, program details,
+  fund sources, and historical trends.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      The operation to perform. Available values:
+        - get_years         Get available budget years
+        - get_departments   Get all departments with budget totals
+        - get_programs      Get programs within a department
+        - get_appropriations Get appropriations within a program
+        - get_budget_total  Get total budget amount for a level
+        - get_fund_sources  Get funding source breakdown
+        - get_historical    Get historical budget data across years
+        - get_entity_counts Get counts of child entities
+        - search_entities   Search for departments, programs, or funds
+
+  year:
+    type: string
+    required: false
+    description: Budget year (e.g., "2023"). Required for most functions.
+
+  department:
+    type: string
+    required: false
+    description: Department name (e.g., "Police"). Required for org2/org3 level queries.
+
+  program:
+    type: string
+    required: false
+    description: Program name (e.g., "Field Forces"). Required for org3 level queries.
+
+  level:
+    type: string
+    required: false
+    description: Organization level - "org1" (citywide), "org2" (department), or "org3" (program). Used by get_budget_total, get_fund_sources, get_historical, get_entity_counts.
+
+  budget_type:
+    type: string
+    required: false
+    description: Type of budget - "operating" or "capital". Default is "operating". Used by get_years.
+
+  page:
+    type: integer
+    required: false
+    description: Page number (0-indexed). Default 0. Used by list functions.
+
+  limit:
+    type: integer
+    required: false
+    description: Items per page. Default varies by function. Used by list functions.
+
+  sort_field:
+    type: string
+    required: false
+    description: Field to sort by - "total" or "name". Default "total". Used by list functions.
+
+  sort_order:
+    type: string
+    required: false
+    description: Sort order - "asc" or "desc". Default "desc". Used by list functions.
+
+  query:
+    type: string
+    required: false
+    description: Search query string. Used by search_entities.
+
+  entity_type:
+    type: string
+    required: false
+    description: Filter by entity type - "org1", "org2", or "fund". Used by search_entities.

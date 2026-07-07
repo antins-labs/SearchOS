@@ -1,0 +1,64 @@
+{
+  "search": [
+    "World War II Japan"
+  ],
+  "result": {
+    "World War II Japan": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Japan participated in World War II from 1939 to 1945 as a member of the Axis. World War II and the Second Sino-Japanese War encapsulate a significant period in ...",
+            "title": "Japan during World War II",
+            "url": "https://en.wikipedia.org/wiki/Japan_during_World_War_II"
+          },
+          {
+            "snippet": "In December 1941 Japan, already at war with China, attacked British, Dutch and American territories in Asia and the Pacific.",
+            "title": "A Quick Guide To Japan's Role In The Second World War",
+            "url": "https://www.iwm.org.uk/history/a-quick-guide-to-japans-role-in-the-second-world-war"
+          },
+          {
+            "snippet": "Japan's war aims were to establish a “new order in East Asia,” built on a “coprosperity” concept that placed Japan at the center of an economic bloc.",
+            "title": "Japan - WWII, Defeat, Pacific",
+            "url": "https://www.britannica.com/place/Japan/World-War-II-and-defeat"
+          },
+          {
+            "snippet": "The country formally entered World War II on September 22, 1940 with the invasion of French Indochina and officially formed an alliance with ...",
+            "title": "Japan During World War II (U.S. National Park Service)",
+            "url": "https://www.nps.gov/articles/000/japan-during-world-war-ii.htm"
+          },
+          {
+            "snippet": "On August 8, the Soviet Union declared war on Japan and invaded Japanese-occupied Manchuria. Japan agreed to surrender on August 14, 1945.",
+            "title": "World War II in the Pacific | Holocaust Encyclopedia",
+            "url": "https://encyclopedia.ushmm.org/content/en/article/world-war-ii-in-the-pacific"
+          },
+          {
+            "snippet": "Japan's military invasions of other Asian countries, however, brought resistance from not only the European colonial powers, but also the Asian people ...",
+            "title": "Japan's Quest for Power and World War II in Asia",
+            "url": "https://afe.easia.columbia.edu/special/japan_1900_power.htm"
+          },
+          {
+            "snippet": "On December 7, 1941, Japan staged a surprise attack on Pearl Harbor, severely damaging the US Pacific Fleet. When Germany and Italy declared war on the United ...",
+            "title": "The Pacific Strategy, 1941-1944",
+            "url": "https://www.nationalww2museum.org/war/articles/pacific-strategy-1941-1944"
+          },
+          {
+            "snippet": "After the defeat of Japan in World War II, the United States led the Allies in the occupation and rehabilitation of the Japanese state.",
+            "title": "Occupation and Reconstruction of Japan, 1945–52",
+            "url": "https://history.state.gov/milestones/1945-1952/japan-reconstruction"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>World War II Japan</search>",
+      "to": "https://en.wikipedia.org/wiki/Japan_during_World_War_II"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Japan_during_World_War_II",
+      "to": "https://en.wikipedia.org/wiki/Japanese_colonial_empire"
+    }
+  ]
+}

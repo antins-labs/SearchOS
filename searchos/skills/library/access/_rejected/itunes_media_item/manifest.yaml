@@ -1,0 +1,26 @@
+name: itunes_media_item
+invocation: agent_called
+description: "Search itunes.apple.com \u2014 itunes_media_item. JSON API endpoint;\
+  \ agent must parse JSON response body rather than HTML."
+params_schema:
+  term:
+    type: string
+    required: true
+    description: The text string to search for (e.g., artist name, album title, movie
+      title).
+  entity:
+    type: string
+    default: album
+    description: The type of media to search for (e.g., album, movie, song, musicArtist).
+  limit:
+    type: integer
+    default: 5
+    description: The maximum number of search results to return.
+category: media
+entity_type: itunes_media_item
+fields:
+- title
+- artist
+- url
+- artwork
+- release_date

@@ -1,0 +1,29 @@
+description: >-
+  Access articles from People's Daily digital newspaper (paper.people.com.cn) including
+  article content, layout pages with article listings, and navigation between pages.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_article   获取指定文章的完整内容；需要 url 参数
+        - get_layout    获取指定版面的文章列表；需要 url 参数
+        - get_index     获取当天报纸的主页信息；无需其他参数
+        - search_by_date 按日期查找文章；需要 date 参数，可选 page 参数
+
+  url:
+    type: string
+    required: false
+    description: 文章或版面页面的完整URL；get_article 和 get_layout 功能使用
+
+  date:
+    type: string
+    required: false
+    description: 日期，格式为 YYYY-MM-DD（如 2026-01-20）；search_by_date 功能使用
+
+  page:
+    type: integer
+    required: false
+    description: 版面页码（1-20）；search_by_date 功能使用，默认为 1

@@ -1,0 +1,25 @@
+description: >-
+  Extracts full article content, metadata, and images from Sina Finance (finance.sina.com.cn) stock news pages.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_article: Extract article content from a Sina Finance URL
+  
+  url:
+    type: string
+    required: true
+    description: Article URL from finance.sina.com.cn (used by get_article)
+  
+  include_images:
+    type: boolean
+    required: false
+    description: Whether to extract image URLs from the article (default: true)
+  
+  include_content:
+    type: boolean
+    required: false
+    description: Whether to extract full article content text (default: true)

@@ -1,0 +1,20 @@
+description: >-
+  Fetches datasets and file download listings from China's Ministry of Commerce open data portal (opendata.mofcom.gov.cn), including enterprise rankings, trade statistics, and policy documents.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_datasets   列出所有可用数据集，返回数据集ID和标题列表
+        - get_dataset     获取指定数据集的详细信息，包括元数据和可下载文件列表
+        - get_download_urls   获取指定数据集的所有文件下载URL（需要登录）
+  
+  dataset_id:
+    type: string
+    required: false
+    description: |
+      数据集ID，用于get_dataset和get_download_urls功能。
+      例如: WM006（世界500强企业）、QT004（中国对外经济贸易文告库）等。
+      可通过list_datasets功能获取所有可用的数据集ID。

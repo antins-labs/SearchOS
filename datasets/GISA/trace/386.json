@@ -1,0 +1,92 @@
+{
+  "search": [
+    "national-level enclaves"
+  ],
+  "result": {
+    "national-level enclaves": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "In political geography, an enclave is a piece of land belonging to one country (or region etc.) that is totally surrounded by another country (or region).Read more",
+            "title": "List of enclaves and exclaves",
+            "url": "https://en.wikipedia.org/wiki/List_of_enclaves_and_exclaves"
+          },
+          {
+            "snippet": "While subnational enclaves are numerous the world over, there are only a few national-level true enclaves in Africa, Australia and the Americas (each such ...Read more",
+            "title": "Enclave and exclave",
+            "url": "https://en.wikipedia.org/wiki/Enclave_and_exclave"
+          },
+          {
+            "snippet": "An enclave constitutes a portion of one sovereign state's territory that is entirely surrounded by the territory of a single foreign sovereign state. This ...Read more",
+            "title": "Enclave and exclave",
+            "url": "https://grokipedia.com/page/Enclave_and_exclave"
+          },
+          {
+            "snippet": "An enclave is a territory that is entirely surrounded by the territory of only one other state or entity.Read more",
+            "title": "What Is Enclave ?. An enclave is a territory that is…",
+            "url": "https://medium.com/@atalayazizoglu57/what-is-enclave-60fe1c824bc5"
+          },
+          {
+            "snippet": "A portion of a country that is totally surrounded by another country. Italy, for example, has \"Campione d'Italia\", a 2.6 km² italian comune ...Read more",
+            "title": "Does your country have enclaves? And how do they work?",
+            "url": "https://www.reddit.com/r/AskTheWorld/comments/1murv06/does_your_country_have_enclaves_and_how_do_they/"
+          },
+          {
+            "snippet": "Vatican City is an enclave in Italy on the national level, and in Rome on the subnational level. In this case, your mind moves to the UN ...Read more",
+            "title": "Enclaves & Exclaves",
+            "url": "https://travelanguist.com/Reflections.php?Year=2016&MusNo=8.00"
+          },
+          {
+            "snippet": "Finer divi- sions of subnational enclaves are possible in order to differentiate between enclaves at a parish/commune or municipal/province/state level.Read more",
+            "title": "What Are Enclaves and Exclaves?",
+            "url": "https://vinokurov.info/wp-content/uploads/2019/12/enclaves_ch02.pdf"
+          },
+          {
+            "snippet": "There are numerous exclaves and enclaves around the world on a national or subnational level, many of which are in the US and Canada or Western Europe, ...",
+            "title": "The Top 6 Exclaves to Visit",
+            "url": "https://www.youngpioneertours.com/top-6-exclaves/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>national-level enclaves</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_enclaves_and_exclaves"
+    },
+    {
+      "from": "<search>national-level enclaves</search>",
+      "to": "https://en.wikipedia.org/wiki/Enclave_and_exclave"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_enclaves_and_exclaves",
+      "to": "https://en.wikipedia.org/wiki/Isla_Entre_R%C3%ADos"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_enclaves_and_exclaves",
+      "to": "https://en.wikipedia.org/wiki/Artsvashen"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_enclaves_and_exclaves",
+      "to": "https://en.wikipedia.org/wiki/Torres_Strait_Islands"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_enclaves_and_exclaves",
+      "to": "https://en.wikipedia.org/wiki/Torres_Strait_Islands"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_enclaves_and_exclaves",
+      "to": "https://en.wikipedia.org/wiki/Torres_Strait_Islands"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_enclaves_and_exclaves",
+      "to": "https://en.wikipedia.org/wiki/Quita_Sue%C3%B1o_Bank"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_enclaves_and_exclaves",
+      "to": "https://en.wikipedia.org/wiki/Serrana_Bank"
+    }
+  ]
+}

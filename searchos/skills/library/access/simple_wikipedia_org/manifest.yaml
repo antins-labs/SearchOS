@@ -1,0 +1,36 @@
+description: 'Extract structured award data from Simple Wikipedia (simple.wikipedia.org).
+
+  Parses award pages with winner lists in "YYYY - Artist for Work" format.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_award_page   Fetch and parse an award page from Simple Wikipedia.\n\
+      \  - get_winners   Extract award winners from a Wikipedia page.\n  - search_awards   Search for\
+      \ award pages on Simple Wikipedia."
+  title:
+    type: string
+    required: false
+    description: Wikipedia page title (e.g., "Grammy_Award_for_Best_Rap_Album")
+  include_html:
+    type: boolean
+    required: false
+    description: Include parsed HTML content in response
+    default: false
+  year:
+    type: integer
+    required: false
+    description: Filter winners by specific year
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of winners to return
+  sort:
+    type: string
+    required: false
+    description: Sort order (desc=newest first, asc=oldest first)
+    default: desc
+  query:
+    type: string
+    required: false
+    description: Search term (e.g., "Grammy Award", "Oscar")

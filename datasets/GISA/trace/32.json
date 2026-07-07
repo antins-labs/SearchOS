@@ -1,0 +1,69 @@
+{
+  "search": [
+    "2025 FIFA Club World Cup stadiums"
+  ],
+  "result": {
+    "2025 FIFA Club World Cup stadiums": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Venues ; Rose Bowl · MetLife Stadium · Bank of America Stadium · Mercedes-Benz Stadium ; Capacity: 89,702, Capacity: 82,500, Capacity: 74,867, Capacity: 71,000.Read more",
+            "title": "2025 FIFA Club World Cup",
+            "url": "https://en.wikipedia.org/wiki/2025_FIFA_Club_World_Cup"
+          },
+          {
+            "snippet": "The first-ever 32-team FIFA Club World Cup will take place in the USA in 2025, with 12 venues across the nation chosen to host matches.",
+            "title": "FIFA Club World Cup 2025 stadium guide",
+            "url": "https://www.fifa.com/en/tournaments/mens/club-world-cup/usa-2025/articles/stadium-guide-venues-named"
+          },
+          {
+            "snippet": "City, Stadium, Capacity*. Atlanta, GA, Mercedes-Benz Stadium, 75,000. Charlotte, NC, Bank of America Stadium, 75,000. Cincinnati, OH, TQL Stadium, 26,000.Read more",
+            "title": "2025 FIFA Club World Cup stadiums - US Soccer Players",
+            "url": "https://ussoccerplayers.com/2025-fifa-club-world-cup-stadiums"
+          },
+          {
+            "snippet": "Rose Bowl ... MetLife Stadium ... Bank of America Stadium ... Mercedes-Benz Stadium ... Lincoln Financial Field ... Lumen Field ... Hard Rock Stadium.Read more",
+            "title": "What stadiums are being used for the 2025 FIFA Club ...",
+            "url": "https://www.dazn.com/en-GB/news/football/what-stadiums-are-being-used-for-the-2025-fifa-club-world-cup-a-guide-to-the-12-venues-in-the-united-states/k9gvjqplkli71twmojywnaolg"
+          },
+          {
+            "snippet": "The current format, which came into effect with the 2025 edition, features 32 teams competing for the title at venues within the host nation; 12 teams from ...Read more",
+            "title": "FIFA Club World Cup",
+            "url": "https://en.wikipedia.org/wiki/FIFA_Club_World_Cup"
+          },
+          {
+            "snippet": "Check out all the results and venues for the 2025 FIFA Club World Cup in the United States, including the knockout bracket.",
+            "title": "2025 FIFA Club World Cup bracket, results, venues",
+            "url": "https://www.espn.com/soccer/story/_/id/42771733/2025-fifa-club-world-cup-bracket-fixtures-schedule-venues"
+          },
+          {
+            "snippet": "Find key details about the FIFA Club World Cup 2025™ stadiums on FIFA.com, including stadium maps, matchday information, facilities and accessibility.",
+            "title": "Stadiums | FIFA Club World Cup 2025™",
+            "url": "https://www.fifa.com/en/tournaments/mens/club-world-cup/usa-2025/stadiums"
+          },
+          {
+            "snippet": "Of the U.S. candidate cities, there are four locks: MetLife Stadium in New York, the Rose Bowl in Los Angeles, Mercedes-Benz Stadium in Atlanta ...Read more",
+            "title": "🏟️All stadiums of the FIFA Club World Cup 2025, which ...",
+            "url": "https://www.facebook.com/sportsrender/posts/%EF%B8%8Fall-stadiums-of-the-fifa-club-world-cup-2025-which-will-be-played-in-the-usa-wi/122220470126082495/"
+          },
+          {
+            "snippet": "FIFA Club World Cup 2025: Dates, Stadiums, Teams and Everything You Need to Know About the New Tournament · Hard Rock Stadium – Miami, FL ( ...Read more",
+            "title": "FIFA Club World Cup 2025: Dates, Stadiums, Teams and ...",
+            "url": "https://www.beinsports.com/en-us/soccer/fifa-club-world-cup/articles-video/fifa-club-world-cup-2025-dates-stadiums-teams-and-everything-you-need-to-know-about-the-new-tournament-2025-06-11"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>2025 FIFA Club World Cup stadiums</search>",
+      "to": "https://en.wikipedia.org/wiki/2025_FIFA_Club_World_Cup"
+    },
+    {
+      "from": "<search>2025 FIFA Club World Cup stadiums</search>",
+      "to": "https://www.fifa.com/en/tournaments/mens/club-world-cup/usa-2025/articles/stadium-guide-venues-named"
+    }
+  ]
+}

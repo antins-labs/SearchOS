@@ -1,0 +1,34 @@
+description: >-
+  Fetches NSW Trains line information from nswtrains.fandom.com wiki including train line metadata, station lists, and wiki search.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - search     Search for pages in the wiki by query; requires query parameter
+        - get_line   Get train line details including infobox; requires title or pageid
+        - get_stations   Get stations table from a train line page; requires title or pageid
+        - list_lines   List all train line pages by prefix
+  query:
+    type: string
+    required: false
+    description: Search query string for the search function
+  title:
+    type: string
+    required: false
+    description: Page title for get_line or get_stations functions
+  pageid:
+    type: integer
+    required: false
+    description: Page ID for get_line or get_stations functions (alternative to title)
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of results for search or list_lines functions
+    default: 10
+  prefix:
+    type: string
+    required: false
+    description: Prefix filter for list_lines function
+    default: "T"

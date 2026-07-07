@@ -1,0 +1,36 @@
+description: >-
+  Fetches live timing results, schedules, and official data from Omega Timing
+  (www.omegatiming.com), the official timekeeper for Olympic Games, World Championships,
+  and major international sporting events. Provides access to diving, swimming, athletics,
+  and other sports results in structured JSON and XML formats.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_events: 列出所有赛事或指定年份的赛事；需要可选参数: year
+        - get_event_files: 获取特定赛事的所有文件（PDF和XML结果）；需要参数: event_url
+        - get_xml_results: 获取并解析XML格式的详细结果数据；需要参数: xml_url
+        - search_events: 按关键词搜索赛事；需要参数: query
+
+  year:
+    type: integer
+    required: false
+    description: 筛选赛事的年份（用于 list_events 功能）
+
+  event_url:
+    type: string
+    required: false
+    description: 赛事结果页面的完整URL（用于 get_event_files 功能）
+
+  xml_url:
+    type: string
+    required: false
+    description: XML结果文件的完整URL（用于 get_xml_results 功能）
+
+  query:
+    type: string
+    required: false
+    description: 搜索关键词，用于在赛事名称和标识中查找匹配项（用于 search_events 功能）

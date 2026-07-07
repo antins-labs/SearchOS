@@ -1,0 +1,34 @@
+description: >-
+  Fetches Area of Outstanding Natural Beauty (AONB) articles from the Northern Ireland DAERA website, including designation details, geology, natural/cultural/built heritage.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_aonb_list: 列出北爱尔兰所有杰出自然风景区（AONB）
+        - get_aonb_article: 获取指定AONB的详细内容（需要slug或url参数）
+        - search_aonb_content: 在所有AONB文章中搜索内容（需要query参数）
+
+  slug:
+    type: string
+    required: false
+    description: |
+      AONB文章的URL标识符（用于get_aonb_article）。
+      示例值: antrim-coast-and-glens-aonb, binevenagh-aonb, causeway-coast-aonb,
+              lagan-valley-aonb, mourne-aonb, ring-gullion-aonb, strangford-and-lecale-aonb
+
+  url:
+    type: string
+    required: false
+    description: |
+      AONB文章的完整URL地址（替代slug用于get_aonb_article）。
+      示例: https://www.daera-ni.gov.uk/articles/antrim-coast-and-glens-aonb
+
+  query:
+    type: string
+    required: false
+    description: |
+      搜索关键词（用于search_aonb_content），最小3个字符。
+      在所有AONB文章的标题、描述和内容中搜索匹配项。

@@ -1,0 +1,53 @@
+﻿Year,Airport, Rank,Location,Total Passengers ,Code (IATA/ICAO)
+2020,Guangzhou Baiyun International Airport,1,"The junction of Renhe Town, Baiyun District, Guangzhou City, Guangdong Province, Xinhua Street, Huadong Town, Huadu District","43,767,558",CAN/ZGGG
+2020,Atlanta Hartsfield-Jackson Atlanta International Airport,2,"At the intersection of the southern area of Fulton County, Atlanta, United States and Clayton County, it is 12.5 kilometers north of downtown Atlanta.","42,918,685",ATL/KATL
+2020,Chengdu Shuangliu International Airport,3,"At the junction of Shuangliu District and Wuhou District in Chengdu, Sichuan Province, China, about 16 kilometers northeast of downtown Chengdu.","40,741,509",CTU/ZUUU
+2020,Dallas Fort Worth International Airport,4,"At the border of Dallas County and Tarrant County in the state of Texas, United States","39,364,990",DFW/KDFW
+2020,Shenzhen Bao'an International Airport,5,"Bao'an District, Shenzhen, Guangdong Province, China, on the east bank of the Pearl River Estuary","37,916,054",SZX/ZGSZ
+2020,Chongqing Jiangbei International Airport,6,"Lianglu Street, Yubei District, Chongqing, China","34,937,789",CKG/ZUCK
+2020,Beijing Capital International Airport,7,"Chaoyang District and Shunyi District, Beijing, China, are 25 kilometers away from the center of Beijing in the southwest and 67 kilometers away from Beijing Daxing International Airport in the south","34,513,827",PEK/ZBAA
+2020,Denver International Airport,8,"Northeast of Denver, Colorado, USA","33,741,129",DEN/KDEN
+2020,Kunming Changshui International Airport,9,"Changshui Street, Guandu District, Kunming City, Yunnan Province, China, is located 24.5 kilometers northeast of Kunming City.","32,990,805",KMG/ZPPP
+2020,Shanghai Hongqiao International Airport,10,"At the junction of Changning District and Minhang District in Shanghai, China, 13 kilometers from the city center.","31,165,641",SHA/ZSSS
+2021,Atlanta Hartsfield-Jackson Atlanta International Airport,1,"At the intersection of the southern area of Fulton County, Atlanta, United States and Clayton County, it is 12.6 kilometers north of downtown Atlanta.","75,704,760",ATL/KATL
+2021,Dallas Fort Worth International Airport,2,"At the border of Dallas County and Tarrant County in the state of Texas, United States","62,465,756",DFW/KDFW
+2021,Denver International Airport,3,"Northeast of Denver, Colorado, USA","58,828,552",DEN/KDEN
+2021,O'Hare International Airport,4,"27 kilometers northwest of downtown Chicago, Illinois, USA","54,020,399",ORD/KORD
+2021,Los Angeles International Airport,5,"West Chester neighborhood in Los Angeles, California, United States, located 19 kilometers northeast of downtown Los Angeles.","48,007,284",LAX/KLAX
+2021,Charlotte Douglas International Airport,6,5501 Iosh Birmingham Pkwy，NC,"43,302,230",CLT/KCLT
+2021,Orlando International Airport,7,"In Orlando, Florida, United States of America, 10 kilometers northwest of downtown Orlando","40,351,068",MCO/KMCO
+2021,Guangzhou Bai Yun International Airport,8,"The junction of Renhe Town, Baiyun District, Guangzhou City, Guangdong Province, Xinhua Street, Huadong Town, Huadu District","40,249,679",CAN/ZGGG
+2021,Chengdu Shuangliu International Airport,9,"At the junction of Shuangliu District and Wuhou District in Chengdu, Sichuan Province, China, about 17 kilometers northeast of downtown Chengdu.","40,117,496",CTU/ZUUU
+2021,Las Vegas McCarran International Airport,10,"Paradise City, Las Vegas Metropolitan Area, Clark County, Nevada, United States of America, about 8 kilometers north of downtown Las Vegas","39,710,493",LAS/KLAS
+2022,Atlanta Hartsfield-Jackson Atlanta International Airport,1,"At the intersection of the southern area of Fulton County, Atlanta, United States and Clayton County, it is 12.7 kilometers north of downtown Atlanta.","93,699,630",ATL/KATL
+2022,Dallas Fort Worth International Airport,2,"At the border of Dallas County and Tarrant County in the state of Texas, United States","73,362,946",DFW/KDFW
+2022,Denver International Airport,3,"Northeast of Denver, Colorado, USA","69,286,461",DEN/KDEN
+2022,O'Hare International Airport,4,"28 kilometers northwest of downtown Chicago, Illinois, USA","68,340,619",ORD/KORD
+2022,Dubai International Airport,5,"Al Garhoud area, 2.5 nautical miles east of Dubai.","66,069,981",DXB/OMDB
+2022,Los Angeles International Airport,6,"West Chester neighborhood in Los Angeles, California, United States, located 20 kilometers northeast of downtown Los Angeles.","65,924,298",LAX/KLAX
+2022,Istanbul Airport,7,"The Arnavutköy district, located along the Black Sea coast in the European part of Istanbul Province, Turkey, is approximately 38 kilometers southeast of the city center of Istanbul.","64,289,107",IST/LTFM
+2022,Heathrow Airport,8,"In the southern part of the London Borough of Hillingdon, United Kingdom of Great Britain and Northern Ireland, located 23 kilometers east of central London.","61,614,508",LHR/EGLL
+2022,Indira Gandhi International Airport,9,"New Delhi, National Capital Territory of India, is located about 16 kilometers northeast of the city center of New Delhi.","59,490,074",DEL/VIDP
+2022,Paris Charles de Gaulle Airport,10,"Roissy in the Val-d'Oise department of the French Republic, 25 km southwest of the center of Paris","57,474,033",CDG/LFPG
+2023,Atlanta Hartsfield-Jackson Atlanta International Airport,1,"At the intersection of the southern area of Fulton County, Atlanta, United States and Clayton County, it is 12.8 kilometers north of downtown Atlanta.","104,653,451",ATL/KATL
+2023,Dubai International Airport,2,"Al Garhoud area, 2.6 nautical miles east of Dubai.","86,994,365",DXB/OMDB
+2023,Dallas Fort Worth International Airport,3,"At the border of Dallas County and Tarrant County in the state of Texas, United States
+
+","81,755,538",DFW/KDFW
+2023,Heathrow Airport,4,"In the southern part of the London Borough of Hillingdon, United Kingdom of Great Britain and Northern Ireland, located 24 kilometers east of central London.","79,183,364",LHR/EGLL
+2023, Tokyo Haneda Airport,5,"On the left bank of the Tama River estuary in Tokyo Bay, Ota Ward, Tokyo, Japan, 17 kilometers northwest of the center of Tokyo","78,719,302",HND/RJTT
+2023,Denver International Airport,6,"Northeast of Denver, Colorado, USA","77,837,917",DEN/KDEN
+2023,Istanbul Airport,7,"The Arnavutköy district, located along the Black Sea coast in the European part of Istanbul Province, Turkey, is approximately 39 kilometers southeast of the city center of Istanbul.","76,027,321",IST/LTFM
+2023,Los Angeles International Airport,8,"West Chester neighborhood in Los Angeles, California, United States, located 21 kilometers northeast of downtown Los Angeles.","75,050,875",LAX/KLAX
+2023,O'Hare International Airport,9,"29 kilometers northwest of downtown Chicago, Illinois, USA","73,894,226",ORD/KORD
+2023,Indira Gandhi International Airport,10,"New Delhi, National Capital Territory of India, is located about 17 kilometers northeast of the city center of New Delhi.","72,214,841",DEL/VIDP
+2024,Atlanta Hartsfield-Jackson Atlanta International Airport,1,"At the intersection of the southern area of Fulton County, Atlanta, United States and Clayton County, it is 12.9 kilometers north of downtown Atlanta.","108,067,766",ATL/KATL
+2024,Dubai International Airport,2,"Al Garhoud area, 2.7 nautical miles east of Dubai.","92,300,000",DXB/OMDB
+2024,Dallas Fort Worth International Airport,3,"At the border of Dallas County and Tarrant County in the state of Texas, United States","87,817,864",DFW/KDFW
+2024,Tokyo Haneda Airport,4,"On the left bank of the Tama River estuary in Tokyo Bay, Ota Ward, Tokyo, Japan, 17 kilometers northwest of the center of Tokyo","85,000,000",HND/RJTT
+2024,Heathrow Airport,5,"In the southern part of the London Borough of Hillingdon, United Kingdom of Great Britain and Northern Ireland, located 25 kilometers east of central London.","83,882,140",LHR/EGLL
+2024,Denver International Airport,6,"Northeast of Denver, Colorado, USA","82,358,744",DEN/KDEN
+2024,O'Hare International Airport,7,"30 kilometers northwest of downtown Chicago, Illinois, USA","80,043,050",ORD/KORD
+2024,Istanbul Airport,8,"The Arnavutköy district, located along the Black Sea coast in the European part of Istanbul Province, Turkey, is approximately 40 kilometers southeast of the city center of Istanbul.","79,988,272",IST/LTFM
+2024,Indira Gandhi International Airport,9,"Palam, Delhi, 15 km (9.3 mi) southwest of the New Delhi Railway Station and 16 km (9.9 mi) from the city centre","77,820,834",DEL/VIDP
+2024,Shanghai Pudong International Airport,10,"Zhuqiao Town, Pudong New Area, Shanghai, China, about 30 kilometers from the center of Shanghai","76,787,039",PVG/ZSPD

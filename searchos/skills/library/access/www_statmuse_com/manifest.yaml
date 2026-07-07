@@ -1,0 +1,54 @@
+description: >-
+  Fetches football statistics from StatMuse FC including player stats, league
+  standings, and head-to-head records.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - ask              Ask a natural language question on StatMuse
+        - search_player_stats   Search for player statistics by league, season, stat type
+        - get_standings    Get league standings/table
+        - head_to_head     Get head-to-head match history between two teams
+  query:
+    type: string
+    required: false
+    description: Natural language query for the 'ask' function (e.g., "premier league top scorers 2023-24")
+  format:
+    type: string
+    required: false
+    description: Output format for 'ask' function - 'first_table' (default), 'full', or 'text'
+  player:
+    type: string
+    required: false
+    description: Player name for search_player_stats function
+  league:
+    type: string
+    required: false
+    description: League name (e.g., "premier league", "la liga") for search_player_stats and get_standings
+  season:
+    type: string
+    required: false
+    description: Season string (e.g., "2023-24") for search_player_stats and get_standings
+  stat:
+    type: string
+    required: false
+    description: Stat type to search for (e.g., "goals", "assists", "rating") for search_player_stats
+  club:
+    type: string
+    required: false
+    description: Club/team name for search_player_stats function
+  team1:
+    type: string
+    required: false
+    description: First team name for head_to_head function
+  team2:
+    type: string
+    required: false
+    description: Second team name for head_to_head function
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of rows to return (default 25)

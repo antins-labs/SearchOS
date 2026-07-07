@@ -1,0 +1,56 @@
+description: '访问中华人民共和国交通运输部官方网站发布的全国铁路主要指标月度统计数据。
+
+
+  该网站每月发布铁路运输统计数据，包括客运量、货运量、周转量等关键指标。
+
+
+  注意：统计数据以PNG图片形式嵌入在网页中，而非结构化文本或表格。
+
+  如需提取具体数值数据，需要对图片进行OCR处理。'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_articles   列出铁路统计文章列表（支持分页）\n  - get_article   获取单篇统计文章详情\n \
+      \ - get_image   下载并分析统计图片\n  - search_by_month   按年月搜索统计报告\n  - list_latest   获取最新的铁路统计文章"
+  page:
+    type: integer
+    required: false
+    description: 页码（从1开始）
+    default: 1
+  limit:
+    type: integer
+    required: false
+    description: 返回文章数量上限
+    default: 20
+  url:
+    type: string
+    required: false
+    description: 文章页面URL
+  image_url:
+    type: string
+    required: false
+    description: 图片直接URL
+  include_base64:
+    type: boolean
+    required: false
+    description: 是否包含图片的base64编码
+    default: false
+  year:
+    type: integer
+    required: false
+    description: 年份（如2026）
+  month:
+    type: integer
+    required: false
+    description: 月份（1-12）
+  count:
+    type: integer
+    required: false
+    description: 返回文章数量
+    default: 5
+  include_details:
+    type: boolean
+    required: false
+    description: 是否包含详细信息和图片URL
+    default: false

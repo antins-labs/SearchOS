@@ -1,0 +1,51 @@
+description: >-
+  抓取 Goldsmiths, University of London 课程信息(course finder 搜索 / 课程详情 / 院系信息),来源 www.gold.ac.uk。
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - search_courses        搜索课程,支持过滤与分页;用到 query/school/course_level/study_mode/academic_area/page
+        - get_course_details    获取单门课程详情(含 JSON-LD);需要 url
+        - get_filters           获取所有可用的过滤选项;无额外参数
+        - get_department_info   获取某个院系/学院信息;需要 slug
+  query:
+    type: string
+    required: false
+    description: search_courses 用:搜索关键词。
+  school:
+    type: string
+    required: false
+    description: search_courses 用:按学院过滤(精确值见 get_filters,如 'Computing')。
+  course_level:
+    type: string
+    required: false
+    description: >-
+      search_courses 用:按课程层次过滤。取值含 HTML <br /> 标签,需原样传入(见 get_filters),
+      如 'Masters<br />(MA, MSc, MMus, MRes, LLM)'。
+  study_mode:
+    type: string
+    required: false
+    description: search_courses 用:按修读方式过滤(如 'Full-time')。
+  academic_area:
+    type: string
+    required: false
+    description: search_courses 用:按学术领域过滤。
+  page:
+    type: integer
+    required: false
+    description: search_courses 用:页码,每页 10 条,小于 1 会被纠正为 1。
+    default: 1
+  start_rank:
+    type: integer
+    required: false
+    description: 内部分页字段(executor 由 page 推算的 Funnelback start_rank),正常无需手动传。
+  url:
+    type: string
+    required: false
+    description: get_course_details 用(必填):课程页完整 URL,须以 https://www.gold.ac.uk 开头。
+  slug:
+    type: string
+    required: false
+    description: get_department_info 用(必填):院系 URL slug,如 'media-communications'、'computing'。

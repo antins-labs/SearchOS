@@ -1,0 +1,37 @@
+description: >-
+  Extracts the complete national-level tourist resort directory (国家级旅游度假区名录) from www.sxhhy.com, including resort names, locations, batch numbers, and approval years.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_all    获取所有度假区完整列表
+        - get_by_batch    按批次获取度假区，需要batch参数
+        - get_by_year    按年份获取度假区，需要year参数
+        - get_by_location    按省份/地区获取度假区，需要location参数
+        - search    按名称关键词搜索，需要keyword参数
+        - statistics    获取统计数据（按批次、年份、地区分组统计）
+        - batches    获取所有批次列表及每批数量
+        - locations    获取所有省份/地区列表及每地区数量
+  
+  batch:
+    type: string
+    required: false
+    description: 批次名称，如"第一批"、"第七批"或"一"、"七"（get_by_batch使用）
+  
+  year:
+    type: string
+    required: false
+    description: 批准年份，如"2015"、"2024"（get_by_year使用）
+  
+  location:
+    type: string
+    required: false
+    description: 省份或地区名称（支持模糊匹配），如"浙江"、"广东省"（get_by_location使用）
+  
+  keyword:
+    type: string
+    required: false
+    description: 度假区名称搜索关键词，如"温泉"、"湖"、"雪山"（search使用）

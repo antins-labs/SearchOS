@@ -1,0 +1,70 @@
+description: >-
+  Extracts hardware technical specifications for all Google Pixel phones from support.google.com, with filtering by device name, year, generation, and comparison capabilities.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_all_specs        获取所有设备的完整规格，支持通过 device_name/year/generation/device_type/variant 过滤
+        - get_device_details   获取特定设备的详细规格，需提供 device_query 参数
+        - compare_devices      比较多个设备的规格，需提供 devices 数组参数
+        - get_spec_summary     获取所有设备的简要规格摘要
+        - list_available_devices  列出所有可用的 Pixel 设备列表
+  
+  device_query:
+    type: string
+    required: false
+    description: |
+      设备查询字符串，用于 get_device_details 功能。
+      支持模糊匹配，例如: "Pixel 9", "Pixel 8a", "Pixel Fold"
+  
+  device_name:
+    type: string
+    required: false
+    description: |
+      设备名称过滤，用于 get_all_specs 功能。
+      例如: "Pixel 9", "Pixel 8a", "Fold"
+  
+  year:
+    type: integer
+    required: false
+    description: |
+      发布年份过滤，用于 get_all_specs 功能。
+      例如: 2024, 2023, 2022
+  
+  generation:
+    type: integer
+    required: false
+    description: |
+      Pixel 代数过滤，用于 get_all_specs 功能。
+      例如: 10, 9, 8, 7, 6
+  
+  device_type:
+    type: string
+    required: false
+    description: |
+      设备类型过滤，用于 get_all_specs 功能。
+      可选值: phone, foldable, a_series
+  
+  variant:
+    type: string
+    required: false
+    description: |
+      变体类型过滤，用于 get_all_specs 功能。
+      可选值: "Pro XL", "Pro", "Standard", "a", "Fold"
+  
+  devices:
+    type: array
+    required: false
+    description: |
+      要比较的设备列表，用于 compare_devices 功能。
+      例如: ["Pixel 9 phones", "Pixel 8 phones"]
+  
+  return_all_matches:
+    type: boolean
+    required: false
+    description: |
+      是否返回所有匹配的设备，用于 get_device_details 功能。
+      默认只返回最佳匹配。

@@ -1,0 +1,40 @@
+description: >-
+  Access the European Directory of Marine Organisations (EDMO) at edmo.seadatanet.org.
+  Fetch organization details by ID, search by name/country, or list all organizations.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_organization   根据EDMO ID获取单个组织详情 (需要edmo_id参数)
+        - search_organizations   按名称和/或国家搜索组织 (需要name或country参数)
+        - list_organizations   列出所有组织 (可选existing_only参数)
+        - get_countries   获取国家名称与代码映射
+  
+  edmo_id:
+    type: string
+    required: false
+    description: EDMO记录ID，用于get_organization功能 (例如 "4830")
+  
+  name:
+    type: string
+    required: false
+    description: 组织名称搜索字符串，用于search_organizations功能 (支持部分匹配)
+  
+  country:
+    type: string
+    required: false
+    description: 国家名称或代码，用于search_organizations功能 (例如 "Switzerland" 或 "218")
+  
+  existing_only:
+    type: string
+    required: false
+    default: "true"
+    description: 是否只返回当前存在的组织 (用于search_organizations和list_organizations，默认true)
+  
+  limit:
+    type: string
+    required: false
+    description: 返回结果的最大数量 (用于search_organizations和list_organizations)

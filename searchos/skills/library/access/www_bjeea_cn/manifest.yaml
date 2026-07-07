@@ -1,0 +1,42 @@
+description: 'Access skill for the Beijing Education Examination Authority website (www.bjeea.cn).
+
+  Provides programmatic access to critical admission data including:
+
+  - College admission score tables (高考高招录取投档线)
+
+  - Score distribution statistics (分数分布统计)
+
+  - Examination announcements and notifications
+
+  - PDF documents with detailed statistics
+
+
+  The skill handles structured tabular data with thousands of rows (e.g., 1259 rows
+
+  for 2024 undergraduate admission scores), index pages with document links, and
+
+  general announcements.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - fetch_announcement   Fetch and parse a BJEEA announcement page, extracting\
+      \ tables, links, and metadata\n  - search_announcements   Search for admission-related announcements\
+      \ by category and year"
+  url:
+    type: string
+    required: false
+    description: URL of the announcement page
+  max_rows:
+    type: integer
+    required: false
+    description: 'Maximum number of table rows to return (default: all rows)'
+  category:
+    type: string
+    required: false
+    description: Announcement category (gkgz=高考高招, zkzz=中考中招)
+    default: gkgz
+  year:
+    type: integer
+    required: false
+    description: Filter by year (e.g., 2024, 2023)

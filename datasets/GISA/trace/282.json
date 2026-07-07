@@ -1,0 +1,148 @@
+{
+  "search": [
+    "billboard",
+    "billboard hot 100 dataset"
+  ],
+  "result": {
+    "billboard": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Latest News · Louis Tomlinson Teases Australian Tour Dates: 'It's Happening' · Olivia Dean Tops triple j's Hottest 100 of 2025 With 'Man I Need' · Donald Trump ...",
+            "title": "Billboard – Music Charts, News, Photos & Video",
+            "url": "https://www.billboard.com/"
+          },
+          {
+            "snippet": "Billboard is the world's most influential music media brand, with an unmatched authority among artists, fans and the industry.Read more",
+            "title": "Billboard",
+            "url": "https://www.linkedin.com/company/billboard"
+          },
+          {
+            "snippet": "Billboards present large advertisements to passing pedestrians and drivers. Typically brands use billboards to build their brands or to push for their new ...Read more",
+            "title": "Billboard",
+            "url": "https://en.wikipedia.org/wiki/Billboard"
+          },
+          {
+            "snippet": "The Billboard Music Awards® (BBMAs) honors the hottest names in music today.",
+            "title": "Billboard Music Awards",
+            "url": "https://www.billboardmusicawards.com/"
+          },
+          {
+            "snippet": "At five-plus minutes, “Aperture” slowly builds and then fully delivers, a dazzlingly satisfying way to kick off a highly anticipated new era.⁠ ⁠ ...Read more",
+            "title": "billboard • Instagram photos and videos",
+            "url": "https://www.instagram.com/billboard/?hl=en"
+          },
+          {
+            "snippet": "Casey's grand plan is to host a billboard sitting contest, where four lucky contestants have the opportunity to win nine-sixty thousand dollars and a mobile ...Read more",
+            "title": "Billboard (2019)",
+            "url": "https://www.imdb.com/title/tt1713991/"
+          }
+        ]
+      }
+    ],
+    "billboard hot 100 dataset": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "A curated, long-horizon collection of major Billboard music charts — from their beginnings (as far back as publicly accessible) up to the present. Data is ...Read more",
+            "title": "Billboard Hot 100 & more",
+            "url": "https://www.kaggle.com/datasets/ludmin/billboard"
+          },
+          {
+            "snippet": "This project archives Billboard Hot 100 and Billboard 200 charts data. If you are here looking for a current archive, here are the files of interest:.Read more",
+            "title": "utdata/rwd-billboard-data",
+            "url": "https://github.com/utdata/rwd-billboard-data"
+          },
+          {
+            "snippet": "Billboard Hot 100 and Top 200 Chart Rankings by Year and Week. Discover detailed information about Singles and Albums, along with Artist Discographies on ...Read more",
+            "title": "Billboard Database",
+            "url": "https://elpee.jp/"
+          },
+          {
+            "snippet": "In this project, we aimed to create a dataset that brings together information from three different sources: Billboard Hot-100 charts, Genius and Spotify.Read more",
+            "title": "Billboard Hot-100[2000-2023] data with features",
+            "url": "https://www.kaggle.com/datasets/suparnabiswas/billboard-hot-1002000-2023-data-with-features"
+          },
+          {
+            "snippet": "by M Hamilton · 2024 · Cited by 3 — We introduce the Billboard Melodic Music Dataset (BiMMuDa), which contains the lead vocal melodies of the top five songs of each year from 1950 to 2022.Read more",
+            "title": "The Billboard Melodic Music Dataset (BiMMuDa)",
+            "url": "https://transactions.ismir.net/articles/10.5334/tismir.168"
+          },
+          {
+            "snippet": "Using Python, the dataset was broken into weekly chart instances, which would then be used for analytics. Each Track/Artist was then search via ...Read more",
+            "title": "Dataset analyzing trends in billboard hot 100 charts",
+            "url": "https://www.reddit.com/r/musichoarder/comments/1q6x9qf/dataset_analyzing_trends_in_billboard_hot_100/"
+          },
+          {
+            "snippet": "A data set contaning 56 playlists from Spotify that were used to get the songs for the feature extraction of Billboard Hot 100 songs from 1960 ...Read more",
+            "title": "Tidyverse Case Study: Exploring the Billboard Charts",
+            "url": "https://www.njtierney.com/post/2017/11/07/tidyverse-billboard/"
+          },
+          {
+            "snippet": "Historic Billboard Hot 100 Data Crawler. Last Crawl charts. JSON files for every Billboard Hot 100 chart in history, updated daily.Read more",
+            "title": "mhollingshead/billboard-hot-100",
+            "url": "https://github.com/mhollingshead/billboard-hot-100"
+          },
+          {
+            "snippet": "... Hot 100 from kaggle. Using python and the Deezer API, I created a dataset of the most recent 8000 songs on the Billboard Hot 100, with each ...Read more",
+            "title": "Billboard Hot 100 Genre Analysis: What genres are most ...",
+            "url": "https://medium.com/inst414-data-science-tech/billboard-hot-100-genre-analysis-what-genres-are-most-successful-and-when-67a91b228d19"
+          },
+          {
+            "snippet": "Download scientific diagram | Hot 100 billboard songs dataset analysis flowchart from publication: The power of visual analytics and language processing to ...",
+            "title": "Hot 100 billboard songs dataset analysis flowchart",
+            "url": "https://www.researchgate.net/figure/Hot-100-billboard-songs-dataset-analysis-flowchart_fig1_355692733"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>billboard hot 100 dataset</search>",
+      "to": "https://github.com/utdata/rwd-billboard-data"
+    },
+    {
+      "from": "<search>billboard hot 100 dataset</search>",
+      "to": "https://github.com/mhollingshead/billboard-hot-100"
+    },
+    {
+      "from": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-02.json",
+      "to": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-09.json"
+    },
+    {
+      "from": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-09.json",
+      "to": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-16.json"
+    },
+    {
+      "from": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-09.json",
+      "to": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-16.json"
+    },
+    {
+      "from": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-16.json",
+      "to": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-23.json"
+    },
+    {
+      "from": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-16.json",
+      "to": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-23.json"
+    },
+    {
+      "from": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-16.json",
+      "to": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-23.json"
+    },
+    {
+      "from": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-23.json",
+      "to": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-30.json"
+    },
+    {
+      "from": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-23.json",
+      "to": "https://raw.githubusercontent.com/mhollingshead/billboard-hot-100/main/date/2025-08-30.json"
+    },
+    {
+      "from": "https://www.google.com/search?q=billboard+hot+100+chart+data&sca_esv=7323de7827af4722&biw=1536&bih=825&ei=2XVPadW3GNLG0-kP78vbqQ0&ved=0ahUKEwiViPK_i92RAxVS4zQHHe_lNtU4HhDh1QMIEQ&uact=5&oq=billboard+hot+100+chart+data&gs_lp=Egxnd3Mtd2l6LXNlcnAiHGJpbGxib2FyZCBob3QgMTAwIGNoYXJ0IGRhdGEyBxAAGIAEGBMyBRAAGO8FMgUQABjvBTIFEAAY7wUyBRAAGO8FMgUQABjvBUjiG1C8BFjaGnAEeAGQAQCYAaQBoAGQCqoBBDAuMTC4AQPIAQD4AQGYAg6gArwKwgIKEAAYsAMY1gQYR8ICBRAAGIAEwgIEEAAYHsICChAAGIAEGEMYigXCAggQABgTGAgYHsICCRAAGIAEGBMYDZgDAIgGAZAGCpIHBDQuMTCgB8ImsgcEMC4xMLgHsArCBwYwLjEzLjHIBx-ACAA&sclient=gws-wiz-serp",
+      "to": "https://www.billboard.com/charts/hot-100/"
+    }
+  ]
+}

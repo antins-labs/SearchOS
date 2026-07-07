@@ -1,0 +1,38 @@
+description: >-
+  Extracts detailed attraction information (name, address, rating, hours, prices, reviews) from Trip.com travel guide pages.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_attraction_by_id   Fetch attraction by POI ID; requires poi_id
+        - get_attraction_by_url  Fetch attraction by Trip.com URL; requires url
+        - search_attractions     Search attractions (not available - returns error)
+  poi_id:
+    type: integer
+    required: false
+    description: The POI ID of the attraction (numeric ID in Trip.com URLs). Used by get_attraction_by_id.
+  url:
+    type: string
+    required: false
+    description: Full Trip.com attraction URL. Used by get_attraction_by_url.
+  locale:
+    type: string
+    required: false
+    description: Locale for page content (e.g., "en-XX", "my-MY", "zh-CN"). Default is "en-XX".
+    default: "en-XX"
+  currency:
+    type: string
+    required: false
+    description: Currency code for prices (e.g., "USD", "MYR", "CNY"). Default is "USD".
+    default: "USD"
+  query:
+    type: string
+    required: false
+    description: Search query for attractions (not supported by Trip.com API).
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of search results to return. Default is 10.
+    default: 10

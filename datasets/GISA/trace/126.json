@@ -1,0 +1,94 @@
+{
+  "search": [
+    "Starlink missions launched from Vandenberg's SLC-4E"
+  ],
+  "result": {
+    "Starlink missions launched from Vandenberg's SLC-4E": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "",
+            "title": "Falcon 9 - SpaceX",
+            "url": "https://www.spacex.com/vehicles/falcon-9/"
+          },
+          {
+            "snippet": "",
+            "title": "Starlink Mission - SpaceX",
+            "url": "https://www.spacex.com/launches/sl-15-13#:~:text=On%20Wednesday%2C%20December%2017%20at,Space%20Force%20Base%20in%20California."
+          },
+          {
+            "snippet": "Vandenberg, SLC-4E, 570 km (350 mi), 70.0°, 51, 51, Success, First launch of operational Starlink satellites from Vandenberg Space Force Base, and first launch ...Read more",
+            "title": "List of Starlink and Starshield launches",
+            "url": "https://en.wikipedia.org/wiki/List_of_Starlink_and_Starshield_launches"
+          },
+          {
+            "snippet": "On Thursday, November 6 at 1:13 p.m. PT, Falcon 9 launched 28 Starlink satellites to low-Earth orbit from Space Launch Complex 4 East ...Read more",
+            "title": "SpaceX - Starlink Mission",
+            "url": "https://www.spacex.com/launches/sl-11-14"
+          },
+          {
+            "snippet": "The launch will take place from Space Launch Complex 4E at the Vandenberg Space Force Base in Santa Barbara County. Like most launches from ...Read more",
+            "title": "SpaceX to deploy NRO satellites in California launch. ...",
+            "url": "https://www.vcstar.com/story/news/local/california/2026/01/15/spacex-california-rocket-launch-today-what-time/88155660007/"
+          },
+          {
+            "snippet": "The Starlink 11-25 mission launched aboard a Falcon 9 rocket from Space Launch Complex 4 East, delivering 28 more broadband internet satellites ...Read more",
+            "title": "SpaceX launches 28 Starlink satellites on Falcon 9 rocket ...",
+            "url": "https://spaceflightnow.com/2025/12/04/live-coverage-spacex-to-launch-28-starlink-satellites-on-falcon-9-rocket-from-vandengerg-sfb/"
+          },
+          {
+            "snippet": "Discover the upcoming Vandenberg SFB rocket launch schedule, featuring today's and upcoming launches. Our page offers detailed insights into each mission.Read more",
+            "title": "Vandenberg SFB Rocket Launch Schedule: Today & ...",
+            "url": "https://www.spacelaunchschedule.com/category/vandenberg-sfb/"
+          },
+          {
+            "snippet": "On Monday, June 16, SpaceX successfully launched 26 Starlink V2 Mini satellites into low Earth orbit. The launch was conducted from Space Launch ...Read more",
+            "title": "SpaceX Launches 26 Starlink Satellites from Vandenberg",
+            "url": "https://hammermindset.com/spacex-launches-26-starlink-satellites-from-vandenberg/"
+          },
+          {
+            "snippet": "A SpaceX Falcon 9 rocket launched 19 Starlink satellites from Space Launch Complex 4 East (SLC-4E) at Vandenberg Space Force Base in California ...Read more",
+            "title": "Blastoff! SpaceX launches 19 Starlink satelites from foggy ...",
+            "url": "https://videos.space.com/m/Qj8S2Lf5/blastoff-spacex-launches-19-starlink-satelites-from-foggy-vandenberg"
+          },
+          {
+            "snippet": "SpaceX is targeting Monday, January 20 for a Falcon 9 launch of 27 Starlink satellites to low-Earth orbit from Space Launch Complex 4 East (SLC- ...Read more",
+            "title": "Vandenberg Space Force Base",
+            "url": "https://www.facebook.com/SLD30/posts/vandenberg-space-force-base-guardians-and-airmen-are-scheduled-to-support-the-la/1292841179555508/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>Starlink missions launched from Vandenberg's SLC-4E</search>",
+      "to": "https://www.spacex.com/launches/sl-15-13#:~:text=On%20Wednesday%2C%20December%2017%20at,Space%20Force%20Base%20in%20California."
+    },
+    {
+      "from": "<search>Starlink missions launched from Vandenberg's SLC-4E</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_Starlink_and_Starshield_launches"
+    },
+    {
+      "from": "https://www.spacex.com/launches/sl-15-13",
+      "to": "https://www.spacex.com/launches"
+    },
+    {
+      "from": "https://www.spacex.com/launches",
+      "to": "https://starlink.com/"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_Starlink_and_Starshield_launches",
+      "to": "https://en.wikipedia.org/wiki/List_of_Starlink_and_Starshield_launches#Starlink_launches_2"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_Starlink_and_Starshield_launches#Starlink_launches_2",
+      "to": "https://en.wikipedia.org/wiki/List_of_Starlink_and_Starshield_launches#cite_note-gsp3-17"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_Starlink_and_Starshield_launches#cite_note-gsp3-17",
+      "to": "https://space.skyrocket.de/doc_sdat/microsat-2.htm"
+    }
+  ]
+}

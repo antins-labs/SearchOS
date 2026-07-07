@@ -1,0 +1,82 @@
+{
+  "search": [
+    "Beijing Yanqing nature reserve"
+  ],
+  "result": {
+    "Beijing Yanqing nature reserve": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "In July 1997, the Beijing Wild Duck Lake Wetland was established, and it was a municipal-level nature reserve in December 2000. The total area of the reserve is ...Read more",
+            "title": "Yanqing, Beijing",
+            "url": "https://en.wikipedia.org/wiki/Yanqing,_Beijing"
+          },
+          {
+            "snippet": "Haituo Valley Is Almost 3 Hours Drive From Beijing, further Ahead Of Great Wall Of Badaling. One Can Expect Clean Air, Quite Surroundings and Nature. In Love ...Read more",
+            "title": "Yanqing Haituo Mountain (2026) - All You Need to Know ...",
+            "url": "https://en.tripadvisor.com.hk/Attraction_Review-g294212-d1979563-Reviews-Yanqing_Haituo_Mountain-Beijing.html"
+          },
+          {
+            "snippet": "Yeya Lake National Wetland Park Nature Reserve is an important transit station on the East Asian-Australasian Flyway and a significant wintering site for ...Read more",
+            "title": "Experience nature in Yanqing - Routes",
+            "url": "https://r.visitbeijing.com.cn/line/76"
+          },
+          {
+            "snippet": "Natural reserve administered by forestry. 1. Sungshan National Nature Reserve. yanqing county. 4660. State Departmen [86]75. 1986.7. Chinese Leopard, Orchids ...Read more",
+            "title": "Nature reserve-Resources-BEIJING MUNICIPAL BUREAU ...",
+            "url": "https://yllhj.beijing.gov.cn/English/Resources/202007/t20200714_1948382.html"
+          },
+          {
+            "snippet": "The park is divided into five scenic areas: Fossil Wood Area, Dropping-Water Pot Scenic Area (Dishuihu Scenic Area), Wulong Gorge, Yanshan Heavenly Pool and ...Read more",
+            "title": "Beijing Yanqing District Travel Guide: Facts, Attractions, Tips",
+            "url": "https://www.travelchinaguide.com/cityguides/beijing/yanqing-county/"
+          },
+          {
+            "snippet": "The Site is a near-natural wetland covering some 72% of the Yeya Lake Nature Reserve. The Site features marshes which are representative ...Read more",
+            "title": "Beijing Yeya Lake Wetlands",
+            "url": "https://rsis.ramsar.org/ris/2502"
+          },
+          {
+            "snippet": "The \"Exploration of Geological Wonders\" activity concluded successfully. 24 students explored science and ecology in the Yanqing UNESCO Global ...Read more",
+            "title": "UNESCO Empowers Youth through Nature Education",
+            "url": "https://www.unesco.org/en/articles/unesco-empowers-youth-through-nature-education-yanqing-unesco-global-geopark-witnessed-commitment"
+          },
+          {
+            "snippet": "The Song Mountain Nature Reserve is also rich in biodiversity with 713 known plant species, 29 species of mammals, 143 species of birds, 15 species of reptile, ...Read more",
+            "title": "Songshan Natural Reserve in Yanqing - Beijing Excursions",
+            "url": "https://www.tour-beijing.com/excursion_guide/songshan_natural_reserve.php"
+          },
+          {
+            "snippet": "Chinese organizers say the National Alpine Ski Center in Yanqing, about 90 kilometers (56 miles) from central Beijing, will be 100% powered by ...Read more",
+            "title": "China claims to be holding the greenest Olympics. ... - CNN",
+            "url": "https://www.cnn.com/2022/01/28/china/china-green-olympics-alpine-ski-nature-reserve-intl-hnk-dst"
+          },
+          {
+            "snippet": "The hundred-acre maple forest in Yanqing is so beautiful! Beijing's autumn is picturesque. I made plans with a friend to visit a homestay in Yanqing, and on ...Read more",
+            "title": "Yanqing District Travel Guide 2026 - Trip.com",
+            "url": "https://hk.trip.com/travel-guide/destination/yanqing-district-770?curr=MYR&locale=en-HK"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>Beijing Yanqing nature reserve</search>",
+      "to": "https://yllhj.beijing.gov.cn/English/Resources/202007/t20200714_1948382.html"
+    },
+    {
+      "from": "<search>Beijing Yanqing nature reserve</search>",
+      "to": "https://yllhj.beijing.gov.cn/English/Resources/202007/t20200714_1948382.html"
+    },
+    {
+      "from": "https://yllhj.beijing.gov.cn/English/Resources/202007/t20200714_1948382.html",
+      "to": "https://yllhj.beijing.gov.cn/English/Resources/"
+    },
+    {
+      "from": "https://yllhj.beijing.gov.cn/English/Resources/",
+      "to": "https://yllhj.beijing.gov.cn/English/Resources/202107/t20210720_2445110.html"
+    }
+  ]
+}

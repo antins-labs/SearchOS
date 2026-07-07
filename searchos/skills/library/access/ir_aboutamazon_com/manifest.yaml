@@ -1,0 +1,34 @@
+description: Access Amazon investor relations data including SEC filings, press releases, events, and stock quotes from ir.aboutamazon.com
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to call. Available values:
+        - get_sec_filings: Get SEC filing documents; uses year, page_size, page_number
+        - get_sec_filing_years: Get list of available years for SEC filings
+        - get_press_releases: Get press releases; uses year, page_size, page_number, tag
+        - get_events: Get investor events and presentations; uses year, page_size, page_number
+        - get_event_years: Get list of available years for events
+        - get_stock_quote: Get current AMZN stock price and trading data
+  
+  year:
+    type: integer
+    required: false
+    description: Year filter for filings, press releases, or events; -1 means all years (used by get_sec_filings, get_press_releases, get_events)
+  
+  page_size:
+    type: integer
+    required: false
+    description: Number of results to return; -1 means all results (used by get_sec_filings, get_press_releases, get_events)
+  
+  page_number:
+    type: integer
+    required: false
+    description: Page number for pagination, 0-indexed (used by get_sec_filings, get_press_releases, get_events)
+  
+  tag:
+    type: string
+    required: false
+    description: Tag filter for press releases, default is "home" (used by get_press_releases)

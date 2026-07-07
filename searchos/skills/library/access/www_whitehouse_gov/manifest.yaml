@@ -1,0 +1,37 @@
+description: >-
+  Fetches and downloads U.S. budget historical tables (Excel/.xlsx) from White House OMB, including metadata, search, and section-based browsing.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_tables         List all available historical tables with full metadata
+        - get_table_info      Get detailed info for a specific table (requires table_number)
+        - download_table      Download Excel file for a table (requires table_number; optional return_content)
+        - search_tables       Search tables by keyword in description (requires query)
+        - get_tables_by_section  Get all tables in a section (requires section)
+        - get_sections        Get all section categories with topics and table counts
+        - get_intro_pdf       Get introduction PDF metadata (optional return_content)
+
+  table_number:
+    type: string
+    required: false
+    description: Table number to fetch or download (e.g., "1.1", "7.1", "10.1"). Used by get_table_info and download_table.
+
+  query:
+    type: string
+    required: false
+    description: Search query string for finding tables by keyword (e.g., "debt", "receipts", "agency"). Used by search_tables.
+
+  section:
+    type: string
+    required: false
+    description: Section number to filter tables (e.g., "01", "1", "07"). Used by get_tables_by_section.
+
+  return_content:
+    type: boolean
+    required: false
+    default: false
+    description: If true, return base64-encoded file content in the response. Used by download_table and get_intro_pdf.

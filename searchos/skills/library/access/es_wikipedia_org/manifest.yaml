@@ -1,0 +1,29 @@
+description: >-
+  Extract structured infobox data and article content from Spanish Wikipedia (es.wikipedia.org)
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Función a ejecutar. Valores disponibles:
+        - get_article   Obtiene artículo completo con datos de infobox estructurados
+        - search        Busca artículos por palabras clave
+  title:
+    type: string
+    required: false
+    description: Título del artículo de Wikipedia (usar con get_article). Acepta espacios o guiones bajos.
+  query:
+    type: string
+    required: false
+    description: Consulta de búsqueda (usar con search).
+  limit:
+    type: integer
+    required: false
+    default: 10
+    description: Número máximo de resultados de búsqueda (usar con search).
+  include_content:
+    type: boolean
+    required: false
+    default: true
+    description: Si incluir el texto introductorio del artículo (usar con get_article).

@@ -1,0 +1,25 @@
+description: >-
+  Fetches tourist attraction details (hours, address, fees, phone, description) from
+  english.visitkorea.or.kr using vconts_id content IDs.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to call. Available values:
+        - fetch_attraction   Fetch detailed infobox data for a tourist attraction by vconts_id
+  
+  vconts_id:
+    type: string
+    required: false
+    description: |
+      The content ID from visitkorea.or.kr URLs (e.g., '78636' from
+      /svc/contents/contentsView.do?vcontsId=78636). Required for fetch_attraction.
+  
+  url_type:
+    type: string
+    required: false
+    description: |
+      URL pattern type: 'contents' for contentView pages, 'locIntrdn' for
+      rgnContentsView pages, or 'auto' (default) to try both patterns.

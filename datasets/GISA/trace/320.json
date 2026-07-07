@@ -1,0 +1,94 @@
+{
+  "search": [
+    "UN General Assembly Human Rights Roll Call Votes 2020-2024"
+  ],
+  "result": {
+    "UN General Assembly Human Rights Roll Call Votes 2020-2024": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "There were 95 roll call votes in the UN General Assembly in 2024, higher than the 88 roll call votes in 2023 and higher than the 89 in 2022.Read more",
+            "title": "Voting Practices in the United Nations for 2024",
+            "url": "https://www.state.gov/wp-content/uploads/2025/07/Voting-Practices-in-the-United-Nations-for-2024.pdf"
+          },
+          {
+            "snippet": "Search for latest General Assembly voting records · 80th Session (2025-2026) : General Assembly resolutions tables · 11th Emergency Special Session : Ukraine.Read more",
+            "title": "UN General Assembly Resolutions Tables: 80th Session ...",
+            "url": "https://research.un.org/en/docs/ga/quick/regular/"
+          },
+          {
+            "snippet": "Database of UN country-specific resolutions adopted by the General Assembly, Human Rights Council, Commission on the Status of Women, World Health Organization ...Read more",
+            "title": "Resolution Database",
+            "url": "https://unwatch.org/database/resolution-database/"
+          },
+          {
+            "snippet": "On 9 October 2024, the General Assembly elected the following 18 members for the term 2025-2027: Benin, Bolivia (Plurinational State of), ...Read more",
+            "title": "Election of the Human Rights Council: 9 October 2024",
+            "url": "https://www.un.org/en/ga/79/meetings/elections/hrc.shtml"
+          },
+          {
+            "snippet": "The General Assembly elected 14 States to seat at the United Nations Human Rights ... Most votes have only involved one (2010, 2012, 2020, 2024) ...Read more",
+            "title": "UN Human Rights Council membership reshuffled in ...",
+            "url": "https://ishr.ch/latest-updates/un-human-rights-council-membership-reshuffled-in-wholly-uncompetitive-election/"
+          },
+          {
+            "snippet": "The Human Rights Resolution Portal provides information on, and access to, all resolutions ever passed by the Human Rights Council.Read more",
+            "title": "UN Human Rights Resolutions Portal",
+            "url": "https://www.universal-rights.org/human-rights/human-rights-resolutions-portal/"
+          },
+          {
+            "snippet": "The UN General Assembly on Wednesday elected 18 members to the 47-member Human Rights Council for the 2025-2027 term.",
+            "title": "UN General Assembly elects 18 members to Human Rights ...",
+            "url": "https://www.chinadailyhk.com/hk/article/594998"
+          },
+          {
+            "snippet": "The UN General Assembly adopted a resolution on Thursday calling for Russia to be suspended from the Human Rights Council.Read more",
+            "title": "UN General Assembly votes to suspend Russia from the ...",
+            "url": "https://unric.org/en/un-general-assembly-votes-to-suspend-russia-from-the-human-rights-council/"
+          },
+          {
+            "snippet": "The resolution was adopted with 80 YES votes, 27 NO votes, and 68 Abstentions – an improvement on both the Third Committee vote in November.Read more",
+            "title": "UN General Assembly · 79th Session: Plenary Vote on Iran ...",
+            "url": "https://impactiran.org/2024/12/17/unga79-plenary-vote-on-iran-resolution/"
+          },
+          {
+            "snippet": "New York Office ; A/79/165. 69 (b). International Independent Expert Mechanism to Advance Racial Justice and Equality in Law Enforcement: Note by the Secretariat.Read more",
+            "title": "Reports to General Assembly - 79th Session",
+            "url": "https://www.ohchr.org/en/about-us/where-we-work/headquarters/new-york/reports-to-ga-session-79"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>UN General Assembly Human Rights Roll Call Votes 2020-2024</search>",
+      "to": "https://www.state.gov/wp-content/uploads/2025/07/Voting-Practices-in-the-United-Nations-for-2024.pdf"
+    },
+    {
+      "from": "<search>UN General Assembly Human Rights Roll Call Votes 2020-2024</search>",
+      "to": "https://research.un.org/en/docs/ga/quick/regular/80"
+    },
+    {
+      "from": "https://research.un.org/en/docs/ga/quick/regular/80",
+      "to": "https://research.un.org/en/docs/ga/quick/regular/79"
+    },
+    {
+      "from": "https://research.un.org/en/docs/ga/quick/regular/79",
+      "to": "https://research.un.org/en/docs/ga/quick/regular/78"
+    },
+    {
+      "from": "https://research.un.org/en/docs/ga/quick/regular/78",
+      "to": "https://research.un.org/en/docs/ga/quick/regular/77"
+    },
+    {
+      "from": "https://research.un.org/en/docs/ga/quick/regular/77",
+      "to": "https://research.un.org/en/docs/ga/quick/regular/76"
+    },
+    {
+      "from": "https://research.un.org/en/docs/ga/quick/regular/76",
+      "to": "https://research.un.org/en/docs/ga/quick/regular/75"
+    }
+  ]
+}

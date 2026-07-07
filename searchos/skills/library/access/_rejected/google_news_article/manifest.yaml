@@ -1,0 +1,21 @@
+name: google_news_article
+invocation: agent_called
+description: "Search news.google.com \u2014 google_news_article. RSS XML feed; requires\
+  \ dynamic 'q' query parameter; structured XML parsing required."
+params_schema:
+  query:
+    type: string
+    required: true
+    description: The search query to find news articles.
+  hl:
+    type: string
+    default: en-US
+    description: The language/locale code for the search results (e.g., en-US).
+category: news
+entity_type: google_news_article
+fields:
+- title
+- url
+- snippet
+- published
+- source

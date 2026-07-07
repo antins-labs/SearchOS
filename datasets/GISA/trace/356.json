@@ -1,0 +1,108 @@
+{
+  "search": [
+    "Independent Games Festival (IGF) Awards"
+  ],
+  "result": {
+    "Independent Games Festival (IGF) Awards": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "The Independent Games Festival (IGF) was established in 1998 to encourage innovation in game development and to recognize the best independent game ...",
+            "title": "Independent Games Festival",
+            "url": "https://igf.com/"
+          },
+          {
+            "snippet": "The IGF competition awards a total of $50,000 in prizes to independent developers in Main Competition and Student Competition categories and held around the ...Read more",
+            "title": "Independent Games Festival",
+            "url": "https://en.wikipedia.org/wiki/Independent_Games_Festival"
+          },
+          {
+            "snippet": "The Independent Games Festival (IGF) Awards is the biggest annual celebration of indie talent – encouraging innovation within game development as a medium.Read more",
+            "title": "Independent Games Festival (IGF)",
+            "url": "https://gdconf.com/igf/"
+          },
+          {
+            "snippet": "Key awards include the Seumas McNally Grand Prize ($10,000), which honors the overall best independent game, along with six category-specific prizes: Excellence ...Read more",
+            "title": "Independent Games Festival",
+            "url": "https://grokipedia.com/page/Independent_Games_Festival"
+          },
+          {
+            "snippet": "The GDC Festival of Gaming hosts back-to-back awards that define creative excellence: the Independent Games Festival (IGF) Awards on Wednesday night and the ...Read more",
+            "title": "Awards Overview",
+            "url": "https://gdconf.com/awards-overview/"
+          },
+          {
+            "snippet": "Indie Vanguard · Class of 2025 · Maddy Thorson · The Mohammad Fahmi Storyteller Award · Game Devs of Color · Industry Impact Award · Community Picks · Presenters.Read more",
+            "title": "The Indie Game Awards: 2025",
+            "url": "https://www.indiegameawards.gg/"
+          },
+          {
+            "snippet": "Independent Game Festival Awarded Games · IGF 2024 · Seumas McNally Grand Prize 2023~now · Best Student Game 2025~now · Popular reviews · Lists.Read more",
+            "title": "Independent Game Festival Awarded Games",
+            "url": "https://store.steampowered.com/curator/44791597-Independent-Game-Festival-Awarded-Games/?appid=1094420"
+          },
+          {
+            "snippet": "The organizers of the 2026 D.I.C.E. Summit have announced their 29th annual awards finalists. See if your favorites are among the nominees! # ...Read more",
+            "title": "The Independent Games Festival (IGF) organizers, to be ...",
+            "url": "https://www.facebook.com/EventsForGamers/posts/the-independent-games-festival-igf-organizers-to-be-held-at-the-gdc-festival-of-/1442750967859553/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>Independent Games Festival (IGF) Awards</search>",
+      "to": "https://en.wikipedia.org/wiki/Independent_Games_Festival"
+    },
+    {
+      "from": "<search>Independent Games Festival (IGF) Awards</search>",
+      "to": "https://igf.com/"
+    },
+    {
+      "from": "https://igf.com/",
+      "to": "https://igf.com/archive-2025/"
+    },
+    {
+      "from": "https://igf.com/",
+      "to": "https://igf.com/archive-2025/"
+    },
+    {
+      "from": "https://igf.com/archive-2025/",
+      "to": "https://igf.com/archive-2021/"
+    },
+    {
+      "from": "https://igf.com/archive-2025/",
+      "to": "https://igf.com/archive-2021/"
+    },
+    {
+      "from": "https://igf.com/archive-2021/",
+      "to": "https://igf.com/archive-2022/"
+    },
+    {
+      "from": "https://igf.com/archive-2022/",
+      "to": "https://igf.com/archive-2023/"
+    },
+    {
+      "from": "https://igf.com/archive-2023/",
+      "to": "https://igf.com/archive-2024/"
+    },
+    {
+      "from": "https://igf.com/archive-2023/",
+      "to": "https://igf.com/archive-2024/"
+    },
+    {
+      "from": "https://igf.com/archive-2024/",
+      "to": "https://igf.com/archive-2025/"
+    },
+    {
+      "from": "https://igf.com/archive-2024/",
+      "to": "https://igf.com/archive-2025/"
+    },
+    {
+      "from": "https://igf.com/archive-2024/",
+      "to": "https://igf.com/archive-2025/"
+    }
+  ]
+}

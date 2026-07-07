@@ -1,0 +1,60 @@
+{
+  "search": [
+    "superheavy elements"
+  ],
+  "result": {
+    "superheavy elements": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "The superheavy elements are those beyond the actinides in the periodic table; the last actinide is lawrencium (atomic number 103). By definition, superheavy ...Read more",
+            "title": "Superheavy element",
+            "url": "https://en.wikipedia.org/wiki/Superheavy_element"
+          },
+          {
+            "snippet": "The island of stability is a predicted set of isotopes of superheavy elements that may have considerably longer half-lives than known isotopes of these ...Read more",
+            "title": "Island of stability",
+            "url": "https://en.wikipedia.org/wiki/Island_of_stability"
+          },
+          {
+            "snippet": "These are the superheavy elements: after rutherfordium come dubnium, seaborgium, bohrium, and other oddities, all the way up to the heaviest ...Read more",
+            "title": "Superheavy Elements Are Breaking the Periodic Table",
+            "url": "https://www.scientificamerican.com/article/superheavy-elements-are-breaking-the-periodic-table/"
+          },
+          {
+            "snippet": "Superheavy elements are elements that have 104 or more protons in each atom. (They have atomic numbers of 104 and above and are also known as the ...Read more",
+            "title": "DOE Explains...Superheavy Elements",
+            "url": "https://www.energy.gov/science/doe-explainssuperheavy-elements"
+          },
+          {
+            "snippet": "Superheavy elements are those elements with a large number of protons in their nucleus. Elements with more than 92 protons are unstable; they decay to lighter ...Read more",
+            "title": "Superheavy elements - Latest research and news",
+            "url": "https://www.nature.com/subjects/superheavy-elements"
+          },
+          {
+            "snippet": "Elements beyond atomic number 104 are referred to as superheavy elements. Although superheavy elements have not been found in nature, they can be produced by ...Read more",
+            "title": "Superheavy Element Discovery | Glenn T. Seaborg Institute",
+            "url": "https://seaborg.llnl.gov/research/superheavy-element-discovery"
+          },
+          {
+            "snippet": "By 1955, these elements were called superheavy elements. The first predictions on properties of undiscovered superheavy elements were made in 1957, when ...Read more",
+            "title": "Extended periodic table",
+            "url": "https://en.wikipedia.org/wiki/Extended_periodic_table"
+          },
+          {
+            "snippet": "The heaviest element on earth is uranium, which has the atomic number 92 in the periodic table. Although superheavy elements up to number 118 have been ...Read more",
+            "title": "Superheavy, and yet stable",
+            "url": "https://www.mpg.de/6311778/shell-effect_superheavy-atomic-nuclei"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>superheavy elements</search>",
+      "to": "https://en.wikipedia.org/wiki/Superheavy_element"
+    }
+  ]
+}

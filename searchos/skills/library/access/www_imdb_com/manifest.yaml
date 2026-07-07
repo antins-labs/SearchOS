@@ -1,0 +1,22 @@
+description: Extract detailed awards and nominations data for IMDb names (people) and titles (movies/TV
+  shows). Bypasses AWS WAF anti-bot protection to access structured awards tables including event names,
+  categories, years, wins/nominations, and associated works.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_name_awards   Get awards and nominations for an IMDb name (person/actor/director/etc.)\n\
+      \  - get_title_awards   Get awards and nominations for an IMDb title (movie/TV show)\n  - get_awards\
+      \   Get awards for an IMDb entity (auto-detects name/title from ID format)"
+  name_id:
+    type: string
+    required: false
+    description: IMDb name ID (e.g., 'nm0000149' for Jodie Foster)
+  title_id:
+    type: string
+    required: false
+    description: IMDb title ID (e.g., 'tt0944835' for Salt)
+  imdb_id:
+    type: string
+    required: false
+    description: IMDb ID (nm... for names, tt... for titles)

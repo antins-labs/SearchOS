@@ -1,0 +1,28 @@
+description: >-
+  Fetches and parses historical volleyball tournament data from todor66.com including
+  match results, standings, rankings, and team rosters.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_tournament   完整解析锦标赛页面，返回比赛结果、排名、分组和阵容
+        - parse_html       解析提供的HTML内容，不发起网络请求
+        - get_finals       只获取决赛阶段比赛结果
+        - get_rankings     只获取最终排名
+        - get_groups       只获取小组赛排名和比赛结果
+
+  url:
+    type: string
+    required: false
+    description: >-
+      锦标赛页面的完整URL (例如: http://www.todor66.com/volleyball/Other/Montreux_2005.html)。
+      get_tournament、get_finals、get_rankings、get_groups 功能需要此参数。
+
+  html:
+    type: string
+    required: false
+    description: >-
+      要解析的原始HTML内容。仅在 parse_html 功能中使用，不需要发起网络请求。

@@ -1,0 +1,15 @@
+{
+  "host": "api.coingecko.com",
+  "invocation": "agent_called",
+  "probe_urls": [
+    "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd",
+    "https://api.coingecko.com/api/v3/coins/bitcoin"
+  ],
+  "heldout_url": "https://api.coingecko.com/api/v3/coins/bitcoin",
+  "declared_fields": [
+    "json_response",
+    "coin_id",
+    "price",
+    "vs_currency"
+  ]
+}

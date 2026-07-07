@@ -1,0 +1,20 @@
+description: >-
+  Fetches job recruitment announcements (招聘公告) from Tianfu Elite Network (天府菁英网, www.cdtfhr.com) via their public API.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_announcements   列出招聘公告列表，支持分页；需要可选参数page
+        - search_announcements  按关键词搜索招聘公告；需要参数keyword，可选参数page
+  page:
+    type: integer
+    required: false
+    description: 页码，从1开始；用于list_announcements和search_announcements
+    default: 1
+  keyword:
+    type: string
+    required: false
+    description: 搜索关键词，如"教师"、"公司"等；用于search_announcements

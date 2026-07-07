@@ -1,0 +1,17 @@
+description: >-
+  Fetches current U.S. Senators by state from www.senate.gov state profile pages,
+  including contact info, biographical data, and state history.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_senators_by_state   Fetches senator information for a specific state; requires state_code
+        - list_all_states         Lists all available U.S. states and territories with their codes
+        - get_state_history       Fetches historical information about a state's Senate representation; requires state_code
+  state_code:
+    type: string
+    required: false
+    description: Two-letter state code (e.g., OK, OH, WV). Required for get_senators_by_state and get_state_history.

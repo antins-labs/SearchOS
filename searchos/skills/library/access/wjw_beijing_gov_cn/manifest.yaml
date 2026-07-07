@@ -1,0 +1,46 @@
+description: "Access official healthcare notices, approvals, and regulatory documents \nfrom the Beijing\
+  \ Municipal Health Commission website. This includes hospital \napprovals, medical institution registrations,\
+  \ health policy announcements, \nand professional licensing information."
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_article   Fetch and parse a single article/notice from the Beijing\
+      \ Health Commission website.\n  - list_articles   List articles from a specific category with pagination\
+      \ support.\n  - search_by_keyword   Search articles by keyword across multiple pages within a category.\n\
+      \  - get_batch_articles   Fetch multiple articles in a single batch request."
+  url:
+    type: string
+    required: false
+    description: Full URL or path to the article page (e.g., /zwgk_20040/ylws/202308/t20230802_3212648.html)
+  category:
+    type: string
+    required: false
+    description: 'Category code. Available categories:
+
+      - ylws: 医疗卫生 (Medical Health)
+
+      - zwgk: 政务公开 (Government Information)
+
+      - fgwj: 法规文件 (Regulations and Documents)
+
+      - gzdt: 工作动态 (Work Dynamics)'
+    default: ylws
+  page:
+    type: integer
+    required: false
+    description: Page number (starts from 1)
+    default: 1
+  keyword:
+    type: string
+    required: false
+    description: Search keyword (minimum 2 characters)
+  max_pages:
+    type: integer
+    required: false
+    description: Maximum number of pages to search
+    default: 3
+  urls:
+    type: array
+    required: false
+    description: List of article URLs to fetch

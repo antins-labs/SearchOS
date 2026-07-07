@@ -1,0 +1,27 @@
+description: >-
+  Fetches TOP50 ranking reports (as paginated images) and metadata from m.cih-index.com CIH Index
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_report: 获取报告元数据（标题、页数、访问量等），可选择包含所有页面图片URL
+        - get_page_image: 获取指定页码的签名图片URL
+  report_id:
+    type: string
+    required: false
+    description: 报告ID（数字，如 100275, 100276）；get_report 和 get_page_image 必需
+  include_image_urls:
+    type: boolean
+    required: false
+    description: 是否在 get_report 结果中包含所有页面图片的签名URL；默认 false
+  page_number:
+    type: integer
+    required: false
+    description: 页码（从1开始）；get_page_image 必需
+  width:
+    type: integer
+    required: false
+    description: 图片宽度（像素）；get_page_image 可选，默认 1278

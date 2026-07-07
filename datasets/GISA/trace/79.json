@@ -1,0 +1,65 @@
+{
+  "search": [
+    "mcdonald's restaurants located on hong kong island"
+  ],
+  "result": {
+    "mcdonald's restaurants located on hong kong island": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Sorry, we're unable to find any restaurants in that area. Please try again. Geolocation is not supported by this browser.",
+            "title": "Find a restaurant - McDonald's",
+            "url": "https://www.mcdonalds.com.hk/en/find-a-restaurant/"
+          },
+          {
+            "snippet": "There is a McDonald's on Queen's Road Central at the Cleverly Street intersection that is open 24 hours a day. This is a high traffic McD, which has quite a ...",
+            "title": "MCDONALD'S (QUEEN'S ROAD CENTRAL), Hong Kong",
+            "url": "https://www.tripadvisor.com/Restaurant_Review-g294217-d13425415-Reviews-McDonald_s_Queen_s_Road_Central-Hong_Kong.html"
+          },
+          {
+            "snippet": "Restaurant details · Shop G11-17, G/F, C C Wu Building, 302-308 Hennessy Road, Wan Chai, Hong Kong Island · G/F, Chuang's Tower, 30-32 Connaught Road Central, ...",
+            "title": "McDonald's Hong Kong",
+            "url": "https://www.discoverhongkong.com/in/plan/qts/restaurants-results/restaurants-details.id2520.mcdonald-s-hong-kong.html"
+          },
+          {
+            "snippet": "We pride on bringing you quality coffee. Every cup is freshly prepared with passion, dedication, and an obsessive attention to detail.",
+            "title": "McDonald's: Homepage",
+            "url": "https://mcdonalds.com.hk/en/?srsltid=AfmBOops52Ed7nKKhZpZ0BWrHdRMPHGyAuCogjw8L99D1ffdTiEKEN--"
+          },
+          {
+            "snippet": "Located right off of exit A of the Admiralty MRT station, you can't miss the golden arch sign. This particular McDonald's serves specialty gourmet burgers, ...",
+            "title": "麥當勞 - Updated December 2025 - Yelp",
+            "url": "https://www.yelp.com/biz/%E9%BA%A5%E7%95%B6%E5%8B%9E-%E9%A6%99%E6%B8%AF-93"
+          },
+          {
+            "snippet": "See McDonald's UK. 18. Hong Kong (British Hong Kong at the time), January 8, 1975, Paterson Street, Causeway Bay, Hong Kong Island (now closed) ...",
+            "title": "List of countries with McDonald's restaurants",
+            "url": "https://en.wikipedia.org/wiki/List_of_countries_with_McDonald%27s_restaurants"
+          },
+          {
+            "snippet": "McDonald's, Hong Kong: See 415 unbiased reviews of McDonald's, rated 3.6 of 5 on Tripadvisor and ranked #1088 of 13740 restaurants in Hong Kong.",
+            "title": "MCDONALD'S, Hong Kong - 20 Nathan Rd, Tsim Sha Tsui",
+            "url": "https://www.tripadvisor.com/Restaurant_Review-g294217-d781845-Reviews-McDonald_s-Hong_Kong.html"
+          },
+          {
+            "snippet": "",
+            "title": "Trying The 'FANCIEST' McDonald's in THE WORLD in Hong ...",
+            "url": "https://www.youtube.com/watch?v=2hpsJDjoses"
+          },
+          {
+            "snippet": "The McDonald's in Hong Kong's Admiralty Station has the distinction of not only being the busiest McDonald's in Hong Kong, but the busiest restaurant in all of ...",
+            "title": "Asia's Busiest Restaurant Is A Colorful, Nostalgic Outpost Of ...",
+            "url": "https://www.islands.com/1872694/asia-busiest-mcdonalds-restaurant-colorful-nostalgic-outpost-familiar-american-burger-chain/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>mcdonald's restaurants located on hong kong island</search>",
+      "to": "https://mcdonalds.com.hk/en/find-a-restaurant/"
+    }
+  ]
+}

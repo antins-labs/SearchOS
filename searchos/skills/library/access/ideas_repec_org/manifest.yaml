@@ -1,0 +1,33 @@
+description: Access bibliographic data from IDEAS/RePEc (Research Papers in Economics) - a comprehensive
+  database of economic literature including journal articles, working papers, and author information.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_article   Get detailed information about a specific article by\
+      \ its handle or URL\n  - get_serial   Get journal/serial information and list of articles\n  - search\
+      \   Search IDEAS for economic literature\n  - get_citations   Get citation information and references\
+      \ for an article"
+  handle:
+    type: string
+    required: false
+    description: RePEc handle (e.g., "bla:ajecsc:v:85:y:2026:i:3:p:303-314") or article URL
+  query:
+    type: string
+    required: false
+    description: Search query
+  search_field:
+    type: string
+    required: false
+    description: Field to search in (all, title, author, abstract, keywords)
+    default: all
+  doc_type:
+    type: string
+    required: false
+    description: Document type filter (all, articles, papers, chapters, books, software)
+    default: all
+  page:
+    type: integer
+    required: false
+    description: Page number for results pagination
+    default: 1

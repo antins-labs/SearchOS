@@ -1,0 +1,21 @@
+description: Access UNEP-WCMC World Heritage Datasheets for natural and mixed World Heritage Sites
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_sites   List all World Heritage sites with their slugs and URLs\n\
+      \  - get_site   Get detailed information about a specific World Heritage site\n  - search   Search\
+      \ World Heritage sites by keyword\n  - list_countries   List all countries with World Heritage sites\
+      \ and site counts\n  - get_sites_by_country   Get all World Heritage sites for a specific country"
+  site_slug:
+    type: string
+    required: false
+    description: URL slug of the site (e.g., 'olympic-national-park')
+  query:
+    type: string
+    required: false
+    description: Search query
+  country:
+    type: string
+    required: false
+    description: Country name (case-insensitive, e.g., 'United States of America')

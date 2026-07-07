@@ -1,0 +1,27 @@
+description: >-
+  Fetches vehicle specifications, trim levels, and features from Edmunds.com for a given make, model, and year.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_features_specs   获取车辆的详细规格参数，包括发动机、变速箱、尺寸等
+        - get_trims            获取车辆的所有配置级别/版本信息
+        - get_vehicle_data     获取完整车辆数据（默认为 specs）
+  
+  make:
+    type: string
+    required: true
+    description: 车辆品牌，小写，如 'nissan', 'buick', 'lexus', 'toyota', 'honda'
+  
+  model:
+    type: string
+    required: true
+    description: 车辆型号，小写，如 'sentra', 'envision', 'nx', 'camry', 'accord'
+  
+  year:
+    type: string
+    required: true
+    description: 车型年份，如 '2025', '2024', '2023'

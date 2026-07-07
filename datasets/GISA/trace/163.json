@@ -1,0 +1,125 @@
+{
+  "search": [
+    "astronauts who landed on the moon"
+  ],
+  "result": {
+    "astronauts who landed on the moon": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Neil Armstrong and Edwin \"Buzz\" Aldrin were the first of 12 human beings to walk on the Moon. Four of America's moonwalkers are still alive.Read more",
+            "title": "Who Has Walked on the Moon?",
+            "url": "https://science.nasa.gov/moon/moon-walkers/"
+          },
+          {
+            "snippet": "Crewed landings​​ A total of twelve astronauts have landed on the Moon. This was accomplished with two pilot-astronauts flying a Lunar Module on each of six NASA ...",
+            "title": "Moon landing",
+            "url": "https://en.wikipedia.org/wiki/Moon_landing"
+          },
+          {
+            "snippet": "A total of 12 astronauts have walked on the moon. All of them were men, and all flew as part of NASA's Apollo missions between 1969 and 1972.Read more",
+            "title": "How many people have walked on the moon?",
+            "url": "https://www.space.com/how-many-people-have-walked-on-the-moon"
+          },
+          {
+            "snippet": "Commander Neil Armstrong and Lunar Module Pilot Edwin \"Buzz\" Aldrin landed the Lunar Module Eagle on July 20 at 20:17 UTC, and Armstrong became the first person ...Read more",
+            "title": "Apollo 11",
+            "url": "https://en.wikipedia.org/wiki/Apollo_11"
+          },
+          {
+            "snippet": "Neil Armstrong on the Moon ... At 02:56 GMT on 21 July 1969, Armstrong became the first person to step onto the Moon. He was joined by Aldrin 19 minutes later.Read more",
+            "title": "How many people have walked on the Moon?",
+            "url": "https://www.rmg.co.uk/stories/space-astronomy/how-many-people-have-walked-on-moon"
+          },
+          {
+            "snippet": "MOON WALK. NASA officials selected Neil Armstrong, Buzz Aldrin, and Michael Collins as the astronauts who would make the historic trip from Earth on Apollo 11.Read more",
+            "title": "The Moon Landing",
+            "url": "https://kids.nationalgeographic.com/history/article/moon-landing"
+          },
+          {
+            "snippet": "Apollo astronauts who walked on the Moon ; 1. Neil Armstrong · 1930-08-05 ; 2. Buzz Aldrin · 1930-01-20 ; 3. Pete Conrad · 1930-06-02 ; 4. Alan Bean · 1932-03-15 ; 5.Read more",
+            "title": "List of Apollo astronauts",
+            "url": "https://en.wikipedia.org/wiki/List_of_Apollo_astronauts"
+          },
+          {
+            "snippet": "The last two humans to land on the Moon as of today - Eugene Cernan and Harrison Schmitt in December 1972. Will any of the Men that stepped foot ...Read more",
+            "title": "Timeline of the lives of everyone who has walked on ...",
+            "url": "https://www.reddit.com/r/dataisbeautiful/comments/1825bfx/timeline_of_the_lives_of_everyone_who_has_walked/"
+          },
+          {
+            "snippet": "It succeeded in its objective by landing Neil Armstrong and Buzz Aldrin on the Moon on July 20, 1969.",
+            "title": "Apollo 11 | History, Mission, Landing, Astronauts, Pictures ...",
+            "url": "https://www.britannica.com/topic/Apollo-11"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>astronauts who landed on the moon</search>",
+      "to": "https://science.nasa.gov/moon/moon-walkers/"
+    },
+    {
+      "from": "<search>astronauts who landed on the moon</search>",
+      "to": "https://en.wikipedia.org/wiki/Moon_landing"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Moon_landing",
+      "to": "https://en.wikipedia.org/wiki/Neil_Armstrong"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Moon_landing#Human_Moon_landings_(1969%E2%80%931972)",
+      "to": "https://en.wikipedia.org/wiki/Neil_Armstrong"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Moon_landing#Human_Moon_landings_(1969%E2%80%931972)",
+      "to": "https://en.wikipedia.org/wiki/Buzz_Aldrin"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Moon_landing#Human_Moon_landings_(1969%E2%80%931972)",
+      "to": "https://en.wikipedia.org/wiki/Pete_Conrad"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Moon_landing#Human_Moon_landings_(1969%E2%80%931972)",
+      "to": "https://en.wikipedia.org/wiki/Alan_Bean"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Moon_landing#Human_Moon_landings_(1969%E2%80%931972)",
+      "to": "https://en.wikipedia.org/wiki/Alan_Shepard"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Moon_landing#Human_Moon_landings_(1969%E2%80%931972)",
+      "to": "https://en.wikipedia.org/wiki/Edgar_Mitchell"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Moon_landing#Human_Moon_landings_(1969%E2%80%931972)",
+      "to": "https://en.wikipedia.org/wiki/David_Scott"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Moon_landing#Human_Moon_landings_(1969%E2%80%931972)",
+      "to": "https://en.wikipedia.org/wiki/James_Irwin"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Moon_landing#Human_Moon_landings_(1969%E2%80%931972)",
+      "to": "https://en.wikipedia.org/wiki/John_Young_(astronaut)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Moon_landing#Human_Moon_landings_(1969%E2%80%931972)",
+      "to": "https://en.wikipedia.org/wiki/Charles_Duke"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Moon_landing#Human_Moon_landings_(1969%E2%80%931972)",
+      "to": "https://en.wikipedia.org/wiki/Eugene_Cernan"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Moon_landing#Human_Moon_landings_(1969%E2%80%931972)",
+      "to": "https://en.wikipedia.org/wiki/Harrison_Schmitt"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Moon_landing#Human_Moon_landings_(1969%E2%80%931972)",
+      "to": "https://en.wikipedia.org/wiki/Harrison_Schmitt"
+    }
+  ]
+}

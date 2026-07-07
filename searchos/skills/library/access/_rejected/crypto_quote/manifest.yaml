@@ -1,0 +1,18 @@
+name: crypto_quote
+invocation: agent_called
+description: "Search api.coingecko.com \u2014 crypto_quote. Public JSON API; data\
+  \ is served as raw text/json inside a pre tag, requiring structured parsing rather\
+  \ than DOM traversal."
+params_schema:
+  ids:
+    type: string
+    required: true
+    description: Comma-separated list of coin IDs (e.g., bitcoin,ethereum)
+  vs_currencies:
+    type: string
+    default: usd
+    description: Comma-separated target currencies (e.g., usd,eur)
+category: finance
+entity_type: crypto_quote
+fields:
+- price

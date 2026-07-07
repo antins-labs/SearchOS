@@ -1,0 +1,33 @@
+description: Fetches album information from discogs.fandom.com Chinese wiki including infobox metadata, tracklists, and page content via MediaWiki API.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_page   获取原始页面内容; 需要 title 参数
+        - get_album  获取结构化专辑信息; 需要 title 参数，返回解析的infobox和曲目列表
+        - search     搜索页面; 需要 query 参数，可选 limit 参数
+        - list_pages 列出所有页面; 可选 limit 和 continue 参数
+  
+  title:
+    type: string
+    required: false
+    description: 要获取的页面标题 (用于 get_page 和 get_album 功能)
+  
+  query:
+    type: string
+    required: false
+    description: 搜索关键词 (用于 search 功能)
+  
+  limit:
+    type: integer
+    required: false
+    default: 10
+    description: 返回结果数量限制 (用于 search 和 list_pages 功能)
+  
+  continue:
+    type: string
+    required: false
+    description: 分页游标，用于继续获取下一页结果 (用于 list_pages 功能)

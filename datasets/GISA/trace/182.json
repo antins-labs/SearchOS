@@ -1,0 +1,70 @@
+{
+  "search": [
+    "List the names of the individuals depicted in the busts held in the Royal Society of Chemistry's collection."
+  ],
+  "result": {
+    "List the names of the individuals depicted in the busts held in the Royal Society of Chemistry's collection.": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "1 Humphry Davy bust · 2 John Dalton bust · 3 Michael Faraday bust · 4 William Henry Perkin bust · 5 Henry Roscoe bust · 6 Justus von Liebig bust · 7 Augustus Wilhelm ...",
+            "title": "List of artworks in the collection of the Royal Society ...",
+            "url": "https://en.wikipedia.org/wiki/List_of_artworks_in_the_collection_of_the_Royal_Society_of_Chemistry"
+          },
+          {
+            "snippet": "B · Bust of Jean-Baptiste Dumas, Royal Society of Chemistry (4 F). Bust of Robert Boyle, Royal Society of Chemistry ; D · Bust of John Dalton, Royal Society of ...",
+            "title": "Category:Royal Society of Chemistry art collection",
+            "url": "https://commons.wikimedia.org/wiki/Category:Royal_Society_of_Chemistry_art_collection"
+          },
+          {
+            "snippet": "We help chemistry to change the world. Supporting the chemical science community through publishing research, membership, events, networks, education.",
+            "title": "The Royal Society of Chemistry",
+            "url": "https://www.rsc.org/"
+          },
+          {
+            "snippet": "by F Seitz · 2005 · Cited by 9 — Banks, a naturalist and explorer who served as president of the Royal Society from 1778 until his death in 1820, came under attack from a group ...",
+            "title": "Henry Cavendish: the catalyst for the chemical revolution",
+            "url": "https://royalsocietypublishing.org/rsnr/article/59/2/175/113214/Henry-Cavendish-the-catalyst-for-the-chemical"
+          },
+          {
+            "snippet": "The Royal Society of Chemistry (RSC) is a learned society and professional association in the United Kingdom with the goal of advancing the chemical sciences.",
+            "title": "Royal Society of Chemistry",
+            "url": "https://en.wikipedia.org/wiki/Royal_Society_of_Chemistry"
+          },
+          {
+            "snippet": "The team list reads as hall of fame of Antipodean Chemistry: Alan Maccoll, David Craig, Peter de la Mare, Brian England, Ian Ross, Dick Bramley, Ron Nyholm, ...",
+            "title": "History of the Department",
+            "url": "https://www.ucl.ac.uk/mathematical-physical-sciences/chemistry/about-us/history-department"
+          },
+          {
+            "snippet": "by I Hargittai · 2023 — The rest show individuals in pairs, from left to right: Thales and Aristotle; Alexander Neckham and William Gilbert; Otto von Guernicke and ...",
+            "title": "Science in Washington, DC An Introduction to Memorials ...",
+            "url": "https://www.cambridge.org/core/journals/european-review/article/science-in-washington-dc-an-introduction-to-memorials-a-pictorial-essay/C2526377720BDCAA51CF751CE34E7B6E"
+          },
+          {
+            "snippet": "The stories of scientists who have fallen foul of the authorities, from Galileo and Samuel Pepys to Holloway Prison inmates Thomas Pelham ...",
+            "title": "Jailbirds",
+            "url": "https://royalsociety.org/blog/2019/01/jailbirds/"
+          },
+          {
+            "snippet": "After un- veiling the bust, Sir William referred in cordial terms to Sir Archibald's contributions to science and litera- ture, and then, on behalf of the ...",
+            "title": "MARCH 16, rgr6] NATURE",
+            "url": "https://www.nature.com/articles/097061a0.pdf"
+          },
+          {
+            "snippet": "organized crime groups' influence throughout government and society. Albanian law enforcement should take a more proactive approach against Albanian ...",
+            "title": "International Narcotics Control Strategy Report",
+            "url": "https://www.state.gov/wp-content/uploads/2024/09/2023-INCSR-Vol-1-Drug-and-Chemical-Control-Accessible.pdf"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>List the names of the individuals depicted in the busts held in the Royal Society of Chemistry's collection.</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_artworks_in_the_collection_of_the_Royal_Society_of_Chemistry"
+    }
+  ]
+}

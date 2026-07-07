@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+/* next-themes toggles a .dark class on <html>; make dark: follow it instead of the OS setting */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Brand blue-white palette (matched to the logo / demo film / main.png) ──
+   Light = demo "web world" (#F5F8FF paper, #2563EB accent);
+   dark = demo "terminal world" (deep navy, logo-blue highlights).
+   Tokens live as CSS vars so they flip under .dark; @theme inline
+   re-exports them as Tailwind colors (bg-paper, text-ink, …). */
+:root {
+  --paper:        #F5F8FF;
+  --surface:      #FFFFFF;
+  --surface-2:    #EDF2FD;
+  --line:         #DBE5F8;
+  --line-strong:  #C2D3F1;
+  --ink:          #152238;
+  --ink-dim:      #4F6183;
+  --ink-faint:    #8C9BBD;
+  --accent:       #2563EB;
+  --accent-ink:   #1D4ED8;
+  --clay:         #DCE8FD;
+  --ok:           #059669;
+  --warn:         #B45309;
+  --err:          #DC2626;
+  --accent-rgb:   37, 99, 235;
+}
+.dark {
+  --paper:        #0A1226;
+  --surface:      #101B36;
+  --surface-2:    #16233F;
+  --line:         #22335A;
+  --line-strong:  #2E4270;
+  --ink:          #CBD6E8;
+  --ink-dim:      #9AA6BC;
+  --ink-faint:    #6B7690;
+  --accent:       #5B9BFF;
+  --accent-ink:   #7AB0FF;
+  --clay:         #1B2C52;
+  --ok:           #4ADE80;
+  --warn:         #F4BF4F;
+  --err:          #F87171;
+  --accent-rgb:   91, 155, 255;
+}
+
+@theme inline {
+  --color-paper:       var(--paper);
+  --color-surface:     var(--surface);
+  --color-surface-2:   var(--surface-2);
+  --color-line:        var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink:         var(--ink);
+  --color-ink-dim:     var(--ink-dim);
+  --color-ink-faint:   var(--ink-faint);
+  --color-accent:      var(--accent);
+  --color-accent-ink:  var(--accent-ink);
+  --color-clay:        var(--clay);
+  --color-ok:          var(--ok);
+  --color-warn:        var(--warn);
+  --color-err:         var(--err);
+
+  --font-sans:  var(--font-instrument), system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), Georgia, serif;
+  --font-mono:  var(--font-jetbrains), ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-sans);
+}
+body {
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+/* a single, very faint brand-blue wash at the top — no aurora, no grid */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(60rem 32rem at 50% -16%, rgba(var(--accent-rgb), 0.05), transparent 60%);
+}
+.dark body::before {
+  background: radial-gradient(64rem 40rem at 50% -16%, rgba(var(--accent-rgb), 0.08), transparent 62%);
+}
+
+/* ── Surface: warm card, hairline border, no heavy blur ── */
+.surface {
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+/* ── Wordmark: brand-blue gradient, same as the logo / demo film ── */
+.wordmark {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  background-image: linear-gradient(96deg, #2f6bff, #4a86ff 55%, #7ab6ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── Scrollbars ── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-faint); }
+
+/* ── Motion (all ≤250ms, ease-out, restrained) ── */
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.fade-in { animation: fade-in 0.2s ease-out; }
+
+@keyframes rise-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.rise-in { animation: rise-in 0.2s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+@keyframes drawer-in { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+.drawer-in { animation: drawer-in 0.24s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+@keyframes cursor-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+.cursor-blink { animation: cursor-blink 1.1s step-end infinite; }
+
+/* Accent pulse for "in progress" markers */
+@keyframes accent-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.45); }
+  70%  { box-shadow: 0 0 0 7px rgba(var(--accent-rgb), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0); }
+}
+.accent-pulse { animation: accent-pulse 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite; }
+
+/* soft dot pulse for live status */
+@keyframes glow-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.4); }
+  50%      { opacity: 0.85; box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0); }
+}
+.glow-pulse { animation: glow-pulse 1.8s ease-in-out infinite; }
+.glow-pulse-amber { animation: glow-pulse 1.8s ease-in-out infinite; }
+
+/* Spinner ring */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin-ring {
+  border: 2px solid var(--clay);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* shimmer for cells currently being filled */
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.shimmer {
+  background-image: linear-gradient(90deg, transparent 25%, rgba(var(--accent-rgb), 0.14) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Panel resize handles (react-resizable-panels) */
+[data-panel-resize-handle-id] {
+  background: var(--line) !important;
+  transition: background 0.15s;
+}
+[data-panel-resize-handle-id]:hover,
+[data-panel-resize-handle-id][data-resize-handle-active] {
+  background: var(--accent) !important;
+}

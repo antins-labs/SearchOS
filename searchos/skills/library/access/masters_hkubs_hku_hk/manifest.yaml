@@ -1,0 +1,16 @@
+description: Extract structured data on tuition fees, admissions schedules, and scholarships for HKU Business
+  School Masters programmes
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_tuition_fees   Get tuition fee information for all HKU Business\
+      \ School masters programmes\n  - get_admissions_schedule   Get admissions schedule, requirements,\
+      \ and course exemption policies\n  - get_scholarships   Get scholarship and financial aid information\
+      \ including Dean's Master Fellowship, Entrance Scholarship, and government schemes\n  - get_all_programmes\
+      \   Get a list of all masters programmes with their tuition fees and deposits\n  - search_programme_fees\
+      \   Search for a specific programme's tuition fee by programme name (partial match supported)"
+  programme_name:
+    type: string
+    required: false
+    description: Programme name or keyword to search for (e.g., "finance", "accounting", "business analytics")

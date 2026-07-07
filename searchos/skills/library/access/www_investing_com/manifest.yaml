@@ -1,0 +1,26 @@
+description: Fetches historical market price data (OHLCV) and instrument information from investing.com using browser automation to handle Cloudflare protection.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_historical_data   获取指定金融工具的历史价格数据; 需要 instrument 参数, 可选 start_date 和 end_date 参数
+        - search_instrument     搜索支持的金融工具; 需要 query 参数
+        - list_supported_instruments   列出所有支持的金融工具; 无需其他参数
+  instrument:
+    type: string
+    required: false
+    description: 金融工具标识符 (名称、slug 或 ID)。例如 'hang-sen-40'、'gold'、'eur-usd'、'bitcoin'。get_historical_data 使用此参数。
+  start_date:
+    type: string
+    required: false
+    description: 历史数据开始日期, 格式 YYYY-MM-DD 或 MM/DD/YYYY。get_historical_data 使用此参数。
+  end_date:
+    type: string
+    required: false
+    description: 历史数据结束日期, 格式 YYYY-MM-DD 或 MM/DD/YYYY。get_historical_data 使用此参数。
+  query:
+    type: string
+    required: false
+    description: 搜索查询关键词, 用于搜索支持的金融工具。search_instrument 使用此参数。

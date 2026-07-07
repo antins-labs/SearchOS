@@ -1,0 +1,31 @@
+description: >-
+  Extract structured metadata from academic articles and journal issues on Springer Link (link.springer.com) via HTML parsing.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_article   Extract article metadata (requires doi or url)
+        - get_issue     Get article listings for a journal issue (requires url, or journal_id + volume + issue)
+        - list_issues   List available issues for a journal (requires journal_id or url)
+  doi:
+    type: string
+    required: false
+    description: Article DOI, e.g. "10.1057/s41290-024-00210-2". Used by get_article (doi or url required).
+  url:
+    type: string
+    required: false
+    description: Full page URL. Alternative to structured params for get_article (article URL), get_issue (issue URL), and list_issues (journal URL).
+  journal_id:
+    type: string
+    required: false
+    description: Journal numeric ID, e.g. "41290". Used by get_issue and list_issues.
+  volume:
+    type: string
+    required: false
+    description: Volume number. Required by get_issue (when not using url).
+  issue:
+    type: string
+    required: false
+    description: Issue number. Required by get_issue (when not using url).

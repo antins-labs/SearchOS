@@ -1,0 +1,67 @@
+description: 'Access Yum! Brands annual reports hosted on Q4 CDN (s2.q4cdn.com).
+
+
+  Provides structured access to annual report landing pages, PDF downloads,
+
+  board of directors information, senior officers, and brand links for
+
+  years 2020-2024.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_annual_report_info   Get comprehensive information about a specific\
+      \ year's annual report including title, description, download links, board members, and senior officers\n\
+      \  - list_available_years   Check which years have available annual reports\n  - get_pdf_url   Get\
+      \ the direct download URL for a specific PDF document\n  - search_report_content   Search for text\
+      \ within an annual report's HTML landing page\n  - get_brand_links   Get links to brand websites\
+      \ mentioned in the annual report\n  - get_download_sizes   Get file sizes for all downloadable PDFs\
+      \ in a report"
+  year:
+    type: string
+    required: false
+    description: Year of the annual report (e.g., "2024", "2023")
+    default: '2024'
+  include_downloads:
+    type: boolean
+    required: false
+    description: Include download links in response
+    default: true
+  include_people:
+    type: boolean
+    required: false
+    description: Include board and officers information
+    default: true
+  check_years:
+    type: array
+    required: false
+    description: List of years to check for availability
+    default:
+    - '2020'
+    - '2021'
+    - '2022'
+    - '2023'
+    - '2024'
+  document_type:
+    type: string
+    required: false
+    description: Type of document (annual_report, ceo_letter, proxy_statement, financial_highlights, safe_harbor)
+    default: annual_report
+  custom_filename:
+    type: string
+    required: false
+    description: Custom PDF filename (overrides document_type)
+  verify:
+    type: boolean
+    required: false
+    description: Verify URL accessibility via HEAD request
+    default: true
+  query:
+    type: string
+    required: false
+    description: Search query (case-insensitive)
+  context_chars:
+    type: integer
+    required: false
+    description: Number of characters of context around matches
+    default: 150

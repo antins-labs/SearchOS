@@ -1,0 +1,24 @@
+description: Access Johnnie Walker whisky product catalog
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - search_products   Search for Johnnie Walker whisky products\n  - get_all_products\
+      \   Get all available Johnnie Walker whisky products\n  - get_products_by_group   Get products filtered\
+      \ by group/category"
+  query:
+    type: string
+    required: false
+    description: Search query for product name or type (optional)
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of results to return (default 50)
+  locale:
+    type: string
+    required: false
+    description: Locale for products (default 'en-us')
+  group:
+    type: string
+    required: false
+    description: Product group/category (e.g., 'core-range', 'limited-editions', 'gift-boxes')

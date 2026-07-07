@@ -1,0 +1,63 @@
+description: >-
+  Access graduate programs from Harvard Kenneth C. Griffin Graduate School of Arts and Sciences (GSAS), 
+  including program listings, detailed program information, and application guidance.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_programs: 列出研究生项目，支持分页和筛选
+        - get_program: 获取特定项目的详细信息
+        - get_applying_info: 获取学位项目申请信息
+
+  page:
+    type: integer
+    required: false
+    description: |
+      页码，默认为0。每页显示10个结果。(list_programs使用)
+
+  degrees_offered:
+    type: string
+    required: false
+    description: |
+      按学位类型筛选。可选值: "Doctor of Philosophy (PhD)", "Master of Arts (AM)", 
+      "Master of Science (SM)", "Master of Engineering (ME)", "AB/AM, AB/SM"。
+      (list_programs使用)
+
+  areas_of_study:
+    type: string
+    required: false
+    description: |
+      按研究领域筛选。可选值: "Arts & Architecture", "Biological Sciences", 
+      "Engineering & Applied Sciences", "Harvard Integrated Life Sciences", "History", 
+      "Humanities", "Languages", "Mathematics", "Medical Sciences", "Physical Sciences", 
+      "Social Sciences"。(list_programs使用)
+
+  gre_requirement:
+    type: string
+    required: false
+    description: |
+      按GRE要求筛选。可选值: "Required", "Optional", "Not Accepted"。
+      (list_programs使用)
+
+  program_type:
+    type: string
+    required: false
+    description: |
+      按项目类型筛选。可选值: "Degree Granting", "Combined Degree", "Summer Programs", 
+      "Visiting Students"。(list_programs使用)
+
+  search:
+    type: string
+    required: false
+    description: |
+      搜索关键词，用于按项目名称筛选。(list_programs使用)
+
+  program_url:
+    type: string
+    required: false
+    description: |
+      项目的URL slug或完整URL。例如: "computer-science" 或 
+      "https://gsas.harvard.edu/program/computer-science"。(get_program使用)

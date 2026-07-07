@@ -1,0 +1,97 @@
+{
+  "search": [
+    "the United States federal government has shut down"
+  ],
+  "result": {
+    "the United States federal government has shut down": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "From October 1 to November 12, 2025, the federal government of the United States was shut down as Congress failed to pass appropriations legislation for the ...",
+            "title": "2025 United States federal government shutdown",
+            "url": "https://en.wikipedia.org/wiki/2025_United_States_federal_government_shutdown"
+          },
+          {
+            "snippet": "The longest-ever US government shutdown has ended after 43 days. The fallout forced around 1.4 million federal employees to go without pay ...",
+            "title": "Is the US government shutdown over, and why did it happen?",
+            "url": "https://www.bbc.com/news/articles/crrj1znp0pyo"
+          },
+          {
+            "snippet": "The United States federal government shutdown started on Oct. 1 and is now the second longest shutdown in U.S. history.",
+            "title": "Government Shutdown Clock",
+            "url": "https://www.whitehouse.gov/government-shutdown-clock/"
+          },
+          {
+            "snippet": "The U.S. federal government shut down on Oct. 1 after lawmakers failed to resolve a budget deadlock, halting some federal operations and putting approximately ...",
+            "title": "Federal Government Shutdown: What It Means for States ...",
+            "url": "https://www.ncsl.org/in-dc/federal-government-shutdown-what-it-means-for-states-and-programs"
+          },
+          {
+            "snippet": "President Trump signed legislation ending the shutdown, hours after the House of Representatives voted to restart disrupted food assistance, ...",
+            "title": "Trump signs deal to end longest US government shutdown ...",
+            "url": "https://www.reuters.com/legal/government/us-house-vote-deal-end-longest-government-shutdown-history-2025-11-12/"
+          },
+          {
+            "snippet": "During a shutdown, the federal government curtails agency activities and services, ceases non-essential operations, furloughs non-essential workers, and retains ...",
+            "title": "Government shutdowns in the United States",
+            "url": "https://en.wikipedia.org/wiki/Government_shutdowns_in_the_United_States"
+          },
+          {
+            "snippet": "Trump has signed the Republican bill ending the longest US government shutdown ever, resuming funding until the end of January.",
+            "title": "US shutdown ends: What happens now, when will services ...",
+            "url": "https://www.aljazeera.com/news/2025/11/13/us-shutdown-ends-what-happens-now-when-will-services-resume"
+          },
+          {
+            "snippet": "The U.S. government shut down on October 1 as Republican and Democratic funding bills failed to reach the necessary number of votes in the ...",
+            "title": "Explainer: Why government shutdowns keep happening in ...",
+            "url": "https://www.hks.harvard.edu/faculty-research/policy-topics/democracy-governance/explainer-why-government-shutdowns-keep"
+          },
+          {
+            "snippet": "The federal government has shut down as of midnight on September 30, 2025. Starting on October 1, the federal government's operations are drastically reduced.",
+            "title": "Government Shutdown FAQs | U.S. Representative Becca Balint",
+            "url": "https://balint.house.gov/governmentshutdown/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>the United States federal government has shut down</search>",
+      "to": "https://en.wikipedia.org/wiki/Government_shutdowns_in_the_United_States"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Government_shutdowns_in_the_United_States",
+      "to": "https://en.wikipedia.org/wiki/1980_United_States_federal_government_shutdown"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Government_shutdowns_in_the_United_States",
+      "to": "https://en.wikipedia.org/wiki/1981,_1984,_and_1986_U.S._federal_government_shutdowns"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Government_shutdowns_in_the_United_States",
+      "to": "https://en.wikipedia.org/wiki/1981,_1984,_and_1986_U.S._federal_government_shutdowns"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Government_shutdowns_in_the_United_States",
+      "to": "https://en.wikipedia.org/wiki/1981,_1984,_and_1986_U.S._federal_government_shutdowns"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Government_shutdowns_in_the_United_States",
+      "to": "https://en.wikipedia.org/wiki/1981,_1984,_and_1986_U.S._federal_government_shutdowns"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Government_shutdowns_in_the_United_States",
+      "to": "https://en.wikipedia.org/wiki/1981,_1984,_and_1986_U.S._federal_government_shutdowns"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Government_shutdowns_in_the_United_States",
+      "to": "https://en.wikipedia.org/wiki/1990_United_States_federal_government_shutdown"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Government_shutdowns_in_the_United_States",
+      "to": "https://en.wikipedia.org/wiki/1990_United_States_federal_government_shutdown"
+    }
+  ]
+}

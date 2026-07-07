@@ -1,0 +1,34 @@
+description: 'Access skill for the U.S. State Department Office of the Historian website (history.state.gov).
+
+  Provides structured access to biographical records of U.S. Secretaries of State, Principal Officers,
+
+  and Chiefs of Mission including appointment dates, service records, and biographical information.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_person   Get detailed biography for a specific person by slug\
+      \ or URL\n  - search_people   Search for people by name\n  - list_secretaries   List all U.S. Secretaries\
+      \ of State\n  - list_by_name   List alphabetical index for browsing by last name\n  - get_by_name_letter\
+      \   Get people whose last name starts with a specific letter\n  - list_by_year   List year index\
+      \ for browsing by appointment year\n  - get_by_year   Get people appointed in a specific year"
+  slug:
+    type: string
+    required: false
+    description: Person's URL slug (e.g., 'jefferson-thomas', 'tillerson-rex-w')
+  url:
+    type: string
+    required: false
+    description: Full URL to person page (alternative to slug)
+  query:
+    type: string
+    required: false
+    description: Search query (person's name or partial name)
+  letter:
+    type: string
+    required: false
+    description: Single letter (a-z)
+  year:
+    type: integer
+    required: false
+    description: Four-digit year (e.g., 2020)

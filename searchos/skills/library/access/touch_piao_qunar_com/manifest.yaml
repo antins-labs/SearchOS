@@ -1,0 +1,15 @@
+description: Extract scenic area ticket information from Qunar travel platform
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_detail   Get detailed information for a specific scenic area by\
+      \ ID\n  - batch   Get information for multiple scenic areas by their IDs"
+  sightId:
+    type: string
+    required: false
+    description: The scenic area ID (e.g., "8606" for 太昊伏羲陵文化旅游区)
+  sightIds:
+    type: array
+    required: false
+    description: List of scenic area IDs

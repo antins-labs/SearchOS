@@ -1,0 +1,21 @@
+description: >-
+  Fetches articles and structured leadership data from the Local Party and Government
+  Leadership Database (地方政府党政领导人物库) on district.ce.cn.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - fetch_article: 获取单篇文章及领导简历信息，需提供 url 参数
+        - fetch_leadership_db: 获取领导数据库页面，提取书记/市州长名单表格，需提供 url 参数
+        - detect_page_type: 检测页面类型（文章或数据库）并推荐合适的调用函数
+
+  url:
+    type: string
+    required: true
+    description: >-
+      district.ce.cn 的文章或数据库页面的完整 URL，如
+      http://district.ce.cn/newarea/sddy/202301/11/t20230111_38340126.shtml
+      或 http://district.ce.cn/zt/rwk/sf/xj/ds/201206/14/t20120614_1269253.shtml

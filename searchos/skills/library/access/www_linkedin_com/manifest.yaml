@@ -1,0 +1,22 @@
+description: >-
+  Fetches basic company profile information from LinkedIn company pages, handling
+  geo-restrictions, authentication requirements, and bot detection gracefully.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_company_info   获取LinkedIn公司页面信息，需要url或slug参数
+        - extract_slug       从LinkedIn URL中提取公司slug
+
+  url:
+    type: string
+    required: false
+    description: LinkedIn公司页面URL (用于get_company_info和extract_slug)
+
+  slug:
+    type: string
+    required: false
+    description: LinkedIn公司标识符/短名称 (用于get_company_info，可替代url参数)

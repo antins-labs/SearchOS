@@ -1,0 +1,29 @@
+description: >-
+  Fetches stock quote data from Bloomberg.com quote pages. Note: Bloomberg uses
+  PerimeterX anti-bot protection that blocks most automated access. The skill
+  attempts both HTTP and browser-based fetching with detailed error reporting.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to call. Available options:
+        - get_quote: Fetch a single stock quote by ticker symbol
+        - get_quotes: Fetch multiple stock quotes by ticker symbols
+        - check_access: Check if Bloomberg.com is accessible
+  ticker:
+    type: string
+    required: false
+    description: Stock ticker symbol (e.g., 'ZBIO:US', 'AAPL:US', 'MSFT:US'). Used by get_quote.
+  tickers:
+    type: array
+    required: false
+    description: List of ticker symbols for batch fetching. Used by get_quotes.
+    items:
+      type: string
+  method:
+    type: string
+    required: false
+    description: Fetch method - 'auto' (try HTTP first, then browser), 'http' (direct HTTP request), or 'browser' (Playwright with anti-detection). Default is 'auto'.
+    default: auto

@@ -1,0 +1,24 @@
+description: "Extract product specifications and parameters from ZOL (中关村在线) product param pages at detail.zol.com.cn"
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_params        获取完整产品参数信息，需提供url参数
+        - get_params_flat   获取参数并扁平化为键值对格式，需提供url参数
+        - get_by_id         根据产品ID获取参数，需提供product_id参数
+        - get_category      获取指定分类的参数，需提供url和category参数
+  url:
+    type: string
+    required: false
+    description: ZOL产品参数页面URL (如 https://detail.zol.com.cn/1393/1392178/param.shtml)，用于get_params、get_params_flat、get_category功能
+  product_id:
+    type: string
+    required: false
+    description: ZOL产品ID (如1392178)，用于get_by_id功能
+  category:
+    type: string
+    required: false
+    description: 要获取的参数分类名称 (如"基本参数"、"硬件"、"屏幕")，用于get_category功能

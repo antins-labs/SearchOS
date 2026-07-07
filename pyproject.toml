@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "searchos"
+version = "0.1.0"
+description = "Robust for Open Domain Information Seeking"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "langchain-core>=1.2.0",
+    "langchain-openai>=1.0.0",
+    # 各厂商 coding plan（GLM/Kimi/MiniMax/Qwen/火山…）均走 Anthropic 协议端点，
+    # 因此 langchain-anthropic 是核心依赖而非可选。
+    "langchain-anthropic>=0.3.0",
+    "langgraph>=1.0.0",
+    "deepagents>=0.4.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "httpx>=0.28.0",
+    "tiktoken>=0.7.0",
+    "rich>=14.2.0",
+    "textual>=8.0",
+    "aiohttp>=3.13.5",
+    "html2text>=2025.4.15",
+    "lxml>=5.3",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+]
+
+# CLI 入口待 S3(searchos/cli.py 尚未建)接入。
+# [project.scripts]
+# searchos = "searchos.cli:main"
+
+[project.optional-dependencies]
+tavily = ["tavily-python>=0.5.0"]
+browser = ["playwright>=1.40.0"]
+crawl4ai = ["crawl4ai>=0.4.0"]
+anthropic = ["langchain-anthropic>=0.3.0"]  # 已进核心依赖；保留 extra 向后兼容
+observability = ["langsmith>=0.2.0"]
+eval = ["pandas>=2.0", "numpy>=1.24", "python-dotenv>=1.0"]
+all = ["searchos[tavily,browser,crawl4ai,anthropic,observability]"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23.0", "ruff>=0.4.0"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["searchos"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

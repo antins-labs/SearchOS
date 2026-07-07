@@ -1,0 +1,69 @@
+{
+  "search": [
+    "What was the complete Thanksgiving lunch menu served at the White House in 2007?"
+  ],
+  "result": {
+    "What was the complete Thanksgiving lunch menu served at the White House in 2007?": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "2007. Dec. 24, 2007, Menu for Christmas Day Lunch at Camp David. Nov. 29, 2007, Menu for the 2007 Holiday Receptions. Nov. 21, 2007, Menu for Thanksgiving at ...Read more",
+            "title": "White House Event Menus Archive",
+            "url": "https://georgewbush-whitehouse.archives.gov/firstlady/arts-menu-archive.html"
+          },
+          {
+            "snippet": "The Thanksgiving Day menu included turkey and dressing with bread stuffing, giblet gravy, mashed potatoes, sweet potatoes, green beans, cranberry mold, relish ...Read more",
+            "title": "Thanksgiving at the White House",
+            "url": "https://www.whitehousehistory.org/press-room/press-timelines/thanksgiving-at-the-white-house"
+          },
+          {
+            "snippet": "It provides pricing and serving size information for pumpkin pie, pecan pie, apple crisp pie, pralines, bundt bread, rolls, table oil, oyster crackers, and a ...Read more",
+            "title": "Thanksgiving Catering Menu 2007 | PDF | Roasting",
+            "url": "https://www.scribd.com/doc/5235236/Holiday-Menu"
+          },
+          {
+            "snippet": "2007. Dec. 24, 2007, Christmas Day Lunch Menu at Camp David. Nov. 29, 2007, Menu for the 2007 Holiday Receptions. Nov. 21, 2007, Thanksgiving Menu at Camp David.Read more",
+            "title": "White House Event Menus Archive (Text Only)",
+            "url": "https://georgewbush-whitehouse.archives.gov/firstlady/text/arts-menu-archive.html"
+          },
+          {
+            "snippet": "President Dwight Eisenhower and First Lady Mamie Eisenhower preferred roast turkey, giblet gravy, mashed potatoes, oyster dressing, cranberry ...Read more",
+            "title": "The White House Historical Association",
+            "url": "https://www.facebook.com/WhiteHouseHistory/photos/a.168214769870461/1430318270326765/?id=167721133253158"
+          },
+          {
+            "snippet": "Truman moved his Thanksgiving feast to Wednesday, complete with all the fixin`s: giblet gravy, candied sweet potatoes, and, yes, roast stuffed ...Read more",
+            "title": "225 Years of Presidential Thanksgiving meals",
+            "url": "https://www.pbs.org/newshour/show/225-years-of-presidential-thanksgiving-meals"
+          },
+          {
+            "snippet": "Included in the meal will be turkey, stuffing, mashed potatoes and gravy, sweet potatoes with marshmallows, baked good and cheese. The meal will ...Read more",
+            "title": "Trump's Mar-a-Lago Thanksgiving",
+            "url": "https://www.cnn.com/2017/11/23/politics/trump-thanksgiving-mar-a-lago"
+          },
+          {
+            "snippet": "The use of roasted turkey ; The White House Cook Book, published in 1887 by Fanny Lemira Gillette, had the following menu: oysters on half shell, cream of ...Read more",
+            "title": "Thanksgiving dinner",
+            "url": "https://en.wikipedia.org/wiki/Thanksgiving_dinner"
+          },
+          {
+            "snippet": "The Reagan dinner menu was shared at a press briefing: turkey, cornbread, giblet gravy, peas, mashed potatoes, fresh cranberry mold, jam, olives ...Read more",
+            "title": "🦃 A Look at Thanksgiving Menus from the White House ...",
+            "url": "https://substack.com/home/post/p-152283751?utm_campaign=post&utm_medium=web"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>What was the complete Thanksgiving lunch menu served at the White House in 2007?</search>",
+      "to": "https://georgewbush-whitehouse.archives.gov/firstlady/arts-menu-archive.html"
+    },
+    {
+      "from": "https://georgewbush-whitehouse.archives.gov/firstlady/arts-menu-archive.html",
+      "to": "https://georgewbush-whitehouse.archives.gov/news/releases/2007/11/20071121-2.html"
+    }
+  ]
+}

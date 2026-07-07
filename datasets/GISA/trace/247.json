@@ -1,0 +1,767 @@
+{
+  "search": [
+    "nba all-star"
+  ],
+  "result": {
+    "nba all-star": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "NBA All-Star 2026: Vote now! Cast your ballot now for the 2026 NBA All-Star Game starters. The All-Star Game will take place Feb. 15 in Los Angeles.",
+            "title": "NBA All-Star 2026",
+            "url": "https://www.nba.com/allstar/2026"
+          },
+          {
+            "snippet": "The National Basketball Association All-Star Game is the annual all-star game hosted each February by the National Basketball Association (NBA)Read more",
+            "title": "NBA All-Star Game",
+            "url": "https://en.wikipedia.org/wiki/NBA_All-Star_Game"
+          },
+          {
+            "snippet": "The National Basketball Association (NBA) All-Star Game is an annual exhibition basketball game. It is the main event of the NBA All-Star Weekend.Read more",
+            "title": "List of NBA All-Stars",
+            "url": "https://en.wikipedia.org/wiki/List_of_NBA_All-Stars"
+          },
+          {
+            "snippet": "The 74th NBA All-Star Game will be played Feb. 16, 2025 at the Chase Center in San Francisco. NBA commissioner Adam Silver addresses the media ...Read more",
+            "title": "2025 NBA All-Star | Latest | NBA.com",
+            "url": "https://www.nba.com/allstar/2025"
+          },
+          {
+            "snippet": "Luka Dončić and Giannis Antetokounmpo remain the leaders in their conferences in the second fan returns in NBA All-Star Voting 2026. Fans (50% ...Read more",
+            "title": "Luka Dončić leads way in 2nd fan returns of NBA All-Star ...",
+            "url": "https://www.nba.com/news/2026-all-star-voting-second-results"
+          },
+          {
+            "snippet": "#NBAAllStar 2026 is in Los Angeles, CA! The 75th annual NBA All-Star game will be played on Sun., Feb. 15 at the Intuit Dome, home of the LA Clippers.Read more",
+            "title": "#NBAAllStar (@nbaallstar) • Instagram photos and videos",
+            "url": "https://www.instagram.com/nbaallstar/"
+          },
+          {
+            "snippet": "The National Basketball Association All-Star weekend is a weekend festival held every February during the middle of the NBA regular season that consists of a ...Read more",
+            "title": "NBA All-Star Weekend",
+            "url": "https://en.wikipedia.org/wiki/NBA_All-Star_Weekend"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>nba all-star</search>",
+      "to": "https://en.wikipedia.org/wiki/NBA_All-Star_Game"
+    },
+    {
+      "from": "<search>nba all-star</search>",
+      "to": "https://www.nba.com/allstar/2026"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/NBA_All-Star_Game",
+      "to": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_2021%E2%80%9322_NBA_season_transactions",
+      "to": "https://en.wikipedia.org/wiki/List_of_2021%E2%80%9322_NBA_season_transactions#Trades"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game",
+      "to": "https://en.wikipedia.org/wiki/Andrew_Wiggins"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/Andrew_Wiggins"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/Jayson_Tatum"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Jayson_Tatum",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/Joel_Embiid"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Joel_Embiid",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/Ja_Morant"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/Ja_Morant"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/Trae_Young"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/Trae_Young"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Celebrity_Game",
+      "to": "https://en.wikipedia.org/wiki/Trae_Young"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/Trae_Young"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/Devin_Booker"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Devin_Booker",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/Karl-Anthony_Towns"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/Zach_LaVine"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/Dejounte_Murray"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Dejounte_Murray",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Dejounte_Murray#Atlanta_Hawks_(2022%E2%80%932024)",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/Nikola_Joki%C4%87"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Nikola_Joki%C4%87",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/LeBron_James"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/LeBron_James",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Lineups",
+      "to": "https://en.wikipedia.org/wiki/Donovan_Mitchell"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#All-Star_Game",
+      "to": "https://en.wikipedia.org/wiki/Donovan_Mitchell"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#",
+      "to": "https://en.wikipedia.org/wiki/Donovan_Mitchell"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Donovan_Mitchell"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Donovan_Mitchell",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Donovan_Mitchell",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Chris_Paul"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Chris_Paul",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Chris_Paul",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Draymond_Green"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Draymond_Green",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Rudy_Gobert"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Rudy_Gobert"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Rudy_Gobert",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Trae_Young"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Trae_Young"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Trae_Young"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/DeMar_DeRozan"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/DeMar_DeRozan",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Kevin_Durant"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Kevin_Durant",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Kevin_Durant",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Giannis_Antetokounmpo"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Giannis_Antetokounmpo",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/LaMelo_Ball"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Darius_Garland"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/James_Harden"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/James_Harden",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/James_Harden",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/James_Harden",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/James_Harden",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/James_Harden",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Zach_LaVine"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Fred_VanVleet"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jimmy_Butler"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jimmy_Butler"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Khris_Middleton"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Khris_Middleton",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Khris_Middleton",
+      "to": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2022_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jarrett_Allen"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game",
+      "to": "https://en.wikipedia.org/wiki/Kyrie_Irving"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Kyrie_Irving"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Kyrie_Irving",
+      "to": "https://en.wikipedia.org/wiki/Kyrie_Irving#Dallas_Mavericks_(2023%E2%80%932025)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jaylen_Brown"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jaylen_Brown"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/DeMar_DeRozan"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/DeMar_DeRozan",
+      "to": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Tyrese_Haliburton"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jrue_Holiday"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jrue_Holiday"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Jrue_Holiday",
+      "to": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Jrue_Holiday",
+      "to": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Julius_Randle"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Bam_Adebayo"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Bam_Adebayo",
+      "to": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Pascal_Siakam"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Luka_Don%C4%8Di%C4%87"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Luka_Don%C4%8Di%C4%87"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Luka_Don%C4%8Di%C4%87"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Luka_Don%C4%8Di%C4%87",
+      "to": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Zion_Williamson"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Zion_Williamson"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Zion_Williamson"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Shai_Gilgeous-Alexander"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Damian_Lillard"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Damian_Lillard"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Damian_Lillard",
+      "to": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Damian_Lillard",
+      "to": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Damian_Lillard",
+      "to": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Paul_George"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#",
+      "to": "https://en.wikipedia.org/wiki/Paul_George"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#",
+      "to": "https://en.wikipedia.org/wiki/Paul_George"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Paul_George"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Paul_George",
+      "to": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jaren_Jackson_Jr."
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Lauri_Markkanen"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Lauri_Markkanen",
+      "to": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Domantas_Sabonis"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Domantas_Sabonis",
+      "to": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Domantas_Sabonis",
+      "to": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Domantas_Sabonis",
+      "to": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Anthony_Edwards_(basketball)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/De%27Aaron_Fox"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2023_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/De%27Aaron_Fox"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game",
+      "to": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Tyrese_Haliburton"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jalen_Brunson"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jalen_Brunson"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jalen_Brunson"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Jalen_Brunson",
+      "to": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Jalen_Brunson",
+      "to": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Jalen_Brunson",
+      "to": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Tyrese_Maxey"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Tyrese_Maxey"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Paolo_Banchero"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Scottie_Barnes"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Scottie_Barnes"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jaylen_Brown"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jaylen_Brown"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Julius_Randle"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Julius_Randle",
+      "to": "https://en.wikipedia.org/wiki/Julius_Randle#Minnesota_Timberwolves_(2024%E2%80%93present)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Julius_Randle",
+      "to": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Shai_Gilgeous-Alexander"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Paul_George"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Paul_George",
+      "to": "https://en.wikipedia.org/wiki/Paul_George#Philadelphia_76ers_(2024%E2%80%93present)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Paul_George#Philadelphia_76ers_(2024%E2%80%93present)",
+      "to": "https://en.wikipedia.org/wiki/Paul_George#Professional_career"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Kawhi_Leonard"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Kawhi_Leonard"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Kawhi_Leonard",
+      "to": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Kawhi_Leonard",
+      "to": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Kawhi_Leonard",
+      "to": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Karl-Anthony_Towns"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Karl-Anthony_Towns"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Karl-Anthony_Towns",
+      "to": "https://en.wikipedia.org/wiki/Karl-Anthony_Towns#New_York_Knicks_(2024%E2%80%93present)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Karl-Anthony_Towns#New_York_Knicks_(2024%E2%80%93present)",
+      "to": "https://en.wikipedia.org/wiki/Karl-Anthony_Towns#Minnesota_Timberwolves_(2015%E2%80%932024)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Karl-Anthony_Towns#Minnesota_Timberwolves_(2015%E2%80%932024)",
+      "to": "https://en.wikipedia.org/wiki/Karl-Anthony_Towns#Professional_career"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Karl-Anthony_Towns#Professional_career",
+      "to": "https://en.wikipedia.org/wiki/Karl-Anthony_Towns#"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Anthony_Davis"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Anthony_Davis",
+      "to": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game",
+      "to": "https://en.wikipedia.org/wiki/Jalen_Brunson"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jalen_Brunson"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Jalen_Brunson",
+      "to": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Jalen_Brunson",
+      "to": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Jalen_Brunson",
+      "to": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Donovan_Mitchell"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jayson_Tatum"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Cade_Cunningham"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Darius_Garland"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Tyler_Herro"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Tyler_Herro",
+      "to": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Tyler_Herro",
+      "to": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Evan_Mobley"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Damian_Lillard"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Damian_Lillard"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Pascal_Siakam"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Trae_Young"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Shai_Gilgeous-Alexander"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Stephen_Curry"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Stephen_Curry",
+      "to": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Anthony_Edwards_(basketball)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/James_Harden"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jaren_Jackson_Jr."
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jaren_Jackson_Jr."
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jalen_Williams"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Jalen_Williams"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Anthony_Davis"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Anthony_Davis",
+      "to": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Alperen_%C5%9Eeng%C3%BCn"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Victor_Wembanyama"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2025_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Kyrie_Irving"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Kyrie_Irving",
+      "to": "https://en.wikipedia.org/wiki/Kyrie_Irving#Dallas_Mavericks_(2023%E2%80%932025)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/2024_NBA_All-Star_Game#Rosters",
+      "to": "https://en.wikipedia.org/wiki/Donovan_Mitchell"
+    }
+  ]
+}

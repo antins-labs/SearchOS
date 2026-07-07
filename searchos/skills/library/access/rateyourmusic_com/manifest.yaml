@@ -1,0 +1,44 @@
+description: >-
+  Access RateYourMusic release pages for ratings, credits, and track information.
+  Note: Site uses heavy Cloudflare protection.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "Function to call. Available functions: get_release_info (fetch release details), search (search releases - currently blocked)"
+  
+  url:
+    type: string
+    required: false
+    description: "Direct URL to the release page, e.g. https://rateyourmusic.com/release/album/radiohead/ok-computer/"
+  
+  artist:
+    type: string
+    required: false
+    description: "Artist name for constructing the release URL (used with title parameter)"
+  
+  title:
+    type: string
+    required: false
+    description: "Release title for constructing the URL (used with artist parameter)"
+  
+  release_type:
+    type: string
+    required: false
+    description: "Type of release - album, single, ep, mixtape, compilation, video, bootleg, or dj_mix. Defaults to album."
+  
+  slug:
+    type: string
+    required: false
+    description: "Direct slug path, e.g. /release/album/radiohead/ok-computer/"
+  
+  query:
+    type: string
+    required: false
+    description: "Search query (used with search function)"
+  
+  limit:
+    type: integer
+    required: false
+    description: "Maximum number of search results to return"

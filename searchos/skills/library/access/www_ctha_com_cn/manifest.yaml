@@ -1,0 +1,62 @@
+description: >-
+  Fetches China's official National Star-Rated Hotel Directory data from the China Tourism Hotel Association (CTHA) website, including 5-star and 1-4 star hotel listings with search and filtering by province.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_provinces          获取全国省份/地区列表
+        - get_5star_hotels       获取五星级旅游饭店名录，支持按省份、分页和关键词筛选
+        - get_1to4star_hotels    获取一至四星级旅游饭店名录，支持按省份、星级、分页和关键词筛选
+        - search_hotels          按关键词搜索酒店，需提供keyword参数
+  
+  province_id:
+    type: string
+    required: false
+    description: |
+      省份ID筛选。从get_provinces获取省份列表，使用对应的id字段值。
+      例如: "2"表示北京市，"20"表示广东省。
+      不提供或为空表示查询全国数据。
+      用于get_5star_hotels、get_1to4star_hotels、search_hotels。
+  
+  page:
+    type: integer
+    required: false
+    description: |
+      页码，从1开始。默认为1。
+      用于get_5star_hotels、get_1to4star_hotels、search_hotels。
+    default: 1
+  
+  page_size:
+    type: integer
+    required: false
+    description: |
+      每页结果数量，最大100。默认为20。
+      用于get_5star_hotels、get_1to4star_hotels、search_hotels。
+    default: 20
+  
+  keyword:
+    type: string
+    required: false
+    description: |
+      搜索关键词，用于酒店名称搜索。
+      用于get_5star_hotels、get_1to4star_hotels、search_hotels（必填）。
+      示例: "北京"、"希尔顿"、"王府饭店"
+  
+  star_rating:
+    type: string
+    required: false
+    description: |
+      星级筛选，仅用于get_1to4star_hotels。
+      可选值: "1"(一星)、"2"(二星)、"3"(三星)、"4"(四星)、""(全部一至四星)。
+      默认为空字符串表示查询所有一至四星级酒店。
+  
+  category_id:
+    type: string
+    required: false
+    description: |
+      酒店分类ID，仅用于search_hotels。
+      "94"表示五星级酒店，"58"表示一至四星级酒店。
+      默认为"94"。

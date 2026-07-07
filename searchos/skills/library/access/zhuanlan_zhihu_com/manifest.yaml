@@ -1,0 +1,18 @@
+description: >-
+  Fetches article content from Zhihu Zhuanlan (知乎专栏) at zhuanlan.zhihu.com using Playwright with anti-scraping bypass.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_article   获取指定文章的内容；需要 article_id 或 url 参数
+        - close         关闭浏览器客户端，释放资源
+  article_id:
+    type: string
+    required: false
+    description: 文章ID，可从 URL（如 /p/667602045）中提取；用于 get_article 功能
+  url:
+    type: string
+    required: false
+    description: 文章完整URL（如 https://zhuanlan.zhihu.com/p/667602045）；可作为 article_id 的替代方式；用于 get_article 功能

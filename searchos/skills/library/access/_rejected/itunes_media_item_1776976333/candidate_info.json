@@ -1,0 +1,18 @@
+{
+  "host": "itunes.apple.com",
+  "invocation": "agent_called",
+  "probe_urls": [
+    "https://itunes.apple.com/search?term=beatles&entity=album&limit=3",
+    "https://itunes.apple.com/search?term=inception&entity=movie&limit=3"
+  ],
+  "heldout_url": "https://itunes.apple.com/search?term=inception&entity=movie&limit=3",
+  "declared_fields": [
+    "artist_name",
+    "collection_name",
+    "artwork_url",
+    "release_date",
+    "price",
+    "primary_genre",
+    "item_url"
+  ]
+}

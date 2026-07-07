@@ -1,0 +1,98 @@
+description: >-
+  Fetches UK Land Registry house price index data (average prices, sales volume)
+  from publicdata.landregistry.gov.uk with streaming support for large CSV files.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_data        获取指定月份的房价指数数据，支持按区域/日期/价格过滤
+        - list_regions    列出所有可用区域及其区域代码
+        - get_metadata    获取数据文件元信息(行数、日期范围、列名等)
+        - get_timeseries  获取特定区域在多个月份的时间序列数据
+  year_month:
+    type: string
+    required: false
+    description: |
+      数据月份，格式YYYY-MM (如 "2026-02", "2025-04")。
+      用于 get_data, list_regions, get_metadata 功能。
+  data_type:
+    type: string
+    required: false
+    description: |
+      数据类型: "average-prices" (默认) 或 "sales"。
+      用于所有功能。
+  region:
+    type: string
+    required: false
+    description: |
+      区域名称过滤(部分匹配，不区分大小写)。
+      用于 get_data, get_timeseries 功能。
+  region_exact:
+    type: string
+    required: false
+    description: |
+      区域名称精确匹配(不区分大小写)。
+      用于 get_data 功能。
+  area_code:
+    type: string
+    required: false
+    description: |
+      区域代码过滤，如 "E12000007" (伦敦)。
+      用于 get_data 功能。
+  date_from:
+    type: string
+    required: false
+    description: |
+      起始日期过滤 (格式 YYYY-MM-DD)。
+      用于 get_data 功能。
+  date_to:
+    type: string
+    required: false
+    description: |
+      结束日期过滤 (格式 YYYY-MM-DD)。
+      用于 get_data 功能。
+  min_price:
+    type: number
+    required: false
+    description: |
+      最低平均价格过滤。
+      用于 get_data 功能 (仅限 average-prices 数据类型)。
+  max_price:
+    type: number
+    required: false
+    description: |
+      最高平均价格过滤。
+      用于 get_data 功能 (仅限 average-prices 数据类型)。
+  limit:
+    type: integer
+    required: false
+    description: |
+      返回结果最大行数 (默认100，最大10000)。
+      用于 get_data 功能。
+  offset:
+    type: integer
+    required: false
+    description: |
+      跳过的行数(用于分页)。
+      用于 get_data 功能。
+  search:
+    type: string
+    required: false
+    description: |
+      搜索词，用于过滤区域列表。
+      用于 list_regions 功能。
+  months:
+    type: array
+    required: false
+    description: |
+      要获取的月份列表，如 ["2025-01", "2025-02"]。
+      用于 get_timeseries 功能。
+  latest_n:
+    type: integer
+    required: false
+    description: |
+      如果未指定months，获取最近N个月的数据(默认6)。
+      用于 get_timeseries 功能。

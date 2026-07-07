@@ -1,0 +1,144 @@
+{
+  "search": [
+    "energy consumption ranking among EU countries",
+    "eurostat"
+  ],
+  "result": {
+    "energy consumption ranking among EU countries": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Final energy consumption in the EU in 2023 was 36 566 PJ, 3.3% less than in 2022 (Figure 9). Final energy consumption was slowly increasing from 1994 until it ...Read more",
+            "title": "Energy statistics - an overview - Statistics Explained - Eurostat",
+            "url": "https://ec.europa.eu/eurostat/statistics-explained/index.php/Energy_statistics_-_an_overview"
+          },
+          {
+            "snippet": "As of 2022, the top three are Iceland (52,920 kWh/year), Norway (23,374 kWh/year), and Finland (14,747 kWh/year), whereas the bottom three are Moldova (2,201 ...Read more",
+            "title": "European countries by electricity consumption per person",
+            "url": "https://en.wikipedia.org/wiki/European_countries_by_electricity_consumption_per_person"
+          },
+          {
+            "snippet": "All Countries in Europe ; 1, Iceland, 49,955.64 ; 2, Norway, 23,520.21 ; 3, Finland, 14,391.35 ; 4, Sweden, 12,149.52.Read more",
+            "title": "Ranking by Electricity Consumption Per Capita",
+            "url": "https://datacommons.org/ranking/Amount_Consumption_Electricity_PerCapita/Country/europe?h=country%2FTUR&unit=kWh"
+          },
+          {
+            "snippet": "Finland (14.7 MWh) and Sweden (13.2 MWh) have the highest electricity demand per capita among the ten countries with the highest electricity demand. Their ...Read more",
+            "title": "EU Electricity Trends (European Electricity Review) - Ember",
+            "url": "https://ember-energy.org/latest-insights/european-electricity-review-2024/eu-electricity-trends/"
+          },
+          {
+            "snippet": "",
+            "title": "Green electricity: Which EU countries are using the most?",
+            "url": "https://www.youtube.com/watch?v=ZyCenJLQ58M"
+          },
+          {
+            "snippet": "Share of electricity in final consumption. 22% of total final consumption, 2023. Largest electricity-consuming sectors in Europe, 2023. Industry. 35% of total ...Read more",
+            "title": "Europe – Countries & Regions - IEA",
+            "url": "https://www.iea.org/regions/europe/electricity"
+          },
+          {
+            "snippet": "Energy use per capita, 2022: · 1. Iceland · 2. Gibraltar · 3. Finland · 4. Russia · 5. Luxembourg · 6. Norway · 7. Belgium · 8. Sweden.Read more",
+            "title": "Energy use per capita in Europe",
+            "url": "https://www.theglobaleconomy.com/rankings/energy_use_per_capita/Europe/"
+          },
+          {
+            "snippet": "The 27 countries of the EU consume less than a tenth of world energy. Consumption in the EU and the United States has declined since the year ...Read more",
+            "title": "Energy consumption and CO2 emissions in Europe ...",
+            "url": "https://www.planete-energies.com/en/media/article/energy-consumption-and-co2-emissions-europe-and-worldwide"
+          },
+          {
+            "snippet": "Three EU countries have a significantly higher share of electricity than the EU average (54% in 2023): Greece, Portugal and Ireland (more than 70%).In Ireland, ...Read more",
+            "title": "Share of electricity in total consumption",
+            "url": "https://www.odyssee-mure.eu/publications/efficiency-by-sector/services/electricity-share-total-consumption.html"
+          },
+          {
+            "snippet": "A ranking of EU (27) countries according to their primary energy consumption in tonnes of oil equivalent per inhabitant (X01) in 2019 and index ItX01 for 2019 ( ...Read more",
+            "title": "A ranking of EU (27) countries according to their primary ...",
+            "url": "https://www.researchgate.net/figure/A-ranking-of-EU-27-countries-according-to-their-primary-energy-consumption-in-tonnes-of_fig1_352641769"
+          }
+        ]
+      }
+    ],
+    "eurostat": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Welcome to Eurostat, the home of high quality statistics and data on Europe. Learn more about us. EU key indicators.",
+            "title": "Home - Eurostat - European Commission",
+            "url": "https://ec.europa.eu/eurostat"
+          },
+          {
+            "snippet": "Eurostat is the statistical office of the European Union, independently responsible for publishing high-quality Europe-wide statistics and indicators.Read more",
+            "title": "Eurostat - European statistics",
+            "url": "https://commission.europa.eu/about/departments-and-executive-agencies/eurostat-european-statistics_en"
+          },
+          {
+            "snippet": "Eurostat's main responsibilities are to provide statistical information to the institutions of the European Union (EU) and to promote the harmonisation of ...Read more",
+            "title": "Eurostat",
+            "url": "https://en.wikipedia.org/wiki/Eurostat"
+          },
+          {
+            "snippet": "Eurostat is your reference point for high-quality statistics and data on Europe. ➡️ https://ec.europa.eu/eurostat #AskEurostat.Read more",
+            "title": "Eurostat | Luxembourg",
+            "url": "https://www.facebook.com/EurostatStatistics/"
+          },
+          {
+            "snippet": "Eurostat is the statistical office of the European Union. Lawful good. #AskEurostat Tap to learn more about any post ...Read more",
+            "title": "Eurostat (@eu_eurostat) • Instagram photos and videos",
+            "url": "https://www.instagram.com/eu_eurostat/"
+          },
+          {
+            "snippet": "Learn about the features of Eurostat's website and how to locate and access data. 22 January, 11:00 CET Webinar registrations close at 16:00 CET today.Read more",
+            "title": "EU_Eurostat",
+            "url": "https://x.com/EU_Eurostat"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>energy consumption ranking among EU countries</search>",
+      "to": "https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Energy_statistics_-_an_overview"
+    },
+    {
+      "from": "<search>energy consumption ranking among EU countries</search>",
+      "to": "https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Energy_statistics_-_an_overview"
+    },
+    {
+      "from": "<search>energy consumption ranking among EU countries</search>",
+      "to": "https://en.wikipedia.org/wiki/European_countries_by_electricity_consumption_per_person"
+    },
+    {
+      "from": "<search>eurostat</search>",
+      "to": "https://ec.europa.eu/eurostat"
+    },
+    {
+      "from": "https://ec.europa.eu/eurostat",
+      "to": "https://ec.europa.eu/eurostat/web/main/data/database"
+    },
+    {
+      "from": "https://ec.europa.eu/eurostat/web/main/data/database",
+      "to": "https://ec.europa.eu/eurostat/databrowser/product/view/ten00124?category=t_nrg.t_nrg_indic"
+    },
+    {
+      "from": "https://ec.europa.eu/eurostat/web/main/data/database",
+      "to": "https://ec.europa.eu/eurostat/databrowser/product/view/ten00124?category=t_nrg.t_nrg_indic"
+    },
+    {
+      "from": "https://ec.europa.eu/eurostat/web/main/data/database",
+      "to": "https://ec.europa.eu/eurostat/databrowser/product/view/ten00124?category=t_nrg.t_nrg_indic"
+    },
+    {
+      "from": "https://ec.europa.eu/eurostat/web/main/data/database",
+      "to": "https://ec.europa.eu/eurostat/databrowser/product/view/ten00124?category=t_nrg.t_nrg_indic"
+    },
+    {
+      "from": "https://ec.europa.eu/eurostat/web/main/data/database",
+      "to": "https://ec.europa.eu/eurostat/databrowser/product/view/ten00124?category=t_nrg.t_nrg_indic"
+    }
+  ]
+}

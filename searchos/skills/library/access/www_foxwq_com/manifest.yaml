@@ -1,0 +1,20 @@
+description: >-
+  Fetches Go/Baduk news articles and article lists from foxwq.com (野狐围棋),
+  a Chinese Go/Baduk news website.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_article   获取单篇新闻文章详情，需要 article_id 参数
+        - list_news     获取新闻列表，可选 page 参数指定页码
+        - get_comments  获取文章评论，需要 article_id 参数
+  article_id:
+    type: string
+    required: false
+    description: 文章ID（如 14371），用于 get_article 和 get_comments 功能
+  page:
+    type: integer
+    required: false
+    description: 页码（从1开始），用于 list_news 功能获取指定页的新闻列表

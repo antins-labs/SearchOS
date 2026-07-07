@@ -1,0 +1,34 @@
+description: >-
+  Extracts vehicle specs, pricing, ratings, and trim data from Car and Driver
+  (carandriver.com) for any make/model/year combination.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_vehicle   通过URL获取车辆数据
+        - search        通过品牌/车型/年份搜索车辆
+        - get_specs     获取特定年份/配置的详细规格
+        - list_years    列出某车型的所有可选年份
+  url:
+    type: string
+    required: false
+    description: Car and Driver车辆页面的完整URL (用于get_vehicle)
+  make:
+    type: string
+    required: false
+    description: 车辆品牌，如 "ford", "toyota", "honda" (用于search/get_specs/list_years)
+  model:
+    type: string
+    required: false
+    description: 车型名称，如 "ranger", "bronco", "mustang-mach-e" (用于search/get_specs/list_years)
+  year:
+    type: integer
+    required: false
+    description: 年份，如 2021, 2024 (用于search/get_specs)
+  submodel:
+    type: string
+    required: false
+    description: 子车型/配置名称，如 "gt", "raptor" (用于get_specs，可选)

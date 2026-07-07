@@ -1,0 +1,39 @@
+description: >-
+  Fetches historical governor data from the National Governors Association (NGA) website, 
+  including names, terms, and party affiliations for all U.S. states and territories.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_states   列出所有可用的州和领地
+        - get_governors 获取指定州的所有历任州长; 需要 state 参数
+        - search_governors 按姓名或政党搜索州长; 可选参数: query, party, state_filter, limit
+  
+  state:
+    type: string
+    required: false
+    description: 州或领地名称（用于 get_governors）；支持全名如 "North Carolina" 或 slug 如 "north-carolina"
+  
+  query:
+    type: string
+    required: false
+    description: 搜索关键词，用于在州长姓名中匹配（用于 search_governors）
+  
+  party:
+    type: string
+    required: false
+    description: 政党名称，如 "Democratic"、"Republican"（用于 search_governors 筛选）
+  
+  state_filter:
+    type: string
+    required: false
+    description: 限定在指定州内搜索（用于 search_governors）
+  
+  limit:
+    type: integer
+    required: false
+    default: 50
+    description: 返回结果的最大数量（用于 search_governors）

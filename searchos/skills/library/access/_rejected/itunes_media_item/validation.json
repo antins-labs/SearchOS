@@ -1,0 +1,31 @@
+{
+  "candidate": "itunes_media_item",
+  "host": "itunes.apple.com",
+  "passing": false,
+  "gates": [
+    {
+      "name": "A_agent",
+      "passed": false,
+      "reason": "params_schema_missing_query",
+      "detail": {
+        "params_schema": {
+          "term": {
+            "type": "string",
+            "required": true,
+            "description": "The text string to search for (e.g., artist name, album title, movie title)."
+          },
+          "entity": {
+            "type": "string",
+            "default": "album",
+            "description": "The type of media to search for (e.g., album, movie, song, musicArtist)."
+          },
+          "limit": {
+            "type": "integer",
+            "default": 5,
+            "description": "The maximum number of search results to return."
+          }
+        }
+      }
+    }
+  ]
+}

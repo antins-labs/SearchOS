@@ -1,0 +1,44 @@
+{
+  "candidate": "stackexchange_question",
+  "host": "api.stackexchange.com",
+  "passing": false,
+  "gates": [
+    {
+      "name": "A_agent",
+      "passed": true,
+      "reason": "",
+      "detail": {}
+    },
+    {
+      "name": "S_smoke",
+      "passed": false,
+      "reason": "only_0_of_3_queries_passed",
+      "detail": {
+        "queries": [
+          "Search for Stack Overflow questions about python async",
+          "Find Server Fault questions regarding kubernetes",
+          "List recent questions with the python tag"
+        ],
+        "per_query": [
+          {
+            "query": "Search for Stack Overflow questions about python async",
+            "ok": false,
+            "reason": "skill_error:http_400"
+          },
+          {
+            "query": "Find Server Fault questions regarding kubernetes",
+            "ok": false,
+            "reason": "skill_error:http_400"
+          },
+          {
+            "query": "List recent questions with the python tag",
+            "ok": false,
+            "reason": "skill_error:http_400"
+          }
+        ],
+        "successes": 0,
+        "required": 2
+      }
+    }
+  ]
+}

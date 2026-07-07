@@ -1,0 +1,46 @@
+description: >-
+  Access Macau Statistics and Census Service (DSEC) statistical data including tourism, gaming, demographics, GDP, prices, and labour statistics.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_categories          列出所有统计分类及其主题;可选 language
+        - get_key_indicators       获取全部关键统计指标及最新值;可选 language、indicator_id
+        - get_statistical_releases 获取某统计主题的发布刊物;需要 category 和 topic,可选 period_type、year、language
+        - get_release_detail       获取某次发布的详细信息;需要 release_id
+        - search_indicators        按名称/关键词搜索关键指标;需要 query,可选 language
+  language:
+    type: string
+    required: false
+    description: 语言代码(如 "en-US"、"zh-MO")。多数 function 可用。
+    default: en-US
+  indicator_id:
+    type: string
+    required: false
+    description: 关键指标 ID(KeyIndicatorID),用于过滤单个指标。仅 get_key_indicators 使用。
+  category:
+    type: string
+    required: false
+    description: 统计分类名(如 "TourismAndServices")。仅 get_statistical_releases 使用。
+  topic:
+    type: string
+    required: false
+    description: 统计主题键(如 "VisitorArrivals")。仅 get_statistical_releases 使用。
+  period_type:
+    type: string
+    required: false
+    description: 期间类型,取值 Monthly/Quarterly/Yearly。仅 get_statistical_releases 使用。
+  year:
+    type: integer
+    required: false
+    description: 按年份过滤发布。仅 get_statistical_releases 使用。
+  release_id:
+    type: string
+    required: false
+    description: 发布 ID(ReleaseID)。仅 get_release_detail 使用。
+  query:
+    type: string
+    required: false
+    description: 指标搜索关键词(匹配指标名称)。仅 search_indicators 使用。

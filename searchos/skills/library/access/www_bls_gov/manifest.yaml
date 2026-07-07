@@ -1,0 +1,89 @@
+description: >-
+  Retrieves unemployment statistics from the BLS Local Area Unemployment Statistics (LAUS) 
+  database via the BLS Public API v2. Supports state, county, and metropolitan area queries 
+  for unemployment rates, employment levels, and labor force data.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to call. Available values:
+        - get_state         Get unemployment data for a specific state; requires 'state'
+        - get_all_states    Get unemployment data for all US states
+        - get_county        Get unemployment data for a specific county; requires 'state' and 'county_fips'
+        - search            Search for LAUS series by state/county name; requires 'query'
+        - get_latest_rates  Get latest unemployment rates for all states (convenience method)
+        - fetch_series      Fetch raw series data by BLS series ID; requires 'series_ids'
+
+  state:
+    type: string
+    required: false
+    description: |
+      State abbreviation (e.g., 'CA', 'NY') or 2-digit FIPS code (e.g., '06', '36').
+      Required for 'get_state' and 'get_county' functions.
+
+  county_fips:
+    type: string
+    required: false
+    description: |
+      3-digit county FIPS code (e.g., '037' for Los Angeles County, '001' for Alameda County).
+      Required for 'get_county' function. Combine with 'state' parameter.
+
+  measure:
+    type: string
+    required: false
+    description: |
+      Unemployment measure code. Default is '03' (unemployment rate).
+        - '03': Unemployment Rate (percent)
+        - '04': Unemployed (number of persons)
+        - '05': Employment (number of persons)
+        - '06': Labor Force (number of persons)
+      Used by 'get_state', 'get_all_states', 'get_county' functions.
+
+  start_year:
+    type: integer
+    required: false
+    description: |
+      Start year for data retrieval (e.g., 2020). Defaults to 3 years before current year.
+      Used by data retrieval functions.
+
+  end_year:
+    type: integer
+    required: false
+    description: |
+      End year for data retrieval (e.g., 2024). Defaults to current year.
+      Used by data retrieval functions.
+
+  series_ids:
+    type: array
+    required: false
+    description: |
+      List of BLS LAUS series IDs to fetch. Each series ID follows the pattern:
+      LAU[AreaType][StateFIPS][AreaCode][Measure]
+        - Area Types: ST=State, CN=County, MT=Metropolitan
+        - Measures: 03=rate, 04=unemployed, 05=employment, 06=labor force
+      Example: LAUST060000000000003 = California unemployment rate
+      Required for 'fetch_series' function. Can also be a single string ID.
+
+  query:
+    type: string
+    required: false
+    description: |
+      Search query for finding state/area series. Search by state name, abbreviation,
+      or FIPS code. Required for 'search' function.
+
+  limit:
+    type: integer
+    required: false
+    description: |
+      Maximum number of search results to return. Default is 20.
+      Used by 'search' function.
+
+  registration_key:
+    type: string
+    required: false
+    description: |
+      BLS API registration key. Without a key, rate limit is 25 requests/day.
+      With a key, rate limit increases to 500 requests/day and allows up to 50
+      series per request. Get a free key at https://api.bls.gov/RegistrationAPI/

@@ -1,0 +1,39 @@
+description: >-
+  Fetches iOS/iPadOS app metadata from Apple's iTunes Search API including ratings, developer info, pricing, and more.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - lookup_app   通过App Store ID查询应用详情; 需要app_id参数, 可选country
+        - lookup_by_bundle_id   通过Bundle ID查询应用详情; 需要bundle_id参数, 可选country
+        - search_apps   搜索App Store应用; 需要query参数, 可选country/limit/offset
+  app_id:
+    type: string
+    required: false
+    description: App Store应用ID，单个ID或逗号分隔的多个ID (用于lookup_app)
+  bundle_id:
+    type: string
+    required: false
+    description: 应用Bundle标识符，如com.burbn.instagram (用于lookup_by_bundle_id)
+  query:
+    type: string
+    required: false
+    description: 搜索关键词 (用于search_apps)
+  country:
+    type: string
+    required: false
+    description: 两字母国家代码，默认us
+    default: us
+  limit:
+    type: integer
+    required: false
+    description: 搜索结果最大数量，默认10，最大200 (用于search_apps)
+    default: 10
+  offset:
+    type: integer
+    required: false
+    description: 分页偏移量，默认0 (用于search_apps)
+    default: 0

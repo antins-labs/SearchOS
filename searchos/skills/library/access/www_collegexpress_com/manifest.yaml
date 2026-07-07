@@ -1,0 +1,35 @@
+description: >-
+  Fetches college lists and rankings from CollegeXpress.com, including ranked lists
+  with metrics (library sizes, enrollment, tuition, etc.) and simple membership lists
+  (Ivy League, state schools, athletic conferences, etc.).
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_list      获取指定的大学列表或排名，需要提供完整URL
+        - search_lists  发现可用的列表目录，可搜索或筛选
+  url:
+    type: string
+    required: false
+    description: >
+      (get_list) 列表页面的完整URL。例如:
+      "https://www.collegexpress.com/lists/list/top-50-largest-college-libraries/747/"
+      使用 search_lists 查找可用的列表及其URL。
+  category:
+    type: string
+    required: false
+    description: >
+      (search_lists) 按分类筛选列表。例如: "campus-location", "majors", "college-costs"。
+  search:
+    type: string
+    required: false
+    description: >
+      (search_lists) 按标题或slug搜索列表。例如: "library", "ivy", "texas"。
+  limit:
+    type: integer
+    required: false
+    description: >
+      返回结果的最大数量限制。默认返回全部结果。

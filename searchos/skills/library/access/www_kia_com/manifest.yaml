@@ -1,0 +1,29 @@
+description: >-
+  Extracts vehicle specifications and trim-level comparisons from Kia USA website.
+  Fetches detailed specs including pricing, features, dimensions, engine specs,
+  and safety equipment for Kia vehicles.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to invoke. Available values:
+        - get_trim_comparison   Gets all trim levels with pricing and specs comparison for a Kia model. Requires 'model'.
+        - get_vehicle_specs     Gets detailed specifications for a specific Kia vehicle model. Requires 'model'; 'year' and 'trim' are optional.
+  model:
+    type: string
+    required: false
+    description: |
+      Vehicle model name (e.g., 'k4', 'k5', 'sportage', 'sorento', 'telluride', 'carnival', 
+      'niro', 'ev6', 'ev9'). Used by both get_trim_comparison and get_vehicle_specs.
+  year:
+    type: integer
+    required: false
+    description: |
+      Model year (e.g., 2025, 2026). Used by get_vehicle_specs. Defaults to current model year if not specified.
+  trim:
+    type: string
+    required: false
+    description: |
+      Trim level name (e.g., 'LX', 'LXS', 'EX', 'GT-Line', 'GT-Line Turbo'). 
+      Used by get_vehicle_specs to focus on a specific trim when available.

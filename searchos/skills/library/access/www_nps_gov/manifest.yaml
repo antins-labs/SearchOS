@@ -1,0 +1,49 @@
+description: >-
+  Access National Park Service Visitor Spending Effects (VSE) economic impact data,
+  including jobs, visitor spending, and economic output at national, state, and park levels.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_national_data: 获取美国全国范围的经济影响数据 (需year, 可选metric)
+        - get_state_data: 获取指定州的详细经济影响数据 (需state_code, 可选year, metric)
+        - get_all_states: 获取所有州的汇总经济影响数据 (可选year)
+        - get_park_data: 获取指定公园的详细经济影响数据 (需park_code, 可选year, metric)
+        - get_all_parks: 获取所有NPS单位的汇总经济影响数据 (可选year)
+        - search_parks: 按名称或代码搜索公园并返回经济数据 (需query, 可选year, limit)
+        - get_available_years: 获取数据可用年份列表
+  
+  year:
+    type: integer
+    required: false
+    description: 数据年份 (2012-2024), 默认2024。用于get_national_data, get_state_data, get_all_states, get_park_data, get_all_parks, search_parks
+    default: 2024
+  
+  state_code:
+    type: string
+    required: false
+    description: 两字母州代码 (例: "CA", "TX", "NY", "DC"等)。仅用于get_state_data
+  
+  park_code:
+    type: string
+    required: false
+    description: 四字母公园代码 (例: "YELL"代表黄石, "YOSE"代表优胜美地, "GRCA"代表大峡谷)。仅用于get_park_data
+  
+  query:
+    type: string
+    required: false
+    description: 搜索关键词, 匹配公园名称或代码。仅用于search_parks
+  
+  limit:
+    type: integer
+    required: false
+    description: 返回结果最大数量, 默认20。仅用于search_parks
+    default: 20
+  
+  metric:
+    type: string
+    required: false
+    description: 筛选特定经济指标类型 (例: "jobs")。可用于get_national_data, get_state_data, get_park_data

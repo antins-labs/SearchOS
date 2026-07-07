@@ -1,0 +1,73 @@
+{
+  "search": [
+    "cross-harbour tunnels HongKong"
+  ],
+  "result": {
+    "cross-harbour tunnels HongKong": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "The Cross-Harbour Tunnel (abbreviated CHT or XHT) is the first tunnel in Hong Kong built underwater. It consists of two steel road tunnels each with two lanes.",
+            "title": "Cross-Harbour Tunnel",
+            "url": "https://en.wikipedia.org/wiki/Cross-Harbour_Tunnel"
+          },
+          {
+            "snippet": "Vehicular harbour crossings in Hong Kong ; Cross-Harbour Tunnel · Causeway Bay ; Eastern Harbour Crossing · Quarry Bay ; Western Harbour Crossing · Sai Ying Pun ...",
+            "title": "Vehicular harbour crossings in Hong Kong",
+            "url": "https://en.wikipedia.org/wiki/Vehicular_harbour_crossings_in_Hong_Kong"
+          },
+          {
+            "snippet": "Cross Harbour Tunnel is the first tunnel crossing the Victoria Habour in Hong Kong. It is also the first transport project implemented using the Build-Operate- ...",
+            "title": "The First Cross Harbour Tunnel in Hong Kong",
+            "url": "https://www.hyd.gov.hk/en/information_corner/trivia/first_cross_harbour_tunnel/index.html"
+          },
+          {
+            "snippet": "The Western Harbour Crossing (WHC) is a dual three-lane immersed tube tunnel in Hong Kong. It is the third road tunnel to cross Victoria Harbour.",
+            "title": "Western Harbour Crossing",
+            "url": "https://en.wikipedia.org/wiki/Western_Harbour_Crossing"
+          },
+          {
+            "snippet": "The toll of WHC is maintained at $60 while the tolls of CHT and EHC are increased to $40. A uniform toll of $30 is charged for private cars using the three RHCs ...",
+            "title": "Toll Plans for Road Harbour Crossings",
+            "url": "https://www.td.gov.hk/en/transport_in_hong_kong/tunnels_and_bridges_n/tvt/index.html"
+          },
+          {
+            "snippet": "The Cross-Harbour Tunnel (CHT) is the first tunnel in Hong Kong built underwater beneath Victoria Harbour, between Hung Hom Bay and Kellet Island.",
+            "title": "Cross Harbour Tunnel (2026) - All You Need to Know ...",
+            "url": "https://en.tripadvisor.com.hk/Attraction_Review-g294217-d7738069-Reviews-Cross_Harbour_Tunnel-Hong_Kong.html"
+          },
+          {
+            "snippet": "Cross-Harbour Tunnel, opened in 1972, is 1,860 m in length. It is the first tunnel link between Hong Kong Island and Kowloon.",
+            "title": "Cross Harbour Tunnel - Film Services Office - CCIDAHK",
+            "url": "https://fpf.ccidahk.gov.hk/en/location/detail.php?id=675"
+          },
+          {
+            "snippet": "The tunnel units consisted of twin 10.3m diameter steel tubes set at 11.8m centres and varying in length between 98.7m and 113m. The tubes were ...",
+            "title": "The Cross-Harbour Tunnel – Part 2 Construction",
+            "url": "https://industrialhistoryhk.org/the-cross-harbour-tunnel-part-2-construction/"
+          },
+          {
+            "snippet": "Hong Kong The Cross-Harbour Tunnel Co Ltd: Hong Kong cross-harbour tunnel increase of capacity: Traffic studies. 1980 (624.194 CRO. 1980). ○. Hong Kong ...",
+            "title": "海底隧道",
+            "url": "https://www.grs.gov.hk/ws/erp/filemanager/doc/tg/Cross-Harbour_Tunnel_Chinese.pdf"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>cross-harbour tunnels HongKong</search>",
+      "to": "https://en.wikipedia.org/wiki/Cross-Harbour_Tunnel"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Cross-Harbour_Tunnel",
+      "to": "https://en.wikipedia.org/wiki/Vehicular_harbour_crossings_in_Hong_Kong"
+    },
+    {
+      "from": "<search>cross-harbour tunnels HongKong</search>",
+      "to": "https://en.wikipedia.org/wiki/Vehicular_harbour_crossings_in_Hong_Kong"
+    }
+  ]
+}

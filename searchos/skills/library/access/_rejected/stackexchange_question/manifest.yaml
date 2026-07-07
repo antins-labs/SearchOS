@@ -1,0 +1,26 @@
+name: stackexchange_question
+invocation: agent_called
+description: "Search api.stackexchange.com \u2014 stackexchange_question. JSON REST\
+  \ API; requires query parameters for invocation; rate-limited with quotas visible\
+  \ in response."
+params_schema:
+  site:
+    type: string
+    required: true
+    description: The Stack Exchange site to search (e.g., stackoverflow, serverfault)
+  query:
+    type: string
+    required: true
+    description: The search terms
+  pagesize:
+    type: integer
+    default: 5
+    description: Number of results to return per page
+category: social
+entity_type: stackexchange_question
+fields:
+- title
+- url
+- score
+- answer_count
+- question_id

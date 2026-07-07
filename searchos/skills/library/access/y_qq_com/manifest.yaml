@@ -1,0 +1,31 @@
+description: >-
+  Fetches song details, search results, and lyrics from QQ Music (y.qq.com).
+  Supports searching for songs, retrieving detailed track information, and getting lyrics.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - search      搜索歌曲; 需要参数 query (关键词), 可选 page (页码, 默认1), page_size (每页数量, 默认10)
+        - get_detail  获取歌曲详情; 需要参数 song_mid (歌曲mid)
+        - get_lyrics  获取歌词; 需要参数 song_mid (歌曲mid)
+  query:
+    type: string
+    required: false
+    description: 搜索关键词 (歌曲名、歌手名等); search 功能使用
+  song_mid:
+    type: string
+    required: false
+    description: 歌曲的唯一mid标识符 (如 "003OUlho2HcRHC"); get_detail 和 get_lyrics 功能使用
+  page:
+    type: integer
+    required: false
+    description: 搜索结果页码 (从1开始); search 功能使用
+    default: 1
+  page_size:
+    type: integer
+    required: false
+    description: 每页搜索结果数量 (最大50); search 功能使用
+    default: 10

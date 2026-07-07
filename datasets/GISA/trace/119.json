@@ -1,0 +1,104 @@
+{
+  "search": [
+    "Assassin's Creed"
+  ],
+  "result": {
+    "Assassin's Creed": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Assassin's Creed is a historical action-adventure video game series and media franchise published by Ubisoft and developed mainly by its studio Ubisoft ...Read more",
+            "title": "Assassin's Creed",
+            "url": "https://en.wikipedia.org/wiki/Assassin%27s_Creed"
+          },
+          {
+            "snippet": "Discover the award-winning Assassin's Creed franchise with more than 230M games sold. Travel through time in this action-adventure video game series ...Read more",
+            "title": "Assassin's Creed Franchise | Ubisoft (EU / UK)",
+            "url": "https://www.ubisoft.com/en-gb/game/assassins-creed"
+          },
+          {
+            "snippet": "Assassin's Creed is a 2007 action-adventure game developed by Ubisoft Montreal and published by Ubisoft. It is the first installment in the Assassin's Creed ...Read more",
+            "title": "Assassin's Creed (video game)",
+            "url": "https://en.wikipedia.org/wiki/Assassin%27s_Creed_(video_game)"
+          },
+          {
+            "snippet": "The Assassin's Creed series is an award-winning video game series that currently consists of fourteen main games, multiple spin-off games, several short ...",
+            "title": "Assassin's Creed (series)",
+            "url": "https://assassinscreed.fandom.com/wiki/Assassin%27s_Creed_(series)"
+          },
+          {
+            "snippet": "Assassin's Creed is a 2016 science fiction action film directed by Justin Kurzel, based on the video game series by Ubisoft. It stars Michael Fassbender, ...Read more",
+            "title": "Assassin's Creed (film)",
+            "url": "https://en.wikipedia.org/wiki/Assassin%27s_Creed_(film)"
+          },
+          {
+            "snippet": "A man explores the memories of his ancestor in 15th century Spain and gains the skills of a mysterious secret society, the Assassins, to confront the oppressive ...Read more",
+            "title": "Assassin's Creed (2016)",
+            "url": "https://www.imdb.com/title/tt2094766/"
+          },
+          {
+            "snippet": "Discover Assassin's Creed Franchise. What is the best Assassin's Creed game for you? Take the quiz to find out which Assassin you have the most in common ...Read more",
+            "title": "Assassin's Creed Games",
+            "url": "https://www.ubisoft.com/en-gb/game/assassins-creed/games"
+          },
+          {
+            "snippet": "Experience an epic action-adventure story set in feudal Japan! Become a lethal shinobi assassin and powerful legendary samurai as you explore a beautiful open ...Read more",
+            "title": "Steam Franchise: Assassin's Creed",
+            "url": "https://store.steampowered.com/franchise/AC"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>Assassin's Creed</search>",
+      "to": "https://en.wikipedia.org/wiki/Assassin%27s_Creed"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Assassin%27s_Creed",
+      "to": "https://en.wikipedia.org/wiki/Assassin%27s_Creed_(video_game)"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Assassin%27s_Creed",
+      "to": "https://en.wikipedia.org/wiki/Assassin%27s_Creed_II"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Assassin%27s_Creed",
+      "to": "https://en.wikipedia.org/wiki/Assassin%27s_Creed:_Brotherhood"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Assassin%27s_Creed",
+      "to": "https://en.wikipedia.org/wiki/Assassin%27s_Creed_Revelations"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Assassin%27s_Creed",
+      "to": "https://en.wikipedia.org/wiki/Assassin%27s_Creed_III"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Assassin%27s_Creed",
+      "to": "https://en.wikipedia.org/wiki/Assassin%27s_Creed_IV:_Black_Flag"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Assassin%27s_Creed",
+      "to": "https://en.wikipedia.org/wiki/French_and_Indian_War"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Assassin%27s_Creed",
+      "to": "https://en.wikipedia.org/wiki/Assassin%27s_Creed_Rogue"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Assassin%27s_Creed",
+      "to": "https://en.wikipedia.org/wiki/Assassin%27s_Creed_Unity"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Assassin%27s_Creed",
+      "to": "https://en.wikipedia.org/wiki/Assassin%27s_Creed_Syndicate"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Assassin%27s_Creed",
+      "to": "https://en.wikipedia.org/wiki/Assassin%27s_Creed_III:_Liberation"
+    }
+  ]
+}

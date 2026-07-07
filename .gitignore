@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Workspace (runtime generated)
+searchos_workspace/
+eval_workspace/
+test_workspace/
+baseline_output/
+eval_results/
+paper/
+
+datasets/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Caches
+.mypy_cache/
+.ruff_cache/
+.page_cache/
+
+# Claude
+.claude/
+# Remotion demo-video project (excluded from OSS release — Remotion license)
+demo_video/

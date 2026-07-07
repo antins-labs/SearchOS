@@ -1,0 +1,68 @@
+{
+  "search": [
+    "Dave Chappelle stand-up specials"
+  ],
+  "result": {
+    "Dave Chappelle stand-up specials": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Dave Chappelle takes on gun culture, the opioid crisis, and the tidal wave of celebrity scandals in a defiant stand-up special filmed in Atlanta.Read more",
+            "title": "Dave Chappelle Stand Up",
+            "url": "https://www.imdb.com/list/ls527970735/"
+          },
+          {
+            "snippet": "As a stand-up comedian, he has released his first comedy special Killin' Them Softly (2000) for HBO, followed by For What It's Worth for Showtime. He has since ...Read more",
+            "title": "Dave Chappelle",
+            "url": "https://en.wikipedia.org/wiki/Dave_Chappelle"
+          },
+          {
+            "snippet": "Profile of stand-up comedian Dave Chappelle including complete works, video, biography, jokes, reviews and tour schedule.",
+            "title": "Dave Chappelle | Stand-Up Comedy Database - Dead-Frog",
+            "url": "https://www.dead-frog.com/comedians/comic/dave-chappelle"
+          },
+          {
+            "snippet": "Dave Chappelle takes on gun culture, the opioid crisis, and the tidal wave of celebrity scandals in a defiant stand-up special filmed in Atlanta.Read more",
+            "title": "Dave Chappelle Specials",
+            "url": "https://www.imdb.com/list/ls565803111/"
+          },
+          {
+            "snippet": "Ranking Dave Chappelle's Stand-Up Comedy Specials · HBO Comedy Half Hour: Dave Chappelle (1998) · Dave Chappelle: Killin' Them Softly (2000)Read more",
+            "title": "Ranking Dave Chappelle's Stand-Up Comedy Specials",
+            "url": "https://medium.com/@DARSportsAndMedia/ranking-dave-chappelles-stand-up-comedy-specials-fb2dc38deaa6"
+          },
+          {
+            "snippet": "Facing a world gone sideways, comedy icon Dave Chappelle delivers bold truths and potent punchlines in this no-holds-barred special.Read more",
+            "title": "Watch Dave Chappelle: The Unstoppable... - Netflix",
+            "url": "https://www.netflix.com/title/82662593"
+          },
+          {
+            "snippet": "5 Comedy Specials to Get You Through the Holidays · Dave Chappelle, 'The Unstoppable' · Kathleen Madigan, 'The Family Thread' · George Civeris, 'A ...Read more",
+            "title": "5 Comedy Specials to Get You Through the Holidays",
+            "url": "https://www.nytimes.com/2025/12/26/arts/comedy-specials-dave-chappelle-kevin-hart.html"
+          },
+          {
+            "snippet": "Dave Chappelle Stand Up Comedy Special · Buff · Cerulean · Coquelicot · Babies · Walking with Dinosaurs · School Sucks · Goldenrod · Puce.Read more",
+            "title": "Dave Chappelle Stand Up Comedy Special",
+            "url": "https://open.spotify.com/playlist/58nkQTIGFTDCQ1c3y4yxOf"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>Dave Chappelle stand-up specials</search>",
+      "to": "https://www.imdb.com/list/ls527970735/"
+    },
+    {
+      "from": "<search>Dave Chappelle stand-up specials</search>",
+      "to": "https://en.wikipedia.org/wiki/Dave_Chappelle"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/Dave_Chappelle",
+      "to": "https://en.wikipedia.org/wiki/List_of_awards_and_nominations_received_by_Dave_Chappelle"
+    }
+  ]
+}

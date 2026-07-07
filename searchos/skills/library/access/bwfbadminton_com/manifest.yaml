@@ -1,0 +1,33 @@
+description: >-
+  Fetches player profiles, bios, match history, and news from the official BWF
+  (Badminton World Federation) fansite at bwfbadminton.com via the extranet API.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_player_summary      获取球员基本信息摘要（姓名、国籍、头像等）
+        - get_player_bio          获取球员详细传记（身高、年龄、惯用手、奖金等）
+        - get_player_previous_matches  获取球员历史比赛记录
+        - get_player_next_match   获取球员下一场比赛安排
+        - get_player_gallery      获取球员图库照片列表
+        - get_player_news         获取球员相关新闻报道
+        - get_player_full_profile 获取球员完整资料（摘要+传记+比赛记录）
+        - search_player_by_id     根据ID验证球员是否存在
+
+  player_id:
+    type: integer
+    required: false
+    description: |
+      BWF球员ID，用于所有球员查询功能。
+      示例：50906（林丹），75787（谌龙），64032（昆拉武特）
+
+  limit:
+    type: integer
+    required: false
+    description: |
+      获取历史比赛记录时的数量限制。
+      仅用于 get_player_previous_matches 功能。
+      默认值为10。

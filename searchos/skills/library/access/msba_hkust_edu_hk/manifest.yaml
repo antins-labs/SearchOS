@@ -1,0 +1,22 @@
+description: >-
+  Access skill for HKUST MSc in Business Analytics (MSBA) program information including
+  admission requirements, fees, curriculum, scholarships, and class profile from msba.hkust.edu.hk
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_program_fees             获取学费及相关费用信息(无需其他参数)
+        - get_admission_requirements   获取入学要求(无需其他参数)
+        - get_application_schedule     获取申请截止日期及流程(无需其他参数)
+        - get_scholarships             获取奖学金及助学金信息(无需其他参数)
+        - get_curriculum               获取课程设置(必修/选修课、学分)(无需其他参数)
+        - get_program_overview         获取项目概览(学制、模式、特色)(无需其他参数)
+        - get_class_profile            获取班级画像统计(无需其他参数)
+        - search_all                   跨所有页面搜索特定信息(需要 query 参数)
+        - get_all_info                 获取所有项目信息的综合汇总(无需其他参数)
+  query:
+    type: string
+    required: false
+    description: 搜索关键词。仅 search_all function 使用,该 function 下必填。

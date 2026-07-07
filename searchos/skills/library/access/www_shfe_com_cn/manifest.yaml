@@ -1,0 +1,53 @@
+description: >-
+  Fetches monthly trading statistics, product configurations, and instrument data from 
+  Shanghai Futures Exchange (SHFE) via direct .dat JSON API endpoints.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_monthly_futures: 获取期货月度交易统计数据，可选参数: year, month
+        - get_monthly_options: 获取期权月度交易统计数据，可选参数: year, month
+        - get_product_config: 获取产品配置信息（所有期货和期权产品详情）
+        - get_report_config: 获取报告配置信息（报告类型和格式说明）
+        - get_web_config: 获取网站显示配置（货币、单位等）
+        - get_available_months: 列出可用的数据月份，可选参数: start_year, end_year
+        - get_instrument_summary: 获取合约交易汇总，可选参数: year, month, product
+        - get_top_instruments: 获取按指标排名的合约，可选参数: year, month, sort_by, limit, product
+
+  year:
+    type: integer
+    required: false
+    description: 年份 (如 2025)，用于指定查询的年份，默认为上个月所在的年份
+
+  month:
+    type: integer
+    required: false
+    description: 月份 (1-12)，用于指定查询的月份，默认为上一月份
+
+  start_year:
+    type: integer
+    required: false
+    description: 起始年份，用于 get_available_months 函数
+
+  end_year:
+    type: integer
+    required: false
+    description: 结束年份，用于 get_available_months 函数
+
+  product:
+    type: string
+    required: false
+    description: 产品代码 (如 'cu' 铜, 'al' 铝, 'au' 黄金, 'rb' 螺纹钢等)，用于过滤特定产品
+
+  sort_by:
+    type: string
+    required: false
+    description: 排序字段，用于 get_top_instruments 函数，可选值: volume, turnover, openinterest
+
+  limit:
+    type: integer
+    required: false
+    description: 返回结果数量限制，用于 get_top_instruments 函数，默认为 10

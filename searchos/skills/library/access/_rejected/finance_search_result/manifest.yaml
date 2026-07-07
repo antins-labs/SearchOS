@@ -1,0 +1,21 @@
+name: finance_search_result
+invocation: agent_called
+description: "Search query2.finance.yahoo.com \u2014 finance_search_result. Returns\
+  \ raw JSON text inside a <pre> tag; CSS selectors are unusable, requires JSON parsing."
+params_schema:
+  query:
+    type: string
+    required: true
+    description: The search term (ticker symbol or company name)
+  limit:
+    type: integer
+    default: 5
+    description: Maximum number of quote results to return
+category: finance
+entity_type: finance_search_result
+fields:
+- symbol
+- name
+- exchange
+- sector
+- industry

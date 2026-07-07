@@ -1,0 +1,43 @@
+description: |
+  Extract concert tour data (dates, cities, venues) from G.E.M.'s official website (www.iamgem.com).
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to call. Available values:
+        - list_tours: List all tour names with date counts
+        - get_tours: Get full tour data, optionally filtered by tour_name or year
+        - search_by_city: Search concerts by city name (partial match)
+        - search_by_year: Search concerts by year
+        - search_by_venue: Search concerts by venue name (partial match)
+        - get_statistics: Get overall tour statistics summary
+
+  tour_name:
+    type: string
+    required: false
+    description: |
+      Tour name filter for get_tours function. Partial match, case-insensitive.
+      Examples: "I AM GLORIA", "Queen of Hearts", "X.X.X.", "Get Everybody Moving"
+
+  year:
+    type: integer
+    required: false
+    description: |
+      Year filter for get_tours and search_by_year functions.
+      The site contains tours from 2011 to 2026.
+
+  city:
+    type: string
+    required: false
+    description: |
+      City name to search (partial match, case-insensitive) for search_by_city function.
+      Examples: "北京", "上海", "香港", "台北", "London", "New York"
+
+  venue:
+    type: string
+    required: false
+    description: |
+      Venue name to search (partial match, case-insensitive) for search_by_venue function.
+      Examples: "鳥巢", "紅磡", "Arena", "Stadium"

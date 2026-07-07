@@ -1,0 +1,81 @@
+{
+  "search": [
+    "Ivan Albright the Art Institute of Chicago"
+  ],
+  "result": {
+    "Ivan Albright the Art Institute of Chicago": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Chicago native Ivan Albright remains one of the most uncompromising artists of the 20th century, a “master of the macabre” famous for his richly detailed ...Read more",
+            "title": "Ivan Albright",
+            "url": "https://www.artic.edu/artists/33376/ivan-albright"
+          },
+          {
+            "snippet": "While Albright's works can be found in museums throughout the United States, the most important repository of his works is at the Art Institute of Chicago.Read more",
+            "title": "Ivan Albright",
+            "url": "https://en.wikipedia.org/wiki/Ivan_Albright"
+          },
+          {
+            "snippet": "More than 30 works from the museum's collection present a focused retrospective of this “master of the macabre.”",
+            "title": "Flesh: Ivan Albright at the Art Institute of Chicago",
+            "url": "https://www.artic.edu/exhibitions/2771/flesh-ivan-albright-at-the-art-institute-of-chicago"
+          },
+          {
+            "snippet": "After serving as a medical draftsman during World War I, Ivan Albright returned to Chicago, where he and his brother enrolled at the School of The Art Institute ...Read more",
+            "title": "Ivan Albright: Magic Realist",
+            "url": "https://www.tfaoi.org/newsmu/nmus40b.htm"
+          },
+          {
+            "snippet": "Albright's painting is so unsettling because his vision of bodily corruption is uncompromising. Whatever else it is, it is a decades-long ...Read more",
+            "title": "More Than a Body: Ivan Albright at the Art Institute ...",
+            "url": "https://lareviewofbooks.org/article/more-than-a-body-ivan-albright-at-the-art-institute-of-chicago"
+          },
+          {
+            "snippet": "Though Albright later studied classical oil painting at the School of the Art Institute of Chicago, he claimed that the hospital provided “the ...Read more",
+            "title": "Rediscovering Ivan Albright—and His Grotesque Subject ...",
+            "url": "https://www.artsy.net/article/artsy-editorial-rediscovering-painter-grotesque-subject-matter-canon"
+          },
+          {
+            "snippet": "Ivan Albright represents a deeply transcendent, even Platonic, idea of the soul, although one could be forgiven for missing it among the ...",
+            "title": "A Master of the Flesh and Painter of the Soul",
+            "url": "https://hyperallergic.com/ivan-albright-flesh-ivan-albright-at-the-art-institute-of-chicago/"
+          },
+          {
+            "snippet": "“Flesh: Ivan Albright” shows through August 15 at the Art Institute of Chicago, 111 South Michigan.Read more",
+            "title": "Every Tone A Little Jaundiced: A Review of Ivan Albright at ...",
+            "url": "https://art.newcity.com/2018/07/09/every-tone-a-little-jaundiced-a-review-of-ivan-albright-at-the-art-institute-of-chicago/"
+          },
+          {
+            "snippet": "This definitive collection documents the career of this singular American artist from Chicago, perhaps best known for his paintings for the 1945 film The ...Read more",
+            "title": "Ivan Albright Collection",
+            "url": "https://www.artic.edu/artworks/262139/ivan-albright-collection"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>Ivan Albright the Art Institute of Chicago</search>",
+      "to": "https://www.artic.edu/artists/33376/ivan-albright"
+    },
+    {
+      "from": "https://www.artic.edu/artists/33376/ivan-albright",
+      "to": "https://www.artic.edu/collection?artist_ids=Ivan%20Albright"
+    },
+    {
+      "from": "https://www.artic.edu/collection?artist_ids=Ivan%20Albright",
+      "to": "https://www.artic.edu/collection?artist_ids=Ivan%20Albright&page=2"
+    },
+    {
+      "from": "https://www.artic.edu/collection?artist_ids=Ivan%20Albright&page=2",
+      "to": "https://www.artic.edu/collection?artist_ids=Ivan%20Albright&page=3"
+    },
+    {
+      "from": "https://www.artic.edu/collection?artist_ids=Ivan%20Albright&page=3",
+      "to": "https://www.artic.edu/collection?artist_ids=Ivan%20Albright&page=2"
+    }
+  ]
+}

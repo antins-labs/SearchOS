@@ -1,0 +1,34 @@
+description: 'Access skill for China Manned Space Engineering (CMSE) official website.
+
+  Extracts structured data about China''s space missions including Shenzhou (神舟) crewed missions,
+
+  Tiangong (天宫) space station, Tianzhou (天舟) cargo missions, and mission timelines.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_mission_details   Get detailed information about a specific space\
+      \ mission\n  - get_timeline   Extract timeline events from mission timeline articles\n  - list_missions\
+      \   List available missions from the CMSE website\n  - get_article   Get article content from any\
+      \ CMSE page\n  - search   Search for missions or content by keyword"
+  mission_url:
+    type: string
+    required: false
+    description: Full URL of the mission page (e.g., https://www.cmse.gov.cn/fxrw/SZ19/)
+  mission_id:
+    type: string
+    required: false
+    description: Mission ID like 'SZ19' (Shenzhou-19), 'SZ21', 'tz9h' (Tianzhou-9), etc.
+  article_url:
+    type: string
+    required: false
+    description: URL of the timeline article page
+  page_type:
+    type: string
+    required: false
+    description: '''current'' for current missions, ''history'' for historical missions'
+    default: current
+  keyword:
+    type: string
+    required: false
+    description: Search keyword (e.g., '神舟', '天宫', 'SZ19', 'Shenzhou')

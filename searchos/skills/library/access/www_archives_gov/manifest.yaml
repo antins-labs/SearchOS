@@ -1,0 +1,14 @@
+description: Access U.S. Electoral College results from the National Archives (archives.gov). Provides
+  structured data for all presidential elections from 1789 to present, including winners, opponents, electoral
+  vote totals, and state-by-state breakdowns.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_results   Get electoral college results for a specific presidential\
+      \ election year\n  - list_years   List all available presidential election years in the National\
+      \ Archives database"
+  year:
+    type: string
+    required: false
+    description: Four-digit election year (e.g., "2020", "1789", "2000")

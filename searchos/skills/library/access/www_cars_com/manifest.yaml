@@ -1,0 +1,25 @@
+description: >-
+  Fetches vehicle research data (specs, pricing, features) from Cars.com research pages.
+  Note: Cars.com implements aggressive anti-automation protection (Akamai Bot Manager)
+  that may block automated requests. The skill attempts access with optimized headers.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_vehicle_research   获取指定车型的详细研究数据（规格、价格、功能）
+        - get_makes_list         获取所有可用汽车品牌列表
+        - get_models_for_make    获取指定品牌的所有车型列表
+  make:
+    type: string
+    required: false
+    description: 汽车品牌名称（如 ford, toyota, honda）；用于 get_vehicle_research 和 get_models_for_make
+  model:
+    type: string
+    required: false
+    description: 车型名称（如 ranger, mustang, civic）；用于 get_vehicle_research
+  year:
+    type: integer
+    required: false
+    description: 车型年份（如 2019, 2020）；用于 get_vehicle_research

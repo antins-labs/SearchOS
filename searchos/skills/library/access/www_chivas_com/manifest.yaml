@@ -1,0 +1,20 @@
+description: >-
+  Access product information for Chivas Regal whiskies (Chivas 12/18/25) from chivas.com via the Internet Archive.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_products    列出所有已知 Chivas Regal 产品及基本信息;无需其他参数
+        - get_product      获取某个产品的详细信息;需要 slug,可选 use_archive
+        - get_all_products 获取所有产品的详细信息;无需其他参数
+  slug:
+    type: string
+    required: false
+    description: 产品 slug(如 "chivas-12"、"chivas-18"、"chivas-25")。仅 get_product 使用。
+  use_archive:
+    type: boolean
+    required: false
+    description: 是否使用 archive.org 抓取(live 站点通常被 Cloudflare 拦截)。仅 get_product 使用。
+    default: true

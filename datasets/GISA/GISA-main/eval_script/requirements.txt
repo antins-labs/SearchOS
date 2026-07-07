@@ -1,0 +1,6 @@
+sqlite3
+openai
+tiktoken
+dotenv
+uuid
+json_repair

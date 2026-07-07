@@ -1,0 +1,25 @@
+description: >-
+  Fetches Beijing exhibition schedule data from hymexpo.com, including exhibition
+  names, dates, and venues organized by month.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_schedule     获取完整的北京展会排期表，返回所有展会的名称、日期、场馆信息
+        - search           按关键词搜索展会，需要提供 keyword 参数
+        - get_by_month     获取指定月份的展会，需要提供 month 参数 (1-12)
+  keyword:
+    type: string
+    required: false
+    description: 搜索关键词，用于在展会名称或场馆中匹配；仅在 function 为 'search' 时使用
+  month:
+    type: integer
+    required: false
+    description: 月份编号 (1-12)，用于获取指定月份的展会；仅在 function 为 'get_by_month' 时使用
+  url:
+    type: string
+    required: false
+    description: 自定义数据源URL，默认为 https://www.hymexpo.com/sys-nd/185.html

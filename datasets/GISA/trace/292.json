@@ -1,0 +1,35 @@
+{
+  "search": [
+    "meetings from the 9950th to the 10000th"
+  ],
+  "result": {
+    "meetings from the 9950th to the 10000th": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Meeting record, Verbatim Record. Country: 30-Jun-2025, Security Council – 9950th meeting on the situation in the Middle East, including the Palestinian ...",
+            "title": "Meeting record Archives - Question of Palestine",
+            "url": "https://www.un.org/unispal/document-category/meeting-record/"
+          },
+          {
+            "snippet": "(7). Fig. 16. (a) the variation of the peak strain values from the 9950th to 10050th fatigue cycles; (d) the. statistical distribution of the 100 number of p ...",
+            "title": "(PDF) Enhanced real-time crack monitoring and updating ...",
+            "url": "https://www.researchgate.net/publication/373582958_Enhanced_real-time_crack_monitoring_and_updating_in_welded_structural_components_with_limited_measurement_data"
+          },
+          {
+            "snippet": "30-Jun-2025, Security Council – 9950th meeting on the situation in the Middle East, including the Palestinian question – Reporting on UNSCR 2334 (2016) – ...",
+            "title": "Provisional verbatim record Archives - Question of Palestine",
+            "url": "https://www.un.org/unispal/document-category/provisional-verbatim-record/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>meetings from the 9950th to the 10000th</search>",
+      "to": "https://www.un.org/unispal/document-category/meeting-record/"
+    }
+  ]
+}

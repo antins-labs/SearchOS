@@ -1,0 +1,43 @@
+description: >-
+  Fetches UK university course details from UCAS, including course titles, providers, 
+  qualifications, entry requirements, fees, and contact information.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_course      根据课程ID获取课程详细信息; 需要 course_id 参数
+        - search_courses  搜索课程; 需要 query 参数，可选 provider, max_results
+        
+  course_id:
+    type: string
+    required: false
+    description: UCAS课程唯一标识符(UUID格式)，用于 get_course
+    
+  course_slug:
+    type: string
+    required: false
+    description: 课程URL友好名称(可选)，用于完善课程页面URL
+    
+  query:
+    type: string
+    required: false
+    description: 搜索关键词，用于 search_courses
+    
+  provider:
+    type: string
+    required: false
+    description: 大学/院校名称过滤，用于 search_courses
+    
+  study_level:
+    type: string
+    required: false
+    description: 学习层级过滤(Undergraduate/Postgraduate)，用于 search_courses
+    
+  max_results:
+    type: integer
+    required: false
+    description: 返回结果最大数量，用于 search_courses
+    default: 20

@@ -1,0 +1,86 @@
+{
+  "search": [
+    "List_of_busiest_airports_by_passenger_traffic"
+  ],
+  "result": {
+    "List_of_busiest_airports_by_passenger_traffic": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "2023 statistics · 1. United States · Hartsfield–Jackson Atlanta International Airport · 2. United Arab Emirates · Dubai International Airport · 3. United States.",
+            "title": "List of busiest airports by passenger traffic",
+            "url": "https://en.wikipedia.org/wiki/List_of_busiest_airports_by_passenger_traffic"
+          },
+          {
+            "snippet": "Hartsfield-Jackson Atlanta International Airport (ATL) maintained its long-standing dominance as the world's busiest, accommodating 108 million passengers and ...",
+            "title": "List of busiest airports by passenger traffic",
+            "url": "https://grokipedia.com/page/List_of_busiest_airports_by_passenger_traffic"
+          },
+          {
+            "snippet": "Hartsfield–Jackson Atlanta International Airport has been the world's busiest airport every year since 2000; with all airports combined London has the world's ...",
+            "title": "List of busiest airports by passenger traffic",
+            "url": "https://world-airports.fandom.com/wiki/List_of_busiest_airports_by_passenger_traffic"
+          },
+          {
+            "snippet": "Best Airports 2025: 50 to 60 million passengers · Doha Hamad · Hong Kong · Jakarta · Frankfurt · Seattle-Tacoma · Bangkok Suvarnabhumi · San Francisco · Kuala Lumpur ...",
+            "title": "World's Best Airports by Passenger Numbers 2025",
+            "url": "https://www.worldairportawards.com/worlds-best-airports-by-passenger-numbers-2025/"
+          },
+          {
+            "snippet": "List of Busiest Airports by Passenger Traffic (2024) ; 1, Hartsfield Jackson Atlanta International Airport. Atlanta ; 2, Dubai International Airport. Dubai ; 3 ...",
+            "title": "List of Busiest Airports by Passenger Traff... - Airspace Times",
+            "url": "https://airspacetimes.com/en/rankings/list-of-busiest-airports-by-passenger-traffic/"
+          },
+          {
+            "snippet": "The Top 30 busiest airports in 2019 (excluding Haneda Int'l and Suvarnabhumi Int'l) were chosen, and their annual passenger traffic values in 2015 and 2019 ...",
+            "title": "Top 30 Busiest International Airports",
+            "url": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Top_30_Busiest_International_Airports.pdf"
+          },
+          {
+            "snippet": "busiestAirports.csv(38.19 kB) · Hartsfield Jackson Atlanta International Airport · Beijing Capital International Airport · Other (336) · ATL/KATL · PEK/ZBAA · Other ( ...",
+            "title": "Busiest Airports by Passenger Traffic",
+            "url": "https://www.kaggle.com/datasets/jonahmary17/airports"
+          },
+          {
+            "snippet": "This table provides a list of the busiest airports worldwide, ranked by passenger traffic, including their location, country, IATA/ICAO codes, ...",
+            "title": "List of busiest airports by passenger traffic",
+            "url": "https://www.gigasheet.com/sample-data/list-of-busiest-airports-by-passenger-traffic"
+          },
+          {
+            "snippet": "2023 statistics · 1. United States Hartsfield–Jackson Atlanta International Airport · 2. United Arab Emirates Dubai International Airport · 3. United States ...",
+            "title": "List of busiest airports by passenger traffic",
+            "url": "https://www.wikiwand.com/en/articles/List_of_busiest_airports_by_passenger_traffic"
+          },
+          {
+            "snippet": "The infographic presents the world's busiest airports, starting with Charles de Gaulle Airport at #10, and progressing all the way down to a resounding #1. It ...",
+            "title": "The World's Top 10 Busiest Airports Infographic",
+            "url": "https://winair.ca/blog/worlds-top-10-busiest-airports-infographic/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>List_of_busiest_airports_by_passenger_traffic</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_busiest_airports_by_passenger_traffic"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_busiest_airports_by_passenger_traffic",
+      "to": "https://en.wikipedia.org/wiki/Hartsfield%E2%80%93Jackson_Atlanta_International_Airport"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_busiest_airports_by_passenger_traffic#2022_statistics",
+      "to": "https://en.wikipedia.org/wiki/Hartsfield%E2%80%93Jackson_Atlanta_International_Airport"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_busiest_airports_by_passenger_traffic#2022_statistics",
+      "to": "https://en.wikipedia.org/wiki/Dallas_Fort_Worth_International_Airport"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_busiest_airports_by_passenger_traffic#2022_statistics",
+      "to": "https://en.wikipedia.org/wiki/Denver_International_Airport"
+    }
+  ]
+}

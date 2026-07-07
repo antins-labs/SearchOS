@@ -1,0 +1,39 @@
+description: >-
+  Fetches KFC restaurant location data from locations.kfc.com, including store
+  listings by state/city and detailed store information (address, phone, hours,
+  services, coordinates).
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to call. Available values:
+        - list_states   List all US states with their codes for building queries
+        - list_cities   List all cities/locations in a state with direct store links
+        - list_stores   List all KFC stores in a specific city
+        - get_store     Get detailed info for a single store (address, phone, coords, services, hours)
+        - fetch         Auto-detect and fetch any page type
+  state:
+    type: string
+    required: false
+    description: >-
+      Two-letter state code (lowercase), e.g. 'ny', 'ca', 'tx'. Used by list_cities.
+  city_path:
+    type: string
+    required: false
+    description: >-
+      City path in format "state/city-name", e.g. "ny/bronx", "ca/los-angeles".
+      Used by list_stores.
+  store_url:
+    type: string
+    required: false
+    description: >-
+      Full URL to store detail page, e.g. "https://locations.kfc.com/ny/new-york/2-penn-plaza".
+      Used by get_store.
+  path:
+    type: string
+    required: false
+    description: >-
+      Relative URL path, e.g. "/ny", "/ny/bronx", "/ny/new-york/2-penn-plaza".
+      Used by fetch function which auto-detects page type.

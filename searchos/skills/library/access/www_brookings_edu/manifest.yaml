@@ -1,0 +1,25 @@
+description: >-
+  Fetches Trump administration turnover tracking data from Brookings, including
+  cabinet departures, A Team staff turnover by year, serial turnover records,
+  and cross-administration comparisons via embedded Datawrapper charts.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_article_info          获取文章元数据和摘要说明
+        - get_cabinet_turnover_comparison  获取里根至特朗普各届政府内阁离职对比数据
+        - get_ateam_turnover_comparison     获取各届政府A Team（高级幕僚）离职对比数据
+        - get_ateam_departures      获取特朗普政府A Team详细离职记录；可选year参数(1-4)
+        - get_serial_turnover       获取频繁更迭职位及其历任人员
+        - get_cabinet_departures    获取特朗普政府内阁成员离职详情
+        - get_all_data              一次性获取全部可用数据
+
+  year:
+    type: integer
+    required: false
+    description: |
+      用于 get_ateam_departures 过滤指定年份(1-4)的离职记录；
+      若不传则返回全部四年数据。

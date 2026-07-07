@@ -1,0 +1,138 @@
+{
+  "search": [
+    "Hungary Botanical institutions of BGCI"
+  ],
+  "result": {
+    "Hungary Botanical institutions of BGCI": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "BGCI works with botanic gardens in Europe through its support for the European Botanic Gardens Consortium and its involvement in European plant conservation, ...Read more",
+            "title": "Europe | Botanic Gardens Conservation ...",
+            "url": "https://www.bgci.org/our-work/inspiring-and-leading-people/where-we-work/europe/"
+          },
+          {
+            "snippet": "One of the richest arboretums in Hungary, surrounding the Buda Campus of the Hungarian University of Agriculture and Life Sciences, provides a unique ...Read more",
+            "title": "Lower Garden of Buda Arboretum in Spring",
+            "url": "https://gardensearch.bgci.org/garden/4030"
+          },
+          {
+            "snippet": "With over 800 participating botanical gardens, BGCI forms the world's largest network for plant conservation and environmental education.Read more",
+            "title": "List of botanical gardens",
+            "url": "https://en.wikipedia.org/wiki/List_of_botanical_gardens"
+          },
+          {
+            "snippet": "BGCI-supported technical networks include: Ecological Restoration Alliance of Botanic Gardens (ERA); Global Conservation Consortia (GCC); Global Seed ...Read more",
+            "title": "Eötvös Loránd University Botanic Garden (ELTE Füvészkert)",
+            "url": "https://gardensearch.bgci.org/garden/4025"
+          },
+          {
+            "snippet": "The Budapest Zoo & Botanical Garden is the oldest zoo in Hungary and one of the oldest in the world. Budapest Zoo & Botanical Garden.Read more",
+            "title": "Budapest Zoo and Botanical Garden",
+            "url": "https://en.wikipedia.org/wiki/Budapest_Zoo_and_Botanical_Garden"
+          },
+          {
+            "snippet": "Botanical Garden of Szeged University. SZEGED, Hungary. Garden Overview Leadership & Governance Living Collections Plant Conservation Education & OutreachRead more",
+            "title": "Botanical Garden of Szeged University",
+            "url": "https://gardensearch.bgci.org/garden/4029"
+          },
+          {
+            "snippet": "The Ninth European Botanic Gardens Congress (EuroGard IX) was successfully held in Budapest, Hungary from May 16-20, 2022.Read more",
+            "title": "Conclusions from the 9th European Botanic Gardens ...",
+            "url": "https://www.bgci.org/news-events/conclusions-from-the-9th-european-botanic-gardens-congress/"
+          },
+          {
+            "snippet": "Botanic Garden Conservation International (BGCI) recognises public education as a criterion to assess and value these institutions, and BGs do offer a variety ...Read more",
+            "title": "Abstract booklet",
+            "url": "https://eurogard2022.congressline.hu/wp-content/uploads/AbstractBooklet-1.pdf"
+          },
+          {
+            "snippet": "Institute of Biology, Eötvös Loránd University, Hungary. The new action plan for european Botanical Gardens – strenghtening BGs and their future programs for.Read more",
+            "title": "programme book",
+            "url": "https://www.conserveplants.eu/en/resources/files/training-schools/peer-to-peer-learning/programme-bookeurogard2022.pdf"
+          },
+          {
+            "snippet": "Marcello De Vitis, BGCI Botanic Gardens Conservation International ... Vince ZSIGMOND, Hungarian Association of Arboreta and Botanic Gardens, Hungary.Read more",
+            "title": "Scientific Committee Eurogard10 - Botanic Gardens in the ...",
+            "url": "https://www.eurogard10.org/eurogard10_scientific-committee.html"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>Hungary Botanical institutions of BGCI</search>",
+      "to": "https://www.bgci.org/our-work/inspiring-and-leading-people/where-we-work/europe/"
+    },
+    {
+      "from": "<search>Hungary Botanical institutions of BGCI</search>",
+      "to": "https://en.wikipedia.org/wiki/List_of_botanical_gardens"
+    },
+    {
+      "from": "https://www.bgci.org/our-work/inspiring-and-leading-people/where-we-work/europe/",
+      "to": "https://www.bgci.org/membership/"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_botanical_gardens",
+      "to": "https://en.wikipedia.org/wiki/List_of_botanical_gardens_in_Hungary"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_botanical_gardens",
+      "to": "https://en.wikipedia.org/wiki/List_of_botanical_gardens_in_Hungary"
+    },
+    {
+      "from": "https://en.wikipedia.org/wiki/List_of_botanical_gardens#Hungary",
+      "to": "https://en.wikipedia.org/wiki/List_of_botanical_gardens_in_Hungary"
+    },
+    {
+      "from": "https://www.bgci.org/membership/",
+      "to": "https://app.sheepcrm.com/bgci/login/"
+    },
+    {
+      "from": "https://www.bgci.org/membership/",
+      "to": "https://www.bgci.org/resources/bgci-databases/gardensearch/"
+    },
+    {
+      "from": "https://www.bgci.org/membership/",
+      "to": "https://www.bgci.org/resources/bgci-databases/gardensearch/"
+    },
+    {
+      "from": "https://www.bgci.org/resources/bgci-databases/gardensearch/",
+      "to": "https://gardensearch.bgci.org/"
+    },
+    {
+      "from": "https://gardensearch.bgci.org/",
+      "to": "https://gardensearch.bgci.org/search"
+    },
+    {
+      "from": "https://gardensearch.bgci.org/search?filter[location][country_name]=Hungary&filter[bgci]=yes&sort=relevance&page[number]=1",
+      "to": "https://gardensearch.bgci.org/garden/4025"
+    },
+    {
+      "from": "https://gardensearch.bgci.org/search?filter[location][country_name]=Hungary&filter[bgci]=yes&sort=relevance&page[number]=1",
+      "to": "https://gardensearch.bgci.org/garden/4029"
+    },
+    {
+      "from": "https://gardensearch.bgci.org/search?filter[location][country_name]=Hungary&filter[bgci]=yes&sort=relevance&page[number]=1",
+      "to": "https://gardensearch.bgci.org/garden/4029"
+    },
+    {
+      "from": "https://gardensearch.bgci.org/search?filter[location][country_name]=Hungary&filter[bgci]=yes&sort=relevance&page[number]=1&page[size]=20",
+      "to": "https://gardensearch.bgci.org/garden/4029"
+    },
+    {
+      "from": "https://gardensearch.bgci.org/search?filter[location][country_name]=Hungary&filter[bgci]=yes&sort=relevance&page[number]=1&page[size]=20",
+      "to": "https://gardensearch.bgci.org/garden/4025"
+    },
+    {
+      "from": "https://gardensearch.bgci.org/search?filter[location][country_name]=Hungary&filter[bgci]=yes&sort=relevance&page[number]=1&page[size]=20",
+      "to": "https://gardensearch.bgci.org/garden/6673"
+    },
+    {
+      "from": "https://gardensearch.bgci.org/search?filter[location][country_name]=Hungary&filter[bgci]=yes&sort=relevance&page[number]=1&page[size]=20",
+      "to": "https://gardensearch.bgci.org/garden/4027"
+    }
+  ]
+}

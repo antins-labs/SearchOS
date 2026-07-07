@@ -1,0 +1,31 @@
+description: >-
+  Fetches opening times and ticket prices from Historic Royal Palaces website (www.hrp.org.uk), supporting Tower of London, Hampton Court Palace, Kensington Palace, and other HRP properties with Cloudflare bypass handling and fallback sample data.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_palaces     Lists all available palaces with their IDs and URLs
+        - get_opening_times    Gets opening/closing times for a specific palace (requires palace parameter)
+        - get_ticket_prices    Gets ticket prices for a specific palace (requires palace parameter)
+  
+  palace:
+    type: string
+    required: false
+    description: |
+      Palace identifier for opening times or ticket prices queries. Valid values: tower-of-london, hampton-court-palace, kensington-palace, banqueting-house, kew-palace, hillsborough-castle. Used by get_opening_times and get_ticket_prices functions.
+    default: tower-of-london
+  
+  max_wait:
+    type: integer
+    required: false
+    description: Maximum seconds to wait for Cloudflare challenge resolution (default 45). Used by get_opening_times and get_ticket_prices functions.
+    default: 45
+  
+  use_sample:
+    type: boolean
+    required: false
+    description: If true, returns sample data without attempting live fetch (avoids Cloudflare blocks). If false (default), attempts live fetch with fallback to sample data. Used by get_opening_times and get_ticket_prices functions.
+    default: false

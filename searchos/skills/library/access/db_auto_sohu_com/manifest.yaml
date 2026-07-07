@@ -1,0 +1,45 @@
+description: >-
+  Fetch car model data from Sohu Auto database (db.auto.sohu.com) including pricing,
+  sales statistics, dealer info, news, and competitor rankings.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_model_stats        获取车型基本信息和销量统计 (需model_id)
+        - get_model_prices       获取车型价格区间 (需model_ids列表)
+        - get_trim_prices        获取车型配置款式价格 (需model_id, 可选city_code)
+        - get_city_prices        获取车型在全国各城市价格 (需model_id)
+        - get_dealer_prices      获取经销商报价列表 (需model_id, 可选city_code, size)
+        - get_model_news         获取车型相关新闻 (需model_id, 可选limit)
+        - get_competitor_ranking 获取同级竞品评分排名 (需model_id)
+        - get_related_trims      获取相关/相似车型 (需model_id, 可选limit)
+        - get_hot_models         获取热门车型列表 (无需参数)
+        - get_full_model_info    获取车型完整信息聚合 (需model_id, 可选city_code)
+
+  model_id:
+    type: integer
+    required: false
+    description: 车型ID，用于大部分查询功能
+
+  model_ids:
+    type: array
+    required: false
+    description: 车型ID列表，用于批量获取价格信息
+
+  city_code:
+    type: string
+    required: false
+    description: 城市代码，默认110100(北京)；常用310100(上海)、330100(杭州)、440100(广州)
+
+  limit:
+    type: integer
+    required: false
+    description: 返回结果数量限制，用于新闻、相关车型等
+
+  size:
+    type: integer
+    required: false
+    description: 经销商查询返回数量限制，默认999

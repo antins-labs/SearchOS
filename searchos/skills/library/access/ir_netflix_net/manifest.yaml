@@ -1,0 +1,51 @@
+description: >-
+  Fetches Netflix SEC filings and annual reports from ir.netflix.net including
+  10-K, 10-Q, 8-K, and other regulatory filings with document links and metadata.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_sec_filings_years   获取SEC文件可用的年份列表
+        - get_sec_filings         获取SEC文件列表，可按年份和表格类型筛选
+        - get_event_years         获取年度报告可用的年份列表
+        - get_annual_reports      获取年度报告和代理声明
+        - search_filings          搜索SEC文件，支持文本搜索和筛选
+
+  year:
+    type: integer
+    required: false
+    description: |
+      筛选年份。用于get_sec_filings、get_annual_reports、search_filings。
+      使用-1表示所有年份，不指定则默认为所有年份或当前年份。
+
+  form_type:
+    type: string
+    required: false
+    description: |
+      SEC表格类型筛选。用于get_sec_filings、search_filings。
+      常见值: 10-K, 10-Q, 8-K, 4, DEF-14A, SC-13G 等。
+
+  page:
+    type: integer
+    required: false
+    description: 页码（从0开始）。用于get_sec_filings。
+
+  page_size:
+    type: integer
+    required: false
+    description: 每页结果数。用于get_sec_filings。使用-1获取所有结果。
+
+  query:
+    type: string
+    required: false
+    description: |
+      文本搜索关键词。用于search_filings。
+      在文件描述、报告人姓名、代理人名称中搜索。
+
+  limit:
+    type: integer
+    required: false
+    description: 返回结果最大数量。用于search_filings。默认50。

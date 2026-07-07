@@ -1,0 +1,60 @@
+{
+  "search": [
+    "active volcanoes in the philippines"
+  ],
+  "result": {
+    "active volcanoes in the philippines": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Gallery · Mount Mayon in Albay is the most active volcano in the Philippines · Taal in Batangas is the second most active volcano in the Philippines · Kanlaon ...Read more",
+            "title": "List of active volcanoes in the Philippines",
+            "url": "https://en.wikipedia.org/wiki/List_of_active_volcanoes_in_the_Philippines"
+          },
+          {
+            "snippet": "Item No. Name of Volcano, Latitude, Longtitide, Province. 1, Babuyan Claro, 19.52408, 121.95005, Babuyan Island Group, Cagayan in Luzon.Read more",
+            "title": "Volcanoes of the Philippines",
+            "url": "https://www.phivolcs.dost.gov.ph/volcanoes-of-the-philippines/"
+          },
+          {
+            "snippet": "Mayon in SE Luzon is one of the most active volcanoes in the Philippines. It rises above the Albay Gulf and is the result of eruptions from a single central ...Read more",
+            "title": "Philippines Volcanoes",
+            "url": "https://volcano.si.edu/volcanolist_countries.cfm?country=Philippines"
+          },
+          {
+            "snippet": "As of 2018, the Philippines has 24 volcanoes listed as active by the Philippine Institute of Volcanology and Seismology (PHIVOLCS). Twenty-one ...Read more",
+            "title": "What are the active volcanoes in the Philippines?",
+            "url": "https://www.facebook.com/groups/1987945994777309/posts/3813795092192381/"
+          },
+          {
+            "snippet": "It is the second most active volcano in the country, with 38 recorded historic eruptions. The caldera is filled by Taal Lake; Volcano Island is ...Read more",
+            "title": "Taal Volcano, Philippines",
+            "url": "https://science.nasa.gov/photojournal/taal-volcano-philippines/"
+          },
+          {
+            "snippet": "10 volcanoes in the Philippines are still active and potentially dangerous. These include Taal and Kanlaon. The major eruptions of the last centuries.",
+            "title": "Active volcanoes and eruptions in the Philippines",
+            "url": "https://www.worlddata.info/asia/philippines/volcanoes.php"
+          },
+          {
+            "snippet": "r/Philippines - On this day in 2020, Taal Volcano erupted after 43 years. 628 upvotes · 73 ...Read more",
+            "title": "smallest active volcano in the world.",
+            "url": "https://www.reddit.com/r/Volcanoes/comments/9fl3r5/taal_volcano_philippines_smallest_active_volcano/"
+          },
+          {
+            "snippet": "Potentially Active Volcanoes ; Kalatungan. San Cristobal ; Labo. Santo Tomas ; Laguna Caldera. Silay ; Latukan. Sinumaan.Read more",
+            "title": "Philippine Volcanoes",
+            "url": "https://resilience.up.edu.ph/philippine-active-volcano-profiles/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>active volcanoes in the philippines</search>",
+      "to": "https://www.phivolcs.dost.gov.ph/volcanoes-of-the-philippines/"
+    }
+  ]
+}

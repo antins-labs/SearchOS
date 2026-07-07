@@ -1,0 +1,68 @@
+description: >-
+  Access Apple Music catalog data including albums, artists, songs, search, and charts 
+  via the amp-api.music.apple.com API.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_album          获取专辑信息; 需要 album_id; 可选 include_tracks, storefront
+        - get_artist         获取艺人信息; 需要 artist_id; 可选 include_albums, storefront
+        - get_song           获取歌曲信息; 需要 song_id; 可选 storefront
+        - search             搜索 Apple Music 目录; 需要 query; 可选 types, limit, storefront
+        - get_artist_albums  获取艺人的专辑列表; 需要 artist_id; 可选 limit, storefront
+        - get_charts         获取榜单信息; 可选 types, limit, storefront
+  
+  album_id:
+    type: string
+    required: false
+    description: Apple Music 专辑 ID (用于 get_album)
+  
+  artist_id:
+    type: string
+    required: false
+    description: Apple Music 艺人 ID (用于 get_artist, get_artist_albums)
+  
+  song_id:
+    type: string
+    required: false
+    description: Apple Music 歌曲 ID (用于 get_song)
+  
+  query:
+    type: string
+    required: false
+    description: 搜索关键词 (用于 search)
+  
+  types:
+    type: string
+    required: false
+    description: |
+      返回的内容类型，逗号分隔 (用于 search, get_charts)。
+      可选值: albums, artists, songs
+      默认: "albums,artists,songs" (search) 或 "albums,songs" (get_charts)
+  
+  limit:
+    type: integer
+    required: false
+    description: 返回结果的最大数量 (用于 search, get_artist_albums, get_charts)
+    default: 10
+  
+  include_tracks:
+    type: boolean
+    required: false
+    description: 是否包含专辑的曲目列表 (用于 get_album)
+    default: true
+  
+  include_albums:
+    type: boolean
+    required: false
+    description: 是否包含艺人的专辑列表 (用于 get_artist)
+    default: true
+  
+  storefront:
+    type: string
+    required: false
+    description: Apple Music 区域代码，如 us, cn, jp, gb 等
+    default: us

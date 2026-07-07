@@ -1,0 +1,19 @@
+description: >-
+  Fetches track metadata (title, artists, duration, release date, cover art, audio preview) from Spotify using embed pages and oEmbed API without authentication.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_track        获取完整的歌曲元数据，包括标题、艺术家、时长、发行日期、封面图片等
+        - get_track_basic  通过oEmbed API获取基本歌曲信息（标题、缩略图）
+  track_id:
+    type: string
+    required: true
+    description: Spotify歌曲ID或完整URL（如 https://open.spotify.com/track/xxx 或 spotify:track:xxx）
+  include_oembed:
+    type: boolean
+    required: false
+    description: 是否同时获取oEmbed数据（仅用于get_track函数，默认true）

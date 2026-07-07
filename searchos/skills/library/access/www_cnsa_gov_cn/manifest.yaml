@@ -1,0 +1,17 @@
+description: >-
+  Extracts full article content from CNSA (China National Space Administration) 
+  news pages at www.cnsa.gov.cn, including title, publish date, source, and body text.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - fetch_article   提取单篇文章内容，需要 url 参数
+  url:
+    type: string
+    required: false
+    description: |
+      CNSA 文章页面的完整 URL (用于 fetch_article 功能)。
+      例如: https://www.cnsa.gov.cn/n6758823/n6758838/c10726362/content.html

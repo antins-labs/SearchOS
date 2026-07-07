@@ -1,0 +1,32 @@
+description: >-
+  Extracts structured data from Italian Wikipedia (it.wikipedia.org) including page metadata,
+  infobox data via Wikidata, bibliography entries, and sections.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_page      获取页面元数据、摘要和分类；需要 title 参数
+        - get_sections  获取篇文章的章节列表；需要 title 参数
+        - get_bibliography  提取页面的参考文献条目；需要 title 参数，可选 limit 参数
+        - get_infobox   通过 Wikidata 提取信息框结构化数据；需要 title 参数
+        - get_wikidata  获取页面的原始 Wikidata；需要 title 或 wikidata_id 参数
+        - search        搜索 Wikipedia 页面；需要 query 参数，可选 limit 参数
+  title:
+    type: string
+    required: false
+    description: Wikipedia 页面标题，用于 get_page, get_sections, get_bibliography, get_infobox, get_wikidata
+  wikidata_id:
+    type: string
+    required: false
+    description: Wikidata 实体 ID（如 Q7728），用于 get_wikidata
+  query:
+    type: string
+    required: false
+    description: 搜索关键词，用于 search
+  limit:
+    type: integer
+    required: false
+    description: 返回结果的最大数量，用于 get_bibliography 和 search；默认为 10-50

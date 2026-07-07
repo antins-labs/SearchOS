@@ -1,0 +1,28 @@
+description: >-
+  Extracts article content, metadata, and comment statistics from 163.com news/dy articles.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_article   提取文章内容和元数据；需要 url 或 article_id 参数
+        - get_comments  获取文章评论统计信息；需要 article_id 参数
+  
+  url:
+    type: string
+    required: false
+    description: 文章完整URL地址（get_article功能使用，与article_id二选一）
+  
+  url_or_id:
+    type: string
+    required: false
+    description: 文章URL或文章ID，用于get_article功能（兼容参数名）
+  
+  article_id:
+    type: string
+    required: false
+    description: |
+      文章ID，大写字母数字组合（如 K6RS1LNS0553WOHP）。
+      get_comments功能必须使用此参数，get_article功能可作为url的替代。

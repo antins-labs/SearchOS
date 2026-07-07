@@ -1,0 +1,20 @@
+description: 'Extract financial budget tables (决算表) from the Chinese Ministry of Finance website
+
+  containing central government transfer payments to local governments. Supports both
+
+  summary tables with hierarchical categories and regional breakdown tables.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - extract_table   Extract financial data from a single table URL\n \
+      \ - extract_tables   Extract financial data from multiple table URLs\n  - list_available_tables\
+      \   List sample financial table URLs available on the site"
+  url:
+    type: string
+    required: false
+    description: URL of the financial table page on yss.mof.gov.cn
+  urls:
+    type: array
+    required: false
+    description: List of URLs to extract tables from

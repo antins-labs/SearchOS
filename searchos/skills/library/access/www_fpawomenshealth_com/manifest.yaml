@@ -1,0 +1,41 @@
+description: >-
+  Access FPA Women's Health clinic location details including address, phone, hours,
+  services, and coordinates from www.fpawomenshealth.com
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      Function to call. Available values:
+        - list_locations: Get all clinic locations (no additional params needed)
+        - get_location: Get details for a specific location (requires location_id and slug)
+        - search_locations: Search locations by name (requires query)
+        - get_multiple_locations: Get details for multiple locations (requires locations list)
+  
+  location_id:
+    type: integer
+    required: false
+    description: Numeric ID of the location (e.g., 13 for Fresno). Used with get_location.
+  
+  slug:
+    type: string
+    required: false
+    description: URL slug of the location (e.g., 'fresno'). Used with get_location.
+  
+  query:
+    type: string
+    required: false
+    description: Search query string for location name (case-insensitive partial match). Used with search_locations.
+  
+  locations:
+    type: array
+    required: false
+    description: List of location objects with 'id' and 'slug' keys. Used with get_multiple_locations.
+    items:
+      type: object
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string

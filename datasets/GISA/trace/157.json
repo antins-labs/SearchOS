@@ -1,0 +1,69 @@
+{
+  "search": [
+    "infant vaccine CDC"
+  ],
+  "result": {
+    "infant vaccine CDC": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Birth to 15 Months​​ For those who fall behind or start late, provide catch-up vaccination at the earliest opportunity as indicated by the green ...",
+            "title": "Child and Adolescent Immunization Schedule by Age ...",
+            "url": "https://www.cdc.gov/vaccines/hcp/imz-schedules/child-adolescent-age.html"
+          },
+          {
+            "snippet": "Vaccines can help protect babies and children from serious, even deadly, diseases. It's important to stay up to date on recommended vaccines.",
+            "title": "Vaccines for Your Children",
+            "url": "https://www.cdc.gov/vaccines-children/index.html"
+          },
+          {
+            "snippet": "Starting at 1 to 2 months of age, your baby receives the following vaccines to develop immunity from potentially harmful diseases. DTaP vaccine.",
+            "title": "Vaccines by Age",
+            "url": "https://www.cdc.gov/vaccines/by-age/index.html"
+          },
+          {
+            "snippet": "The immunizations recommended for certain high-risk groups or populations are for respiratory syncytial virus (RSV), hepatitis A, hepatitis B, ...",
+            "title": "Fact Sheet: CDC Childhood Immunization Recommendations",
+            "url": "https://www.hhs.gov/press-room/fact-sheet-cdc-childhood-immunization-recommendations.html"
+          },
+          {
+            "snippet": "Routine vaccination · 3-dose series at age 0, 1–2, 6–18 months (use monovalent HepB vaccine for doses administered before age 6 weeks) · Infants ...",
+            "title": "Child Immunization Schedule Notes | Vaccines & ...",
+            "url": "https://www.cdc.gov/vaccines/hcp/imz-schedules/child-adolescent-notes.html"
+          },
+          {
+            "snippet": "The CDC maintained its recommendations for 11 childhood vaccines: measles, mumps, and rubella; whooping cough, tetanus, and diphtheria; the ...",
+            "title": "The CDC Just Sidelined These Childhood Vaccines. ...",
+            "url": "https://www.npr.org/sections/shots-health-news/2026/01/09/nx-s1-5671750/cdc-childhood-vaccines-universal-recommendation-rotavirus-hepatitis"
+          },
+          {
+            "snippet": "According to the CDC, the recommended vaccines for all children will include vaccines to protect against: measles, mumps, rubella, polio, ...",
+            "title": "CDC cuts universal child vaccine recommendations ...",
+            "url": "https://www.bbc.com/news/articles/ceqzlvg83wgo"
+          },
+          {
+            "snippet": "Guide for parents and caregivers to ensure their child is up-to-date on recommended childhood vaccin.",
+            "title": "Your child needs vaccines as they grow!",
+            "url": "https://www.cdc.gov/vaccines/imz-schedules/child-easyread.html"
+          },
+          {
+            "snippet": "Under the new CDC schedule, all children are recommended to be immunized against diphtheria, tetanus, acellular pertussis, Haemophilus ...",
+            "title": "AAP: CDC plan to remove universal childhood vaccine ...",
+            "url": "https://publications.aap.org/aapnews/news/34104/AAP-CDC-plan-to-remove-universal-childhood-vaccine"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>infant vaccine CDC</search>",
+      "to": "https://www.cdc.gov/vaccines/hcp/imz-schedules/child-adolescent-age.html"
+    },
+    {
+      "from": "https://www.cdc.gov/vaccines/hcp/imz-schedules/child-adolescent-age.html",
+      "to": "https://www.cdc.gov/vaccines/hcp/imz-schedules/child-adolescent-age.html#table-1"
+    }
+  ]
+}

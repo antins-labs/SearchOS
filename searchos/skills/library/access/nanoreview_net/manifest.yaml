@@ -1,0 +1,12 @@
+description: Access chipset (SoC), phone, and CPU specifications and benchmarks from NanoReview
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_chipset   Get detailed specifications and benchmarks for a mobile\
+      \ chipset/SoC\n  - get_phone   Get detailed specifications and benchmarks for a smartphone\n  -\
+      \ get_cpu   Get detailed specifications and benchmarks for a desktop/laptop CPU"
+  slug:
+    type: string
+    required: false
+    description: The chipset identifier slug (e.g., 'qualcomm-snapdragon-8-gen-4', 'apple-a17-pro')

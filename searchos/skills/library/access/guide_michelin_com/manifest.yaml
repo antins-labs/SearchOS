@@ -1,0 +1,67 @@
+description: "Michelin Guide restaurant search skill. Provides access to the complete Michelin Guide\n\
+  restaurant database via Algolia API. Search for restaurants by name, location, Michelin\ndistinction\
+  \ (stars, Bib Gourmand, Plate), cuisine type, and geographic coordinates.\n\nCapabilities:\n  - Search\
+  \ restaurants by name, chef, or keywords\n  - Filter by Michelin distinction (1-3 stars, Bib Gourmand,\
+  \ Plate)\n  - Filter by city, country, or cuisine\n  - Search near geographic coordinates\n  - Get detailed\
+  \ restaurant information including images, hours, booking info"
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - search   Search for restaurants by name, location, distinction, cuisine,\
+      \ etc.\n  - get_by_slug   Get detailed information about a specific restaurant by its URL slug\n\
+      \  - search_by_location   Search for restaurants near a geographic location\n  - get_filters   Get\
+      \ available filter options (distinctions, cuisines, price categories)"
+  query:
+    type: string
+    required: false
+    description: Search query (restaurant name, chef name, keywords)
+  city:
+    type: string
+    required: false
+    description: City name (e.g., "Paris", "New York", "Tokyo")
+  country:
+    type: string
+    required: false
+    description: Country name or code (e.g., "France", "FR", "Japan")
+  distinction:
+    type: string
+    required: false
+    description: "Michelin distinction filter. Options: \"3-stars\", \"2-stars\", \"1-star\", \n\"bib-gourmand\"\
+      , \"plate\", or full slugs like \"3-stars-michelin\""
+  cuisine:
+    type: string
+    required: false
+    description: Cuisine type (e.g., "French", "Japanese", "Italian", "Modern")
+  green_star:
+    type: boolean
+    required: false
+    description: Filter for restaurants with Michelin Green Star (sustainable)
+  page:
+    type: integer
+    required: false
+    description: Page number for pagination (starts at 0)
+    default: 0
+  limit:
+    type: integer
+    required: false
+    description: Number of results per page (max 100)
+    default: 20
+  slug:
+    type: string
+    required: false
+    description: "Restaurant slug from URL (e.g., \"epicure\", \"le-gabriel476630\"). \nCan also accept\
+      \ full URL paths like \"/us/en/ile-de-france/paris/restaurant/epicure\""
+  lat:
+    type: number
+    required: false
+    description: Latitude (e.g., 48.8566 for Paris)
+  lng:
+    type: number
+    required: false
+    description: Longitude (e.g., 2.3522 for Paris)
+  radius:
+    type: integer
+    required: false
+    description: Search radius in meters (default 5000)
+    default: 5000

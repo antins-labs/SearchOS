@@ -1,0 +1,23 @@
+description: >-
+  抓取小米官网(mi.com)产品规格,支持香港 specs 页(直接 HTML 解析)与中国大陆产品页(需 Playwright 渲染)。来源 www.mi.com。
+params_schema:
+  url:
+    type: string
+    required: false
+    description: >-
+      单个产品页 URL。推荐香港 specs 页,如
+      https://www.mi.com/hk/product/redmi-note-12-5g/specs/。url 与 urls 至少提供一个;若都不传则用内置示例 URL。
+  urls:
+    type: array
+    required: false
+    description: 批量抓取的产品 URL 列表(作为 url 的替代,用于一次抓多个产品)。
+  use_playwright:
+    type: boolean
+    required: false
+    description: 强制使用 Playwright 渲染(大陆 Vue 页面需要;不传则自动判断)。
+    default: false
+  include_raw_specs:
+    type: boolean
+    required: false
+    description: 是否在输出中包含扁平的 raw_specs 数组。
+    default: true

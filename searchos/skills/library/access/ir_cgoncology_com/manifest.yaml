@@ -1,0 +1,23 @@
+description: "Access skill for CG Oncology Investor Relations press releases.\nUses the Wayback Machine\
+  \ as the primary source since the main site \n(ir.cgoncology.com) blocks automated access with HTTP/2\
+  \ protocol errors.\n\nThe site is a Drupal-based Nasdaq Investor Relations (NIR) platform hosting\n\
+  press releases at /news-releases/news-release-details/[slug]"
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - list_press_releases   List recent press releases from CG Oncology\
+      \ IR site\n  - get_press_release   Get full content of a specific press release"
+  limit:
+    type: integer
+    required: false
+    description: Maximum number of press releases to return
+    default: 20
+  url:
+    type: string
+    required: false
+    description: Full URL or slug of the press release
+  slug:
+    type: string
+    required: false
+    description: Alternative parameter for URL slug (e.g., cg-oncology-announces-pricing-upsized-initial-public-offering)

@@ -1,0 +1,23 @@
+description: >-
+  Fetches information about U.S. World Heritage Sites from worldheritageusa.org, including site details, locations, inscription years, and descriptions.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - list_sites      列出所有世界遗产站点的URL列表
+        - get_site        获取单个站点的详细信息，需要slug参数
+        - get_all_sites   获取所有站点的完整详情列表
+        - search          按名称、州或列入年份搜索站点，需要query参数
+  
+  slug:
+    type: string
+    required: false
+    description: 站点URL标识符（如 'yellowstone', 'statue-of-liberty'），用于get_site功能
+  
+  query:
+    type: string
+    required: false
+    description: 搜索关键词，可以是站点名称、州名或列入年份，用于search功能

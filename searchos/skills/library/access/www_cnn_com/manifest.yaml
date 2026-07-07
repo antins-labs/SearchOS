@@ -1,0 +1,16 @@
+description: ''
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - extract_profile   Extract hero profile information from a single CNN\
+      \ Hero page\n  - extract_profiles   Extract profiles from multiple CNN Hero pages\n  - check_urls\
+      \   Check if CNN Hero page URLs are accessible"
+  url:
+    type: string
+    required: false
+    description: URL of the CNN Hero page
+  urls:
+    type: array
+    required: false
+    description: List of CNN Hero page URLs

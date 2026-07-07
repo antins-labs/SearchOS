@@ -1,0 +1,32 @@
+description: 'Access Chinese box office rankings and movie details from Maoyan (猫眼票房).
+
+  Provides comprehensive box office data including yearly rankings, movie details,
+
+  and release information for Chinese and international films.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_rankings   Get box office rankings with optional year filter\n\
+      \  - get_movie_detail   Get detailed information for a specific movie by ID\n  - search_by_rank\
+      \   Search movies by rank criteria with optional filters"
+  year:
+    type: integer
+    required: false
+    description: Optional year filter (e.g., 2024, 2023). If not provided, returns all-time rankings.
+  limit:
+    type: integer
+    required: false
+    description: Optional limit on number of results to return.
+  movie_id:
+    type: string
+    required: false
+    description: The Maoyan movie ID (e.g., "1211229", "344646")
+  min_rank:
+    type: integer
+    required: false
+    description: Minimum rank (inclusive)
+  max_rank:
+    type: integer
+    required: false
+    description: Maximum rank (inclusive)

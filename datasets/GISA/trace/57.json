@@ -1,0 +1,78 @@
+{
+  "search": [
+    "2024-2025 NBA season"
+  ],
+  "result": {
+    "2024-2025 NBA season": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "League Champion: Oklahoma City Thunder. Most Valuable Player: Shai Gilgeous-Alexander (32.7/5.0/6.4). Rookie of the Year: Stephon Castle (14.7/3.7/4.1).",
+            "title": "2024-25 NBA Season Summary",
+            "url": "https://www.basketball-reference.com/leagues/NBA_2025.html"
+          },
+          {
+            "snippet": "2024–25 NBA season, featuring the Oklahoma City Thunder defeating the Indiana Pacers in the 2025 NBA Finals in seven games. Shai Gilgeous-Alexander won his ...",
+            "title": "2025 NBA season",
+            "url": "https://en.wikipedia.org/wiki/2025_NBA_season"
+          },
+          {
+            "snippet": "2024-25 Season: April 15-18: SoFi NBA Play-In Tournament, Tuesday, April 15, Wednesday, April 16, Friday, April 18.",
+            "title": "Key dates for 2025-26 NBA season | NBA.com",
+            "url": "https://www.nba.com/news/key-dates"
+          },
+          {
+            "snippet": "The complete 2025 NBA season schedule on ESPN. Includes game times, TV listings and ticket information for all NBA games.",
+            "title": "NBA Schedule - 2025 Season",
+            "url": "https://www.espn.com/nba/schedule"
+          },
+          {
+            "snippet": "The regular season began on October 22, 2024, and ended on April 13, 2025. The NBA held an in-season tournament for the second consecutive year, now called the ...",
+            "title": "2024–25 NBA season",
+            "url": "https://en.wikipedia.org/wiki/2024%E2%80%9325_NBA_season"
+          },
+          {
+            "snippet": "Visit ESPN for the complete 2025-26 NBA season standings. Includes league, conference and division standings for regular season and playoffs.",
+            "title": "NBA Standings - 2025-26 season",
+            "url": "https://www.espn.com/nba/standings"
+          },
+          {
+            "snippet": "Get the latest NBA standings throughout the 2025-26 season, including team records, win percentages and more on CBS Sports.",
+            "title": "NBA Standings 2025-26",
+            "url": "https://www.cbssports.com/nba/standings/"
+          },
+          {
+            "snippet": "Checkout the complete NBA schedule for the 2024-25 season including match dates, time, arena info, results and more on Basketball-Reference.com.",
+            "title": "2024-25 NBA Schedule",
+            "url": "https://www.basketball-reference.com/leagues/NBA_2025_games.html"
+          },
+          {
+            "snippet": "The 2025–26 NBA season is here! Discover key dates, must-watch stars and how to follow every game live.",
+            "title": "NBA 2025-26 season preview: Schedule, key storylines ...",
+            "url": "https://www.olympics.com/en/news/nba-2025-26-season-preview-schedule-key-storylines-how-to-watch"
+          },
+          {
+            "snippet": "Let's take a look back at the 2024-25 NBA season, during which the Thunder emerged as NBA champions.",
+            "title": "Season Review: 2024-25",
+            "url": "https://www.nba.com/news/season-review-2024-25"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>2024-2025 NBA season</search>",
+      "to": "https://www.nba.com/news/key-dates"
+    },
+    {
+      "from": "https://www.nba.com/news/key-dates",
+      "to": "https://www.nba.com/stats"
+    },
+    {
+      "from": "https://www.nba.com/stats",
+      "to": "https://www.nba.com/stats/players/traditional"
+    }
+  ]
+}

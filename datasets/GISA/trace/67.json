@@ -1,0 +1,138 @@
+{
+  "search": [
+    "NBA most personal fouls per team"
+  ],
+  "result": {
+    "NBA most personal fouls per team": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "NBA Team Personal Fouls per Game ; 1, Denver, 18.9 ; 2, Dallas, 19.0 ; 3, Chicago, 19.0 ; 4, San Antonio, 19.2 ...",
+            "title": "NBA Team Personal Fouls per Game",
+            "url": "https://www.teamrankings.com/nba/stat/personal-fouls-per-game"
+          },
+          {
+            "snippet": "The Indiana Pacers have the most personal fouls by a team this season, with 903 fouls.",
+            "title": "Which NBA Team Commits Most Fouls",
+            "url": "https://www.statmuse.com/nba/ask/which-nba-team-commits-most-fouls"
+          },
+          {
+            "snippet": "NBA Team Regular Season Records for Opponent Personal Fouls. ... Highest average, opponent personal fouls per game, season; Lowest average ...",
+            "title": "NBA Team Regular Season Records for Opponent ...",
+            "url": "https://www.basketball-reference.com/leaders/team_opp_pf.html"
+          },
+          {
+            "snippet": "A table featuring misc information for each player in the league based on selected filters.",
+            "title": "Players Misc | Stats",
+            "url": "https://www.nba.com/stats/players/misc"
+          },
+          {
+            "snippet": "The Denver Nuggets have the fewest personal fouls per game by a team this season, with 19.0 per game.",
+            "title": "NBA Teams Fouls Per Game Leaders",
+            "url": "https://www.statmuse.com/nba/ask/nba-teams-fouls-per-game-leaders"
+          },
+          {
+            "snippet": "ESPN is the place for NBA stats! Find a list of the team stat leaders for the 2025-26 NBA Regular Season.",
+            "title": "2025-26 NBA Team Stat Leaders",
+            "url": "https://www.espn.com/nba/stats/team"
+          },
+          {
+            "snippet": "NBA Teams with Most Fouls per Game this Season 1- Golden State Warriors (22.4) 2- Washington Wizards (22.3) 3- Toronto Raptors (22.3) 4- ...",
+            "title": "NBA Average Personal Fouls Per Game, 1954-2024",
+            "url": "https://www.reddit.com/r/nba/comments/18vk4rq/nba_average_personal_fouls_per_game_19542024/"
+          },
+          {
+            "snippet": "NBA Basketball Player Stats - Personal Fouls ; 1, Kyshawn George · Washington Wizards, SF, 4.14 ; 2, Jaren Jackson Jr. Memphis Grizzlies, PF, 3.84.",
+            "title": "NBA Basketball Player Stats - Personal Fouls",
+            "url": "https://www.teamrankings.com/nba/player-stat/fouls-personal"
+          },
+          {
+            "snippet": "View 2023 NBA Personal Fouls Drawn leaders and Misc stats.",
+            "title": "2023 NBA Personal Fouls Drawn Leaders & Stats - Misc ...",
+            "url": "https://www.foxsports.com/nba/stats?category=misc&sort=fd&season=2023&seasonType=reg&sortOrder=desc"
+          },
+          {
+            "snippet": "A table featuring traditional information for each team in the league based on selected filters.",
+            "title": "Teams Traditional | Stats",
+            "url": "https://www.nba.com/stats/teams/traditional"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>NBA most personal fouls per team</search>",
+      "to": "https://www.nba.com/stats/players/misc"
+    },
+    {
+      "from": "https://www.nba.com/stats/players/misc?PerMode=Totals",
+      "to": "https://www.nba.com/stats/players/misc?PerMode=Totals&Season=2024-25"
+    },
+    {
+      "from": "https://www.nba.com/stats/players/misc?PerMode=Totals",
+      "to": "https://www.nba.com/stats/players/misc?PerMode=Totals&Season=2024-25"
+    },
+    {
+      "from": "https://www.nba.com/stats/players/misc?PerMode=Totals&Season=2024-25&dir=D&sort=PF",
+      "to": "https://www.nba.com/stats/teams/traditional"
+    },
+    {
+      "from": "https://www.nba.com/stats/players/misc?PerMode=Totals&Season=2024-25&dir=D&sort=PF",
+      "to": "https://www.nba.com/stats/teams/traditional"
+    },
+    {
+      "from": "<search>NBA most personal fouls per team</search>",
+      "to": "https://www.nba.com/stats/teams/traditional"
+    },
+    {
+      "from": "https://www.nba.com/stats/teams/traditional?PerMode=Totals&Season=2022-23&dir=D&sort=PF",
+      "to": "https://www.nba.com/stats/team/1610612765/traditional"
+    },
+    {
+      "from": "https://www.nba.com/stats/teams/traditional?PerMode=Totals&Season=2022-23&dir=D&sort=PF",
+      "to": "https://www.nba.com/stats/team/1610612750/traditional"
+    },
+    {
+      "from": "https://www.nba.com/stats/teams/traditional?PerMode=Totals&Season=2022-23&dir=D&sort=PF",
+      "to": "https://www.nba.com/stats/team/1610612744/traditional"
+    },
+    {
+      "from": "https://www.nba.com/stats/teams/traditional?PerMode=Totals&Season=2022-23&dir=D&sort=PF",
+      "to": "https://www.nba.com/stats/team/1610612754/traditional"
+    },
+    {
+      "from": "https://www.nba.com/stats/teams/traditional?PerMode=Totals&Season=2022-23&dir=D&sort=PF",
+      "to": "https://www.nba.com/stats/team/1610612756/traditional"
+    },
+    {
+      "from": "https://www.nba.com/stats/team/1610612756/traditional",
+      "to": "https://www.nba.com/stats/teams/traditional?PerMode=Totals&Season=2022-23&dir=D&sort=PF"
+    },
+    {
+      "from": "https://www.nba.com/stats/teams/traditional?PerMode=Totals&Season=2022-23&dir=D&sort=PF",
+      "to": "https://www.nba.com/stats/team/1610612751/traditional"
+    },
+    {
+      "from": "https://www.nba.com/stats/teams/traditional?PerMode=Totals&Season=2022-23&dir=D&sort=PF",
+      "to": "https://www.nba.com/stats/team/1610612760/traditional"
+    },
+    {
+      "from": "https://www.nba.com/stats/team/1610612760/traditional",
+      "to": "https://www.nba.com/stats/teams/traditional?PerMode=Totals&Season=2022-23&dir=D&sort=PF"
+    },
+    {
+      "from": "https://www.nba.com/stats/team/1610612742/traditional",
+      "to": "https://www.nba.com/stats/teams/traditional?PerMode=Totals&Season=2022-23&dir=D&sort=PF"
+    },
+    {
+      "from": "https://www.nba.com/stats/teams/traditional?PerMode=Totals&Season=2022-23&dir=D&sort=PF",
+      "to": "https://www.nba.com/stats/team/1610612745/traditional"
+    },
+    {
+      "from": "https://www.nba.com/stats/teams/traditional?PerMode=Totals&Season=2022-23&dir=D&sort=PF",
+      "to": "https://www.nba.com/stats/team/1610612745/traditional"
+    }
+  ]
+}

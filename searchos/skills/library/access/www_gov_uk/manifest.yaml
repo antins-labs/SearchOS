@@ -1,0 +1,39 @@
+description: >-
+  Fetch UK House Price Index data from GOV.UK, including collection pages,
+  statistical data download pages, and direct CSV files from the Land Registry.
+
+params_schema:
+  function:
+    type: string
+    required: true
+    description: |
+      要调用的功能名。可用值:
+        - get_collection_items   解析GOV.UK集合页面，获取文档列表（统计报告、数据下载链接等）；需要url参数
+        - get_data_downloads     从统计数据集页面获取CSV下载链接；需要url参数
+        - download_csv           下载CSV文件内容；需要url参数，可选max_bytes和include_data参数
+        - search_hpi_data        按年份/月份搜索HPI数据；可选year、month、data_type参数
+        - get_latest_hpi_release 获取最新UK HPI发布信息；无需额外参数
+  url:
+    type: string
+    required: false
+    description: GOV.UK页面的完整URL（用于get_collection_items、get_data_downloads、download_csv）
+  year:
+    type: integer
+    required: false
+    description: 年份（用于search_hpi_data，如2024）
+  month:
+    type: [integer, string]
+    required: false
+    description: 月份，可以是数字1-12或英文名称如january（用于search_hpi_data）
+  data_type:
+    type: string
+    required: false
+    description: 数据类型，可选值：downloads（CSV文件）、statistics（报告）、all（默认，用于search_hpi_data）
+  max_bytes:
+    type: integer
+    required: false
+    description: 最大下载字节数限制，默认100MB（用于download_csv）
+  include_data:
+    type: boolean
+    required: false
+    description: 是否在响应中包含CSV原始数据，默认true；设为false可减少响应大小（用于download_csv）

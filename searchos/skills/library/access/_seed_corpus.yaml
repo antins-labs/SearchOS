@@ -1,0 +1,781 @@
+# Access-skill seed corpus
+# -------------------------
+# Driven by ``searchos.skills.access_bake``. Each entry describes one
+# target site: canonical URL pattern + 2-3 real probe URLs used for
+# profiling, generation, and held-out validation.
+#
+# Selection criteria (important for pass-rate):
+#   - Must serve static HTML or a public JSON API (no Cloudflare JS
+#     challenge, no login wall, no aggressive rate-limiting).
+#   - URL-routed entries need a canonical URL pattern (`/wiki/X`,
+#     `/abs/Y`, `/quote/Z`) — the page IS the entity.
+#   - Agent-called entries are picked for sites where the agent needs
+#     to search / query with parameters (no single canonical URL).
+#
+# Field schema per entry:
+#   host             — bare domain (no scheme, no trailing slash)
+#   canonical        — human-readable URL template (`{slug}`, `{id}`, …)
+#                      blank for agent_called
+#   probe_urls       — 2-3 real URLs; first N-1 used for profiling,
+#                      last held out for Gate C live validation.
+#                      For agent_called, these are example target pages
+#                      the skill should be able to reach via its query.
+#   invocation_hint  — url_routed | agent_called | unknown (profiler
+#                      decides if unknown)
+#   notes            — optional site-specific caveats
+#
+# NOTE: 10 categories. Sites already in the library (from the hand-
+# written layer) are not re-baked here — the baker skips hosts it
+# detects in existing manifests.
+
+version: 1
+pilot: false
+
+categories:
+
+  # ─────────────────────────────────────────────────────────────
+  # reference — 百科 / 知识库
+  # ─────────────────────────────────────────────────────────────
+  reference:
+    - host: developer.mozilla.org
+      canonical: "/en-US/docs/{path}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array"
+        - "https://developer.mozilla.org/en-US/docs/Web/CSS/flex"
+        - "https://developer.mozilla.org/en-US/docs/Web/API/fetch"
+      notes: "Static HTML with JSON-LD and well-structured article layout."
+
+    - host: simple.wikipedia.org
+      canonical: "/wiki/{slug}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://simple.wikipedia.org/wiki/Albert_Einstein"
+        - "https://simple.wikipedia.org/wiki/Photosynthesis"
+        - "https://simple.wikipedia.org/wiki/Quantum_mechanics"
+
+    - host: en.wiktionary.org
+      canonical: "/wiki/{word}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://en.wiktionary.org/wiki/ubiquitous"
+        - "https://en.wiktionary.org/wiki/serendipity"
+        - "https://en.wiktionary.org/wiki/paradigm"
+
+    - host: en.wikibooks.org
+      canonical: "/wiki/{title}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://en.wikibooks.org/wiki/LaTeX"
+        - "https://en.wikibooks.org/wiki/Python_Programming"
+        - "https://en.wikibooks.org/wiki/Haskell"
+
+    - host: en.wikiquote.org
+      canonical: "/wiki/{figure}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://en.wikiquote.org/wiki/Albert_Einstein"
+        - "https://en.wikiquote.org/wiki/Mark_Twain"
+        - "https://en.wikiquote.org/wiki/Richard_Feynman"
+
+    - host: plato.stanford.edu
+      canonical: "/entries/{topic}/"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://plato.stanford.edu/entries/kant/"
+        - "https://plato.stanford.edu/entries/consciousness/"
+        - "https://plato.stanford.edu/entries/free-will/"
+      notes: "Stanford Encyclopedia of Philosophy, long-form articles."
+
+    - host: mathworld.wolfram.com
+      canonical: "/{TopicName}.html"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://mathworld.wolfram.com/EulerFormula.html"
+        - "https://mathworld.wolfram.com/PythagoreanTheorem.html"
+        - "https://mathworld.wolfram.com/PrimeNumber.html"
+
+    - host: www.britannica.com
+      canonical: "/{category}/{topic}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.britannica.com/science/quantum-mechanics-physics"
+        - "https://www.britannica.com/biography/Albert-Einstein"
+        - "https://www.britannica.com/topic/artificial-intelligence"
+      notes: "Encyclopædia Britannica — may require minor delay between fetches."
+
+    - host: en.wikisource.org
+      canonical: "/wiki/{document}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://en.wikisource.org/wiki/Declaration_of_Independence_(1776)"
+        - "https://en.wikisource.org/wiki/Magna_Carta"
+        - "https://en.wikisource.org/wiki/Universal_Declaration_of_Human_Rights"
+
+    - host: www.goodreads.com
+      canonical: "/book/show/{id}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.goodreads.com/book/show/7613.Animal_Farm"
+        - "https://www.goodreads.com/book/show/5107.The_Catcher_in_the_Rye"
+        - "https://www.goodreads.com/book/show/2767052.The_Hunger_Games"
+      notes: "Book landing page. May return abbreviated HTML if anti-bot triggers."
+
+    - host: openlibrary.org
+      canonical: "/works/OL{id}W"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://openlibrary.org/works/OL45804W"
+        - "https://openlibrary.org/works/OL27448W"
+        - "https://openlibrary.org/works/OL262758W"
+
+    - host: en.wikivoyage.org
+      canonical: "/wiki/{place}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://en.wikivoyage.org/wiki/Tokyo"
+        - "https://en.wikivoyage.org/wiki/Paris"
+        - "https://en.wikivoyage.org/wiki/New_York_City"
+
+    - host: en.wikiversity.org
+      canonical: "/wiki/{topic}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://en.wikiversity.org/wiki/Learning"
+        - "https://en.wikiversity.org/wiki/Python"
+        - "https://en.wikiversity.org/wiki/Mathematics"
+
+    - host: www.gutenberg.org
+      canonical: "/ebooks/{id}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.gutenberg.org/ebooks/1342"
+        - "https://www.gutenberg.org/ebooks/11"
+        - "https://www.gutenberg.org/ebooks/84"
+
+    - host: www.etymonline.com
+      canonical: "/word/{word}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.etymonline.com/word/computer"
+        - "https://www.etymonline.com/word/philosophy"
+        - "https://www.etymonline.com/word/serendipity"
+
+    - host: www.rfc-editor.org
+      canonical: "/rfc/rfc{num}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.rfc-editor.org/rfc/rfc2616.html"
+        - "https://www.rfc-editor.org/rfc/rfc7231.html"
+        - "https://www.rfc-editor.org/rfc/rfc3986.html"
+
+  # ─────────────────────────────────────────────────────────────
+  # academic — 学术论文 / 索引
+  # ─────────────────────────────────────────────────────────────
+  academic:
+    - host: openalex.org
+      canonical: "/works/W{id}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://openalex.org/works/W2741809807"
+        - "https://openalex.org/works/W2963403868"
+        - "https://openalex.org/works/W2114447380"
+
+    - host: api.openalex.org
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "https://api.openalex.org/works?search=graph+neural+networks&per-page=3"
+        - "https://api.openalex.org/works?search=climate+change&per-page=3"
+      notes: "Public JSON API, no auth. Good for keyword search across ~250M works."
+
+    - host: api.crossref.org
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "https://api.crossref.org/works?query=transformer+attention&rows=3"
+        - "https://api.crossref.org/works?query=climate+sensitivity&rows=3"
+      notes: "Crossref public REST API for DOI-resolvable works."
+
+    - host: export.arxiv.org
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "http://export.arxiv.org/api/query?search_query=all:large+language+models&max_results=3"
+        - "http://export.arxiv.org/api/query?search_query=all:quantum+computing&max_results=3"
+      notes: "arXiv Atom API. Different from arxiv.org/abs — no URL-routed overlap."
+
+    - host: www.ncbi.nlm.nih.gov
+      canonical: "/pmc/articles/PMC{id}/"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3339379/"
+        - "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7150470/"
+        - "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5501477/"
+
+    - host: dblp.org
+      canonical: "/pid/{id}.html"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://dblp.org/pid/95/6406.html"  # Yoshua Bengio
+        - "https://dblp.org/pid/17/4660.html"  # Donald E. Knuth
+        - "https://dblp.org/pid/h/GeoffreyEHinton.html"
+
+    - host: www.biorxiv.org
+      canonical: "/content/{path}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.biorxiv.org/content/10.1101/2020.01.22.915660v2"
+        - "https://www.biorxiv.org/content/10.1101/2021.05.04.442545v1"
+        - "https://www.biorxiv.org/content/10.1101/2023.06.14.544797v1"
+
+    - host: paperswithcode.com
+      canonical: "/paper/{slug}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://paperswithcode.com/paper/attention-is-all-you-need"
+        - "https://paperswithcode.com/paper/deep-residual-learning-for-image-recognition"
+        - "https://paperswithcode.com/paper/bert-pre-training-of-deep-bidirectional"
+
+    - host: api.semanticscholar.org
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "https://api.semanticscholar.org/graph/v1/paper/search?query=graph+neural+networks&limit=3&fields=title,abstract,authors,year"
+        - "https://api.semanticscholar.org/graph/v1/paper/search?query=climate+change&limit=3&fields=title,abstract,authors,year"
+      notes: "Semantic Scholar public API. Rate-limited without key."
+
+  # ─────────────────────────────────────────────────────────────
+  # code — 代码 / 包管理
+  # ─────────────────────────────────────────────────────────────
+  code:
+    - host: pkg.go.dev
+      canonical: "/{module}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://pkg.go.dev/net/http"
+        - "https://pkg.go.dev/encoding/json"
+        - "https://pkg.go.dev/github.com/gin-gonic/gin"
+
+    - host: docs.rs
+      canonical: "/crate/{name}/latest"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://docs.rs/crate/serde/latest"
+        - "https://docs.rs/crate/tokio/latest"
+        - "https://docs.rs/crate/rand/latest"
+
+    - host: registry.npmjs.org
+      canonical: "/{pkg}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://registry.npmjs.org/react"
+        - "https://registry.npmjs.org/express"
+        - "https://registry.npmjs.org/lodash"
+      notes: "npm JSON registry — response is raw JSON, not HTML."
+
+    - host: hackage.haskell.org
+      canonical: "/package/{name}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://hackage.haskell.org/package/text"
+        - "https://hackage.haskell.org/package/aeson"
+        - "https://hackage.haskell.org/package/mtl"
+
+    - host: hex.pm
+      canonical: "/packages/{name}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://hex.pm/packages/phoenix"
+        - "https://hex.pm/packages/ecto"
+        - "https://hex.pm/packages/jason"
+
+    - host: rubygems.org
+      canonical: "/gems/{name}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://rubygems.org/gems/rails"
+        - "https://rubygems.org/gems/nokogiri"
+        - "https://rubygems.org/gems/devise"
+
+    - host: search.maven.org
+      canonical: "/artifact/{group}/{artifact}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://search.maven.org/artifact/org.springframework/spring-core"
+        - "https://search.maven.org/artifact/com.google.guava/guava"
+        - "https://search.maven.org/artifact/junit/junit"
+
+    - host: hub.docker.com
+      canonical: "/_/{image}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://hub.docker.com/_/nginx"
+        - "https://hub.docker.com/_/python"
+        - "https://hub.docker.com/_/postgres"
+      notes: "May be JS-rendered; probe first."
+
+    - host: api.github.com
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "https://api.github.com/search/repositories?q=machine+learning&per_page=3"
+        - "https://api.github.com/search/repositories?q=rust+async&per_page=3"
+      notes: "GitHub REST API. Rate-limited without token (60 req/hr)."
+
+    - host: crates.io
+      canonical: "/api/v1/crates/{name}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://crates.io/api/v1/crates/serde"
+        - "https://crates.io/api/v1/crates/tokio"
+        - "https://crates.io/api/v1/crates/reqwest"
+      notes: "crates.io JSON API — response is raw JSON."
+
+  # ─────────────────────────────────────────────────────────────
+  # news — 新闻 / 媒体
+  # ─────────────────────────────────────────────────────────────
+  news:
+    - host: en.wikinews.org
+      canonical: "/wiki/{headline}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://en.wikinews.org/wiki/Main_Page"
+        - "https://en.wikinews.org/wiki/Special:ShortPages"
+        - "https://en.wikinews.org/wiki/Wikinews:Style_guide"
+
+    - host: www.theregister.com
+      canonical: "/{yyyy}/{mm}/{dd}/{slug}/"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.theregister.com/2024/03/12/anthropic_claude_3/"
+        - "https://www.theregister.com/2024/05/08/openai_gpt4o/"
+        - "https://www.theregister.com/2023/11/22/nvidia_q3_earnings/"
+
+    - host: www.npr.org
+      canonical: "/{yyyy}/{mm}/{dd}/{id}/{slug}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.npr.org/2024/01/24/1226774272/ai-artists-are-changing-how-art-is-made-and-stolen"
+        - "https://www.npr.org/2023/11/30/1215015850/chatgpt-anniversary-ai-sam-altman"
+        - "https://www.npr.org/2024/03/08/1237017006/congress-stop-tiktok-ban-bill"
+
+    - host: feeds.bbci.co.uk
+      canonical: "/news/rss.xml"
+      invocation_hint: agent_called
+      probe_urls:
+        - "http://feeds.bbci.co.uk/news/rss.xml"
+        - "http://feeds.bbci.co.uk/news/world/rss.xml"
+      notes: "BBC public RSS feed — bypasses BBC's main-site anti-bot."
+
+    - host: news.google.com
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "https://news.google.com/rss/search?q=openai+gpt&hl=en-US"
+        - "https://news.google.com/rss/search?q=climate+summit&hl=en-US"
+      notes: "Google News RSS — keyword-based feeds, no auth required."
+
+  # ─────────────────────────────────────────────────────────────
+  # social — 社区 / Q&A
+  # ─────────────────────────────────────────────────────────────
+  social:
+    - host: hacker-news.firebaseio.com
+      canonical: "/v0/item/{id}.json"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://hacker-news.firebaseio.com/v0/item/8863.json"
+        - "https://hacker-news.firebaseio.com/v0/item/2921983.json"
+        - "https://hacker-news.firebaseio.com/v0/item/121003.json"
+      notes: "Firebase JSON API — single item per URL. Response is raw JSON."
+
+    - host: hn.algolia.com
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "https://hn.algolia.com/api/v1/search?query=rust&tags=story&hitsPerPage=3"
+        - "https://hn.algolia.com/api/v1/search?query=llm&tags=story&hitsPerPage=3"
+      notes: "HN Algolia search — keyword search across all posts/comments."
+
+    - host: lobste.rs
+      canonical: "/s/{id}/{slug}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://lobste.rs/s/yjprhq/why_i_stopped_using_kubernetes"
+        - "https://lobste.rs/s/abycmp/rewriting_rust"
+        - "https://lobste.rs/s/qcwz9p/so_i_left_cloudflare"
+
+    - host: mathoverflow.net
+      canonical: "/questions/{id}/{slug}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://mathoverflow.net/questions/8846/proofs-without-words"
+        - "https://mathoverflow.net/questions/879/most-memorable-titles"
+        - "https://mathoverflow.net/questions/2147/have-any-long-suspected-irrational-numbers-turned-out-to-be-rational"
+
+    - host: api.stackexchange.com
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "https://api.stackexchange.com/2.3/search/advanced?site=stackoverflow&q=python+async&pagesize=3"
+        - "https://api.stackexchange.com/2.3/search/advanced?site=serverfault&q=kubernetes&pagesize=3"
+      notes: "Stack Exchange public REST API — covers all SE sites."
+
+  # ─────────────────────────────────────────────────────────────
+  # finance — 金融 / 市场
+  # ─────────────────────────────────────────────────────────────
+  finance:
+    - host: query1.finance.yahoo.com
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "https://query1.finance.yahoo.com/v8/finance/chart/AAPL?interval=1d&range=1mo"
+        - "https://query1.finance.yahoo.com/v8/finance/chart/TSLA?interval=1d&range=1mo"
+      notes: "Yahoo Finance undocumented public JSON endpoints."
+
+    - host: api.coingecko.com
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd"
+        - "https://api.coingecko.com/api/v3/coins/bitcoin"
+      notes: "CoinGecko public API — crypto quotes, no auth for basic endpoints."
+
+    - host: www.sec.gov
+      canonical: "/cgi-bin/browse-edgar?action=getcompany&CIK={cik}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000320193&type=10-K"
+        - "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001018724&type=10-K"
+        - "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001652044&type=10-K"
+
+    - host: www.federalreserve.gov
+      canonical: "/newsevents/pressreleases/{id}.htm"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.federalreserve.gov/newsevents/pressreleases/monetary20240131a.htm"
+        - "https://www.federalreserve.gov/newsevents/pressreleases/monetary20231213a.htm"
+        - "https://www.federalreserve.gov/newsevents/pressreleases/monetary20231101a.htm"
+
+    - host: api.frankfurter.app
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,JPY"
+        - "https://api.frankfurter.app/latest?from=EUR&to=USD,GBP"
+      notes: "Currency-exchange-rate public JSON API (ECB data)."
+
+    - host: query2.finance.yahoo.com
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "https://query2.finance.yahoo.com/v1/finance/search?q=AAPL&quotesCount=3"
+        - "https://query2.finance.yahoo.com/v1/finance/search?q=tesla&quotesCount=3"
+      notes: "Yahoo Finance search endpoint — returns JSON quote matches."
+
+  # ─────────────────────────────────────────────────────────────
+  # docs — 技术文档
+  # ─────────────────────────────────────────────────────────────
+  docs:
+    - host: docs.python.org
+      canonical: "/3/library/{module}.html"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://docs.python.org/3/library/os.html"
+        - "https://docs.python.org/3/library/json.html"
+        - "https://docs.python.org/3/library/asyncio-task.html"
+
+    - host: doc.rust-lang.org
+      canonical: "/std/{module}/index.html"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://doc.rust-lang.org/std/vec/struct.Vec.html"
+        - "https://doc.rust-lang.org/std/collections/struct.HashMap.html"
+        - "https://doc.rust-lang.org/std/sync/struct.Arc.html"
+
+    - host: en.cppreference.com
+      canonical: "/w/cpp/{section}/{name}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://en.cppreference.com/w/cpp/container/vector"
+        - "https://en.cppreference.com/w/cpp/algorithm/sort"
+        - "https://en.cppreference.com/w/cpp/memory/shared_ptr"
+
+    - host: www.postgresql.org
+      canonical: "/docs/current/{section}.html"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.postgresql.org/docs/current/sql-select.html"
+        - "https://www.postgresql.org/docs/current/indexes.html"
+        - "https://www.postgresql.org/docs/current/functions-aggregate.html"
+
+    - host: redis.io
+      canonical: "/commands/{name}/"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://redis.io/commands/get/"
+        - "https://redis.io/commands/lpush/"
+        - "https://redis.io/commands/hset/"
+
+    - host: nginx.org
+      canonical: "/en/docs/{module}.html"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://nginx.org/en/docs/http/ngx_http_core_module.html"
+        - "https://nginx.org/en/docs/http/ngx_http_proxy_module.html"
+        - "https://nginx.org/en/docs/http/ngx_http_ssl_module.html"
+
+    - host: tc39.es
+      canonical: "/{name}/"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://tc39.es/ecma262/"
+        - "https://tc39.es/proposal-temporal/"
+        - "https://tc39.es/proposal-decorators/"
+
+    - host: peps.python.org
+      canonical: "/pep-{num}/"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://peps.python.org/pep-0008/"
+        - "https://peps.python.org/pep-0020/"
+        - "https://peps.python.org/pep-0484/"
+
+    - host: learn.microsoft.com
+      canonical: "/en-us/{product}/{section}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/index"
+        - "https://learn.microsoft.com/en-us/azure/azure-functions/functions-overview"
+        - "https://learn.microsoft.com/en-us/sql/t-sql/queries/select-transact-sql"
+
+    - host: docs.djangoproject.com
+      canonical: "/en/stable/{section}/"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://docs.djangoproject.com/en/stable/topics/db/models/"
+        - "https://docs.djangoproject.com/en/stable/topics/http/urls/"
+        - "https://docs.djangoproject.com/en/stable/ref/models/fields/"
+
+    - host: flask.palletsprojects.com
+      canonical: "/en/stable/{section}/"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://flask.palletsprojects.com/en/stable/quickstart/"
+        - "https://flask.palletsprojects.com/en/stable/api/"
+        - "https://flask.palletsprojects.com/en/stable/blueprints/"
+
+    - host: kubernetes.io
+      canonical: "/docs/{section}/"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://kubernetes.io/docs/concepts/workloads/pods/"
+        - "https://kubernetes.io/docs/concepts/services-networking/service/"
+        - "https://kubernetes.io/docs/concepts/storage/volumes/"
+
+  # ─────────────────────────────────────────────────────────────
+  # gov — 政府 / 公共数据
+  # ─────────────────────────────────────────────────────────────
+  gov:
+    - host: api.worldbank.org
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "https://api.worldbank.org/v2/country/USA/indicator/NY.GDP.MKTP.CD?format=json&per_page=3"
+        - "https://api.worldbank.org/v2/country/CHN/indicator/SP.POP.TOTL?format=json&per_page=3"
+      notes: "World Bank open data JSON API."
+
+    - host: data.gov
+      canonical: "/dataset/{slug}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://catalog.data.gov/dataset/electric-vehicle-population-data"
+        - "https://catalog.data.gov/dataset/college-scorecard"
+        - "https://catalog.data.gov/dataset/crime-incidents-in-2023"
+      notes: "US federal open data catalog."
+
+    - host: www.who.int
+      canonical: "/news/item/{slug}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.who.int/news/item/15-02-2024-who-calls-for-action-on-ai-governance"
+        - "https://www.who.int/news/item/22-11-2023-who-global-tuberculosis-report-2023"
+        - "https://www.who.int/news/item/17-10-2023-mental-health-action-plan-extension"
+
+    - host: www.congress.gov
+      canonical: "/bill/{session}/{chamber}/{number}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.congress.gov/bill/118th-congress/house-bill/815"
+        - "https://www.congress.gov/bill/118th-congress/senate-bill/2073"
+        - "https://www.congress.gov/bill/118th-congress/house-bill/2672"
+
+    - host: ec.europa.eu
+      canonical: "/{section}/{slug}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
+        - "https://commission.europa.eu/strategy-and-policy/priorities-2019-2024/europe-fit-digital-age_en"
+        - "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0679"
+
+  # ─────────────────────────────────────────────────────────────
+  # media — 影视 / 音乐 / 出版
+  # ─────────────────────────────────────────────────────────────
+  media:
+    - host: musicbrainz.org
+      canonical: "/artist/{id}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://musicbrainz.org/artist/f27ec8db-af05-4f36-916e-3d57f91ecf5e"  # Michael Jackson
+        - "https://musicbrainz.org/artist/b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d"  # The Beatles
+        - "https://musicbrainz.org/artist/b7ffd2af-418f-4be2-bdd1-22f8b48613da"  # Nirvana
+
+    - host: archive.org
+      canonical: "/metadata/{id}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://archive.org/metadata/commodore_64_archive"
+        - "https://archive.org/metadata/NASA_Archives"
+        - "https://archive.org/metadata/2010_the_year_we_make_contact"
+      notes: "Switched to /metadata/ JSON endpoint — /details/ is JS-rendered."
+
+    - host: www.last.fm
+      canonical: "/music/{artist}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.last.fm/music/The+Beatles"
+        - "https://www.last.fm/music/Radiohead"
+        - "https://www.last.fm/music/Daft+Punk"
+
+    - host: boardgamegeek.com
+      canonical: "/boardgame/{id}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://boardgamegeek.com/boardgame/174430/gloomhaven"
+        - "https://boardgamegeek.com/boardgame/13/catan"
+        - "https://boardgamegeek.com/boardgame/167791/terraforming-mars"
+
+    - host: www.imsdb.com
+      canonical: "/scripts/{Title}.html"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.imsdb.com/scripts/Matrix,-The.html"
+        - "https://www.imsdb.com/scripts/Pulp-Fiction.html"
+        - "https://www.imsdb.com/scripts/Inception.html"
+
+    - host: www.imdb.com
+      canonical: "/title/tt{id}/"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.imdb.com/title/tt0133093/"
+        - "https://www.imdb.com/title/tt0110912/"
+        - "https://www.imdb.com/title/tt1375666/"
+      notes: "IMDb title landing page — matrix, pulp fiction, inception."
+
+    - host: itunes.apple.com
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "https://itunes.apple.com/search?term=beatles&entity=album&limit=3"
+        - "https://itunes.apple.com/search?term=inception&entity=movie&limit=3"
+      notes: "iTunes/Apple Music public search API."
+
+  # ─────────────────────────────────────────────────────────────
+  # commerce — 电商 / 产品 (大多需要 agent_called + API)
+  # ─────────────────────────────────────────────────────────────
+  commerce:
+    - host: world.openfoodfacts.org
+      canonical: "/product/{barcode}/{slug}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://world.openfoodfacts.org/product/3017620422003/nutella-ferrero"
+        - "https://world.openfoodfacts.org/product/7622210449283/cadbury-dairy-milk"
+        - "https://world.openfoodfacts.org/product/5449000000996/coca-cola-500ml"
+      notes: "Open Food Facts — open database of food products. Full HTML + JSON endpoints."
+
+    - host: world.openfoodfacts.org_api
+      canonical: ""
+      invocation_hint: agent_called
+      probe_urls:
+        - "https://world.openfoodfacts.org/cgi/search.pl?search_terms=chocolate&json=1&page_size=3"
+        - "https://world.openfoodfacts.org/cgi/search.pl?search_terms=coffee&json=1&page_size=3"
+      notes: "OFF search API. NOTE: host here is a virtual tag — baker must dedupe against the url_routed entry above."
+
+    - host: www.ebay.com
+      canonical: "/itm/{id}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.ebay.com/itm/374801617495"
+        - "https://www.ebay.com/itm/166697929041"
+        - "https://www.ebay.com/itm/186492714221"
+      notes: "eBay listing page. Often returns usable static HTML."
+
+    - host: books.google.com
+      canonical: "/books?id={id}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://books.google.com/books?id=PGR2AwAAQBAJ"
+        - "https://books.google.com/books?id=c1lddgjjkCwC"
+        - "https://books.google.com/books?id=o_AS10TZkLwC"
+
+  # ─────────────────────────────────────────────────────────────
+  # Backfill: hand-authored skills that predated the bake pipeline.
+  # Seed entries here let scripts/refetch_skill_fixtures.py refresh
+  # their fixtures when site markup drifts.
+  # ─────────────────────────────────────────────────────────────
+  _backfill:
+    - host: github.com
+      canonical: "/{owner}/{repo}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://github.com/unclecode/crawl4ai"
+        - "https://github.com/langchain-ai/deepagents"
+        - "https://github.com/python/cpython"
+
+    - host: pypi.org
+      canonical: "/project/{name}/"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://pypi.org/project/numpy/"
+        - "https://pypi.org/project/fastapi/"
+        - "https://pypi.org/project/crawl4ai/"
+
+    - host: huggingface.co
+      canonical: "/{org}/{model}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct"
+        - "https://huggingface.co/google-bert/bert-base-uncased"
+        - "https://huggingface.co/openai/clip-vit-base-patch32"
+
+    - host: arxiv.org
+      canonical: "/abs/{id}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://arxiv.org/abs/1706.03762"
+        - "https://arxiv.org/abs/2005.14165"
+        - "https://arxiv.org/abs/2201.11903"
+
+    - host: baike.baidu.com
+      canonical: "/item/{slug}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://baike.baidu.com/item/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"
+        - "https://baike.baidu.com/item/%E6%B8%85%E5%8D%8E%E5%A4%A7%E5%AD%A6"
+        - "https://baike.baidu.com/item/%E5%9B%BE%E7%81%B5"
+
+    - host: www.wikidata.org
+      canonical: "/wiki/Q{id}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://www.wikidata.org/wiki/Q7251"
+        - "https://www.wikidata.org/wiki/Q937"
+        - "https://www.wikidata.org/wiki/Q42"
+
+    - host: en.wikipedia.org
+      canonical: "/wiki/{slug}"
+      invocation_hint: url_routed
+      probe_urls:
+        - "https://en.wikipedia.org/wiki/Alan_Turing"
+        - "https://en.wikipedia.org/wiki/Anthropic"
+        - "https://zh.wikipedia.org/wiki/中华人民共和国"

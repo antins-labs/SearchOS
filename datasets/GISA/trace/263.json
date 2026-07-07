@@ -1,0 +1,203 @@
+{
+  "search": [
+    "Botanic Garden",
+    "United States Garden"
+  ],
+  "result": {
+    "Botanic Garden": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "Welcome to the Chicago Botanic Garden. With 27 spectacular gardens on 385 acres, the Garden is a place of ever-changing beauty that you can stroll through ...",
+            "title": "Chicago Botanic Garden",
+            "url": "https://www.chicagobotanic.org/"
+          },
+          {
+            "snippet": "Securing plant diversity for the well-being of people and the planet. Our vision is a world in which plant diversity is valued, secure, and supports all life.",
+            "title": "Botanic Gardens Conservation International: BGCI",
+            "url": "https://www.bgci.org/"
+          },
+          {
+            "snippet": "Founded in 1859, the Singapore Botanic Gardens showcases the best and most spectacular of tropical flora set in stunning verdant landscape.",
+            "title": "Singapore Botanic Gardens | Homepage",
+            "url": "https://www.nparks.gov.sg/SBG"
+          },
+          {
+            "snippet": "Our collections range from mid-Atlantic native plants and cacti to roses and carnivorous plants. See plants from throughout the U.S. and around the world!",
+            "title": "Home | United States Botanic Garden",
+            "url": "https://www.usbg.gov/"
+          },
+          {
+            "snippet": "Visit one of the world's leading botanic gardens, home to one of the largest and richest plant collections on Earth.",
+            "title": "Royal Botanic Garden Edinburgh | Home",
+            "url": "https://www.rbge.org.uk/"
+          },
+          {
+            "snippet": "Welcome to Brooklyn Botanic Garden. Stroll 52 acres of plants and flowers displayed in a variety of landscapes and engage with nature programs and special ...",
+            "title": "Brooklyn Botanic Garden",
+            "url": "https://www.bbg.org/"
+          },
+          {
+            "snippet": "Welcome to the Fort Worth Botanic Garden, the iconic living museum, family destination, educational institution, and research center.",
+            "title": "Fort Worth Botanic Garden | Explore, Discover & ...",
+            "url": "https://fwbg.org/"
+          },
+          {
+            "snippet": "Welcome to Cambridge University Botanic Garden - plan your visit, discover what's going on, what's in flower and find out about what we do.",
+            "title": "Welcome to Cambridge University Botanic Garden",
+            "url": "https://www.botanic.cam.ac.uk/"
+          },
+          {
+            "snippet": "Welcome to our 37-acre urban oasis featuring 4 miles of meandering trails and ocean views, 5,000+ plant species and varieties, and 29 uniquely themed gardens ...",
+            "title": "San Diego Botanic Garden | Encinitas, California",
+            "url": "https://sdbg.org/"
+          }
+        ]
+      }
+    ],
+    "United States Garden": [
+      {
+        "page": 1,
+        "results": [
+          {
+            "snippet": "The United States Botanic Garden inspires people to appreciate, study, and conserve plants to enrich society locally and globally. Locations & Hours.",
+            "title": "Home | United States Botanic Garden",
+            "url": "https://www.usbg.gov/"
+          },
+          {
+            "snippet": "Gardens in United States · 1. Bellagio Conservatory & Botanical Garden · 2. Desert Botanical Garden. 4.7. (9,278). Gardens. By JoleneZ.",
+            "title": "THE 15 BEST United States Gardens (2026)",
+            "url": "https://www.tripadvisor.com/Attractions-g191-Activities-c57-t58-United_States.html"
+          },
+          {
+            "snippet": "United States Botanic Garden (USBG), established by the U.S. Congress in 1820, is the oldest continuously operating public garden in the U.S. Through the ...",
+            "title": "United States Botanic Garden",
+            "url": "https://washington.org/find-dc-listings/united-states-botanic-garden"
+          },
+          {
+            "snippet": "A few of America's beautiful gardens which showcase diverse landscapes, flora, and designs to view and visit this year.",
+            "title": "Bucket List Gardens – The United States - Part 1",
+            "url": "https://mothernaturesapprentice.com/bucket-list-gardens-part-1-the-united-states/"
+          },
+          {
+            "snippet": "Explore over 380 beautiful gardens across North America with your AHS membership. Enjoy free entry and additional discounts at the gardens you love.",
+            "title": "AHS Garden Network",
+            "url": "https://ahsgardening.org/ahs-garden-network/"
+          },
+          {
+            "snippet": "Experience the world of Longwood Gardens… a place to see dazzling displays that elevate the art of horticulture… a place to enjoy performances that inspire…",
+            "title": "Longwood Gardens",
+            "url": "https://longwoodgardens.org/"
+          }
+        ]
+      }
+    ]
+  },
+  "click": [
+    {
+      "from": "<search>United States Garden</search>",
+      "to": "https://www.usbg.gov/"
+    },
+    {
+      "from": "https://www.usbg.gov/",
+      "to": "https://www.usbg.gov/gardens-plants"
+    },
+    {
+      "from": "https://www.usbg.gov/gardens-plants",
+      "to": "https://www.usbg.gov/gardens-plants/conservatory"
+    },
+    {
+      "from": "https://www.usbg.gov/rare-and-endangered-plant-spotlights",
+      "to": "https://www.usbg.gov/gardens-plants/plant-collections"
+    },
+    {
+      "from": "https://www.usbg.gov/gardens-plants/plant-collections",
+      "to": "https://www.usbg.gov/gardens-plants/search-collection"
+    },
+    {
+      "from": "https://www.usbg.gov/gardens-plants/search-collection",
+      "to": "https://usbg.gardenexplorer.org/"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/taxon-31743.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/taxon-31743.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/taxon-31743.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/taxon-31743.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/taxon-31743.aspx",
+      "to": "https://usbg.gardenexplorer.org/"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/taxon-26470.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/taxon-26470.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/taxon-26470.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/taxon-26470.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/taxon-26470.aspx",
+      "to": "https://usbg.gardenexplorer.org/"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/taxon-27443.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/taxon-27443.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/taxon-27443.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/taxon-27443.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/taxon-27443.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/taxon-27443.aspx",
+      "to": "https://usbg.gardenexplorer.org/"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/errmsg.aspx?aspxerrorpath=/Default.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/errmsg.aspx?aspxerrorpath=/Default.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/errmsg.aspx?aspxerrorpath=/Default.aspx"
+    },
+    {
+      "from": "https://usbg.gardenexplorer.org/",
+      "to": "https://usbg.gardenexplorer.org/errmsg.aspx?aspxerrorpath=/Default.aspx"
+    }
+  ]
+}
