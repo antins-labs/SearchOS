@@ -58,12 +58,12 @@
 
 ## ✨ Highlights
 
-- 🗂️ **Search state as a system asset (SOCM)** — the task queue, evidence graph, and coverage map live in one persistent state shared by all agents; snapshot / restore / replay it, instead of losing facts in dozens of turns of conversation history.
-- 🧩 **Coverage-map-driven, recall-first** — the question is modeled as normalized entity × attribute tables; dispatch always targets the empty cells until every schema cell has a sourced value.
-- ⚡ **Pipelined-parallel sub-agents** — the search → open → find stages of multiple search agents overlap across agents, results are harvested asynchronously, and freed slots are reused immediately; total wall-clock approaches the slowest single chain rather than a serial sum.
-- 🔗 **Every cell carries a citation** — the extraction middleware automatically writes (entity, attribute, value, source) into the evidence graph; answers anchor back to their sources cell by cell, fully traceable.
-- 🛡️ **Sensor safety net, automatic loop breaking** — five kinds of loop / stall detection on every tool call; a reminder is injected first to correct course, and repeat offenders are re-dispatched from a different angle.
-- 🧰 **Skill system + multi-provider out of the box** — access skills crack hard sites behind anti-bot walls / login gates, strategy skills bring methodology for rankings / multi-hop / disambiguation; `SF_PROVIDER` connects to any vendor's coding plan / API / local deployment in one line.
+- 🗂️ **Search state as a system asset** — SOCM (Search-Oriented Context Management) keeps the task queue, evidence graph, and coverage map in one persistent state shared by all agents: snapshot, restore, replay — nothing drowns in conversation history.
+- 🧩 **Coverage-map-driven, recall-first** — the question becomes normalized entity × attribute tables; dispatch keeps targeting empty cells until every one holds a sourced value.
+- ⚡ **Pipelined-parallel sub-agents** — search → open → find stages overlap across agents; wall-clock approaches the slowest single chain, not a serial sum.
+- 🔗 **Every cell carries a citation** — extraction middleware writes (entity, attribute, value, source) into the evidence graph; every answer traces back to its source.
+- 🛡️ **Sensor safety net** — five kinds of loop / stall detection on every tool call: remind first, re-dispatch from a new angle if it persists.
+- 🧰 **Skills + multi-provider out of the box** — access skills crack anti-bot / login-walled sites, strategy skills handle rankings / multi-hop / disambiguation; `SF_PROVIDER` connects any vendor in one line.
 
 > 📊 Leads on all headline F1 metrics on **WideSearch / GISA**, including **Set · F1 +13.4 over the next-best baseline** on enumeration questions (see [Evaluation](#-evaluation)).
 
