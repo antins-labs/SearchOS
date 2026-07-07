@@ -295,17 +295,23 @@ SEARCHOS_SKILLS_DISABLED=1                           # 全部关闭
 
 ## 📊 评测
 
-在 **WideSearch**（宽表检索）与 **GISA**（开放信息检索）上，与 5 个代表性基线（ReAct / Plan-and-Solve / A-MapReduce / Web2BigTable / Table-as-Search）对比，**max@3**（每题跑 3 次取最好，×100）headline 成绩：
+在 **WideSearch**（宽表检索）与 **GISA**（开放信息检索）上，与 2 个单智能体基线（ReAct / Plan-and-Solve）和 3 个多智能体系统（Table-as-Search / A-MapReduce / Web2BigTable）对比。所有成绩均为 **max@3**（每题跑 3 次取最好，×100），**加粗**为每行最优；*Item* 逐格独立计分，*Row* 要求整行全对。
 
-| Benchmark | 指标 | 最强基线 | **SearchOS** |
-| --- | --- | :---: | :---: |
-| WideSearch | Item · F1 | 76.0 | **80.1** |
-| WideSearch | Row · F1 | 54.5 | **55.6** |
-| GISA | Table · F1 | 74.8 | **76.9** |
-| GISA | Set · F1 | 63.1 | **76.5** |
-| GISA | List · F1 | 67.1 | **68.1** |
+| Benchmark | 指标 | ReAct | Plan-and-Solve | Table-as-Search | A-MapReduce | Web2BigTable | **SearchOS** |
+| --- | --- | :---: | :---: | :---: | :---: | :---: | :---: |
+| WideSearch | Item · Precision | 82.9 | **83.8** | 82.4 | 83.1 | 78.3 | 83.6 |
+| | Item · Recall | 70.2 | 72.9 | 73.5 | 74.2 | 73.4 | **79.2** |
+| | Item · F1 | 72.9 | 75.2 | 75.4 | 76.0 | 73.8 | **80.1** |
+| | Row · Precision | 58.0 | **58.7** | 57.1 | 56.9 | 57.5 | 58.3 |
+| | Row · Recall | 48.8 | 50.2 | 51.6 | 49.8 | 54.0 | **54.7** |
+| | Row · F1 | 50.9 | 52.2 | 52.7 | 51.4 | 54.5 | **55.6** |
+| GISA | Table · Item · F1 | 74.8 | 71.2 | 73.4 | 72.5 | 68.1 | **76.9** |
+| | Table · Row · F1 | 58.1 | 50.7 | 54.1 | 52.1 | 45.3 | **59.7** |
+| | Set · F1 | 61.6 | 63.1 | 60.9 | 62.5 | 56.7 | **76.5** |
+| | List · F1 | 67.1 | 53.8 | 54.2 | 57.4 | 65.5 | **68.1** |
+| | Item · EM | 0.0 | 16.7 | 16.7 | 33.3 | **50.0** | **50.0** |
 
-SearchOS 在两个基准的全部 headline F1 上均领先，增益主要来自**召回** —— 覆盖表驱动的分派持续补齐空格子，直到每个 schema 单元都有带出处的取值；其中枚举完整集合的 **Set · F1 领先次优基线 +13.4**。完整分项对比（Precision / Recall / EM、逐题型）见论文。
+SearchOS 在两个基准的全部 F1 上均领先，增益主要来自**召回** —— 覆盖表驱动的分派持续补齐空格子，直到每个 schema 单元都有带出处的取值；其中枚举完整集合的 **Set · F1 领先次优基线 +13.4**。
 
 ## 🗂️ 项目结构
 

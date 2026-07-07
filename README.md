@@ -138,7 +138,7 @@ User query
 │   Explore scouting → create_schema builds the coverage map → enqueue_tasks       │
 │   dispatch → check_agents polling → assess/adjust → enough coverage or budget    │
 │   exhausted → synthesize                                                         │
-└──────┬──────────────────────────┬─────────────────────────────┬─────────────────┘
+└──────┬──────────────────────────┬─────────────────────────────┬──────────────────┘
        ▼                          ▼                             ▼
   explore_agent              search_agent × N              writer_agent
  (query typing / hub pages / (searches the web per         (consumes SOCM, writes
@@ -151,14 +151,14 @@ User query
      (prompt assembly / budget & loop monitoring / judge-based auto extraction)
                     │
                     ▼
-┌──────────── SOCM · Search-Oriented Context Management (shared search state) ─────┐
-│  Frontier Memory   task queue: priority + blocked_by DAG, three task types in    │
-│                    one shared pool                                               │
-│  Evidence Graph    findings / sources / confidence, support-conflict edges       │
-│  Coverage Map      entity × attribute, multi-table + foreign keys, per-column    │
-│                    types / formats / validation                                  │
-│  Strategy Memory   strategy & failure memory · Writer Outline · Budget           │
-└───────────────────────────────────────────────────────────────────────────────────┘
+┌──────────── SOCM · Search-Oriented Context Management (shared search state) ────┐
+│  Frontier Memory   task queue: priority + blocked_by DAG, three task types in   │
+│                    one shared pool                                              │
+│  Evidence Graph    findings / sources / confidence, support-conflict edges      │
+│  Coverage Map      entity × attribute, multi-table + foreign keys, per-column   │
+│                    types / formats / validation                                 │
+│  Strategy Memory   strategy & failure memory · Writer Outline · Budget          │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 A session loops through six steps:
@@ -300,17 +300,23 @@ After a session, high-frequency domains can optionally be mined and baked into n
 
 ## 📊 Evaluation
 
-On **WideSearch** (wide-table retrieval) and **GISA** (open-domain information seeking), compared against 5 representative baselines (ReAct / Plan-and-Solve / A-MapReduce / Web2BigTable / Table-as-Search), **max@3** (best of three runs per case, ×100) headline scores:
+On **WideSearch** (wide-table retrieval) and **GISA** (open-domain information seeking), compared against 2 single-agent baselines (ReAct / Plan-and-Solve) and 3 multi-agent systems (Table-as-Search / A-MapReduce / Web2BigTable). All scores are **max@3** (best of three runs per case, ×100); **bold** marks the best in each row. *Item* scores cells independently; *Row* requires a fully correct row.
 
-| Benchmark | Metric | Best baseline | **SearchOS** |
-| --- | --- | :---: | :---: |
-| WideSearch | Item · F1 | 76.0 | **80.1** |
-| WideSearch | Row · F1 | 54.5 | **55.6** |
-| GISA | Table · F1 | 74.8 | **76.9** |
-| GISA | Set · F1 | 63.1 | **76.5** |
-| GISA | List · F1 | 67.1 | **68.1** |
+| Benchmark | Metric | ReAct | Plan-and-Solve | Table-as-Search | A-MapReduce | Web2BigTable | **SearchOS** |
+| --- | --- | :---: | :---: | :---: | :---: | :---: | :---: |
+| WideSearch | Item · Precision | 82.9 | **83.8** | 82.4 | 83.1 | 78.3 | 83.6 |
+| | Item · Recall | 70.2 | 72.9 | 73.5 | 74.2 | 73.4 | **79.2** |
+| | Item · F1 | 72.9 | 75.2 | 75.4 | 76.0 | 73.8 | **80.1** |
+| | Row · Precision | 58.0 | **58.7** | 57.1 | 56.9 | 57.5 | 58.3 |
+| | Row · Recall | 48.8 | 50.2 | 51.6 | 49.8 | 54.0 | **54.7** |
+| | Row · F1 | 50.9 | 52.2 | 52.7 | 51.4 | 54.5 | **55.6** |
+| GISA | Table · Item · F1 | 74.8 | 71.2 | 73.4 | 72.5 | 68.1 | **76.9** |
+| | Table · Row · F1 | 58.1 | 50.7 | 54.1 | 52.1 | 45.3 | **59.7** |
+| | Set · F1 | 61.6 | 63.1 | 60.9 | 62.5 | 56.7 | **76.5** |
+| | List · F1 | 67.1 | 53.8 | 54.2 | 57.4 | 65.5 | **68.1** |
+| | Item · EM | 0.0 | 16.7 | 16.7 | 33.3 | **50.0** | **50.0** |
 
-SearchOS leads on all headline F1 metrics across both benchmarks, with gains driven primarily by **recall** — coverage-map-driven dispatch keeps filling empty cells until every schema cell has a sourced value; on enumerating complete sets, **Set · F1 beats the next-best baseline by +13.4**. Full breakdowns (Precision / Recall / EM, per question type) are in the paper.
+SearchOS leads on all F1 metrics across both benchmarks, with gains driven primarily by **recall** — coverage-map-driven dispatch keeps filling empty cells until every schema cell has a sourced value; on enumerating complete sets, **Set · F1 beats the next-best baseline by +13.4**.
 
 ## 🗂️ Project layout
 
