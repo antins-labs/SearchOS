@@ -1,0 +1,352 @@
+<div align="center">
+
+[中文](README.zh.md) | [English](README.md) | **日本語** | [한국어](README.ko.md)
+
+</div>
+
+<p align="center">
+  <img src="assets/hero.svg" alt="SearchOS — 単一の事実検索から全領域リサーチまで、引用付きのリレーショナル・スキーマ補完として統一" width="100%">
+</p>
+
+<h3 align="center">オープンドメイン情報探索のためのマルチエージェント協調システム</h3>
+
+<p align="center">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+"></a>
+  <a href="https://github.com/langchain-ai/langgraph"><img src="https://img.shields.io/badge/Built_with-LangGraph-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white" alt="LangGraph"></a>
+  <a href="https://github.com/Textualize/textual"><img src="https://img.shields.io/badge/TUI-Textual-0B0B0B?style=for-the-badge&logo=gnometerminal&logoColor=white" alt="Textual TUI"></a>
+  <a href="LEGAL.md"><img src="https://img.shields.io/badge/License-MIT-0E9B9B?style=for-the-badge" alt="License: MIT"></a>
+</p>
+
+<p align="center">
+  <i>オペレーティングシステムがプロセスをスケジュールするように、検索をスケジュールする：
+  オープンドメインの質問を正規化されたカバレッジマップへとコンパイルし、空のセルをパイプライン並列の
+  サブエージェントに割り当て、すべてのエビデンスを出典とともに共有のエビデンスグラフへ書き込み、
+  最後に<b>検索状態</b>から引用付きの答えを合成します —— 状態はシステムの中にあり、会話履歴の中にはありません。</i>
+</p>
+
+<p align="center">
+  <img src="assets/main.png" alt="SearchOS システム概要：マルチエージェント協調 + ミドルウェア + SOCM + スキルシステム" width="95%">
+</p>
+
+<p align="center">
+  <a href="https://youtu.be/DZNXxMcxnMQ">
+    <img src="assets/searchos-demo.gif" alt="SearchOS デモ：ターミナル TUI から実クエリを発行 → マルチエージェントが並列でテーブルを埋める → Web フロントエンドで合成された回答を確認" width="95%">
+  </a>
+</p>
+
+<p align="center">
+  🎬 <b><a href="https://youtu.be/DZNXxMcxnMQ">フルデモ動画（YouTube）</a></b>
+</p>
+
+> **▶️ クイックスタート：**
+>
+> ```bash
+> pip install -e . && python -m searchos "2025年QS分野別ランキング各分野トップ5の大学とその出願締切"
+> ```
+>
+> 初回実行時は自動的に**セットアップウィザード**が起動します：モデルプロバイダ（各社 coding plan / 従量課金 API / ローカルデプロイ）を選び、API キーを入力するだけで動きます。
+> あるいは `python -m searchos` でフルスクリーン TUI に入り、タスク派遣・ツールストリーム・カバレッジマップの成長をリアルタイムで確認できます。
+> `./web/start.sh` で REST/WS API（`:8000`）+ Web フロントエンド（`:3000`）をワンコマンドで起動し、ブラウザから検索を発行してエージェントウォールとカバレッジマップをライブで見ることもできます。
+
+## 📣 News
+
+- **2026-07-05** — オープンソース版マルチプロバイダ対応：`SF_PROVIDER` で 21 のプリセットにワンライン接続——各社 Coding Plan（智譜 / Kimi / MiniMax / アリババ / Volcengine、Anthropic プロトコル）、従量課金 API（DeepSeek / OpenAI / OpenRouter / SiliconFlow / Gemini / xAI…）、ローカルデプロイ（Ollama / vLLM）。初回実行時の CLI セットアップウィザード + プラガブルな検索バックエンド（Serper / Tavily）。抽出などの高頻度ロールは各社の軽量モデルに自動フォールバックしてコスト削減。🔌
+- **2026-07-02** — マルチターン追問への直接回答：追問は前ラウンドのカバレッジマップを引き継ぎ、答えが既にテーブルにあれば再検索しません。超長スキルペイロードの分割抽出もリリース。🧠
+- **2026-06-25** — インタラクティブ TUI コマンドシェル：`/skill` の折りたたみ式マルチセレクト、実行中のリアルタイム介入（steering）、ツールストリームの画面表示。スキルライブラリを core / catalog / runtime の三層に再構成。split-tunnel エグレス——国内サイトは直接接続、海外はプロキシ経由で、一度の実行で内外のデータソースに到達。🖥️
+
+## ✨ ハイライト
+
+- 🗂️ **検索状態をシステム資産に（SOCM）** — タスクキュー・エビデンスグラフ・カバレッジマップを全エージェント共有の永続化された状態に蓄積。スナップショット / 復元 / リプレイが可能で、何十ターンもの会話履歴に埋もれません。
+- 🧩 **カバレッジマップ駆動、リコール優先** — 質問を entity × attribute の正規化されたマルチテーブルとしてモデル化。派遣は常に「空のセル」を狙い、すべてのスキーマセルが出典付きの値で埋まるまで続きます。
+- ⚡ **パイプライン並列のサブエージェント** — 複数の search agent の search → open → find フェーズがエージェント間でオーバーラップし、非同期に回収され、空いたスロットは即座に再利用。総実行時間は直列の合計ではなく、最も遅い単一チェーンに漸近します。
+- 🔗 **すべてのセルに引用付き** — 抽出ミドルウェアが (entity, attribute, value, source) を自動的にエビデンスグラフへ書き込み。回答はセル単位で出典にアンカーされ、追跡・検証可能です。
+- 🛡️ **センサーによるセーフティネット、ループの自動遮断** — すべてのツール呼び出しに対し 5 種類のループ / 停滞検出を実施。まずリマインダーを注入して軌道修正し、改善しなければ別の角度から再派遣します。
+- 🧰 **スキルシステム + マルチプロバイダを標準装備** — access スキルがアンチボット / ログインウォールの難サイトを攻略し、strategy スキルがランキング / マルチホップ / 曖昧性解消の方法論を提供。`SF_PROVIDER` で各社の coding plan / API / ローカルデプロイにワンライン接続。
+
+> 📊 **WideSearch / GISA** の全 headline F1 でトップ。列挙型の **Set · F1 は次点ベースラインを +13.4 上回る**（詳細は[評価](#-評価)）。
+
+## 🎥 Gallery
+
+<table align="center">
+  <tr>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/YhJdc7Qhr1U" title="SearchOS-demo1 · YouTube で見る">
+        <img src="assets/gallery/demo1.jpg" alt="SearchOS-demo1" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-demo1</b></sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/Qve7GX7yahs" title="SearchOS-demo2 · YouTube で見る">
+        <img src="assets/gallery/demo2.jpg" alt="SearchOS-demo2" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-demo2</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/IA_-sO2avTA" title="SearchOS-demo3 · YouTube で見る">
+        <img src="assets/gallery/demo3.jpg" alt="SearchOS-demo3" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-demo3</b></sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/HxCLoauXoYg" title="SearchOS-demo4 · YouTube で見る">
+        <img src="assets/gallery/demo4.jpg" alt="SearchOS-demo4" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-demo4</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <a href="https://youtu.be/-QmjRr_3B1s" title="SearchOS-demo5 · YouTube で見る">
+        <img src="assets/gallery/demo5.jpg" alt="SearchOS-demo5" width="50%">
+      </a>
+      <br><sub>▶️ <b>SearchOS-demo5</b></sub>
+    </td>
+  </tr>
+</table>
+
+<p align="center"><sub>サムネイルをクリックすると YouTube で再生（デモは順次追加予定）</sub></p>
+
+<!-- 動画を追加する場合：上の <td>…</td> ブロックをコピーし、youtu.be リンク・assets/gallery サムネイル・タイトルを差し替えてください -->
+
+## 💡 Why SearchOS
+
+汎用エージェントや Deep Search エージェントを長時間の検索タスクにそのまま使うと、よく次の失敗モードが現れます：
+
+* **プロセスが不透明** — 中間の検索結果が何十ターンもの会話履歴に埋もれ、コンテキスト圧縮後に事実が失われやすい。実行途中に進捗が見えず、復元もリプレイもできない。
+* **「無限ループ」しやすい** — 何を調べたか覚えていない：同じクエリを言い換えて何度も発行し、同じエンティティの属性を別のサブタスクで重複して検索する。
+* **役割分担が曖昧** — サブエージェントが検索・読解・記憶・要約をすべて抱え込み、タスクが長くなると破綻する：抽出フィールドの基準が揃わず、出典が失われる。
+* **入れない、探し方も分からない** — アンチボット・ログインウォール・深い階層に阻まれて難サイトが開けない。ランキング・マルチホップ・曖昧性解消のような複雑な問題は、検索回数を増やすだけでは解けない。
+
+SearchOS はこの 4 つの失敗に、それぞれ機構レベルの解決策を与えます：
+
+* **検索状態を会話履歴に置かない（SOCM）** — タスクキュー・エビデンスグラフ・カバレッジマップを全エージェント共有の永続化された状態（`search_state.json`）に配置し、いつでもスナップショット / 復元 / リプレイ可能。サブエージェント側は三層コンテキスト（SOCM スナップショット → 検索セグメント単位のエピソード要約 → 直近のワーキングメモリ）で完全な履歴を置き換え、安定したプレフィックスは prompt cache に優しい設計です。
+* **エンティティ単位のモデリング + センサーによるループ遮断** — 内部は主キー + 属性の正規化されたマルチテーブル（外部キー付き）。同一エンティティの事実は一度しか調べず、派遣は常にカバレッジマップの空セルを狙います。LoopSensor はすべてのツール呼び出しに対し 5 種類のループ検出（進捗なし・検索ばかりで読まない・クエリ重複・ハードループ・状態増分ゼロ）を行い、まずリマインダーを注入して軌道修正し、改善しなければ `looped` とマークしてオーケストレーション層が別の角度から再派遣します。
+* **検索と抽出の分離** — サブエージェントは正しいページを見つけることだけに集中。ページを開くたびに抽出ミドルウェアが judge モデルで (entity, attribute, value, source, confidence) を自動抽出してエビデンスグラフに書き込み、値の単位正規化・原文への抜粋アンカー・ハッシュ保存を行います——基準が一貫し、出典を追跡できます。
+* **難サイトはスキルで攻略、複雑な問題は方法論で検索** — 検索エージェント専用のスキルシステムを初めて導入：サイトレベルの access スキルがアンチボット / ログインウォールによる「開けない」を解決し、strategy 検索方法論がランキング / マルチホップ / 曖昧性解消のような「探し方が分からない」を解決。クエリごとにルーティングして注入します（数量・ルーティング・アブレーションは下記[スキルシステム](#-スキルシステム)参照）。
+
+## 🧩 Framework
+
+```
+ユーザーのクエリ
+   │
+   ▼
+┌─────────────────────────── Orchestrator（唯一の意思決定者）───────────────────────┐
+│   Explore 偵察 → create_schema でカバレッジマップ構築 → enqueue_tasks 派遣        │
+│   → check_agents ポーリング → 評価/調整 → カバレッジ十分または予算切れ → 合成     │
+└──────┬──────────────────────────┬─────────────────────────────┬─────────────────┘
+       ▼                          ▼                             ▼
+  explore_agent              search_agent × N              writer_agent
+ （クエリ分類 / hub ページ / （サブタスクごとに Web を     （SOCM を読み取り
+   候補エンティティ /         検索、状態を直接             引用付きセクションを
+   検索プラン）               書き込まない）                執筆）
+       │                          │                             │
+       └────────────┬─────────────┴─────────────────────────────┘
+                    ▼
+      三層ミドルウェア：Context → Sensor → Extraction
+     （プロンプト組み立て / 予算・ループ監視 / judge による自動エビデンス抽出）
+                    │
+                    ▼
+┌──────────── SOCM · Search-Oriented Context Management（共有検索状態）────────────┐
+│  Frontier Memory   タスクキュー：priority + blocked_by DAG、3 種類のタスクが      │
+│                    1 つのプールを共有                                             │
+│  Evidence Graph    エビデンスグラフ：finding / source / confidence、             │
+│                    support-conflict エッジ                                        │
+│  Coverage Map      カバレッジマップ：entity × attribute、マルチテーブル +         │
+│                    外部キー、列レベルの型 / フォーマット / バリデーション         │
+│  Strategy Memory   戦略と失敗の記憶   ·   Writer Outline   ·   Budget             │
+└───────────────────────────────────────────────────────────────────────────────────┘
+```
+
+1 セッションは次の 6 ステップをループします：
+
+1. **Explore** — 偵察兵が先行：クエリタイプの判定、hub ページの特定、候補エンティティと検索プランの生成を行い、具体的な属性値は抽出しません。
+2. **Schema** — Orchestrator がエンティティタイプごとに正規化されたカバレッジマップ（マルチテーブル + リレーション）を構築。Explore が発見したエンティティはすべてシード行として着席します。
+3. **Dispatch** — ギャップを自己完結した自然言語のサブタスクに分割し、優先度と依存関係に従って search agent へ並列派遣します。
+4. **Extract** — ページを開くたびに Extraction ミドルウェアが (entity, attribute, value, source, confidence) を自動抽出してエビデンスグラフに書き込み、カバレッジマップを点灯させます。
+5. **Assess** — サブタスクをポーリングして回収：新エンティティをテーブルに追加、悪質なソースをブラックリスト化、コンフリクトは仲裁へ、空セルはターゲットを絞って補完します。
+6. **Synthesize** — カバレッジの自己チェックを通過したら、SOCM からユーザーの求める形式に join し、1 件ずつ引用を付けて出力します。
+
+### 出力はこんな形
+
+すべてのセルに出典番号がアンカーされ、末尾に対応する出典が列挙されます——これが「引用付きのリレーショナル・スキーマ補完」の成果物としての姿です（実際の実行からの抜粋。クエリは中国語で*香港のここ数年の人気保険を整理して*）：
+
+```markdown
+### 香港の主要保険会社
+| 会社       | 英語名          | 2024 APE ランク | 2023 保険料規模 |
+|-----------|----------------|----------------|----------------|
+| 友邦保険   | AIA [6]        | 第 1 位 [6]     | 871 億 HKD [6] |
+| 保誠       | Prudential [6] | 第 2 位 [6]     | 653 億 HKD [6] |
+| 匯豐保険   | HSBC Life [6]  | 第 3 位 [6]     | 555 億 HKD [6] |
+| 宏利       | Manulife [6]   | 第 4 位 [6]     | 498 億 HKD [6] |
+
+### 情報ソース
+[6] https://www.ia.org.hk/tc/infocenter/press_releases/20250425.html, https://inews.hket.com/…
+```
+
+完全な成果物（trajectory・ページキャッシュ・SOCM 状態を含むリプレイ可能なディレクトリ）は `searchos_workspace/<タイムスタンプ>/` にあります。
+
+## 🚀 インストール
+
+Python ≥ 3.11 が必要です：
+
+```bash
+pip install -e .            # 基本依存（OpenAI/Anthropic 両プロトコルのクライアントを含む。coding plan がすぐ使える）
+pip install -e ".[eval]"    # 評価用：pandas / numpy / python-dotenv
+pip install -e ".[all]"     # すべてのオプションバックエンド：tavily / playwright / crawl4ai / langsmith
+```
+
+## ⚙️ 設定
+
+**初回実行時は自動的にセットアップウィザードが起動します**：利用可能なモデル設定が検出されない場合、`python -m searchos` がコマンドラインでプロバイダ選択と API キー入力をガイドし、`.env` に書き込みます（`python -m searchos --setup` でいつでも再設定可能）。
+
+手動で設定することもできます——[`.env.example`](.env.example) を `.env` にコピーし、`SF_PROVIDER` プリセットを 1 つ選んで対応する API キーを入れるだけです（12 のモデルロールへのバインディングが自動生成されます）：
+
+```bash
+# 各社の Coding Plan（Anthropic プロトコルのサブスクリプションエンドポイント、コスパ良好）
+SF_PROVIDER=zhipu-coding      # または kimi-coding / minimax-coding / qwen-coding / volcengine-coding
+ZHIPU_API_KEY=xxx
+
+# または従量課金 API（OpenAI プロトコル）
+SF_PROVIDER=deepseek          # または moonshot / dashscope / openai / openrouter / siliconflow / gemini ...
+DEEPSEEK_API_KEY=xxx
+
+# またはローカルデプロイ
+SF_PROVIDER=ollama            # または vllm
+SF_MODEL=qwen3:32b
+
+SF_JINA_API_KEY=...           # オプション：Jina フェッチ（未設定なら未認証クォータを使用、429 になりやすい）
+```
+
+全プリセット（各社のエンドポイント・モデル ID・キーの取得方法・既知の癖）は [`docs/providers.md`](docs/providers.md) を参照。`SF_PROVIDER` を設定しない場合は [`searchos/config/settings.py`](searchos/config/settings.py) 内蔵のゲートウェイデフォルト（`OPENAI_API_KEY` + `SF_EXTRACTION_API_KEY`）が使われます。
+
+すべての設定は `settings.py` に集約され、`SF_` プレフィックスの環境変数で上書きします。ネストしたフィールドは `__` で区切ります（部分上書きはデフォルトと**深いマージ**をするため、書いたフィールドだけが変わります）。モデルは**ロール**単位でバインドされ（12 ロール → モデルプロファイル）、アブレーションやコスト削減が容易です：
+
+| よく使う設定 | 説明 |
+| --- | --- |
+| `SF_MODEL` / `SF_FAST_MODEL` | プリセットのメイン / 軽量モデルを上書き |
+| `SF_API_BASE` | エンドポイントを上書き（国際版ドメインへの切替など） |
+| `SF_SEARCH_PROVIDER` | 検索バックエンド：`serper` \| `tavily` \| `ragflow`（未設定なら既存キーから推定） |
+| `SF_BROWSER_BACKEND` | フェッチバックエンド：`jina` \| `aiohttp` \| `crawl4ai` \| `search_engine` |
+| `SF_ROLES__JUDGE=main` | 特定ロールのモデルプロファイルだけ付け替え（上級 / アブレーション） |
+| `SF_PROFILES__MAIN__TEMPERATURE=0.3` | 単一プロファイルのフィールドレベル上書き（上級 / アブレーション） |
+| `SF_MAX_PARALLEL_AGENTS` | サブエージェント並列上限（デフォルト 8） |
+| `SF_ENABLE_EXPLORE` / `SF_ENABLE_SKILLS` | アブレーションスイッチ：偵察オフ / スキルオフ |
+| `SF_SKIP_SYNTHESIS` | 評価モード：合成をスキップしてカバレッジマップから直接テーブルを出力 |
+
+## 🧭 クイックスタート
+
+| コマンド | 動作 |
+| --- | --- |
+| `python -m searchos "<query>"` | 単発クエリ。結果は `searchos_workspace/<タイムスタンプ>/output/report.md` に出力 |
+| `python -m searchos` | フルスクリーン Textual TUI：リアルタイムパネル、実行中の介入、マルチターン追問、`/skill` スキル管理 |
+| `python -m eval.run --benchmark widesearch --range 1-50` | 評価の実行（次節参照） |
+
+### インタラクティブ TUI
+
+`python -m searchos` でフルスクリーン画面に入ります：上部はリアルタイムダッシュボード（タスク派遣・サブエージェント状態・カバレッジマップの成長）、下部はツールストリーム。1 つの入力ボックスがタイミングによって自動的に振り分けられます：
+
+| タイミング | 自然言語を入力すると |
+| --- | --- |
+| アイドル時 | 新しい検索実行を開始 |
+| **実行中** | **リアルタイム介入（steering）**——テキストが即座に実行中の Orchestrator へ注入され、サブエージェントは中断されません。制約の追加（「2024 年のデータだけ」）、軌道修正、良いデータソースの提示に使えます |
+| 実行終了後 | **マルチターン追問**——前ラウンドのカバレッジマップとエビデンスを引き継ぎます：答えが既にテーブルにあれば直接回答（再検索なし）、なければ既存テーブルを増分拡張し、ゼロから再構築しません |
+
+スラッシュコマンドはいつでも使えます（実行中も有効）：
+
+| コマンド | エイリアス / ショートカット | 動作 |
+| --- | --- | --- |
+| `/new` | `/clear` · `Ctrl-N` | 新しいトピック：会話履歴とカバレッジマップをクリアし、次の質問は新しいワークスペースから開始 |
+| `/effort [low\|medium\|high\|max]` | — | 投入レベル：イテレーション上限・並列数・エージェントごとの検索予算・実行時間制限・スキルルーティング top-k を一括調整。引数なしでインタラクティブセレクタが開き、実行中の変更は次ラウンドから有効 |
+| `/skill` | — | スキル管理：引数なしでグループ化されたマルチセレクトダイアログを表示。サブコマンド `list`（一覧）、`only <名前…>`（ホワイトリスト、前方一致）、`on` / `off <名前…>`（有効/無効）、`all`（ルーターに戻す）で有効セットを細かく制御 |
+| `/verbose` | `/detail` · `Ctrl-T` | 簡易 / 詳細ツールストリームの切替 |
+| `/stop` | `/cancel` · `Esc` | 現在の実行を中断（アイドル時の Esc はプログラム終了） |
+| `/help` | `/?` | コマンドヘルプ |
+| `/quit` | `/exit` · `Ctrl-D` | SearchOS を終了 |
+
+`/effort` の 4 段階予算一覧（グローバル settings を変更し、現在のセッションに即時反映。並列サブエージェント数は 8 固定でレベルによって変わりません）：
+
+| レベル | オーケストレーションイテレーション | エージェントごとの検索数 | 実行時間上限 | ルーティング top-k |
+| --- | :---: | :---: | :---: | :---: |
+| `low` | 25 | 10 | 10 min | 20 |
+| `medium`（デフォルト） | 50 | 20 | 30 min | 40 |
+| `high` | 100 | 35 | 60 min | 60 |
+| `max` | 150 | 50 | 120 min | 80 |
+
+設計ドキュメント：[docs/tui-textual-redesign.md](docs/tui-textual-redesign.md)。
+
+## 🧰 スキルシステム
+
+3 カテゴリのスキルが [`searchos/skills/library/`](searchos/skills/library/) に統一配置されています：
+
+| カテゴリ | 数量 | 説明 |
+| --- | --- | --- |
+| **access** | 248 | サイトレベルのデータ取得。ドメイン名で命名（例：`en_wikipedia_org`）。URL マッチで自動ルーティング、または typed ツールとしてサブエージェントが能動的に呼び出し |
+| **strategy** | 40+ | 推論方法論：`ranking_top_n`、`entity_disambiguation`、`multi_hop_bridge`…。アンチパターンのチェックリストを添付可能 |
+| **orchestrator** | 若干 | オーケストレーション層の方法論。playbook として丸ごと注入 |
+
+実行時は LLM ルーターが access カタログをクエリ関連の top-k に事前フィルタリング（fail-open）。サブエージェント派遣時に携行できるスキルは最大 3 つ。どの access スキルにもマッチしないページは汎用の抽出ミドルウェアにフォールバックします。
+
+```bash
+SEARCHOS_SKILL_ONLY=en_wikipedia_org,ranking_top_n   # ホワイトリスト
+SEARCHOS_SKILL_LAYERS_DISABLED=access                # 層単位で無効化
+SEARCHOS_SKILLS_DISABLED=1                           # すべて無効化
+```
+
+セッション終了後、高頻度ドメインを自動マイニングして新しい access スキルを焼き込むこともできます（`SF_ENABLE_ACCESS_SKILL_GENERATION`、デフォルトはオフ）。
+
+## 📊 評価
+
+**WideSearch**（ワイドテーブル検索）と **GISA**（オープンドメイン情報検索）で、5 つの代表的ベースライン（ReAct / Plan-and-Solve / A-MapReduce / Web2BigTable / Table-as-Search）と比較。**max@3**（各問題を 3 回実行して最良値、×100）の headline スコア：
+
+| Benchmark | 指標 | 最強ベースライン | **SearchOS** |
+| --- | --- | :---: | :---: |
+| WideSearch | Item · F1 | 76.0 | **80.1** |
+| WideSearch | Row · F1 | 54.5 | **55.6** |
+| GISA | Table · F1 | 74.8 | **76.9** |
+| GISA | Set · F1 | 63.1 | **76.5** |
+| GISA | List · F1 | 67.1 | **68.1** |
+
+SearchOS は両ベンチマークの全 headline F1 でリードし、その向上は主に**リコール**によるものです——カバレッジマップ駆動の派遣が、すべてのスキーマセルに出典付きの値が入るまで空セルを埋め続けます。完全な集合を列挙する **Set · F1 は次点ベースラインを +13.4 上回りました**。詳細な内訳（Precision / Recall / EM、問題タイプ別）は論文を参照してください。
+
+## 🗂️ プロジェクト構成
+
+```
+searchos/
+├── agents/        Orchestrator（prompt / catalog / scheduler / lifecycle）と 3 種類のサブエージェント定義
+├── harness/       SearchSession メインループ、三層ミドルウェア、合成、トラジェクトリと会話ログ
+├── socm/          共有検索状態：Frontier / Evidence Graph / Coverage Map / Strategy
+├── tools/         ロール別ツール：schema、tasks、writer、simple_browser …
+├── skills/        スキルシステム：core 契約 / catalog 登録とルーティング / runtime 実行 / evolution 進化 / library スキルライブラリ
+├── tui/           Textual フルスクリーンインターフェース（リアルタイムダッシュボード、/skill 管理、追問と介入）
+├── config/        settings.py（pydantic-settings、SF_ プレフィックスで上書き）+ モデルロールバインディング
+└── cli.py         python -m searchos エントリポイント
+
+eval/              評価フレームワーク：run.py エントリ、runner、benchmarks、scorers、reformat
+datasets/          WideSearch / GISA / xbench / browsecomp / frames / webwalker
+baselines/         比較用ベースライン（gpt-oss-simple-browser など）
+eval_results/      評価出力（1 問 1 ディレクトリ、完全にリプレイ可能なセッション付き）
+searchos_workspace/ インタラクティブ実行のセッションワークスペース（タイムスタンプディレクトリ）
+```
+
+## 🙏 Acknowledgements
+
+SearchOS は [LangGraph](https://github.com/langchain-ai/langgraph) / [LangChain](https://github.com/langchain-ai/langchain) / [deepagents](https://github.com/langchain-ai/deepagents) の上に構築され、TUI は [Textual](https://github.com/Textualize/textual) ベースです。評価データと公式スコアラーは [WideSearch](https://github.com/ByteDance-Seed/WideSearch)、[GISA](https://github.com/RUC-NLPIR/GISA)、xbench などのベンチマーク原作者によるもので、著作権は各作者に帰属します（`datasets/` 各サブディレクトリの LICENSE と [LEGAL.md](LEGAL.md) を参照）。
+
+## 📚 Citation
+
+論文（*SearchOS-v1*）は準備中で、公開後にここを論文の引用に差し替えます。それまでは、本プロジェクトが研究の役に立った場合、リポジトリを引用してください：
+
+```bibtex
+@misc{searchos2026,
+  title        = {SearchOS-v1: Towards Robust Open-Domain Information-Seeking Agents Collaboration},
+  author       = {Zhang, Yuyao and Gao, Junjie and Wu, Zhengxian and Zhang, Jin and Ma, Shihan and Yao, Yao and Qi, Weiran and Xu, Xingzhong and Yang, Kai and Wen, Ji-Rong and Dou, Zhicheng},
+  year         = {2026},
+  howpublished = {\url{https://github.com/antins-labs/SearchOS}}
+}
+```
+
+## 📄 License
+
+MIT。詳細は [LEGAL.md](LEGAL.md)。

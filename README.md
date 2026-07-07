@@ -1,8 +1,14 @@
+<div align="center">
+
+[中文](README.zh.md) | **English** | [日本語](README.ja.md) | [한국어](README.ko.md)
+
+</div>
+
 <p align="center">
-  <img src="assets/hero.svg" alt="SearchOS — 从单点事实到全域调研，统一为带引用的关系型 schema 补全" width="100%">
+  <img src="assets/hero.svg" alt="SearchOS — from single-fact lookups to full-domain research, unified as citation-grounded relational schema completion" width="100%">
 </p>
 
-<h3 align="center">面向开放域信息检索的多智能体协作系统</h3>
+<h3 align="center">A multi-agent collaboration system for open-domain information seeking</h3>
 
 <p align="center">
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+"></a>
@@ -12,64 +18,65 @@
 </p>
 
 <p align="center">
-  <i>给 SearchOS 一个开放域问题。它先侦察、再把答案建模成规范化的覆盖表，
-  分派子智能体执行流水线并行检索，把每一条证据连同出处沉淀进证据图，
-  最后从<b>共享搜索状态</b>合成带引用的答案 —— 而不是让中间产生的搜索资产淹没在多轮对话历史中。</i>
+  <i>Schedule search the way an operating system schedules processes: compile an open-domain question
+  into a normalized coverage map, dispatch its empty cells to pipelined-parallel sub-agents,
+  write every piece of evidence — with its source — into a shared evidence graph, and synthesize
+  a citation-grounded answer from <b>search state</b> — state that lives in the system, not in conversation history.</i>
 </p>
 
 <p align="center">
-  <img src="assets/main.png" alt="SearchOS 系统总览：多智能体协作 + 中间件 + SOCM + 技能系统" width="95%">
+  <img src="assets/main.png" alt="SearchOS system overview: multi-agent collaboration + middleware + SOCM + skill system" width="95%">
 </p>
 
 <p align="center">
   <a href="https://youtu.be/DZNXxMcxnMQ">
-    <img src="assets/searchos-demo.gif" alt="SearchOS Demo：终端 TUI 发起真实查询 → 多智能体并行填表 → 切换到 Web 前端合成答案" width="95%">
+    <img src="assets/searchos-demo.gif" alt="SearchOS demo: launch a real query from the terminal TUI → agents fill the table in parallel → switch to the web frontend for the synthesized answer" width="95%">
   </a>
 </p>
 
 <p align="center">
-  🎬 <b><a href="https://youtu.be/DZNXxMcxnMQ">完整 Demo 视频（YouTube）</a></b>
+  🎬 <b><a href="https://youtu.be/DZNXxMcxnMQ">Full demo video (YouTube)</a></b>
 </p>
 
-> **▶️ 快速运行：**
+> **▶️ Quick run:**
 >
 > ```bash
-> pip install -e . && python -m searchos "2025 年 QS 学科排名各学科前五的大学及其申请截止日期"
+> pip install -e . && python -m searchos "Top-5 universities per subject in the 2025 QS rankings, with application deadlines"
 > ```
 >
-> 首次运行自动进入**配置向导**：选模型厂商（各家 coding plan / 按量 API / 本地部署）、填 API key 即可跑通。
-> 或直接 `python -m searchos` 进入全屏 TUI，实时看任务分派、工具流与覆盖表增长。
-> 也可以 `./web/start.sh` 一键拉起 REST/WS API（`:8000`）+ Web 前端（`:3000`），在浏览器里发起搜索、实时看智能体墙与覆盖表。
+> The first run launches a **setup wizard**: pick a model provider (vendor coding plans / pay-as-you-go APIs / local deployment), paste an API key, and you're up.
+> Or run `python -m searchos` for the full-screen TUI to watch task dispatch, tool streams, and the coverage map grow in real time.
+> You can also run `./web/start.sh` to bring up the REST/WS API (`:8000`) + web frontend (`:3000`) and launch searches from the browser with a live agent wall and coverage map.
 
 ## 📣 News
 
-- **2026-07-05** — 开源多厂商适配：`SF_PROVIDER` 一键接入 21 个预设——各家 Coding Plan（智谱/Kimi/MiniMax/阿里/火山，Anthropic 协议）、按量 API（DeepSeek/OpenAI/OpenRouter/硅基流动/Gemini/xAI…）与本地部署（Ollama/vLLM）；首跑命令行配置向导 + 可插拔搜索后端（Serper/Tavily）。抽取等高频角色自动落到各厂商轻量档降本。🔌
-- **2026-07-02** — 多轮追问直答：追问沿用上一轮覆盖表，能直接回答的不再重复检索；超长 skill 载荷分段抽取上线。🧠
-- **2026-06-25** — 交互式 TUI 指令外壳：`/skill` 目录折叠多选、运行中实时插话（steering）、工具流上屏，技能库按 core / catalog / runtime 三层重构；split-tunnel 出口——国内站点直连、境外走代理，一次运行通中外数据源。🖥️
+- **2026-07-05** — Open-source multi-provider support: `SF_PROVIDER` connects to 21 presets in one line — vendor Coding Plans (Zhipu / Kimi / MiniMax / Alibaba / Volcengine, Anthropic protocol), pay-as-you-go APIs (DeepSeek / OpenAI / OpenRouter / SiliconFlow / Gemini / xAI…), and local deployment (Ollama / vLLM); first-run CLI setup wizard + pluggable search backends (Serper / Tavily). High-frequency roles like extraction automatically fall to each vendor's lightweight tier to cut cost. 🔌
+- **2026-07-02** — Direct answers for follow-up questions: follow-ups reuse the previous round's coverage map and skip re-searching when the answer is already in the table; chunked extraction for oversized skill payloads. 🧠
+- **2026-06-25** — Interactive TUI command shell: `/skill` collapsible multi-select catalog, live mid-run steering, tool stream on screen; skill library restructured into core / catalog / runtime layers; split-tunnel egress — domestic sites go direct, overseas via proxy, one run reaches sources on both sides. 🖥️
 
-## ✨ 核心亮点
+## ✨ Highlights
 
-- 🗂️ **搜索状态即系统资产（SOCM）** — 任务队列、证据图、覆盖表沉淀进一份所有智能体共享的持久化状态，可快照 / 恢复 / 复盘，不再淹没在几十轮对话历史里。
-- 🧩 **覆盖表驱动、召回优先** — 把问题建模成 entity × attribute 的规范化多表，分派永远对着「空格子」，直到每个 schema 单元都有带出处的取值。
-- ⚡ **流水线并行的子智能体** — 多个 search agent 的 search → open → find 阶段跨 agent 重叠、异步回收、空出的 slot 即时复用；总墙钟趋近最慢单链，而非串行相加。
-- 🔗 **每个单元格都带引用** — 抽取中间件自动把 (entity, attribute, value, source) 写进证据图，答案逐格回锚来源、可溯可查。
-- 🛡️ **传感器兜底、自动断循环** — 每次工具调用做五类循环 / 停滞检测，先注入提醒纠偏，屡教不改换角度重派。
-- 🧰 **技能系统 + 多厂商开箱** — access 技能啃反爬 / 登录墙的难站点，strategy 方法论搜排名 / 多跳 / 消歧；`SF_PROVIDER` 一键接入各家 coding plan / API / 本地部署。
+- 🗂️ **Search state as a system asset (SOCM)** — the task queue, evidence graph, and coverage map live in one persistent state shared by all agents; snapshot / restore / replay it, instead of losing facts in dozens of turns of conversation history.
+- 🧩 **Coverage-map-driven, recall-first** — the question is modeled as normalized entity × attribute tables; dispatch always targets the empty cells until every schema cell has a sourced value.
+- ⚡ **Pipelined-parallel sub-agents** — the search → open → find stages of multiple search agents overlap across agents, results are harvested asynchronously, and freed slots are reused immediately; total wall-clock approaches the slowest single chain rather than a serial sum.
+- 🔗 **Every cell carries a citation** — the extraction middleware automatically writes (entity, attribute, value, source) into the evidence graph; answers anchor back to their sources cell by cell, fully traceable.
+- 🛡️ **Sensor safety net, automatic loop breaking** — five kinds of loop / stall detection on every tool call; a reminder is injected first to correct course, and repeat offenders are re-dispatched from a different angle.
+- 🧰 **Skill system + multi-provider out of the box** — access skills crack hard sites behind anti-bot walls / login gates, strategy skills bring methodology for rankings / multi-hop / disambiguation; `SF_PROVIDER` connects to any vendor's coding plan / API / local deployment in one line.
 
-> 📊 在 **WideSearch / GISA** 上全部 headline F1 领先，其中枚举型 **Set · F1 领先次优基线 +13.4**（详见 [评测](#-评测)）。
+> 📊 Leads on all headline F1 metrics on **WideSearch / GISA**, including **Set · F1 +13.4 over the next-best baseline** on enumeration questions (see [Evaluation](#-evaluation)).
 
 ## 🎥 Gallery
 
 <table align="center">
   <tr>
     <td width="50%" align="center">
-      <a href="https://youtu.be/YhJdc7Qhr1U" title="SearchOS-demo1 · 在 YouTube 观看">
+      <a href="https://youtu.be/YhJdc7Qhr1U" title="SearchOS-demo1 · Watch on YouTube">
         <img src="assets/gallery/demo1.jpg" alt="SearchOS-demo1" width="100%">
       </a>
       <sub>▶️ <b>SearchOS-demo1</b></sub>
     </td>
     <td width="50%" align="center">
-      <a href="https://youtu.be/Qve7GX7yahs" title="SearchOS-demo2 · 在 YouTube 观看">
+      <a href="https://youtu.be/Qve7GX7yahs" title="SearchOS-demo2 · Watch on YouTube">
         <img src="assets/gallery/demo2.jpg" alt="SearchOS-demo2" width="100%">
       </a>
       <sub>▶️ <b>SearchOS-demo2</b></sub>
@@ -77,211 +84,223 @@
   </tr>
   <tr>
     <td width="50%" align="center">
-      <a href="https://youtu.be/IA_-sO2avTA" title="SearchOS-demo3 · 在 YouTube 观看">
+      <a href="https://youtu.be/IA_-sO2avTA" title="SearchOS-demo3 · Watch on YouTube">
         <img src="assets/gallery/demo3.jpg" alt="SearchOS-demo3" width="100%">
       </a>
       <sub>▶️ <b>SearchOS-demo3</b></sub>
     </td>
     <td width="50%" align="center">
-      <a href="https://youtu.be/HxCLoauXoYg" title="SearchOS-demo4 · 在 YouTube 观看">
+      <a href="https://youtu.be/HxCLoauXoYg" title="SearchOS-demo4 · Watch on YouTube">
         <img src="assets/gallery/demo4.jpg" alt="SearchOS-demo4" width="100%">
       </a>
       <sub>▶️ <b>SearchOS-demo4</b></sub>
     </td>
   </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <a href="https://youtu.be/-QmjRr_3B1s" title="SearchOS-demo5 · Watch on YouTube">
+        <img src="assets/gallery/demo5.jpg" alt="SearchOS-demo5" width="50%">
+      </a>
+      <br><sub>▶️ <b>SearchOS-demo5</b></sub>
+    </td>
+  </tr>
 </table>
 
-<p align="center"><sub>点击封面在 YouTube 观看（更多演示陆续上传）</sub></p>
+<p align="center"><sub>Click a cover to watch on YouTube (more demos coming)</sub></p>
 
-<!-- 新增视频：复制上面的 <td>…</td> 块，替换 youtu.be 链接、assets/gallery 缩略图与标题即可 -->
+<!-- To add a video: copy a <td>…</td> block above and swap the youtu.be link, assets/gallery thumbnail, and title -->
 
 ## 💡 Why SearchOS
 
-把通用Agent/Deep Search Agent直接用在长程搜索任务上，常常出现以下失败模式：
+Pointing a general-purpose agent or deep-search agent at long-horizon search tasks commonly produces these failure modes:
 
-* **过程不透明** — 中间搜索结果淹没在几十轮对话历史里，上下文压缩后事实就容易丢；跑到一半既看不见进度，也无法恢复和复盘。
-* **容易“死循环”** — 不记得哪些已经查过：同一条 query 换个说法反复发，同一个实体的属性在不同子任务里重复搜。
-* **分工含混** — 子智能体既要搜、又要读、又要记、还要汇总，任务一长就顾此失彼：抽出来的字段口径不一、来源丢失。
-* **搜不进、也不会搜** — 反爬、登录墙、深层目录让难啃的站点打不开；排名、多跳、消歧这类复杂问题，光靠多搜几次解决不了。
+* **Opaque process** — intermediate search results drown in dozens of turns of conversation history; facts get lost after context compression; mid-run you can neither see progress nor resume or replay.
+* **Easy to loop** — no memory of what has already been checked: the same query gets re-issued with different phrasing, and the same entity's attributes are searched again in different subtasks.
+* **Blurred roles** — sub-agents must search, read, remember, and summarize all at once; on long tasks something always slips: extracted fields use inconsistent conventions, sources get dropped.
+* **Can't get in, can't search well** — anti-bot walls, login gates, and deep directories keep hard sites unreachable; ranking, multi-hop, and disambiguation questions aren't solved by simply searching more.
 
-SearchOS 对这四类失败逐条给出机制层面的解法：
+SearchOS answers each of the four failures with a mechanism-level fix:
 
-* **搜索状态不走对话历史（SOCM）** — 任务队列、证据图、覆盖表放进一份所有智能体共享的持久化状态（`search_state.json`），随时快照、恢复、复盘；子智能体侧用三层上下文（SOCM 快照 → 搜索分段情景摘要 → 近期工作记忆）替代完整历史，稳定前缀对 prompt cache 友好。
-* **按实体建模 + 传感器断循环** — 内部是主键 + 属性的规范化多表（带外键），同一实体的事实只查一次，分派永远对着覆盖表的空格子；LoopSensor 在每次工具调用上做五种循环检测（无进展、只搜不读、query 重复、硬循环、状态零增量），先注入提醒纠偏，屡教不改则标记 `looped` 交回编排层换角度重派。
-* **搜和抽分开** — 子智能体只管找到对的页面；每次页面打开后由抽取中间件用 judge 模型自动抽取 (entity, attribute, value, source, confidence) 写入证据图，值做单位归一、摘录回锚原文并留存 hash，口径一致、来源可溯。
-* **难啃的站点用技能啃，复杂的问题用方法论搜** — 首创搜索智能体专属技能系统：site-level 的 access 技能解决反爬 / 登录墙下"打不开"，strategy 检索方法论解决排名 / 多跳 / 消歧这类"不会搜"，按 query 路由注入（数量、路由与消融见下方 [技能系统](#-技能系统)）。
+* **Search state does not live in conversation history (SOCM)** — the task queue, evidence graph, and coverage map sit in one persistent state shared by all agents (`search_state.json`), snapshottable / restorable / replayable at any time; on the sub-agent side, a three-layer context (SOCM snapshot → episodic summaries per search segment → recent working memory) replaces full history, and the stable prefix is prompt-cache friendly.
+* **Entity-centric modeling + sensors that break loops** — internally a normalized multi-table schema of primary keys + attributes (with foreign keys), so each entity's facts are fetched once and dispatch always targets the coverage map's empty cells; LoopSensor runs five loop checks on every tool call (no progress, search-without-read, duplicate queries, hard loops, zero state delta), first injecting a corrective reminder, and marking the agent `looped` for the orchestrator to re-dispatch from a different angle if it persists.
+* **Search and extraction are separated** — sub-agents only need to find the right pages; after every page open, the extraction middleware uses a judge model to extract (entity, attribute, value, source, confidence) into the evidence graph, with unit normalization, excerpts anchored back to the original text, and content hashes retained — consistent conventions, traceable sources.
+* **Crack hard sites with skills, search hard questions with methodology** — the first skill system purpose-built for search agents: site-level access skills solve "can't open" (anti-bot / login walls), strategy skills solve "don't know how to search" (rankings / multi-hop / disambiguation), routed and injected per query (counts, routing, and ablations in [Skill system](#-skill-system) below).
 
 ## 🧩 Framework
 
 ```
-用户 query
+User query
    │
    ▼
-┌─────────────────────────── Orchestrator（唯一决策者）────────────────────────────┐
-│   Explore 侦察 → create_schema 建覆盖表 → enqueue_tasks 分派 → check_agents      │
-│   轮询 → 评估/调整 → 覆盖足够或预算耗尽 → 合成                                   │
+┌─────────────────────────── Orchestrator (sole decision maker) ───────────────────┐
+│   Explore scouting → create_schema builds the coverage map → enqueue_tasks       │
+│   dispatch → check_agents polling → assess/adjust → enough coverage or budget    │
+│   exhausted → synthesize                                                         │
 └──────┬──────────────────────────┬─────────────────────────────┬─────────────────┘
        ▼                          ▼                             ▼
   explore_agent              search_agent × N              writer_agent
- （query 分类 / hub 页 /    （按子任务搜索网页，          （消费 SOCM 写
-   候选实体 / 搜索计划）      不直接写状态）                带引用的章节）
+ (query typing / hub pages / (searches the web per         (consumes SOCM, writes
+  candidate entities /        subtask, never writes         cited sections)
+  search plan)                state directly)
        │                          │                             │
        └────────────┬─────────────┴─────────────────────────────┘
                     ▼
-      三层中间件：Context → Sensor → Extraction
-     （prompt 组装 / 预算与循环监控 / judge 自动抽取证据）
+      Three middleware layers: Context → Sensor → Extraction
+     (prompt assembly / budget & loop monitoring / judge-based auto extraction)
                     │
                     ▼
-┌──────────── SOCM · Search-Oriented Context Management（共享搜索状态）────────────┐
-│  Frontier Memory   任务队列：priority + blocked_by DAG，三类任务共享一个池       │
-│  Evidence Graph    证据图：finding / source / confidence，support-conflict 边     │
-│  Coverage Map      覆盖表：entity × attribute，多表 + 外键，列级类型/格式/校验    │
-│  Strategy Memory   策略与失败记忆   ·   Writer Outline   ·   Budget               │
+┌──────────── SOCM · Search-Oriented Context Management (shared search state) ─────┐
+│  Frontier Memory   task queue: priority + blocked_by DAG, three task types in    │
+│                    one shared pool                                               │
+│  Evidence Graph    findings / sources / confidence, support-conflict edges       │
+│  Coverage Map      entity × attribute, multi-table + foreign keys, per-column    │
+│                    types / formats / validation                                  │
+│  Strategy Memory   strategy & failure memory · Writer Outline · Budget           │
 └───────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-一次会话循环执行六步：
+A session loops through six steps:
 
-1. **Explore** — 侦察兵先行：判定 query 类型、定位 hub 页、产出候选实体与搜索计划，不抽取具体属性值。
-2. **Schema** — Orchestrator 按实体类型建规范化覆盖表（多表 + 关系），Explore 发现的实体全部落座为种子行。
-3. **Dispatch** — 把缺口拆成自包含的自然语言子任务，按优先级与依赖并行分派 search agents。
-4. **Extract** — 每次页面打开后，Extraction 中间件自动抽取 (entity, attribute, value, source, confidence) 写入证据图并点亮覆盖表。
-5. **Assess** — 轮询回收子任务：新实体入表、坏源记黑名单、冲突派仲裁、空格子定向补漏。
-6. **Synthesize** — 覆盖率自审通过后，从 SOCM join 出用户要的格式，逐条带引用。
+1. **Explore** — a scout goes first: classifies the query type, locates hub pages, produces candidate entities and a search plan; it does not extract attribute values.
+2. **Schema** — the Orchestrator builds a normalized coverage map by entity type (multiple tables + relations); every entity Explore found is seated as a seed row.
+3. **Dispatch** — gaps are split into self-contained natural-language subtasks and dispatched to search agents in parallel by priority and dependency.
+4. **Extract** — after every page open, the Extraction middleware automatically extracts (entity, attribute, value, source, confidence) into the evidence graph and lights up the coverage map.
+5. **Assess** — subtasks are polled and harvested: new entities join the table, bad sources are blacklisted, conflicts go to arbitration, empty cells get targeted follow-ups.
+6. **Synthesize** — once the coverage self-check passes, the answer is joined out of SOCM in the user's requested format, citation by citation.
 
-### 输出长什么样
+### What the output looks like
 
-每个单元格都带回锚的来源编号，文末列出对应出处 —— 这就是"带引用的关系型 schema 补全"落到产物上的样子（节选自一次真实运行，query：*梳理香港近几年的热门保险*）：
+Every cell carries a back-anchored source number, with the sources listed at the end — this is what "citation-grounded relational schema completion" looks like in the final product (excerpt from a real run; the query, in Chinese, was *survey Hong Kong's popular insurance products in recent years*):
 
 ```markdown
-### 香港主要保险公司
-| 公司       | 英文名          | 2024 APE 排名 | 2023 保费规模   |
-|-----------|----------------|--------------|---------------|
-| 友邦保险   | AIA [6]        | 第 1 名 [6]   | 871 亿港元 [6] |
-| 保诚       | Prudential [6] | 第 2 名 [6]   | 653 亿港元 [6] |
-| 汇丰保险   | HSBC Life [6]  | 第 3 名 [6]   | 555 亿港元 [6] |
-| 宏利       | Manulife [6]   | 第 4 名 [6]   | 498 亿港元 [6] |
+### Major insurers in Hong Kong
+| Company     | English name   | 2024 APE rank | 2023 premiums  |
+|-------------|----------------|---------------|----------------|
+| 友邦保险     | AIA [6]        | #1 [6]        | HK$87.1B [6]   |
+| 保诚         | Prudential [6] | #2 [6]        | HK$65.3B [6]   |
+| 汇丰保险     | HSBC Life [6]  | #3 [6]        | HK$55.5B [6]   |
+| 宏利         | Manulife [6]   | #4 [6]        | HK$49.8B [6]   |
 
-### 信息来源
+### Sources
 [6] https://www.ia.org.hk/tc/infocenter/press_releases/20250425.html, https://inews.hket.com/…
 ```
 
-完整产物（带 trajectory、pages 缓存与 SOCM 状态的可复盘目录）见 `searchos_workspace/<时间戳>/`。
+The full artifact (a replayable directory with the trajectory, page cache, and SOCM state) lives under `searchos_workspace/<timestamp>/`.
 
-## 🚀 安装
+## 🚀 Installation
 
-要求 Python ≥ 3.11：
+Requires Python ≥ 3.11:
 
 ```bash
-pip install -e .            # 基础依赖（含 OpenAI/Anthropic 双协议客户端，coding plan 开箱即用）
-pip install -e ".[eval]"    # 评测：pandas / numpy / python-dotenv
-pip install -e ".[all]"     # 全部可选后端：tavily / playwright / crawl4ai / langsmith
+pip install -e .            # base dependencies (incl. OpenAI/Anthropic dual-protocol clients; coding plans work out of the box)
+pip install -e ".[eval]"    # evaluation: pandas / numpy / python-dotenv
+pip install -e ".[all]"     # all optional backends: tavily / playwright / crawl4ai / langsmith
 ```
 
-## ⚙️ 配置
+## ⚙️ Configuration
 
-**首次运行自动进入配置向导**：检测不到可用模型配置时，`python -m searchos` 会在命令行引导你选厂商、填 API key 并写入 `.env`（之后可随时 `python -m searchos --setup` 重新配置）。
+**The first run launches a setup wizard automatically**: when no usable model configuration is detected, `python -m searchos` walks you through picking a provider and entering an API key on the command line, then writes `.env` (re-run anytime with `python -m searchos --setup`).
 
-也可以手动配置——复制 [`.env.example`](.env.example) 为 `.env`，选一个 `SF_PROVIDER` 预设 + 填对应 API key 即可跑通（12 个模型角色自动生成绑定）：
+You can also configure manually — copy [`.env.example`](.env.example) to `.env`, pick one `SF_PROVIDER` preset, and add the matching API key (bindings for all 12 model roles are generated automatically):
 
 ```bash
-# 用厂商 Coding Plan（Anthropic 协议订阅端点，性价比高）
-SF_PROVIDER=zhipu-coding      # 或 kimi-coding / minimax-coding / qwen-coding / volcengine-coding
+# Vendor Coding Plan (Anthropic-protocol subscription endpoints, great value)
+SF_PROVIDER=zhipu-coding      # or kimi-coding / minimax-coding / qwen-coding / volcengine-coding
 ZHIPU_API_KEY=xxx
 
-# 或按量 API（OpenAI 协议）
-SF_PROVIDER=deepseek          # 或 moonshot / dashscope / openai / openrouter / siliconflow / gemini ...
+# Or pay-as-you-go API (OpenAI protocol)
+SF_PROVIDER=deepseek          # or moonshot / dashscope / openai / openrouter / siliconflow / gemini ...
 DEEPSEEK_API_KEY=xxx
 
-# 或本地部署
-SF_PROVIDER=ollama            # 或 vllm
+# Or local deployment
+SF_PROVIDER=ollama            # or vllm
 SF_MODEL=qwen3:32b
 
-SF_JINA_API_KEY=...           # 可选：Jina 抓取（不填走未认证配额，易 429）
+SF_JINA_API_KEY=...           # optional: Jina fetching (without it you use the unauthenticated quota, prone to 429)
 ```
 
-全部预设（含各厂商端点、模型 id、Key 获取方式与已知怪癖）见 [`docs/providers.md`](docs/providers.md)。不设 `SF_PROVIDER` 时沿用 [`searchos/config/settings.py`](searchos/config/settings.py) 内置的网关默认值（`OPENAI_API_KEY` + `SF_EXTRACTION_API_KEY`）。
+All presets (each vendor's endpoints, model IDs, how to get keys, and known quirks) are in [`docs/providers.md`](docs/providers.md). Without `SF_PROVIDER`, the built-in gateway defaults in [`searchos/config/settings.py`](searchos/config/settings.py) apply (`OPENAI_API_KEY` + `SF_EXTRACTION_API_KEY`).
 
-所有配置集中在 `settings.py`，`SF_` 前缀环境变量覆盖，嵌套字段用 `__` 分隔（部分覆写与默认值**深合并**，只改你写的字段）。模型按**角色**绑定（12 个角色 → 模型 profile），便于消融与降本：
+All configuration is centralized in `settings.py`; `SF_`-prefixed environment variables override it, with `__` separating nested fields (partial overrides **deep-merge** with defaults, changing only the fields you set). Models are bound by **role** (12 roles → model profiles), which makes ablations and cost reduction easy:
 
-| 常用配置 | 说明 |
+| Common settings | Description |
 | --- | --- |
-| `SF_MODEL` / `SF_FAST_MODEL` | 覆盖预设的主力 / 轻量档模型 |
-| `SF_API_BASE` | 覆盖端点（如切国际站域名） |
-| `SF_SEARCH_PROVIDER` | 搜索后端：`serper` \| `tavily` \| `ragflow`（不设则按已有 key 推断） |
-| `SF_BROWSER_BACKEND` | 抓取后端：`jina` \| `aiohttp` \| `crawl4ai` \| `search_engine` |
-| `SF_ROLES__JUDGE=main` | 单独改绑某个角色的模型 profile（高级 / 消融） |
-| `SF_PROFILES__MAIN__TEMPERATURE=0.3` | 单 profile 字段级覆写（高级 / 消融） |
-| `SF_MAX_PARALLEL_AGENTS` | 子智能体并发上限（默认 8） |
-| `SF_ENABLE_EXPLORE` / `SF_ENABLE_SKILLS` | 消融开关：关侦察 / 关技能 |
-| `SF_SKIP_SYNTHESIS` | 评测模式：跳过合成，直接从覆盖表导表 |
+| `SF_MODEL` / `SF_FAST_MODEL` | Override the preset's main / lightweight-tier model |
+| `SF_API_BASE` | Override the endpoint (e.g. switch to the international domain) |
+| `SF_SEARCH_PROVIDER` | Search backend: `serper` \| `tavily` \| `ragflow` (inferred from available keys if unset) |
+| `SF_BROWSER_BACKEND` | Fetch backend: `jina` \| `aiohttp` \| `crawl4ai` \| `search_engine` |
+| `SF_ROLES__JUDGE=main` | Rebind a single role's model profile (advanced / ablation) |
+| `SF_PROFILES__MAIN__TEMPERATURE=0.3` | Field-level override on one profile (advanced / ablation) |
+| `SF_MAX_PARALLEL_AGENTS` | Sub-agent concurrency cap (default 8) |
+| `SF_ENABLE_EXPLORE` / `SF_ENABLE_SKILLS` | Ablation switches: disable scouting / disable skills |
+| `SF_SKIP_SYNTHESIS` | Evaluation mode: skip synthesis and export the table straight from the coverage map |
 
-## 🧭 快速上手
+## 🧭 Quick start
 
-| 命令 | 作用 |
+| Command | What it does |
 | --- | --- |
-| `python -m searchos "<query>"` | 单条查询，结果写入 `searchos_workspace/<时间戳>/output/report.md` |
-| `python -m searchos` | 全屏 Textual TUI：实时面板、运行中插话、多轮追问、`/skill` 技能管理 |
-| `python -m eval.run --benchmark widesearch --range 1-50` | 跑评测（见下节） |
+| `python -m searchos "<query>"` | Single query; results land in `searchos_workspace/<timestamp>/output/report.md` |
+| `python -m searchos` | Full-screen Textual TUI: live panels, mid-run steering, multi-turn follow-ups, `/skill` skill management |
+| `python -m eval.run --benchmark widesearch --range 1-50` | Run evaluations (see the next section) |
 
-### 交互式 TUI
+### Interactive TUI
 
-`python -m searchos` 进入全屏界面：上方是实时 dashboard（任务分派、子智能体状态、覆盖表增长），下方是工具流。同一个输入框根据时机自动分流：
+`python -m searchos` opens the full-screen interface: a live dashboard on top (task dispatch, sub-agent status, coverage map growth) and the tool stream below. One input box routes by timing:
 
-| 时机 | 输入自然语言的效果 |
+| When | What typing natural language does |
 | --- | --- |
-| 空闲时 | 开始一次新的搜索运行 |
-| **运行中** | **实时插话（steering）**——文字即刻注入运行中的 Orchestrator，子智能体不中断；用来补充约束（"只要 2024 年的数据"）、纠偏或提示好的数据源 |
-| 运行结束后 | **多轮追问**——沿用上一轮覆盖表与证据：答案已在表中则直接作答（不再检索），否则在现有表上增量扩展，不从零重建 |
+| Idle | Starts a new search run |
+| **Mid-run** | **Live steering** — your text is injected into the running Orchestrator immediately, without interrupting sub-agents; use it to add constraints ("2024 data only"), correct course, or point at good sources |
+| After a run | **Multi-turn follow-up** — reuses the previous round's coverage map and evidence: if the answer is already in the table it is answered directly (no new search); otherwise the existing table is extended incrementally, never rebuilt from scratch |
 
-斜杠指令任何时候可用（运行中也生效）：
+Slash commands work at any time (including mid-run):
 
-| 指令 | 别名 / 快捷键 | 作用 |
+| Command | Alias / shortcut | What it does |
 | --- | --- | --- |
-| `/new` | `/clear` · `Ctrl-N` | 开新话题：清空对话历史与覆盖表，下一问从全新工作区开始 |
-| `/effort [low\|medium\|high\|max]` | — | 投入档位：一次性调整迭代上限、并发数、每代理搜索预算、墙钟时限、技能路由 top-k；无参数弹出交互选择器，运行中修改下一轮生效 |
-| `/skill` | — | 技能管理：无参数打开分组勾选弹窗；子命令 `list`（列出）、`only <名字…>`（白名单，前缀模糊匹配）、`on` / `off <名字…>`（启停）、`all`（重置交回路由）精细控制启用集 |
-| `/verbose` | `/detail` · `Ctrl-T` | 切换精简 / 详细工具流 |
-| `/stop` | `/cancel` · `Esc` | 中断当前运行（空闲时 Esc 退出程序） |
-| `/help` | `/?` | 指令帮助 |
-| `/quit` | `/exit` · `Ctrl-D` | 退出 SearchOS |
+| `/new` | `/clear` · `Ctrl-N` | New topic: clears conversation history and the coverage map; the next question starts from a fresh workspace |
+| `/effort [low\|medium\|high\|max]` | — | Effort tier: adjusts iteration cap, concurrency, per-agent search budget, wall-clock limit, and skill-routing top-k in one go; with no argument it opens an interactive picker; mid-run changes take effect next round |
+| `/skill` | — | Skill management: no argument opens a grouped multi-select dialog; subcommands `list`, `only <names…>` (whitelist, fuzzy prefix match), `on` / `off <names…>`, `all` (reset to router control) for fine-grained control |
+| `/verbose` | `/detail` · `Ctrl-T` | Toggle compact / detailed tool stream |
+| `/stop` | `/cancel` · `Esc` | Interrupt the current run (Esc exits the program when idle) |
+| `/help` | `/?` | Command help |
+| `/quit` | `/exit` · `Ctrl-D` | Exit SearchOS |
 
-`/effort` 四档预算一览（修改的是全局 settings，对当前会话即时生效；并行子代理数固定为 8，不随档位变化）：
+The four `/effort` budget tiers at a glance (these modify global settings and take effect immediately for the current session; parallel sub-agents stay fixed at 8 across tiers):
 
-| 档位 | 编排迭代 | 每代理搜索 | 墙钟上限 | 路由 top-k |
+| Tier | Orchestrator iterations | Searches per agent | Wall-clock cap | Routing top-k |
 | --- | :---: | :---: | :---: | :---: |
 | `low` | 25 | 10 | 10 min | 20 |
-| `medium`（默认） | 50 | 20 | 30 min | 40 |
+| `medium` (default) | 50 | 20 | 30 min | 40 |
 | `high` | 100 | 35 | 60 min | 60 |
 | `max` | 150 | 50 | 120 min | 80 |
 
-设计文档见 [docs/tui-textual-redesign.md](docs/tui-textual-redesign.md)。
+Design doc: [docs/tui-textual-redesign.md](docs/tui-textual-redesign.md).
 
-## 🧰 技能系统
+## 🧰 Skill system
 
-三类技能，统一放在 [`searchos/skills/library/`](searchos/skills/library/)：
+Three categories of skills, all under [`searchos/skills/library/`](searchos/skills/library/):
 
-| 类别 | 数量 | 说明 |
+| Category | Count | Description |
 | --- | --- | --- |
-| **access** | 248 | 站点级数据获取，按域名命名（如 `en_wikipedia_org`）；URL 命中自动路由，或作为 typed 工具由子智能体主动调用 |
-| **strategy** | 40+ | 推理方法论：`ranking_top_n`、`entity_disambiguation`、`multi_hop_bridge`…，可附反模式清单 |
-| **orchestrator** | 若干 | 编排层方法论，整包注入 playbook |
+| **access** | 248 | Site-level data access, named by domain (e.g. `en_wikipedia_org`); auto-routed on URL match, or invoked proactively by sub-agents as typed tools |
+| **strategy** | 40+ | Reasoning methodology: `ranking_top_n`, `entity_disambiguation`, `multi_hop_bridge`…, optionally with anti-pattern checklists |
+| **orchestrator** | a few | Orchestration-level methodology, injected wholesale as a playbook |
 
-运行时由 LLM router 对 access 目录做 query 相关的 top-k 预筛（fail-open），分派子智能体时最多携带 3 个技能；未命中任何 access 技能的页面回退到通用抽取中间件。
+At runtime an LLM router pre-filters the access catalog to a query-relevant top-k (fail-open); each dispatched sub-agent carries at most 3 skills; pages that match no access skill fall back to the generic extraction middleware.
 
 ```bash
-SEARCHOS_SKILL_ONLY=en_wikipedia_org,ranking_top_n   # 白名单
-SEARCHOS_SKILL_LAYERS_DISABLED=access                # 按层关闭
-SEARCHOS_SKILLS_DISABLED=1                           # 全部关闭
+SEARCHOS_SKILL_ONLY=en_wikipedia_org,ranking_top_n   # whitelist
+SEARCHOS_SKILL_LAYERS_DISABLED=access                # disable by layer
+SEARCHOS_SKILLS_DISABLED=1                           # disable all
 ```
 
-会话结束后可选自动挖掘高频域名、烘焙新的 access 技能（`SF_ENABLE_ACCESS_SKILL_GENERATION`，默认关）。
+After a session, high-frequency domains can optionally be mined and baked into new access skills automatically (`SF_ENABLE_ACCESS_SKILL_GENERATION`, off by default).
 
-## 📊 评测
+## 📊 Evaluation
 
-在 **WideSearch**（宽表检索）与 **GISA**（开放信息检索）上，与 5 个代表性基线（ReAct / Plan-and-Solve / A-MapReduce / Web2BigTable / Table-as-Search）对比，**max@3**（每题跑 3 次取最好，×100）headline 成绩：
+On **WideSearch** (wide-table retrieval) and **GISA** (open-domain information seeking), compared against 5 representative baselines (ReAct / Plan-and-Solve / A-MapReduce / Web2BigTable / Table-as-Search), **max@3** (best of three runs per case, ×100) headline scores:
 
-| Benchmark | 指标 | 最强基线 | **SearchOS** |
+| Benchmark | Metric | Best baseline | **SearchOS** |
 | --- | --- | :---: | :---: |
 | WideSearch | Item · F1 | 76.0 | **80.1** |
 | WideSearch | Row · F1 | 54.5 | **55.6** |
@@ -289,36 +308,45 @@ SEARCHOS_SKILLS_DISABLED=1                           # 全部关闭
 | GISA | Set · F1 | 63.1 | **76.5** |
 | GISA | List · F1 | 67.1 | **68.1** |
 
-SearchOS 在两个基准的全部 headline F1 上均领先，增益主要来自**召回** —— 覆盖表驱动的分派持续补齐空格子，直到每个 schema 单元都有带出处的取值；其中枚举完整集合的 **Set · F1 领先次优基线 +13.4**。完整分项对比（Precision / Recall / EM、逐题型）见论文。
+SearchOS leads on all headline F1 metrics across both benchmarks, with gains driven primarily by **recall** — coverage-map-driven dispatch keeps filling empty cells until every schema cell has a sourced value; on enumerating complete sets, **Set · F1 beats the next-best baseline by +13.4**. Full breakdowns (Precision / Recall / EM, per question type) are in the paper.
 
-## 🗂️ 项目结构
+## 🗂️ Project layout
 
 ```
 searchos/
-├── agents/        Orchestrator（prompt / catalog / scheduler / lifecycle）与三类子智能体定义
-├── harness/       SearchSession 主循环、三层中间件、合成、轨迹与对话日志
-├── socm/          共享搜索状态：Frontier / Evidence Graph / Coverage Map / Strategy
-├── tools/         按角色分组的工具：schema、tasks、writer、simple_browser …
-├── skills/        技能系统：core 契约 / catalog 注册与路由 / runtime 执行 / evolution 进化 / library 技能库
-├── tui/           Textual 全屏交互界面（实时 dashboard、/skill 管理、追问插话）
-├── config/        settings.py（pydantic-settings，SF_ 前缀覆盖）+ 模型角色绑定
-└── cli.py         python -m searchos 入口
+├── agents/        Orchestrator (prompt / catalog / scheduler / lifecycle) and the three sub-agent definitions
+├── harness/       SearchSession main loop, three middleware layers, synthesis, trajectory & conversation logs
+├── socm/          Shared search state: Frontier / Evidence Graph / Coverage Map / Strategy
+├── tools/         Tools grouped by role: schema, tasks, writer, simple_browser …
+├── skills/        Skill system: core contracts / catalog registry & routing / runtime execution / evolution / skill library
+├── tui/           Textual full-screen interface (live dashboard, /skill management, follow-ups & steering)
+├── config/        settings.py (pydantic-settings, SF_ prefix overrides) + model role bindings
+└── cli.py         python -m searchos entry point
 
-eval/              评测框架：run.py 入口、runner、benchmarks、scorers、reformat
+eval/              Evaluation framework: run.py entry, runner, benchmarks, scorers, reformat
 datasets/          WideSearch / GISA / xbench / browsecomp / frames / webwalker
-baselines/         对照基线（gpt-oss-simple-browser 等）
-eval_results/      评测输出（每题一目录，含完整可复盘 session）
-searchos_workspace/ 交互运行的会话工作区（时间戳目录）
+baselines/         Baselines for comparison (gpt-oss-simple-browser, etc.)
+eval_results/      Evaluation output (one directory per case, with a fully replayable session)
+searchos_workspace/ Session workspaces for interactive runs (timestamped directories)
 ```
 
 ## 🙏 Acknowledgements
 
-SearchOS 构建于 [LangGraph](https://github.com/langchain-ai/langgraph) / [LangChain](https://github.com/langchain-ai/langchain) / [deepagents](https://github.com/langchain-ai/deepagents) 之上，TUI 基于 [Textual](https://github.com/Textualize/textual)。评测数据与官方评分器来自 [WideSearch](https://github.com/ByteDance-Seed/WideSearch)、[GISA](https://github.com/RUC-NLPIR/GISA)、xbench 等 benchmark 的原作者，版权归其所有（见 `datasets/` 各子目录 LICENSE 与 [LEGAL.md](LEGAL.md)）。
+SearchOS is built on [LangGraph](https://github.com/langchain-ai/langgraph) / [LangChain](https://github.com/langchain-ai/langchain) / [deepagents](https://github.com/langchain-ai/deepagents); the TUI is powered by [Textual](https://github.com/Textualize/textual). Evaluation data and official scorers come from the authors of [WideSearch](https://github.com/ByteDance-Seed/WideSearch), [GISA](https://github.com/RUC-NLPIR/GISA), xbench, and other benchmarks, who retain all rights (see the LICENSE files under `datasets/` and [LEGAL.md](LEGAL.md)).
 
 ## 📚 Citation
 
-论文整理中，发布后将在此更新引用格式。
+The paper (*SearchOS-v1*) is in preparation and its citation entry will replace this one upon release. Until then, if this project helps your research, please cite the repository:
+
+```bibtex
+@misc{searchos2026,
+  title        = {SearchOS-v1: Towards Robust Open-Domain Information-Seeking Agents Collaboration},
+  author       = {Zhang, Yuyao and Gao, Junjie and Wu, Zhengxian and Zhang, Jin and Ma, Shihan and Yao, Yao and Qi, Weiran and Xu, Xingzhong and Yang, Kai and Wen, Ji-Rong and Dou, Zhicheng},
+  year         = {2026},
+  howpublished = {\url{https://github.com/antins-labs/SearchOS}}
+}
+```
 
 ## 📄 License
 
-MIT，另见 [LEGAL.md](LEGAL.md)。
+MIT — see also [LEGAL.md](LEGAL.md).
