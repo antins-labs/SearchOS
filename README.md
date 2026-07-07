@@ -51,6 +51,7 @@
 
 ## 📣 News
 
+- **2026-07-07** — Web UI support: `./web/start.sh` brings up the REST/WS API (`:8000`) + web frontend (`:3000`) in one line — launch searches from the browser, watch the live agent wall and the coverage map fill in cell by cell, and read the synthesized answer with per-cell citations. 🌐
 - **2026-07-05** — Open-source multi-provider support: `SF_PROVIDER` connects to 21 presets in one line — vendor Coding Plans (Zhipu / Kimi / MiniMax / Alibaba / Volcengine, Anthropic protocol), pay-as-you-go APIs (DeepSeek / OpenAI / OpenRouter / SiliconFlow / Gemini / xAI…), and local deployment (Ollama / vLLM); first-run CLI setup wizard + pluggable search backends (Serper / Tavily). High-frequency roles like extraction automatically fall to each vendor's lightweight tier to cut cost. 🔌
 - **2026-07-02** — Direct answers for follow-up questions: follow-ups reuse the previous round's coverage map and skip re-searching when the answer is already in the table; chunked extraction for oversized skill payloads. 🧠
 - **2026-06-25** — Interactive TUI command shell: `/skill` collapsible multi-select catalog, live mid-run steering, tool stream on screen; skill library restructured into core / catalog / runtime layers; split-tunnel egress — domestic sites go direct, overseas via proxy, one run reaches sources on both sides. 🖥️

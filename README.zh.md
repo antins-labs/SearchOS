@@ -50,6 +50,7 @@
 
 ## 📣 News
 
+- **2026-07-07** — Web UI 支持：`./web/start.sh` 一键拉起 REST/WS API（`:8000`）+ Web 前端（`:3000`），在浏览器里发起搜索，实时看智能体墙与覆盖表逐格填充，合成答案逐格带引用。🌐
 - **2026-07-05** — 开源多厂商适配：`SF_PROVIDER` 一键接入 21 个预设——各家 Coding Plan（智谱/Kimi/MiniMax/阿里/火山，Anthropic 协议）、按量 API（DeepSeek/OpenAI/OpenRouter/硅基流动/Gemini/xAI…）与本地部署（Ollama/vLLM）；首跑命令行配置向导 + 可插拔搜索后端（Serper/Tavily）。抽取等高频角色自动落到各厂商轻量档降本。🔌
 - **2026-07-02** — 多轮追问直答：追问沿用上一轮覆盖表，能直接回答的不再重复检索；超长 skill 载荷分段抽取上线。🧠
 - **2026-06-25** — 交互式 TUI 指令外壳：`/skill` 目录折叠多选、运行中实时插话（steering）、工具流上屏，技能库按 core / catalog / runtime 三层重构；split-tunnel 出口——国内站点直连、境外走代理，一次运行通中外数据源。🖥️
