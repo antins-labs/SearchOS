@@ -219,6 +219,13 @@ PRESETS: dict[str, ProviderPreset] = {
         doc_url="https://openrouter.ai/docs",
         notes="模型 id 为 vendor/model 格式；免费档带 :free 后缀。",
     ),
+    "antchat": ProviderPreset(
+        label="AntChat 聚合网关",
+        provider="openai_compatible", api_base="https://antchat.alipay.com/v1",
+        api_key_env="ANTCHAT_API_KEY",
+        main_model="",  # 聚合网关 model id 因供应商而异，必填（SF_MODEL 或模型卡片里指定）
+        notes="类 OpenRouter 的聚合网关；模型 id 以网关支持列表为准，需自行指定。",
+    ),
     "siliconflow": ProviderPreset(
         label="硅基流动 SiliconFlow（中国站）",
         provider="openai_compatible", api_base="https://api.siliconflow.cn/v1",
@@ -274,7 +281,7 @@ PRESET_GROUPS: list[tuple[str, list[str]]] = [
     ("pay_as_you_go", [
         "deepseek", "zhipu", "zai", "moonshot", "minimax", "dashscope",
         "volcengine", "moonshot-anthropic", "deepseek-anthropic",
-        "openai", "anthropic", "openrouter", "siliconflow", "gemini", "xai",
+        "openai", "anthropic", "openrouter", "antchat", "siliconflow", "gemini", "xai",
     ]),
     ("local", ["ollama", "vllm"]),
 ]
@@ -294,43 +301,12 @@ def preset_info(name: str, preset: ProviderPreset | None = None) -> dict:
         "main_model": preset.main_model,
         "fast_model": preset.fast_model,
         "api_base": preset.api_base,
+        # protocol + thinking_style let the web "new model" form pre-fill a
+        # profile's connection/thinking fields from the chosen provider.
+        "protocol": preset.provider,
+        "thinking_style": preset.thinking_style,
+        "temperature_ok": preset.temperature_ok,
         "doc_url": preset.doc_url,
-        "notes": preset.notes,
-        "template": preset_template(name, preset),
-    }
-
-
-def preset_template(name: str, preset: ProviderPreset | None = None) -> dict:
-    """把一个预设转成 models.json 的 provider + strong/fast 两张卡模板。
-
-    web "Add provider from template" 与 CLI 向导共用；main_model 为空的本地
-    部署预设由 requires_model 标记，模型 id 必须由用户填。
-    """
-    preset = preset or resolve_preset(name)
-
-    def _card(model: str, temp: float) -> dict:
-        return {
-            "model": model,
-            "max_tokens": min(32768, preset.max_output),
-            "temperature": temp if preset.temperature_ok else None,
-            **({"extra": dict(preset.extra)} if preset.extra else {}),
-        }
-
-    return {
-        "provider": {
-            "protocol": preset.provider,
-            "api_base": preset.api_base,
-            "api_key_env": preset.api_key_env,
-            "api_key_fallback": preset.api_key_fallback,
-            "thinking_style": preset.thinking_style,
-            "label": preset.label,
-            "doc_url": preset.doc_url,
-        },
-        "cards": {
-            "strong": _card(preset.main_model, 0.7),
-            "fast": _card(preset.fast_model or preset.main_model, 0.0),
-        },
-        "requires_model": not preset.main_model,
         "notes": preset.notes,
     }
 
@@ -444,7 +420,6 @@ __all__ = [
     "ALIASES",
     "ProviderPreset",
     "preset_info",
-    "preset_template",
     "resolve_preset",
     "active_provider",
     "provider_default_profiles",
