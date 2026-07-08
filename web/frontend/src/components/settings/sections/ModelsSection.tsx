@@ -1,19 +1,25 @@
 "use client";
 
+import { useState } from "react";
+import { ChevronRight, ExternalLink } from "lucide-react";
+
 import { putMisc, putRoles, putSearchBackend } from "@/lib/api";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { Card, OfflineSkeleton, Row, SectionShell } from "@/components/settings/primitives";
 import Select from "@/components/settings/controls/Select";
+import KeyEditor from "@/components/settings/models/KeyEditor";
+import ProviderConnection from "@/components/settings/models/ProviderConnection";
 
 const BROWSER_BACKENDS = ["jina", "aiohttp", "crawl4ai", "search_engine"];
 
 export default function ModelsSection() {
   const { settings, status, mutate } = useSettings();
+  const [searchKeysOpen, setSearchKeysOpen] = useState(false);
 
   if (!settings) {
     return (
       <SectionShell id="models" title="Models"
-        description="Role bindings, provider profiles, and the search backend.">
+        description="Provider connection, role bindings, and search backends. Keys are stored in .env and never shown.">
         <OfflineSkeleton />
       </SectionShell>
     );
@@ -53,12 +59,8 @@ export default function ModelsSection() {
 
   return (
     <SectionShell id="models" title="Models"
-      description="Role bindings, provider profiles, and the search backend. API keys stay in .env.">
-      {models.active_provider_preset && (
-        <p className="text-[12.5px] text-ink-faint">
-          Provider preset: <span className="font-mono text-ink-dim">{models.active_provider_preset}</span>
-        </p>
-      )}
+      description="Provider connection, role bindings, and search backends. Keys are stored in .env and never shown.">
+      <ProviderConnection />
 
       <Card>
         {Object.entries(models.roles).map(([role, profile]) => {
@@ -93,6 +95,9 @@ export default function ModelsSection() {
               <div className="truncate">provider: {p.provider}</div>
               {p.api_base && <div className="truncate">base: {p.api_base}</div>}
             </div>
+            {!p.api_key_set && (
+              <KeyEditor envName={p.api_key_env} keySet={false} disabled={disabled} compact />
+            )}
           </div>
         ))}
       </div>
@@ -124,6 +129,38 @@ export default function ModelsSection() {
             onChange={setBrowserBackend}
           />
         </Row>
+        <div className="px-4 py-2.5">
+          <button
+            type="button"
+            onClick={() => setSearchKeysOpen((v) => !v)}
+            className="flex items-center gap-1 text-[12.5px] text-ink-faint transition-colors hover:text-ink-dim"
+          >
+            <ChevronRight size={13}
+              className={`transition-transform duration-200 ${searchKeysOpen ? "rotate-90" : ""}`} />
+            Search provider keys
+          </button>
+          {searchKeysOpen && (
+            <div className="rise-in mt-2 space-y-2">
+              {models.search.providers.map((pr) => (
+                <div key={pr.name} className="flex items-center justify-between gap-3">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${pr.key_set ? "bg-ok" : "bg-line-strong"}`} />
+                    <span className="truncate text-[12.5px] text-ink-dim">{pr.name}</span>
+                    <span className="truncate font-mono text-[11px] text-ink-faint">{pr.api_key_env}</span>
+                    {pr.doc_url && (
+                      <a href={pr.doc_url} target="_blank" rel="noreferrer"
+                        aria-label={`Docs for ${pr.name}`}
+                        className="shrink-0 text-ink-faint transition-colors hover:text-ink-dim">
+                        <ExternalLink size={11} />
+                      </a>
+                    )}
+                  </span>
+                  <KeyEditor envName={pr.api_key_env} keySet={pr.key_set} disabled={disabled} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </Card>
     </SectionShell>
   );

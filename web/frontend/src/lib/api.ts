@@ -5,6 +5,8 @@ import type {
   EffortView,
   FileNode,
   ModelsView,
+  ProviderSwitchResult,
+  ProvidersResponse,
   RunDefaultsView,
   SearchRequest,
   SearchResult,
@@ -159,6 +161,25 @@ export const putMisc = (patch: {
 
 export const resetSettings = () =>
   putJson<SettingsData>("/api/settings/reset", {}, "POST");
+
+// Throws on failure (unlike getSettings): the provider switcher shows an
+// inline retry row and needs to distinguish errors from empty data.
+export async function getProviderPresets(): Promise<ProvidersResponse> {
+  const res = await fetch(`${API_BASE}/api/settings/providers`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Couldn't load presets: ${res.statusText}`);
+  return res.json();
+}
+
+export const putProvider = (body: {
+  preset: string;
+  api_key?: string;
+  model?: string;
+  fast_model?: string;
+  api_base?: string;
+}) => putJson<ProviderSwitchResult>("/api/settings/provider", body);
+
+export const putSettingsKey = (env: string, value: string) =>
+  putJson<ModelsView>("/api/settings/keys", { env, value });
 
 // ---- WebSocket ----
 

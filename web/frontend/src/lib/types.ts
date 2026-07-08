@@ -86,6 +86,33 @@ export interface SettingsData {
   run_defaults: RunDefaultsView;
 }
 
+export interface ProviderPresetInfo {
+  name: string;
+  label: string;
+  group: string;
+  api_key_env: string;
+  requires_key: boolean;
+  requires_model: boolean;
+  main_model: string;
+  fast_model: string;
+  api_base: string;
+  doc_url: string;
+  notes: string;
+  key_set: boolean;
+}
+
+export interface ProvidersResponse {
+  active: string;
+  groups: { name: string; presets: ProviderPresetInfo[] }[];
+  overrides: { model: string; fast_model: string; api_base: string };
+}
+
+export interface ProviderSwitchResult {
+  models: ModelsView;
+  cleared_role_overrides: string[];
+  warnings: string[];
+}
+
 export interface CoverageCell {
   value: string | string[];
   status: "missing" | "filled" | "uncertain" | "hard_cell";
