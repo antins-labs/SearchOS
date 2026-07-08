@@ -45,9 +45,13 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
   const keyChoices = selConn?.api_key_envs ?? [];
   const primaryEnv = keyChoices[0]?.env ?? "";
 
-  // Effective protocol drives whether the thinking toggle is meaningful.
+  // Thinking is only controllable when the connection defines HOW to spell the
+  // switch (thinking_style != none). At "none" the backend sends no thinking
+  // param and the model falls back to its own default (reasoning models default
+  // ON), so the toggle would be a silent no-op.
   const effProtocol = selConn ? selConn.protocol : p.provider;
-  const thinkingSupported = effProtocol !== "anthropic";
+  const effThinkingStyle = selConn ? selConn.thinking_style : p.thinking_style;
+  const thinkingControllable = effProtocol !== "anthropic" && effThinkingStyle !== "none";
 
   const startEdit = () => {
     setModel(p.model);
@@ -91,7 +95,7 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
     const newTemp = temp.trim() === "" ? null : Number(temp);
     if (newTemp !== p.temperature) patch.temperature = newTemp;
 
-    const thinkingOn = thinkingSupported && enableThinking;
+    const thinkingOn = thinkingControllable ? enableThinking : p.enable_thinking;
     if (thinkingOn !== p.enable_thinking) patch.enable_thinking = thinkingOn;
 
     if (!Object.keys(patch).length) { setEditing(false); return; }
@@ -168,13 +172,18 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
             placeholder="Temperature (empty = omit)" aria-label={`Temperature for ${name}`}
             inputMode="decimal" spellCheck={false}
             className={`${inputCls} ${tempValid ? "" : "border-err"}`} />
-          {thinkingSupported && (
+          {effProtocol !== "anthropic" && (thinkingControllable ? (
             <div className="flex items-center justify-between py-0.5">
               <span className="text-[12px] text-ink-dim">Thinking</span>
               <Toggle checked={enableThinking} disabled={busy} label={`Thinking for ${name}`}
                 onChange={setEnableThinking} />
             </div>
-          )}
+          ) : (
+            <p className="text-[11px] text-ink-faint">
+              连接 thinking_style=none — 未定义 thinking 开关，运行时跟随模型默认（推理模型通常默认开）。
+              到 Providers 给该连接设置 thinking 方式后，此处才可开关。
+            </p>
+          ))}
           <div className="flex justify-end gap-2 pt-0.5">
             <button type="button" onClick={() => setEditing(false)} disabled={busy}
               className="text-[12px] text-ink-faint transition-colors hover:text-ink-dim disabled:opacity-40">
@@ -194,7 +203,10 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
             <div className="truncate">key env: <span className="font-mono">{p.api_key_env}</span></div>
             <div className="truncate">
               temperature: {p.temperature === null ? "omitted" : p.temperature}
-              {p.enable_thinking && " · thinking on"}
+            </div>
+            <div className="truncate">
+              thinking: {p.thinking_style === "none"
+                ? "跟随模型默认" : (p.enable_thinking ? "on" : "off")}
             </div>
           </div>
           {(p.overridden.length > 0 || p.custom) && (

@@ -38,7 +38,9 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
   const keyChoices = selConn?.api_key_envs ?? [];
   const primaryEnv = keyChoices[0]?.env ?? "";
   const effProtocol = selConn ? selConn.protocol : "openai_compatible";
-  const thinkingSupported = effProtocol !== "anthropic";
+  // Thinking only controllable when the connection spells out the switch.
+  const effThinkingStyle = selConn?.thinking_style ?? "none";
+  const thinkingControllable = effProtocol !== "anthropic" && effThinkingStyle !== "none";
 
   const onProviderRef = (ref: string) => {
     setProviderRef(ref);
@@ -62,7 +64,7 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
         // "" (or the default key) lets the connection's default key stand.
         api_key_env: keyEnv && keyEnv !== primaryEnv ? keyEnv : undefined,
         temperature: temp.trim() === "" ? null : Number(temp),
-        enable_thinking: thinkingSupported && enableThinking,
+        enable_thinking: thinkingControllable && enableThinking,
       }),
       merge: (s, models: ModelsView) => ({ ...s, models }),
       errorLabel: "Couldn't create model",
@@ -118,13 +120,17 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
             <input value={temp} onChange={(e) => setTemp(e.target.value)} disabled={busy}
               placeholder="Temperature (empty = omit)" aria-label="Temperature" inputMode="decimal"
               spellCheck={false} className={`${inputCls} ${tempValid ? "" : "border-err"}`} />
-            {thinkingSupported && (
+            {effProtocol !== "anthropic" && (thinkingControllable ? (
               <div className="flex items-center justify-between py-0.5">
                 <span className="text-[12px] text-ink-dim">Thinking</span>
                 <Toggle checked={enableThinking} disabled={busy} label="Enable thinking"
                   onChange={setEnableThinking} />
               </div>
-            )}
+            ) : providerRef ? (
+              <p className="text-[11px] text-ink-faint">
+                该连接 thinking_style=none — 运行时跟随模型默认；到 Providers 设置 thinking 方式后可开关。
+              </p>
+            ) : null)}
           </>
         )}
         <div className="flex justify-end gap-2 pt-0.5">
