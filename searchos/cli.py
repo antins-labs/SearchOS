@@ -132,6 +132,11 @@ def main() -> None:
     ensure_model_config(force=args.setup)
     if args.setup and not args.query:
         return
+    # Apply the web Settings-page overlay (provider connections, model cards,
+    # role bindings) onto the settings singleton so the CLI/TUI shares one
+    # config with the web app. No-op when web_settings.json is absent.
+    from searchos.config.web_overlay import load_and_apply
+    load_and_apply()
     if args.query:
         sys.exit(asyncio.run(_run(args)))
     _launch_tui(args)

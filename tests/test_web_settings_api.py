@@ -34,7 +34,8 @@ def client(tmp_path, monkeypatch):
     monkeypatch.delenv("TAVILY_API_KEY", raising=False)
 
     monkeypatch.setattr(deps, "ENV_FILE_PATH", str(tmp_path / ".env"))
-    monkeypatch.setattr(settings_store, "WEB_SETTINGS_PATH", str(tmp_path / "web_settings.json"))
+    # Overlay path is resolved from SF_WEB_SETTINGS_PATH by web_overlay.overlay_path().
+    monkeypatch.setenv("SF_WEB_SETTINGS_PATH", str(tmp_path / "web_settings.json"))
 
     from fastapi.testclient import TestClient
     from api.main import app
