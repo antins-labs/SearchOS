@@ -32,6 +32,7 @@ after changing env vars at runtime call ``reload_settings_in_place()``.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -58,8 +59,32 @@ __all__ = [
 ]
 
 
+# models.json takes precedence over every env-based model-config mechanism;
+# warn (once per process) when legacy env vars are being silently ignored.
+_LEGACY_MODEL_ENVS = ("SF_PROVIDER", "SF_MODEL", "SF_FAST_MODEL", "SF_API_BASE", "SF_API_KEY_ENV")
+_warned_legacy_ignored = False
+
+
+def _warn_legacy_env_ignored_once(what: str) -> None:
+    global _warned_legacy_ignored
+    if _warned_legacy_ignored:
+        return
+    _warned_legacy_ignored = True
+    import logging
+    logging.getLogger(__name__).warning(
+        "models.json exists — %s ignored (models.json is the single source of "
+        "model configuration; delete it to fall back to env presets)", what)
+
+
 def _default_profiles() -> dict[str, Any]:
-    """SF_PROVIDER preset profiles when set, else the builtin fallbacks."""
+    """models.json first; else SF_PROVIDER preset; else builtin fallbacks."""
+    from searchos.config.model_config import compiled_from_file
+
+    compiled = compiled_from_file()  # invalid file raises — deliberately loud
+    if compiled is not None:
+        if any(os.environ.get(v) for v in _LEGACY_MODEL_ENVS):
+            _warn_legacy_env_ignored_once("/".join(_LEGACY_MODEL_ENVS))
+        return compiled[0]
     from searchos.config.providers import provider_default_profiles
 
     preset = provider_default_profiles()
@@ -67,6 +92,11 @@ def _default_profiles() -> dict[str, Any]:
 
 
 def _default_roles() -> dict[str, str]:
+    from searchos.config.model_config import compiled_from_file
+
+    compiled = compiled_from_file()
+    if compiled is not None:
+        return compiled[1]
     from searchos.config.providers import provider_default_roles
 
     preset = provider_default_roles()
@@ -93,6 +123,16 @@ class Settings(BaseSettings):
         ``glm5-strong``.
         """
         if not isinstance(data, dict):
+            return data
+
+        # models.json in force → env-injected profile/role overrides are
+        # ignored; the default factories (compiled from the file) take over.
+        from searchos.config.model_config import models_config_path
+        if models_config_path().exists():
+            had_env = data.pop("profiles", None) is not None
+            had_env = (data.pop("roles", None) is not None) or had_env
+            if had_env:
+                _warn_legacy_env_ignored_once("SF_PROFILES__*/SF_ROLES__* overrides")
             return data
 
         override_profiles = data.get("profiles")

@@ -296,6 +296,42 @@ def preset_info(name: str, preset: ProviderPreset | None = None) -> dict:
         "api_base": preset.api_base,
         "doc_url": preset.doc_url,
         "notes": preset.notes,
+        "template": preset_template(name, preset),
+    }
+
+
+def preset_template(name: str, preset: ProviderPreset | None = None) -> dict:
+    """把一个预设转成 models.json 的 provider + strong/fast 两张卡模板。
+
+    web "Add provider from template" 与 CLI 向导共用；main_model 为空的本地
+    部署预设由 requires_model 标记，模型 id 必须由用户填。
+    """
+    preset = preset or resolve_preset(name)
+
+    def _card(model: str, temp: float) -> dict:
+        return {
+            "model": model,
+            "max_tokens": min(32768, preset.max_output),
+            "temperature": temp if preset.temperature_ok else None,
+            **({"extra": dict(preset.extra)} if preset.extra else {}),
+        }
+
+    return {
+        "provider": {
+            "protocol": preset.provider,
+            "api_base": preset.api_base,
+            "api_key_env": preset.api_key_env,
+            "api_key_fallback": preset.api_key_fallback,
+            "thinking_style": preset.thinking_style,
+            "label": preset.label,
+            "doc_url": preset.doc_url,
+        },
+        "cards": {
+            "strong": _card(preset.main_model, 0.7),
+            "fast": _card(preset.fast_model or preset.main_model, 0.0),
+        },
+        "requires_model": not preset.main_model,
+        "notes": preset.notes,
     }
 
 
@@ -408,6 +444,7 @@ __all__ = [
     "ALIASES",
     "ProviderPreset",
     "preset_info",
+    "preset_template",
     "resolve_preset",
     "active_provider",
     "provider_default_profiles",

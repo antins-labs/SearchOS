@@ -9,7 +9,13 @@ Usage::
 
 Roles are listed in ``settings.ROLE_NAMES``. Each role is bound to a profile
 in ``settings.roles``; each profile spec lives in ``settings.profiles``.
-Override at runtime via env vars, e.g. ``SF_ROLES__JUDGE=glm5-strong``.
+
+Where profiles come from: the primary source is ``models.json`` (two-level
+user config — Provider connections + Model Cards, edited via the web
+Settings page or ``searchos --setup``), flattened into ModelProfile entries
+by ``config.model_config.compile_to_profiles``. Without a models.json the
+legacy env path applies (``SF_PROVIDER`` preset / builtin profiles, with
+``SF_ROLES__*``/``SF_PROFILES__*`` deep-merge overrides).
 """
 
 from __future__ import annotations
@@ -74,14 +80,16 @@ def resolve_profile(role: str) -> ModelProfile:
     profile_name = settings.roles.get(role)
     if not profile_name:
         raise ValueError(
-            f"Role {role!r} has no profile binding in settings.roles. "
-            f"Set settings.roles[{role!r}] to one of: {list(settings.profiles)}"
+            f"Role {role!r} has no model binding. "
+            f"Available models: {list(settings.profiles)} "
+            f"(fix the roles section of models.json or the web Settings → Models page)"
         )
     profile = settings.profiles.get(profile_name)
     if profile is None:
         raise ValueError(
-            f"Role {role!r} → profile {profile_name!r} not in settings.profiles. "
-            f"Available: {list(settings.profiles)}"
+            f"Role {role!r} → model {profile_name!r} does not exist. "
+            f"Available: {list(settings.profiles)} "
+            f"(fix the roles section of models.json or the web Settings → Models page)"
         )
     return profile
 
@@ -108,9 +116,9 @@ def get_model_for(role: str) -> BaseChatModel:
     if not api_key:
         # Fail loud — a silent empty key produces cryptic deep 401s.
         raise RuntimeError(
-            f"Role {role!r} → profile uses api_key_env={profile.api_key_env!r}, "
-            f"but that env var is not set. Add it to your .env file "
-            f"(quick start: SF_PROVIDER + key, see searchos/config/providers.py)."
+            f"Role {role!r} → model uses api_key_env={profile.api_key_env!r}, "
+            f"but that env var is not set. Set it in the web Settings → Models "
+            f"page, or add it to your .env file."
         )
 
     rl_kwargs = _rate_limit_kwargs(profile)

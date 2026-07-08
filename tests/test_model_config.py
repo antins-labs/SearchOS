@@ -233,3 +233,75 @@ def test_virtual_models_config_branches(monkeypatch):
 
     monkeypatch.setenv("SF_PROVIDER", "deepseek")
     assert "deepseek" in virtual_models_config().providers  # 预设分支
+
+
+# ---------------------------------------------------------------------------
+# settings 集成（models.json 优先级）
+# ---------------------------------------------------------------------------
+
+def _write_cfg(monkeypatch, tmp_path):
+    import searchos.config.settings as settings_mod
+    from searchos.config.model_config import save_models_config
+    path = tmp_path / "models.json"
+    monkeypatch.setenv("SF_MODELS_FILE", str(path))
+    save_models_config(default_models_config(), path)
+    monkeypatch.setattr(settings_mod, "_warned_legacy_ignored", False)
+    return path
+
+
+def test_settings_compiled_from_models_json(monkeypatch, tmp_path):
+    from searchos.config.settings import Settings
+    _write_cfg(monkeypatch, tmp_path)
+    s = Settings()
+    assert set(s.profiles) == {"strong", "fast"}
+    assert s.roles["orchestrator"] == "strong" and s.roles["extraction"] == "fast"
+
+
+def test_models_json_wins_over_preset_with_single_warn(monkeypatch, tmp_path, caplog):
+    import logging
+    from searchos.config.settings import Settings
+    _write_cfg(monkeypatch, tmp_path)
+    monkeypatch.setenv("SF_PROVIDER", "deepseek")
+    with caplog.at_level(logging.WARNING, logger="searchos.config.settings"):
+        s1 = Settings()
+        s2 = Settings()
+    assert set(s1.profiles) == {"strong", "fast"}  # 预设被忽略
+    assert set(s2.profiles) == {"strong", "fast"}
+    warns = [r for r in caplog.records if "models.json exists" in r.message]
+    assert len(warns) == 1  # warn once per process
+
+
+def test_models_json_wins_over_env_role_override(monkeypatch, tmp_path):
+    from searchos.config.settings import Settings
+    _write_cfg(monkeypatch, tmp_path)
+    monkeypatch.setenv("SF_ROLES__JUDGE", "fast")
+    s = Settings()
+    assert s.roles["judge"] == "strong"  # env 覆写被忽略，default 生效
+
+
+def test_reload_picks_up_models_json_edit(monkeypatch, tmp_path):
+    from searchos.config.model_config import load_models_config, save_models_config
+    from searchos.config.settings import reload_settings_in_place, settings
+    path = _write_cfg(monkeypatch, tmp_path)
+    reload_settings_in_place()
+    assert settings.profiles["strong"].model == "anthropic/claude-sonnet-4.5"
+    cfg = load_models_config(path)
+    cfg.models["strong"].model = "openai/gpt-5.5"
+    save_models_config(cfg, path)
+    reload_settings_in_place()
+    assert settings.profiles["strong"].model == "openai/gpt-5.5"
+    reload_settings_in_place()  # teardown 前恢复由 conftest 的 env 隔离保证
+
+
+def test_preset_template_shape():
+    from searchos.config.providers import preset_template
+    t = preset_template("deepseek")
+    assert t["provider"]["protocol"] == "openai_compatible"
+    assert t["provider"]["api_key_env"] == "DEEPSEEK_API_KEY"
+    assert t["cards"]["strong"]["model"] == "deepseek-v4-flash"
+    assert t["cards"]["strong"]["max_tokens"] == 8192  # min(32768, preset.max_output)
+    assert t["requires_model"] is False
+    local = preset_template("ollama")
+    assert local["requires_model"] is True
+    anth = preset_template("anthropic")
+    assert anth["cards"]["strong"]["temperature"] is None  # temperature_ok=False
