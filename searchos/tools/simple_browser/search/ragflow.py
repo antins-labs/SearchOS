@@ -15,7 +15,6 @@ from searchos.tools.simple_browser.search.base import SearchProvider, SearchResu
 
 logger = logging.getLogger(__name__)
 
-ENDPOINT = os.environ.get("RAGFLOW_ENDPOINT", "")
 REPEATED_PATTERN = re.compile(r"[-_—*/～~\s]{20,}")
 
 
@@ -36,8 +35,10 @@ class RagFlowProvider(SearchProvider):
     ) -> None:
         self._domain = domain
         # 端点与凭证不入库：从 RAGFLOW_ENDPOINT / RAGFLOW_USER_ID 环境变量读取
+        # （实例化时读，运行中改 env 后新构造的 provider 立即生效）
+        self._endpoint = os.environ.get("RAGFLOW_ENDPOINT", "")
         self._user_id = user_id or os.environ.get("RAGFLOW_USER_ID", "")
-        if not ENDPOINT:
+        if not self._endpoint:
             logger.warning("RAGFLOW_ENDPOINT 未设置，RagFlow 搜索不可用")
         if not self._user_id:
             logger.warning("RAGFLOW_USER_ID 未设置，RagFlow 搜索请求可能被拒绝")
@@ -61,7 +62,7 @@ class RagFlowProvider(SearchProvider):
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(
-                ENDPOINT,
+                self._endpoint,
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )

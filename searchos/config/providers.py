@@ -264,6 +264,41 @@ PRESETS: dict[str, ProviderPreset] = {
     ),
 }
 
+# 展示分组（TUI 向导表格与 web 预设列表共用）。必须覆盖全部 PRESETS —— 有
+# 覆盖性测试保证；新增预设时记得同步归组。
+PRESET_GROUPS: list[tuple[str, list[str]]] = [
+    ("coding_plan", [
+        "zhipu-coding", "zai-coding", "kimi-coding", "minimax-coding",
+        "qwen-coding", "volcengine-coding",
+    ]),
+    ("pay_as_you_go", [
+        "deepseek", "zhipu", "zai", "moonshot", "minimax", "dashscope",
+        "volcengine", "moonshot-anthropic", "deepseek-anthropic",
+        "openai", "anthropic", "openrouter", "siliconflow", "gemini", "xai",
+    ]),
+    ("local", ["ollama", "vllm"]),
+]
+
+
+def preset_info(name: str, preset: ProviderPreset | None = None) -> dict:
+    """预设的展示视图（web 预设列表的一项）——绝不含任何密钥值。"""
+    preset = preset or PRESETS[name]
+    group = next((g for g, names in PRESET_GROUPS if name in names), "")
+    return {
+        "name": name,
+        "label": preset.label,
+        "group": group,
+        "api_key_env": preset.api_key_env,
+        "requires_key": not preset.api_key_fallback,
+        "requires_model": not preset.main_model,
+        "main_model": preset.main_model,
+        "fast_model": preset.fast_model,
+        "api_base": preset.api_base,
+        "doc_url": preset.doc_url,
+        "notes": preset.notes,
+    }
+
+
 ALIASES: dict[str, str] = {
     "glm": "zhipu",
     "bigmodel": "zhipu",
@@ -369,8 +404,10 @@ def provider_default_roles() -> dict[str, str] | None:
 
 __all__ = [
     "PRESETS",
+    "PRESET_GROUPS",
     "ALIASES",
     "ProviderPreset",
+    "preset_info",
     "resolve_preset",
     "active_provider",
     "provider_default_profiles",

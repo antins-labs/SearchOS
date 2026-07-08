@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pytest
 
+from searchos.config.providers import PRESET_GROUPS
 from searchos.config.setup_wizard import (
-    _GROUPS,
     model_config_ready,
     run_setup_wizard,
     update_env_file,
@@ -18,8 +18,8 @@ from searchos.config.setup_wizard import (
 
 
 def _preset_number(name: str) -> str:
-    """向导菜单里某预设的编号（与 _GROUPS 展示顺序一致）。"""
-    flat = [n for _, names in _GROUPS for n in names]
+    """向导菜单里某预设的编号（与 PRESET_GROUPS 展示顺序一致）。"""
+    flat = [n for _, names in PRESET_GROUPS for n in names]
     return str(flat.index(name) + 1)
 
 

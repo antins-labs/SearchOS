@@ -206,3 +206,25 @@ def test_anthropic_official_omits_temperature(monkeypatch):
     _bind(monkeypatch, s)
     m = models_mod.get_model_for("orchestrator")
     assert m.temperature is None
+
+
+# ---------------------------------------------------------------------------
+# 展示分组与预设视图
+# ---------------------------------------------------------------------------
+
+def test_preset_groups_cover_all_presets():
+    from searchos.config.providers import PRESET_GROUPS
+    grouped = [n for _, names in PRESET_GROUPS for n in names]
+    assert sorted(grouped) == sorted(PRESETS)  # 覆盖完整且无重复
+
+
+def test_preset_info_has_no_secret_fields():
+    from searchos.config.providers import preset_info
+    info = preset_info("deepseek")
+    assert info["api_key_env"] == "DEEPSEEK_API_KEY"
+    assert info["requires_key"] is True
+    assert info["requires_model"] is False
+    assert "api_key" not in info and "key" not in info
+    local = preset_info("ollama")
+    assert local["requires_key"] is False
+    assert local["requires_model"] is True

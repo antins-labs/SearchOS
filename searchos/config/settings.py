@@ -15,130 +15,47 @@ Every model use site resolves through ``config.models.get_model_for(role)``.
 ``SF_`` prefix retained for backward compat with existing ``.env`` files.
 
 Open-source one-knob setup: set ``SF_PROVIDER`` (see ``config.providers``)
-and profiles/roles defaults are generated for that vendor — coding plans
-(Anthropic 协议) and pay-as-you-go OpenAI-compatible APIs alike.
+and profiles/roles defaults are generated for that vendor.
+
+Layout of this module (full layering story in ``docs/configuration.md``):
+
+    ModelProfile / ROLE_NAMES / builtin defaults   → config/profiles.py (re-exported)
+    provider presets (SF_PROVIDER)                 → config/providers.py
+    .env read/write                                → config/env_file.py
+    effort tiers                                   → config/effort.py
+    Settings sections below: models → budget → scheduler → harness →
+    workspace → skills → search → browser → memory → extraction → ablation
+
+The ``settings`` singleton is an import-time snapshot of the environment;
+after changing env vars at runtime call ``reload_settings_in_place()``.
 """
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from searchos.util.base_model import CamelModel
-
-
-class ModelProfile(CamelModel):
-    """One named model endpoint. Reusable across roles."""
-
-    model: str
-    provider: Literal["openai_compatible", "openai", "anthropic"] = "openai_compatible"
-    api_base: str = ""
-    api_key_env: str = "OPENAI_API_KEY"
-    # Local deployments (Ollama/vLLM) require a placeholder key even when the
-    # server does no auth; used when the env var above is unset/empty.
-    api_key_fallback: str = ""
-    temperature: float | None = 0.7  # None omits the param (some gateways reject it)
-    max_tokens: int = 4096
-    enable_thinking: bool = False
-    # How the thinking switch is spelled on the wire (openai-compatible only):
-    #   chat_template_kwargs → extra_body.chat_template_kwargs.enable_thinking
-    #                          (vLLM / SiliconFlow)
-    #   enable_thinking      → extra_body.enable_thinking (DashScope)
-    #   none                 → never sent (OpenAI/Gemini/OpenRouter reject
-    #                          unknown params, so nothing is injected)
-    thinking_style: Literal["chat_template_kwargs", "enable_thinking", "none"] = (
-        "chat_template_kwargs"
-    )
-    rpm: int = 0  # requests/min over a sliding 60s window; 0 disables
-    tpm: int = 0  # tokens/min, post-paid from actual usage; 0 disables
-    extra: dict[str, Any] = Field(default_factory=dict)  # forwarded to SDK verbatim
-
-
-# rpm/tpm limiters are shared process-wide per (api_base, model, api_key_env).
-
-
-ROLE_NAMES = (
-    "orchestrator",   # main agent ReAct loop
-    "sub_agent",      # search / explore sub-agent loops
-    "synthesis",      # writer agent + final answer
-    "skill_evolver",  # access-skill generation triage (host_miner judge)
-    "post_mortem",    # FailureMemory distillation
-    "judge",          # sensor / layered-context judging
-    "extraction",     # evidence extraction middleware
-    "alias_resolver", # orphan-evidence row/column bind
-    "skill_runtime",  # T2/T3 access-skill executors
-    "reformat",       # eval: reformat raw answer into benchmark shape
-    "skill_router",   # pre-filter the access-skill catalog down to query-relevant top-k
+# Re-exported for backward compat — many call sites import these from here.
+from searchos.config.profiles import (  # noqa: F401
+    ROLE_NAMES,
+    ModelProfile,
+    builtin_profiles,
+    builtin_roles,
 )
 
-
-def _builtin_profiles() -> dict[str, ModelProfile]:
-    """Fallback profiles when no ``SF_PROVIDER`` preset is chosen.
-
-    Gateway endpoints are not baked in: set ``SF_BUILTIN_OPENAI_BASE`` /
-    ``SF_BUILTIN_ANTHROPIC_BASE`` in the environment (or pick an
-    ``SF_PROVIDER`` preset, which bypasses these profiles entirely).
-    """
-    openai_base = os.environ.get("SF_BUILTIN_OPENAI_BASE", "")
-    anthropic_base = os.environ.get("SF_BUILTIN_ANTHROPIC_BASE", "")
-    return {
-        "glm5-strong": ModelProfile(
-            model="GLM-5", api_base=openai_base,
-            api_key_env="OPENAI_API_KEY", temperature=0.7, max_tokens=16384, rpm=90,
-        ),
-        "glm5-thinking": ModelProfile(
-            model="GLM-5", api_base=openai_base,
-            api_key_env="OPENAI_API_KEY", temperature=1.0, max_tokens=65536,
-            enable_thinking=True, rpm=90,
-        ),
-        "glm5-judge": ModelProfile(
-            model="GLM-5", api_base=openai_base,
-            api_key_env="OPENAI_API_KEY", temperature=0.0, max_tokens=16384, rpm=90,
-        ),
-        # reformat emits the FULL answer table verbatim — a 600+ row join
-        # blows past 16k output tokens and gets hard-truncated mid-row.
-        # Give it a large output ceiling; deterministic temp.
-        "glm5-reformat": ModelProfile(
-            model="GLM-5", api_base=openai_base,
-            api_key_env="OPENAI_API_KEY", temperature=0.0, max_tokens=65536, rpm=90,
-        ),
-        "qwen3.5-35b": ModelProfile(
-            model="Qwen3.5-35B-A3B", api_base=openai_base,
-            api_key_env="SF_EXTRACTION_API_KEY", temperature=0.0, max_tokens=32768, rpm=90,
-        ),
-        "qwen3.5-synthesis": ModelProfile(
-            model="Qwen3.5-35B-A3B", api_base=openai_base,
-            api_key_env="SF_EXTRACTION_API_KEY", temperature=0.3, max_tokens=32768, rpm=90,
-        ),
-        # Native Anthropic protocol. Distinct SF_OPUS_API_KEY so opus doesn't
-        # share the GLM quota. temperature=None: some gateways 400 if any
-        # temperature is passed.
-        "claude-opus-4-7": ModelProfile(
-            model="claude-opus-4-7", provider="anthropic",
-            api_base=anthropic_base,
-            api_key_env="SF_OPUS_API_KEY", temperature=None, max_tokens=32768,
-        ),
-    }
-
-
-def _builtin_roles() -> dict[str, str]:
-    return {
-        "orchestrator":   "glm5-strong",
-        "sub_agent":      "glm5-strong",
-        "synthesis":      "qwen3.5-synthesis",
-        "skill_evolver":  "glm5-strong",
-        "post_mortem":    "glm5-strong",
-        "judge":          "glm5-judge",
-        "extraction":     "qwen3.5-35b",
-        "alias_resolver": "qwen3.5-35b",
-        "skill_runtime":  "qwen3.5-35b",
-        "reformat":       "glm5-reformat",
-        "skill_router":   "glm5-strong",
-    }
+__all__ = [
+    "AGENT_BUDGET_OVERRIDES",
+    "ModelProfile",
+    "ROLE_NAMES",
+    "Settings",
+    "builtin_profiles",
+    "builtin_roles",
+    "reload_settings_in_place",
+    "settings",
+]
 
 
 def _default_profiles() -> dict[str, Any]:
@@ -146,23 +63,21 @@ def _default_profiles() -> dict[str, Any]:
     from searchos.config.providers import provider_default_profiles
 
     preset = provider_default_profiles()
-    return preset if preset is not None else _builtin_profiles()
+    return preset if preset is not None else builtin_profiles()
 
 
 def _default_roles() -> dict[str, str]:
     from searchos.config.providers import provider_default_roles
 
     preset = provider_default_roles()
-    return preset if preset is not None else _builtin_roles()
+    return preset if preset is not None else builtin_roles()
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="SF_", env_nested_delimiter="__")
 
-    # --- Model profiles ---
+    # --- Model profiles & role bindings ---
     profiles: dict[str, ModelProfile] = Field(default_factory=_default_profiles)
-
-    # --- Role → profile bindings ---
     roles: dict[str, str] = Field(default_factory=_default_roles)
 
     @model_validator(mode="before")
@@ -202,6 +117,7 @@ class Settings(BaseSettings):
 
         return data
 
+    # --- LLM client ---
     # 6 retries ≈ 24s backoff — rides out an RPM-window 429 burst.
     llm_max_retries: int = 6
 
@@ -276,8 +192,10 @@ class Settings(BaseSettings):
     skill_optimization_threshold: float = 0.8
     max_anti_patterns_per_skill: int = 8
 
-    # --- Search API ---
+    # --- Search API (keys read via env; see docs/configuration.md) ---
     search_max_results: int = 10
+    tavily_api_key: str = ""
+    serper_api_key: str = ""
 
     # --- Browser ---
     browser_view_tokens: int = 2048
@@ -307,10 +225,6 @@ class Settings(BaseSettings):
     layered_context_layer2_max_tokens: int = 8_000
     layered_context_layer3_max_tokens: int = 2_000
 
-    # --- Providers ---
-    tavily_api_key: str = ""
-    serper_api_key: str = ""
-
     # --- Feature flags ---
     enable_trajectory_logging: bool = True
 
@@ -338,6 +252,23 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def reload_settings_in_place(fresh: Settings | None = None) -> None:
+    """Rebuild configuration from the current environment, updating the
+    singleton field by field.
+
+    NEVER rebinds ``settings`` — ~50 call sites across the repo import it by
+    name and hold the same object reference. Callers that already built a
+    fresh instance (dry-run validation) can pass it in to reuse.
+
+    NOTE: web-overlay values applied onto the singleton (effort knobs, role
+    bindings, …) are reset to env defaults — the web layer must re-apply its
+    overlay afterwards (``settings_store.apply_to_runtime``).
+    """
+    fresh = fresh if fresh is not None else Settings()
+    for name in Settings.model_fields:
+        setattr(settings, name, getattr(fresh, name))
 
 
 # Per-agent budget overrides (max_searches, max_opens, max_finds).

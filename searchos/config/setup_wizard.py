@@ -18,7 +18,8 @@ import os
 import sys
 from pathlib import Path
 
-from searchos.config.providers import PRESETS, ProviderPreset, resolve_preset
+from searchos.config.env_file import apply_env_updates, find_env_path, update_env_file
+from searchos.config.providers import PRESET_GROUPS, PRESETS, ProviderPreset, resolve_preset
 
 # 搜索后端选项 — 与 searchos/tools/simple_browser/search/__init__.py 的
 # SEARCH_PROVIDER_INFO 保持同步（不直接 import：那条链会提前构造 settings 单例）。
@@ -29,28 +30,12 @@ _SEARCH_BACKENDS: list[tuple[str, str, str]] = [
     ("ragflow", "RagFlow（蚂蚁内网接口，外部不可用）", "RAGFLOW_USER_ID"),
 ]
 
-# 向导里的展示顺序：coding plan 订阅 → 按量 API → 本地部署。
-_GROUPS: list[tuple[str, list[str]]] = [
-    ("厂商 Coding Plan（Anthropic 协议订阅，性价比高）", [
-        "zhipu-coding", "zai-coding", "kimi-coding", "minimax-coding",
-        "qwen-coding", "volcengine-coding",
-    ]),
-    ("按量 API", [
-        "deepseek", "zhipu", "moonshot", "minimax", "dashscope", "volcengine",
-        "moonshot-anthropic", "deepseek-anthropic",
-        "openai", "anthropic", "openrouter", "siliconflow", "gemini", "xai",
-    ]),
-    ("本地部署", ["ollama", "vllm"]),
-]
-
-
-def _find_env_path() -> Path:
-    """定位 .env：优先已存在的（cwd 及包的上级目录），否则用 cwd/.env。"""
-    for parent in [Path.cwd(), *Path(__file__).resolve().parents]:
-        env = parent / ".env"
-        if env.exists():
-            return env
-    return Path.cwd() / ".env"
+# 分组数据在 providers.PRESET_GROUPS；这里只保留向导表格的中文组名。
+_GROUP_LABELS: dict[str, str] = {
+    "coding_plan": "厂商 Coding Plan（Anthropic 协议订阅，性价比高）",
+    "pay_as_you_go": "按量 API",
+    "local": "本地部署",
+}
 
 
 def model_config_ready() -> bool:
@@ -69,28 +54,6 @@ def model_config_ready() -> bool:
     return bool(os.environ.get(key_env) or preset.api_key_fallback)
 
 
-def update_env_file(path: Path, updates: dict[str, str]) -> None:
-    """把键值写入 .env：已有的键原位替换，新键追加到末尾。"""
-    lines = path.read_text().splitlines() if path.exists() else []
-    remaining = dict(updates)
-    out: list[str] = []
-    for line in lines:
-        stripped = line.strip()
-        key = None
-        if "=" in stripped and not stripped.startswith("#"):
-            key = stripped.split("=", 1)[0].strip()
-        if key in remaining:
-            out.append(f"{key}={remaining.pop(key)}")
-        else:
-            out.append(line)
-    if remaining:
-        if out and out[-1].strip():
-            out.append("")
-        out.append("# --- SearchOS 配置向导生成 ---")
-        out.extend(f"{k}={v}" for k, v in remaining.items())
-    path.write_text("\n".join(out) + "\n")
-
-
 def _choose_preset(console) -> tuple[str, ProviderPreset]:
     from rich.prompt import Prompt
     from rich.table import Table
@@ -103,9 +66,9 @@ def _choose_preset(console) -> tuple[str, ProviderPreset]:
     table.add_column("API Key 环境变量", style="dim")
 
     index: list[str] = []
-    for group, names in _GROUPS:
+    for group, names in PRESET_GROUPS:
         table.add_section()
-        table.add_row("", f"[bold yellow]{group}[/]", "", "", "")
+        table.add_row("", f"[bold yellow]{_GROUP_LABELS.get(group, group)}[/]", "", "", "")
         for name in names:
             preset = PRESETS[name]
             index.append(name)
@@ -129,7 +92,7 @@ def run_setup_wizard(env_path: Path | None = None) -> bool:
     from rich.prompt import Prompt
 
     console = Console()
-    env_path = env_path or _find_env_path()
+    env_path = env_path or find_env_path()
 
     console.print(
         "\n[bold cyan]✻ SearchOS 首次配置[/] [dim]— 选一个模型厂商即可跑通全部角色；"
@@ -203,8 +166,7 @@ def run_setup_wizard(env_path: Path | None = None) -> bool:
                 console.print("[red]API key 不能为空。[/]")
             updates[key_env] = skey
 
-    update_env_file(env_path, updates)
-    os.environ.update(updates)
+    apply_env_updates(env_path, updates)
 
     shown = {k: ("***" if "KEY" in k or "TOKEN" in k else v) for k, v in updates.items()}
     console.print(f"\n[green]✓ 配置已写入 {env_path}[/]")
