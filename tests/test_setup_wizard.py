@@ -9,12 +9,19 @@ from pathlib import Path
 
 import pytest
 
-from searchos.config.providers import PRESET_GROUPS
+from searchos.config.providers import PRESET_GROUPS, PRESETS
 from searchos.config.setup_wizard import (
     model_config_ready,
     run_setup_wizard,
     update_env_file,
 )
+
+
+@pytest.fixture(autouse=True)
+def _isolate_overlay(tmp_path, monkeypatch):
+    """Point the web-overlay path at a per-test tmp file so model_config_ready /
+    the wizard never read or write the repo's real web_settings.json."""
+    monkeypatch.setenv("SF_WEB_SETTINGS_PATH", str(tmp_path / "wizard_overlay.json"))
 
 
 def _preset_number(name: str) -> str:
@@ -88,18 +95,25 @@ def test_update_env_file_creates_missing(tmp_path: Path):
 # run_setup_wizard（脚本化交互）
 # ---------------------------------------------------------------------------
 
-def _script_prompts(monkeypatch, answers: list[str]) -> None:
+def _script(monkeypatch, prompts: list[str], confirms: list[bool]) -> None:
+    """Drive the wizard's rich Prompt.ask (text) and Confirm.ask (yes/no).
+
+    An empty answer with a non-None default returns that default (mirrors a bare
+    Enter); a None default (e.g. a required model id) returns "" so the wizard's
+    own "cannot be empty" loop re-asks.
+    """
     import rich.prompt
 
-    seq = iter(answers)
+    pit, cit = iter(prompts), iter(confirms)
 
     def fake_ask(*args, **kwargs):
-        val = next(seq)
-        if val == "" and "default" in kwargs:
+        val = next(pit)
+        if val == "" and kwargs.get("default") is not None:
             return kwargs["default"]
         return val
 
     monkeypatch.setattr(rich.prompt.Prompt, "ask", staticmethod(fake_ask))
+    monkeypatch.setattr(rich.prompt.Confirm, "ask", staticmethod(lambda *a, **k: next(cit)))
 
 
 def _sentinel_env(monkeypatch, *keys: str) -> None:
@@ -115,38 +129,74 @@ def _sentinel_env(monkeypatch, *keys: str) -> None:
         monkeypatch.delenv(k)
 
 
+def _read_overlay():
+    from searchos.config.web_overlay import WebSettings, overlay_path
+    return WebSettings.model_validate_json(overlay_path().read_text())
+
+
+def _thinking_asked(preset) -> bool:
+    return preset.thinking_style != "none" and preset.provider != "anthropic"
+
+
 def test_wizard_coding_plan_flow(monkeypatch, tmp_path: Path):
+    """选 zhipu-coding → 建连接 + 一张模型卡 → 全绑角色 → 跳过搜索。
+    连接/卡/角色写 overlay；key 值写 .env；不再写 SF_PROVIDER/SF_MODEL。"""
+    from searchos.config.profiles import ROLE_NAMES
     _sentinel_env(monkeypatch, "SF_PROVIDER", "ZHIPU_API_KEY")
     env = tmp_path / ".env"
-    # 选 zhipu-coding → key → 模型用默认 → 端点用默认 → 跳过搜索配置
-    _script_prompts(monkeypatch, [_preset_number("zhipu-coding"), "sk-real", "", "", "0"])
+    preset = PRESETS["zhipu-coding"]
+
+    # 编号, 连接名(默认), api_base(默认), key_env(默认), [key 值], 卡名, model id(默认), temp, 搜索
+    prompts = [_preset_number("zhipu-coding"), "", "", ""]
+    if not preset.api_key_fallback:
+        prompts.append("sk-real")
+    prompts += ["", "", "", "0"]
+    confirms = [False] + ([False] if _thinking_asked(preset) else []) + [False]
+    _script(monkeypatch, prompts, confirms)
+
     assert run_setup_wizard(env)
+    ov = _read_overlay()
+    conn = ov.models.provider_connections["zhipu-coding"]
+    assert conn.api_key_envs == ["ZHIPU_API_KEY"] and conn.protocol == preset.provider
+    card = ov.models.custom_profiles["main"]
+    assert card.model == preset.main_model and card.provider_ref == "zhipu-coding"
+    assert all(ov.models.roles[r] == "main" for r in ROLE_NAMES)
+
     text = env.read_text()
-    assert "SF_PROVIDER=zhipu-coding" in text
-    assert "ZHIPU_API_KEY=sk-real" in text
-    assert "SF_MODEL" not in text      # 默认模型不落盘
-    assert "SF_API_BASE" not in text   # 默认端点不落盘
-    assert "SF_SEARCH_PROVIDER" not in text  # 跳过则不写
-    assert os.environ["SF_PROVIDER"] == "zhipu-coding"
-    assert os.environ["ZHIPU_API_KEY"] == "sk-real"
+    assert "SF_PROVIDER" not in text and "SF_MODEL" not in text  # 模型配置在 overlay
+    assert "SF_SEARCH_PROVIDER" not in text                      # 跳过则不写
+    if not preset.api_key_fallback:
+        assert "ZHIPU_API_KEY=sk-real" in text
+        assert os.environ["ZHIPU_API_KEY"] == "sk-real"
 
 
 def test_wizard_local_flow_with_search(monkeypatch, tmp_path: Path):
-    _sentinel_env(monkeypatch, "SF_PROVIDER", "SF_MODEL", "SF_API_BASE")
+    """选 ollama（本地，无需 key）→ 模型名先空后有效 → 自定义端口 → 选 serper 填 key。"""
+    from searchos.config.profiles import ROLE_NAMES
+    _sentinel_env(monkeypatch, "SF_PROVIDER")
     env = tmp_path / ".env"
-    # 选 ollama → 模型名（先空后有效）→ 自定义端口 → 选 serper → 填搜索 key
-    _script_prompts(monkeypatch, [
-        _preset_number("ollama"), "", "qwen3:32b", "http://localhost:11500/v1",
-        "1", "serper-key",
-    ])
+    preset = PRESETS["ollama"]
+
+    prompts = [_preset_number("ollama"), "", "http://localhost:11500/v1", ""]
+    if not preset.api_key_fallback:
+        prompts.append("ollama-key")
+    prompts += ["", "", "qwen3:32b", ""]   # 卡名, model id(空重试), model id, temp
+    prompts += ["1", "serper-key"]          # 搜索：serper + key
+    confirms = [False] + ([False] if _thinking_asked(preset) else []) + [False]
+    _script(monkeypatch, prompts, confirms)
+
     assert run_setup_wizard(env)
+    ov = _read_overlay()
+    conn = ov.models.provider_connections["ollama"]
+    assert conn.api_base == "http://localhost:11500/v1"
+    card = ov.models.custom_profiles["main"]
+    assert card.model == "qwen3:32b" and card.provider_ref == "ollama"
+    assert all(ov.models.roles[r] == "main" for r in ROLE_NAMES)
+
     text = env.read_text()
-    assert "SF_PROVIDER=ollama" in text
-    assert "SF_MODEL=qwen3:32b" in text
-    assert "SF_API_BASE=http://localhost:11500/v1" in text
     assert "SF_SEARCH_PROVIDER=serper" in text
     assert "SERPER_API_KEY=serper-key" in text
-    assert "OLLAMA_API_KEY" not in text  # 本地部署不写模型 key
+    assert "SF_PROVIDER" not in text and "SF_MODEL" not in text
 
 
 # ---------------------------------------------------------------------------

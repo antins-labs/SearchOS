@@ -171,6 +171,32 @@ def overlay_path() -> Path:
     return Path(os.environ.get("SF_WEB_SETTINGS_PATH", str(default)))
 
 
+def load_overlay_file() -> None:
+    """Read the JSON overlay file INTO the store, without applying it.
+
+    Safe before the ``settings`` singleton exists (e.g. the CLI setup wizard,
+    which edits the overlay and must run before settings are constructed). A
+    missing/corrupt file leaves an empty overlay.
+    """
+    path = overlay_path()
+    if not path.exists():
+        _replace_store(WebSettings())  # deterministic: file absent → empty store
+        return
+    try:
+        _replace_store(WebSettings.model_validate_json(path.read_text()))
+    except Exception:
+        logger.warning("Corrupt %s — starting with empty overlay", path, exc_info=True)
+        _replace_store(WebSettings())
+
+
+def save_overlay() -> None:
+    """Atomically persist the current store to the overlay file (tmp + replace)."""
+    path = overlay_path()
+    tmp = path.with_suffix(".json.tmp")
+    tmp.write_text(store.model_dump_json(indent=2) + "\n")
+    os.replace(tmp, path)
+
+
 def load_and_apply() -> None:
     """Read the JSON overlay (lenient) and apply it to the runtime settings.
 
@@ -178,13 +204,7 @@ def load_and_apply() -> None:
     yields an empty overlay, the default connections are seeded, then the
     overlay is applied onto the ``settings`` singleton.
     """
-    path = overlay_path()
-    if path.exists():
-        try:
-            _replace_store(WebSettings.model_validate_json(path.read_text()))
-        except Exception:
-            logger.warning("Corrupt %s — starting with empty overlay", path, exc_info=True)
-            _replace_store(WebSettings())
+    load_overlay_file()
     _seed_default_connections()
     apply_to_runtime()
 
@@ -280,6 +300,8 @@ __all__ = [
     "DEFAULT_PROVIDER_CONNECTIONS",
     "store",
     "overlay_path",
+    "load_overlay_file",
+    "save_overlay",
     "load_and_apply",
     "apply_to_runtime",
 ]

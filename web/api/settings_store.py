@@ -36,6 +36,7 @@ from searchos.config.web_overlay import (  # noqa: F401
     apply_to_runtime,
     load_and_apply,
     overlay_path,
+    save_overlay as save,  # web calls settings_store.save(); shared atomic writer
     store,
 )
 
@@ -44,14 +45,6 @@ _LOCK = asyncio.Lock()
 
 def _path() -> Path:
     return overlay_path()
-
-
-def save() -> None:
-    """Atomic write: tmp file + os.replace."""
-    path = _path()
-    tmp = path.with_suffix(".json.tmp")
-    tmp.write_text(store.model_dump_json(indent=2) + "\n")
-    os.replace(tmp, path)
 
 
 async def update(patch_fn, reload: bool = False) -> WebSettings:
