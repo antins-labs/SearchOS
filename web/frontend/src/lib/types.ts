@@ -5,10 +5,85 @@ export interface SearchRequest {
   type?: "wide" | "deep" | "local" | "hybrid";
   entities?: string[];
   attrs?: string[];
-  max_queries?: number;
   max_time?: number;
-  checkpoint?: number;
-  enable_teams?: boolean;
+  effort?: EffortLevel;
+  skills?: SkillOverrides;
+}
+
+// ---- Settings (mirrors web/api/routes/settings.py views) ----
+
+export type EffortLevel = "low" | "medium" | "high" | "max";
+
+export interface SkillOverrides {
+  access_only?: string[] | null;
+  access_deny?: string[];
+  strategy_deny?: string[];
+  orchestrator_deny?: string[];
+}
+
+export interface SkillInfo {
+  name: string;
+  description: string;
+  status: string;
+  enabled: boolean;
+}
+
+export interface SkillsView {
+  enable_skills: boolean;
+  access_mode: "router" | "only";
+  categories: Record<string, SkillInfo[]>; // orchestrator / access / strategy
+}
+
+export interface ProfileInfo {
+  model: string;
+  provider: string;
+  api_base: string;
+  api_key_env: string;
+  api_key_set: boolean;
+  temperature: number | null;
+  max_tokens: number | null;
+  enable_thinking: boolean;
+}
+
+export interface SearchProviderInfo {
+  name: string;
+  label: string;
+  api_key_env: string;
+  key_set: boolean;
+  doc_url: string;
+}
+
+export interface ModelsView {
+  active_provider_preset: string;
+  profiles: Record<string, ProfileInfo>;
+  roles: Record<string, string>;
+  role_overrides: Record<string, string>;
+  search: {
+    resolved: string;
+    configured: string | null;
+    providers: SearchProviderInfo[];
+  };
+  browser_backend: string;
+}
+
+export interface EffortView {
+  level: EffortLevel;
+  knobs: Record<string, number>;
+  overrides: Record<string, number>;
+  levels: Record<EffortLevel, Record<string, number>>;
+}
+
+export interface RunDefaultsView {
+  max_time_s: number;
+  search_max_results: number;
+  enable_skills: boolean;
+}
+
+export interface SettingsData {
+  effort: EffortView;
+  skills: SkillsView;
+  models: ModelsView;
+  run_defaults: RunDefaultsView;
 }
 
 export interface CoverageCell {

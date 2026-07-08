@@ -22,17 +22,22 @@ def get_llm(model: str | None = None):
     return get_model_for(model or "judge")
 
 
-def init_search_provider():
+def init_search_provider(name: str | None = None):
     # SearchOS binds search + page-fetch onto one shared browser provider.
-    # Same resolution as the CLI: SF_SEARCH_PROVIDER, else infer from available
-    # keys (serper → tavily), else the ragflow fallback.
+    # An explicit ``name`` (from web settings) wins; otherwise same resolution
+    # as the CLI: SF_SEARCH_PROVIDER, else infer from available keys
+    # (serper → tavily), else the ragflow fallback.
     from searchos.tools.simple_browser.search import build_search_provider
     from searchos.tools.simple_browser.state import set_browser_provider
 
-    set_browser_provider(build_search_provider())
+    set_browser_provider(build_search_provider(name or ""))
 
 
 WORKSPACE_ROOT = os.environ.get("SF_WORKSPACE_ROOT", str(_REPO_ROOT / "searchos_workspace"))
+
+# Web settings overlay — next to .env, NOT inside WORKSPACE_ROOT (whose
+# subdirectories are scanned as sessions by history.py).
+WEB_SETTINGS_PATH = os.environ.get("SF_WEB_SETTINGS_PATH", str(_REPO_ROOT / "web_settings.json"))
 
 # In-memory session store: session_id → { task, result, status, ... }
 sessions: dict[str, dict] = {}

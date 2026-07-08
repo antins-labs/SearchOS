@@ -1,6 +1,16 @@
 // REST + WebSocket API client
 
-import type { SearchRequest, SearchResult, FileNode } from "./types";
+import type {
+  EffortLevel,
+  EffortView,
+  FileNode,
+  ModelsView,
+  RunDefaultsView,
+  SearchRequest,
+  SearchResult,
+  SettingsData,
+  SkillsView,
+} from "./types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -86,6 +96,69 @@ export async function getFileContent(sessionId: string, path: string): Promise<{
   if (!res.ok) throw new Error(`Get file failed: ${res.statusText}`);
   return res.json();
 }
+
+// ---- Settings ----
+
+export async function getSettings(): Promise<SettingsData | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/settings`, { cache: "no-store" });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+async function putJson<T>(path: string, body: unknown, method = "PUT"): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const data = await res.json();
+      if (typeof data.detail === "string") detail = data.detail;
+      else if (data.detail?.detail) detail = data.detail.detail;
+    } catch { /* keep statusText */ }
+    throw new Error(detail);
+  }
+  return res.json();
+}
+
+export const putEffort = (level: EffortLevel, overrides: Record<string, number> = {}) =>
+  putJson<EffortView>("/api/settings/effort", { level, overrides });
+
+export const putSkills = (patch: {
+  access_only?: string[] | null;
+  access_deny?: string[];
+  strategy_deny?: string[];
+  orchestrator_deny?: string[];
+}) => putJson<SkillsView>("/api/settings/skills", patch);
+
+export const patchSkill = (name: string, enabled: boolean) =>
+  putJson<SkillsView>(`/api/settings/skills/${encodeURIComponent(name)}`, { enabled }, "PATCH");
+
+export const putSkillCategory = (category: string, enabled: boolean) =>
+  putJson<SkillsView>(`/api/settings/skills/category/${encodeURIComponent(category)}`, { enabled });
+
+export const putRoles = (roles: Record<string, string>) =>
+  putJson<{ roles: Record<string, string>; role_overrides: Record<string, string>; warnings: string[] }>(
+    "/api/settings/models/roles", { roles });
+
+export const putSearchBackend = (provider: string | null) =>
+  putJson<ModelsView["search"]>("/api/settings/search-backend", { provider });
+
+export const putMisc = (patch: {
+  max_time_s?: number;
+  search_max_results?: number;
+  enable_skills?: boolean;
+  browser_backend?: string;
+}) => putJson<RunDefaultsView & { browser_backend: string }>("/api/settings/misc", patch);
+
+export const resetSettings = () =>
+  putJson<SettingsData>("/api/settings/reset", {}, "POST");
 
 // ---- WebSocket ----
 

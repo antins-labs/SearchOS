@@ -11,7 +11,12 @@ cd "$REPO"
 start_api() {
   echo "Starting API on :8000 …"
   # --app-dir web makes the `api` package importable; PYTHONPATH=repo for `searchos`.
-  PYTHONPATH="$REPO" uv run uvicorn api.main:app --app-dir web --host 0.0.0.0 --port 8000 --reload
+  if command -v uv >/dev/null 2>&1; then
+    PYTHONPATH="$REPO" uv run uvicorn api.main:app --app-dir web --host 0.0.0.0 --port 8000 --reload
+  else
+    # Fallback: no uv installed — use uvicorn from the current Python env.
+    PYTHONPATH="$REPO" python -m uvicorn api.main:app --app-dir web --host 0.0.0.0 --port 8000 --reload
+  fi
 }
 
 start_web() {

@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { ArrowUp, SlidersHorizontal } from "lucide-react";
+import { ArrowUp, Gauge, SlidersHorizontal, X } from "lucide-react";
+
+import { useSettings } from "@/components/settings/SettingsProvider";
+import RunOverridesPopover from "@/components/settings/RunOverridesPopover";
 
 export interface SubmitOpts {
   type?: string;
@@ -40,10 +43,18 @@ export default function Composer({
   const [text, setText] = useState("");
   const [focused, setFocused] = useState(false);
   const [showSchema, setShowSchema] = useState(false);
+  const [showOverrides, setShowOverrides] = useState(false);
   const [entities, setEntities] = useState("");
   const [attrs, setAttrs] = useState("");
   const [sel, setSel] = useState(0);
   const ref = useRef<HTMLTextAreaElement>(null);
+  const { overrides, clearOverrides } = useSettings();
+
+  const overridesActive = overrides.effort != null || overrides.max_time != null;
+  const overrideChip = [
+    overrides.effort,
+    overrides.max_time != null ? `${overrides.max_time}s` : null,
+  ].filter(Boolean).join(" · ");
 
   const hero = variant === "hero";
   const slashTyping = /^\/[a-z]*$/i.test(text);
@@ -114,6 +125,25 @@ export default function Composer({
         >
           <SlidersHorizontal size={hero ? 17 : 15} />
         </button>
+        <button
+          type="button"
+          onClick={() => setShowOverrides((v) => !v)}
+          title="Run overrides"
+          className={`mb-0.5 shrink-0 rounded-lg p-1.5 transition-colors ${
+            showOverrides || overridesActive ? "bg-clay text-accent-ink" : "text-ink-faint hover:text-ink-dim"
+          }`}
+        >
+          <Gauge size={hero ? 17 : 15} />
+        </button>
+        {overridesActive && (
+          <span className="mb-1 flex shrink-0 items-center gap-1 rounded-md bg-clay px-1.5 py-0.5 text-[11px] text-accent-ink">
+            {overrideChip}
+            <button type="button" aria-label="Clear run overrides" onClick={clearOverrides}
+              className="rounded-sm transition-opacity hover:opacity-70">
+              <X size={11} />
+            </button>
+          </span>
+        )}
         <textarea
           ref={ref}
           rows={1}
@@ -155,6 +185,11 @@ export default function Composer({
               spellCheck={false} className="w-full bg-transparent text-ink outline-none placeholder:text-ink-faint" />
           </label>
         </div>
+      )}
+
+      {/* per-run overrides popover */}
+      {showOverrides && (
+        <RunOverridesPopover direction={hero ? "down" : "up"} onClose={() => setShowOverrides(false)} />
       )}
 
       {/* slash menu */}

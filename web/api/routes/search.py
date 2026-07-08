@@ -7,13 +7,24 @@ import logging
 import uuid
 from typing import Any
 
+from typing import Literal
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from api import settings_store
 from api.deps import WORKSPACE_ROOT, get_llm, init_search_provider, sessions
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
+
+
+class SkillOverrides(BaseModel):
+    """Per-run skill selection; each field overrides the stored setting when given."""
+    access_only: list[str] | None = None
+    access_deny: list[str] | None = None
+    strategy_deny: list[str] | None = None
+    orchestrator_deny: list[str] | None = None
 
 
 class SearchRequest(BaseModel):
@@ -21,10 +32,9 @@ class SearchRequest(BaseModel):
     type: str | None = None  # wide / deep / local / hybrid
     entities: list[str] | None = None
     attrs: list[str] | None = None
-    max_queries: int = 30
-    max_time: int = 300
-    checkpoint: int = 5
-    enable_teams: bool = False
+    max_time: int | None = None       # None → stored default → settings.default_max_time_s
+    effort: Literal["low", "medium", "high", "max"] | None = None  # this run only
+    skills: SkillOverrides | None = None
 
 
 class SearchResponse(BaseModel):
@@ -40,7 +50,7 @@ async def create_search(req: SearchRequest):
     from searchos.socm.frontier import FrontierTask
     from searchos.socm.state import SearchState
 
-    init_search_provider()
+    init_search_provider(settings_store.store.models.search_provider)
 
     session_id = uuid.uuid4().hex[:12]
 
@@ -72,16 +82,29 @@ async def create_search(req: SearchRequest):
                 priority=0.8,
             ))
 
-    # Auto-enable teams for wide search with multiple entities
-    enable_teams = req.enable_teams
-    if entities and len(entities) >= 2 and task_type == "wide":
-        enable_teams = True
+    from searchos.config.effort import EFFORT_KEYS, apply_effort
+    from searchos.config.settings import settings as sf_settings
+
+    store = settings_store.store
+
+    # Per-run effort: the knobs live on the global settings singleton (read
+    # live by running sessions), so snapshot them, apply now, and restore the
+    # snapshot when the run finishes. Concurrent runs share the singleton —
+    # acceptable for the single-user local deployment (same caveat as the TUI).
+    effort_snapshot: dict[str, int] | None = None
+    if req.effort:
+        effort_snapshot = {k: getattr(sf_settings, k) for k in EFFORT_KEYS}
+        apply_effort(req.effort)
+
+    # Merge chain: request → stored default → settings default.
+    max_time = req.max_time or store.run_defaults.max_time_s or sf_settings.default_max_time_s
+
+    skill_kwargs = settings_store.effective_skill_kwargs(req.skills)
 
     blueprint = SearchBlueprint(
         name="web_search",
-        budget=BudgetConfig(max_time_s=req.max_time),
+        budget=BudgetConfig(max_time_s=max_time),
         enable_web_search=True,
-        enable_teams=enable_teams,
     )
 
     harness = SearchSession(
@@ -102,6 +125,7 @@ async def create_search(req: SearchRequest):
         try:
             result = await harness.run(
                 req.query, session_id=session_id, initial_state=state,
+                **skill_kwargs,
             )
             sessions[session_id]["result"] = result
             sessions[session_id]["status"] = "completed"
@@ -109,6 +133,10 @@ async def create_search(req: SearchRequest):
             logger.error("Search failed: %s", e, exc_info=True)
             sessions[session_id]["error"] = str(e)
             sessions[session_id]["status"] = "error"
+        finally:
+            if effort_snapshot is not None:
+                for key, val in effort_snapshot.items():
+                    setattr(sf_settings, key, val)
 
     asyncio.create_task(_run())
 

@@ -43,3 +43,6 @@ htmlcov/
 .claude/
 # Remotion demo-video project (excluded from OSS release — Remotion license)
 demo_video/
+
+# Web settings overlay (user-local, written by the web UI)
+web_settings.json

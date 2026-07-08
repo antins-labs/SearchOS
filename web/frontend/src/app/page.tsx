@@ -13,15 +13,19 @@ import HistoryRail from "@/components/shell/HistoryRail";
 import Landing from "@/components/conversation/Landing";
 import Conversation from "@/components/conversation/Conversation";
 import ExecutionDrawer from "@/components/drawer/ExecutionDrawer";
+import SettingsModal from "@/components/settings/SettingsModal";
+import { useSettings } from "@/components/settings/SettingsProvider";
 
 let turnSeq = 0;
 
 export default function Home() {
   const { session, run, reset } = useSearch();
+  const { overrides } = useSettings();
   const [turns, setTurns] = useState<Turn[]>([]);
   const [activeTurnId, setActiveTurnId] = useState<string | null>(null);
   const [drawerTurnId, setDrawerTurnId] = useState<string | null>(null);
   const [railCollapsed, setRailCollapsed] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
   const [fileTree, setFileTree] = useState<FileNode[]>([]);
@@ -99,9 +103,11 @@ export default function Home() {
         type: (opts.type as SearchRequest["type"]) || undefined,
         entities: opts.entities,
         attrs: opts.attrs,
+        effort: overrides.effort,
+        max_time: overrides.max_time,
       });
     },
-    [run],
+    [run, overrides],
   );
 
   const handleNew = useCallback(() => {
@@ -201,6 +207,7 @@ export default function Home() {
         onSelect={handleSelect}
         onRename={handleRename}
         onDelete={handleDelete}
+        onOpenSettings={() => setSettingsOpen(true)}
       />
 
       <main className="min-w-0 overflow-hidden">
@@ -229,6 +236,8 @@ export default function Home() {
           />
         )}
       </div>
+
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </div>
   );
 }

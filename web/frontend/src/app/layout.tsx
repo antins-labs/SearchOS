@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -37,7 +38,7 @@ export default function RootLayout({
     >
       <body className="h-full">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          {children}
+          <SettingsProvider>{children}</SettingsProvider>
         </ThemeProvider>
       </body>
     </html>

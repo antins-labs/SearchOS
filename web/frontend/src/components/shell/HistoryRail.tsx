@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PanelLeftClose, PanelLeft, Plus, Search, Pencil, Trash2, Check, X } from "lucide-react";
+import { PanelLeftClose, PanelLeft, Plus, Search, Pencil, Settings, Trash2, Check, X } from "lucide-react";
 import { getHealth } from "@/lib/api";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -20,6 +20,7 @@ interface Props {
   onSelect: (id: string) => void;
   onRename: (id: string, title: string) => void;
   onDelete: (id: string) => void;
+  onOpenSettings: () => void;
 }
 
 const DOT: Record<string, string> = {
@@ -28,7 +29,7 @@ const DOT: Record<string, string> = {
   error: "bg-err",
 };
 
-export default function HistoryRail({ items, activeId, collapsed, onToggle, onNew, onSelect, onRename, onDelete }: Props) {
+export default function HistoryRail({ items, activeId, collapsed, onToggle, onNew, onSelect, onRename, onDelete, onOpenSettings }: Props) {
   const [q, setQ] = useState("");
   const [health, setHealth] = useState<{ status: string } | null | undefined>(undefined);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -57,6 +58,9 @@ export default function HistoryRail({ items, activeId, collapsed, onToggle, onNe
         </button>
         <button onClick={onNew} title="New chat" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink">
           <Plus size={18} />
+        </button>
+        <button onClick={onOpenSettings} title="Settings" className="mt-auto rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink">
+          <Settings size={18} />
         </button>
       </div>
     );
@@ -171,7 +175,13 @@ export default function HistoryRail({ items, activeId, collapsed, onToggle, onNe
           <span className={`h-1.5 w-1.5 rounded-full ${health === undefined ? "bg-warn" : health ? "bg-ok glow-pulse" : "bg-err"}`} />
           {health === undefined ? "Connecting" : health ? "Connected" : "Offline"}
         </span>
-        <ThemeToggle />
+        <span className="flex items-center gap-0.5">
+          <button onClick={onOpenSettings} title="Settings"
+            className="rounded-md p-1.5 text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink">
+            <Settings size={16} />
+          </button>
+          <ThemeToggle />
+        </span>
       </div>
     </div>
   );
