@@ -12,7 +12,7 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from api import settings_store
+from api import settings_store, skills_catalog
 from api.deps import WORKSPACE_ROOT, get_llm, init_search_provider, sessions
 
 logger = logging.getLogger(__name__)
@@ -99,7 +99,7 @@ async def create_search(req: SearchRequest):
     # Merge chain: request → stored default → settings default.
     max_time = req.max_time or store.run_defaults.max_time_s or sf_settings.default_max_time_s
 
-    skill_kwargs = settings_store.effective_skill_kwargs(req.skills)
+    skill_kwargs = skills_catalog.effective_skill_kwargs(req.skills)
 
     blueprint = SearchBlueprint(
         name="web_search",
