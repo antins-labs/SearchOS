@@ -142,6 +142,51 @@ async def update(patch_fn) -> WebSettings:
         return store
 
 
+async def update_env(env_updates: dict[str, str], patch_fn=None) -> None:
+    """Write env vars (keys / provider knobs) through to .env and the runtime.
+
+    Full transaction under the lock:
+      1. update os.environ first (empty value → pop)
+      2. dry-run ``Settings()`` — an invalid combination (e.g. a local preset
+         without SF_MODEL) raises BEFORE anything touches disk; the previous
+         os.environ values are restored on failure
+      3. atomic .env write
+      4. rebuild the settings singleton in place from the new env
+      5. optional store patch (e.g. clearing role overrides), then re-apply
+         the web overlay — reload resets effort knobs etc. to env defaults,
+         so this replay is mandatory, not an optimization
+    Never log values here — key material must not reach any log line.
+    """
+    from searchos.config import env_file
+    from searchos.config.settings import Settings, reload_settings_in_place
+
+    from api import deps
+
+    async with _LOCK:
+        prev = {k: os.environ.get(k) for k in env_updates}
+        try:
+            for key, value in env_updates.items():
+                if value:
+                    os.environ[key] = value
+                else:
+                    os.environ.pop(key, None)
+            fresh = Settings()  # dry-run against the new env
+        except Exception:
+            for key, value in prev.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
+            raise
+
+        env_file.update_env_file(Path(deps.ENV_FILE_PATH), env_updates)
+        reload_settings_in_place(fresh)
+        if patch_fn is not None:
+            patch_fn(store)
+        apply_to_runtime()
+        save()
+
+
 def reset() -> None:
     """Delete the overlay file and restore the pure env-based settings.
 

@@ -39,5 +39,9 @@ WORKSPACE_ROOT = os.environ.get("SF_WORKSPACE_ROOT", str(_REPO_ROOT / "searchos_
 # subdirectories are scanned as sessions by history.py).
 WEB_SETTINGS_PATH = os.environ.get("SF_WEB_SETTINGS_PATH", str(_REPO_ROOT / "web_settings.json"))
 
+# The .env file web-set keys/provider knobs are persisted to. SF_ENV_FILE
+# exists so tests can point writes at a tmp path.
+ENV_FILE_PATH = os.environ.get("SF_ENV_FILE", str(_REPO_ROOT / ".env"))
+
 # In-memory session store: session_id → { task, result, status, ... }
 sessions: dict[str, dict] = {}
