@@ -43,6 +43,8 @@ export interface ProfileInfo {
   temperature: number | null;
   max_tokens: number | null;
   enable_thinking: boolean;
+  custom: boolean;
+  overridden: string[]; // base-profile fields overridden via web ("model" | "api_base" | "api_key_env")
 }
 
 export interface SearchProviderInfo {
@@ -110,6 +112,7 @@ export interface ProvidersResponse {
 export interface ProviderSwitchResult {
   models: ModelsView;
   cleared_role_overrides: string[];
+  cleared_profile_overrides: string[];
   warnings: string[];
 }
 

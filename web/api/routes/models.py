@@ -12,6 +12,8 @@ allow-listed (writing arbitrary env vars would be an injection vector).
 from __future__ import annotations
 
 import os
+import re
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -63,6 +65,29 @@ class ProviderSwitch(BaseModel, extra="forbid"):
 class KeyUpdate(BaseModel, extra="forbid"):
     env: str
     value: str  # "" clears the key
+
+
+class ProfilePatch(BaseModel, extra="forbid"):
+    """Connection fields. On a base profile "" clears that field's override;
+    on a custom profile fields are edited directly ("" only valid for api_base)."""
+    model: str | None = None
+    api_base: str | None = None
+    api_key_env: str | None = None
+
+
+class ProfileCreate(BaseModel, extra="forbid"):
+    name: str
+    model: str
+    provider: Literal["openai_compatible", "openai", "anthropic"] = "openai_compatible"
+    api_base: str = ""
+    api_key_env: str
+
+
+_PROFILE_NAME_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$")
+_ENV_NAME_RE = re.compile(r"^[A-Z][A-Z0-9_]{0,63}$")
+# Every provider preset generates these tier names — reserving them keeps a
+# later preset switch from colliding with a custom profile.
+_RESERVED_PROFILE_NAMES = {"main", "judge", "fast", "synthesis", "reformat"}
 
 
 # --- endpoints ---
@@ -160,9 +185,14 @@ async def put_provider(req: ProviderSwitch):
                 400, "This preset has no default model — pass 'model' (e.g. qwen3:32b)")
 
     cleared_roles = sorted(store.models.roles)
+    cleared_profile_overrides = sorted(store.models.profile_overrides)
 
     def patch(s):
+        # Preset profile names change wholesale — role bindings and per-profile
+        # overrides would dangle or mis-apply. Custom profiles are
+        # self-contained and survive.
         s.models.roles.clear()
+        s.models.profile_overrides.clear()
 
     try:
         await settings_store.update_env(env_updates, patch)
@@ -172,8 +202,109 @@ async def put_provider(req: ProviderSwitch):
     return {
         "models": models_view(),
         "cleared_role_overrides": cleared_roles,
+        "cleared_profile_overrides": cleared_profile_overrides,
         "warnings": warnings,
     }
+
+
+@router.patch("/profiles/{name}")
+async def patch_profile(name: str, req: ProfilePatch):
+    """Edit a profile's connection fields (model / api_base / api_key_env).
+
+    Base (env/preset) profiles get sparse overrides in the web overlay; ""
+    clears one field's override back to the base value. Custom profiles are
+    edited in place. Changes affect sessions created afterwards.
+    """
+    from searchos.config.settings import settings
+
+    from api.settings_store import ProfileOverride
+
+    is_custom = name in store.models.custom_profiles
+    if not is_custom and name not in settings.profiles:
+        raise HTTPException(404, f"Unknown profile: {name!r}")
+
+    if req.api_key_env is not None and req.api_key_env != "" \
+            and not _ENV_NAME_RE.fullmatch(req.api_key_env):
+        raise HTTPException(400, "api_key_env must look like AN_ENV_VAR_NAME")
+    if is_custom:
+        for field in ("model", "api_key_env"):
+            if getattr(req, field) == "":
+                raise HTTPException(400, f"{field} cannot be empty on a custom profile")
+
+    def patch(s):
+        if is_custom:
+            cp = s.models.custom_profiles[name]
+            for field in ("model", "api_base", "api_key_env"):
+                value = getattr(req, field)
+                if value is not None:
+                    setattr(cp, field, value)
+        else:
+            ov = s.models.profile_overrides.get(name) or ProfileOverride()
+            for field in ("model", "api_base", "api_key_env"):
+                value = getattr(req, field)
+                if value is not None:
+                    setattr(ov, field, value or None)  # "" → clear the override
+            if ov == ProfileOverride():
+                s.models.profile_overrides.pop(name, None)
+            else:
+                s.models.profile_overrides[name] = ov
+
+    # reload=True: clearing an override can only be undone by rebuilding the
+    # base profile from env — plain replay would keep the mutated value.
+    await settings_store.update(patch, reload=True)
+    return models_view()
+
+
+@router.post("/profiles")
+async def create_profile(req: ProfileCreate):
+    """Create a custom profile. Survives provider switches; deletable."""
+    from searchos.config.settings import settings
+
+    from api.settings_store import CustomProfile
+
+    if not _PROFILE_NAME_RE.fullmatch(req.name):
+        raise HTTPException(400, "Profile name must be alphanumeric with . _ - (max 64 chars)")
+    if req.name in _RESERVED_PROFILE_NAMES:
+        raise HTTPException(400, f"{req.name!r} is reserved for provider presets")
+    if req.name in settings.profiles or req.name in store.models.custom_profiles:
+        raise HTTPException(400, f"Profile {req.name!r} already exists")
+    if not req.model.strip():
+        raise HTTPException(400, "model is required")
+    if not _ENV_NAME_RE.fullmatch(req.api_key_env):
+        raise HTTPException(400, "api_key_env must look like AN_ENV_VAR_NAME")
+
+    def patch(s):
+        s.models.custom_profiles[req.name] = CustomProfile(
+            model=req.model.strip(), provider=req.provider,
+            api_base=req.api_base.strip(), api_key_env=req.api_key_env,
+        )
+
+    await settings_store.update(patch)
+    return models_view()
+
+
+@router.delete("/profiles/{name}")
+async def delete_profile(name: str):
+    """Delete a custom profile. Built-in/preset profiles can't be deleted."""
+    from searchos.config.settings import settings
+
+    if name not in store.models.custom_profiles:
+        if name in settings.profiles:
+            raise HTTPException(400, f"{name!r} is a built-in profile — only custom profiles can be deleted")
+        raise HTTPException(404, f"Unknown profile: {name!r}")
+
+    bound = sorted(role for role, profile in settings.roles.items() if profile == name)
+    if bound:
+        raise HTTPException(
+            400, f"Profile {name!r} is bound to roles {bound} — rebind them first")
+
+    def patch(s):
+        s.models.custom_profiles.pop(name, None)
+        s.models.profile_overrides.pop(name, None)
+        s.models.roles = {r: p for r, p in s.models.roles.items() if p != name}
+
+    await settings_store.update(patch, reload=True)
+    return models_view()
 
 
 @router.put("/keys")

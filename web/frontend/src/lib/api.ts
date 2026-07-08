@@ -181,6 +181,24 @@ export const putProvider = (body: {
 export const putSettingsKey = (env: string, value: string) =>
   putJson<ModelsView>("/api/settings/keys", { env, value });
 
+// Profile connection fields; on base profiles "" clears that field's override.
+export const patchProfile = (name: string, patch: {
+  model?: string;
+  api_base?: string;
+  api_key_env?: string;
+}) => putJson<ModelsView>(`/api/settings/profiles/${encodeURIComponent(name)}`, patch, "PATCH");
+
+export const createProfile = (body: {
+  name: string;
+  model: string;
+  provider?: string;
+  api_base?: string;
+  api_key_env: string;
+}) => putJson<ModelsView>("/api/settings/profiles", body, "POST");
+
+export const deleteProfile = (name: string) =>
+  putJson<ModelsView>(`/api/settings/profiles/${encodeURIComponent(name)}`, {}, "DELETE");
+
 // ---- WebSocket ----
 
 export function connectWebSocket(

@@ -8,6 +8,8 @@ import { useSettings } from "@/components/settings/SettingsProvider";
 import { Card, OfflineSkeleton, Row, SectionShell } from "@/components/settings/primitives";
 import Select from "@/components/settings/controls/Select";
 import KeyEditor from "@/components/settings/models/KeyEditor";
+import NewProfileCard from "@/components/settings/models/NewProfileCard";
+import ProfileCard from "@/components/settings/models/ProfileCard";
 import ProviderConnection from "@/components/settings/models/ProviderConnection";
 
 const BROWSER_BACKENDS = ["jina", "aiohttp", "crawl4ai", "search_engine"];
@@ -82,24 +84,9 @@ export default function ModelsSection() {
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {Object.entries(models.profiles).map(([name, p]) => (
-          <div key={name} className="surface rounded-xl px-3.5 py-3">
-            <div className="flex items-center justify-between gap-2">
-              <span className="truncate font-mono text-[12.5px] text-ink">{name}</span>
-              <span className={`flex shrink-0 items-center gap-1.5 text-[11px] ${p.api_key_set ? "text-ok" : "text-warn"}`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${p.api_key_set ? "bg-ok" : "bg-warn"}`} />
-                {p.api_key_set ? "Key configured" : "No API key"}
-              </span>
-            </div>
-            <div className="mt-1.5 space-y-0.5 text-[11.5px] text-ink-faint">
-              <div className="truncate">model: <span className="text-ink-dim">{p.model}</span></div>
-              <div className="truncate">provider: {p.provider}</div>
-              {p.api_base && <div className="truncate">base: {p.api_base}</div>}
-            </div>
-            {!p.api_key_set && (
-              <KeyEditor envName={p.api_key_env} keySet={false} disabled={disabled} compact />
-            )}
-          </div>
+          <ProfileCard key={name} name={name} profile={p} disabled={disabled} />
         ))}
+        <NewProfileCard disabled={disabled} />
       </div>
 
       <Card>

@@ -212,3 +212,92 @@ def test_aggregate_shape_unchanged(client):
     assert set(d["models"]) >= {"active_provider_preset", "profiles", "roles",
                                 "role_overrides", "search", "browser_backend"}
     assert set(d["run_defaults"]) == {"max_time_s", "search_max_results", "enable_skills"}
+
+
+# ---------------------------------------------------------------------------
+# Profile 编辑 / 自定义 profile
+# ---------------------------------------------------------------------------
+
+def test_patch_base_profile_override_and_clear(client):
+    c, _ = client
+    c.put("/api/settings/provider", json={"preset": "ollama", "model": "qwen3:32b"})
+    r = c.patch("/api/settings/profiles/main", json={"api_base": "http://gpu-box:8000/v1"})
+    assert r.status_code == 200, r.text
+    p = r.json()["profiles"]["main"]
+    assert p["api_base"] == "http://gpu-box:8000/v1"
+    assert p["overridden"] == ["api_base"]
+    assert p["custom"] is False
+    # "" 清除覆写 → 回到预设 base
+    r = c.patch("/api/settings/profiles/main", json={"api_base": ""})
+    p = r.json()["profiles"]["main"]
+    assert p["api_base"] == "http://localhost:11434/v1"
+    assert p["overridden"] == []
+
+
+def test_patch_unknown_profile_404(client):
+    c, _ = client
+    r = c.patch("/api/settings/profiles/nope", json={"model": "x"})
+    assert r.status_code == 404
+
+
+def test_custom_profile_lifecycle(client):
+    c, _ = client
+    body = {"name": "my-vllm", "model": "Qwen3-32B", "api_base": "http://localhost:8000/v1",
+            "api_key_env": "MY_VLLM_KEY"}
+    r = c.post("/api/settings/profiles", json=body)
+    assert r.status_code == 200, r.text
+    p = r.json()["profiles"]["my-vllm"]
+    assert p["custom"] is True and p["model"] == "Qwen3-32B"
+
+    # 自定义 profile 的 key env 自动进白名单
+    r = c.put("/api/settings/keys", json={"env": "MY_VLLM_KEY", "value": "vk-1"})
+    assert r.status_code == 200, r.text
+    assert r.json()["profiles"]["my-vllm"]["api_key_set"] is True
+
+    # 绑定角色后不可删
+    r = c.put("/api/settings/models/roles", json={"roles": {"judge": "my-vllm"}})
+    assert r.status_code == 200
+    r = c.delete("/api/settings/profiles/my-vllm")
+    assert r.status_code == 400
+    assert "judge" in r.json()["detail"]
+
+    # 编辑自定义 profile 是直接改（非覆写）
+    r = c.patch("/api/settings/profiles/my-vllm", json={"model": "Qwen3-72B"})
+    assert r.json()["profiles"]["my-vllm"]["model"] == "Qwen3-72B"
+    assert r.json()["profiles"]["my-vllm"]["overridden"] == []
+    r = c.patch("/api/settings/profiles/my-vllm", json={"model": ""})
+    assert r.status_code == 400  # 自定义 profile 的 model 不可置空
+
+    # 换绑后可删
+    profiles = c.get("/api/settings/models").json()["profiles"]
+    fallback = next(n for n in profiles if n != "my-vllm")
+    c.put("/api/settings/models/roles", json={"roles": {"judge": fallback}})
+    r = c.delete("/api/settings/profiles/my-vllm")
+    assert r.status_code == 200, r.text
+    assert "my-vllm" not in r.json()["profiles"]
+
+
+def test_create_profile_validation(client):
+    c, _ = client
+    base = {"model": "m", "api_key_env": "SOME_KEY"}
+    assert c.post("/api/settings/profiles", json={**base, "name": "main"}).status_code == 400
+    assert c.post("/api/settings/profiles", json={**base, "name": "bad name!"}).status_code == 400
+    assert c.post("/api/settings/profiles",
+                  json={"name": "x", "model": "m", "api_key_env": "lower_case"}).status_code == 400
+    existing = next(iter(c.get("/api/settings/models").json()["profiles"]))
+    assert c.post("/api/settings/profiles", json={**base, "name": existing}).status_code == 400
+
+
+def test_provider_switch_clears_overrides_keeps_custom(client):
+    c, _ = client
+    c.put("/api/settings/provider", json={"preset": "ollama", "model": "qwen3:32b"})
+    c.patch("/api/settings/profiles/main", json={"api_base": "http://gpu-box:8000/v1"})
+    c.post("/api/settings/profiles", json={
+        "name": "my-vllm", "model": "Qwen3-32B", "api_key_env": "MY_VLLM_KEY"})
+    r = c.put("/api/settings/provider", json={"preset": "deepseek", "api_key": "sk-x"})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["cleared_profile_overrides"] == ["main"]
+    profiles = body["models"]["profiles"]
+    assert profiles["main"]["api_base"] == "https://api.deepseek.com"  # 覆写已清
+    assert "my-vllm" in profiles and profiles["my-vllm"]["custom"] is True  # 自定义保留

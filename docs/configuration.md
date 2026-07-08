@@ -51,10 +51,20 @@ Web 端点改 env 后统一走 `settings_store.update_env()` 事务：
 最后一步的重放是**必须的**：原地重建单例会把 effort 档位等 web 设置重置回
 env 基础值，`apply_to_runtime()` 负责把 L4 增量重新压回去。
 
-切换 provider 预设时还会：清空 L4 的 role 覆写（预设的 profile 名整体更换，
-旧绑定必然悬空）、清除上一家厂商遗留的 `SF_MODEL`/`SF_FAST_MODEL`/`SF_API_BASE`
-覆写（除非请求中显式指定）。运行中的 session 不受影响——模型结构在
-`SearchSession` 构造时已快照。
+切换 provider 预设时还会：清空 L4 的 role 覆写与 per-profile 字段覆写（预设的
+profile 名整体更换，旧值必然悬空或错配）、清除上一家厂商遗留的
+`SF_MODEL`/`SF_FAST_MODEL`/`SF_API_BASE` 覆写（除非请求中显式指定）。运行中的
+session 不受影响——模型结构在 `SearchSession` 构造时已快照。
+
+L4 还承载 per-profile 定制（web 设置页 Models 区的 profile 卡）：
+
+- **字段覆写**（`models.profile_overrides`）：对预设/内置 profile 的
+  model / api_base / api_key_env 做稀疏覆盖，可单字段清除还原。之所以不走
+  L3 的 `SF_PROFILES__*`：env 变量名寻址不了带点的 profile 名（如
+  `qwen3.5-35b`），且切换预设时无法安全清理 .env 行。
+- **自定义 profile**（`models.custom_profiles`）：用户新建的完整 profile
+  （model + 协议 + api_base + api_key_env），跨 provider 切换保留，可绑定到
+  任意角色；`main`/`judge`/`fast`/`synthesis`/`reformat` 为预设保留名不可用。
 
 ## 相关模块
 

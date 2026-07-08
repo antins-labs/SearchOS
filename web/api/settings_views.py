@@ -61,6 +61,7 @@ def models_view() -> dict:
 
     profiles = {}
     for name, p in settings.profiles.items():
+        ov = store.models.profile_overrides.get(name)
         profiles[name] = {
             "model": p.model,
             "provider": p.provider,
@@ -70,6 +71,11 @@ def models_view() -> dict:
             "temperature": p.temperature,
             "max_tokens": p.max_tokens,
             "enable_thinking": p.enable_thinking,
+            "custom": name in store.models.custom_profiles,
+            "overridden": sorted(
+                f for f in ("model", "api_base", "api_key_env")
+                if ov is not None and getattr(ov, f) is not None
+            ),
         }
 
     search_key_fallbacks = {

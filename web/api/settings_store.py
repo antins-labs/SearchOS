@@ -37,8 +37,25 @@ class SkillsOverlay(BaseModel, extra="forbid"):
     orchestrator_deny: list[str] = Field(default_factory=list)
 
 
+class ProfileOverride(BaseModel, extra="forbid"):
+    """Sparse per-field deltas on a base (env-defined) profile. None = keep base."""
+    model: str | None = None
+    api_base: str | None = None
+    api_key_env: str | None = None
+
+
+class CustomProfile(BaseModel, extra="forbid"):
+    """A user-created profile. Self-contained — survives provider switches."""
+    model: str
+    provider: Literal["openai_compatible", "openai", "anthropic"] = "openai_compatible"
+    api_base: str = ""
+    api_key_env: str = "OPENAI_API_KEY"
+
+
 class ModelsOverlay(BaseModel, extra="forbid"):
     roles: dict[str, str] = Field(default_factory=dict)  # sparse role→profile deltas
+    profile_overrides: dict[str, ProfileOverride] = Field(default_factory=dict)
+    custom_profiles: dict[str, CustomProfile] = Field(default_factory=dict)
     search_provider: str | None = None
     browser_backend: str | None = None
 
@@ -112,6 +129,28 @@ def apply_to_runtime() -> None:
                            store.effort.overrides, exc_info=True)
             apply_effort(store.effort.level)
 
+    # Custom profiles before roles/overrides — bindings may point at them.
+    # Name collisions with env/preset profiles are blocked at creation time;
+    # should one arise later (e.g. via a provider switch) the custom wins,
+    # deterministically.
+    from searchos.config.profiles import ModelProfile
+    for name, cp in store.models.custom_profiles.items():
+        settings.profiles[name] = ModelProfile(
+            model=cp.model, provider=cp.provider,
+            api_base=cp.api_base, api_key_env=cp.api_key_env,
+            max_tokens=16384,  # agent-work default; ModelProfile's 4096 is too tight
+        )
+
+    for name, ov in store.models.profile_overrides.items():
+        profile = settings.profiles.get(name)
+        if profile is None:
+            logger.warning("Profile override for missing profile %r — skipped", name)
+            continue
+        for field in ("model", "api_base", "api_key_env"):
+            value = getattr(ov, field)
+            if value is not None:
+                setattr(profile, field, value)
+
     for role, profile in store.models.roles.items():
         if role not in settings.roles:
             logger.warning("Persisted binding for unknown role %r — skipped", role)
@@ -129,14 +168,20 @@ def apply_to_runtime() -> None:
         settings.enable_skills = store.run_defaults.enable_skills
 
 
-async def update(patch_fn) -> WebSettings:
+async def update(patch_fn, reload: bool = False) -> WebSettings:
     """Mutate the store under the lock, apply to runtime, persist atomically.
 
     ``patch_fn(store)`` mutates in place; validation errors raised inside it
-    propagate before anything is saved.
+    propagate before anything is saved. ``reload=True`` rebuilds the settings
+    singleton from env before replaying the overlay — required whenever the
+    patch REMOVES an override (plain replay can't restore the base value).
     """
+    from searchos.config.settings import reload_settings_in_place
+
     async with _LOCK:
         patch_fn(store)
+        if reload:
+            reload_settings_in_place()
         apply_to_runtime()
         save()
         return store
