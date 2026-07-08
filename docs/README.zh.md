@@ -335,9 +335,9 @@ searchos_workspace/ 交互运行的会话工作区（时间戳目录）
 
 ## 🙏 Acknowledgements
 
-SearchOS 由核心贡献者 **Yuyao Zhang** 与 **Junjie Gao**（蚂蚁集团）设计并构建，导师 **Ji-Rong Wen** 与 **Zhicheng Dou**（中国人民大学）指导。同时感谢蚂蚁保及其 AI 原生产品「保险快查」，以及项目负责人 **Kai Yang** 与 **Xingzhong Xu** 的大力支持。
+SearchOS 由核心贡献者 **Yuyao Zhang** 与 **Junjie Gao**（蚂蚁集团）设计并构建，导师 **Ji-Rong Wen** 与 **Zhicheng Dou**（中国人民大学）指导。同时感谢蚂蚁保及其 AI 原生产品「保险快查」的大力支持，并特别感谢本项目的发起人、保险快查负责人 **Kai Yang** 与 **Xingzhong Xu**。
 
-SearchOS 构建于 [LangGraph](https://github.com/langchain-ai/langgraph) / [LangChain](https://github.com/langchain-ai/langchain) / [deepagents](https://github.com/langchain-ai/deepagents) 之上，TUI 基于 [Textual](https://github.com/Textualize/textual)。评测数据与官方评分器来自 [WideSearch](https://github.com/ByteDance-Seed/WideSearch)、[GISA](https://github.com/RUC-NLPIR/GISA)、xbench 等 benchmark 的原作者，版权归其所有（见 `datasets/` 各子目录 LICENSE 与 [LEGAL.md](../LEGAL.md)）。
+SearchOS 构建于 [LangGraph](https://github.com/langchain-ai/langgraph) / [LangChain](https://github.com/langchain-ai/langchain) / [deepagents](https://github.com/langchain-ai/deepagents) 之上，TUI 基于 [Textual](https://github.com/Textualize/textual)。
 
 ## 📚 Citation
 

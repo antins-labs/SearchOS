@@ -340,9 +340,9 @@ searchos_workspace/ インタラクティブ実行のセッションワークス
 
 ## 🙏 Acknowledgements
 
-SearchOS はコアコントリビューターの **Yuyao Zhang** と **Junjie Gao**（Ant Group）が設計・構築し、アドバイザーの **Ji-Rong Wen** と **Zhicheng Dou**（中国人民大学）が指導しました。また、Ant Insurance とその AI ネイティブプロダクト「保险快查」、そしてプロジェクトリーダーの **Kai Yang** と **Xingzhong Xu** の力強いサポートに感謝します。
+SearchOS はコアコントリビューターの **Yuyao Zhang** と **Junjie Gao**（Ant Group）が設計・構築し、アドバイザーの **Ji-Rong Wen** と **Zhicheng Dou**（中国人民大学）が指導しました。また、Ant Insurance とその AI ネイティブプロダクト「保险快查」の力強いサポートに感謝するとともに、本プロジェクトの発起人であり「保险快查」を率いる **Kai Yang** と **Xingzhong Xu** に深く感謝します。
 
-SearchOS は [LangGraph](https://github.com/langchain-ai/langgraph) / [LangChain](https://github.com/langchain-ai/langchain) / [deepagents](https://github.com/langchain-ai/deepagents) の上に構築され、TUI は [Textual](https://github.com/Textualize/textual) ベースです。評価データと公式スコアラーは [WideSearch](https://github.com/ByteDance-Seed/WideSearch)、[GISA](https://github.com/RUC-NLPIR/GISA)、xbench などのベンチマーク原作者によるもので、著作権は各作者に帰属します（`datasets/` 各サブディレクトリの LICENSE と [LEGAL.md](../LEGAL.md) を参照）。
+SearchOS は [LangGraph](https://github.com/langchain-ai/langgraph) / [LangChain](https://github.com/langchain-ai/langchain) / [deepagents](https://github.com/langchain-ai/deepagents) の上に構築され、TUI は [Textual](https://github.com/Textualize/textual) ベースです。
 
 ## 📚 Citation
 

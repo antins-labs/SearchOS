@@ -340,9 +340,9 @@ searchos_workspace/ Session workspaces for interactive runs (timestamped directo
 
 ## 🙏 Acknowledgements
 
-SearchOS is designed and built by its core contributors, **Yuyao Zhang** and **Junjie Gao** (Ant Group), under the supervision of their advisors, **Ji-Rong Wen** and **Zhicheng Dou** (Renmin University of China). We also thank Ant Insurance and its AI-native product 保险快查, as well as the project leaders **Kai Yang** and **Xingzhong Xu**, for their strong support.
+SearchOS is designed and built by its core contributors, **Yuyao Zhang** and **Junjie Gao** (Ant Group), under the supervision of their advisors, **Ji-Rong Wen** and **Zhicheng Dou** (Renmin University of China). We also thank Ant Insurance and its AI-native product 保险快查 for their strong support, and are especially grateful to **Kai Yang** and **Xingzhong Xu**, the initiators of this project and leaders of 保险快查.
 
-SearchOS is built on [LangGraph](https://github.com/langchain-ai/langgraph) / [LangChain](https://github.com/langchain-ai/langchain) / [deepagents](https://github.com/langchain-ai/deepagents); the TUI is powered by [Textual](https://github.com/Textualize/textual). Evaluation data and official scorers come from the authors of [WideSearch](https://github.com/ByteDance-Seed/WideSearch), [GISA](https://github.com/RUC-NLPIR/GISA), xbench, and other benchmarks, who retain all rights (see the LICENSE files under `datasets/` and [LEGAL.md](LEGAL.md)).
+SearchOS is built on [LangGraph](https://github.com/langchain-ai/langgraph) / [LangChain](https://github.com/langchain-ai/langchain) / [deepagents](https://github.com/langchain-ai/deepagents); the TUI is powered by [Textual](https://github.com/Textualize/textual).
 
 ## 📚 Citation
 

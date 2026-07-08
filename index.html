@@ -1301,6 +1301,7 @@
     <a href="#results" data-target="results"><span class="toc-dot"></span><span class="toc-label">Results</span></a>
     <a href="#gallery" data-target="gallery"><span class="toc-dot"></span><span class="toc-label">Gallery</span></a>
     <a href="#resources" data-target="resources"><span class="toc-dot"></span><span class="toc-label">Resources</span></a>
+    <a href="#acknowledgements" data-target="acknowledgements"><span class="toc-dot"></span><span class="toc-label">Acknowledgements</span></a>
 </nav>
 
 <!-- ===== RIGHT PROGRESS RAIL + ROCKET TO TOP ===== -->
@@ -1339,13 +1340,14 @@
         <a href="#flow">Case Study</a>
         <a href="#results">Results</a>
         <a href="#gallery">Gallery</a>
+        <a href="#acknowledgements">Acknowledgements</a>
     </nav>
     <div class="header-right">
         <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle day / night theme" title="Toggle day / night">
             <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
         </button>
-        <a href="#" class="header-cta" onclick="return false">
+        <a href="https://github.com/antins-labs/SearchOS" class="header-cta">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
             Star on GitHub
         </a>
@@ -1364,7 +1366,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                 Read Paper
             </a>
-            <a href="#" class="btn" onclick="return false">
+            <a href="https://github.com/antins-labs/SearchOS" class="btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
                 GitHub
             </a>
@@ -3045,6 +3047,20 @@ python -m searchos   # interactive TUI</code></pre>
   howpublished={\url{https://github.com/antins-labs/SearchOS}}
 }</code></pre>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== ACKNOWLEDGEMENTS ===== -->
+<section id="acknowledgements" class="section">
+    <div class="container">
+        <div class="section-head reveal">
+            <div class="kicker">Credits</div>
+            <h2>Acknowledgements</h2>
+        </div>
+        <div class="card-spotlight tile reveal" style="--reveal-delay:100ms">
+            <p>SearchOS is designed and built by its core contributors, <strong>Yuyao Zhang</strong> and <strong>Junjie Gao</strong> (Ant Group), under the supervision of their advisors, <strong>Ji-Rong Wen</strong> and <strong>Zhicheng Dou</strong> (Renmin University of China). We also thank Ant Insurance and its AI-native product 保险快查 for their strong support, and are especially grateful to <strong>Kai Yang</strong> and <strong>Xingzhong Xu</strong>, the initiators of this project and leaders of 保险快查.</p>
+            <p style="margin-top:18px">SearchOS is built on <a href="https://github.com/langchain-ai/langgraph" target="_blank" rel="noopener" style="color:var(--blue-glow)">LangGraph</a> / <a href="https://github.com/langchain-ai/langchain" target="_blank" rel="noopener" style="color:var(--blue-glow)">LangChain</a> / <a href="https://github.com/langchain-ai/deepagents" target="_blank" rel="noopener" style="color:var(--blue-glow)">deepagents</a>; the TUI is powered by <a href="https://github.com/Textualize/textual" target="_blank" rel="noopener" style="color:var(--blue-glow)">Textual</a>.</p>
         </div>
     </div>
 </section>
