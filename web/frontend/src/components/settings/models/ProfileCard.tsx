@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Loader2, Pencil, RotateCcw, Trash2 } from "lucide-react";
 
 import { deleteProfile, patchProfile } from "@/lib/api";
-import type { ProfileInfo } from "@/lib/types";
+import type { ModelsView, ProfileInfo } from "@/lib/types";
 import { useSettings } from "@/components/settings/SettingsProvider";
-import KeyEditor from "@/components/settings/models/KeyEditor";
+import Toggle from "@/components/settings/controls/Toggle";
 
 interface Props {
   name: string;
@@ -16,66 +16,109 @@ interface Props {
 
 const inputCls =
   "surface w-full rounded-lg px-2.5 py-1.5 font-mono text-[12px] text-ink outline-none transition-colors placeholder:font-sans placeholder:text-ink-faint focus:border-accent disabled:opacity-40";
+const selectCls =
+  "surface w-full rounded-lg px-2.5 py-1.5 text-[12px] text-ink outline-none transition-colors focus:border-accent disabled:opacity-40";
 
 /**
- * One model profile. Connection fields (model / api_base / api_key_env) are
- * editable inline — base profiles get web overrides (resettable), custom
- * profiles are edited in place and can be deleted when no role binds them.
+ * One model card. Its provider comes from a user-defined provider connection
+ * (chosen via the dropdown) — picking one inherits protocol/base/key/thinking
+ * from it, so the card itself only edits a model id, temperature and thinking
+ * (plus, when the connection carries several keys, which key to use). The API
+ * key VALUE is managed on the connection, never here. Base profiles keep an
+ * "env default" option; custom profiles can be deleted.
  */
 export default function ProfileCard({ name, profile: p, disabled = false }: Props) {
-  const { mutate } = useSettings();
+  const { settings, mutate } = useSettings();
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
+
   const [model, setModel] = useState("");
-  const [apiBase, setApiBase] = useState("");
-  const [keyEnv, setKeyEnv] = useState("");
+  const [temp, setTemp] = useState("");
+  const [enableThinking, setEnableThinking] = useState(false);
+  const [providerRef, setProviderRef] = useState("");  // "" = env default / inline
+  const [keyEnv, setKeyEnv] = useState("");             // which of the connection's keys
+
+  const conns = settings?.models.provider_connections ?? {};
+  const connNames = Object.keys(conns);
+  const selConn = providerRef ? conns[providerRef] : undefined;
+  const keyChoices = selConn?.api_key_envs ?? [];
+  const primaryEnv = keyChoices[0]?.env ?? "";
+
+  // Effective protocol drives whether the thinking toggle is meaningful.
+  const effProtocol = selConn ? selConn.protocol : p.provider;
+  const thinkingSupported = effProtocol !== "anthropic";
 
   const startEdit = () => {
     setModel(p.model);
-    setApiBase(p.api_base);
+    setTemp(p.temperature === null ? "" : String(p.temperature));
+    setEnableThinking(p.enable_thinking);
+    setProviderRef(p.provider_ref ?? "");
     setKeyEnv(p.api_key_env);
     setEditing(true);
     setConfirmDelete(false);
   };
 
-  const call = async (fn: () => Promise<import("@/lib/types").ModelsView>, errorLabel: string) => {
+  // Switching connection invalidates the old key pick — fall back to its default.
+  const onProviderRef = (ref: string) => {
+    setProviderRef(ref);
+    setKeyEnv(ref ? (conns[ref]?.api_key_envs[0]?.env ?? "") : "");
+  };
+
+  const call = async (fn: () => Promise<ModelsView>, errorLabel: string) => {
     setBusy(true);
-    const result = await mutate({
-      call: fn,
-      merge: (s, models) => ({ ...s, models }),
-      errorLabel,
-    });
+    const result = await mutate({ call: fn, merge: (s, models) => ({ ...s, models }), errorLabel });
     setBusy(false);
     return result;
   };
 
+  const tempValid = temp.trim() === "" || !Number.isNaN(Number(temp));
+
   const save = async () => {
-    const patch: { model?: string; api_base?: string; api_key_env?: string } = {};
-    const drafts = { model: model.trim(), api_base: apiBase.trim(), api_key_env: keyEnv.trim() };
-    if (drafts.model && drafts.model !== p.model) patch.model = drafts.model;
-    if (drafts.api_base !== p.api_base) patch.api_base = drafts.api_base;
-    if (drafts.api_key_env && drafts.api_key_env !== p.api_key_env) patch.api_key_env = drafts.api_key_env;
+    const patch: Parameters<typeof patchProfile>[1] = {};
+    const draftModel = model.trim();
+    if (draftModel && draftModel !== p.model) patch.model = draftModel;
+
+    const curRef = p.provider_ref ?? "";
+    if (providerRef !== curRef) {
+      patch.provider_ref = providerRef;  // "" clears the ref
+      // Realign the key selection to the new connection ("" = its default key).
+      patch.api_key_env = providerRef ? (keyEnv === primaryEnv ? "" : keyEnv) : "";
+    } else if (providerRef && keyEnv !== p.api_key_env) {
+      patch.api_key_env = keyEnv === primaryEnv ? "" : keyEnv;
+    }
+
+    const newTemp = temp.trim() === "" ? null : Number(temp);
+    if (newTemp !== p.temperature) patch.temperature = newTemp;
+
+    const thinkingOn = thinkingSupported && enableThinking;
+    if (thinkingOn !== p.enable_thinking) patch.enable_thinking = thinkingOn;
+
     if (!Object.keys(patch).length) { setEditing(false); return; }
-    // On a base profile "" would mean "clear override" — an empty api_base
-    // draft equal to the base value is filtered out above, so "" only goes
-    // through when the user actually emptied a previously-set base.
-    if (await call(() => patchProfile(name, patch), "Couldn't update profile")) setEditing(false);
+    if (await call(() => patchProfile(name, patch), "Couldn't update model")) setEditing(false);
   };
 
+  // Clear every web override for a base profile (connection + sampling + model).
   const reset = () =>
-    call(() => patchProfile(name, { model: "", api_base: "", api_key_env: "" }),
-      "Couldn't reset profile");
+    call(() => patchProfile(name, {
+      model: "", api_base: "", api_key_env: "", provider_ref: "", temperature: null,
+    }), "Couldn't reset model");
 
   const remove = async () => {
-    if (await call(() => deleteProfile(name), "Couldn't delete profile")) setConfirmDelete(false);
+    if (await call(() => deleteProfile(name), "Couldn't delete model")) setConfirmDelete(false);
   };
 
+  const refLabel = useMemo(() => {
+    if (!p.provider_ref) return p.custom ? "manual (inline)" : "env default";
+    return conns[p.provider_ref]?.label || p.provider_ref;
+  }, [p.provider_ref, p.custom, conns]);
+
   return (
-    <div className="surface rounded-xl px-3.5 py-3">
-      <div className="flex items-center justify-between gap-2">
+    <div className="surface rounded-xl px-4 py-3.5">
+      <div className="flex items-center justify-between gap-3">
         <span className="flex min-w-0 items-center gap-1.5">
-          <span className="truncate font-mono text-[12.5px] text-ink">{name}</span>
+          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${p.api_key_set ? "bg-ok" : "bg-warn"}`} />
+          <span className="truncate font-mono text-[13px] text-ink">{name}</span>
           {p.custom && (
             <span className="shrink-0 rounded-md bg-clay px-1.5 py-0.5 text-[10px] text-accent-ink">custom</span>
           )}
@@ -83,72 +126,102 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
             <span className="shrink-0 rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] text-ink-dim">edited</span>
           )}
         </span>
-        <span className={`flex shrink-0 items-center gap-1.5 text-[11px] ${p.api_key_set ? "text-ok" : "text-warn"}`}>
-          <span className={`h-1.5 w-1.5 rounded-full ${p.api_key_set ? "bg-ok" : "bg-warn"}`} />
-          {p.api_key_set ? "Key configured" : "No API key"}
-        </span>
+        {!editing && (
+          <button type="button" onClick={startEdit} disabled={disabled}
+            className="flex shrink-0 items-center gap-1 rounded-lg border border-line px-3 py-1.5 text-[12.5px] text-ink-dim transition-colors hover:border-line-strong disabled:opacity-40">
+            <Pencil size={12} /> Edit
+          </button>
+        )}
       </div>
 
       {editing ? (
         <div className="mt-2 space-y-1.5">
+          <label className="block">
+            <span className="mb-1 block text-[11px] text-ink-faint">Provider</span>
+            <select value={providerRef} onChange={(e) => onProviderRef(e.target.value)} disabled={busy}
+              aria-label={`Provider for ${name}`} className={selectCls}>
+              <option value="">{p.custom ? "Manual (inline)" : "Env default"}</option>
+              {connNames.map((n) => <option key={n} value={n}>{conns[n].label || n}</option>)}
+            </select>
+          </label>
+          {keyChoices.length > 1 && (
+            <label className="block">
+              <span className="mb-1 block text-[11px] text-ink-faint">API key</span>
+              <select value={keyEnv} onChange={(e) => setKeyEnv(e.target.value)} disabled={busy}
+                aria-label={`API key for ${name}`} className={selectCls}>
+                {keyChoices.map((k) => (
+                  <option key={k.env} value={k.env}>
+                    {k.env}{k.env === primaryEnv ? " (default)" : ""}{k.key_set ? "" : " — not set"}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {connNames.length === 0 && (
+            <p className="text-[11px] text-ink-faint">
+              No provider connections yet — add one in Providers above to switch.
+            </p>
+          )}
           <input value={model} onChange={(e) => setModel(e.target.value)} disabled={busy}
-            placeholder="Model" aria-label={`Model for ${name}`} spellCheck={false} className={inputCls} />
-          <input value={apiBase} onChange={(e) => setApiBase(e.target.value)} disabled={busy}
-            placeholder="API base (empty = SDK default)" aria-label={`API base for ${name}`}
-            spellCheck={false} className={inputCls} />
-          <input value={keyEnv} onChange={(e) => setKeyEnv(e.target.value.toUpperCase())} disabled={busy}
-            placeholder="API key env var" aria-label={`API key env for ${name}`}
-            spellCheck={false} className={inputCls} />
+            placeholder="Model id" aria-label={`Model for ${name}`} spellCheck={false} className={inputCls} />
+          <input value={temp} onChange={(e) => setTemp(e.target.value)} disabled={busy}
+            placeholder="Temperature (empty = omit)" aria-label={`Temperature for ${name}`}
+            inputMode="decimal" spellCheck={false}
+            className={`${inputCls} ${tempValid ? "" : "border-err"}`} />
+          {thinkingSupported && (
+            <div className="flex items-center justify-between py-0.5">
+              <span className="text-[12px] text-ink-dim">Thinking</span>
+              <Toggle checked={enableThinking} disabled={busy} label={`Thinking for ${name}`}
+                onChange={setEnableThinking} />
+            </div>
+          )}
           <div className="flex justify-end gap-2 pt-0.5">
             <button type="button" onClick={() => setEditing(false)} disabled={busy}
               className="text-[12px] text-ink-faint transition-colors hover:text-ink-dim disabled:opacity-40">
               Cancel
             </button>
-            <button type="button" onClick={save} disabled={busy}
+            <button type="button" onClick={save} disabled={busy || !tempValid}
               className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1 text-[12px] text-white transition-opacity hover:opacity-90 disabled:opacity-25">
               {busy && <Loader2 size={11} className="animate-spin" />} Save
             </button>
           </div>
         </div>
       ) : (
-        <div className="mt-1.5 space-y-0.5 text-[11.5px] text-ink-faint">
-          <div className="truncate">model: <span className="text-ink-dim">{p.model}</span></div>
-          <div className="truncate">provider: {p.provider}</div>
-          <div className="truncate">base: {p.api_base || "SDK default"}</div>
-          <div className="truncate">key env: <span className="font-mono">{p.api_key_env}</span></div>
-        </div>
-      )}
-
-      {!editing && (
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <span className="flex items-center gap-3">
-            <button type="button" onClick={startEdit} disabled={disabled}
-              className="flex items-center gap-1 text-[11.5px] text-ink-faint transition-colors hover:text-ink-dim disabled:opacity-40">
-              <Pencil size={11} /> Edit
-            </button>
-            {p.overridden.length > 0 && (
-              <button type="button" onClick={reset} disabled={disabled || busy}
-                className="flex items-center gap-1 text-[11.5px] text-ink-faint transition-colors hover:text-ink-dim disabled:opacity-40">
-                <RotateCcw size={11} /> Reset
-              </button>
-            )}
-            {p.custom && (confirmDelete ? (
-              <span className="flex items-center gap-2 text-[11.5px]">
-                <span className="text-err">Delete?</span>
-                <button type="button" onClick={remove} disabled={busy}
-                  className="text-err transition-opacity hover:opacity-80 disabled:opacity-40">Yes</button>
-                <button type="button" onClick={() => setConfirmDelete(false)}
-                  className="text-ink-faint transition-colors hover:text-ink-dim">No</button>
-              </span>
-            ) : (
-              <button type="button" onClick={() => setConfirmDelete(true)} disabled={disabled}
-                className="flex items-center gap-1 text-[11.5px] text-ink-faint transition-colors hover:text-err disabled:opacity-40">
-                <Trash2 size={11} /> Delete
-              </button>
-            ))}
-          </span>
-          {!p.api_key_set && <KeyEditor envName={p.api_key_env} keySet={false} disabled={disabled} />}
-        </div>
+        <>
+          <div className="mt-1.5 space-y-0.5 text-[11.5px] text-ink-faint">
+            <div className="truncate">model: <span className="text-ink-dim">{p.model}</span></div>
+            <div className="truncate">provider: <span className="font-mono">{refLabel}</span> · {p.provider}</div>
+            <div className="truncate">key env: <span className="font-mono">{p.api_key_env}</span></div>
+            <div className="truncate">
+              temperature: {p.temperature === null ? "omitted" : p.temperature}
+              {p.enable_thinking && " · thinking on"}
+            </div>
+          </div>
+          {(p.overridden.length > 0 || p.custom) && (
+            <div className="mt-2 flex items-center gap-3">
+              {p.overridden.length > 0 && (
+                <button type="button" onClick={reset} disabled={disabled || busy}
+                  className="flex items-center gap-1 text-[11.5px] text-ink-faint transition-colors hover:text-ink-dim disabled:opacity-40">
+                  <RotateCcw size={11} /> Reset
+                </button>
+              )}
+              {p.custom && (confirmDelete ? (
+                <span className="flex items-center gap-2 text-[11.5px]">
+                  <span className="text-err">Delete?</span>
+                  <button type="button" onClick={remove} disabled={busy}
+                    className="text-err transition-opacity hover:opacity-80 disabled:opacity-40">Yes</button>
+                  <button type="button" onClick={() => setConfirmDelete(false)}
+                    className="text-ink-faint transition-colors hover:text-ink-dim">No</button>
+                </span>
+              ) : (
+                <button type="button" onClick={() => setConfirmDelete(true)} disabled={disabled}
+                  className="flex items-center gap-1 text-[11.5px] text-ink-faint transition-colors hover:text-err disabled:opacity-40">
+                  <Trash2 size={11} /> Delete
+                </button>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

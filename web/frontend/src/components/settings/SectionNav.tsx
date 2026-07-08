@@ -1,6 +1,6 @@
 "use client";
 
-import { Blocks, Cpu, Gauge, Palette, type LucideIcon } from "lucide-react";
+import { Blocks, Cpu, Gauge, Globe, Palette, type LucideIcon } from "lucide-react";
 
 export interface SectionDef {
   id: string;
@@ -9,9 +9,10 @@ export interface SectionDef {
 }
 
 export const SECTIONS: SectionDef[] = [
-  { id: "budget", label: "Search budget", icon: Gauge },
-  { id: "skills", label: "Skills", icon: Blocks },
   { id: "models", label: "Models", icon: Cpu },
+  { id: "search", label: "Search & browse", icon: Globe },
+  { id: "skills", label: "Skills", icon: Blocks },
+  { id: "budget", label: "Search budget", icon: Gauge },
   { id: "appearance", label: "Appearance", icon: Palette },
 ];
 

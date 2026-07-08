@@ -16,7 +16,7 @@ import re
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from api import settings_store, settings_views
 from api.settings_store import store
@@ -36,6 +36,7 @@ def _allowed_key_envs() -> set[str]:
 
     allowed = {p.api_key_env for p in PRESETS.values()}
     allowed |= {p.api_key_env for p in settings.profiles.values()}
+    allowed |= {e for c in store.models.provider_connections.values() for e in c.api_key_envs}
     allowed |= {info["api_key_env"] for info in SEARCH_PROVIDER_INFO.values()}
     allowed |= {"SF_JINA_API_KEY", "JINA_API_KEY"}
     custom = os.environ.get("SF_API_KEY_ENV", "").strip()
@@ -67,20 +68,47 @@ class KeyUpdate(BaseModel, extra="forbid"):
     value: str  # "" clears the key
 
 
+class ProviderConnUpsert(BaseModel, extra="forbid"):
+    """A user-defined provider connection. Model cards reference it by name; the
+    key VALUES are written separately via PUT /keys (only the env names live
+    here). ``api_key_envs`` may list several keys — the first is the default."""
+    protocol: Literal["openai_compatible", "openai", "anthropic"] = "openai_compatible"
+    api_base: str = ""
+    api_key_envs: list[str] = Field(default_factory=list)
+    thinking_style: Literal["chat_template_kwargs", "enable_thinking", "none"] = "none"
+    label: str = ""
+
+
 class ProfilePatch(BaseModel, extra="forbid"):
-    """Connection fields. On a base profile "" clears that field's override;
-    on a custom profile fields are edited directly ("" only valid for api_base)."""
+    """Model-card edits. ``provider_ref`` re-points the card at a user-defined
+    provider connection (its protocol/base/key_env/thinking_style then win). The
+    card's own tunables are model id + temperature + enable_thinking.
+
+    On a base profile "" clears a connection field's override; on a custom profile
+    fields are edited in place. model_fields_set tells "not sent" from an explicit
+    None (temperature None = omit the param; provider_ref None = drop the ref)."""
     model: str | None = None
     api_base: str | None = None
     api_key_env: str | None = None
+    provider: Literal["openai_compatible", "openai", "anthropic"] | None = None
+    provider_ref: str | None = None
+    temperature: float | None = None
+    enable_thinking: bool | None = None
+    thinking_style: Literal["chat_template_kwargs", "enable_thinking", "none"] | None = None
 
 
 class ProfileCreate(BaseModel, extra="forbid"):
     name: str
     model: str
+    # A card normally points at a provider connection; the inline provider/
+    # api_base/api_key_env are only used (and api_key_env required) when no ref.
+    provider_ref: str | None = None
     provider: Literal["openai_compatible", "openai", "anthropic"] = "openai_compatible"
     api_base: str = ""
-    api_key_env: str
+    api_key_env: str = ""
+    temperature: float | None = None
+    enable_thinking: bool = False
+    thinking_style: Literal["chat_template_kwargs", "enable_thinking", "none"] = "none"
 
 
 _PROFILE_NAME_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$")
@@ -231,19 +259,41 @@ async def patch_profile(name: str, req: ProfilePatch):
             if getattr(req, field) == "":
                 raise HTTPException(400, f"{field} cannot be empty on a custom profile")
 
+    if req.provider_ref not in (None, "") and req.provider_ref not in store.models.provider_connections:
+        raise HTTPException(400, f"Unknown provider connection: {req.provider_ref!r}")
+
     def patch(s):
         if is_custom:
             cp = s.models.custom_profiles[name]
-            for field in ("model", "api_base", "api_key_env"):
+            for field in ("model", "api_base", "api_key_env", "provider"):
                 value = getattr(req, field)
                 if value is not None:
                     setattr(cp, field, value)
+            # provider_ref: "" drops the ref (back to inline fields), a name sets it.
+            if "provider_ref" in req.model_fields_set:
+                cp.provider_ref = req.provider_ref or None
+            # Sampling knobs — model_fields_set distinguishes "not sent" from an
+            # explicit None (temperature None means "omit the param").
+            if "temperature" in req.model_fields_set:
+                cp.temperature = req.temperature
+            if req.enable_thinking is not None:
+                cp.enable_thinking = req.enable_thinking
+            if req.thinking_style is not None:
+                cp.thinking_style = req.thinking_style
         else:
             ov = s.models.profile_overrides.get(name) or ProfileOverride()
             for field in ("model", "api_base", "api_key_env"):
                 value = getattr(req, field)
                 if value is not None:
                     setattr(ov, field, value or None)  # "" → clear the override
+            # provider_ref / temperature: None from the wire means "clear this
+            # override" (a base card falls back to its env connection / base temp).
+            if "provider_ref" in req.model_fields_set:
+                ov.provider_ref = req.provider_ref or None
+            if "temperature" in req.model_fields_set:
+                ov.temperature = req.temperature
+            if req.enable_thinking is not None:
+                ov.enable_thinking = req.enable_thinking
             if ov == ProfileOverride():
                 s.models.profile_overrides.pop(name, None)
             else:
@@ -270,13 +320,21 @@ async def create_profile(req: ProfileCreate):
         raise HTTPException(400, f"Profile {req.name!r} already exists")
     if not req.model.strip():
         raise HTTPException(400, "model is required")
-    if not _ENV_NAME_RE.fullmatch(req.api_key_env):
-        raise HTTPException(400, "api_key_env must look like AN_ENV_VAR_NAME")
+    if req.provider_ref:
+        if req.provider_ref not in store.models.provider_connections:
+            raise HTTPException(400, f"Unknown provider connection: {req.provider_ref!r}")
+    elif not _ENV_NAME_RE.fullmatch(req.api_key_env):
+        # No connection → the inline api_key_env must be a real env var name.
+        raise HTTPException(400, "Pick a provider connection, or give a valid api_key_env")
 
     def patch(s):
         s.models.custom_profiles[req.name] = CustomProfile(
-            model=req.model.strip(), provider=req.provider,
-            api_base=req.api_base.strip(), api_key_env=req.api_key_env,
+            model=req.model.strip(), provider_ref=req.provider_ref or None,
+            provider=req.provider,
+            api_base=req.api_base.strip(),
+            api_key_env=req.api_key_env or "OPENAI_API_KEY",
+            temperature=req.temperature, enable_thinking=req.enable_thinking,
+            thinking_style=req.thinking_style,
         )
 
     await settings_store.update(patch)
@@ -302,6 +360,57 @@ async def delete_profile(name: str):
         s.models.custom_profiles.pop(name, None)
         s.models.profile_overrides.pop(name, None)
         s.models.roles = {r: p for r, p in s.models.roles.items() if p != name}
+
+    await settings_store.update(patch, reload=True)
+    return models_view()
+
+
+@router.put("/provider-connections/{name}")
+async def put_provider_connection(name: str, req: ProviderConnUpsert):
+    """Create or update a user-defined provider connection. Model cards point at
+    it by name; editing it re-flows to every card that references it."""
+    from api.settings_store import ProviderConnection
+
+    if not _PROFILE_NAME_RE.fullmatch(name):
+        raise HTTPException(400, "Connection name must be alphanumeric with . _ - (max 64 chars)")
+    if not req.api_key_envs:
+        raise HTTPException(400, "At least one api_key_env is required")
+    envs: list[str] = []
+    for env in req.api_key_envs:
+        if not _ENV_NAME_RE.fullmatch(env):
+            raise HTTPException(400, f"api_key_env {env!r} must look like AN_ENV_VAR_NAME")
+        if env not in envs:  # de-dup, keep order (first = default)
+            envs.append(env)
+
+    def patch(s):
+        s.models.provider_connections[name] = ProviderConnection(
+            protocol=req.protocol, api_base=req.api_base.strip(),
+            api_key_envs=envs, thinking_style=req.thinking_style,
+            label=req.label.strip(),
+        )
+
+    # reload so cards referencing this connection rebuild against its new fields.
+    await settings_store.update(patch, reload=True)
+    return models_view()
+
+
+@router.delete("/provider-connections/{name}")
+async def delete_provider_connection(name: str):
+    """Delete a provider connection. Blocked while any model card references it."""
+    if name not in store.models.provider_connections:
+        raise HTTPException(404, f"Unknown provider connection: {name!r}")
+
+    used = sorted(
+        p for p, cp in store.models.custom_profiles.items() if cp.provider_ref == name
+    ) + sorted(
+        p for p, ov in store.models.profile_overrides.items() if ov.provider_ref == name
+    )
+    if used:
+        raise HTTPException(
+            400, f"Connection {name!r} is used by model cards {used} — repoint them first")
+
+    def patch(s):
+        s.models.provider_connections.pop(name, None)
 
     await settings_store.update(patch, reload=True)
     return models_view()

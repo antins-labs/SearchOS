@@ -59,9 +59,15 @@ def models_view() -> dict:
         resolve_search_provider_name,
     )
 
+    cp_map = store.models.custom_profiles
     profiles = {}
     for name, p in settings.profiles.items():
         ov = store.models.profile_overrides.get(name)
+        # Which provider connection this card points at (custom carries its own
+        # ref; a base card's ref lives in its override).
+        provider_ref = cp_map[name].provider_ref if name in cp_map else (
+            ov.provider_ref if ov is not None else None
+        )
         profiles[name] = {
             "model": p.model,
             "provider": p.provider,
@@ -71,12 +77,30 @@ def models_view() -> dict:
             "temperature": p.temperature,
             "max_tokens": p.max_tokens,
             "enable_thinking": p.enable_thinking,
-            "custom": name in store.models.custom_profiles,
+            "thinking_style": p.thinking_style,
+            "custom": name in cp_map,
+            "provider_ref": provider_ref,
             "overridden": sorted(
-                f for f in ("model", "api_base", "api_key_env")
+                f for f in ("model", "api_base", "api_key_env", "provider_ref",
+                            "temperature", "enable_thinking")
                 if ov is not None and getattr(ov, f) is not None
             ),
         }
+
+    provider_connections = {
+        name: {
+            "protocol": c.protocol,
+            "api_base": c.api_base,
+            # Every candidate key env with its own presence flag; the first is
+            # the connection's default. A card may select a non-default one.
+            "api_key_envs": [{"env": e, "key_set": key_set(e)} for e in c.api_key_envs],
+            "thinking_style": c.thinking_style,
+            "label": c.label,
+            # Connection-level dot: usable if ANY of its keys is present.
+            "key_set": any(key_set(e) for e in c.api_key_envs),
+        }
+        for name, c in store.models.provider_connections.items()
+    }
 
     search_key_fallbacks = {
         "serper": settings.serper_api_key,
@@ -96,6 +120,7 @@ def models_view() -> dict:
     return {
         "active_provider_preset": active_provider(),
         "profiles": profiles,
+        "provider_connections": provider_connections,
         "roles": dict(settings.roles),
         "role_overrides": dict(store.models.roles),
         "search": {

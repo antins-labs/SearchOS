@@ -5,7 +5,6 @@ import type {
   EffortView,
   FileNode,
   ModelsView,
-  ProviderSwitchResult,
   ProvidersResponse,
   RunDefaultsView,
   SearchRequest,
@@ -170,30 +169,46 @@ export async function getProviderPresets(): Promise<ProvidersResponse> {
   return res.json();
 }
 
-export const putProvider = (body: {
-  preset: string;
-  api_key?: string;
-  model?: string;
-  fast_model?: string;
-  api_base?: string;
-}) => putJson<ProviderSwitchResult>("/api/settings/provider", body);
-
 export const putSettingsKey = (env: string, value: string) =>
   putJson<ModelsView>("/api/settings/keys", { env, value });
 
-// Profile connection fields; on base profiles "" clears that field's override.
+// Create/update a user-defined provider connection (referenced by model cards).
+export const putProviderConnection = (name: string, body: {
+  protocol?: "openai_compatible" | "openai" | "anthropic";
+  api_base?: string;
+  api_key_envs: string[];
+  thinking_style?: "chat_template_kwargs" | "enable_thinking" | "none";
+  label?: string;
+}) => putJson<ModelsView>(`/api/settings/provider-connections/${encodeURIComponent(name)}`, body);
+
+export const deleteProviderConnection = (name: string) =>
+  putJson<ModelsView>(`/api/settings/provider-connections/${encodeURIComponent(name)}`, {}, "DELETE");
+
+// Model-card edits. provider_ref repoints the card at a provider connection;
+// the card then only carries model id + temperature + enable_thinking. On a base
+// profile "" clears a connection-field override; send null to clear temperature/
+// provider_ref, omit a field to leave it unchanged.
 export const patchProfile = (name: string, patch: {
   model?: string;
   api_base?: string;
   api_key_env?: string;
+  provider?: "openai_compatible" | "openai" | "anthropic";
+  provider_ref?: string | null;
+  temperature?: number | null;
+  enable_thinking?: boolean;
+  thinking_style?: "chat_template_kwargs" | "enable_thinking" | "none";
 }) => putJson<ModelsView>(`/api/settings/profiles/${encodeURIComponent(name)}`, patch, "PATCH");
 
 export const createProfile = (body: {
   name: string;
   model: string;
+  provider_ref?: string | null;
   provider?: string;
   api_base?: string;
-  api_key_env: string;
+  api_key_env?: string;
+  temperature?: number | null;
+  enable_thinking?: boolean;
+  thinking_style?: "chat_template_kwargs" | "enable_thinking" | "none";
 }) => putJson<ModelsView>("/api/settings/profiles", body, "POST");
 
 export const deleteProfile = (name: string) =>

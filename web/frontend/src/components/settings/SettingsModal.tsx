@@ -9,12 +9,14 @@ import SectionNav, { SECTIONS } from "@/components/settings/SectionNav";
 import BudgetSection from "@/components/settings/sections/BudgetSection";
 import SkillsSection from "@/components/settings/sections/SkillsSection";
 import ModelsSection from "@/components/settings/sections/ModelsSection";
+import SearchSection from "@/components/settings/sections/SearchSection";
 import AppearanceSection from "@/components/settings/sections/AppearanceSection";
 
 const BODIES: Record<string, React.ComponentType> = {
-  budget: BudgetSection,
-  skills: SkillsSection,
   models: ModelsSection,
+  search: SearchSection,
+  skills: SkillsSection,
+  budget: BudgetSection,
   appearance: AppearanceSection,
 };
 

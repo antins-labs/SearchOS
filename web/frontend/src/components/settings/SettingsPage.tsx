@@ -10,6 +10,7 @@ import SectionNav, { SECTIONS } from "@/components/settings/SectionNav";
 import BudgetSection from "@/components/settings/sections/BudgetSection";
 import SkillsSection from "@/components/settings/sections/SkillsSection";
 import ModelsSection from "@/components/settings/sections/ModelsSection";
+import SearchSection from "@/components/settings/sections/SearchSection";
 import AppearanceSection from "@/components/settings/sections/AppearanceSection";
 
 export default function SettingsPage() {
@@ -57,9 +58,10 @@ export default function SettingsPage() {
         )}
 
         <div className="mt-8 space-y-10 pb-16">
-          <BudgetSection />
-          <SkillsSection />
           <ModelsSection />
+          <SearchSection />
+          <SkillsSection />
+          <BudgetSection />
           <AppearanceSection />
 
           <section className="border-t border-line pt-6">

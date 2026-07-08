@@ -16,7 +16,7 @@ import os
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from api.deps import WEB_SETTINGS_PATH
 
@@ -37,23 +37,78 @@ class SkillsOverlay(BaseModel, extra="forbid"):
     orchestrator_deny: list[str] = Field(default_factory=list)
 
 
+class ProviderConnection(BaseModel, extra="forbid"):
+    """A user-defined provider connection referenced by model cards.
+
+    Holds only the wire connection (protocol / endpoint / which env vars carry
+    the keys) plus how the thinking switch is spelled. The API key VALUES live in
+    .env under the names in ``api_key_envs`` — never here. One connection may
+    carry SEVERAL keys (different quota / team / project); the first is the
+    default and a model card may select another via its own ``api_key_env``.
+    Model cards point at one of these by name via ``provider_ref`` and inherit
+    all of these fields, so a card only has to carry a model id and sampling.
+    """
+    protocol: Literal["openai_compatible", "openai", "anthropic"] = "openai_compatible"
+    api_base: str = ""
+    api_key_envs: list[str] = Field(default_factory=lambda: ["OPENAI_API_KEY"])
+    thinking_style: Literal["chat_template_kwargs", "enable_thinking", "none"] = "none"
+    label: str = ""  # optional human label (e.g. the preset it was seeded from)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _migrate_singular_key(cls, data):
+        # Back-compat: an earlier overlay stored a single ``api_key_env`` string.
+        if isinstance(data, dict) and "api_key_env" in data and "api_key_envs" not in data:
+            data = dict(data)
+            env = data.pop("api_key_env")
+            data["api_key_envs"] = [env] if env else []
+        return data
+
+    @property
+    def primary_key_env(self) -> str:
+        return self.api_key_envs[0] if self.api_key_envs else "OPENAI_API_KEY"
+
+    def resolve_key_env(self, chosen: str | None) -> str:
+        """Which key a card uses: its explicit pick if it's one of ours, else
+        our default (first) key."""
+        return chosen if chosen and chosen in self.api_key_envs else self.primary_key_env
+
+
 class ProfileOverride(BaseModel, extra="forbid"):
-    """Sparse per-field deltas on a base (env-defined) profile. None = keep base."""
+    """Sparse per-field deltas on a base (env-defined) profile. None = keep base.
+
+    ``provider_ref`` re-points the profile at a user-defined provider connection
+    (its protocol/base/key_env/thinking_style win); temperature/enable_thinking
+    let a base card tune sampling without becoming a full custom profile.
+    """
     model: str | None = None
     api_base: str | None = None
     api_key_env: str | None = None
+    provider_ref: str | None = None
+    temperature: float | None = None
+    enable_thinking: bool | None = None
 
 
 class CustomProfile(BaseModel, extra="forbid"):
-    """A user-created profile. Self-contained — survives provider switches."""
+    """A user-created model card. Points at a provider connection via
+    ``provider_ref`` (inheriting protocol/base/key_env/thinking_style); the inline
+    provider/api_base/api_key_env are only a fallback for legacy cards with no
+    ref."""
     model: str
+    provider_ref: str | None = None
     provider: Literal["openai_compatible", "openai", "anthropic"] = "openai_compatible"
     api_base: str = ""
     api_key_env: str = "OPENAI_API_KEY"
+    # Sampling knobs. temperature None → omit the param (gateways that reject it).
+    temperature: float | None = None
+    max_tokens: int = 16384
+    enable_thinking: bool = False
+    thinking_style: Literal["chat_template_kwargs", "enable_thinking", "none"] = "none"
 
 
 class ModelsOverlay(BaseModel, extra="forbid"):
     roles: dict[str, str] = Field(default_factory=dict)  # sparse role→profile deltas
+    provider_connections: dict[str, ProviderConnection] = Field(default_factory=dict)
     profile_overrides: dict[str, ProfileOverride] = Field(default_factory=dict)
     custom_profiles: dict[str, CustomProfile] = Field(default_factory=dict)
     search_provider: str | None = None
@@ -72,6 +127,28 @@ class WebSettings(BaseModel, extra="forbid"):
     skills: SkillsOverlay = Field(default_factory=SkillsOverlay)
     models: ModelsOverlay = Field(default_factory=ModelsOverlay)
     run_defaults: RunDefaults = Field(default_factory=RunDefaults)
+
+
+# Shipped out of the box so the Providers section is never empty: a Theta
+# (AntChat) connection with its endpoint pre-filled; the user only adds a key.
+# Seeded whenever the overlay has no connections yet (fresh install or a
+# never-populated file); deleting it sticks until the next fresh start.
+DEFAULT_PROVIDER_CONNECTIONS: dict[str, ProviderConnection] = {
+    "theta": ProviderConnection(
+        protocol="openai_compatible",
+        api_base="https://antchat.alipay.com/v1",
+        api_key_envs=["ANTCHAT_API_KEY"],
+        thinking_style="none",
+        label="Theta (AntChat)",
+    ),
+}
+
+
+def _seed_default_connections() -> None:
+    if not store.models.provider_connections:
+        store.models.provider_connections.update(
+            {name: c.model_copy() for name, c in DEFAULT_PROVIDER_CONNECTIONS.items()}
+        )
 
 
 _LOCK = asyncio.Lock()
@@ -108,6 +185,7 @@ def load_and_apply() -> None:
         except Exception:
             logger.warning("Corrupt %s — starting with empty overlay", path, exc_info=True)
             _replace_store(WebSettings())
+    _seed_default_connections()
     apply_to_runtime()
 
 
@@ -134,11 +212,21 @@ def apply_to_runtime() -> None:
     # should one arise later (e.g. via a provider switch) the custom wins,
     # deterministically.
     from searchos.config.profiles import ModelProfile
+    conns = store.models.provider_connections
     for name, cp in store.models.custom_profiles.items():
+        # A provider_ref inherits the connection wholesale; only the model id and
+        # sampling knobs stay on the card. Fall back to inline fields when unset
+        # (or the ref was deleted out from under it).
+        conn = conns.get(cp.provider_ref) if cp.provider_ref else None
         settings.profiles[name] = ModelProfile(
-            model=cp.model, provider=cp.provider,
-            api_base=cp.api_base, api_key_env=cp.api_key_env,
-            max_tokens=16384,  # agent-work default; ModelProfile's 4096 is too tight
+            model=cp.model,
+            provider=conn.protocol if conn else cp.provider,
+            api_base=conn.api_base if conn else cp.api_base,
+            api_key_env=conn.resolve_key_env(cp.api_key_env) if conn else cp.api_key_env,
+            temperature=cp.temperature,
+            max_tokens=cp.max_tokens,  # agent-work default; ModelProfile's 4096 is too tight
+            enable_thinking=cp.enable_thinking,
+            thinking_style=conn.thinking_style if conn else cp.thinking_style,
         )
 
     for name, ov in store.models.profile_overrides.items():
@@ -150,6 +238,17 @@ def apply_to_runtime() -> None:
             value = getattr(ov, field)
             if value is not None:
                 setattr(profile, field, value)
+        # A provider_ref wins over inline connection fields for this base card.
+        conn = conns.get(ov.provider_ref) if ov.provider_ref else None
+        if conn:
+            profile.provider = conn.protocol
+            profile.api_base = conn.api_base
+            profile.api_key_env = conn.resolve_key_env(ov.api_key_env)
+            profile.thinking_style = conn.thinking_style
+        if ov.temperature is not None:
+            profile.temperature = ov.temperature
+        if ov.enable_thinking is not None:
+            profile.enable_thinking = ov.enable_thinking
 
     for role, profile in store.models.roles.items():
         if role not in settings.roles:

@@ -20,6 +20,27 @@ export function SectionShell({
   );
 }
 
+/** A titled sub-block inside a section (e.g. Providers / Models / Roles). */
+export function SubSection({
+  title, description, children,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <h3 className="text-[14px] font-medium text-ink">{title}</h3>
+        {description && (
+          <p className="mt-0.5 text-[12.5px] leading-relaxed text-ink-faint">{description}</p>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 /** A bordered card grouping related rows. */
 export function Card({ children }: { children: ReactNode }) {
   return <div className="surface divide-y divide-line rounded-xl">{children}</div>;

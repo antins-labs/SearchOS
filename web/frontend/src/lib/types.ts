@@ -34,6 +34,20 @@ export interface SkillsView {
   categories: Record<string, SkillInfo[]>; // orchestrator / access / strategy
 }
 
+export interface ProviderKeyEnvInfo {
+  env: string;
+  key_set: boolean;
+}
+
+export interface ProviderConnectionInfo {
+  protocol: "openai_compatible" | "openai" | "anthropic";
+  api_base: string;
+  api_key_envs: ProviderKeyEnvInfo[]; // first entry is the default key
+  thinking_style: "chat_template_kwargs" | "enable_thinking" | "none";
+  label: string;
+  key_set: boolean; // any of the connection's keys present
+}
+
 export interface ProfileInfo {
   model: string;
   provider: string;
@@ -43,8 +57,10 @@ export interface ProfileInfo {
   temperature: number | null;
   max_tokens: number | null;
   enable_thinking: boolean;
+  thinking_style: "chat_template_kwargs" | "enable_thinking" | "none";
   custom: boolean;
-  overridden: string[]; // base-profile fields overridden via web ("model" | "api_base" | "api_key_env")
+  provider_ref: string | null; // name of the provider connection this card points at
+  overridden: string[]; // base-profile fields overridden via web
 }
 
 export interface SearchProviderInfo {
@@ -58,6 +74,7 @@ export interface SearchProviderInfo {
 export interface ModelsView {
   active_provider_preset: string;
   profiles: Record<string, ProfileInfo>;
+  provider_connections: Record<string, ProviderConnectionInfo>;
   roles: Record<string, string>;
   role_overrides: Record<string, string>;
   search: {
@@ -98,6 +115,9 @@ export interface ProviderPresetInfo {
   main_model: string;
   fast_model: string;
   api_base: string;
+  protocol: "openai_compatible" | "openai" | "anthropic";
+  thinking_style: "chat_template_kwargs" | "enable_thinking" | "none";
+  temperature_ok: boolean;
   doc_url: string;
   notes: string;
   key_set: boolean;

@@ -4,81 +4,131 @@ import { useState } from "react";
 import { Loader2, Plus } from "lucide-react";
 
 import { createProfile } from "@/lib/api";
+import type { ModelsView } from "@/lib/types";
 import { useSettings } from "@/components/settings/SettingsProvider";
-
-const PROVIDERS = ["openai_compatible", "openai", "anthropic"];
+import Toggle from "@/components/settings/controls/Toggle";
 
 const inputCls =
   "surface w-full rounded-lg px-2.5 py-1.5 font-mono text-[12px] text-ink outline-none transition-colors placeholder:font-sans placeholder:text-ink-faint focus:border-accent disabled:opacity-40";
+const selectCls =
+  "surface w-full rounded-lg px-2.5 py-1.5 text-[12px] text-ink outline-none transition-colors focus:border-accent disabled:opacity-40";
+const NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
 
-/** Dashed "add" card that expands into a custom-profile creation form. */
+/**
+ * Dashed "add" card. A model card points at a provider connection and only
+ * carries a model id + sampling; the connection supplies protocol/base/key.
+ */
 export default function NewProfileCard({ disabled = false }: { disabled?: boolean }) {
-  const { mutate } = useSettings();
+  const { settings, mutate } = useSettings();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  const [providerRef, setProviderRef] = useState("");
+  const [keyEnv, setKeyEnv] = useState("");
   const [name, setName] = useState("");
   const [model, setModel] = useState("");
-  const [provider, setProvider] = useState("openai_compatible");
-  const [apiBase, setApiBase] = useState("");
-  const [keyEnv, setKeyEnv] = useState("");
+  const [temp, setTemp] = useState("");
+  const [enableThinking, setEnableThinking] = useState(false);
 
-  const canCreate = name.trim() !== "" && model.trim() !== "" && keyEnv.trim() !== "" && !busy;
+  const conns = settings?.models.provider_connections ?? {};
+  const connNames = Object.keys(conns);
+  const profiles = settings?.models.profiles ?? {};
+
+  const selConn = providerRef ? conns[providerRef] : undefined;
+  const keyChoices = selConn?.api_key_envs ?? [];
+  const primaryEnv = keyChoices[0]?.env ?? "";
+  const effProtocol = selConn ? selConn.protocol : "openai_compatible";
+  const thinkingSupported = effProtocol !== "anthropic";
+
+  const onProviderRef = (ref: string) => {
+    setProviderRef(ref);
+    setKeyEnv(ref ? (conns[ref]?.api_key_envs[0]?.env ?? "") : "");
+  };
+
+  const tempValid = temp.trim() === "" || !Number.isNaN(Number(temp));
+  const nameOk = NAME_RE.test(name.trim()) && !(name.trim() in profiles);
+  const canCreate = nameOk && model.trim() !== "" && providerRef !== "" && tempValid && !busy;
+
+  const reset = () => {
+    setProviderRef(""); setKeyEnv(""); setName(""); setModel(""); setTemp(""); setEnableThinking(false);
+  };
 
   const create = async () => {
     if (!canCreate) return;
     setBusy(true);
     const result = await mutate({
       call: () => createProfile({
-        name: name.trim(), model: model.trim(), provider,
-        api_base: apiBase.trim(), api_key_env: keyEnv.trim(),
+        name: name.trim(), model: model.trim(), provider_ref: providerRef,
+        // "" (or the default key) lets the connection's default key stand.
+        api_key_env: keyEnv && keyEnv !== primaryEnv ? keyEnv : undefined,
+        temperature: temp.trim() === "" ? null : Number(temp),
+        enable_thinking: thinkingSupported && enableThinking,
       }),
-      merge: (s, models) => ({ ...s, models }),
-      errorLabel: "Couldn't create profile",
+      merge: (s, models: ModelsView) => ({ ...s, models }),
+      errorLabel: "Couldn't create model",
     });
     setBusy(false);
-    if (result) {
-      setOpen(false);
-      setName(""); setModel(""); setProvider("openai_compatible"); setApiBase(""); setKeyEnv("");
-    }
+    if (result) { setOpen(false); reset(); }
   };
 
   if (!open) {
     return (
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setOpen(true)}
-        className="flex min-h-24 items-center justify-center gap-1.5 rounded-xl border border-dashed border-line text-[12.5px] text-ink-faint transition-colors hover:border-line-strong hover:text-ink-dim disabled:opacity-40"
-      >
-        <Plus size={14} /> New profile
+      <button type="button" disabled={disabled} onClick={() => setOpen(true)}
+        className="flex min-h-24 items-center justify-center gap-1.5 rounded-xl border border-dashed border-line text-[12.5px] text-ink-faint transition-colors hover:border-line-strong hover:text-ink-dim disabled:opacity-40">
+        <Plus size={14} /> New model
       </button>
     );
   }
 
   return (
     <div className="surface rounded-xl px-3.5 py-3">
-      <div className="text-[12.5px] text-ink">New profile</div>
+      <div className="text-[12.5px] text-ink">New model</div>
       <div className="mt-2 space-y-1.5">
-        <input value={name} onChange={(e) => setName(e.target.value)} disabled={busy}
-          placeholder="Name (e.g. my-vllm)" aria-label="Profile name" spellCheck={false} className={inputCls} />
-        <input value={model} onChange={(e) => setModel(e.target.value)} disabled={busy}
-          placeholder="Model (e.g. Qwen3-32B)" aria-label="Model" spellCheck={false} className={inputCls} />
-        <select
-          value={provider}
-          onChange={(e) => setProvider(e.target.value)}
-          disabled={busy}
-          aria-label="Protocol"
-          className="surface w-full rounded-lg px-2.5 py-1.5 font-mono text-[12px] text-ink outline-none transition-colors focus:border-accent disabled:opacity-40"
-        >
-          {PROVIDERS.map((v) => <option key={v} value={v}>{v}</option>)}
-        </select>
-        <input value={apiBase} onChange={(e) => setApiBase(e.target.value)} disabled={busy}
-          placeholder="API base (empty = SDK default)" aria-label="API base" spellCheck={false} className={inputCls} />
-        <input value={keyEnv} onChange={(e) => setKeyEnv(e.target.value.toUpperCase())} disabled={busy}
-          placeholder="API key env var (e.g. MY_VLLM_KEY)" aria-label="API key env var"
-          spellCheck={false} className={inputCls} />
+        {connNames.length === 0 ? (
+          <p className="text-[12px] text-ink-faint">
+            Add a provider connection in Providers above first, then a model can point at it.
+          </p>
+        ) : (
+          <>
+            <label className="block">
+              <span className="mb-1 block text-[11px] text-ink-faint">Provider</span>
+              <select value={providerRef} onChange={(e) => onProviderRef(e.target.value)} disabled={busy}
+                aria-label="Provider connection" className={selectCls}>
+                <option value="" disabled>Select a provider…</option>
+                {connNames.map((n) => <option key={n} value={n}>{conns[n].label || n}</option>)}
+              </select>
+            </label>
+            {keyChoices.length > 1 && (
+              <label className="block">
+                <span className="mb-1 block text-[11px] text-ink-faint">API key</span>
+                <select value={keyEnv} onChange={(e) => setKeyEnv(e.target.value)} disabled={busy}
+                  aria-label="API key" className={selectCls}>
+                  {keyChoices.map((k) => (
+                    <option key={k.env} value={k.env}>
+                      {k.env}{k.env === primaryEnv ? " (default)" : ""}{k.key_set ? "" : " — not set"}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <input value={name} onChange={(e) => setName(e.target.value)} disabled={busy}
+              placeholder="Name (e.g. antchat-qwen)" aria-label="Model name" spellCheck={false} className={inputCls} />
+            <input value={model} onChange={(e) => setModel(e.target.value)} disabled={busy}
+              placeholder="Model id (e.g. qwen3-max)" aria-label="Model id" spellCheck={false} className={inputCls} />
+            <input value={temp} onChange={(e) => setTemp(e.target.value)} disabled={busy}
+              placeholder="Temperature (empty = omit)" aria-label="Temperature" inputMode="decimal"
+              spellCheck={false} className={`${inputCls} ${tempValid ? "" : "border-err"}`} />
+            {thinkingSupported && (
+              <div className="flex items-center justify-between py-0.5">
+                <span className="text-[12px] text-ink-dim">Thinking</span>
+                <Toggle checked={enableThinking} disabled={busy} label="Enable thinking"
+                  onChange={setEnableThinking} />
+              </div>
+            )}
+          </>
+        )}
         <div className="flex justify-end gap-2 pt-0.5">
-          <button type="button" onClick={() => setOpen(false)} disabled={busy}
+          <button type="button" onClick={() => { setOpen(false); reset(); }} disabled={busy}
             className="text-[12px] text-ink-faint transition-colors hover:text-ink-dim disabled:opacity-40">
             Cancel
           </button>
