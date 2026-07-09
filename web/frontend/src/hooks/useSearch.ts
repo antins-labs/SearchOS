@@ -242,16 +242,21 @@ export function useSearch() {
   /** Re-attach to a session the backend is still running — history reopen,
    *  or switching back to a live run after navigating away. Seeds the
    *  already-recorded events, then streams live; the WS replay is deduped
-   *  against the seed so nothing doubles and the snapshot gap is closed. */
+   *  against `seen` (defaults to the seed) so nothing doubles and the
+   *  snapshot gap is closed. Pass the full log as `seen` when seeding only
+   *  the current turn's segment. */
   const attach = useCallback(
-    (session_id: string, seed?: { events?: WSEvent[]; searchState?: SearchState | null }) => {
+    (
+      session_id: string,
+      seed?: { events?: WSEvent[]; searchState?: SearchState | null; seen?: WSEvent[] },
+    ) => {
       wsRef.current?.close();
       if (timerRef.current) clearInterval(timerRef.current);
       if (pollRef.current) clearInterval(pollRef.current);
 
       const events = seed?.events ?? [];
       seenRef.current = new Set(
-        events
+        (seed?.seen ?? events)
           .filter((e) => e.type !== "search_complete" && e.type !== "search_error")
           .map((e) => `${e.type}|${JSON.stringify(
             (e as Record<string, unknown>).data ?? (e as Record<string, unknown>).node ?? "",

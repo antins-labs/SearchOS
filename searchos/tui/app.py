@@ -76,6 +76,7 @@ def _grad(pos: float) -> str:
 # batch all ignore it. ``_COMMANDS`` flattens canonical + aliases → handler.
 _COMMAND_SPECS = (
     ("new",     ("clear",),  "_cmd_new",     "开新话题（清空历史与覆盖表）",      "Ctrl-N"),
+    ("resume",  ("load",),   "_cmd_resume",  "恢复历史会话（回车打开选择器，/resume <id> 直达）", ""),
     ("verbose", ("detail",), "_cmd_verbose", "切换精简 / 详细流",                "Ctrl-T"),
     ("effort",  (),          "_cmd_effort",  "投入档位 low/medium/high/max",     ""),
     ("skill",   (),          "_cmd_skill",   "选择 access 技能 list/only/off/on/all", ""),
@@ -142,6 +143,52 @@ class EffortModal(ModalScreen):
         except ValueError:
             pass
         ol.focus()
+
+    def on_option_list_option_selected(
+            self, event: OptionList.OptionSelected) -> None:
+        self.dismiss(event.option.id)
+
+    def action_cancel(self) -> None:
+        self.dismiss(None)
+
+
+class ResumeModal(ModalScreen):
+    """Claude-Code-style session picker for ``/resume``.
+
+    Bare ``/resume`` pushes this: recent sessions newest-first, ↑↓ to move,
+    Enter to restore, Esc to cancel. Dismisses with the chosen session id,
+    or ``None`` on cancel. ``/resume <id>`` still restores directly.
+    """
+
+    DEFAULT_CSS = """
+    ResumeModal { align: center middle; }
+    #resume-box {
+        width: 96; height: auto; padding: 1 2;
+        background: $surface; border: round #22d3ee;
+    }
+    #resume-title { text-style: bold; color: #22d3ee; padding-bottom: 1; }
+    #resume-list  { height: auto; max-height: 14; background: $surface; }
+    #resume-hint  { color: #6e7681; padding-top: 1; }
+    """
+
+    BINDINGS = [("escape", "cancel", "取消")]
+
+    def __init__(self, entries: list[tuple[str, str]]) -> None:
+        """``entries``: (session_id, display label), newest first."""
+        super().__init__()
+        self._entries = entries
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="resume-box"):
+            yield Static("⟳ 恢复历史会话", id="resume-title")
+            yield OptionList(
+                *[Option(label, id=sid) for sid, label in self._entries],
+                id="resume-list",
+            )
+            yield Static("↑↓ 选择 · 回车 恢复 · Esc 取消", id="resume-hint")
+
+    def on_mount(self) -> None:
+        self.query_one("#resume-list", OptionList).focus()
 
     def on_option_list_option_selected(
             self, event: OptionList.OptionSelected) -> None:
@@ -817,6 +864,185 @@ class SearchOSApp(App):
 
     def _cmd_verbose(self, arg: str) -> None:
         self.action_toggle_detail()
+
+    # ----- /resume -----
+
+    def _resume_candidates(self) -> list:
+        """Workspace dirs that hold a restorable conversation, newest first."""
+        from pathlib import Path
+        if self._session is None:
+            self._session = self._session_factory()
+        root = Path(self._session._workspace_root)
+        if not root.exists():
+            return []
+        dirs = [d for d in root.iterdir()
+                if d.is_dir() and (d / "conversations" / "orchestrator.json").exists()]
+        return sorted(dirs, key=lambda d: d.stat().st_mtime, reverse=True)
+
+    @staticmethod
+    def _trajectory_segments(ws) -> list:
+        """trajectory.jsonl split into per-run segments on task_start markers
+        (each run — first or follow-up — logs one at its head)."""
+        import json as _json
+        segs: list[list[dict]] = []
+        path = ws / "trajectory.jsonl"
+        if not path.exists():
+            return segs
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                d = _json.loads(line)
+            except Exception:
+                continue
+            if d.get("type") == "task_start" or not segs:
+                segs.append([])
+            segs[-1].append(d)
+        return segs
+
+    @staticmethod
+    def _replay_step_items(d: dict) -> list[dict]:
+        """One persisted orchestrator step → the same stream items a live run
+        emits (✻ reasoning, ⏺ tool call, ⎿ result)."""
+        import ast as _ast
+        import json as _json
+        import re as _re
+
+        if d.get("type") != "step" or d.get("agent") != "orchestrator":
+            return []
+        items: list[dict] = []
+        reasoning = (d.get("reasoning") or "").strip()
+        if reasoning:
+            items.append({"kind": "reasoning", "text": reasoning})
+        action = d.get("action")
+        tool, args = "", None
+        if isinstance(action, dict):
+            tool, args = str(action.get("name", "")), action.get("args")
+        elif isinstance(action, str) and action.strip().startswith("{"):
+            try:
+                parsed = _ast.literal_eval(action)
+                tool = str(parsed.get("name", ""))
+                args = parsed.get("args")
+            except Exception:
+                m = _re.search(r"'name':\s*'([^']+)'", action)
+                tool = m.group(1) if m else ""
+            if isinstance(args, str):
+                try:
+                    args = _json.loads(args)
+                except Exception:
+                    args = {"args": args}
+        if tool:
+            items.append({"kind": "tool_call", "tool": tool,
+                          "args": args if isinstance(args, dict) else {}})
+            obs = d.get("observation")
+            if obs:
+                items.append({"kind": "tool_result", "result": str(obs)})
+        return items
+
+    def _cmd_resume(self, arg: str) -> None:
+        """``/resume`` → interactive picker (Claude-Code style); ``/resume
+        <id>`` restores that session directly."""
+        from datetime import datetime
+
+        from searchos.harness.telemetry.conversation_context import conversation_turns
+
+        if self._mode == "running":
+            self._note = "运行中无法恢复会话（先 Esc 中断）"
+            self._update_statusbar()
+            return
+
+        candidates = self._resume_candidates()
+        if not candidates:
+            self._write_marker("没有可恢复的会话（workspace 为空）", WARN)
+            return
+
+        arg = arg.strip()
+        if arg and arg != "list":
+            ws = next((d for d in candidates if d.name == arg), None)
+            if ws is None:
+                self._write_marker(f"找不到会话 {arg!r}（/resume 回车选择）", DANGER)
+                return
+            self._do_resume(ws)
+            return
+
+        entries: list[tuple[str, str]] = []
+        for d in candidates[:15]:
+            turns = conversation_turns(d)
+            ts = datetime.fromtimestamp(d.stat().st_mtime).strftime("%m-%d %H:%M")
+            head = (turns[0]["query"][:44] + ("…" if len(turns[0]["query"]) > 44 else "")) if turns else "(无对话)"
+            entries.append((d.name, f"{ts}  {d.name}  {len(turns)}轮  {head}"))
+        self.push_screen(ResumeModal(entries), self._on_resume_chosen)
+
+    def _on_resume_chosen(self, session_id: str | None) -> None:
+        if not session_id:
+            return
+        ws = next((d for d in self._resume_candidates() if d.name == session_id), None)
+        if ws is not None:
+            self._do_resume(ws)
+
+    def _do_resume(self, ws) -> None:
+        """Reload a past session's full dialogue + trajectory into the stream
+        (and its state, so the next input is a follow-up on the same table)."""
+        import json as _json
+
+        from searchos.harness.telemetry.conversation_context import conversation_turns
+        from searchos.socm.state import SearchState
+
+        turns = conversation_turns(ws)
+        if not turns:
+            self._write_marker(f"会话 {ws.name} 没有可恢复的对话", WARN)
+            return
+
+        state = None
+        try:
+            state = SearchState.model_validate(
+                _json.loads((ws / "search_state.json").read_text(encoding="utf-8")))
+        except Exception:
+            pass
+
+        # Same reset as /new, then replay the dialogue into the stream.
+        self._turns.clear()
+        self._stream_events.clear()
+        log = self.query_one("#stream", RichLog)
+        log.clear()
+        self._dash = None
+        self.query_one("#panels", VerticalScroll).remove_children()
+
+        # Per-turn trajectory segments (tail-aligned; surplus leading segments
+        # fold into the first turn) so each turn replays its own reasoning and
+        # tool calls — same stream a live run would have produced.
+        segments = self._trajectory_segments(ws)
+        for idx, t in enumerate(turns):
+            self._write_marker(f"\n❯ {t['query']}", f"bold {ACCENT}")
+            for s in t.get("steers", []):
+                self._write_marker(f"  ↳ 追问：{s}", ACCENT)
+            seg_i = len(segments) - (len(turns) - idx)
+            if seg_i >= 0:
+                seg = ([e for part in segments[:seg_i + 1] for e in part]
+                       if idx == 0 else segments[seg_i])
+            else:
+                seg = []
+            answer = t["answer"].strip()
+            for d in seg:
+                for item in self._replay_step_items(d):
+                    # The closing message doubles as the last step's reasoning.
+                    if item["kind"] == "reasoning" and item["text"] == answer:
+                        continue
+                    self._stream_events.append(item)
+                    log.write(self._render_stream_item(item))
+            item = {"kind": "content", "text": t["answer"]}
+            self._stream_events.append(item)
+            log.write(self._render_stream_item(item))
+            self._turns.append({
+                "query": t["query"], "answer": t["answer"],
+                "session_id": ws.name, "state": state,
+            })
+
+        self._write_marker(
+            f"已恢复会话 {ws.name}（{len(turns)} 轮）——继续输入即为追问", f"bold {ACCENT}")
+        self._note = f"已恢复 {ws.name}"
+        self._set_mode("done")
 
     def _cmd_stop(self, arg: str) -> None:
         if self._mode == "running":

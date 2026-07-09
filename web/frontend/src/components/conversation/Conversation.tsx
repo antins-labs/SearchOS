@@ -81,15 +81,18 @@ function TurnView({ turn, onOpen, registerRef }: { turn: Turn; onOpen: () => voi
           S
         </div>
         <div className="min-w-0 flex-1">
-          <div className="mb-4">
-            <OrchestrationCard
-              events={turn.events}
-              searchState={turn.searchState}
-              status={turn.status}
-              workers={turn.workers}
-              onOpen={onOpen}
-            />
-          </div>
+          {/* Restored earlier turns carry no per-turn trajectory — plain Q&A. */}
+          {(turn.events.length > 0 || turn.status === "running") && (
+            <div className="mb-4">
+              <OrchestrationCard
+                events={turn.events}
+                searchState={turn.searchState}
+                status={turn.status}
+                workers={turn.workers}
+                onOpen={onOpen}
+              />
+            </div>
+          )}
 
           {turn.error && (
             <p className="mb-4 rounded-lg border border-err/30 bg-err/5 px-3 py-2 text-[13px] text-err">{turn.error}</p>

@@ -20,7 +20,7 @@ let turnSeq = 0;
 
 export default function Home() {
   const { session, run, attach, reset } = useSearch();
-  const { overrides } = useSettings();
+  const { overrides, notify } = useSettings();
   const [turns, setTurns] = useState<Turn[]>([]);
   const [activeTurnId, setActiveTurnId] = useState<string | null>(null);
   const [drawerTurnId, setDrawerTurnId] = useState<string | null>(null);
@@ -130,15 +130,20 @@ export default function Home() {
   const handleSteer = useCallback(
     (text: string) => {
       const sid = session.sessionId;
-      if (!sid || session.status !== "running") return;
+      if (!sid || session.status !== "running") {
+        notify("Run not ready yet — try again in a moment");
+        return;
+      }
       const turnId = activeTurnId;
       setTurns((prev) =>
         prev.map((t) =>
           t.id === turnId ? { ...t, followUps: [...(t.followUps ?? []), text] } : t,
         ),
       );
-      steerSearch(sid, text).catch(() => {
-        // Roll the echo back if the backend refused it.
+      steerSearch(sid, text).catch((e) => {
+        // Roll the echo back and say why — a silent disappearance reads as
+        // "steering doesn't work".
+        notify(`Steer failed: ${e instanceof Error ? e.message : String(e)}`);
         setTurns((prev) =>
           prev.map((t) =>
             t.id === turnId
@@ -148,7 +153,7 @@ export default function Home() {
         );
       });
     },
-    [session.sessionId, session.status, activeTurnId],
+    [session.sessionId, session.status, activeTurnId, notify],
   );
 
   // Interrupt the live run (TUI Esc parity). The backend cancels the engine
@@ -189,32 +194,62 @@ export default function Home() {
         const data = await loadHistory(id);
         const events: WSEvent[] = data.events ?? [];
         const isRunning = data.status === "running";
-        const turn: Turn = {
-          id: data.session_id,
-          query: data.query,
-          sessionId: data.session_id,
-          status: isRunning ? "running" : "completed",
-          events,
-          workers: foldWorkers(events, !isRunning),
-          searchState: (data.search_state as SearchState) ?? null,
-          answer: data.answer ?? "",
-          meta: {
-            coverageScore: data.coverage_score ?? undefined,
-            evidenceCount: data.evidence_count ?? undefined,
-          },
-          error: null,
+        // Restore the full dialogue: one Turn per reconstructed turn. Each
+        // run appends a `task_start` trajectory event, so the flat event log
+        // splits into per-turn segments — every restored turn gets its own
+        // orchestration trace, same as a live run. Segments tail-align to
+        // turns (surplus leading segments fold into the first turn).
+        const hist: { query: string; answer: string; steers?: string[] }[] =
+          data.turns?.length ? data.turns : [{ query: data.query, answer: data.answer ?? "" }];
+        const segments: WSEvent[][] = [];
+        for (const e of events) {
+          const d = (e.data ?? {}) as Record<string, unknown>;
+          const isBoundary = e.type === "trajectory" && d.type === "task_start";
+          if (isBoundary || segments.length === 0) segments.push([]);
+          segments[segments.length - 1].push(e);
+        }
+        const last = hist.length - 1;
+        const segFor = (i: number): WSEvent[] => {
+          const idx = segments.length - (hist.length - i);
+          if (idx < 0) return [];
+          if (i === 0) return segments.slice(0, idx + 1).flat();
+          return segments[idx] ?? [];
         };
+        const restored: Turn[] = hist.map((h, i) => {
+          const segEvents = segFor(i);
+          const turnRunning = i === last && isRunning;
+          return {
+            id: i === last ? data.session_id : `${data.session_id}#${i}`,
+            query: h.query || data.query,
+            sessionId: data.session_id,
+            status: turnRunning ? "running" as const : "completed" as const,
+            events: segEvents,
+            workers: foldWorkers(segEvents, !turnRunning),
+            searchState: i === last ? ((data.search_state as SearchState) ?? null) : null,
+            answer: i === last ? (data.answer || h.answer || "") : h.answer,
+            followUps: h.steers?.length ? h.steers : undefined,
+            meta: i === last
+              ? {
+                  coverageScore: data.coverage_score ?? undefined,
+                  evidenceCount: data.evidence_count ?? undefined,
+                }
+              : {},
+            error: null,
+          };
+        });
+        const turn = restored[last];
         setDrawerTurnId(null);
         setSelectedFile(null);
-        setTurns([turn]);
+        setTurns(restored);
         // If we just walked away from a live run, it keeps running server-side
         // — refresh so the rail lists it (as running) for switching back.
         refreshHistory();
         if (isRunning) {
           // The backend still owns this run — re-attach the live WS/steer
           // channel so events keep streaming and follow-ups can be injected.
+          // Seed only the live turn's segment; dedupe against the full log.
           setActiveTurnId(turn.id);
-          attach(data.session_id, { events, searchState: turn.searchState });
+          attach(data.session_id, { events: turn.events, searchState: turn.searchState, seen: events });
         } else {
           reset();
           setActiveTurnId(null);

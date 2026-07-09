@@ -201,10 +201,15 @@ async def load_history(session_id: str):
         "completed" if result_file.exists() else "incomplete"
     )
 
+    # Full user↔AI dialogue so a reload shows every turn, not title + last answer.
+    from searchos.harness.telemetry.conversation_context import conversation_turns
+    turns = conversation_turns(ws)
+
     return {
         "session_id": session_id,
         "query": title or "(untitled search)",
         "status": status,
+        "turns": turns,
         "coverage_score": float(coverage) if coverage is not None else None,
         "evidence_count": int(evidence_count) if evidence_count is not None else None,
         "answer": answer,
