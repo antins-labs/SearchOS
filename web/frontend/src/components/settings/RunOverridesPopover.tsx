@@ -40,6 +40,10 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
   }, [onClose]);
 
   const defaults = settings?.run_defaults;
+  // Each effort level bundles a wall-clock budget (default_max_time_s) —
+  // switching effort snaps the time limit to that level's budget.
+  const levelTime = (lvl: string): number | undefined =>
+    settings?.effort?.levels?.[lvl as EffortLevel]?.default_max_time_s;
 
   return (
     <div
@@ -70,10 +74,11 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
             value={overrides.effort ?? "default"}
             options={EFFORT_OPTIONS}
             onChange={(v) =>
-              setOverrides({
-                ...overrides,
-                effort: v === "default" ? undefined : (v as EffortLevel),
-              })
+              setOverrides(
+                v === "default"
+                  ? {}
+                  : { effort: v as EffortLevel, max_time: levelTime(v) },
+              )
             }
           />
         </div>

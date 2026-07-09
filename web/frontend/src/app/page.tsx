@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 
 import { useSearch } from "@/hooks/useSearch";
-import { getWorkspaceFiles, listHistory, loadHistory, renameHistory, deleteHistory, type HistoryItem } from "@/lib/api";
+import { getWorkspaceFiles, listHistory, loadHistory, renameHistory, deleteHistory, steerSearch, stopSearch, type HistoryItem } from "@/lib/api";
 import { deriveAnswer, foldWorkers } from "@/lib/derive";
 import type { FileNode, SearchRequest, SearchState, WSEvent } from "@/lib/types";
 import type { Turn } from "@/lib/conversation";
@@ -19,7 +19,7 @@ import { useSettings } from "@/components/settings/SettingsProvider";
 let turnSeq = 0;
 
 export default function Home() {
-  const { session, run, reset } = useSearch();
+  const { session, run, attach, reset } = useSearch();
   const { overrides } = useSettings();
   const [turns, setTurns] = useState<Turn[]>([]);
   const [activeTurnId, setActiveTurnId] = useState<string | null>(null);
@@ -53,7 +53,9 @@ export default function Home() {
           events: session.events,
           workers: session.workers,
           searchState,
-          answer: status === "completed" ? deriveAnswer(session.events) : t.answer,
+          // Prefer the durable full answer from the result fetch; the
+          // event-stream preview (deriveAnswer) is truncated server-side.
+          answer: status === "completed" ? session.result?.answer || deriveAnswer(session.events) : t.answer,
           error: session.error,
           meta:
             status === "completed"
@@ -90,12 +92,23 @@ export default function Home() {
 
   const handleSubmit = useCallback(
     (q: string, opts: SubmitOpts) => {
+      // Follow-up (TUI parity): the previous turn finished in this session →
+      // extend its workspace/coverage table and pass the conversation history.
+      const prev = turns[turns.length - 1];
+      const followUpTo =
+        prev && prev.status === "completed" && prev.sessionId ? prev.sessionId : undefined;
+      const history = followUpTo
+        ? turns
+            .filter((t) => t.status === "completed")
+            .map((t) => ({ query: t.query, answer: t.answer }))
+        : undefined;
+
       const id = `t${++turnSeq}`;
       const turn: Turn = {
         id, query: q, sessionId: null, status: "running",
         events: [], workers: [], searchState: null, answer: "", meta: {}, error: null,
       };
-      setTurns((prev) => [...prev, turn]);
+      setTurns((prevTurns) => [...prevTurns, turn]);
       setActiveTurnId(id);
       setSelectedFile(null);
       run({
@@ -105,10 +118,46 @@ export default function Home() {
         attrs: opts.attrs,
         effort: overrides.effort,
         max_time: overrides.max_time,
+        follow_up_to: followUpTo,
+        history,
       });
     },
-    [run, overrides],
+    [run, overrides, turns],
   );
+
+  // Live follow-up: inject into the running orchestrator (sub-agents keep
+  // running) instead of queueing a new search — same as the TUI mid-run path.
+  const handleSteer = useCallback(
+    (text: string) => {
+      const sid = session.sessionId;
+      if (!sid || session.status !== "running") return;
+      const turnId = activeTurnId;
+      setTurns((prev) =>
+        prev.map((t) =>
+          t.id === turnId ? { ...t, followUps: [...(t.followUps ?? []), text] } : t,
+        ),
+      );
+      steerSearch(sid, text).catch(() => {
+        // Roll the echo back if the backend refused it.
+        setTurns((prev) =>
+          prev.map((t) =>
+            t.id === turnId
+              ? { ...t, followUps: (t.followUps ?? []).filter((f) => f !== text) }
+              : t,
+          ),
+        );
+      });
+    },
+    [session.sessionId, session.status, activeTurnId],
+  );
+
+  // Interrupt the live run (TUI Esc parity). The backend cancels the engine
+  // task; the WS then delivers the terminal event and the turn settles.
+  const handleStop = useCallback(() => {
+    const sid = session.sessionId;
+    if (!sid || session.status !== "running") return;
+    stopSearch(sid).catch(() => {});
+  }, [session.sessionId, session.status]);
 
   const handleNew = useCallback(() => {
     reset();
@@ -117,7 +166,10 @@ export default function Home() {
     setDrawerTurnId(null);
     setFileTree([]);
     setSelectedFile(null);
-  }, [reset]);
+    // A live run we just walked away from keeps running server-side — make
+    // sure it shows up in the rail (as running) so the user can switch back.
+    refreshHistory();
+  }, [reset, refreshHistory]);
 
   const turnRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -136,13 +188,14 @@ export default function Home() {
       try {
         const data = await loadHistory(id);
         const events: WSEvent[] = data.events ?? [];
+        const isRunning = data.status === "running";
         const turn: Turn = {
           id: data.session_id,
           query: data.query,
           sessionId: data.session_id,
-          status: data.status === "running" ? "running" : "completed",
+          status: isRunning ? "running" : "completed",
           events,
-          workers: foldWorkers(events, data.status !== "running"),
+          workers: foldWorkers(events, !isRunning),
           searchState: (data.search_state as SearchState) ?? null,
           answer: data.answer ?? "",
           meta: {
@@ -151,16 +204,26 @@ export default function Home() {
           },
           error: null,
         };
-        reset();
-        setActiveTurnId(null);
         setDrawerTurnId(null);
         setSelectedFile(null);
         setTurns([turn]);
+        // If we just walked away from a live run, it keeps running server-side
+        // — refresh so the rail lists it (as running) for switching back.
+        refreshHistory();
+        if (isRunning) {
+          // The backend still owns this run — re-attach the live WS/steer
+          // channel so events keep streaming and follow-ups can be injected.
+          setActiveTurnId(turn.id);
+          attach(data.session_id, { events, searchState: turn.searchState });
+        } else {
+          reset();
+          setActiveTurnId(null);
+        }
       } catch {
         /* ignore load failure */
       }
     },
-    [turns, reset],
+    [turns, reset, attach, refreshHistory],
   );
 
   const handleRename = useCallback((id: string, title: string) => {
@@ -218,6 +281,8 @@ export default function Home() {
             turns={turns}
             running={session.status === "running"}
             onSubmit={handleSubmit}
+            onSteer={handleSteer}
+            onStop={handleStop}
             onOpenDrawer={setDrawerTurnId}
             registerTurnRef={(id, el) => { turnRefs.current[id] = el; }}
           />

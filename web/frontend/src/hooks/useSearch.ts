@@ -103,29 +103,10 @@ export function useSearch() {
     };
   }, []);
 
-  const run = useCallback(async (req: SearchRequest) => {
-    // Cleanup previous
-    wsRef.current?.close();
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (pollRef.current) clearInterval(pollRef.current);
-    seenRef.current = new Set();
-
-    setSession({
-      sessionId: null,
-      status: "running",
-      result: null,
-      liveState: null,
-      events: [],
-      workers: [],
-      error: null,
-      elapsed: 0,
-    });
-
-    try {
-      const { session_id } = await startSearch(req);
-      startTimeRef.current = Date.now();
-
-      setSession((s) => ({ ...s, sessionId: session_id }));
+  /** Timer + state poll + WS subscription for a session the backend is
+   *  already running. Shared by run() (fresh POST) and attach() (reopen). */
+  const startStreams = useCallback((session_id: string, tail: boolean) => {
+    startTimeRef.current = Date.now();
 
       // Timer: update elapsed every 500ms
       timerRef.current = setInterval(() => {
@@ -214,8 +195,35 @@ export function useSearch() {
             });
           }).catch(() => {});
         },
+        // tail: start at the stream's current end instead of replaying the
+        // whole trajectory (follow-up runs reusing a prior workspace).
+        { tail },
       );
       wsRef.current = ws;
+  }, []);
+
+  const run = useCallback(async (req: SearchRequest) => {
+    // Cleanup previous
+    wsRef.current?.close();
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (pollRef.current) clearInterval(pollRef.current);
+    seenRef.current = new Set();
+
+    setSession({
+      sessionId: null,
+      status: "running",
+      result: null,
+      liveState: null,
+      events: [],
+      workers: [],
+      error: null,
+      elapsed: 0,
+    });
+
+    try {
+      const { session_id } = await startSearch(req);
+      setSession((s) => ({ ...s, sessionId: session_id }));
+      startStreams(session_id, !!req.follow_up_to);
     } catch (e) {
       if (timerRef.current) clearInterval(timerRef.current);
       if (pollRef.current) clearInterval(pollRef.current);
@@ -229,7 +237,40 @@ export function useSearch() {
         error: msg,
       }));
     }
-  }, []);
+  }, [startStreams]);
+
+  /** Re-attach to a session the backend is still running — history reopen,
+   *  or switching back to a live run after navigating away. Seeds the
+   *  already-recorded events, then streams live; the WS replay is deduped
+   *  against the seed so nothing doubles and the snapshot gap is closed. */
+  const attach = useCallback(
+    (session_id: string, seed?: { events?: WSEvent[]; searchState?: SearchState | null }) => {
+      wsRef.current?.close();
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (pollRef.current) clearInterval(pollRef.current);
+
+      const events = seed?.events ?? [];
+      seenRef.current = new Set(
+        events
+          .filter((e) => e.type !== "search_complete" && e.type !== "search_error")
+          .map((e) => `${e.type}|${JSON.stringify(
+            (e as Record<string, unknown>).data ?? (e as Record<string, unknown>).node ?? "",
+          )}`),
+      );
+      setSession({
+        sessionId: session_id,
+        status: "running",
+        result: null,
+        liveState: seed?.searchState ?? null,
+        events,
+        workers: events.reduce((w, e) => updateWorkers(w, e), [] as WorkerInfo[]),
+        error: null,
+        elapsed: 0,
+      });
+      startStreams(session_id, false);
+    },
+    [startStreams],
+  );
 
   const reset = useCallback(() => {
     wsRef.current?.close();
@@ -248,7 +289,7 @@ export function useSearch() {
     });
   }, []);
 
-  return { session, run, reset };
+  return { session, run, attach, reset };
 }
 
 /**

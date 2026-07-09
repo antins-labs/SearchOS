@@ -20,7 +20,10 @@ export default function Landing({ onSubmit, error }: Props) {
       <div className="w-full max-w-2xl">
         <h1 className="wordmark rise-in mb-9 text-center text-6xl tracking-tight sm:text-7xl">SearchOS</h1>
 
-        <div className="rise-in" style={{ animationDelay: "60ms" }}>
+        {/* relative z-20: the rise-in animation (fill: both) makes this and the
+            suggestion grid below persistent stacking contexts, so without an
+            explicit order the composer's popovers paint underneath the cards. */}
+        <div className="rise-in relative z-20" style={{ animationDelay: "60ms" }}>
           <Composer onSubmit={onSubmit} variant="hero" autoFocus placeholder="Ask anything…" />
         </div>
 

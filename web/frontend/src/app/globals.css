@@ -105,6 +105,14 @@ body::before {
   color: transparent;
 }
 
+/* ── Keyboard focus feedback (mouse clicks stay outline-free) ── */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 /* ── Scrollbars ── */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }

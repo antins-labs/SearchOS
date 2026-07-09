@@ -36,6 +36,26 @@ async def search_stream(ws: WebSocket, session_id: str):
     last_evidence_count = 0
     last_cells_fingerprint = ""
 
+    # ?tail=1 — start at the current end of every stream instead of replaying
+    # from the top. Used by follow-up runs, which reuse the prior session's
+    # workspace: the client only wants this turn's events.
+    if ws.query_params.get("tail") in ("1", "true") and ws_path.exists():
+        jsonl_files = [ws_path / "trajectory.jsonl"] + [
+            ws_path / "blackboard" / f"{name}.jsonl"
+            for name in ("progress", "announcements", "claims")
+        ]
+        for f in jsonl_files:
+            if f.exists():
+                file_positions[str(f)] = f.stat().st_size
+        state_file = ws_path / "search_state.json"
+        if state_file.exists():
+            try:
+                state = json.loads(state_file.read_text())
+                nodes = state.get("evidence_graph", {}).get("nodes", [])
+                last_evidence_count = len(nodes)
+            except (json.JSONDecodeError, KeyError):
+                pass
+
     try:
         while True:
             session = sessions.get(session_id)

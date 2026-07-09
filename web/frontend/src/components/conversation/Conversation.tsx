@@ -11,11 +11,13 @@ interface Props {
   turns: Turn[];
   running: boolean;
   onSubmit: (q: string, opts: SubmitOpts) => void;
+  onSteer?: (text: string) => void;
+  onStop?: () => void;
   onOpenDrawer: (turnId: string) => void;
   registerTurnRef?: (id: string, el: HTMLDivElement | null) => void;
 }
 
-export default function Conversation({ turns, running, onSubmit, onOpenDrawer, registerTurnRef }: Props) {
+export default function Conversation({ turns, running, onSubmit, onSteer, onStop, onOpenDrawer, registerTurnRef }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   // Follow the bottom only while a search is live; a freshly loaded historical
   // session should rest at the top, not jump to its references.
@@ -41,7 +43,7 @@ export default function Conversation({ turns, running, onSubmit, onOpenDrawer, r
 
       <div className="border-t border-line bg-paper">
         <div className="mx-auto max-w-[760px] px-6 py-4">
-          <Composer onSubmit={onSubmit} running={running} variant="bar" />
+          <Composer onSubmit={onSubmit} onSteer={onSteer} onStop={onStop} running={running} variant="bar" />
         </div>
       </div>
     </div>
@@ -60,6 +62,18 @@ function TurnView({ turn, onOpen, registerRef }: { turn: Turn; onOpen: () => voi
           {turn.query}
         </div>
       </div>
+
+      {/* live follow-ups steered into this turn mid-run */}
+      {(turn.followUps ?? []).map((f, i) => (
+        <div key={i} className="rise-in -mt-3 mb-6 flex justify-end">
+          <div className="max-w-[80%] rounded-2xl rounded-br-md border border-accent/30 bg-clay/40 px-4 py-2.5">
+            <div className="mb-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-accent-ink">
+              Steered mid-run
+            </div>
+            <div className="text-[14px] leading-relaxed text-ink">{f}</div>
+          </div>
+        </div>
+      ))}
 
       {/* assistant turn */}
       <div className="flex gap-3.5">
@@ -83,7 +97,7 @@ function TurnView({ turn, onOpen, registerRef }: { turn: Turn; onOpen: () => voi
 
           {done && turn.answer && (
             <div className="mb-5">
-              <Answer markdown={turn.answer} directOnly />
+              <Answer markdown={turn.answer} />
             </div>
           )}
 
@@ -93,7 +107,10 @@ function TurnView({ turn, onOpen, registerRef }: { turn: Turn; onOpen: () => voi
                 <span className="font-serif text-[14px] font-semibold text-ink">Final table</span>
               </div>
               <div className="max-h-[440px] overflow-auto">
-                <CoverageTable coverageMap={turn.searchState?.coverage_map ?? null} />
+                <CoverageTable
+                  coverageMap={turn.searchState?.coverage_map ?? null}
+                  evidence={turn.searchState?.evidence_graph?.nodes ?? []}
+                />
               </div>
             </div>
           )}

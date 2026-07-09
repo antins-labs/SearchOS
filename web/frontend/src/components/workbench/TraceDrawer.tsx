@@ -20,11 +20,13 @@ export default function TraceDrawer({
   worker: AgentCardData | null;
   onClose: () => void;
 }) {
+  const open = worker != null;
   useEffect(() => {
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [open, onClose]);
 
   if (!worker) return null;
   const s = STATUS[worker.status];

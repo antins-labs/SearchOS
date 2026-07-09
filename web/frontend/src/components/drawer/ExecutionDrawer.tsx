@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X, Maximize2, Minimize2, Table2, FileText, FolderTree, Activity } from "lucide-react";
 import AgentWall from "@/components/workbench/AgentWall";
@@ -41,6 +41,14 @@ export default function ExecutionDrawer({
   const [tab, setTab] = useState<Tab>("coverage");
   const [traceAgent, setTraceAgent] = useState<string | null>(null);
   const [max, setMax] = useState(false);
+
+  // Esc restores the maximized drawer; when a trace is open, Esc closes it first.
+  useEffect(() => {
+    if (!max || traceAgent) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMax(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [max, traceAgent]);
 
   const state = turn.searchState;
   const activeWorker = turn.workers.find((w) => w.name === traceAgent) ?? null;
@@ -89,7 +97,12 @@ export default function ExecutionDrawer({
         </div>
 
         <div className="p-1">
-          {tab === "coverage" && <CoverageTable coverageMap={state?.coverage_map ?? null} />}
+          {tab === "coverage" && (
+            <CoverageTable
+              coverageMap={state?.coverage_map ?? null}
+              evidence={state?.evidence_graph?.nodes ?? []}
+            />
+          )}
           {tab === "evidence" && <EvidenceList nodes={state?.evidence_graph?.nodes ?? []} />}
           {tab === "files" &&
             (selectedFile && sessionId ? (

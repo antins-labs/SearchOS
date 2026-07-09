@@ -1,6 +1,7 @@
 // REST + WebSocket API client
 
 import type {
+  AdvancedView,
   EffortLevel,
   EffortView,
   FileNode,
@@ -35,6 +36,20 @@ export async function startSearch(req: SearchRequest): Promise<{ session_id: str
   });
   if (!res.ok) throw new Error(`Search failed: ${res.statusText}`);
   return res.json();
+}
+
+export async function stopSearch(sessionId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/search/${sessionId}/stop`, { method: "POST" });
+  if (!res.ok) throw new Error(`Stop failed: ${res.statusText}`);
+}
+
+export async function steerSearch(sessionId: string, message: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/search/${sessionId}/steer`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message }),
+  });
+  if (!res.ok) throw new Error(`Steer failed: ${res.statusText}`);
 }
 
 export async function getSearchResult(sessionId: string): Promise<SearchResult> {
@@ -158,6 +173,16 @@ export const putMisc = (patch: {
   browser_backend?: string;
 }) => putJson<RunDefaultsView & { browser_backend: string }>("/api/settings/misc", patch);
 
+// First-class runtime knobs. Only keys present in the patch are touched; send
+// null to clear a knob back to its env/code default. https_proxy "" forces
+// no-proxy. Proxy / cache dir are not secrets.
+export const putAdvanced = (patch: {
+  llm_max_retries?: number | null;
+  browser_disk_cache_dir?: string | null;
+  https_proxy?: string | null;
+  search_max_results?: number | null;
+}) => putJson<AdvancedView>("/api/settings/advanced", patch);
+
 export const resetSettings = () =>
   putJson<SettingsData>("/api/settings/reset", {}, "POST");
 
@@ -220,9 +245,10 @@ export function connectWebSocket(
   sessionId: string,
   onMessage: (event: Record<string, unknown>) => void,
   onClose?: () => void,
+  opts?: { tail?: boolean },
 ): WebSocket {
   const wsBase = API_BASE.replace(/^http/, "ws");
-  const ws = new WebSocket(`${wsBase}/api/ws/${sessionId}`);
+  const ws = new WebSocket(`${wsBase}/api/ws/${sessionId}${opts?.tail ? "?tail=1" : ""}`);
 
   ws.onmessage = (e) => {
     try {

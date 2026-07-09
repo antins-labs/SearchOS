@@ -41,6 +41,35 @@ def _read_intent_fast(state_file: Path) -> str:
         return m.group(1)
 
 
+def last_ai_text(messages: list[dict[str, Any]]) -> str:
+    """The last AI/assistant text message — the orchestrator's closing answer
+    (mirrors the TUI's _extract_answer)."""
+    for msg in reversed(messages or []):
+        if msg.get("role") not in ("ai", "assistant"):
+            continue
+        content = msg.get("content", "")
+        if isinstance(content, list):
+            parts = [b.get("text", "") for b in content
+                     if isinstance(b, dict) and b.get("type") == "text"]
+            content = "\n".join(p for p in parts if p)
+        if isinstance(content, str) and content.strip():
+            return content.strip()
+    return ""
+
+
+def orchestrator_final_text(ws: Path) -> str:
+    """The orchestrator's last AI message from the durable per-agent
+    conversation log (conversations/orchestrator.json)."""
+    try:
+        conv = json.loads(
+            (ws / "conversations" / "orchestrator.json")
+            .read_text(encoding="utf-8", errors="replace"),
+        )
+        return last_ai_text(conv.get("messages", []))
+    except Exception:
+        return ""
+
+
 def _safe_ws(session_id: str) -> Path:
     """Resolve a workspace dir for a session id, refusing path traversal."""
     root = Path(WORKSPACE_ROOT).resolve()
@@ -128,7 +157,9 @@ async def load_history(session_id: str):
         except Exception:
             logger.warning("Failed to parse search_state for %s", session_id)
 
-    answer = ""
+    # The displayed answer is the orchestrator's closing AI message; the
+    # writer's report / result.json answer are fallbacks only.
+    answer = orchestrator_final_text(ws)
     coverage = None
     evidence_count = None
     title = ""
@@ -136,7 +167,7 @@ async def load_history(session_id: str):
     if result_file.exists():
         try:
             r = json.loads(result_file.read_text(encoding="utf-8", errors="replace"))
-            answer = r.get("answer") or ""
+            answer = answer or r.get("answer") or ""
             coverage = r.get("coverage")
             evidence_count = r.get("evidence_count")
             title = r.get("query") or ""

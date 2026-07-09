@@ -59,7 +59,11 @@ export default function HistoryRail({ items, activeId, collapsed, onToggle, onNe
         <button onClick={onNew} title="New chat" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink">
           <Plus size={18} />
         </button>
-        <button onClick={onOpenSettings} title="Settings" className="mt-auto rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink">
+        <span
+          title={health === undefined ? "Connecting" : health ? "Connected" : "Offline"}
+          className={`mt-auto h-1.5 w-1.5 rounded-full ${health === undefined ? "bg-warn" : health ? "bg-ok glow-pulse" : "bg-err"}`}
+        />
+        <button onClick={onOpenSettings} title="Settings" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink">
           <Settings size={18} />
         </button>
       </div>
@@ -133,6 +137,7 @@ export default function HistoryRail({ items, activeId, collapsed, onToggle, onNe
               return (
                 <div
                   key={it.id}
+                  onMouseLeave={() => { if (confirmId === it.id) setConfirmId(null); }}
                   className={`group relative flex items-center rounded-lg pr-1 transition-colors ${
                     it.id === activeId ? "bg-clay/60" : "hover:bg-surface-2"
                   }`}
@@ -155,7 +160,7 @@ export default function HistoryRail({ items, activeId, collapsed, onToggle, onNe
                         className="rounded p-1 text-ink-faint hover:bg-surface-2 hover:text-ink"><X size={14} /></button>
                     </span>
                   ) : (
-                    <span className="flex shrink-0 items-center gap-0.5 pl-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <span className="flex shrink-0 items-center gap-0.5 pl-1 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
                       <button title="Rename" onClick={() => { setEditingId(it.id); setEditValue(it.title); }}
                         className="rounded p-1 text-ink-faint hover:bg-surface-2 hover:text-ink"><Pencil size={13} /></button>
                       <button title="Delete" onClick={() => setConfirmId(it.id)}

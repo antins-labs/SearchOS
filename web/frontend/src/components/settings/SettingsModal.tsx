@@ -68,7 +68,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
               <ExternalLink size={13} /> Full settings
             </Link>
           </div>
-          <div className="min-w-0 flex-1 overflow-y-auto p-5">
+          <div key={active} className="min-w-0 flex-1 overflow-y-auto p-5">
             <Body />
           </div>
         </div>

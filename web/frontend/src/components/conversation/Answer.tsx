@@ -3,47 +3,23 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-/** Keep the agent's prose; drop the noise that duplicates the activity panel:
- *  pipe-tables (the coverage map already is the table), a trailing
- *  References/Sources section, and link-dominated citation dumps. */
+/** Keep the agent's prose intact — the answer must render complete. Only
+ *  strip lines that leak harness internals, plus a trailing References dump
+ *  (the Evidence tab already lists sources with full URLs). */
 function cleanAnswer(md: string): string {
   // cut a trailing references/sources/citations section
   md = md.replace(/\n#{1,6}\s*(references|sources|citations|footnotes|url citations)\b[\s\S]*$/i, "\n");
   const out: string[] = [];
   for (const line of md.split("\n")) {
-    if (/^\s*\|.*\|\s*$/.test(line)) continue;          // table rows / separators
-    if (/^#{1,6}\s+.*\btable\b/i.test(line)) continue;  // "Summary Table" headings
-    if (/_default/.test(line)) continue;                // leaked internal table id
     if (/\bdo not fabricate\b/i.test(line)) continue;   // leaked schema warning
     if (/\d+\/\d+ data cells filled/i.test(line)) continue;
-    // drop lines that are mostly links (citation dumps) or agent:// refs
-    const urls = line.match(/https?:\/\/\S+|agent:\/\/\S+/g) || [];
-    if (urls.length) {
-      let rest = line;
-      urls.forEach((u) => { rest = rest.replace(u, ""); });
-      rest = rest.replace(/[[\]()\d.,\s|*-]/g, "");
-      if (rest.length < 8) continue;
-    }
     out.push(line);
   }
   return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
-/** Pull just the "Direct Answer" section (heading → next heading). Falls back
- *  to the whole text if the report isn't sectioned that way. */
-function directAnswer(md: string): string {
-  const lines = md.split("\n");
-  const start = lines.findIndex((l) => /^#{1,6}\s+.*direct answer/i.test(l));
-  if (start === -1) return md;
-  let end = lines.length;
-  for (let i = start + 1; i < lines.length; i++) {
-    if (/^#{1,6}\s+/.test(lines[i])) { end = i; break; }
-  }
-  return lines.slice(start + 1, end).join("\n").trim() || md;
-}
-
-export default function Answer({ markdown, directOnly = false }: { markdown: string; directOnly?: boolean }) {
-  const clean = cleanAnswer(directOnly ? directAnswer(markdown) : markdown);
+export default function Answer({ markdown }: { markdown: string }) {
+  const clean = cleanAnswer(markdown);
   if (!clean) return null;
   return (
     <div className="space-y-3 text-[15px] leading-[1.7] text-ink">
@@ -64,6 +40,17 @@ export default function Answer({ markdown, directOnly = false }: { markdown: str
           code: ({ children }) => <code className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[13px] text-accent-ink">{children}</code>,
           blockquote: ({ children }) => <blockquote className="border-l-2 border-line-strong pl-3 text-ink-dim">{children}</blockquote>,
           hr: () => <hr className="border-line" />,
+          table: ({ children }) => (
+            <div className="overflow-x-auto rounded-lg border border-line">
+              <table className="w-full text-[13.5px]">{children}</table>
+            </div>
+          ),
+          thead: ({ children }) => <thead className="bg-surface-2 text-left">{children}</thead>,
+          th: ({ children }) => (
+            <th className="whitespace-nowrap border-b border-line px-3 py-2 text-[12.5px] font-medium text-ink-dim">{children}</th>
+          ),
+          td: ({ children }) => <td className="border-b border-line px-3 py-2 align-top">{children}</td>,
+          tr: ({ children }) => <tr className="last:[&>td]:border-b-0">{children}</tr>,
         }}
       >
         {clean}

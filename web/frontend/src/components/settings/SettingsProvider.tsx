@@ -152,10 +152,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     >
       {children}
       {toast && (
-        <div className="rise-in fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
-          <div className="surface rounded-xl border-err/40 px-4 py-2.5 text-[13px] text-err shadow-xl">
+        <div className="rise-in fixed bottom-6 left-1/2 z-[100] -translate-x-1/2">
+          <button
+            type="button"
+            onClick={() => setToast(null)}
+            title="Dismiss"
+            className="surface cursor-pointer rounded-xl border-err/40 px-4 py-2.5 text-[13px] text-err shadow-xl"
+          >
             {toast}
-          </div>
+          </button>
         </div>
       )}
     </Ctx.Provider>

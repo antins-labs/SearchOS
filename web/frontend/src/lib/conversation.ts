@@ -10,6 +10,8 @@ export interface Turn {
   workers: WorkerInfo[];
   searchState: SearchState | null;
   answer: string;
+  /** Live follow-ups steered into this turn while it was running. */
+  followUps?: string[];
   meta: {
     coverageScore?: number;
     evidenceCount?: number;

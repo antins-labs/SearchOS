@@ -8,6 +8,10 @@ export interface SearchRequest {
   max_time?: number;
   effort?: EffortLevel;
   skills?: SkillOverrides;
+  /** Follow-up: extend this prior session (same workspace + coverage table). */
+  follow_up_to?: string;
+  /** Prior turns echoed back so the orchestrator sees the conversation. */
+  history?: { query: string; answer: string }[];
 }
 
 // ---- Settings (mirrors web/api/routes/settings.py views) ----
@@ -83,6 +87,7 @@ export interface ModelsView {
     providers: SearchProviderInfo[];
   };
   browser_backend: string;
+  jina_api_key_set: boolean;
 }
 
 export interface EffortView {
@@ -98,11 +103,22 @@ export interface RunDefaultsView {
   enable_skills: boolean;
 }
 
+// First-class runtime knobs not covered by effort. Proxy / cache dir are not
+// secrets, so their resolved values round-trip (unlike API keys).
+export interface AdvancedView {
+  llm_max_retries: number;
+  browser_disk_cache_dir: string;
+  https_proxy: string;
+  search_max_results: number;
+  overridden: string[]; // which knobs the overlay currently pins
+}
+
 export interface SettingsData {
   effort: EffortView;
   skills: SkillsView;
   models: ModelsView;
   run_defaults: RunDefaultsView;
+  advanced: AdvancedView;
 }
 
 export interface ProviderPresetInfo {
@@ -254,6 +270,8 @@ export interface TokenUsage {
 export interface SearchResult {
   status: "running" | "completed" | "error";
   session_id: string;
+  /** Full final answer (event-stream previews are truncated server-side). */
+  answer?: string;
   query?: string;
   coverage_score?: number;
   evidence_count?: number;
