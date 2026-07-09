@@ -124,12 +124,29 @@ class RunDefaults(BaseModel, extra="forbid"):
     enable_skills: bool | None = None
 
 
+class AdvancedOverlay(BaseModel, extra="forbid"):
+    """First-class runtime knobs that ``effort`` does not cover. Sparse: None =
+    no override, env/code default wins.
+
+    ``https_proxy`` is not a ``settings`` field — the HTTP libraries read it from
+    ``os.environ``, so ``apply_to_runtime`` exports it there (and to ``HTTP_PROXY``).
+    ``browser_disk_cache_dir`` / ``llm_max_retries`` map straight onto ``settings``.
+    Concurrency / iteration / wall-clock time stay in ``effort`` (see
+    ``config.effort.EFFORT_KEYS``) — duplicating them here would re-create the
+    two-homes problem this overlay exists to remove.
+    """
+    llm_max_retries: int | None = None
+    browser_disk_cache_dir: str | None = None
+    https_proxy: str | None = None  # applied to both HTTP_PROXY and HTTPS_PROXY
+
+
 class WebSettings(BaseModel, extra="forbid"):
     version: int = 1
     effort: EffortOverlay = Field(default_factory=EffortOverlay)
     skills: SkillsOverlay = Field(default_factory=SkillsOverlay)
     models: ModelsOverlay = Field(default_factory=ModelsOverlay)
     run_defaults: RunDefaults = Field(default_factory=RunDefaults)
+    advanced: AdvancedOverlay = Field(default_factory=AdvancedOverlay)
 
 
 # Shipped out of the box so the Providers section is never empty: a Theta
@@ -197,15 +214,67 @@ def save_overlay() -> None:
     os.replace(tmp, path)
 
 
+# Legacy .env knobs that now live in the overlay. The value carriers here are
+# NON-secret (search backend name, skill flag, cache dir, proxy) — key VALUES
+# never migrate. ``searchos --setup`` offers to strip these from .env once the
+# overlay owns them; the migration itself is non-destructive (seed only).
+MIGRATABLE_ENV_KEYS: tuple[str, ...] = (
+    "SF_ENABLE_SKILLS",
+    "SF_SEARCH_PROVIDER",
+    "SF_BROWSER_DISK_CACHE_DIR",
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+)
+
+
+def migrate_legacy_env_into_overlay() -> list[str]:
+    """Seed overlay fields from legacy .env/env knobs when unset (non-destructive).
+
+    Runs inside ``load_and_apply`` after the file is read: where the overlay has
+    no value yet but the old env var is set, copy it in so the overlay becomes
+    the single source of truth without changing behavior. Idempotent — a second
+    run finds the overlay populated and skips. Never deletes from .env (that is
+    an explicit ``searchos --setup`` step). Returns the env var names seeded.
+    """
+    seeded: list[str] = []
+
+    raw_skills = os.environ.get("SF_ENABLE_SKILLS", "").strip().lower()
+    if store.run_defaults.enable_skills is None and raw_skills:
+        store.run_defaults.enable_skills = raw_skills in {"1", "true", "yes", "on"}
+        seeded.append("SF_ENABLE_SKILLS")
+
+    search = os.environ.get("SF_SEARCH_PROVIDER", "").strip()
+    if store.models.search_provider is None and search:
+        store.models.search_provider = search
+        seeded.append("SF_SEARCH_PROVIDER")
+
+    cache_dir = os.environ.get("SF_BROWSER_DISK_CACHE_DIR", "").strip()
+    if store.advanced.browser_disk_cache_dir is None and cache_dir:
+        store.advanced.browser_disk_cache_dir = cache_dir
+        seeded.append("SF_BROWSER_DISK_CACHE_DIR")
+
+    proxy = os.environ.get("HTTPS_PROXY", "").strip() or os.environ.get("HTTP_PROXY", "").strip()
+    if store.advanced.https_proxy is None and proxy:
+        store.advanced.https_proxy = proxy
+        # Report whichever proxy var(s) are present so cleanup can strip them.
+        seeded.extend(v for v in ("HTTP_PROXY", "HTTPS_PROXY") if os.environ.get(v))
+
+    if seeded:
+        save_overlay()
+    return seeded
+
+
 def load_and_apply() -> None:
     """Read the JSON overlay (lenient) and apply it to the runtime settings.
 
     Safe to call from any entry point (web app or CLI): a missing/corrupt file
-    yields an empty overlay, the default connections are seeded, then the
-    overlay is applied onto the ``settings`` singleton.
+    yields an empty overlay, the default connections are seeded, legacy .env
+    knobs are migrated in, then the overlay is applied onto the ``settings``
+    singleton.
     """
     load_overlay_file()
     _seed_default_connections()
+    migrate_legacy_env_into_overlay()
     apply_to_runtime()
 
 
@@ -286,6 +355,21 @@ def apply_to_runtime() -> None:
     if store.run_defaults.enable_skills is not None:
         settings.enable_skills = store.run_defaults.enable_skills
 
+    # Advanced knobs. Proxy is not a settings field — the HTTP stack reads it
+    # from the environment, so export it there (and to HTTP_PROXY); clearing the
+    # override removes the env vars so a bare os.environ base can show through.
+    adv = store.advanced
+    if adv.llm_max_retries is not None:
+        settings.llm_max_retries = adv.llm_max_retries
+    if adv.browser_disk_cache_dir is not None:
+        settings.browser_disk_cache_dir = adv.browser_disk_cache_dir
+    if adv.https_proxy is not None:
+        for var in ("HTTP_PROXY", "HTTPS_PROXY"):
+            if adv.https_proxy:
+                os.environ[var] = adv.https_proxy
+            else:
+                os.environ.pop(var, None)
+
 
 __all__ = [
     "EffortLevel",
@@ -296,12 +380,15 @@ __all__ = [
     "CustomProfile",
     "ModelsOverlay",
     "RunDefaults",
+    "AdvancedOverlay",
     "WebSettings",
     "DEFAULT_PROVIDER_CONNECTIONS",
+    "MIGRATABLE_ENV_KEYS",
     "store",
     "overlay_path",
     "load_overlay_file",
     "save_overlay",
     "load_and_apply",
     "apply_to_runtime",
+    "migrate_legacy_env_into_overlay",
 ]

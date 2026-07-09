@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { ChevronRight, ExternalLink } from "lucide-react";
 
-import { putMisc, putSearchBackend } from "@/lib/api";
+import { putAdvanced, putMisc, putSearchBackend } from "@/lib/api";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { Card, OfflineSkeleton, Row, SectionShell } from "@/components/settings/primitives";
 import Select from "@/components/settings/controls/Select";
+import TextField from "@/components/settings/controls/TextField";
 import KeyEditor from "@/components/settings/models/KeyEditor";
 
 const BROWSER_BACKENDS = ["jina", "aiohttp", "crawl4ai", "search_engine"];
@@ -24,8 +25,16 @@ export default function SearchSection() {
     );
   }
 
-  const { models } = settings;
+  const { models, advanced } = settings;
   const disabled = status !== "ready";
+
+  const setAdvanced = (patch: { https_proxy?: string; browser_disk_cache_dir?: string }) =>
+    mutate({
+      optimistic: (s) => ({ ...s, advanced: { ...s.advanced, ...patch } }),
+      call: () => putAdvanced(patch),
+      merge: (s, view) => ({ ...s, advanced: view }),
+      errorLabel: "Couldn't save setting",
+    });
 
   const setSearchBackend = (provider: string) =>
     mutate({
@@ -62,15 +71,6 @@ export default function SearchSection() {
             onChange={setSearchBackend}
           />
         </Row>
-        <Row label="Browser backend" hint="Page-fetch engine for opening URLs">
-          <Select
-            value={models.browser_backend}
-            disabled={disabled}
-            ariaLabel="Browser backend"
-            options={BROWSER_BACKENDS.map((b) => ({ value: b, label: b }))}
-            onChange={setBrowserBackend}
-          />
-        </Row>
         <div className="px-4 py-2.5">
           <button
             type="button"
@@ -103,6 +103,37 @@ export default function SearchSection() {
             </div>
           )}
         </div>
+        <Row label="Browser backend" hint="Page-fetch engine for opening URLs">
+          <Select
+            value={models.browser_backend}
+            disabled={disabled}
+            ariaLabel="Browser backend"
+            options={BROWSER_BACKENDS.map((b) => ({ value: b, label: b }))}
+            onChange={setBrowserBackend}
+          />
+        </Row>
+        {models.browser_backend === "jina" && (
+          <Row label="Jina API key"
+            hint={models.jina_api_key_set ? undefined : "No key → unauthenticated quota, easy to hit 429"}>
+            <KeyEditor envName="JINA_API_KEY" keySet={models.jina_api_key_set} disabled={disabled} />
+          </Row>
+        )}
+        <Row label="Custom proxy" hint="Proxy for outbound fetches, e.g. VPN/clash address (http://host:port). Empty = no proxy.">
+          <TextField
+            value={advanced.https_proxy}
+            onCommit={(v) => setAdvanced({ https_proxy: v })}
+            disabled={disabled}
+            placeholder="http://127.0.0.1:7890"
+          />
+        </Row>
+        <Row label="Browser cache dir" hint="Per-URL disk cache for fetched pages. Empty = default (~/.cache/searchos).">
+          <TextField
+            value={advanced.browser_disk_cache_dir}
+            onCommit={(v) => setAdvanced({ browser_disk_cache_dir: v })}
+            disabled={disabled}
+            placeholder="~/.cache/searchos/page_cache"
+          />
+        </Row>
       </Card>
     </SectionShell>
   );

@@ -22,6 +22,7 @@ from pathlib import Path
 # working unchanged.
 from searchos.config.web_overlay import (  # noqa: F401
     DEFAULT_PROVIDER_CONNECTIONS,
+    AdvancedOverlay,
     CustomProfile,
     EffortLevel,
     EffortOverlay,

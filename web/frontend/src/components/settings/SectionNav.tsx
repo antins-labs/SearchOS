@@ -12,7 +12,7 @@ export const SECTIONS: SectionDef[] = [
   { id: "models", label: "Models", icon: Cpu },
   { id: "search", label: "Search & browse", icon: Globe },
   { id: "skills", label: "Skills", icon: Blocks },
-  { id: "budget", label: "Search budget", icon: Gauge },
+  { id: "budget", label: "Budget & limits", icon: Gauge },
   { id: "appearance", label: "Appearance", icon: Palette },
 ];
 

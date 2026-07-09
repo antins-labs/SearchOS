@@ -28,6 +28,7 @@ from textual.widgets.option_list import Option
 
 from searchos.config.effort import EFFORT_LEVELS
 from searchos.harness.telemetry.conversation_context import build_preamble
+from searchos.tui.config_modal import ConfigModal, build_model_menu, build_root_menu
 from searchos.tui.dashboard import (
     ACCENT,
     C_AGENTS,
@@ -78,6 +79,9 @@ _COMMAND_SPECS = (
     ("verbose", ("detail",), "_cmd_verbose", "切换精简 / 详细流",                "Ctrl-T"),
     ("effort",  (),          "_cmd_effort",  "投入档位 low/medium/high/max",     ""),
     ("skill",   (),          "_cmd_skill",   "选择 access 技能 list/only/off/on/all", ""),
+    ("model",   (),          "_cmd_model",   "模型设置：角色绑定 / 模型卡 / Provider 连接", ""),
+    ("search",  (),          "_cmd_search",  "搜索后端 serper/tavily/ragflow/auto", ""),
+    ("config",  ("set",),    "_cmd_config",  "设置面板；/config <项> <值> 可快改", ""),
     ("stop",    ("cancel",), "_cmd_stop",    "中断当前运行",                     "Esc"),
     ("help",    ("?",),      "_cmd_help",    "显示本帮助",                       ""),
     ("quit",    ("exit",),   "_cmd_quit",    "退出 SearchOS",                    "Ctrl-D"),
@@ -438,17 +442,24 @@ class SearchOSApp(App):
         self._steer_queue: queue.Queue[str] | None = None
         # Transient slash-command hint shown in the status bar while typing.
         self._cmd_hint: str = ""
+        # Config state is seeded from the shared web_settings.json overlay (loaded
+        # by cli.main before the TUI starts) so restarts and the web UI stay in
+        # sync; /effort, /skill, /search, /config write back to it (see
+        # _persist_* helpers).
+        from searchos.config.web_overlay import store as _ov
         # /effort level (applied to the global settings budget knobs).
-        self._effort: str = "medium"
+        self._effort: str = _ov.effort.level or "medium"
         # /skill access-catalog selection, threaded into run() each turn:
         #  _access_only  — None = router decides; else pin to exactly this set
         #  _access_deny  — names always removed from the catalog
-        self._access_only: set[str] | None = None
-        self._access_deny: set[str] = set()
+        self._access_only: set[str] | None = (
+            set(_ov.skills.access_only) if _ov.skills.access_only is not None else None
+        )
+        self._access_deny: set[str] = set(_ov.skills.access_deny)
         # strategy/orchestrator skills carry no router — default all-on, with
         # the /skill picker's unchecked names subtracted via these deny sets.
-        self._strategy_deny: set[str] = set()
-        self._orchestrator_deny: set[str] = set()
+        self._strategy_deny: set[str] = set(_ov.skills.strategy_deny)
+        self._orchestrator_deny: set[str] = set(_ov.skills.orchestrator_deny)
 
     # ----- Layout -----
 
@@ -761,6 +772,11 @@ class SearchOSApp(App):
                 self._cmd_hint = "档位： low · medium · high · max"
             elif cmd == "skill":
                 self._cmd_hint = "子指令： list · only <名> · off <名> · on <名> · all"
+            elif cmd == "search":
+                self._cmd_hint = "后端： serper · tavily · ragflow · auto"
+            elif cmd in ("config", "set"):
+                self._cmd_hint = ("项： retries · cache · proxy · results · "
+                                  "maxtime · skills on|off · role <角色> <卡>")
             else:
                 self._cmd_hint = ""
         elif prefixes:
@@ -860,6 +876,12 @@ class SearchOSApp(App):
             if bp is not None and hasattr(bp, "max_time_s"):
                 bp.max_time_s = EFFORT_LEVELS[level]["default_max_time_s"]
         self._effort = level
+        # Persist to the shared overlay (picking a level resets per-knob
+        # overrides, same as the web Budget section's level buttons).
+        from searchos.config.web_overlay import save_overlay, store
+        store.effort.level = level
+        store.effort.overrides = {}
+        save_overlay()
         suffix = "（下一轮生效）" if self._mode == "running" else ""
         self._write_marker(f"⚙ effort → {level}{suffix}", f"bold {ACCENT}")
         self._show_effort()
@@ -983,6 +1005,7 @@ class SearchOSApp(App):
         if sub == "all":
             self._access_only = None
             self._access_deny.clear()
+            self._persist_skills()
             self._write_marker("✓ 已恢复全部 access 技能（由路由自动选取）", ACCENT)
             return
         if sub in ("only", "off", "on"):
@@ -1009,6 +1032,7 @@ class SearchOSApp(App):
                 if self._access_only is not None:
                     self._access_only |= set(matched)
                 self._write_marker(f"✓ 已启用：{', '.join(matched)}", ACCENT)
+            self._persist_skills()
             return
         self._write_marker(
             f"未知子指令 /skill {sub}（list / only / off / on / all）", DANGER)
@@ -1032,6 +1056,7 @@ class SearchOSApp(App):
         # strategy / orchestrator: subtract the unchecked names.
         self._strategy_deny = ps - enabled
         self._orchestrator_deny = po - enabled
+        self._persist_skills()
 
         def frac(p: set[str]) -> str:
             return f"{len(p & enabled)}/{len(p)}" if p else "—"
@@ -1046,6 +1071,18 @@ class SearchOSApp(App):
         if self._access_only is not None:
             return name in self._access_only
         return True
+
+    def _persist_skills(self) -> None:
+        """Write the in-memory skill selection back to the shared overlay so it
+        survives restarts and matches the web Skills section."""
+        from searchos.config.web_overlay import save_overlay, store
+        store.skills.access_only = (
+            None if self._access_only is None else sorted(self._access_only)
+        )
+        store.skills.access_deny = sorted(self._access_deny)
+        store.skills.strategy_deny = sorted(self._strategy_deny)
+        store.skills.orchestrator_deny = sorted(self._orchestrator_deny)
+        save_overlay()
 
     def _show_skills(self, pool: list[str]) -> None:
         from rich.table import Table
@@ -1073,6 +1110,157 @@ class SearchOSApp(App):
         log.write(Text(
             f"  共 {len(pool)} 个 · /skill 打开勾选弹窗 · /skill all 重置",
             style=FAINT))
+
+    # ----- /search -----
+
+    _SEARCH_BACKENDS = ("serper", "tavily", "ragflow")
+
+    def _cmd_search(self, arg: str) -> None:
+        from searchos.config.web_overlay import save_overlay, store
+        from searchos.tools.simple_browser.search import (
+            build_search_provider,
+            resolve_search_provider_name,
+        )
+        from searchos.tools.simple_browser.state import set_browser_provider
+
+        name = arg.strip().lower()
+        if not name:
+            configured = store.models.search_provider or "auto"
+            resolved = resolve_search_provider_name(store.models.search_provider or "")
+            self._write_marker(
+                f"搜索后端 = {configured}（生效：{resolved}）· "
+                f"可选 {' / '.join(self._SEARCH_BACKENDS)} / auto", ACCENT)
+            return
+        if name in ("auto", ""):
+            store.models.search_provider = None
+        elif name in self._SEARCH_BACKENDS:
+            store.models.search_provider = name
+        else:
+            self._write_marker(
+                f"未知后端 {name!r}（可选：{' / '.join(self._SEARCH_BACKENDS)} / auto）",
+                DANGER)
+            return
+        save_overlay()
+        if not self._no_search:
+            try:
+                set_browser_provider(build_search_provider(store.models.search_provider or ""))
+            except Exception as e:  # noqa: BLE001 — surface a bad key/backend inline
+                self._write_marker(f"切换失败：{e}", DANGER)
+                return
+        resolved = resolve_search_provider_name(store.models.search_provider or "")
+        self._write_marker(f"⚙ 搜索后端 → {store.models.search_provider or 'auto'}"
+                           f"（生效：{resolved}）", f"bold {ACCENT}")
+
+    # ----- /model & /config -----
+
+    def _cmd_model(self, arg: str) -> None:
+        """Interactive Model settings（角色绑定 / 模型卡 / Provider 连接）——
+        Claude-Code-style panel over the same overlay the web UI edits."""
+        self.push_screen(ConfigModal(build_model_menu(self)), self._on_config_closed)
+
+    def _on_config_closed(self, changes: "int | None") -> None:
+        if changes:
+            self._write_marker(
+                f"⚙ 设置已更新（{changes} 处）· 已写入 web_settings.json", ACCENT)
+        self._update_statusbar()
+
+    def _cmd_config(self, arg: str) -> None:
+        """Settings panel + quick-set. ``/config`` alone opens the interactive
+        panel（Model/Search/Browse/Budget/Runtime，即改即存）; ``/config <key>
+        <value>`` sets one knob directly. Keys: retries, cache, proxy, results,
+        maxtime, skills(on|off), role <role> <profile>."""
+        from searchos.config.settings import ROLE_NAMES, settings
+        from searchos.config.web_overlay import apply_to_runtime, save_overlay, store
+
+        key, _, rest = arg.strip().partition(" ")
+        key = key.strip().lower()
+        rest = rest.strip()
+
+        if not key:
+            self.push_screen(ConfigModal(build_root_menu(self)), self._on_config_closed)
+            return
+
+        def _int(v: str) -> int | None:
+            try:
+                return int(v)
+            except ValueError:
+                self._write_marker(f"需要整数，收到 {v!r}", DANGER)
+                return None
+
+        if key in ("retries", "retry"):
+            n = _int(rest)
+            if n is None:
+                return
+            store.advanced.llm_max_retries = max(0, min(20, n))
+        elif key in ("cache", "cachedir"):
+            store.advanced.browser_disk_cache_dir = rest or None
+        elif key == "proxy":
+            store.advanced.https_proxy = rest  # "" 强制关闭；apply 会同步 os.environ
+        elif key in ("results", "maxresults"):
+            n = _int(rest)
+            if n is None:
+                return
+            store.run_defaults.search_max_results = max(1, n)
+        elif key in ("maxtime", "time"):
+            n = _int(rest)
+            if n is None:
+                return
+            store.run_defaults.max_time_s = max(1, n)
+        elif key == "skills":
+            on = rest.strip().lower() in ("on", "true", "1", "yes")
+            store.run_defaults.enable_skills = on
+        elif key == "role":
+            role, _, profile = rest.partition(" ")
+            role, profile = role.strip(), profile.strip()
+            if role not in ROLE_NAMES:
+                self._write_marker(f"未知角色 {role!r}（可选：{', '.join(ROLE_NAMES)}）", DANGER)
+                return
+            if profile not in settings.profiles:
+                self._write_marker(
+                    f"未知模型卡 {profile!r}（可选：{', '.join(settings.profiles)}）"
+                    "；新建卡请用 `searchos --setup` 或 web 设置页", DANGER)
+                return
+            store.models.roles[role] = profile
+        else:
+            self._write_marker(
+                "未知配置项。可用：retries / cache / proxy / results / maxtime / "
+                "skills on|off / role <角色> <模型卡>", DANGER)
+            return
+
+        apply_to_runtime()  # push onto the settings singleton (roles/knobs/proxy)
+        save_overlay()
+        self._write_marker("✓ 已更新配置", ACCENT)
+        self._show_config()
+
+    def _show_config(self) -> None:
+        from rich.table import Table
+
+        from searchos.config.settings import settings
+        from searchos.config.web_overlay import store
+        from searchos.tools.simple_browser.search import resolve_search_provider_name
+
+        table = Table(
+            title="运行参数（/config <项> <值> 修改）", title_style=f"bold {ACCENT}",
+            show_header=True, header_style=MUTED, box=None, padding=(0, 2, 0, 0),
+        )
+        table.add_column("项", style=MUTED, no_wrap=True)
+        table.add_column("值", style=ACCENT)
+        search = store.models.search_provider or f"auto ({resolve_search_provider_name('')})"
+        rows = [
+            ("retries (LLM 重试)", str(settings.llm_max_retries)),
+            ("results (每查询结果数)", str(settings.search_max_results)),
+            ("maxtime (墙钟上限 s)", str(settings.default_max_time_s)),
+            ("cache (页面缓存目录)", settings.browser_disk_cache_dir),
+            ("proxy", store.advanced.https_proxy or "（无）"),
+            ("skills (技能系统)", "on" if settings.enable_skills else "off"),
+            ("search (搜索后端)", search),
+        ]
+        for k, v in rows:
+            table.add_row(k, v)
+        log = self.query_one("#stream", RichLog)
+        log.write(table)
+        roles = " · ".join(f"{r}={p}" for r, p in list(settings.roles.items())[:4])
+        log.write(Text(f"  角色绑定（/config role <角色> <卡>）：{roles} …", style=FAINT))
 
     def _ensure_engine_loop(self) -> None:
         """Start the persistent background event loop the engine runs on."""

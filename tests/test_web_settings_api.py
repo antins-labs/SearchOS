@@ -208,11 +208,69 @@ def test_put_key_clear(client):
 def test_aggregate_shape_unchanged(client):
     c, _ = client
     d = c.get("/api/settings").json()
-    assert set(d) == {"effort", "skills", "models", "run_defaults"}
+    assert set(d) == {"effort", "skills", "models", "run_defaults", "advanced"}
     assert set(d["effort"]) == {"level", "knobs", "overrides", "levels"}
     assert set(d["models"]) >= {"active_provider_preset", "profiles", "roles",
                                 "role_overrides", "search", "browser_backend"}
     assert set(d["run_defaults"]) == {"max_time_s", "search_max_results", "enable_skills"}
+    assert set(d["advanced"]) == {"llm_max_retries", "browser_disk_cache_dir",
+                                  "https_proxy", "search_max_results", "overridden"}
+
+
+# ---------------------------------------------------------------------------
+# PUT /advanced（一等公民运行 knob）
+# ---------------------------------------------------------------------------
+
+def test_advanced_roundtrip_and_no_env_write(client):
+    c, tmp_path = client
+    r = c.put("/api/settings/advanced", json={
+        "llm_max_retries": 9,
+        "browser_disk_cache_dir": "/tmp/pc",
+        "https_proxy": "http://127.0.0.1:7890",
+        "search_max_results": 15,
+    })
+    assert r.status_code == 200, r.text
+    v = r.json()
+    assert v["llm_max_retries"] == 9
+    assert v["browser_disk_cache_dir"] == "/tmp/pc"
+    assert v["https_proxy"] == "http://127.0.0.1:7890"
+    assert v["search_max_results"] == 15
+    assert set(v["overridden"]) == {"llm_max_retries", "browser_disk_cache_dir", "https_proxy"}
+    # 代理 / 缓存目录属 overlay，绝不写 .env。
+    assert "PROXY" not in _env_text(tmp_path).upper()
+    import os
+    assert os.environ["HTTPS_PROXY"] == "http://127.0.0.1:7890"
+
+
+def test_advanced_partial_patch_leaves_others(client):
+    c, _ = client
+    c.put("/api/settings/advanced", json={"llm_max_retries": 3})
+    r = c.put("/api/settings/advanced", json={"search_max_results": 20})
+    v = r.json()
+    assert v["llm_max_retries"] == 3  # 未在本次 patch → 保留
+    assert v["search_max_results"] == 20
+
+
+def test_advanced_clear_proxy_unsets_env(client):
+    c, _ = client
+    c.put("/api/settings/advanced", json={"https_proxy": "http://x:1"})
+    import os
+    assert os.environ.get("HTTPS_PROXY") == "http://x:1"
+    r = c.put("/api/settings/advanced", json={"https_proxy": ""})
+    assert r.status_code == 200
+    assert "HTTPS_PROXY" not in os.environ
+    assert r.json()["https_proxy"] == ""
+
+
+def test_advanced_rejects_out_of_range_retries(client):
+    c, _ = client
+    assert c.put("/api/settings/advanced", json={"llm_max_retries": 99}).status_code == 422
+    assert c.put("/api/settings/advanced", json={"search_max_results": 0}).status_code == 422
+
+
+def test_advanced_rejects_unknown_field(client):
+    c, _ = client
+    assert c.put("/api/settings/advanced", json={"bogus": 1}).status_code == 422
 
 
 # ---------------------------------------------------------------------------

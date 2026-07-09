@@ -129,6 +129,7 @@ def models_view() -> dict:
             "providers": providers,
         },
         "browser_backend": settings.browser_backend,
+        "jina_api_key_set": key_set("JINA_API_KEY") or key_set("SF_JINA_API_KEY", settings.jina_api_key),
     }
 
 
@@ -143,10 +144,33 @@ def run_defaults_view() -> dict:
     }
 
 
+def advanced_view() -> dict:
+    """First-class runtime knobs. Proxy / cache dir are NOT secrets — echo the
+    resolved value so the field round-trips. ``overridden`` lists which knobs the
+    overlay currently pins (vs. env/code default)."""
+    from searchos.config.settings import settings
+
+    adv = store.advanced
+    proxy = adv.https_proxy if adv.https_proxy is not None else (
+        os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY") or ""
+    )
+    return {
+        "llm_max_retries": settings.llm_max_retries,
+        "browser_disk_cache_dir": settings.browser_disk_cache_dir,
+        "https_proxy": proxy,
+        "search_max_results": settings.search_max_results,
+        "overridden": sorted(
+            f for f in ("llm_max_retries", "browser_disk_cache_dir", "https_proxy")
+            if getattr(adv, f) is not None
+        ),
+    }
+
+
 def aggregate_view() -> dict:
     return {
         "effort": effort_view(),
         "skills": skills_view(),
         "models": models_view(),
         "run_defaults": run_defaults_view(),
+        "advanced": advanced_view(),
     }

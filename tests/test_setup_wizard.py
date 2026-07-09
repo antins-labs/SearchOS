@@ -192,9 +192,11 @@ def test_wizard_local_flow_with_search(monkeypatch, tmp_path: Path):
     card = ov.models.custom_profiles["main"]
     assert card.model == "qwen3:32b" and card.provider_ref == "ollama"
     assert all(ov.models.roles[r] == "main" for r in ROLE_NAMES)
+    # 搜索后端现写入 overlay（与 web/CLI/TUI 同源），只有 key 值落 .env。
+    assert ov.models.search_provider == "serper"
 
     text = env.read_text()
-    assert "SF_SEARCH_PROVIDER=serper" in text
+    assert "SF_SEARCH_PROVIDER" not in text
     assert "SERPER_API_KEY=serper-key" in text
     assert "SF_PROVIDER" not in text and "SF_MODEL" not in text
 

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import os
 import re
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 
 _ENV_HEADER = "# SearchOS 配置 — 由配置向导/Web 设置生成，可手动编辑；参考 .env.example"
@@ -84,9 +84,41 @@ def apply_env_updates(path: Path, updates: Mapping[str, str]) -> None:
             os.environ.pop(key, None)
 
 
+def remove_env_keys(path: Path, keys: Iterable[str]) -> list[str]:
+    """从 .env 物理删除指定键的赋值行（保留注释与其余行顺序，原子写）。
+
+    返回实际删除的键名列表；path 不存在或无匹配时返回空列表、不写盘。
+    删除后若产生连续空行会折叠为一行，避免留下大片空白。
+    """
+    if not path.exists():
+        return []
+    targets = {k for k in keys}
+    lines = path.read_text().splitlines()
+    out: list[str] = []
+    removed: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        if "=" in stripped and not stripped.startswith("#"):
+            key = stripped.split("=", 1)[0].strip()
+            if key in targets:
+                removed.append(key)
+                continue
+        # 折叠因删除产生的连续空行。
+        if not stripped and out and not out[-1].strip():
+            continue
+        out.append(line)
+    if not removed:
+        return []
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text("\n".join(out) + "\n")
+    os.replace(tmp, path)
+    return removed
+
+
 __all__ = [
     "apply_env_updates",
     "find_env_path",
+    "remove_env_keys",
     "update_env_file",
     "validate_env_value",
 ]

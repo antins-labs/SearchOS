@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronRight, RotateCcw } from "lucide-react";
 
-import { putEffort, putMisc } from "@/lib/api";
+import { putAdvanced, putEffort, putMisc } from "@/lib/api";
 import type { EffortLevel } from "@/lib/types";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { Card, OfflineSkeleton, Row, SectionShell } from "@/components/settings/primitives";
@@ -32,14 +32,14 @@ export default function BudgetSection() {
 
   if (!settings) {
     return (
-      <SectionShell id="budget" title="Search budget"
+      <SectionShell id="budget" title="Budget & limits"
         description="Effort controls how many iterations, agents and searches a run may spend.">
         <OfflineSkeleton />
       </SectionShell>
     );
   }
 
-  const { effort, run_defaults } = settings;
+  const { effort, run_defaults, advanced } = settings;
   const levels = Object.keys(effort.levels) as EffortLevel[];
   const hasOverrides = Object.keys(effort.overrides).length > 0;
 
@@ -93,10 +93,23 @@ export default function BudgetSection() {
       errorLabel: "Couldn't save default",
     });
 
+  // First-class runtime knobs not covered by effort (retries, search results).
+  const setAdvanced = (patch: { llm_max_retries?: number; search_max_results?: number }) =>
+    mutate({
+      optimistic: (s) => ({ ...s, advanced: { ...s.advanced, ...patch } }),
+      call: () => putAdvanced(patch),
+      merge: (s, view) => ({
+        ...s,
+        advanced: view,
+        run_defaults: { ...s.run_defaults, search_max_results: view.search_max_results },
+      }),
+      errorLabel: "Couldn't save limit",
+    });
+
   const disabled = status !== "ready";
 
   return (
-    <SectionShell id="budget" title="Search budget"
+    <SectionShell id="budget" title="Budget & limits"
       description="Effort controls how many iterations, agents and searches a run may spend.">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {levels.map((level) => (
@@ -160,6 +173,14 @@ export default function BudgetSection() {
         <Row label="Default time limit" hint="Wall-clock cap per search run">
           <NumberField value={run_defaults.max_time_s} onCommit={(v) => setDefault({ max_time_s: v })}
             suffix="s" disabled={disabled} />
+        </Row>
+        <Row label="Search results per query" hint="Max results each web search returns">
+          <NumberField value={advanced.search_max_results}
+            onCommit={(v) => setAdvanced({ search_max_results: v })} disabled={disabled} />
+        </Row>
+        <Row label="LLM retries" hint="Retries on a rate-limited / failed model call">
+          <NumberField value={advanced.llm_max_retries} min={0} max={20}
+            onCommit={(v) => setAdvanced({ llm_max_retries: v })} disabled={disabled} />
         </Row>
       </Card>
     </SectionShell>

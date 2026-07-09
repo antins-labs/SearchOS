@@ -5,6 +5,7 @@ import pytest
 from searchos.config.env_file import (
     apply_env_updates,
     find_env_path,
+    remove_env_keys,
     update_env_file,
     validate_env_value,
 )
@@ -79,6 +80,37 @@ def test_validate_rejects_unsafe_values(bad):
 @pytest.mark.parametrize("ok", ["", "sk-abc123", "https://api.deepseek.com/v1", "glm-5.2"])
 def test_validate_accepts_normal_values(ok):
     validate_env_value(ok)
+
+
+def test_remove_env_keys_drops_lines_keeps_comments(tmp_path):
+    env = tmp_path / ".env"
+    env.write_text("# 头注释\nSF_ENABLE_SKILLS=true\nOPENAI_API_KEY=sk-keep\nHTTP_PROXY=http://x\n")
+    removed = remove_env_keys(env, ["SF_ENABLE_SKILLS", "HTTP_PROXY", "ABSENT_KEY"])
+    assert set(removed) == {"SF_ENABLE_SKILLS", "HTTP_PROXY"}
+    text = env.read_text()
+    assert "# 头注释" in text
+    assert "OPENAI_API_KEY=sk-keep" in text
+    assert "SF_ENABLE_SKILLS" not in text
+    assert "HTTP_PROXY" not in text
+
+
+def test_remove_env_keys_noop_when_no_match(tmp_path):
+    env = tmp_path / ".env"
+    env.write_text("OPENAI_API_KEY=sk-x\n")
+    assert remove_env_keys(env, ["NOPE"]) == []
+    assert env.read_text() == "OPENAI_API_KEY=sk-x\n"
+
+
+def test_remove_env_keys_missing_file(tmp_path):
+    assert remove_env_keys(tmp_path / "absent.env", ["A"]) == []
+
+
+def test_remove_env_keys_ignores_commented_assignment(tmp_path):
+    env = tmp_path / ".env"
+    env.write_text("# SF_ENABLE_SKILLS=true\nSF_ENABLE_SKILLS=true\n")
+    removed = remove_env_keys(env, ["SF_ENABLE_SKILLS"])
+    assert removed == ["SF_ENABLE_SKILLS"]  # 只删真实赋值行，注释保留
+    assert env.read_text() == "# SF_ENABLE_SKILLS=true\n"
 
 
 def test_find_env_path_prefers_existing(tmp_path):

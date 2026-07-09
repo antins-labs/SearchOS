@@ -31,11 +31,13 @@ def _setup_provider(no_search: bool) -> None:
     if no_search:
         return
     # searchos binds search + page-fetch onto one shared provider.
-    # 后端由 SF_SEARCH_PROVIDER 指定；未指定时按已有 key 推断（serper → tavily），
-    # 都没有则回落内部 ragflow（向后兼容）。
+    # 后端优先取 web_settings.json overlay 的 models.search_provider（与 web 一致，
+    # main() 已在此前 load_and_apply）；overlay 未配时回落 SF_SEARCH_PROVIDER，
+    # 再按已有 key 推断（serper → tavily），最后回落内部 ragflow。
+    from searchos.config.web_overlay import store
     from searchos.tools.simple_browser.search import build_search_provider
     from searchos.tools.simple_browser.state import set_browser_provider
-    set_browser_provider(build_search_provider())
+    set_browser_provider(build_search_provider(store.models.search_provider or ""))
 
 
 def _build_parser() -> argparse.ArgumentParser:

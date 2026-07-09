@@ -19,7 +19,14 @@ from pydantic import BaseModel, Field
 
 from api import settings_store, skills_catalog
 from api.settings_store import EffortLevel
-from api.settings_views import aggregate_view, effort_view, models_view, run_defaults_view, skills_view
+from api.settings_views import (
+    advanced_view,
+    aggregate_view,
+    effort_view,
+    models_view,
+    run_defaults_view,
+    skills_view,
+)
 from api.skills_catalog import SKILL_CATEGORIES
 
 router = APIRouter(prefix="/api/settings")
@@ -48,6 +55,17 @@ class MiscUpdate(BaseModel, extra="forbid"):
     search_max_results: int | None = Field(default=None, gt=0)
     enable_skills: bool | None = None
     browser_backend: Literal["aiohttp", "crawl4ai", "search_engine", "jina"] | None = None
+
+
+class AdvancedUpdate(BaseModel, extra="forbid"):
+    """First-class runtime knobs (see settings_views.advanced_view). Only fields
+    actually sent are touched (model_fields_set). A field sent as null clears the
+    override back to the env/code default; ``https_proxy`` sent as "" forces
+    no-proxy (unsets HTTP(S)_PROXY). Proxy / cache dir are not secrets."""
+    llm_max_retries: int | None = Field(default=None, ge=0, le=20)
+    browser_disk_cache_dir: str | None = None
+    https_proxy: str | None = None
+    search_max_results: int | None = Field(default=None, gt=0)
 
 
 # --- endpoints ---
@@ -175,6 +193,28 @@ async def put_misc(req: MiscUpdate):
     view = run_defaults_view()
     view["browser_backend"] = models_view()["browser_backend"]
     return view
+
+
+@router.put("/advanced")
+async def put_advanced(req: AdvancedUpdate):
+    sent = req.model_fields_set
+
+    def patch(s):
+        # Overlay-owned knobs. None (explicit) → clear the override; a value pins
+        # it. reload rebuilds settings from env first so a cleared knob restores
+        # its base (plain replay would keep the mutated value).
+        if "llm_max_retries" in sent:
+            s.advanced.llm_max_retries = req.llm_max_retries
+        if "browser_disk_cache_dir" in sent:
+            s.advanced.browser_disk_cache_dir = req.browser_disk_cache_dir
+        if "https_proxy" in sent:
+            # "" is a real value here — force no-proxy; only null clears the override.
+            s.advanced.https_proxy = req.https_proxy
+        if "search_max_results" in sent:
+            s.run_defaults.search_max_results = req.search_max_results
+
+    await settings_store.update(patch, reload=True)
+    return advanced_view()
 
 
 @router.post("/reset")

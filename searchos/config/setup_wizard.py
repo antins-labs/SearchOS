@@ -19,7 +19,12 @@ import os
 import sys
 from pathlib import Path
 
-from searchos.config.env_file import apply_env_updates, find_env_path, update_env_file
+from searchos.config.env_file import (
+    apply_env_updates,
+    find_env_path,
+    remove_env_keys,
+    update_env_file,
+)
 from searchos.config.providers import PRESET_GROUPS, PRESETS, ProviderPreset, resolve_preset
 
 # 搜索后端选项 — 与 searchos/tools/simple_browser/search/__init__.py 的
@@ -40,8 +45,10 @@ _GROUP_LABELS: dict[str, str] = {
 
 
 def _overlay_config_ready() -> bool:
-    """web_settings.json overlay 是否已配好可用模型：至少一张被角色绑定的 custom
-    卡，且这些卡引用连接的 key 环境变量都有值（不 import settings、不发请求）。"""
+    """web_settings.json overlay 是否已配好可用模型：至少一个被角色绑定的 profile
+    ——新建的 custom 卡，或对既有 profile 的 override（改绑 provider_ref，常见于
+    "不新建卡，直接把老角色改连到新 provider" 的配置路径）——指向的 key 环境变量
+    有值（不 import settings、不发请求）。"""
     from searchos.config.web_overlay import WebSettings, overlay_path
 
     path = overlay_path()
@@ -52,14 +59,18 @@ def _overlay_config_ready() -> bool:
     except Exception:
         return False
     conns = ov.models.provider_connections
-    bound = {c for c in ov.models.roles.values() if c in ov.models.custom_profiles}
+    configured = set(ov.models.custom_profiles) | set(ov.models.profile_overrides)
+    bound = {c for c in ov.models.roles.values() if c in configured}
     if not bound:
         return False
     for cname in bound:
-        cp = ov.models.custom_profiles[cname]
-        conn = conns.get(cp.provider_ref) if cp.provider_ref else None
-        key_env = conn.resolve_key_env(cp.api_key_env) if conn else cp.api_key_env
-        if not os.environ.get(key_env):
+        cp = ov.models.custom_profiles.get(cname)
+        pov = ov.models.profile_overrides.get(cname)
+        provider_ref = (cp and cp.provider_ref) or (pov and pov.provider_ref)
+        api_key_env = (cp and cp.api_key_env) or (pov and pov.api_key_env)
+        conn = conns.get(provider_ref) if provider_ref else None
+        key_env = conn.resolve_key_env(api_key_env) if conn else api_key_env
+        if not key_env or not os.environ.get(key_env):
             return False
     return True
 
@@ -126,9 +137,11 @@ def run_setup_wizard(env_path: Path | None = None) -> bool:
 
     from searchos.config.profiles import ROLE_NAMES
     from searchos.config.web_overlay import (
+        MIGRATABLE_ENV_KEYS,
         CustomProfile,
         ProviderConnection,
         load_overlay_file,
+        migrate_legacy_env_into_overlay,
         overlay_path,
         save_overlay,
         store,
@@ -230,20 +243,22 @@ def run_setup_wizard(env_path: Path | None = None) -> bool:
         for role in ROLE_NAMES:
             store.models.roles[role] = Prompt.ask(f"  {role}", choices=cards, default=main_card)
 
-    # ===== ④ 搜索后端（Web 搜索 API，与模型厂商无关；写 .env）=====
+    # ===== ④ 搜索后端（Web 搜索 API，与模型厂商无关）=====
+    # 后端选择写入 overlay（models.search_provider，与 web 设置页一致，CLI/TUI
+    # 也会读它）；只有 key 值这类 secret 才写 .env。
     has_search_key = any(os.environ.get(env) for _, _, env in _SEARCH_BACKENDS if env)
     console.print("\n[bold]④ 搜索后端[/]：")
     for i, (sname, label, key_env) in enumerate(_SEARCH_BACKENDS, 1):
         suffix = f" [dim]· {key_env}[/]" if key_env else ""
         console.print(f"  [bold cyan]{i}[/] {sname} — {label}{suffix}")
-    console.print("  [bold cyan]0[/] 跳过（稍后在 .env 里配置 SF_SEARCH_PROVIDER）")
+    console.print("  [bold cyan]0[/] 跳过（默认按已有 key 自动推断）")
     search_choice = Prompt.ask(
         "输入编号", choices=[str(i) for i in range(len(_SEARCH_BACKENDS) + 1)],
         default="0" if has_search_key else "1", show_choices=False,
     )
     if search_choice != "0":
         sname, _, key_env = _SEARCH_BACKENDS[int(search_choice) - 1]
-        env_updates["SF_SEARCH_PROVIDER"] = sname
+        store.models.search_provider = sname
         if key_env and not os.environ.get(key_env):
             while True:
                 skey = Prompt.ask(f"请输入 {key_env}", password=True).strip()
@@ -264,8 +279,32 @@ def run_setup_wizard(env_path: Path | None = None) -> bool:
     )
     if env_updates:
         console.print(f"  [dim].env 写入：{', '.join(env_updates)}[/]")
+
+    # ===== 清理 .env 里已迁移到 overlay 的非密钥旧开关 =====
+    # 先非破坏性地把遗留 env 并入 overlay，再提示删除 .env 里对应的旧行——
+    # .env 从此回归纯密钥。只针对**文件里真实存在**的赋值行（环境里存在但不在
+    # 文件里的没有可删项，也不打扰用户）。
+    migrate_legacy_env_into_overlay()
+    file_keys: set[str] = set()
+    if env_path.exists():
+        file_keys = {
+            ln.split("=", 1)[0].strip()
+            for ln in env_path.read_text().splitlines()
+            if "=" in ln and not ln.strip().startswith("#")
+        }
+    present = [k for k in MIGRATABLE_ENV_KEYS if k in file_keys]
+    if present:
+        console.print(
+            f"\n[yellow]检测到 .env 里有已迁移到设置文件的旧配置：{', '.join(present)}[/]"
+        )
+        if Confirm.ask("从 .env 移除它们（值已进 overlay，.env 只留密钥）？", default=True):
+            removed = remove_env_keys(env_path, present)
+            if removed:
+                console.print(f"  [dim]已从 .env 移除：{', '.join(removed)}[/]")
+
     console.print(
-        "[dim]更精细的调整（单角色换卡、限速、多 key 选用）见 web 设置页 → Models[/]\n"
+        "[dim]更精细的调整（单角色换卡、限速、多 key 选用）见 web 设置页 → Models，"
+        "或在 TUI 里用 /config、/search[/]\n"
     )
     return True
 
