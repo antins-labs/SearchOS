@@ -40,10 +40,13 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
   }, [onClose]);
 
   const defaults = settings?.run_defaults;
-  // Each effort level bundles a wall-clock budget (default_max_time_s) —
-  // switching effort snaps the time limit to that level's budget.
-  const levelTime = (lvl: string): number | undefined =>
-    settings?.effort?.levels?.[lvl as EffortLevel]?.default_max_time_s;
+  // Each effort level bundles a wall-clock budget (default_max_time_s). The
+  // time field *displays* the selected level's budget, but it only becomes an
+  // override (chip + request field) when the user edits it by hand — the
+  // backend already applies the level's budget to an effort-only run.
+  const levelTime = (lvl: string | undefined): number | undefined =>
+    lvl ? settings?.effort?.levels?.[lvl as EffortLevel]?.default_max_time_s : undefined;
+  const impliedTime = levelTime(overrides.effort) ?? defaults?.max_time_s ?? 1800;
 
   return (
     <div
@@ -74,11 +77,10 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
             value={overrides.effort ?? "default"}
             options={EFFORT_OPTIONS}
             onChange={(v) =>
-              setOverrides(
-                v === "default"
-                  ? {}
-                  : { effort: v as EffortLevel, max_time: levelTime(v) },
-              )
+              setOverrides({
+                ...overrides,
+                effort: v === "default" ? undefined : (v as EffortLevel),
+              })
             }
           />
         </div>
@@ -86,13 +88,13 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
         <div className="flex items-center justify-between gap-3">
           <span className="text-[13px] text-ink">Time limit</span>
           <NumberField
-            value={overrides.max_time ?? defaults?.max_time_s ?? 1800}
-            placeholder={defaults ? String(defaults.max_time_s) : undefined}
+            value={overrides.max_time ?? impliedTime}
+            placeholder={String(impliedTime)}
             suffix="s"
             onCommit={(v) =>
               setOverrides({
                 ...overrides,
-                max_time: v === defaults?.max_time_s ? undefined : v,
+                max_time: v === impliedTime ? undefined : v,
               })
             }
           />

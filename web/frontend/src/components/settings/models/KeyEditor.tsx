@@ -65,7 +65,7 @@ export default function KeyEditor({ envName, keySet, disabled = false, compact =
           keySet ? "text-ink-faint hover:text-ink-dim" : "text-accent-ink hover:opacity-80"
         }`}
       >
-        {keySet ? "Replace key" : "Add key"}
+        {keySet ? "Edit" : "Add key"}
       </button>
     );
   }
