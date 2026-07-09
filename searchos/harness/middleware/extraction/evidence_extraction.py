@@ -102,23 +102,49 @@ def _ungrounded_number(page_text: str, value: str) -> str | None:
 
 
 def _extract_context(page_text: str, value: str, entity: str, attribute: str = "", window: int = 120) -> str:
-    """Return a short text window around the fact for offline verification."""
+    """Return a short text window around the fact for offline verification.
+
+    The window centers on the value occurrence NEAREST an entity mention, not
+    the first one on the page: short generic values ("5A", "朝阳区",
+    "9:00-18:00") recur across a page, and the first hit is routinely another
+    entity's statement."""
     if not page_text:
         return ""
     haystack = page_text
-    for needle in (value, entity):
+
+    def _positions(needle: str) -> list[int]:
         if not needle or len(needle) < 2:
-            continue
-        idx = haystack.find(needle)
-        if idx < 0:
-            lower_idx = haystack.lower().find(needle.lower())
-            if lower_idx < 0:
-                continue
-            idx = lower_idx
+            return []
+        pos = [m.start() for m in re.finditer(re.escape(needle), haystack)]
+        if pos:
+            return pos
+        lowered = haystack.lower()
+        return [m.start() for m in re.finditer(re.escape(needle.lower()), lowered)]
+
+    def _window_at(idx: int, length: int) -> str:
         start = max(0, idx - window)
-        end = min(len(haystack), idx + len(needle) + window)
-        snippet = haystack[start:end].strip()
-        return " ".join(snippet.split())
+        end = min(len(haystack), idx + length + window)
+        return " ".join(haystack[start:end].split())
+
+    # Scraped pages carry a "Title: … URL Source: … Markdown Content:"
+    # preamble; anything worth quoting is restated in the body, and viewers
+    # strip the preamble — so prefer body occurrences when any exist.
+    m = re.search(r"Markdown Content:\s*", haystack)
+    body_start = m.end() if m else 0
+
+    def _prefer_body(pos: list[int]) -> list[int]:
+        body = [p for p in pos if p >= body_start]
+        return body or pos
+
+    val_pos = _prefer_body(_positions(value))
+    ent_pos = _prefer_body(_positions(entity))
+    if val_pos and ent_pos:
+        idx = min(val_pos, key=lambda v: min(abs(v - e) for e in ent_pos))
+        return _window_at(idx, len(value))
+    if val_pos:
+        return _window_at(val_pos[0], len(value))
+    if ent_pos:
+        return _window_at(ent_pos[0], len(entity))
     return ""
 
 
@@ -993,11 +1019,50 @@ class EvidenceExtractionMiddleware(AgentMiddleware):
             )
             return [], reason == "judge_returned_no_rows"
         deduped = self._dedup_rows(rows, schema)
-        combined_text = "\n\n".join(p["content"] for p in pages)
-        combined_url = pages[0]["source_url"] if len(pages) == 1 else ", ".join(
-            p["source_url"] for p in pages if p["source_url"]
-        )
-        return [(r, combined_text, combined_url, mode) for r in deduped], True
+        # One row anchors to ONE original page: page_id / span / excerpt all
+        # derive from the bundled (text, url), so stamping every row with the
+        # concatenated batch text + comma-joined URLs produces page_ids that
+        # resolve to no stored page and excerpts anchored to whichever page
+        # mentions the value first.
+        return [
+            (r, *self._resolve_row_page(r, pages), mode) for r in deduped
+        ], True
+
+    @staticmethod
+    def _resolve_row_page(
+        row: dict[str, Any], pages: list[dict[str, str]],
+    ) -> tuple[str, str]:
+        """The single page a row's evidence lives on → (page_text, source_url).
+
+        Trusts the judge's ``_source_page`` (1-based "### Page N" index) when
+        valid; otherwise scores each page — excerpt anchoring dominates, row
+        text containment breaks ties — and takes the best (earliest on tie)."""
+        if len(pages) == 1:
+            return pages[0]["content"], pages[0]["source_url"]
+        try:
+            idx = int(str(row.get("_source_page", "")).strip())
+        except (TypeError, ValueError):
+            idx = 0
+        if 1 <= idx <= len(pages):
+            return pages[idx - 1]["content"], pages[idx - 1]["source_url"]
+        from searchos.util.span_match import find_span
+
+        excerpt = str(row.get("_source_excerpt", "") or "").strip()
+        cell_texts = [
+            t for k, v in row.items()
+            if not str(k).startswith("_") and v is not None
+            and len(t := str(v).strip()) >= 2 and t.lower() not in _NULL_VALUES
+        ]
+        best_i, best_score = 0, -1
+        for i, p in enumerate(pages):
+            content = p["content"]
+            score = 0
+            if excerpt and find_span(content, excerpt)[0] is not None:
+                score += len(cell_texts) + 1  # outranks any containment count
+            score += sum(1 for t in cell_texts if t in content)
+            if score > best_score:
+                best_i, best_score = i, score
+        return pages[best_i]["content"], pages[best_i]["source_url"]
 
     def _ingest_rows(
         self, bundles: list[tuple], tid: str, s: Any,
@@ -1256,14 +1321,19 @@ class EvidenceExtractionMiddleware(AgentMiddleware):
 
     @staticmethod
     def _dedup_rows(rows: list[dict[str, Any]], schema: Any) -> list[dict[str, Any]]:
-        """Dedup by PK; keep the row with more filled data columns; ties
-        broken by better alignment."""
+        """Dedup by (PK, source page); keep the row with more filled data
+        columns; ties broken by better alignment. Same-PK rows quoting
+        DIFFERENT pages are corroborating statements, not duplicates — each
+        anchors to its own page, and node-level dedup keys on source."""
         null_values = _NULL_VALUES
         seen: dict[str, dict[str, Any]] = {}
         for row in rows:
             key = "|".join(str(row.get(k, "")) for k in schema.primary_key)
             if not key or key == "|" * len(schema.primary_key):
                 continue
+            page_tag = str(row.get("_source_page", "") or "").strip()
+            if page_tag:
+                key = f"{key}@page{page_tag}"
             if key not in seen:
                 seen[key] = row
                 continue

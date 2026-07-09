@@ -86,11 +86,16 @@ _OUTPUT_FORMAT_BLOCK = """\
 ## Output format — JSON array of row objects
 Each row is an object with ALL column names as keys:
     {{{key_example}
+      "_source_page": <the "### Page N" number the quoted passages come from>,
       "_source_excerpt": "<verbatim page passage(s) containing the values you emit>",
       "_alignment": "full" | "partial",
       "_alignment_note": "<one sentence>",
       "_confidence": "high" | "medium" | "low",
       "_source_authority": "official" | "aggregator" | "news" | "blog" | "unclear"}}
+- ONE ROW = ONE PAGE. `_source_page` is the number in that page's "### Page N"
+  header, and `_source_excerpt` quotes THAT page only. When several pages state
+  values for the same primary key, emit one row object per page (same PK,
+  different `_source_page`) — never merge values from different pages into one row.
 - `_source_excerpt` is the factual warrant for the row: quote the page passage(s)
   that state the non-null data values (join distant fragments with " … ", keep it
   under ~400 chars). Copy characters exactly — no paraphrase, no reflow.
@@ -182,11 +187,8 @@ The rows already in this table are listed below. ``MISSING=[...]`` lists the col
 
 
 def _render_pages_block(pages: list[dict[str, str]]) -> str:
-    if len(pages) == 1:
-        return (
-            f"Source: {pages[0].get('source_url', '')}\n"
-            f"{pages[0].get('content', '')}"
-        )
+    # Always numbered, even for a single page — `_source_page` in the output
+    # format refers to these "### Page N" headers.
     parts = []
     for i, p in enumerate(pages):
         parts.append(
