@@ -33,11 +33,34 @@ class HistoryTurn(BaseModel):
     answer: str = ""
 
 
+class SchemaTableRequest(BaseModel):
+    table_id: str
+    table_label: str | None = None
+    entities: list[str] | None = None
+    attrs: list[str]
+    primary_key: list[str] | None = None
+    row_label: str | None = None
+
+
+class SchemaRelationRequest(BaseModel):
+    from_table: str
+    to_table: str
+    foreign_key: list[str]
+    target_columns: list[str] | None = None
+    kind: Literal["one_to_many", "many_to_many"] = "one_to_many"
+    label: str | None = None
+
+
 class SearchRequest(BaseModel):
     query: str
     type: str | None = None  # wide / deep / local / hybrid
     entities: list[str] | None = None
     attrs: list[str] | None = None
+    table_label: str | None = None
+    primary_key: list[str] | None = None
+    row_label: str | None = None
+    tables: list[SchemaTableRequest] | None = None
+    relations: list[SchemaRelationRequest] | None = None
     max_time: int | None = None       # None → stored default → settings.default_max_time_s
     effort: Literal["low", "medium", "high", "max"] | None = None  # this run only
     skills: SkillOverrides | None = None
@@ -60,6 +83,7 @@ async def create_search(req: SearchRequest):
     from searchos.harness.session import SearchSession
     from searchos.socm.frontier import FrontierTask
     from searchos.socm.state import SearchState
+    from searchos.socm import ForeignKey, Relation, RelationKind
 
     from searchos.harness.telemetry.conversation_context import build_preamble
 
@@ -86,16 +110,64 @@ async def create_search(req: SearchRequest):
         # pin (the /schema composer fields) — same autonomy as the CLI/TUI, which
         # never pre-seeds the coverage map or frontier and lets the orchestrator's
         # own create_schema/enqueue_tasks tool calls decide everything at runtime.
-        entities = req.entities
-        attrs = req.attrs
-
         state = SearchState(intent=req.query)
-        if entities and attrs:
-            state.coverage_map.initialize(entities, attrs)
-            for entity in entities:
+        if req.tables:
+            for table in req.tables:
+                attrs = table.attrs
+                if not attrs:
+                    continue
+                table_id = table.table_id.strip()
+                if not table_id:
+                    continue
+                state.coverage_map.add_table(
+                    table_id,
+                    attrs,
+                    table_label=table.table_label or "",
+                    primary_key=table.primary_key or [],
+                    row_label=table.row_label or "",
+                    entities=table.entities or [],
+                )
+                for entity in table.entities or []:
+                    state.frontier.add(FrontierTask(
+                        id=f"q_{table_id}_{entity.lower().replace(' ', '_')}",
+                        question=f"Find {', '.join(attrs)} for {entity}",
+                        priority=0.8,
+                        table_id=table_id,
+                    ))
+            for rel in req.relations or []:
+                from_schema = state.coverage_map.tables.get(rel.from_table)
+                to_schema = state.coverage_map.tables.get(rel.to_table)
+                if not from_schema or not to_schema:
+                    continue
+                fk_cols = [c for c in rel.foreign_key if c in from_schema.attributes]
+                target_cols = [
+                    c for c in (rel.target_columns or to_schema.primary_key)
+                    if c in to_schema.attributes
+                ]
+                if not fk_cols or not target_cols:
+                    continue
+                state.coverage_map.add_relation(Relation(
+                    from_table=rel.from_table,
+                    foreign_key=ForeignKey(
+                        target_table=rel.to_table,
+                        columns=fk_cols,
+                        target_columns=target_cols,
+                    ),
+                    kind=RelationKind(rel.kind),
+                    label=rel.label or "",
+                ))
+        elif req.attrs:
+            state.coverage_map.initialize(
+                req.entities or [],
+                req.attrs,
+                table_label=req.table_label or "",
+                primary_key=req.primary_key or [],
+                row_label=req.row_label or "",
+            )
+            for entity in req.entities or []:
                 state.frontier.add(FrontierTask(
                     id=f"q_{entity.lower().replace(' ', '_')}",
-                    question=f"Find {', '.join(attrs)} for {entity}",
+                    question=f"Find {', '.join(req.attrs)} for {entity}",
                     priority=0.8,
                 ))
 

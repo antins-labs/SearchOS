@@ -1,10 +1,33 @@
 // TypeScript types aligned with backend Pydantic models
 
+export interface SchemaTableRequest {
+  table_id: string;
+  table_label?: string;
+  entities?: string[];
+  attrs: string[];
+  primary_key?: string[];
+  row_label?: string;
+}
+
+export interface SchemaRelationRequest {
+  from_table: string;
+  to_table: string;
+  foreign_key: string[];
+  target_columns?: string[];
+  kind: "one_to_many" | "many_to_many";
+  label?: string;
+}
+
 export interface SearchRequest {
   query: string;
   type?: "wide" | "deep" | "local" | "hybrid";
   entities?: string[];
   attrs?: string[];
+  table_label?: string;
+  primary_key?: string[];
+  row_label?: string;
+  tables?: SchemaTableRequest[];
+  relations?: SchemaRelationRequest[];
   max_time?: number;
   effort?: EffortLevel;
   skills?: SkillOverrides;
