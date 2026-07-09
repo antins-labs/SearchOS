@@ -3,6 +3,7 @@
 import type { ComponentType } from "react";
 import {
   Users, LayoutGrid, BarChart3, FileCheck, Eye, Compass, Search, BookOpen, CheckCircle2,
+  Loader2, MessageSquarePlus,
 } from "lucide-react";
 import type { WSEvent } from "@/lib/types";
 import { agentLabel } from "./trace";
@@ -24,6 +25,8 @@ interface ActionView {
   detail?: string;
   agents?: DispatchAgent[]; // dispatch wave
   checks?: CheckAgent[];    // check_agents report
+  result?: string;          // tool observation preview
+  spin?: boolean;           // in-flight (tool_call_started, no step yet)
 }
 
 const STR = (v: unknown) => (typeof v === "string" ? v : "");
@@ -76,11 +79,22 @@ function stepView(name: string, args: string): ActionView | null {
 
 interface Card { k: number; reasoning: string; action: ActionView | null; }
 
+const RUNNING_LABEL: Record<string, string> = {
+  check_agents: "Checking on sub-agents",
+  evaluate_progress: "Evaluating coverage",
+  synthesize_answer: "Synthesizing answer",
+  create_schema: "Building coverage schema",
+  enqueue_tasks: "Queueing tasks",
+};
+
 function buildCards(events: WSEvent[]): Card[] {
   const out: Card[] = [];
   let wave: DispatchAgent[] = [];
   let waveKey = -1;
   let pendingReasoning = "";
+  // Latest tool call that has started but whose `step` (result) hasn't
+  // landed yet — check_agents can block for minutes while agents work.
+  let inFlight: { k: number; tool: string } | null = null;
   const live = new Map<string, string>(); // sub-agent → current status
 
   const flush = () => {
@@ -111,6 +125,25 @@ function buildCards(events: WSEvent[]): Card[] {
       return;
     }
 
+    // A live follow-up injected into the run — show it in the trace.
+    if (t === "harness" && STR(d.kind) === "steer_injected") {
+      flush();
+      out.push({
+        k: i, reasoning: "",
+        action: {
+          icon: MessageSquarePlus, tone: CHIP.accent,
+          label: "Follow-up steered into the run",
+          detail: trim(STR(d.text), 140),
+        },
+      });
+      return;
+    }
+
+    if (t === "tool_call_started" && agent === "orchestrator") {
+      inFlight = { k: i, tool: STR(d.tool) };
+      return;
+    }
+
     // track sub-agent lifecycle so "check" cards can show who's in flight
     if (agent && agent !== "orchestrator") {
       if (t === "agent_final" || t === "agent_complete") live.set(agent, "completed");
@@ -121,7 +154,9 @@ function buildCards(events: WSEvent[]): Card[] {
     if (agent !== "orchestrator") return;
 
     if (t === "step") {
+      inFlight = null; // the step record carries this call's result
       const name = actionName(d.action);
+      const result = trim(STR(d.observation).trim(), 220);
       if (name === "enqueue_tasks") {
         pendingReasoning = STR(d.reasoning).trim() || pendingReasoning;
         return;
@@ -135,17 +170,37 @@ function buildCards(events: WSEvent[]): Card[] {
             icon: Eye, tone: CHIP.neutral,
             label: running.length ? `Checked ${running.length} in-flight agents` : "Checked on sub-agents",
             checks: running,
+            result,
           },
         });
         return;
       }
-      out.push({ k: i, reasoning: STR(d.reasoning).trim(), action: stepView(name, actionArgs(d.action)) });
+      const view = stepView(name, actionArgs(d.action));
+      if (view && result) view.result = result;
+      out.push({ k: i, reasoning: STR(d.reasoning).trim(), action: view });
     } else if (t === "agent_final") {
+      inFlight = null;
       flush();
       out.push({ k: i, reasoning: STR(d.reasoning).trim(), action: { icon: CheckCircle2, tone: CHIP.ok, label: "Finished & synthesized" } });
     }
   });
   flush();
+
+  // Still waiting on a tool result — show the call as in-flight instead of
+  // going silent until it returns (check_agents blocks on running agents).
+  // (TS can't see the forEach-callback assignments, hence the assertion.)
+  const pending = inFlight as { k: number; tool: string } | null;
+  if (pending) {
+    const running = [...live].filter(([, s]) => s === "running").map(([name, status]) => ({ name, status }));
+    out.push({
+      k: pending.k, reasoning: "",
+      action: {
+        icon: Loader2, spin: true, tone: CHIP.neutral,
+        label: `${RUNNING_LABEL[pending.tool] ?? pending.tool}…`,
+        checks: pending.tool === "check_agents" && running.length ? running : undefined,
+      },
+    });
+  }
   return out;
 }
 
@@ -162,10 +217,17 @@ export default function OrchestratorTimeline({ events }: { events: WSEvent[] }) 
           {c.action && (
             <div className={`rounded-lg px-3 py-2 ${c.action.tone}`}>
               <div className="flex items-center gap-1.5 text-[12.5px] font-medium">
-                <c.action.icon size={13} />
+                <c.action.icon size={13} className={c.action.spin ? "animate-spin" : undefined} />
                 {c.action.label}
                 {c.action.detail && <span className="font-normal opacity-80">· {c.action.detail}</span>}
               </div>
+
+              {/* tool result preview */}
+              {c.action.result && (
+                <div className="mt-1.5 line-clamp-3 font-mono text-[11px] font-normal leading-relaxed opacity-75">
+                  ⎿ {c.action.result}
+                </div>
+              )}
 
               {/* dispatch wave — codename + task per concurrent agent */}
               {c.action.agents && c.action.agents.length > 0 && (

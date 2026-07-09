@@ -46,6 +46,8 @@ interface SettingsCtx {
   clearOverrides: () => void;
   uiPrefs: UiPrefs;
   setUiPrefs: (p: Partial<UiPrefs>) => void;
+  /** Show a transient toast (used for non-settings failures too). */
+  notify: (msg: string) => void;
 }
 
 const Ctx = createContext<SettingsCtx | null>(null);
@@ -148,6 +150,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         settings, status, refresh, mutate,
         overrides, setOverrides, clearOverrides,
         uiPrefs, setUiPrefs,
+        notify: showToast,
       }}
     >
       {children}
