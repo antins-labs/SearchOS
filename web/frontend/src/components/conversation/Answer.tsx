@@ -6,7 +6,7 @@ import remarkGfm from "remark-gfm";
 /** Keep the agent's prose intact — the answer must render complete. Only
  *  strip lines that leak harness internals, plus a trailing References dump
  *  (the Evidence tab already lists sources with full URLs). */
-function cleanAnswer(md: string): string {
+export function cleanAnswer(md: string): string {
   // cut a trailing references/sources/citations section
   md = md.replace(/\n#{1,6}\s*(references|sources|citations|footnotes|url citations)\b[\s\S]*$/i, "\n");
   const out: string[] = [];

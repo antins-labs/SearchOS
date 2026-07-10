@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, WifiOff } from "lucide-react";
 import Composer, { type SubmitOpts } from "@/components/shell/Composer";
 import OrchestrationCard from "./OrchestrationCard";
-import Answer from "./Answer";
+import Answer, { cleanAnswer } from "./Answer";
+import AnswerActions from "./AnswerActions";
 import CoverageTable from "@/components/coverage/CoverageTable";
+import ResultExportMenu from "@/components/coverage/ResultExportMenu";
 import type { Turn } from "@/lib/conversation";
 
 interface Props {
@@ -16,12 +18,14 @@ interface Props {
   onSubmit: (q: string, opts: SubmitOpts) => void;
   onSteer?: (text: string) => void;
   onStop?: () => void;
+  onRerun: (query: string) => void;
   onOpenDrawer: (turnId: string) => void;
   registerTurnRef?: (id: string, el: HTMLDivElement | null) => void;
 }
 
-export default function Conversation({ turns, running, reconnecting = false, stopping = false, onSubmit, onSteer, onStop, onOpenDrawer, registerTurnRef }: Props) {
+export default function Conversation({ turns, running, reconnecting = false, stopping = false, onSubmit, onSteer, onStop, onRerun, onOpenDrawer, registerTurnRef }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [composerFocusRequest, setComposerFocusRequest] = useState(0);
   // Follow the bottom only while a search is live; a freshly loaded historical
   // session should rest at the top, not jump to its references.
   useEffect(() => {
@@ -32,11 +36,16 @@ export default function Conversation({ turns, running, reconnecting = false, sto
     <div className="flex h-full min-h-0 flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[760px] px-3 pb-6 pt-16 sm:px-5 min-[1180px]:px-6 min-[1180px]:py-8">
-          {turns.map((t) => (
+          {turns.map((t, index) => (
             <TurnView
               key={t.id}
               turn={t}
               onOpen={() => onOpenDrawer(t.id)}
+              onRerun={() => onRerun(t.query)}
+              onContinue={index === turns.length - 1 && t.status === "completed"
+                ? () => setComposerFocusRequest((value) => value + 1)
+                : undefined}
+              runDisabled={running}
               registerRef={registerTurnRef ? (el) => registerTurnRef(t.id, el) : undefined}
             />
           ))}
@@ -56,15 +65,32 @@ export default function Conversation({ turns, running, reconnecting = false, sto
 
       <div className="border-t border-line bg-paper">
         <div className="mx-auto max-w-[760px] px-3 py-3 sm:px-5 min-[1180px]:px-6 min-[1180px]:py-4">
-          <Composer onSubmit={onSubmit} onSteer={onSteer} onStop={onStop} running={running} stopping={stopping} variant="bar" />
+          <Composer onSubmit={onSubmit} onSteer={onSteer} onStop={onStop} running={running} stopping={stopping} focusRequest={composerFocusRequest} variant="bar" />
         </div>
       </div>
     </div>
   );
 }
 
-function TurnView({ turn, onOpen, registerRef }: { turn: Turn; onOpen: () => void; registerRef?: (el: HTMLDivElement | null) => void }) {
+function TurnView({
+  turn,
+  onOpen,
+  onRerun,
+  onContinue,
+  runDisabled,
+  registerRef,
+}: {
+  turn: Turn;
+  onOpen: () => void;
+  onRerun: () => void;
+  onContinue?: () => void;
+  runDisabled: boolean;
+  registerRef?: (el: HTMLDivElement | null) => void;
+}) {
+  const [answerCollapsed, setAnswerCollapsed] = useState(false);
   const done = turn.status === "completed";
+  const displayAnswer = cleanAnswer(turn.answer);
+  const answerCollapsible = displayAnswer.length > 1600 || displayAnswer.split("\n").length > 28;
   const hasTable = Object.keys(turn.searchState?.coverage_map?.cells ?? {}).some((k) => !k.startsWith("_"));
   const tableStateLabel = turn.stateSource === "snapshot"
     ? "Turn snapshot"
@@ -116,9 +142,21 @@ function TurnView({ turn, onOpen, registerRef }: { turn: Turn; onOpen: () => voi
             <p className="mb-4 rounded-lg border border-err/30 bg-err/5 px-3 py-2 text-[13px] text-err">{turn.error}</p>
           )}
 
-          {done && turn.answer && (
+          {done && displayAnswer && (
             <div className="mb-5">
-              <Answer markdown={turn.answer} />
+              <div className={answerCollapsed ? "max-h-[320px] overflow-hidden" : undefined}>
+                <Answer markdown={displayAnswer} />
+              </div>
+              <AnswerActions
+                query={turn.query}
+                markdown={displayAnswer}
+                collapsible={answerCollapsible}
+                collapsed={answerCollapsed}
+                onToggleCollapse={() => setAnswerCollapsed((value) => !value)}
+                onRerun={onRerun}
+                onContinue={onContinue}
+                runDisabled={runDisabled}
+              />
             </div>
           )}
 
@@ -126,9 +164,12 @@ function TurnView({ turn, onOpen, registerRef }: { turn: Turn; onOpen: () => voi
             <div className="mb-4 overflow-hidden rounded-xl border border-line">
               <div className="flex items-center justify-between gap-3 border-b border-line bg-surface-2 px-3.5 py-2">
                 <span className="font-serif text-[14px] font-semibold text-ink">Final table</span>
-                {tableStateLabel && <span className="text-[11px] text-ink-faint">{tableStateLabel}</span>}
+                <div className="flex items-center gap-2">
+                  {tableStateLabel && <span className="hidden text-[11px] text-ink-faint sm:inline">{tableStateLabel}</span>}
+                  <ResultExportMenu turn={turn} answer={displayAnswer} />
+                </div>
               </div>
-              <div className="max-h-[440px] overflow-auto">
+              <div>
                 <CoverageTable
                   coverageMap={turn.searchState?.coverage_map ?? null}
                   evidence={turn.searchState?.evidence_graph?.nodes ?? []}

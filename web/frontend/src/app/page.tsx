@@ -130,12 +130,12 @@ export default function Home() {
   }, [drawerSession, drawerStatus, fileRetrySeq]);
 
   const handleSubmit = useCallback(
-    (q: string, opts: SubmitOpts) => {
+    (q: string, opts: SubmitOpts, freshRun = false) => {
       stopPendingRef.current = false;
       setStopPending(false);
       // Follow-up (TUI parity): the previous turn finished in this session →
       // extend its workspace/coverage table and pass the conversation history.
-      const prev = turns[turns.length - 1];
+      const prev = freshRun ? undefined : turns[turns.length - 1];
       const followUpTo =
         prev && prev.status === "completed" && prev.sessionId ? prev.sessionId : undefined;
       const history = followUpTo
@@ -149,9 +149,15 @@ export default function Home() {
         id, query: q, sessionId: null, status: "running",
         events: [], workers: [], searchState: null, stateSource: "live", answer: "", meta: {}, error: null,
       };
-      setTurns((prevTurns) => [...prevTurns, turn]);
+      setTurns((prevTurns) => freshRun ? [turn] : [...prevTurns, turn]);
       setActiveTurnId(id);
       setSelectedFile(null);
+      if (freshRun) {
+        setDrawerTurnId(null);
+        setFileTree([]);
+        setFileStatus("idle");
+        setFileError(null);
+      }
       run(
         {
           query: q,
@@ -173,6 +179,10 @@ export default function Home() {
     },
     [run, overrides, turns],
   );
+
+  const handleRerun = useCallback((query: string) => {
+    handleSubmit(query, {}, true);
+  }, [handleSubmit]);
 
   // Live follow-up: inject into the running orchestrator (sub-agents keep
   // running) instead of queueing a new search — same as the TUI mid-run path.
@@ -475,6 +485,7 @@ export default function Home() {
             onSubmit={handleSubmit}
             onSteer={handleSteer}
             onStop={handleStop}
+            onRerun={handleRerun}
             onOpenDrawer={handleOpenDrawer}
             registerTurnRef={(id, el) => { turnRefs.current[id] = el; }}
           />

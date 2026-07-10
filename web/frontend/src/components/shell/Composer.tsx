@@ -44,6 +44,7 @@ interface Props {
   variant?: "hero" | "bar";
   placeholder?: string;
   autoFocus?: boolean;
+  focusRequest?: number;
 }
 
 const COMMANDS = [
@@ -136,6 +137,7 @@ export default function Composer({
   variant = "bar",
   placeholder,
   autoFocus = false,
+  focusRequest = 0,
 }: Props) {
   const [text, setText] = useState("");
   const [focused, setFocused] = useState(false);
@@ -217,6 +219,10 @@ export default function Composer({
   useEffect(() => {
     if (autoFocus) ref.current?.focus();
   }, [autoFocus]);
+
+  useEffect(() => {
+    if (focusRequest > 0) ref.current?.focus();
+  }, [focusRequest]);
 
   // autosize
   useEffect(() => {
