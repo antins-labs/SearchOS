@@ -281,7 +281,7 @@ export function connectWebSocket(
   sessionId: string,
   onMessage: (event: Record<string, unknown>) => void,
   onClose?: () => void,
-  opts?: { tail?: boolean },
+  opts?: { tail?: boolean; onOpen?: () => void },
 ): WebSocket {
   const wsBase = API_BASE.replace(/^http/, "ws");
   const ws = new WebSocket(`${wsBase}/api/ws/${sessionId}${opts?.tail ? "?tail=1" : ""}`);
@@ -295,8 +295,11 @@ export function connectWebSocket(
     }
   };
 
+  ws.onopen = () => opts?.onOpen?.();
   ws.onclose = () => onClose?.();
-  ws.onerror = () => onClose?.();
+  // Browsers dispatch `close` after an errored connection is closed. Keeping
+  // recovery on that single path prevents duplicate status checks/retries.
+  ws.onerror = () => ws.close();
 
   return ws;
 }

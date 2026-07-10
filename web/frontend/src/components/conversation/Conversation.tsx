@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { Loader2, WifiOff } from "lucide-react";
 import Composer, { type SubmitOpts } from "@/components/shell/Composer";
 import OrchestrationCard from "./OrchestrationCard";
 import Answer from "./Answer";
@@ -10,6 +11,7 @@ import type { Turn } from "@/lib/conversation";
 interface Props {
   turns: Turn[];
   running: boolean;
+  reconnecting?: boolean;
   stopping?: boolean;
   onSubmit: (q: string, opts: SubmitOpts) => void;
   onSteer?: (text: string) => void;
@@ -18,7 +20,7 @@ interface Props {
   registerTurnRef?: (id: string, el: HTMLDivElement | null) => void;
 }
 
-export default function Conversation({ turns, running, stopping = false, onSubmit, onSteer, onStop, onOpenDrawer, registerTurnRef }: Props) {
+export default function Conversation({ turns, running, reconnecting = false, stopping = false, onSubmit, onSteer, onStop, onOpenDrawer, registerTurnRef }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   // Follow the bottom only while a search is live; a freshly loaded historical
   // session should rest at the top, not jump to its references.
@@ -41,6 +43,16 @@ export default function Conversation({ turns, running, stopping = false, onSubmi
           <div ref={bottomRef} />
         </div>
       </div>
+
+      {reconnecting && (
+        <div role="status" aria-live="polite" className="border-t border-warn/30 bg-warn/5 px-3 py-2 text-[12.5px] text-ink-dim sm:px-5">
+          <div className="mx-auto flex max-w-[712px] items-center gap-2">
+            <WifiOff className="shrink-0 text-warn" size={14} />
+            <span className="min-w-0 flex-1">Connection interrupted. Research is still running while SearchOS reconnects.</span>
+            <Loader2 className="shrink-0 animate-spin text-warn" size={14} />
+          </div>
+        </div>
+      )}
 
       <div className="border-t border-line bg-paper">
         <div className="mx-auto max-w-[760px] px-3 py-3 sm:px-5 min-[1180px]:px-6 min-[1180px]:py-4">

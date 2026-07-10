@@ -56,13 +56,19 @@ export interface WorkerInfo {
 
 export interface SearchSession {
   sessionId: string | null;
-  status: "idle" | "running" | "completed" | "error";
+  status: "idle" | "running" | "reconnecting" | "completed" | "error";
   result: SearchResult | null;
   liveState: SearchState | null;
   events: WSEvent[];
   workers: WorkerInfo[];
   error: string | null;
   elapsed: number;
+}
+
+const RECONNECT_DELAYS_MS = [500, 1000, 2000, 4000, 8000, 15000];
+
+function eventSignature(event: WSEvent): string {
+  return JSON.stringify(event);
 }
 
 /** When a search ends, no sub-agent is still in flight: coerce any straggler
@@ -88,126 +94,217 @@ export function useSearch() {
   const wsRef = useRef<WebSocket | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef<number>(0);
+  const generationRef = useRef(0);
+  const terminalRef = useRef(false);
+  const reconnectAttemptRef = useRef(0);
+  const statusCheckRef = useRef<Promise<"running" | "terminal" | "unavailable" | "stale"> | null>(null);
   // Dedupe re-streamed events: a WS reconnect re-reads trajectory.jsonl from
   // the top, so every prior event arrives again. Each event's full payload
   // (incl. timestamp/step_index) is a stable signature.
   const seenRef = useRef<Set<string>>(new Set());
 
+  const disposeSocket = useCallback(() => {
+    const ws = wsRef.current;
+    wsRef.current = null;
+    if (!ws) return;
+    ws.onopen = null;
+    ws.onmessage = null;
+    ws.onerror = null;
+    ws.onclose = null;
+    if (ws.readyState < WebSocket.CLOSING) ws.close();
+  }, []);
+
+  const clearRuntime = useCallback(() => {
+    disposeSocket();
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (pollRef.current) clearInterval(pollRef.current);
+    if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+    timerRef.current = null;
+    pollRef.current = null;
+    reconnectTimerRef.current = null;
+  }, [disposeSocket]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      wsRef.current?.close();
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (pollRef.current) clearInterval(pollRef.current);
+      generationRef.current += 1;
+      clearRuntime();
     };
-  }, []);
+  }, [clearRuntime]);
+
+  const reconcileStatus = useCallback((sessionId: string, generation: number) => {
+    if (generation !== generationRef.current || terminalRef.current) {
+      return Promise.resolve("stale" as const);
+    }
+    if (statusCheckRef.current) return statusCheckRef.current;
+
+    const check = (async (): Promise<"running" | "terminal" | "unavailable" | "stale"> => {
+      try {
+        const result = await getSearchResult(sessionId);
+        if (generation !== generationRef.current || terminalRef.current) return "stale";
+
+        if (result.status === "running") {
+          if (result.search_state) {
+            setSession((current) => current.sessionId === sessionId
+              ? { ...current, liveState: mergeSearchState(current.liveState, result.search_state) }
+              : current);
+          }
+          return "running";
+        }
+
+        terminalRef.current = true;
+        clearRuntime();
+        setSession((current) => {
+          if (current.sessionId !== sessionId) return current;
+          return {
+            ...current,
+            status: result.status === "error" ? "error" : "completed",
+            result,
+            workers: finalizeWorkers(current.workers),
+            liveState: mergeSearchState(current.liveState, result.search_state),
+            error: result.error || null,
+          };
+        });
+        return "terminal";
+      } catch {
+        return "unavailable";
+      }
+    })();
+
+    statusCheckRef.current = check;
+    void check.finally(() => {
+      if (statusCheckRef.current === check) statusCheckRef.current = null;
+    });
+    return check;
+  }, [clearRuntime]);
+
+  const openSocketRef = useRef<(sessionId: string, generation: number, tail: boolean) => void>(() => {});
+
+  const scheduleReconnect = useCallback((sessionId: string, generation: number) => {
+    if (generation !== generationRef.current || terminalRef.current || reconnectTimerRef.current) return;
+
+    setSession((current) => {
+      if (current.sessionId !== sessionId || current.status === "completed" || current.status === "error") return current;
+      return { ...current, status: "reconnecting" };
+    });
+
+    // Reconnect and terminal reconciliation run in parallel: a slow/unreachable
+    // REST endpoint must not hold the socket retry loop hostage. A confirmed
+    // terminal result calls clearRuntime(), cancelling the pending retry.
+    void reconcileStatus(sessionId, generation);
+
+    const attempt = reconnectAttemptRef.current;
+    const delay = RECONNECT_DELAYS_MS[Math.min(attempt, RECONNECT_DELAYS_MS.length - 1)];
+    reconnectAttemptRef.current = attempt + 1;
+    reconnectTimerRef.current = setTimeout(() => {
+      reconnectTimerRef.current = null;
+      if (generation === generationRef.current && !terminalRef.current) {
+        // Replay from the start and dedupe locally so events produced during
+        // the outage are recovered rather than skipped.
+        openSocketRef.current(sessionId, generation, false);
+      }
+    }, delay);
+  }, [reconcileStatus]);
+
+  const openSocket = useCallback((sessionId: string, generation: number, tail: boolean) => {
+    if (generation !== generationRef.current || terminalRef.current) return;
+    let closeHandled = false;
+
+    try {
+      const ws = connectWebSocket(
+        sessionId,
+        (event) => {
+          if (generation !== generationRef.current || wsRef.current !== ws || terminalRef.current) return;
+          const nextEvent = event as WSEvent;
+          const signature = eventSignature(nextEvent);
+          if (seenRef.current.has(signature)) return;
+          seenRef.current.add(signature);
+
+          setSession((current) => {
+            if (current.sessionId !== sessionId) return current;
+            return {
+              ...current,
+              events: [...current.events, nextEvent],
+              workers: updateWorkers(current.workers, nextEvent),
+            };
+          });
+
+          if (nextEvent.type === "search_complete" || nextEvent.type === "search_error") {
+            void reconcileStatus(sessionId, generation);
+          }
+        },
+        () => {
+          if (closeHandled || generation !== generationRef.current || wsRef.current !== ws) return;
+          closeHandled = true;
+          wsRef.current = null;
+          scheduleReconnect(sessionId, generation);
+        },
+        {
+          tail,
+          onOpen: () => {
+            if (generation !== generationRef.current || wsRef.current !== ws || terminalRef.current) return;
+            reconnectAttemptRef.current = 0;
+            setSession((current) => current.sessionId === sessionId && current.status === "reconnecting"
+              ? { ...current, status: "running" }
+              : current);
+          },
+        },
+      );
+      wsRef.current = ws;
+    } catch {
+      scheduleReconnect(sessionId, generation);
+    }
+  }, [reconcileStatus, scheduleReconnect]);
+  openSocketRef.current = openSocket;
 
   /** Timer + state poll + WS subscription for a session the backend is
    *  already running. Shared by run() (fresh POST) and attach() (reopen). */
-  const startStreams = useCallback((session_id: string, tail: boolean) => {
+  const startStreams = useCallback((sessionId: string, tail: boolean, generation: number) => {
     startTimeRef.current = Date.now();
+    let pollInFlight = false;
 
-      // Timer: update elapsed every 500ms
-      timerRef.current = setInterval(() => {
-        setSession((s) => ({
-          ...s,
-          elapsed: (Date.now() - startTimeRef.current) / 1000,
-        }));
-      }, 500);
+    timerRef.current = setInterval(() => {
+      setSession((current) => {
+        if (current.sessionId !== sessionId || (current.status !== "running" && current.status !== "reconnecting")) return current;
+        return { ...current, elapsed: (Date.now() - startTimeRef.current) / 1000 };
+      });
+    }, 500);
 
-      // Poll state every 2s for real-time Coverage/Evidence updates.
-      // Use optimistic merge: only "upgrade" cell states (missing→filled),
-      // never "downgrade" (filled→missing). This prevents visual flickering
-      // when multiple parallel sub_agents write to state concurrently.
-      pollRef.current = setInterval(() => {
-        getSearchState(session_id)
-          .then((res) => {
-            if (res.search_state) {
-              setSession((s) => {
-                if (s.sessionId !== session_id || s.status !== "running") return s;
-                const incoming = res.search_state as SearchState;
-                const merged = mergeSearchState(s.liveState, incoming);
-                return { ...s, liveState: merged };
-              });
-            }
-          })
-          .catch(() => {});
-      }, 2000);
+    const poll = async () => {
+      if (pollInFlight || generation !== generationRef.current || terminalRef.current) return;
+      pollInFlight = true;
+      try {
+        const result = await getSearchState(sessionId);
+        if (generation !== generationRef.current || terminalRef.current) return;
+        if (result.search_state) {
+          setSession((current) => current.sessionId === sessionId
+            ? { ...current, liveState: mergeSearchState(current.liveState, result.search_state) }
+            : current);
+        }
+        if (result.status === "completed" || result.status === "error") {
+          void reconcileStatus(sessionId, generation);
+        }
+      } catch {
+        // A transient REST failure should not terminate an otherwise live run.
+      } finally {
+        pollInFlight = false;
+      }
+    };
 
-      // WebSocket for event stream
-      const ws = connectWebSocket(
-        session_id,
-        (event) => {
-          const e = event as WSEvent;
-          // Drop duplicates from WS reconnects (terminal events always pass).
-          if (e.type !== "search_complete" && e.type !== "search_error") {
-            const sig = `${e.type}|${JSON.stringify(
-              (e as Record<string, unknown>).data ?? (e as Record<string, unknown>).node ?? "",
-            )}`;
-            if (seenRef.current.has(sig)) return;
-            seenRef.current.add(sig);
-          }
-          setSession((s) => {
-            const newEvents = [...s.events, e];
-            const newWorkers = updateWorkers(s.workers, e);
+    void poll();
+    pollRef.current = setInterval(poll, 2000);
+    openSocket(sessionId, generation, tail);
+  }, [openSocket, reconcileStatus]);
 
-            // Search finished
-            if (e.type === "search_complete" || e.type === "search_error") {
-              if (timerRef.current) clearInterval(timerRef.current);
-              if (pollRef.current) clearInterval(pollRef.current);
-              getSearchResult(session_id).then((result) => {
-                setSession((s2) => {
-                  if (s2.sessionId !== session_id) return s2;
-                  return {
-                    ...s2,
-                    status: result.status === "error" ? "error" : "completed",
-                    result,
-                    workers: finalizeWorkers(s2.workers),
-                    liveState: mergeSearchState(s2.liveState, result.search_state as SearchState) || s2.liveState,
-                    error: result.error || null,
-                  };
-                });
-              }).catch(() => {
-                setSession((s2) => {
-                  if (s2.sessionId !== session_id) return s2;
-                  return { ...s2, status: "error", error: "Failed to fetch final result" };
-                });
-              });
-            }
-
-            return { ...s, events: newEvents, workers: newWorkers };
-          });
-        },
-        () => {
-          if (timerRef.current) clearInterval(timerRef.current);
-          if (pollRef.current) clearInterval(pollRef.current);
-          getSearchResult(session_id).then((result) => {
-            setSession((s) => {
-              if (s.sessionId !== session_id) return s;
-              return {
-                ...s,
-                status: result.status === "error" ? "error" : "completed",
-                result,
-                workers: finalizeWorkers(s.workers),
-                liveState: result.search_state as SearchState || s.liveState,
-              };
-            });
-          }).catch(() => {});
-        },
-        // tail: start at the stream's current end instead of replaying the
-        // whole trajectory (follow-up runs reusing a prior workspace).
-        { tail },
-      );
-      wsRef.current = ws;
-  }, []);
-
-  const run = useCallback(async (req: SearchRequest) => {
-    // Cleanup previous
-    wsRef.current?.close();
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (pollRef.current) clearInterval(pollRef.current);
-    seenRef.current = new Set();
+  const run = useCallback(async (req: SearchRequest, opts?: { seen?: WSEvent[] }) => {
+    const generation = ++generationRef.current;
+    clearRuntime();
+    terminalRef.current = false;
+    reconnectAttemptRef.current = 0;
+    statusCheckRef.current = null;
+    seenRef.current = new Set((opts?.seen ?? []).map(eventSignature));
 
     setSession({
       sessionId: null,
@@ -222,11 +319,12 @@ export function useSearch() {
 
     try {
       const { session_id } = await startSearch(req);
+      if (generation !== generationRef.current) return;
       setSession((s) => ({ ...s, sessionId: session_id }));
-      startStreams(session_id, !!req.follow_up_to);
+      startStreams(session_id, !!req.follow_up_to, generation);
     } catch (e) {
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (pollRef.current) clearInterval(pollRef.current);
+      if (generation !== generationRef.current) return;
+      clearRuntime();
       const msg = e instanceof TypeError
         ? "Backend unreachable — run ./start.sh api"
         : e instanceof Error ? e.message : String(e);
@@ -237,7 +335,7 @@ export function useSearch() {
         error: msg,
       }));
     }
-  }, [startStreams]);
+  }, [clearRuntime, startStreams]);
 
   /** Re-attach to a session the backend is still running — history reopen,
    *  or switching back to a live run after navigating away. Seeds the
@@ -250,18 +348,14 @@ export function useSearch() {
       session_id: string,
       seed?: { events?: WSEvent[]; searchState?: SearchState | null; seen?: WSEvent[] },
     ) => {
-      wsRef.current?.close();
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (pollRef.current) clearInterval(pollRef.current);
+      const generation = ++generationRef.current;
+      clearRuntime();
+      terminalRef.current = false;
+      reconnectAttemptRef.current = 0;
+      statusCheckRef.current = null;
 
       const events = seed?.events ?? [];
-      seenRef.current = new Set(
-        (seed?.seen ?? events)
-          .filter((e) => e.type !== "search_complete" && e.type !== "search_error")
-          .map((e) => `${e.type}|${JSON.stringify(
-            (e as Record<string, unknown>).data ?? (e as Record<string, unknown>).node ?? "",
-          )}`),
-      );
+      seenRef.current = new Set((seed?.seen ?? events).map(eventSignature));
       setSession({
         sessionId: session_id,
         status: "running",
@@ -272,16 +366,18 @@ export function useSearch() {
         error: null,
         elapsed: 0,
       });
-      startStreams(session_id, false);
+      startStreams(session_id, false, generation);
     },
-    [startStreams],
+    [clearRuntime, startStreams],
   );
 
   const reset = useCallback(() => {
-    wsRef.current?.close();
-    wsRef.current = null;
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (pollRef.current) clearInterval(pollRef.current);
+    generationRef.current += 1;
+    clearRuntime();
+    terminalRef.current = false;
+    reconnectAttemptRef.current = 0;
+    statusCheckRef.current = null;
+    seenRef.current = new Set();
     setSession({
       sessionId: null,
       status: "idle",
@@ -292,7 +388,7 @@ export function useSearch() {
       error: null,
       elapsed: 0,
     });
-  }, []);
+  }, [clearRuntime]);
 
   return { session, run, attach, reset };
 }

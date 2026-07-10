@@ -41,6 +41,7 @@ export default function Home() {
   const [fileStatus, setFileStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [fileError, setFileError] = useState<string | null>(null);
   const [fileRetrySeq, setFileRetrySeq] = useState(0);
+  const sessionActive = session.status === "running" || session.status === "reconnecting";
 
   const refreshHistory = useCallback(async (announceFailure = false) => {
     try {
@@ -151,21 +152,24 @@ export default function Home() {
       setTurns((prevTurns) => [...prevTurns, turn]);
       setActiveTurnId(id);
       setSelectedFile(null);
-      run({
-        query: q,
-        type: (opts.type as SearchRequest["type"]) || undefined,
-        entities: opts.entities,
-        attrs: opts.attrs,
-        table_label: opts.tableLabel,
-        primary_key: opts.primaryKey,
-        row_label: opts.rowLabel,
-        tables: opts.tables,
-        relations: opts.relations,
-        effort: overrides.effort,
-        max_time: overrides.max_time,
-        follow_up_to: followUpTo,
-        history,
-      });
+      run(
+        {
+          query: q,
+          type: (opts.type as SearchRequest["type"]) || undefined,
+          entities: opts.entities,
+          attrs: opts.attrs,
+          table_label: opts.tableLabel,
+          primary_key: opts.primaryKey,
+          row_label: opts.rowLabel,
+          tables: opts.tables,
+          relations: opts.relations,
+          effort: overrides.effort,
+          max_time: overrides.max_time,
+          follow_up_to: followUpTo,
+          history,
+        },
+        { seen: followUpTo ? turns.flatMap((item) => item.events) : undefined },
+      );
     },
     [run, overrides, turns],
   );
@@ -175,7 +179,7 @@ export default function Home() {
   const handleSteer = useCallback(
     (text: string) => {
       const sid = session.sessionId;
-      if (!sid || session.status !== "running") {
+      if (!sid || (session.status !== "running" && session.status !== "reconnecting")) {
         notify("Run not ready yet — try again in a moment");
         return;
       }
@@ -205,7 +209,7 @@ export default function Home() {
   // task; the WS then delivers the terminal event and the turn settles.
   const handleStop = useCallback(async () => {
     const sid = session.sessionId;
-    if (!sid || session.status !== "running" || stopPendingRef.current) return;
+    if (!sid || (session.status !== "running" && session.status !== "reconnecting") || stopPendingRef.current) return;
     stopPendingRef.current = true;
     setStopPending(true);
     try {
@@ -460,7 +464,8 @@ export default function Home() {
         ) : (
           <Conversation
             turns={turns}
-            running={session.status === "running"}
+            running={sessionActive}
+            reconnecting={session.status === "reconnecting"}
             stopping={stopPending}
             onSubmit={handleSubmit}
             onSteer={handleSteer}
