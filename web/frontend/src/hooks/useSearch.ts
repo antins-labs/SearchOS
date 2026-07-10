@@ -333,11 +333,12 @@ export function useSearch() {
 
     try {
       const { session_id } = await start();
-      if (generation !== generationRef.current) return;
+      if (generation !== generationRef.current) return null;
       setSession((s) => ({ ...s, sessionId: session_id }));
       startStreams(session_id, tail, generation);
+      return null;
     } catch (e) {
-      if (generation !== generationRef.current) return;
+      if (generation !== generationRef.current) return null;
       clearRuntime();
       const msg = e instanceof TypeError
         ? "Backend unreachable — run ./start.sh api"
@@ -347,6 +348,7 @@ export function useSearch() {
         status: failureStatus,
         error: msg,
       }));
+      return msg;
     }
   }, [clearRuntime, startStreams]);
 

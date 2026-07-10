@@ -134,15 +134,18 @@ class WorkspaceManager:
                         except (json.JSONDecodeError, AttributeError):
                             continue
 
-                if completed_turns:
-                    turn_index = completed_turns - 1
-                else:
-                    existing = [
-                        int(path.stem) - 1
-                        for path in snapshots_dir.glob("*.json")
-                        if path.stem.isdigit()
-                    ]
-                    turn_index = max(existing, default=-1) + 1
+                existing = [
+                    int(path.stem) - 1
+                    for path in snapshots_dir.glob("*.json")
+                    if path.stem.isdigit()
+                ]
+                # A branched workspace starts with a copied baseline snapshot
+                # but no trajectory. Its first completed run must append V2,
+                # not overwrite that baseline as V1.
+                turn_index = max(
+                    completed_turns - 1,
+                    max(existing, default=-1) + 1,
+                )
 
                 payload: dict[str, Any] = {
                     "version": 1,
@@ -155,6 +158,41 @@ class WorkspaceManager:
                     payload.update(metadata)
 
                 target = snapshots_dir / f"{turn_index + 1:04d}.json"
+                tmp = snapshots_dir / f".{target.name}.tmp"
+                tmp.write_text(
+                    json.dumps(payload, ensure_ascii=False, indent=2, default=str),
+                    encoding="utf-8",
+                )
+                os.replace(tmp, target)
+                return target
+            finally:
+                fcntl.flock(lock_fd, fcntl.LOCK_UN)
+
+    def update_latest_turn_snapshot(
+        self,
+        state: SearchState,
+        metadata: dict[str, Any] | None = None,
+    ) -> Path | None:
+        """Refresh the latest snapshot after an in-place user edit."""
+        snapshots_dir = self._path / "turn_snapshots"
+        candidates = sorted(
+            path for path in snapshots_dir.glob("*.json")
+            if path.stem.isdigit()
+        )
+        if not candidates:
+            return None
+
+        lock_path = self._path / ".turn_snapshots.lock"
+        lock_path.touch(exist_ok=True)
+        with lock_path.open() as lock_fd:
+            fcntl.flock(lock_fd, fcntl.LOCK_EX)
+            try:
+                target = candidates[-1]
+                payload = json.loads(target.read_text(encoding="utf-8"))
+                payload["search_state"] = state.model_dump()
+                payload["updated_at"] = datetime.now().astimezone().isoformat()
+                if metadata:
+                    payload.update(metadata)
                 tmp = snapshots_dir / f".{target.name}.tmp"
                 tmp.write_text(
                     json.dumps(payload, ensure_ascii=False, indent=2, default=str),

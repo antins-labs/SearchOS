@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-export type ActivityTab = "coverage" | "evidence" | "files" | "events";
+export type ActivityTab = "coverage" | "evidence" | "versions" | "files" | "events";
 
 export const DEFAULT_ACTIVITY_WIDTH = 560;
 export const MIN_ACTIVITY_WIDTH = 360;
@@ -15,7 +15,7 @@ type ActivityPreferences = {
 
 const STORAGE_KEY = "searchos.activity.preferences.v1";
 const DEFAULT_PREFERENCES: ActivityPreferences = { tab: "coverage", width: DEFAULT_ACTIVITY_WIDTH };
-const VALID_TABS = new Set<ActivityTab>(["coverage", "evidence", "files", "events"]);
+const VALID_TABS = new Set<ActivityTab>(["coverage", "evidence", "versions", "files", "events"]);
 const listeners = new Set<() => void>();
 let current: ActivityPreferences | null = null;
 

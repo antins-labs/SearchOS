@@ -314,35 +314,6 @@ html[data-effort="max"]:not(.dark) body::before {
 }
 .max-effort-telemetry-left { left: 16px; bottom: 18px; align-items: flex-start; }
 .max-effort-telemetry-right { right: 16px; top: 48px; align-items: flex-end; }
-.max-effort-console {
-  position: absolute;
-  left: 50%;
-  bottom: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: min(56vw, 620px);
-  height: 34px;
-  transform: translateX(-50%);
-  border: 1px solid rgba(96, 165, 250, 0.3);
-  border-bottom: 0;
-  border-radius: 20px 20px 8px 8px;
-  background: rgba(7, 18, 38, 0.58);
-  box-shadow: 0 -8px 26px rgba(37, 99, 235, 0.16), inset 0 1px 10px rgba(59, 130, 246, 0.12);
-}
-.max-effort-console span {
-  width: 52px;
-  height: 3px;
-  border-radius: 999px;
-  background: rgba(79, 134, 247, 0.52);
-  box-shadow: 0 0 8px rgba(79, 134, 247, 0.46);
-}
-html[data-effort="max"][data-max-phase="running"] .max-effort-console span {
-  animation: max-console-charge 1.5s ease-in-out infinite;
-}
-html[data-effort="max"][data-max-phase="running"] .max-effort-console span:nth-child(2) { animation-delay: 0.2s; }
-html[data-effort="max"][data-max-phase="running"] .max-effort-console span:nth-child(3) { animation-delay: 0.4s; }
 .max-effort-completion-flash {
   position: absolute;
   inset: 0;
@@ -395,8 +366,7 @@ html[data-effort="max"]:not(.dark) .max-effort-frame {
     0 0 30px rgba(29, 78, 216, 0.12);
 }
 html[data-effort="max"]:not(.dark) .max-effort-visor,
-html[data-effort="max"]:not(.dark) .max-effort-telemetry,
-html[data-effort="max"]:not(.dark) .max-effort-console {
+html[data-effort="max"]:not(.dark) .max-effort-telemetry {
   background: rgba(238, 244, 255, 0.72);
   border-color: rgba(29, 78, 216, 0.28);
   box-shadow: 0 8px 24px rgba(30, 64, 175, 0.1), inset 0 -1px 10px rgba(59, 130, 246, 0.08);
@@ -436,10 +406,6 @@ html[data-effort="max"]:not(.dark) .max-effort-chip {
   82% { opacity: 0.25; }
   100% { transform: translate3d(0, 116vh, 0); opacity: 0; }
 }
-@keyframes max-console-charge {
-  0%, 100% { opacity: 0.34; transform: scaleX(0.72); }
-  50% { opacity: 1; transform: scaleX(1); }
-}
 @keyframes max-completion-flash {
   0% { opacity: 0; transform: scale(0.72); }
   32% { opacity: 0.72; }
@@ -463,7 +429,6 @@ html[data-effort="max"]:not(.dark) .max-effort-chip {
   .max-effort-frame::after,
   .max-effort-rail,
   .max-effort-ripples span,
-  .max-effort-console span,
   .max-effort-completion-flash,
   .max-effort-control,
   .max-effort-chip {

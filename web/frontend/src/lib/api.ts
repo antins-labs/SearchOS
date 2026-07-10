@@ -97,6 +97,9 @@ export async function startRepair(
       if (Array.isArray(body.detail)) detail = body.detail.join("; ");
       else if (body.detail) detail = body.detail;
     } catch { /* keep statusText */ }
+    if (res.status === 404 && detail === "Not Found") {
+      throw new Error("Repair API unavailable — restart the SearchOS API to load the current WebUI routes");
+    }
     throw new Error(`Repair failed: ${detail}`);
   }
   return readJsonWithTimeout(res);
@@ -166,6 +169,7 @@ export interface HistoryTurn {
   state_source: HistoryStateSource;
   coverage_score: number | null;
   evidence_count: number | null;
+  completed_at?: string | null;
 }
 
 export interface HistoryDetail {
@@ -189,6 +193,28 @@ export async function listHistory(): Promise<HistoryItem[]> {
 export async function loadHistory(sessionId: string): Promise<HistoryDetail> {
   const res = await fetchWithTimeout(`${API_BASE}/api/history/${sessionId}`);
   if (!res.ok) throw new Error(`Load session failed: ${res.statusText}`);
+  return readJsonWithTimeout(res);
+}
+
+export interface HistoryBranchResponse {
+  session_id: string;
+  source_session_id: string;
+  source_turn_index: number;
+  status: "ready";
+}
+
+export async function branchHistoryTurn(sessionId: string, turnIndex: number): Promise<HistoryBranchResponse> {
+  const res = await fetchWithTimeout(`${API_BASE}/api/history/${sessionId}/turns/${turnIndex}/branch`, {
+    method: "POST",
+  });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const body = await readJsonWithTimeout<{ detail?: string }>(res);
+      if (body.detail) detail = body.detail;
+    } catch { /* keep statusText */ }
+    throw new Error(`Create branch failed: ${detail}`);
+  }
   return readJsonWithTimeout(res);
 }
 

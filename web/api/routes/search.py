@@ -549,6 +549,13 @@ async def resolve_evidence(session_id: str, req: ResolveEvidenceRequest):
         return state
 
     updated = workspace.atomic_update_state(apply_choice)
+    workspace.update_latest_turn_snapshot(
+        updated,
+        {
+            "coverage_score": updated.coverage_map.coverage_score,
+            "evidence_count": updated.evidence_graph.node_count,
+        },
+    )
     result = prior.get("result") if prior else None
     if result is not None:
         result.search_state = updated

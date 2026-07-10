@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { X, Maximize2, Minimize2, Table2, FileText, FolderTree, Activity, Info } from "lucide-react";
+import { X, Maximize2, Minimize2, Table2, FileText, FolderTree, Activity, GitCompareArrows, Info } from "lucide-react";
 import AgentWall from "@/components/workbench/AgentWall";
 import TraceDrawer from "@/components/workbench/TraceDrawer";
 import CoverageTable from "@/components/coverage/CoverageTable";
@@ -10,6 +10,7 @@ import EvidenceList, { unresolvedConflictCount } from "@/components/evidence/Evi
 import FileTree from "@/components/workspace/FileTree";
 import FileViewer from "@/components/workspace/FileViewer";
 import AsyncFeedback from "@/components/ui/AsyncFeedback";
+import VersionsPanel from "@/components/drawer/VersionsPanel";
 import type { Turn } from "@/lib/conversation";
 import type { FileNode, RepairCellTarget } from "@/lib/types";
 import {
@@ -21,6 +22,7 @@ import {
 
 interface Props {
   turn: Turn;
+  turns: Turn[];
   sessionId: string | null;
   fileTree: FileNode[];
   selectedFile: string | null;
@@ -39,17 +41,21 @@ interface Props {
   onRepairCells?: (cells: RepairCellTarget[]) => void;
   onResolveEvidence?: (target: RepairCellTarget, evidenceId: string) => Promise<void>;
   onReverifyEvidence?: (target: RepairCellTarget) => void;
+  onBranchTurn?: (turnId: string, focusComposer: boolean) => Promise<void> | void;
+  branchingTurnId?: string | null;
 }
 
 const TABS: { id: ActivityTab; label: string; icon: ReactNode }[] = [
   { id: "coverage", label: "Coverage", icon: <Table2 size={13} /> },
   { id: "evidence", label: "Evidence", icon: <FileText size={13} /> },
+  { id: "versions", label: "Versions", icon: <GitCompareArrows size={13} /> },
   { id: "files", label: "Files", icon: <FolderTree size={13} /> },
   { id: "events", label: "Events", icon: <Activity size={13} /> },
 ];
 
 export default function ExecutionDrawer({
   turn,
+  turns,
   sessionId,
   fileTree,
   selectedFile,
@@ -68,6 +74,8 @@ export default function ExecutionDrawer({
   onRepairCells,
   onResolveEvidence,
   onReverifyEvidence,
+  onBranchTurn,
+  branchingTurnId = null,
 }: Props) {
   const [traceAgent, setTraceAgent] = useState<string | null>(null);
   const [max, setMax] = useState(false);
@@ -195,6 +203,15 @@ export default function ExecutionDrawer({
                   onResolve={onResolveEvidence}
                   onReverify={onReverifyEvidence}
                 />
+          )}
+          {tab === "versions" && (
+            <VersionsPanel
+              key={turn.id}
+              turns={turns}
+              initialTurnId={turn.id}
+              busyTurnId={branchingTurnId}
+              onBranch={onBranchTurn}
+            />
           )}
           {tab === "files" &&
             (selectedFile && sessionId ? (

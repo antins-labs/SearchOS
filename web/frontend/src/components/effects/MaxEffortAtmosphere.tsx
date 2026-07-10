@@ -42,11 +42,6 @@ export default function MaxEffortAtmosphere({ active }: { active: boolean }) {
       <div className="max-effort-telemetry max-effort-telemetry-right">
         {[36, 22, 44, 27, 34].map((width) => <span key={width} style={{ width }} />)}
       </div>
-      <div className="max-effort-console">
-        <span />
-        <span />
-        <span />
-      </div>
       <div className="max-effort-completion-flash" />
       <span className="max-effort-corner max-effort-corner-tl" />
       <span className="max-effort-corner max-effort-corner-tr" />

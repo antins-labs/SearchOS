@@ -23,9 +23,10 @@ interface Props {
   onRepair: (turn: Turn, cells: RepairCellTarget[]) => void;
   onOpenDrawer: (turnId: string) => void;
   registerTurnRef?: (id: string, el: HTMLDivElement | null) => void;
+  focusRequest?: number;
 }
 
-export default function Conversation({ turns, running, reconnecting = false, stopping = false, onSubmit, onSteer, onStop, onRerun, onRepair, onOpenDrawer, registerTurnRef }: Props) {
+export default function Conversation({ turns, running, reconnecting = false, stopping = false, onSubmit, onSteer, onStop, onRerun, onRepair, onOpenDrawer, registerTurnRef, focusRequest = 0 }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [composerFocusRequest, setComposerFocusRequest] = useState(0);
   const repairSource = [...turns].reverse().find((turn) => (
@@ -73,7 +74,7 @@ export default function Conversation({ turns, running, reconnecting = false, sto
 
       <div className="border-t border-line bg-paper">
         <div className="mx-auto max-w-[760px] px-3 py-3 sm:px-5 min-[1180px]:px-6 min-[1180px]:py-4">
-          <Composer onSubmit={onSubmit} onSteer={onSteer} onStop={onStop} running={running} stopping={stopping} focusRequest={composerFocusRequest} variant="bar" />
+          <Composer onSubmit={onSubmit} onSteer={onSteer} onStop={onStop} running={running} stopping={stopping} focusRequest={composerFocusRequest + focusRequest} variant="bar" />
         </div>
       </div>
     </div>

@@ -11,6 +11,8 @@ import json
 import logging
 import re
 import shutil
+import uuid
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -138,6 +140,7 @@ def _turn_views(
                 "state_source": "snapshot",
                 "coverage_score": snapshot.get("coverage_score"),
                 "evidence_count": snapshot.get("evidence_count"),
+                "completed_at": snapshot.get("completed_at"),
             })
         elif index == last_index and latest_state is not None:
             view.update({
@@ -145,6 +148,7 @@ def _turn_views(
                 "state_source": "latest",
                 "coverage_score": latest_coverage,
                 "evidence_count": latest_evidence_count,
+                "completed_at": None,
             })
         else:
             view.update({
@@ -152,6 +156,7 @@ def _turn_views(
                 "state_source": "unavailable",
                 "coverage_score": None,
                 "evidence_count": None,
+                "completed_at": None,
             })
         views.append(view)
     return views
@@ -290,6 +295,163 @@ async def load_history(session_id: str):
         "search_state": state,
         "events": events,
     }
+
+
+class BranchResponse(BaseModel):
+    session_id: str
+    source_session_id: str
+    source_turn_index: int
+    status: str = "ready"
+
+
+def _write_branch_conversation(ws: Path, query: str, answer: str) -> None:
+    """Seed a branch with one durable dialogue turn for snapshot alignment."""
+    timestamp = datetime.now(UTC).isoformat()
+    messages = [
+        {
+            "timestamp": timestamp,
+            "step_index": 0,
+            "agent_name": "orchestrator",
+            "parent_agent": "",
+            "role": "user",
+            "content": query,
+            "reasoning": "",
+            "tool_name": "",
+            "tool_call_id": "",
+            "metadata": {},
+        },
+        {
+            "timestamp": timestamp,
+            "step_index": 1,
+            "agent_name": "orchestrator",
+            "parent_agent": "",
+            "role": "assistant",
+            "content": answer or "This version contains a research snapshot without a text answer.",
+            "reasoning": "",
+            "tool_name": "",
+            "tool_call_id": "",
+            "metadata": {},
+        },
+    ]
+    conversations = ws / "conversations"
+    conversations.mkdir(parents=True, exist_ok=True)
+    (conversations / "orchestrator.json").write_text(
+        json.dumps({
+            "agent_name": "orchestrator",
+            "agent_type": "orchestrator",
+            "parent": "",
+            "task": query,
+            "system_prompt": "",
+            "messages": messages,
+            "children": [],
+        }, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+@router.post(
+    "/history/{session_id}/turns/{turn_index}/branch",
+    response_model=BranchResponse,
+)
+async def branch_history_turn(session_id: str, turn_index: int):
+    """Copy one historical turn into a new, independently editable session."""
+    from searchos.harness.telemetry.conversation_context import conversation_turns
+    from searchos.socm.state import SearchState
+    from searchos.socm.workspace import WorkspaceManager
+
+    source_ws = _safe_ws(session_id)
+    if not source_ws.exists():
+        raise HTTPException(404, f"Session {session_id} not found")
+
+    turns = conversation_turns(source_ws)
+    if not turns and turn_index == 0:
+        fallback_answer = orchestrator_final_text(source_ws)
+        result_file = source_ws / "output" / "result.json"
+        if result_file.exists():
+            try:
+                result = json.loads(result_file.read_text(encoding="utf-8"))
+                fallback_answer = fallback_answer or str(result.get("answer") or "")
+            except Exception:
+                pass
+        report_file = source_ws / "output" / "report.md"
+        if not fallback_answer and report_file.exists():
+            fallback_answer = report_file.read_text(encoding="utf-8", errors="replace")
+        turns = [{
+            "query": _custom_title(source_ws) or _read_intent_fast(source_ws / "search_state.json"),
+            "answer": fallback_answer,
+            "steers": [],
+        }]
+    if turn_index < 0 or turn_index >= len(turns):
+        raise HTTPException(404, f"Turn {turn_index + 1} not found")
+
+    snapshots = _load_turn_snapshots(source_ws)
+    snapshot = snapshots.get(turn_index)
+    state_data = snapshot.get("search_state") if snapshot else None
+    if state_data is None and turn_index == len(turns) - 1:
+        try:
+            state_data = json.loads((source_ws / "search_state.json").read_text(encoding="utf-8"))
+        except Exception:
+            state_data = None
+    if not isinstance(state_data, dict):
+        raise HTTPException(409, "This turn has no restorable research snapshot")
+
+    try:
+        state = SearchState.model_validate(state_data)
+    except Exception as exc:
+        logger.warning(
+            "Could not validate branch state for %s turn %s",
+            session_id,
+            turn_index,
+            exc_info=True,
+        )
+        raise HTTPException(409, "This turn's research snapshot is invalid") from exc
+
+    root = Path(WORKSPACE_ROOT)
+    while True:
+        branch_id = uuid.uuid4().hex[:12]
+        branch_ws = root / branch_id
+        if not branch_ws.exists():
+            break
+
+    workspace = WorkspaceManager(root, branch_id)
+    workspace.create()
+    workspace.save_state(state)
+
+    source_turn = turns[turn_index]
+    query = str(source_turn.get("query") or state.intent or "Research version")
+    answer = str(source_turn.get("answer") or "")
+    _write_branch_conversation(branch_ws, query, answer)
+    (branch_ws / ".display_title").write_text(f"{query} · branch", encoding="utf-8")
+    origin = {
+        "source_session_id": session_id,
+        "source_turn_index": turn_index,
+        "created_at": datetime.now(UTC).isoformat(),
+    }
+    (branch_ws / ".branch_origin.json").write_text(
+        json.dumps(origin, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    workspace.save_turn_snapshot(
+        query,
+        state,
+        {
+            "coverage_score": (
+                snapshot.get("coverage_score")
+                if snapshot else state.coverage_map.coverage_score
+            ),
+            "evidence_count": (
+                snapshot.get("evidence_count")
+                if snapshot else state.evidence_graph.node_count
+            ),
+            "branched_from": origin,
+        },
+    )
+
+    return BranchResponse(
+        session_id=branch_id,
+        source_session_id=session_id,
+        source_turn_index=turn_index,
+    )
 
 
 class RenameRequest(BaseModel):

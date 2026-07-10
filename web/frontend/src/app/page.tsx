@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo, type CSSProperties }
 import { Menu } from "lucide-react";
 
 import { useSearch } from "@/hooks/useSearch";
-import { getWorkspaceFiles, listHistory, loadHistory, renameHistory, deleteHistory, resolveEvidence, steerSearch, stopSearch, type HistoryItem, type HistoryTurn } from "@/lib/api";
+import { branchHistoryTurn, getWorkspaceFiles, listHistory, loadHistory, renameHistory, deleteHistory, resolveEvidence, steerSearch, stopSearch, type HistoryItem, type HistoryTurn } from "@/lib/api";
 import { deriveAnswer, foldWorkers } from "@/lib/derive";
 import type { FileNode, RepairCellTarget, SearchRequest, SearchState, WSEvent } from "@/lib/types";
 import type { Turn } from "@/lib/conversation";
@@ -40,6 +40,8 @@ export default function Home() {
   const [historyLoadingId, setHistoryLoadingId] = useState<string | null>(null);
   const [historyMutation, setHistoryMutation] = useState<{ id: string; kind: "rename" | "delete" } | null>(null);
   const [stopPending, setStopPending] = useState(false);
+  const [branchingTurnId, setBranchingTurnId] = useState<string | null>(null);
+  const [composerFocusRequest, setComposerFocusRequest] = useState(0);
   const historyBusyRef = useRef(false);
   const stopPendingRef = useRef(false);
 
@@ -248,7 +250,7 @@ export default function Home() {
     const history = turns
       .filter((item) => item.status === "completed")
       .map((item) => ({ query: item.query, answer: item.answer }));
-    repair(
+    void repair(
       sourceTurn.sessionId,
       {
         cells: snapshots.map(({ table_id, entity, attribute }) => ({ table_id, entity, attribute })),
@@ -260,8 +262,15 @@ export default function Home() {
         seen: turns.flatMap((item) => item.events),
         initialState: sourceTurn.searchState,
       },
-    );
-  }, [drawerTurnId, notify, overrides, repair, sessionActive, turns]);
+    ).then((startError) => {
+      if (!startError) return;
+      setTurns((current) => current.filter((item) => item.id !== id));
+      setActiveTurnId(null);
+      if (drawerTurnId === sourceTurn.id) setDrawerTurnId(sourceTurn.id);
+      reset();
+      notify(startError);
+    });
+  }, [drawerTurnId, notify, overrides, repair, reset, sessionActive, turns]);
 
   const handleResolveEvidence = useCallback(async (
     sourceTurn: Turn,
@@ -454,6 +463,34 @@ export default function Home() {
     [turns, reset, attach, refreshHistory, history, notify],
   );
 
+  const handleBranchTurn = useCallback(async (turnId: string, focusComposer: boolean) => {
+    if (sessionActive || branchingTurnId) return;
+    const turnIndex = turns.findIndex((turn) => turn.id === turnId);
+    const source = turns[turnIndex];
+    if (turnIndex < 0 || !source?.sessionId || !source.searchState) {
+      notify("This version has no restorable snapshot.");
+      return;
+    }
+
+    setBranchingTurnId(turnId);
+    try {
+      const branch = await branchHistoryTurn(source.sessionId, turnIndex);
+      await handleSelect(branch.session_id);
+      if (focusComposer) setComposerFocusRequest((value) => value + 1);
+      notify(
+        focusComposer
+          ? `Branch created from V${turnIndex + 1}. Continue your research below.`
+          : `V${turnIndex + 1} copied as a new conversation.`,
+        "success",
+      );
+      void refreshHistory();
+    } catch (error) {
+      notify(`Couldn’t create this version branch: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setBranchingTurnId(null);
+    }
+  }, [branchingTurnId, handleSelect, notify, refreshHistory, sessionActive, turns]);
+
   const handleRename = useCallback(async (id: string, title: string) => {
     if (historyBusyRef.current) return;
     historyBusyRef.current = true;
@@ -601,6 +638,7 @@ export default function Home() {
             onRerun={handleRerun}
             onRepair={handleRepair}
             onOpenDrawer={handleOpenDrawer}
+            focusRequest={composerFocusRequest}
             registerTurnRef={(id, el) => { turnRefs.current[id] = el; }}
           />
         )}
@@ -610,6 +648,7 @@ export default function Home() {
         {drawerTurn && (
           <ExecutionDrawer
             turn={drawerTurn}
+            turns={turns}
             sessionId={drawerTurn.sessionId}
             fileTree={fileTree}
             selectedFile={selectedFile}
@@ -636,6 +675,8 @@ export default function Home() {
             onReverifyEvidence={drawerEditable
               ? (target) => handleRepair(drawerTurn, [target])
               : undefined}
+            onBranchTurn={sessionActive ? undefined : handleBranchTurn}
+            branchingTurnId={branchingTurnId}
           />
         )}
       </div>
