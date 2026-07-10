@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useRef } from "react";
 import { createPortal } from "react-dom";
 import { ExternalLink, X, Quote } from "lucide-react";
 import type { CoverageCell, EvidenceNode } from "@/lib/types";
+import useDialogFocus from "@/hooks/useDialogFocus";
 
 export interface CellRef {
   tableId: string;
@@ -84,11 +85,9 @@ export default function CellEvidencePopover({
   nodes: EvidenceNode[];
   onClose: () => void;
 }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { e.stopPropagation(); onClose(); } };
-    window.addEventListener("keydown", onKey, { capture: true });
-    return () => window.removeEventListener("keydown", onKey, { capture: true });
-  }, [onClose]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useDialogFocus({ containerRef: dialogRef, initialFocusRef: closeRef, onClose });
 
   const matched = evidenceForCell(nodes, cellRef);
   const { cell } = cellRef;
@@ -101,24 +100,26 @@ export default function CellEvidencePopover({
     <div className="fade-in fixed inset-0 z-[80] flex items-center justify-center bg-ink/20 p-4 dark:bg-black/50"
       onMouseDown={onClose}>
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Cell evidence"
+        aria-labelledby="cell-evidence-title"
+        tabIndex={-1}
         onMouseDown={(e) => e.stopPropagation()}
         className="rise-in surface flex max-h-[min(560px,85vh)] w-[min(560px,94vw)] flex-col overflow-hidden rounded-2xl shadow-xl"
       >
         {/* header */}
         <div className="flex items-start justify-between gap-3 border-b border-line px-4 py-3">
           <div className="min-w-0">
-            <div className="text-[11px] uppercase tracking-wider text-ink-faint">
+            <div id="cell-evidence-title" className="text-[11px] uppercase tracking-wider text-ink-dim">
               {cellRef.entity.replace(/\|/g, " / ")} · {cellRef.attribute}
             </div>
             <div className="mt-0.5 truncate text-[14px] font-medium text-ink" title={values.join("; ")}>
               {values.join("; ")}
             </div>
           </div>
-          <button onClick={onClose} aria-label="Close"
-            className="shrink-0 rounded-md p-1.5 text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink">
+          <button ref={closeRef} type="button" onClick={onClose} aria-label="Close cell evidence"
+            className="shrink-0 rounded-md p-1.5 text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">
             <X size={15} />
           </button>
         </div>
@@ -155,7 +156,7 @@ export default function CellEvidencePopover({
                       <span className="line-clamp-4">{excerpt}</span>
                     </blockquote>
                   )}
-                  <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-ink-faint">
+                  <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-ink-dim">
                     {n.alignment && (
                       <span className={`rounded-full px-1.5 py-0.5 capitalize ${ALIGNMENT_STYLE[n.alignment] ?? ALIGNMENT_STYLE.loose}`}
                         title={n.alignment_note || undefined}>

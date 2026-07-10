@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X, Maximize2, Minimize2, Table2, FileText, FolderTree, Activity, Info } from "lucide-react";
 import AgentWall from "@/components/workbench/AgentWall";
@@ -12,8 +12,12 @@ import FileViewer from "@/components/workspace/FileViewer";
 import AsyncFeedback from "@/components/ui/AsyncFeedback";
 import type { Turn } from "@/lib/conversation";
 import type { FileNode } from "@/lib/types";
-
-type Tab = "coverage" | "evidence" | "files" | "events";
+import {
+  DEFAULT_ACTIVITY_WIDTH,
+  MAX_ACTIVITY_WIDTH,
+  MIN_ACTIVITY_WIDTH,
+  type ActivityTab,
+} from "@/lib/activityPreferences";
 
 interface Props {
   turn: Turn;
@@ -25,9 +29,16 @@ interface Props {
   fileError?: string | null;
   onRetryFiles: () => void;
   onClose: () => void;
+  tab: ActivityTab;
+  onTabChange: (tab: ActivityTab) => void;
+  width: number;
+  railWidth: number;
+  onWidthChange: (width: number) => void;
+  onWidthCommit: (width: number) => void;
+  onResizeStateChange: (resizing: boolean) => void;
 }
 
-const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
+const TABS: { id: ActivityTab; label: string; icon: ReactNode }[] = [
   { id: "coverage", label: "Coverage", icon: <Table2 size={13} /> },
   { id: "evidence", label: "Evidence", icon: <FileText size={13} /> },
   { id: "files", label: "Files", icon: <FolderTree size={13} /> },
@@ -44,15 +55,23 @@ export default function ExecutionDrawer({
   fileError = null,
   onRetryFiles,
   onClose,
+  tab,
+  onTabChange,
+  width,
+  railWidth,
+  onWidthChange,
+  onWidthCommit,
+  onResizeStateChange,
 }: Props) {
-  const [tab, setTab] = useState<Tab>("coverage");
   const [traceAgent, setTraceAgent] = useState<string | null>(null);
   const [max, setMax] = useState(false);
 
   // Esc restores the maximized drawer; when a trace is open, Esc closes it first.
   useEffect(() => {
     if (!max || traceAgent) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMax(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !e.defaultPrevented) setMax(false);
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [max, traceAgent]);
@@ -69,6 +88,19 @@ export default function ExecutionDrawer({
   const activeWorker = turn.workers.find((w) => w.name === traceAgent) ?? null;
   const running = turn.workers.filter((w) => w.status === "running").length;
 
+  const onTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => {
+    let nextIndex: number | null = null;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") nextIndex = (index + 1) % TABS.length;
+    else if (event.key === "ArrowLeft" || event.key === "ArrowUp") nextIndex = (index - 1 + TABS.length) % TABS.length;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = TABS.length - 1;
+    if (nextIndex === null) return;
+    event.preventDefault();
+    const nextTab = TABS[nextIndex].id;
+    onTabChange(nextTab);
+    document.getElementById(`activity-tab-${nextTab}`)?.focus();
+  };
+
   const body = (
     <div className="flex h-full min-h-0 flex-col bg-surface">
       {/* header */}
@@ -81,12 +113,13 @@ export default function ExecutionDrawer({
           </span>
         )}
         <div className="ml-auto flex items-center gap-1">
-          <button onClick={() => setMax((v) => !v)} title={max ? "Restore" : "Maximize"}
-            className="hidden rounded-lg p-1.5 text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink min-[1180px]:inline-flex">
+          <button type="button" onClick={() => setMax((v) => !v)} title={max ? "Restore" : "Maximize"}
+            aria-label={max ? "Restore Activity drawer" : "Maximize Activity drawer"}
+            className="hidden rounded-lg p-1.5 text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink min-[1180px]:inline-flex">
             {max ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
-          <button onClick={onClose} title="Close"
-            className="rounded-lg p-1.5 text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink">
+          <button type="button" onClick={onClose} title="Close Activity" aria-label="Close Activity drawer"
+            className="rounded-lg p-1.5 text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">
             <X size={17} />
           </button>
         </div>
@@ -96,17 +129,24 @@ export default function ExecutionDrawer({
         {/* sub-agents */}
         <div className="border-b border-line">
           <div className="px-4 pt-3 text-[11px] uppercase tracking-wider text-ink-faint">
-            Subagents · {turn.workers.length}{running > 0 && ` · ${running} active`}
+            {turn.workers.length === 1 ? "Subagent" : "Subagents"} · {turn.workers.length}{running > 0 && ` · ${running} active`}
           </div>
           <AgentWall workers={turn.workers} onSelect={setTraceAgent} />
         </div>
 
         {/* tabs */}
-        <div className="sticky top-0 z-10 flex gap-1 overflow-x-auto border-b border-line bg-surface px-1 sm:px-3">
-          {TABS.map((t) => (
+        <div role="tablist" aria-label="Activity views" className="sticky top-0 z-10 flex gap-1 overflow-x-auto border-b border-line bg-surface px-1 sm:px-3">
+          {TABS.map((t, index) => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              id={`activity-tab-${t.id}`}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              aria-controls="activity-panel"
+              tabIndex={tab === t.id ? 0 : -1}
+              onClick={() => onTabChange(t.id)}
+              onKeyDown={(event) => onTabKeyDown(event, index)}
               className={`-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-[13px] transition-colors sm:px-3 ${
                 tab === t.id ? "border-accent font-medium text-ink" : "border-transparent text-ink-dim hover:text-ink"
               }`}
@@ -117,7 +157,7 @@ export default function ExecutionDrawer({
           ))}
         </div>
 
-        <div className="p-1">
+        <div id="activity-panel" role="tabpanel" aria-labelledby={`activity-tab-${tab}`} tabIndex={0} className={tab === "coverage" ? "min-w-0" : "p-1"}>
           {tab === "coverage" && (
             historicalStateUnavailable ? (
               <HistoricalStateNotice kind="Coverage" />
@@ -162,7 +202,111 @@ export default function ExecutionDrawer({
     );
   }
 
-  return <div className="drawer-in h-full">{body}</div>;
+  return (
+    <div className="drawer-in relative h-full">
+      <DrawerResizeHandle
+        width={width}
+        railWidth={railWidth}
+        onChange={onWidthChange}
+        onCommit={onWidthCommit}
+        onResizeStateChange={onResizeStateChange}
+      />
+      {body}
+    </div>
+  );
+}
+
+function DrawerResizeHandle({
+  width,
+  railWidth,
+  onChange,
+  onCommit,
+  onResizeStateChange,
+}: {
+  width: number;
+  railWidth: number;
+  onChange: (width: number) => void;
+  onCommit: (width: number) => void;
+  onResizeStateChange: (resizing: boolean) => void;
+}) {
+  const [resizing, setResizing] = useState(false);
+  const latestWidth = useRef(width);
+
+  const maxWidth = () => Math.max(
+    MIN_ACTIVITY_WIDTH,
+    Math.min(MAX_ACTIVITY_WIDTH, window.innerWidth - railWidth - 420),
+  );
+  const resizeFromPointer = (clientX: number) => {
+    const next = Math.max(MIN_ACTIVITY_WIDTH, Math.min(maxWidth(), window.innerWidth - clientX));
+    latestWidth.current = next;
+    onChange(next);
+  };
+  const finishResize = () => {
+    if (!resizing) return;
+    setResizing(false);
+    onResizeStateChange(false);
+    onCommit(latestWidth.current);
+  };
+
+  useEffect(() => {
+    if (!resizing) return;
+    const previousCursor = document.body.style.cursor;
+    const previousSelection = document.body.style.userSelect;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    return () => {
+      document.body.style.cursor = previousCursor;
+      document.body.style.userSelect = previousSelection;
+      onResizeStateChange(false);
+    };
+  }, [onResizeStateChange, resizing]);
+
+  const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    let next = width;
+    const step = event.shiftKey ? 48 : 16;
+    if (event.key === "ArrowLeft") next += step;
+    else if (event.key === "ArrowRight") next -= step;
+    else if (event.key === "Home") next = MIN_ACTIVITY_WIDTH;
+    else if (event.key === "End") next = maxWidth();
+    else return;
+    event.preventDefault();
+    next = Math.max(MIN_ACTIVITY_WIDTH, Math.min(maxWidth(), next));
+    latestWidth.current = next;
+    onChange(next);
+    onCommit(next);
+  };
+
+  return (
+    <div
+      role="separator"
+      aria-label="Resize Activity drawer"
+      aria-orientation="vertical"
+      aria-valuemin={MIN_ACTIVITY_WIDTH}
+      aria-valuemax={MAX_ACTIVITY_WIDTH}
+      aria-valuenow={Math.round(width)}
+      tabIndex={0}
+      title="Drag to resize · Double-click to reset"
+      onPointerDown={(event: PointerEvent<HTMLDivElement>) => {
+        if (event.button !== 0) return;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        latestWidth.current = width;
+        setResizing(true);
+        onResizeStateChange(true);
+      }}
+      onPointerMove={(event) => { if (resizing) resizeFromPointer(event.clientX); }}
+      onPointerUp={finishResize}
+      onPointerCancel={finishResize}
+      onDoubleClick={() => {
+        latestWidth.current = DEFAULT_ACTIVITY_WIDTH;
+        onChange(DEFAULT_ACTIVITY_WIDTH);
+        onCommit(DEFAULT_ACTIVITY_WIDTH);
+      }}
+      onKeyDown={onKeyDown}
+      className={`absolute inset-y-0 left-0 z-30 hidden w-2 -translate-x-1/2 cursor-col-resize touch-none outline-none min-[1180px]:block ${resizing ? "bg-accent/20" : "hover:bg-accent/10 focus-visible:bg-accent/20"}`}
+    >
+      <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-line-strong" />
+    </div>
+  );
 }
 
 function HistoricalStateNotice({ kind }: { kind: "Coverage" | "Evidence" }) {

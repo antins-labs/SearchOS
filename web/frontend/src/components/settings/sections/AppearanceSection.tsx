@@ -23,6 +23,7 @@ export default function AppearanceSection() {
         <Row label="Theme">
           {mounted ? (
             <PillGroup
+              ariaLabel="Theme"
               value={theme === "dark" ? "dark" : "light"}
               options={[{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }]}
               onChange={setTheme}
@@ -32,7 +33,7 @@ export default function AppearanceSection() {
           )}
         </Row>
         <Row label="Detailed cards" hint="Show verbose orchestration detail by default">
-          <Toggle checked={uiPrefs.verboseCards}
+          <Toggle checked={uiPrefs.verboseCards} label="Detailed cards"
             onChange={(v) => setUiPrefs({ verboseCards: v })} />
         </Row>
       </Card>

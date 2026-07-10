@@ -79,8 +79,8 @@ export default function AgentCard({
       </div>
 
       {/* footer */}
-      <div className="flex items-center justify-between border-t border-line px-3 py-1.5 text-[10px] text-ink-faint">
-        <span>{stepCount} steps</span>
+      <div className="flex items-center justify-between border-t border-line px-3 py-1.5 text-[10px] text-ink-dim">
+        <span>{stepCount} {stepCount === 1 ? "step" : "steps"}</span>
         <span className="flex items-center gap-0.5 transition-colors group-hover:text-accent dark:group-hover:text-accent">
           trace <ChevronRight size={11} />
         </span>

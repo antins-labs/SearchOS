@@ -95,9 +95,9 @@ export default function SkillsSection() {
             className="w-full bg-transparent text-ink outline-none placeholder:text-ink-faint"
           />
         </label>
-        <span className="flex shrink-0 items-center gap-2 text-[12.5px] text-ink-faint">
+        <span className="flex shrink-0 items-center gap-2 text-[12.5px] text-ink-dim">
           Enable skills
-          <Toggle checked={settings.skills.enable_skills} disabled={disabled}
+          <Toggle checked={settings.skills.enable_skills} disabled={disabled} label="Enable skills"
             onChange={toggleSkillsSystem} />
         </span>
       </div>

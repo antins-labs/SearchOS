@@ -34,14 +34,17 @@ export default function OrchestrationCard({ events, searchState, status, workers
   useEffect(() => {
     if (status === "completed" && !collapsedOnce.current) {
       collapsedOnce.current = true;
-      setOpen(false);
+      const frame = window.requestAnimationFrame(() => setOpen(false));
+      return () => window.cancelAnimationFrame(frame);
     }
   }, [status]);
+
+  const displayedAgents = running ? active || workers.length : doneAgents || workers.length;
 
   return (
     <div className="surface overflow-hidden rounded-xl">
       {/* header — click to collapse/expand */}
-      <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center gap-2.5 px-4 py-3 text-left">
+      <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="flex w-full items-center gap-2.5 px-4 py-3 text-left">
         {running ? (
           <span className="spin-ring h-[13px] w-[13px]" />
         ) : (
@@ -53,13 +56,13 @@ export default function OrchestrationCard({ events, searchState, status, workers
           {running ? "Orchestrating search" : "Orchestration trace"}
         </span>
         <span className="ml-auto text-[12px] text-ink-dim">
-          <b className="font-semibold text-ink">{running ? active || workers.length : doneAgents || workers.length}</b> agents
+          <b className="font-semibold text-ink">{displayedAgents}</b> {displayedAgents === 1 ? "agent" : "agents"}
           <span className="px-1 text-ink-faint">·</span>
-          <b className="font-semibold text-ink">{steps}</b> steps
+          <b className="font-semibold text-ink">{steps}</b> {steps === 1 ? "step" : "steps"}
           {total > 0 && (
             <>
               <span className="px-1 text-ink-faint">·</span>
-              <b className="font-semibold text-ink">{filled}/{total}</b> cells
+              <b className="font-semibold text-ink">{filled}/{total}</b> {total === 1 ? "cell" : "cells"}
             </>
           )}
         </span>
@@ -75,6 +78,7 @@ export default function OrchestrationCard({ events, searchState, status, workers
 
       {/* footer — into the detail drawer */}
       <button
+        type="button"
         onClick={onOpen}
         className="flex w-full items-center gap-1 border-t border-line px-4 py-2 text-[12px] text-accent-ink transition-colors hover:bg-surface-2"
       >

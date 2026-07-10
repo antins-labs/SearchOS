@@ -63,7 +63,7 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
           <button
             type="button"
             onClick={clearOverrides}
-            className="flex items-center gap-1 text-[12px] text-ink-faint transition-colors hover:text-ink-dim"
+            className="flex items-center gap-1 text-[12px] text-ink-dim transition-colors hover:text-ink"
           >
             <RotateCcw size={11} /> Reset
           </button>
@@ -74,6 +74,7 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
         <div className="flex items-center justify-between gap-3">
           <span className="text-[13px] text-ink">Effort</span>
           <PillGroup
+            ariaLabel="Run effort"
             value={overrides.effort ?? "default"}
             options={EFFORT_OPTIONS}
             onChange={(v) =>

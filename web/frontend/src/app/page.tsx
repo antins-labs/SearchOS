@@ -16,6 +16,12 @@ import Conversation from "@/components/conversation/Conversation";
 import ExecutionDrawer from "@/components/drawer/ExecutionDrawer";
 import SettingsModal from "@/components/settings/SettingsModal";
 import { useSettings } from "@/components/settings/SettingsProvider";
+import {
+  MAX_ACTIVITY_WIDTH,
+  MIN_ACTIVITY_WIDTH,
+  updateActivityPreferences,
+  useActivityPreferences,
+} from "@/lib/activityPreferences";
 
 let turnSeq = 0;
 
@@ -28,6 +34,7 @@ export default function Home() {
   const [railCollapsed, setRailCollapsed] = useState(false);
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [drawerResizing, setDrawerResizing] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [historyStatus, setHistoryStatus] = useState<"loading" | "ready" | "error">("loading");
   const [historyLoadingId, setHistoryLoadingId] = useState<string | null>(null);
@@ -42,6 +49,7 @@ export default function Home() {
   const [fileError, setFileError] = useState<string | null>(null);
   const [fileRetrySeq, setFileRetrySeq] = useState(0);
   const sessionActive = session.status === "running" || session.status === "reconnecting";
+  const activityPreferences = useActivityPreferences();
 
   const refreshHistory = useCallback(async (announceFailure = false) => {
     try {
@@ -423,10 +431,12 @@ export default function Home() {
 
   return (
     <div
-      className="grid h-[100dvh] grid-cols-[minmax(0,1fr)] transition-[grid-template-columns] duration-300 ease-out min-[1180px]:grid-cols-[var(--rail-width)_minmax(0,1fr)_var(--drawer-width)]"
+      className={`grid h-[100dvh] grid-cols-[minmax(0,1fr)] min-[1180px]:grid-cols-[var(--rail-width)_minmax(0,1fr)_var(--drawer-width)] ${drawerResizing ? "" : "transition-[grid-template-columns] duration-300 ease-out"}`}
       style={{
         "--rail-width": railCollapsed ? "56px" : "264px",
-        "--drawer-width": drawerOpen ? "minmax(0,460px)" : "0px",
+        "--drawer-width": drawerOpen
+          ? `clamp(${MIN_ACTIVITY_WIDTH}px, ${activityPreferences.width}px, min(${MAX_ACTIVITY_WIDTH}px, calc(100vw - var(--rail-width) - 420px)))`
+          : "0px",
       } as CSSProperties}
     >
       {mobileRailOpen && (
@@ -504,6 +514,13 @@ export default function Home() {
             fileError={fileError}
             onRetryFiles={handleRetryFiles}
             onClose={() => setDrawerTurnId(null)}
+            tab={activityPreferences.tab}
+            onTabChange={(tab) => updateActivityPreferences({ tab })}
+            width={activityPreferences.width}
+            railWidth={railCollapsed ? 56 : 264}
+            onWidthChange={(width) => updateActivityPreferences({ width }, false)}
+            onWidthCommit={(width) => updateActivityPreferences({ width })}
+            onResizeStateChange={setDrawerResizing}
           />
         )}
       </div>

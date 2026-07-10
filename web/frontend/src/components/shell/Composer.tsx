@@ -158,6 +158,8 @@ const cleanList = (items: string[]) => {
   return cleaned.length ? cleaned : undefined;
 };
 
+const countLabel = (count: number, singular: string, plural = `${singular}s`) => `${count} ${count === 1 ? singular : plural}`;
+
 const makeDraft = (rows: number, dataCols: number, id: string): TableDraft => ({
   id,
   entityName: "",
@@ -627,7 +629,9 @@ export default function Composer({
         {schemaPinned && !showSchema && (
           <span className={`mb-1 flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] ${schemaInvalid ? "bg-err/10 text-err" : "bg-clay text-accent-ink"}`}>
             {schemaInvalid && <AlertCircle size={11} />}
-            {hasDraftTables ? `${tableDrafts.length} tables` : `${pinnedRows?.length ?? 0} rows × ${pinnedCols?.length ?? 0} cols`}
+            {hasDraftTables
+              ? countLabel(tableDrafts.length, "table")
+              : `${countLabel(pinnedRows?.length ?? 0, "row")} × ${countLabel(pinnedCols?.length ?? 0, "col")}`}
             <button type="button" aria-label="Clear pinned schema" onClick={clearSchema}
               className="rounded-sm transition-opacity hover:opacity-70">
               <X size={11} />
@@ -1140,7 +1144,9 @@ export default function Composer({
           )}
 
           <div className="mt-1.5 flex items-baseline justify-between px-1 text-[11.5px] text-ink-faint">
-            <span>{hasDraftTables ? `${tableDrafts.length} tables · ${relationDrafts.length} relations · ${pinnedRows?.length ?? 0} primary values × ${visibleColCount} columns in current table` : "Optional — pin the table's rows and columns (comma-separated). Leave empty and the orchestrator designs the schema itself."}</span>
+            <span>{hasDraftTables
+              ? `${countLabel(tableDrafts.length, "table")} · ${countLabel(relationDrafts.length, "relation")} · ${countLabel(pinnedRows?.length ?? 0, "primary value")} × ${countLabel(visibleColCount, "column")} in current table`
+              : "Optional — pin the table's rows and columns (comma-separated). Leave empty and the orchestrator designs the schema itself."}</span>
             {schemaPinned && (
               <button type="button" onClick={clearSchema} className="shrink-0 pl-3 text-ink-faint transition-colors hover:text-ink-dim">
                 Clear

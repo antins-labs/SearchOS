@@ -73,12 +73,12 @@ function TableSection({
   schema,
   cells,
   onCellClick,
-  evidenceOpen,
+  selectedCell,
 }: {
   schema: TableSchema;
   cells: Record<string, CoverageCell>;
   onCellClick?: (ref: CellRef) => void;
-  evidenceOpen: boolean;
+  selectedCell: CellRef | null;
 }) {
   const { table_id, entities, attributes, primary_key, row_label, table_label } = schema;
   const isDefault = table_id === "_default" || table_id.startsWith("_");
@@ -119,9 +119,11 @@ function TableSection({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       if (filterMenuOpen || columnsMenuOpen) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
         setFilterMenuOpen(false);
         setColumnsMenuOpen(false);
-      } else if (fullscreen && !evidenceOpen) {
+      } else if (fullscreen && !selectedCell) {
         setFullscreen(false);
       }
     };
@@ -131,7 +133,7 @@ function TableSection({
       document.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [columnsMenuOpen, evidenceOpen, filterMenuOpen, fullscreen]);
+  }, [columnsMenuOpen, filterMenuOpen, fullscreen, selectedCell]);
 
   useEffect(() => {
     if (!fullscreen) return;
@@ -223,14 +225,23 @@ function TableSection({
           <span className="text-xs text-ink-dim">{filled}/{total} ({pct.toFixed(0)}%)</span>
           {isFullscreen && (
             <button type="button" onClick={() => setFullscreen(false)} title="Restore" aria-label="Restore table"
-              className="rounded-md p-1.5 text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink">
+              className="rounded-md p-1.5 text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">
               <Minimize2 size={16} />
             </button>
           )}
         </div>
       </div>
 
-      <div ref={toolbarRef} className={`flex flex-wrap items-center gap-1.5 border-y border-line bg-paper/60 p-2 ${isFullscreen ? "shrink-0" : ""}`}>
+      <div ref={toolbarRef}
+        onKeyDown={(event) => {
+          if (event.key !== "Escape" || (!filterMenuOpen && !columnsMenuOpen)) return;
+          event.preventDefault();
+          event.stopPropagation();
+          event.nativeEvent.stopImmediatePropagation();
+          setFilterMenuOpen(false);
+          setColumnsMenuOpen(false);
+        }}
+        className={`flex flex-wrap items-center gap-1.5 border-y border-line bg-paper/60 p-2 ${isFullscreen ? "shrink-0" : ""}`}>
         <label className="flex h-8 min-w-[180px] flex-1 items-center gap-2 rounded-md border border-line bg-surface px-2.5 text-[12.5px] text-ink-faint focus-within:border-line-strong sm:max-w-[300px]">
           <Search size={14} />
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search rows"
@@ -244,7 +255,7 @@ function TableSection({
         <div className="relative">
           <button type="button" onClick={() => { setFilterMenuOpen((value) => !value); setColumnsMenuOpen(false); }}
             aria-label="Column filters" aria-haspopup="menu" aria-expanded={filterMenuOpen} title="Column filters"
-            className={`flex h-8 items-center gap-1.5 rounded-md px-2 text-[12px] transition-colors hover:bg-surface-2 hover:text-ink ${filterMenuOpen || activeFilters ? "bg-clay text-accent-ink" : "text-ink-faint"}`}>
+            className={`flex h-8 items-center gap-1.5 rounded-md px-2 text-[12px] transition-colors hover:bg-surface-2 hover:text-ink ${filterMenuOpen || activeFilters ? "bg-clay text-accent-ink" : "text-ink-dim"}`}>
             <Filter size={14} />
             <span className="hidden sm:inline">Filters</span>
             {activeFilters > 0 && <span className="min-w-4 text-center text-[10px] font-semibold">{activeFilters}</span>}
@@ -280,7 +291,7 @@ function TableSection({
         <div className="relative">
           <button type="button" onClick={() => { setColumnsMenuOpen((value) => !value); setFilterMenuOpen(false); }}
             aria-label="Visible columns" aria-haspopup="menu" aria-expanded={columnsMenuOpen} title="Visible columns"
-            className={`flex h-8 items-center gap-1.5 rounded-md px-2 text-[12px] transition-colors hover:bg-surface-2 hover:text-ink ${columnsMenuOpen || hiddenColumns.size ? "bg-clay text-accent-ink" : "text-ink-faint"}`}>
+            className={`flex h-8 items-center gap-1.5 rounded-md px-2 text-[12px] transition-colors hover:bg-surface-2 hover:text-ink ${columnsMenuOpen || hiddenColumns.size ? "bg-clay text-accent-ink" : "text-ink-dim"}`}>
             <Columns3 size={14} />
             <span className="hidden sm:inline">Columns</span>
             {hiddenColumns.size > 0 && <span className="text-[10px]">-{hiddenColumns.size}</span>}
@@ -308,17 +319,19 @@ function TableSection({
 
         {customized && (
           <button type="button" onClick={resetView} aria-label="Reset table view" title="Reset table view"
-            className="grid h-8 w-8 place-items-center rounded-md text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink">
+            className="grid h-8 w-8 place-items-center rounded-md text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">
             <RotateCcw size={14} />
           </button>
         )}
         {!isFullscreen && (
           <button type="button" onClick={() => setFullscreen(true)} aria-label="Open table fullscreen" title="Open fullscreen"
-            className="grid h-8 w-8 place-items-center rounded-md text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink">
+            className="grid h-8 w-8 place-items-center rounded-md text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">
             <Maximize2 size={14} />
           </button>
         )}
-        <span className="ml-auto whitespace-nowrap px-1 text-[11px] text-ink-faint">{visibleEntities.length}/{entities.length} rows</span>
+        <span className="ml-auto whitespace-nowrap px-1 text-[11px] text-ink-dim">
+          {visibleEntities.length}/{entities.length} {entities.length === 1 ? "row" : "rows"}
+        </span>
       </div>
 
       <div className={`${isFullscreen ? "min-h-0 flex-1" : "max-h-[440px]"} overflow-auto border-b border-line`}>
@@ -356,14 +369,29 @@ function TableSection({
                   if (!cell) return <td key={column} className="whitespace-nowrap border-b border-line px-3 py-2 text-ink-faint">--</td>;
                   const sourceTitle = Array.isArray(cell.source) ? cell.source.join(", ") : cell.source;
                   const clickable = !!onCellClick && cell.status !== "missing";
+                  const cellRef = { tableId: table_id, entity, attribute: column, cell };
+                  const cellSelected = selectedCell?.tableId === table_id
+                    && selectedCell.entity === entity
+                    && selectedCell.attribute === column;
                   const cellTitle = cell.status === "filled"
                     ? (typeof cell.value === "string" ? cell.value : Array.isArray(cell.value) ? cell.value.join("\n") : "")
                     : sourceTitle ? `Source: ${sourceTitle}` : undefined;
+                  const openEvidence = () => onCellClick?.(cellRef);
                   return (
                     <td key={column}
-                      className={`whitespace-nowrap border-b border-line px-3 py-2 ${STATUS_COLORS[cell.status] || ""} ${clickable ? "cursor-pointer transition-colors hover:bg-clay/40" : ""}`}
+                      role={clickable ? "button" : undefined}
+                      tabIndex={clickable ? 0 : undefined}
+                      aria-haspopup={clickable ? "dialog" : undefined}
+                      aria-pressed={clickable ? cellSelected : undefined}
+                      aria-label={clickable ? `${column} for ${displayEntity(entity)}: ${cellText(cell) || cell.status}. View evidence` : undefined}
+                      className={`whitespace-nowrap border-b border-line px-3 py-2 ${STATUS_COLORS[cell.status] || ""} ${clickable ? "cursor-pointer transition-colors hover:bg-clay/40 focus-visible:bg-clay/50 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]" : ""} ${cellSelected ? "bg-clay/60" : ""}`}
                       title={clickable ? `${cellTitle ?? ""}${cellTitle ? "\n" : ""}Click to view evidence` : cellTitle}
-                      onClick={clickable ? () => onCellClick({ tableId: table_id, entity, attribute: column, cell }) : undefined}>
+                      onClick={clickable ? openEvidence : undefined}
+                      onKeyDown={clickable ? (event) => {
+                        if (event.key !== "Enter" && event.key !== " ") return;
+                        event.preventDefault();
+                        openEvidence();
+                      } : undefined}>
                       {renderCellValue(cell)}
                     </td>
                   );
@@ -427,7 +455,7 @@ export default function CoverageTable({ coverageMap, evidence }: Props) {
           schema={schema}
           cells={coverageMap.cells}
           onCellClick={evidence ? setSelected : undefined}
-          evidenceOpen={!!selected}
+          selectedCell={selected}
         />
       ))}
 

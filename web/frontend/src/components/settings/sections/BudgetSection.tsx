@@ -117,6 +117,7 @@ export default function BudgetSection() {
             key={level}
             type="button"
             disabled={disabled}
+            aria-pressed={effort.level === level}
             onClick={() => selectLevel(level)}
             className={`rounded-xl border px-3 py-2.5 text-left transition-colors disabled:opacity-40 ${
               effort.level === level

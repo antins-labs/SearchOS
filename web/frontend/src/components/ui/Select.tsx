@@ -111,6 +111,8 @@ export default function Select({
 
     if (event.key === "Escape") {
       event.preventDefault();
+      event.stopPropagation();
+      event.nativeEvent.stopImmediatePropagation();
       closeMenu();
     } else if (event.key === "Tab") {
       closeMenu();
