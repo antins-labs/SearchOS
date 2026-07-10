@@ -10,6 +10,7 @@ import type { Turn } from "@/lib/conversation";
 interface Props {
   turns: Turn[];
   running: boolean;
+  stopping?: boolean;
   onSubmit: (q: string, opts: SubmitOpts) => void;
   onSteer?: (text: string) => void;
   onStop?: () => void;
@@ -17,7 +18,7 @@ interface Props {
   registerTurnRef?: (id: string, el: HTMLDivElement | null) => void;
 }
 
-export default function Conversation({ turns, running, onSubmit, onSteer, onStop, onOpenDrawer, registerTurnRef }: Props) {
+export default function Conversation({ turns, running, stopping = false, onSubmit, onSteer, onStop, onOpenDrawer, registerTurnRef }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   // Follow the bottom only while a search is live; a freshly loaded historical
   // session should rest at the top, not jump to its references.
@@ -28,7 +29,7 @@ export default function Conversation({ turns, running, onSubmit, onSteer, onStop
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-[760px] px-6 py-8">
+        <div className="mx-auto max-w-[760px] px-3 pb-6 pt-16 sm:px-5 min-[1180px]:px-6 min-[1180px]:py-8">
           {turns.map((t) => (
             <TurnView
               key={t.id}
@@ -42,8 +43,8 @@ export default function Conversation({ turns, running, onSubmit, onSteer, onStop
       </div>
 
       <div className="border-t border-line bg-paper">
-        <div className="mx-auto max-w-[760px] px-6 py-4">
-          <Composer onSubmit={onSubmit} onSteer={onSteer} onStop={onStop} running={running} variant="bar" />
+        <div className="mx-auto max-w-[760px] px-3 py-3 sm:px-5 min-[1180px]:px-6 min-[1180px]:py-4">
+          <Composer onSubmit={onSubmit} onSteer={onSteer} onStop={onStop} running={running} stopping={stopping} variant="bar" />
         </div>
       </div>
     </div>
@@ -58,7 +59,7 @@ function TurnView({ turn, onOpen, registerRef }: { turn: Turn; onOpen: () => voi
     <div ref={registerRef} className="mb-10 scroll-mt-6 last:mb-2">
       {/* user message */}
       <div className="mb-6 flex justify-end">
-        <div className="max-w-[80%] rounded-2xl rounded-br-md border border-line bg-surface px-4 py-2.5 text-[15px] leading-relaxed text-ink">
+        <div className="max-w-[90%] rounded-2xl rounded-br-md border border-line bg-surface px-4 py-2.5 text-[15px] leading-relaxed text-ink sm:max-w-[80%]">
           {turn.query}
         </div>
       </div>
@@ -76,8 +77,8 @@ function TurnView({ turn, onOpen, registerRef }: { turn: Turn; onOpen: () => voi
       ))}
 
       {/* assistant turn */}
-      <div className="flex gap-3.5">
-        <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent font-serif text-[14px] font-semibold text-white">
+      <div className="flex gap-2.5 sm:gap-3.5">
+        <div className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent font-serif text-[12px] font-semibold text-white sm:h-7 sm:w-7 sm:text-[14px]">
           S
         </div>
         <div className="min-w-0 flex-1">

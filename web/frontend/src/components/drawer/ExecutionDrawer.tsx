@@ -9,6 +9,7 @@ import CoverageTable from "@/components/coverage/CoverageTable";
 import EvidenceList from "@/components/evidence/EvidenceList";
 import FileTree from "@/components/workspace/FileTree";
 import FileViewer from "@/components/workspace/FileViewer";
+import AsyncFeedback from "@/components/ui/AsyncFeedback";
 import type { Turn } from "@/lib/conversation";
 import type { FileNode } from "@/lib/types";
 
@@ -20,6 +21,9 @@ interface Props {
   fileTree: FileNode[];
   selectedFile: string | null;
   onSelectFile: (path: string | null) => void;
+  fileStatus: "idle" | "loading" | "ready" | "error";
+  fileError?: string | null;
+  onRetryFiles: () => void;
   onClose: () => void;
 }
 
@@ -36,6 +40,9 @@ export default function ExecutionDrawer({
   fileTree,
   selectedFile,
   onSelectFile,
+  fileStatus,
+  fileError = null,
+  onRetryFiles,
   onClose,
 }: Props) {
   const [tab, setTab] = useState<Tab>("coverage");
@@ -61,7 +68,7 @@ export default function ExecutionDrawer({
         <span className="font-serif text-[16px] font-semibold text-ink">Activity</span>
         <div className="ml-auto flex items-center gap-1">
           <button onClick={() => setMax((v) => !v)} title={max ? "Restore" : "Maximize"}
-            className="rounded-lg p-1.5 text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink">
+            className="hidden rounded-lg p-1.5 text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink min-[1180px]:inline-flex">
             {max ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
           <button onClick={onClose} title="Close"
@@ -81,12 +88,12 @@ export default function ExecutionDrawer({
         </div>
 
         {/* tabs */}
-        <div className="sticky top-0 z-10 flex gap-1 border-b border-line bg-surface px-3">
+        <div className="sticky top-0 z-10 flex gap-1 overflow-x-auto border-b border-line bg-surface px-1 sm:px-3">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-[13px] transition-colors ${
+              className={`-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-[13px] transition-colors sm:px-3 ${
                 tab === t.id ? "border-accent font-medium text-ink" : "border-transparent text-ink-dim hover:text-ink"
               }`}
             >
@@ -106,11 +113,15 @@ export default function ExecutionDrawer({
           {tab === "evidence" && <EvidenceList nodes={state?.evidence_graph?.nodes ?? []} />}
           {tab === "files" &&
             (selectedFile && sessionId ? (
-              <FileViewer sessionId={sessionId} filePath={selectedFile} onClose={() => onSelectFile(null)} />
+              <FileViewer key={`${sessionId}:${selectedFile}`} sessionId={sessionId} filePath={selectedFile} onClose={() => onSelectFile(null)} />
             ) : fileTree.length > 0 ? (
               <FileTree tree={fileTree} onFileSelect={onSelectFile} selectedFile={selectedFile} />
+            ) : fileStatus === "error" ? (
+              <AsyncFeedback status="error" message="Couldn’t load workspace files" detail={`${fileError ?? "The workspace is unavailable"}. Try again after checking the backend.`} onRetry={onRetryFiles} />
+            ) : fileStatus === "loading" ? (
+              <AsyncFeedback status="loading" message="Loading workspace files…" />
             ) : (
-              <div className="p-4 text-[13px] text-ink-faint">{sessionId ? "Loading files…" : "No workspace yet"}</div>
+              <div className="p-4 text-[13px] text-ink-faint">{sessionId ? "No files in this workspace" : "No workspace yet"}</div>
             ))}
           {tab === "events" && <EventsLog events={turn.events} />}
         </div>

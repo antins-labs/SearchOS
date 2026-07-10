@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { PanelLeftClose, PanelLeft, Plus, Search, Pencil, Settings, Trash2, Check, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { PanelLeftClose, PanelLeft, Plus, Search, Pencil, Settings, Trash2, Check, X, Loader2, RotateCcw } from "lucide-react";
 import { getHealth } from "@/lib/api";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -21,6 +21,10 @@ interface Props {
   onRename: (id: string, title: string) => void;
   onDelete: (id: string) => void;
   onOpenSettings: () => void;
+  loadingId?: string | null;
+  mutation?: { id: string; kind: "rename" | "delete" } | null;
+  historyStatus?: "loading" | "ready" | "error";
+  onRetryHistory?: () => void;
 }
 
 const DOT: Record<string, string> = {
@@ -29,16 +33,35 @@ const DOT: Record<string, string> = {
   error: "bg-err",
 };
 
-export default function HistoryRail({ items, activeId, collapsed, onToggle, onNew, onSelect, onRename, onDelete, onOpenSettings }: Props) {
+export default function HistoryRail({
+  items, activeId, collapsed, onToggle, onNew, onSelect, onRename, onDelete, onOpenSettings,
+  loadingId = null, mutation = null, historyStatus = "ready", onRetryHistory,
+}: Props) {
   const [q, setQ] = useState("");
   const [health, setHealth] = useState<{ status: string } | null | undefined>(undefined);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const editingIdRef = useRef<string | null>(null);
+  const busy = !!loadingId || !!mutation;
 
   const commitRename = (id: string) => {
+    if (editingIdRef.current !== id || busy) return;
+    editingIdRef.current = null;
     const t = editValue.trim();
     if (t) onRename(id, t);
+    setEditingId(null);
+  };
+
+  const beginRename = (id: string, title: string) => {
+    if (busy) return;
+    editingIdRef.current = id;
+    setEditingId(id);
+    setEditValue(title);
+  };
+
+  const cancelRename = () => {
+    editingIdRef.current = null;
     setEditingId(null);
   };
 
@@ -111,12 +134,29 @@ export default function HistoryRail({ items, activeId, collapsed, onToggle, onNe
 
       {/* list */}
       <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-2">
-        {filtered.length === 0 ? (
+        {historyStatus === "error" && (
+          <div role="alert" className="mb-2 flex items-start gap-2 rounded-md border border-err/30 bg-err/5 px-2.5 py-2 text-[12px] text-err">
+            <span className="min-w-0 flex-1 leading-4">History is unavailable</span>
+            {onRetryHistory && (
+              <button type="button" onClick={onRetryHistory} title="Retry history" aria-label="Retry loading history" className="shrink-0 rounded p-0.5 hover:bg-err/10">
+                <RotateCcw size={13} />
+              </button>
+            )}
+          </div>
+        )}
+        {historyStatus === "loading" && items.length === 0 ? (
+          <div role="status" className="flex items-center gap-2 px-2 pt-2 text-[12.5px] text-ink-faint">
+            <Loader2 className="animate-spin" size={14} />
+            Loading history…
+          </div>
+        ) : filtered.length === 0 ? (
           <p className="px-2 pt-2 text-[12.5px] text-ink-faint">{items.length ? "No matches" : "No conversations yet"}</p>
         ) : (
           <>
             <div className="px-2 pb-1 pt-1 text-[11px] uppercase tracking-wider text-ink-faint">Recent</div>
             {filtered.map((it) => {
+              const itemLoading = loadingId === it.id;
+              const itemMutation = mutation?.id === it.id ? mutation.kind : null;
               if (editingId === it.id) {
                 return (
                   <div key={it.id} className="px-1 py-1">
@@ -127,7 +167,7 @@ export default function HistoryRail({ items, activeId, collapsed, onToggle, onNe
                       onBlur={() => commitRename(it.id)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") commitRename(it.id);
-                        if (e.key === "Escape") setEditingId(null);
+                        if (e.key === "Escape") cancelRename();
                       }}
                       className="w-full rounded-md border border-line-strong bg-surface px-2 py-1.5 text-[13.5px] text-ink outline-none focus:border-accent"
                     />
@@ -144,26 +184,36 @@ export default function HistoryRail({ items, activeId, collapsed, onToggle, onNe
                 >
                   <button
                     onClick={() => onSelect(it.id)}
+                    disabled={busy}
+                    aria-busy={itemLoading}
                     className={`flex min-w-0 flex-1 items-center gap-2 py-2 pl-2.5 text-left text-[13.5px] ${
                       it.id === activeId ? "text-ink" : "text-ink-dim group-hover:text-ink"
-                    }`}
+                    } disabled:cursor-wait disabled:opacity-70`}
                   >
-                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${DOT[it.status] ?? "bg-ink-faint"}`} />
+                    {itemLoading ? (
+                      <Loader2 className="shrink-0 animate-spin text-accent-ink" size={13} />
+                    ) : (
+                      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${DOT[it.status] ?? "bg-ink-faint"}`} />
+                    )}
                     <span className="truncate">{it.title}</span>
                   </button>
 
-                  {confirmId === it.id ? (
+                  {itemMutation ? (
+                    <span className="flex shrink-0 items-center px-1" title={itemMutation === "rename" ? "Renaming" : "Deleting"}>
+                      <Loader2 className="animate-spin text-ink-faint" size={14} />
+                    </span>
+                  ) : confirmId === it.id ? (
                     <span className="flex shrink-0 items-center gap-0.5 pl-1">
-                      <button title="Confirm delete" onClick={() => { onDelete(it.id); setConfirmId(null); }}
+                      <button title="Confirm delete" disabled={busy} onClick={() => onDelete(it.id)}
                         className="rounded p-1 text-err hover:bg-err/10"><Check size={14} /></button>
-                      <button title="Cancel" onClick={() => setConfirmId(null)}
+                      <button title="Cancel" disabled={busy} onClick={() => setConfirmId(null)}
                         className="rounded p-1 text-ink-faint hover:bg-surface-2 hover:text-ink"><X size={14} /></button>
                     </span>
                   ) : (
                     <span className="flex shrink-0 items-center gap-0.5 pl-1 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
-                      <button title="Rename" onClick={() => { setEditingId(it.id); setEditValue(it.title); }}
+                      <button title="Rename" disabled={busy} onClick={() => beginRename(it.id, it.title)}
                         className="rounded p-1 text-ink-faint hover:bg-surface-2 hover:text-ink"><Pencil size={13} /></button>
-                      <button title="Delete" onClick={() => setConfirmId(it.id)}
+                      <button title="Delete" disabled={busy} onClick={() => setConfirmId(it.id)}
                         className="rounded p-1 text-ink-faint hover:bg-surface-2 hover:text-err"><Trash2 size={13} /></button>
                     </span>
                   )}

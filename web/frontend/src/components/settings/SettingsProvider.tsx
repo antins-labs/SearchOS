@@ -11,6 +11,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { CheckCircle2, CircleAlert, Info, X } from "lucide-react";
 
 import { getSettings } from "@/lib/api";
 import type { EffortLevel, SettingsData } from "@/lib/types";
@@ -25,6 +26,12 @@ export interface UiPrefs {
 }
 
 type Status = "loading" | "ready" | "offline";
+export type ToastTone = "error" | "success" | "info";
+
+interface ToastState {
+  message: string;
+  tone: ToastTone;
+}
 
 interface SettingsCtx {
   settings: SettingsData | null;
@@ -47,7 +54,7 @@ interface SettingsCtx {
   uiPrefs: UiPrefs;
   setUiPrefs: (p: Partial<UiPrefs>) => void;
   /** Show a transient toast (used for non-settings failures too). */
-  notify: (msg: string) => void;
+  notify: (msg: string, tone?: ToastTone) => void;
 }
 
 const Ctx = createContext<SettingsCtx | null>(null);
@@ -69,7 +76,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [status, setStatus] = useState<Status>("loading");
   const [overrides, setOverrides] = useState<RunOverrides>({});
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastState | null>(null);
   const seqRef = useRef(0);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -110,8 +117,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     } catch { /* ignore */ }
   }, [uiPrefs]);
 
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
+  const showToast = useCallback((message: string, tone: ToastTone = "error") => {
+    setToast({ message, tone });
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 3500);
   }, []);
@@ -155,14 +162,33 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     >
       {children}
       {toast && (
-        <div className="rise-in fixed bottom-6 left-1/2 z-[100] -translate-x-1/2">
+        <div
+          role={toast.tone === "error" ? "alert" : "status"}
+          aria-live={toast.tone === "error" ? "assertive" : "polite"}
+          className={`rise-in fixed bottom-6 left-1/2 z-[100] flex max-w-[min(92vw,520px)] -translate-x-1/2 items-start gap-2 rounded-lg border bg-surface px-3.5 py-3 text-[13px] shadow-xl ${
+            toast.tone === "error"
+              ? "border-err/40 text-err"
+              : toast.tone === "success"
+                ? "border-ok/40 text-ok"
+                : "border-line-strong text-ink"
+          }`}
+        >
+          {toast.tone === "error" ? (
+            <CircleAlert className="mt-0.5 shrink-0" size={16} />
+          ) : toast.tone === "success" ? (
+            <CheckCircle2 className="mt-0.5 shrink-0" size={16} />
+          ) : (
+            <Info className="mt-0.5 shrink-0 text-accent-ink" size={16} />
+          )}
+          <span className="min-w-0 flex-1 leading-5">{toast.message}</span>
           <button
             type="button"
             onClick={() => setToast(null)}
             title="Dismiss"
-            className="surface cursor-pointer rounded-xl border-err/40 px-4 py-2.5 text-[13px] text-err shadow-xl"
+            aria-label="Dismiss notification"
+            className="shrink-0 rounded p-0.5 text-ink-faint hover:bg-surface-2 hover:text-ink"
           >
-            {toast}
+            <X size={14} />
           </button>
         </div>
       )}

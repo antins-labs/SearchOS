@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { ArrowUp, Gauge, KeyRound, Plus, SlidersHorizontal, Square, Table2, X } from "lucide-react";
+import { ArrowUp, Gauge, KeyRound, Loader2, Plus, SlidersHorizontal, Square, Table2, X } from "lucide-react";
 
 import { useSettings } from "@/components/settings/SettingsProvider";
 import RunOverridesPopover from "@/components/settings/RunOverridesPopover";
@@ -38,6 +38,7 @@ interface Props {
   onSteer?: (text: string) => void;
   /** When set, a stop button interrupts the live run while `running`. */
   onStop?: () => void;
+  stopping?: boolean;
   running?: boolean;
   /** "hero" = large landing composer, "bar" = compact in-conversation bar */
   variant?: "hero" | "bar";
@@ -130,6 +131,7 @@ export default function Composer({
   onSubmit,
   onSteer,
   onStop,
+  stopping = false,
   running = false,
   variant = "bar",
   placeholder,
@@ -465,13 +467,18 @@ export default function Composer({
           <button
             type="button"
             onClick={onStop}
-            aria-label="Stop the run"
-            title="Stop the run"
-            className={`mb-0.5 shrink-0 rounded-xl border border-err/40 text-err transition-colors hover:bg-err/10 ${
+            disabled={stopping}
+            aria-label={stopping ? "Stopping the run" : "Stop the run"}
+            title={stopping ? "Stopping the run" : "Stop the run"}
+            className={`mb-0.5 shrink-0 rounded-xl border border-err/40 text-err transition-colors hover:bg-err/10 disabled:cursor-wait disabled:opacity-60 ${
               hero ? "p-2.5" : "p-2"
             }`}
           >
-            <Square size={hero ? 16 : 14} fill="currentColor" />
+            {stopping ? (
+              <Loader2 className="animate-spin" size={hero ? 16 : 14} />
+            ) : (
+              <Square size={hero ? 16 : 14} fill="currentColor" />
+            )}
           </button>
         )}
         <button
@@ -693,7 +700,7 @@ export default function Composer({
                 )}
               </div>
               {!hasDraftTables && (
-                <div className="grid grid-cols-2 gap-2 text-[13px]">
+                <div className="grid grid-cols-1 gap-2 text-[13px] sm:grid-cols-2">
                   <label className="surface flex items-center gap-2 rounded-xl px-3 py-2 focus-within:border-line-strong">
                     <span className="shrink-0 text-ink-faint">Rows</span>
                     <input
@@ -743,7 +750,7 @@ export default function Composer({
                     const toMeta = tableMetaByDraftId.get(rel.toDraftId) ?? tableMetas[0];
                     const fromAttrs = fromMeta?.attrs ?? [];
                     return (
-                      <div key={rel.id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-1.5 text-[12px]">
+                      <div key={rel.id} className="grid grid-cols-1 gap-1.5 text-[12px] sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
                         <Select
                           value={rel.fromDraftId}
                           onChange={(value) => {
@@ -786,6 +793,7 @@ export default function Composer({
                               { value: "many_to_many", label: "N:N" },
                             ]}
                             ariaLabel="Relation type"
+                            className="w-full"
                             size="sm"
                           />
                           <button
@@ -802,7 +810,7 @@ export default function Composer({
                           onChange={(e) => updateRelation(rel.id, { label: e.target.value })}
                           placeholder={`${fromMeta?.label ?? "From"} -> ${toMeta?.label ?? "To"}`}
                           spellCheck={false}
-                          className="col-span-4 rounded-md border border-line bg-surface px-2 py-1 text-ink outline-none placeholder:text-ink-faint"
+                          className="rounded-md border border-line bg-surface px-2 py-1 text-ink outline-none placeholder:text-ink-faint sm:col-span-4"
                         />
                       </div>
                     );

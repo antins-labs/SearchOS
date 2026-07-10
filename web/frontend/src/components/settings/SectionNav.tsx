@@ -23,13 +23,13 @@ interface Props {
 
 export default function SectionNav({ active, onSelect }: Props) {
   return (
-    <nav className="flex flex-col gap-0.5">
+    <nav className="flex min-w-0 gap-0.5 overflow-x-auto sm:flex-col sm:overflow-visible">
       {SECTIONS.map(({ id, label, icon: Icon }) => (
         <button
           key={id}
           type="button"
           onClick={() => onSelect(id)}
-          className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[13px] transition-colors ${
+          className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-2.5 py-2 text-left text-[13px] transition-colors sm:w-full ${
             active === id
               ? "bg-clay/60 font-medium text-accent-ink"
               : "text-ink-dim hover:bg-surface-2 hover:text-ink"

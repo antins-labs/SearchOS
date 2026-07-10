@@ -16,9 +16,9 @@ const SUGGESTIONS = [
 
 export default function Landing({ onSubmit, error }: Props) {
   return (
-    <div className="flex h-full flex-col items-center justify-center px-6">
+    <div className="flex h-full flex-col items-center justify-start overflow-y-auto px-4 pb-8 pt-20 sm:px-6 min-[1180px]:justify-center min-[1180px]:overflow-visible min-[1180px]:py-0">
       <div className="w-full max-w-2xl">
-        <h1 className="wordmark rise-in mb-9 text-center text-6xl tracking-tight sm:text-7xl">SearchOS</h1>
+        <h1 className="wordmark rise-in mb-7 text-center text-5xl tracking-tight sm:mb-9 sm:text-7xl">SearchOS</h1>
 
         {/* relative z-20: the rise-in animation (fill: both) makes this and the
             suggestion grid below persistent stacking contexts, so without an
@@ -29,7 +29,7 @@ export default function Landing({ onSubmit, error }: Props) {
 
         {error && <p className="mt-3 text-center text-[13px] text-err">{error}</p>}
 
-        <div className="rise-in mt-5 grid grid-cols-2 gap-2.5" style={{ animationDelay: "120ms" }}>
+        <div className="rise-in mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2" style={{ animationDelay: "120ms" }}>
           {SUGGESTIONS.map((s) => (
             <button
               key={s.text}

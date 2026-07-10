@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, type CSSProperties } from "react";
+import { Menu } from "lucide-react";
 
 import { useSearch } from "@/hooks/useSearch";
 import { getWorkspaceFiles, listHistory, loadHistory, renameHistory, deleteHistory, steerSearch, stopSearch, type HistoryItem } from "@/lib/api";
@@ -25,16 +26,34 @@ export default function Home() {
   const [activeTurnId, setActiveTurnId] = useState<string | null>(null);
   const [drawerTurnId, setDrawerTurnId] = useState<string | null>(null);
   const [railCollapsed, setRailCollapsed] = useState(false);
+  const [mobileRailOpen, setMobileRailOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [historyStatus, setHistoryStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [historyLoadingId, setHistoryLoadingId] = useState<string | null>(null);
+  const [historyMutation, setHistoryMutation] = useState<{ id: string; kind: "rename" | "delete" } | null>(null);
+  const [stopPending, setStopPending] = useState(false);
+  const historyBusyRef = useRef(false);
+  const stopPendingRef = useRef(false);
 
   const [fileTree, setFileTree] = useState<FileNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [fileStatus, setFileStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [fileRetrySeq, setFileRetrySeq] = useState(0);
 
-  const refreshHistory = useCallback(() => {
-    listHistory().then(setHistory).catch(() => {});
-  }, []);
-  useEffect(() => { refreshHistory(); }, [refreshHistory]);
+  const refreshHistory = useCallback(async (announceFailure = false) => {
+    try {
+      setHistory(await listHistory());
+      setHistoryStatus("ready");
+    } catch (e) {
+      setHistoryStatus("error");
+      if (announceFailure) {
+        notify(`Couldn’t refresh history: ${e instanceof Error ? e.message : String(e)}. Check the backend and try again.`);
+      }
+    }
+  }, [notify]);
+  useEffect(() => { void refreshHistory(); }, [refreshHistory]);
 
   // Sync the live `session` into the active (running) turn.
   useEffect(() => {
@@ -73,7 +92,7 @@ export default function Home() {
 
   // When a run finishes, the new workspace appears on disk — refresh history.
   useEffect(() => {
-    if (session.status === "completed" || session.status === "error") refreshHistory();
+    if (session.status === "completed" || session.status === "error") void refreshHistory();
   }, [session.status, refreshHistory]);
 
   // Fetch workspace files for whichever turn's drawer is open.
@@ -82,16 +101,37 @@ export default function Home() {
   const drawerStatus = drawerTurn?.status;
   useEffect(() => {
     if (!drawerSession) return;
-    const refresh = () => getWorkspaceFiles(drawerSession).then((r) => setFileTree(r.tree)).catch(() => {});
+    let alive = true;
+    let inFlight = false;
+    const refresh = () => {
+      if (inFlight) return;
+      inFlight = true;
+      void getWorkspaceFiles(drawerSession)
+      .then((r) => {
+        if (!alive) return;
+        setFileTree(r.tree);
+        setFileStatus("ready");
+        setFileError(null);
+      })
+      .catch((e) => {
+        if (!alive) return;
+        setFileStatus("error");
+        setFileError(e instanceof Error ? e.message : String(e));
+      })
+      .finally(() => { inFlight = false; });
+    };
     refresh();
     if (drawerStatus === "running") {
       const id = setInterval(refresh, 3000);
-      return () => clearInterval(id);
+      return () => { alive = false; clearInterval(id); };
     }
-  }, [drawerSession, drawerStatus]);
+    return () => { alive = false; };
+  }, [drawerSession, drawerStatus, fileRetrySeq]);
 
   const handleSubmit = useCallback(
     (q: string, opts: SubmitOpts) => {
+      stopPendingRef.current = false;
+      setStopPending(false);
       // Follow-up (TUI parity): the previous turn finished in this session →
       // extend its workspace/coverage table and pass the conversation history.
       const prev = turns[turns.length - 1];
@@ -163,11 +203,20 @@ export default function Home() {
 
   // Interrupt the live run (TUI Esc parity). The backend cancels the engine
   // task; the WS then delivers the terminal event and the turn settles.
-  const handleStop = useCallback(() => {
+  const handleStop = useCallback(async () => {
     const sid = session.sessionId;
-    if (!sid || session.status !== "running") return;
-    stopSearch(sid).catch(() => {});
-  }, [session.sessionId, session.status]);
+    if (!sid || session.status !== "running" || stopPendingRef.current) return;
+    stopPendingRef.current = true;
+    setStopPending(true);
+    try {
+      await stopSearch(sid);
+      notify("Stop requested. Waiting for the current run to finish shutting down.", "info");
+    } catch (e) {
+      stopPendingRef.current = false;
+      setStopPending(false);
+      notify(`Couldn’t stop this run: ${e instanceof Error ? e.message : String(e)}. Try again.`);
+    }
+  }, [session.sessionId, session.status, notify]);
 
   const handleNew = useCallback(() => {
     reset();
@@ -175,10 +224,14 @@ export default function Home() {
     setActiveTurnId(null);
     setDrawerTurnId(null);
     setFileTree([]);
+    setFileStatus("idle");
+    setFileError(null);
     setSelectedFile(null);
+    stopPendingRef.current = false;
+    setStopPending(false);
     // A live run we just walked away from keeps running server-side — make
     // sure it shows up in the rail (as running) so the user can switch back.
-    refreshHistory();
+    void refreshHistory();
   }, [reset, refreshHistory]);
 
   const turnRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -195,6 +248,9 @@ export default function Home() {
         turnRefs.current[existing.id]?.scrollIntoView({ behavior: "smooth", block: "start" });
         return;
       }
+      if (historyBusyRef.current) return;
+      historyBusyRef.current = true;
+      setHistoryLoadingId(id);
       try {
         const data = await loadHistory(id);
         const events: WSEvent[] = data.events ?? [];
@@ -248,35 +304,87 @@ export default function Home() {
         setTurns(restored);
         // If we just walked away from a live run, it keeps running server-side
         // — refresh so the rail lists it (as running) for switching back.
-        refreshHistory();
+        void refreshHistory();
         if (isRunning) {
           // The backend still owns this run — re-attach the live WS/steer
           // channel so events keep streaming and follow-ups can be injected.
           // Seed only the live turn's segment; dedupe against the full log.
+          stopPendingRef.current = false;
+          setStopPending(false);
           setActiveTurnId(turn.id);
           attach(data.session_id, { events: turn.events, searchState: turn.searchState, seen: events });
         } else {
           reset();
           setActiveTurnId(null);
         }
-      } catch {
-        /* ignore load failure */
+      } catch (e) {
+        const title = history.find((item) => item.session_id === id)?.title ?? "this conversation";
+        notify(`Couldn’t open ${title}: ${e instanceof Error ? e.message : String(e)}. Refresh history and try again.`);
+      } finally {
+        historyBusyRef.current = false;
+        setHistoryLoadingId(null);
       }
     },
-    [turns, reset, attach, refreshHistory],
+    [turns, reset, attach, refreshHistory, history, notify],
   );
 
-  const handleRename = useCallback((id: string, title: string) => {
-    setHistory((prev) => prev.map((h) => (h.session_id === id ? { ...h, title } : h)));
-    setTurns((prev) => prev.map((t) => ((t.sessionId ?? t.id) === id ? { ...t, query: title } : t)));
-    renameHistory(id, title).catch(() => {}).finally(refreshHistory);
-  }, [refreshHistory]);
+  const handleRename = useCallback(async (id: string, title: string) => {
+    if (historyBusyRef.current) return;
+    historyBusyRef.current = true;
+    setHistoryMutation({ id, kind: "rename" });
+    try {
+      await renameHistory(id, title);
+      setHistory((prev) => prev.map((h) => (h.session_id === id ? { ...h, title } : h)));
+      setTurns((prev) => prev.map((t) => ((t.sessionId ?? t.id) === id ? { ...t, query: title } : t)));
+      notify("Conversation renamed", "success");
+      void refreshHistory();
+    } catch (e) {
+      notify(`Couldn’t rename this conversation: ${e instanceof Error ? e.message : String(e)}. Your previous title was kept.`);
+    } finally {
+      historyBusyRef.current = false;
+      setHistoryMutation(null);
+    }
+  }, [refreshHistory, notify]);
 
-  const handleDelete = useCallback((id: string) => {
-    setHistory((prev) => prev.filter((h) => h.session_id !== id));
-    if (openId === id) handleNew();
-    deleteHistory(id).catch(() => {}).finally(refreshHistory);
-  }, [openId, handleNew, refreshHistory]);
+  const handleDelete = useCallback(async (id: string) => {
+    if (historyBusyRef.current) return;
+    historyBusyRef.current = true;
+    setHistoryMutation({ id, kind: "delete" });
+    try {
+      await deleteHistory(id);
+      setHistory((prev) => prev.filter((h) => h.session_id !== id));
+      if (openId === id) handleNew();
+      notify("Conversation deleted", "success");
+      void refreshHistory();
+    } catch (e) {
+      notify(`Couldn’t delete this conversation: ${e instanceof Error ? e.message : String(e)}. Nothing was removed.`);
+    } finally {
+      historyBusyRef.current = false;
+      setHistoryMutation(null);
+    }
+  }, [openId, handleNew, refreshHistory, notify]);
+
+  const handleOpenDrawer = useCallback((turnId: string) => {
+    const target = turns.find((turn) => turn.id === turnId);
+    setDrawerTurnId(turnId);
+    setSelectedFile(null);
+    setFileTree([]);
+    setFileError(null);
+    setFileStatus(target?.sessionId ? "loading" : "idle");
+  }, [turns]);
+
+  const handleRetryHistory = useCallback(() => {
+    if (historyStatus === "loading") return;
+    setHistoryStatus("loading");
+    void refreshHistory(true);
+  }, [historyStatus, refreshHistory]);
+
+  const handleRetryFiles = useCallback(() => {
+    if (!drawerSession || fileStatus === "loading") return;
+    setFileStatus("loading");
+    setFileError(null);
+    setFileRetrySeq((value) => value + 1);
+  }, [drawerSession, fileStatus]);
 
   // Rail = disk history; prepend the live run if it isn't on disk yet.
   const railItems = useMemo(() => {
@@ -296,40 +404,74 @@ export default function Home() {
 
   return (
     <div
-      className="grid h-screen transition-[grid-template-columns] duration-300 ease-out"
+      className="grid h-[100dvh] grid-cols-[minmax(0,1fr)] transition-[grid-template-columns] duration-300 ease-out min-[1180px]:grid-cols-[var(--rail-width)_minmax(0,1fr)_var(--drawer-width)]"
       style={{
-        gridTemplateColumns: `${railCollapsed ? "56px" : "264px"} minmax(0,1fr) ${drawerOpen ? "minmax(0,460px)" : "0px"}`,
-      }}
+        "--rail-width": railCollapsed ? "56px" : "264px",
+        "--drawer-width": drawerOpen ? "minmax(0,460px)" : "0px",
+      } as CSSProperties}
     >
-      <HistoryRail
-        items={railItems}
-        activeId={openId}
-        collapsed={railCollapsed}
-        onToggle={() => setRailCollapsed((v) => !v)}
-        onNew={handleNew}
-        onSelect={handleSelect}
-        onRename={handleRename}
-        onDelete={handleDelete}
-        onOpenSettings={() => setSettingsOpen(true)}
-      />
+      {mobileRailOpen && (
+        <button
+          type="button"
+          aria-label="Close navigation"
+          onClick={() => setMobileRailOpen(false)}
+          className="fade-in fixed inset-0 z-40 bg-ink/20 min-[1180px]:hidden dark:bg-black/50"
+        />
+      )}
 
-      <main className="min-w-0 overflow-hidden">
+      <aside
+        className={`${
+          mobileRailOpen
+            ? "fixed inset-y-0 left-0 z-50 block w-[min(320px,88vw)] bg-paper shadow-2xl"
+            : "hidden"
+        } min-[1180px]:static min-[1180px]:z-auto min-[1180px]:block min-[1180px]:w-auto min-[1180px]:shadow-none`}
+      >
+        <HistoryRail
+          items={railItems}
+          activeId={openId}
+          collapsed={mobileRailOpen ? false : railCollapsed}
+          onToggle={() => mobileRailOpen ? setMobileRailOpen(false) : setRailCollapsed((v) => !v)}
+          onNew={() => { setMobileRailOpen(false); handleNew(); }}
+          onSelect={(id) => { setMobileRailOpen(false); void handleSelect(id); }}
+          onRename={(id, title) => { void handleRename(id, title); }}
+          onDelete={(id) => { void handleDelete(id); }}
+          onOpenSettings={() => { setMobileRailOpen(false); setSettingsOpen(true); }}
+          loadingId={historyLoadingId}
+          mutation={historyMutation}
+          historyStatus={historyStatus}
+          onRetryHistory={handleRetryHistory}
+        />
+      </aside>
+
+      <main className="relative min-w-0 overflow-hidden">
+        <div className="fixed inset-x-0 top-0 z-30 flex h-12 items-center gap-2 border-b border-line bg-paper/95 px-3 backdrop-blur-sm min-[1180px]:hidden">
+          <button
+            type="button"
+            aria-label="Open navigation"
+            onClick={() => setMobileRailOpen(true)}
+            className="rounded-lg p-2 text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink"
+          >
+            <Menu size={18} />
+          </button>
+          <span className="wordmark text-[16px]">SearchOS</span>
+        </div>
         {turns.length === 0 ? (
           <Landing onSubmit={handleSubmit} error={session.error} />
         ) : (
           <Conversation
             turns={turns}
             running={session.status === "running"}
+            stopping={stopPending}
             onSubmit={handleSubmit}
             onSteer={handleSteer}
             onStop={handleStop}
-            onOpenDrawer={setDrawerTurnId}
+            onOpenDrawer={handleOpenDrawer}
             registerTurnRef={(id, el) => { turnRefs.current[id] = el; }}
           />
         )}
       </main>
 
-      <div className="min-w-0 overflow-hidden">
+      <div className={`${drawerTurn ? "fixed inset-0 z-40" : "hidden"} min-w-0 overflow-hidden min-[1180px]:static min-[1180px]:z-auto min-[1180px]:block`}>
         {drawerTurn && (
           <ExecutionDrawer
             turn={drawerTurn}
@@ -337,6 +479,9 @@ export default function Home() {
             fileTree={fileTree}
             selectedFile={selectedFile}
             onSelectFile={setSelectedFile}
+            fileStatus={fileStatus}
+            fileError={fileError}
+            onRetryFiles={handleRetryFiles}
             onClose={() => setDrawerTurnId(null)}
           />
         )}

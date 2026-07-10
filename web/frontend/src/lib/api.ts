@@ -15,36 +15,74 @@ import type {
 } from "./types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const REQUEST_TIMEOUT_MS = 12000;
+
+function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+  const controller = new AbortController();
+  return new Promise((resolve, reject) => {
+    const timeout = globalThis.setTimeout(() => {
+      controller.abort();
+      reject(new Error("Request timed out"));
+    }, REQUEST_TIMEOUT_MS);
+
+    fetch(input, { ...init, signal: init.signal ?? controller.signal }).then(
+      (response) => {
+        globalThis.clearTimeout(timeout);
+        resolve(response);
+      },
+      (error) => {
+        globalThis.clearTimeout(timeout);
+        reject(error);
+      },
+    );
+  });
+}
+
+function readJsonWithTimeout<T>(response: Response): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeout = globalThis.setTimeout(() => reject(new Error("Response timed out")), REQUEST_TIMEOUT_MS);
+    response.json().then(
+      (data) => {
+        globalThis.clearTimeout(timeout);
+        resolve(data as T);
+      },
+      (error) => {
+        globalThis.clearTimeout(timeout);
+        reject(error);
+      },
+    );
+  });
+}
 
 // ---- REST ----
 
 export async function getHealth(): Promise<{ status: string; version?: string } | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/health`, { cache: "no-store" });
+    const res = await fetchWithTimeout(`${API_BASE}/api/health`, { cache: "no-store" });
     if (!res.ok) return null;
-    return res.json();
+    return readJsonWithTimeout(res);
   } catch {
     return null;
   }
 }
 
 export async function startSearch(req: SearchRequest): Promise<{ session_id: string }> {
-  const res = await fetch(`${API_BASE}/api/search`, {
+  const res = await fetchWithTimeout(`${API_BASE}/api/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(req),
   });
   if (!res.ok) throw new Error(`Search failed: ${res.statusText}`);
-  return res.json();
+  return readJsonWithTimeout(res);
 }
 
 export async function stopSearch(sessionId: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/api/search/${sessionId}/stop`, { method: "POST" });
+  const res = await fetchWithTimeout(`${API_BASE}/api/search/${sessionId}/stop`, { method: "POST" });
   if (!res.ok) throw new Error(`Stop failed: ${res.statusText}`);
 }
 
 export async function steerSearch(sessionId: string, message: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/api/search/${sessionId}/steer`, {
+  const res = await fetchWithTimeout(`${API_BASE}/api/search/${sessionId}/steer`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message }),
@@ -53,64 +91,62 @@ export async function steerSearch(sessionId: string, message: string): Promise<v
 }
 
 export async function getSearchResult(sessionId: string): Promise<SearchResult> {
-  const res = await fetch(`${API_BASE}/api/search/${sessionId}`);
+  const res = await fetchWithTimeout(`${API_BASE}/api/search/${sessionId}`);
   if (!res.ok) throw new Error(`Get result failed: ${res.statusText}`);
-  return res.json();
+  return readJsonWithTimeout(res);
 }
 
 export async function getSearchState(sessionId: string): Promise<SearchResult> {
-  const res = await fetch(`${API_BASE}/api/search/${sessionId}/state`);
+  const res = await fetchWithTimeout(`${API_BASE}/api/search/${sessionId}/state`);
   if (!res.ok) throw new Error(`Get state failed: ${res.statusText}`);
-  return res.json();
+  return readJsonWithTimeout(res);
 }
 
 export interface HistoryItem {
   session_id: string;
   title: string;
-  status: "running" | "completed" | "incomplete";
+  status: "running" | "completed" | "incomplete" | "error";
   coverage_score: number | null;
   updated_at: number;
 }
 
 export async function listHistory(): Promise<HistoryItem[]> {
-  try {
-    const res = await fetch(`${API_BASE}/api/history`, { cache: "no-store" });
-    if (!res.ok) return [];
-    return res.json();
-  } catch {
-    return [];
-  }
+  const res = await fetchWithTimeout(`${API_BASE}/api/history`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Load history failed: ${res.statusText}`);
+  return readJsonWithTimeout(res);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function loadHistory(sessionId: string): Promise<any> {
-  const res = await fetch(`${API_BASE}/api/history/${sessionId}`);
+  const res = await fetchWithTimeout(`${API_BASE}/api/history/${sessionId}`);
   if (!res.ok) throw new Error(`Load session failed: ${res.statusText}`);
-  return res.json();
+  return readJsonWithTimeout(res);
 }
 
 export async function renameHistory(sessionId: string, title: string): Promise<void> {
-  await fetch(`${API_BASE}/api/history/${sessionId}`, {
+  const res = await fetchWithTimeout(`${API_BASE}/api/history/${sessionId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title }),
   });
+  if (!res.ok) throw new Error(`Rename failed: ${res.statusText}`);
 }
 
 export async function deleteHistory(sessionId: string): Promise<void> {
-  await fetch(`${API_BASE}/api/history/${sessionId}`, { method: "DELETE" });
+  const res = await fetchWithTimeout(`${API_BASE}/api/history/${sessionId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`Delete failed: ${res.statusText}`);
 }
 
 export async function getWorkspaceFiles(sessionId: string): Promise<{ tree: FileNode[] }> {
-  const res = await fetch(`${API_BASE}/api/workspace/${sessionId}/files`);
+  const res = await fetchWithTimeout(`${API_BASE}/api/workspace/${sessionId}/files`);
   if (!res.ok) throw new Error(`Get files failed: ${res.statusText}`);
-  return res.json();
+  return readJsonWithTimeout(res);
 }
 
 export async function getFileContent(sessionId: string, path: string): Promise<{ content: string }> {
-  const res = await fetch(`${API_BASE}/api/workspace/${sessionId}/file?path=${encodeURIComponent(path)}`);
+  const res = await fetchWithTimeout(`${API_BASE}/api/workspace/${sessionId}/file?path=${encodeURIComponent(path)}`);
   if (!res.ok) throw new Error(`Get file failed: ${res.statusText}`);
-  return res.json();
+  return readJsonWithTimeout(res);
 }
 
 // ---- Settings ----

@@ -43,7 +43,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
         aria-modal="true"
         aria-label="Settings"
         onMouseDown={(e) => e.stopPropagation()}
-        className="rise-in surface flex h-[min(620px,85vh)] w-[min(860px,92vw)] flex-col overflow-hidden rounded-2xl shadow-xl"
+        className="rise-in surface flex h-[100dvh] w-full flex-col overflow-hidden rounded-none shadow-xl sm:h-[min(620px,85vh)] sm:w-[min(860px,92vw)] sm:rounded-2xl"
       >
         <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
           <h1 className="font-serif text-[16px] text-ink">Settings</h1>
@@ -60,15 +60,15 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
           </div>
         )}
 
-        <div className="flex min-h-0 flex-1">
-          <div className="flex w-44 shrink-0 flex-col justify-between border-r border-line p-3">
+        <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
+          <div className="flex w-full shrink-0 items-center border-b border-line p-2 sm:w-44 sm:flex-col sm:items-stretch sm:justify-between sm:border-b-0 sm:border-r sm:p-3">
             <SectionNav active={active} onSelect={setActive} />
             <Link href="/settings" onClick={onClose}
-              className="flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-[12px] text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink">
+              className="hidden items-center gap-1.5 rounded-lg px-2.5 py-2 text-[12px] text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink sm:flex">
               <ExternalLink size={13} /> Full settings
             </Link>
           </div>
-          <div key={active} className="min-w-0 flex-1 overflow-y-auto p-5">
+          <div key={active} className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-5">
             <Body />
           </div>
         </div>
