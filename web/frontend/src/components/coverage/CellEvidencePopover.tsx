@@ -89,7 +89,11 @@ export default function CellEvidencePopover({
   const closeRef = useRef<HTMLButtonElement>(null);
   useDialogFocus({ containerRef: dialogRef, initialFocusRef: closeRef, onClose });
 
-  const matched = evidenceForCell(nodes, cellRef);
+  const matched = [...evidenceForCell(nodes, cellRef)].sort((a, b) => {
+    if (a.id === cellRef.cell.primary_evidence_id) return -1;
+    if (b.id === cellRef.cell.primary_evidence_id) return 1;
+    return (a.status ?? "active") === "active" ? -1 : 1;
+  });
   const { cell } = cellRef;
   const values = Array.isArray(cell.value) ? cell.value : [cell.value];
   const cellUrls = extractUrls(cell.source);
@@ -147,8 +151,16 @@ export default function CellEvidencePopover({
             matched.map((n) => {
               const urls = extractUrls(n.source);
               const excerpt = n.source_excerpt ? cleanExcerpt(n.source_excerpt) : "";
+              const status = n.status ?? "active";
+              const current = n.id === cell.primary_evidence_id;
               return (
-                <div key={n.id} className="rounded-xl border border-line bg-paper/50 p-3">
+                <div key={n.id} className={`rounded-xl border border-line p-3 ${status === "active" ? "bg-paper/50" : "bg-surface-2 opacity-65"}`}>
+                  {(current || status !== "active") && (
+                    <div className="mb-1.5 flex items-center gap-1.5 text-[10px]">
+                      {current && <span className="rounded bg-accent/10 px-1.5 py-0.5 font-medium text-accent-ink">Current source</span>}
+                      {status !== "active" && <span className="rounded bg-surface px-1.5 py-0.5 capitalize text-ink-faint">{status}</span>}
+                    </div>
+                  )}
                   <p className="text-[13.5px] leading-relaxed text-ink">{n.claim}</p>
                   {excerpt && (
                     <blockquote className="mt-2 flex gap-1.5 border-l-2 border-line-strong pl-2.5 text-[12.5px] italic leading-relaxed text-ink-dim">

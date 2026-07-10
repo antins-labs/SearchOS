@@ -51,7 +51,7 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
   return (
     <div
       ref={ref}
-      className={`rise-in surface absolute left-0 z-30 w-80 rounded-xl p-3.5 shadow-xl ${
+      className={`rise-in surface absolute left-0 z-30 w-80 rounded-xl p-3.5 shadow-xl ${overrides.effort === "max" ? "max-effort-popover" : ""} ${
         direction === "down" ? "top-full mt-2" : "bottom-full mb-2"
       }`}
     >

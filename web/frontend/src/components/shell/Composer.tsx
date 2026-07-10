@@ -620,7 +620,8 @@ export default function Composer({
           type="button"
           onClick={() => setShowOverrides((v) => !v)}
           title="Run overrides"
-          className={`mb-0.5 shrink-0 rounded-lg p-1.5 transition-colors ${
+          aria-label="Run overrides"
+          className={`mb-0.5 shrink-0 rounded-lg p-1.5 transition-colors ${overrides.effort === "max" ? "max-effort-control" : ""} ${
             showOverrides || overridesActive ? "bg-clay text-accent-ink" : "text-ink-faint hover:text-ink-dim"
           }`}
         >
@@ -639,7 +640,7 @@ export default function Composer({
           </span>
         )}
         {overridesActive && (
-          <span className="mb-1 flex shrink-0 items-center gap-1 rounded-md bg-clay px-1.5 py-0.5 text-[11px] text-accent-ink">
+          <span className={`mb-1 flex shrink-0 items-center gap-1 rounded-md bg-clay px-1.5 py-0.5 text-[11px] text-accent-ink ${overrides.effort === "max" ? "max-effort-chip" : ""}`}>
             {overrideChip}
             <button type="button" aria-label="Clear run overrides" onClick={clearOverrides}
               className="rounded-sm transition-opacity hover:opacity-70">

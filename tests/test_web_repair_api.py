@@ -114,6 +114,21 @@ def test_prepare_repair_tasks_rejects_filled_and_unknown_cells():
     assert not any(task.created_by == "user" for task in state.frontier.questions)
 
 
+def test_prepare_repair_tasks_accepts_a_filled_conflicting_cell():
+    state = _state()
+    cell = state.coverage_map.cells["_default/Acme.revenue"]
+    cell.status = CellStatus.FILLED
+    cell.has_conflict = True
+
+    task_ids, targets = search._prepare_repair_tasks(
+        state,
+        [_cell("Acme", "revenue")],
+    )
+
+    assert len(task_ids) == 1
+    assert targets == ["_default/Acme.revenue"]
+
+
 def test_repair_endpoint_passes_an_exact_scheduler_allowlist(monkeypatch):
     state = _state()
     captured: dict[str, object] = {}

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo, type CSSProperties }
 import { Menu } from "lucide-react";
 
 import { useSearch } from "@/hooks/useSearch";
-import { getWorkspaceFiles, listHistory, loadHistory, renameHistory, deleteHistory, steerSearch, stopSearch, type HistoryItem, type HistoryTurn } from "@/lib/api";
+import { getWorkspaceFiles, listHistory, loadHistory, renameHistory, deleteHistory, resolveEvidence, steerSearch, stopSearch, type HistoryItem, type HistoryTurn } from "@/lib/api";
 import { deriveAnswer, foldWorkers } from "@/lib/derive";
 import type { FileNode, RepairCellTarget, SearchRequest, SearchState, WSEvent } from "@/lib/types";
 import type { Turn } from "@/lib/conversation";
@@ -50,6 +50,21 @@ export default function Home() {
   const [fileRetrySeq, setFileRetrySeq] = useState(0);
   const sessionActive = session.status === "running" || session.status === "reconnecting";
   const activityPreferences = useActivityPreferences();
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const phase = session.status === "running" || session.status === "reconnecting"
+      ? "running"
+      : session.status === "completed"
+        ? "completed"
+        : session.status === "error"
+          ? "error"
+          : "idle";
+    root.dataset.maxPhase = phase;
+    return () => {
+      delete root.dataset.maxPhase;
+    };
+  }, [session.status]);
 
   const refreshHistory = useCallback(async (announceFailure = false) => {
     try {
@@ -247,6 +262,34 @@ export default function Home() {
       },
     );
   }, [drawerTurnId, notify, overrides, repair, sessionActive, turns]);
+
+  const handleResolveEvidence = useCallback(async (
+    sourceTurn: Turn,
+    target: RepairCellTarget,
+    evidenceId: string,
+  ) => {
+    if (sessionActive || !sourceTurn.sessionId) {
+      throw new Error("This result cannot be edited while research is running");
+    }
+    try {
+      const response = await resolveEvidence(sourceTurn.sessionId, {
+        ...target,
+        evidence_id: evidenceId,
+      });
+      setTurns((current) => current.map((turn) => turn.id === sourceTurn.id
+        ? {
+            ...turn,
+            searchState: response.search_state,
+            meta: { ...turn.meta, evidenceCount: response.search_state.evidence_graph.nodes.length },
+          }
+        : turn));
+      notify("Evidence choice applied", "success");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      notify(`Couldn’t apply this source: ${message}`);
+      throw error;
+    }
+  }, [notify, sessionActive]);
 
   // Live follow-up: inject into the running orchestrator (sub-agents keep
   // running) instead of queueing a new search — same as the TUI mid-run path.
@@ -484,6 +527,10 @@ export default function Home() {
   }, [history, openTurn]);
 
   const drawerOpen = !!drawerTurn;
+  const latestEditableTurn = [...turns].reverse().find((turn) => (
+    turn.status === "completed" && !!turn.sessionId && !!turn.searchState
+  ));
+  const drawerEditable = !sessionActive && latestEditableTurn?.id === drawerTurn?.id;
 
   return (
     <div
@@ -579,11 +626,16 @@ export default function Home() {
             onWidthCommit={(width) => updateActivityPreferences({ width })}
             onResizeStateChange={setDrawerResizing}
             onRepairCells={
-              !sessionActive
-              && [...turns].reverse().find((turn) => turn.status === "completed" && !!turn.sessionId && !!turn.searchState)?.id === drawerTurn.id
+              drawerEditable
                 ? (cells) => handleRepair(drawerTurn, cells)
                 : undefined
             }
+            onResolveEvidence={drawerEditable
+              ? (target, evidenceId) => handleResolveEvidence(drawerTurn, target, evidenceId)
+              : undefined}
+            onReverifyEvidence={drawerEditable
+              ? (target) => handleRepair(drawerTurn, [target])
+              : undefined}
           />
         )}
       </div>

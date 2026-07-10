@@ -8,6 +8,8 @@ import type {
   ModelsView,
   ProvidersResponse,
   RepairRequest,
+  ResolveEvidenceRequest,
+  ResolveEvidenceResponse,
   RunDefaultsView,
   SearchRequest,
   SearchResult,
@@ -96,6 +98,26 @@ export async function startRepair(
       else if (body.detail) detail = body.detail;
     } catch { /* keep statusText */ }
     throw new Error(`Repair failed: ${detail}`);
+  }
+  return readJsonWithTimeout(res);
+}
+
+export async function resolveEvidence(
+  sessionId: string,
+  req: ResolveEvidenceRequest,
+): Promise<ResolveEvidenceResponse> {
+  const res = await fetchWithTimeout(`${API_BASE}/api/search/${sessionId}/evidence/resolve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const body = await readJsonWithTimeout<{ detail?: string }>(res);
+      if (body.detail) detail = body.detail;
+    } catch { /* keep statusText */ }
+    throw new Error(`Resolve evidence failed: ${detail}`);
   }
   return readJsonWithTimeout(res);
 }

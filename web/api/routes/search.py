@@ -93,6 +93,17 @@ class RepairResponse(SearchResponse):
     cells: list[RepairCellRequest]
 
 
+class ResolveEvidenceRequest(RepairCellRequest):
+    evidence_id: str
+
+
+class ResolveEvidenceResponse(BaseModel):
+    status: str
+    selected_evidence_id: str
+    superseded_evidence_ids: list[str]
+    search_state: dict[str, Any]
+
+
 @router.post("/search", response_model=SearchResponse)
 async def create_search(req: SearchRequest):
     """Start a new search session (runs in background)."""
@@ -309,7 +320,10 @@ def _prepare_repair_tasks(
             errors.append(f"Unknown column {attribute!r} in table {table_id!r}")
         elif cell is None:
             errors.append(f"Coverage cell {cell_key!r} does not exist")
-        elif getattr(cell.status, "value", cell.status) not in repairable:
+        elif (
+            getattr(cell.status, "value", cell.status) not in repairable
+            and not cell.has_conflict
+        ):
             errors.append(f"Cell {cell_key!r} is already filled")
         else:
             unique.append(RepairCellRequest(
@@ -410,6 +424,142 @@ async def repair_cells(session_id: str, req: RepairRequest):
         status=started.status,
         task_ids=task_ids,
         cells=req.cells,
+    )
+
+
+def _resolve_evidence_choice(
+    state: Any,
+    request: ResolveEvidenceRequest,
+) -> tuple[Any, list[str]]:
+    from searchos.socm import (
+        CellStatus,
+        EvidenceEdge,
+        EvidenceRelation,
+        EvidenceStatus,
+    )
+
+    nodes_by_id = {node.id: node for node in state.evidence_graph.nodes}
+    selected = nodes_by_id.get(request.evidence_id)
+    if selected is None:
+        raise HTTPException(404, f"Evidence {request.evidence_id!r} not found")
+
+    table_id = request.table_id.strip()
+    entity = request.entity.strip()
+    attribute = request.attribute.strip()
+    selected_table = selected.table_id or state.coverage_map.primary_table_id
+    if (
+        selected_table != table_id
+        or selected.entity != entity
+        or selected.attribute != attribute
+    ):
+        raise HTTPException(422, "Selected evidence does not belong to this cell")
+
+    cell_key = f"{table_id}/{entity}.{attribute}"
+    cell = state.coverage_map.cells.get(cell_key)
+    if cell is None:
+        raise HTTPException(404, f"Coverage cell {cell_key!r} not found")
+
+    def value_key(node: Any) -> str:
+        return (node.value or node.finding or "").strip().casefold()
+
+    selected_value = value_key(selected)
+    same_cell = [
+        node for node in state.evidence_graph.nodes
+        if (node.table_id or state.coverage_map.primary_table_id) == table_id
+        and node.entity == entity
+        and node.attribute == attribute
+    ]
+    superseded: list[str] = []
+    supporting: list[str] = []
+    selected.status = EvidenceStatus.ACTIVE
+    for node in same_cell:
+        if node.id != selected.id and value_key(node) != selected_value:
+            if node.status == EvidenceStatus.ACTIVE:
+                node.status = EvidenceStatus.SUPERSEDED
+            superseded.append(node.id)
+        elif node.status == EvidenceStatus.ACTIVE:
+            supporting.append(node.id)
+    if selected.id not in supporting:
+        supporting.append(selected.id)
+
+    existing_edges = {
+        (edge.from_id, edge.to_id, edge.relation)
+        for edge in state.evidence_graph.edges
+    }
+    for node in same_cell:
+        if node.id == selected.id:
+            continue
+        relation = (
+            EvidenceRelation.CONFLICT
+            if node.id in superseded
+            else EvidenceRelation.SUPPORT
+        )
+        forward = (selected.id, node.id, relation)
+        reverse = (node.id, selected.id, relation)
+        if forward not in existing_edges and reverse not in existing_edges:
+            state.evidence_graph.add_edge(EvidenceEdge(
+                from_id=selected.id,
+                to_id=node.id,
+                relation=relation,
+            ))
+            existing_edges.add(forward)
+
+    cell.status = CellStatus.FILLED
+    cell.supporting_evidence_ids = supporting
+    cell.primary_evidence_id = selected.id
+    cell.display_hint = (selected.value or selected.finding or "")[:120]
+    cell.best_alignment = selected.alignment or "loose"
+    cell.best_confidence = selected.confidence
+    cell.best_tier = state.coverage_map._fill_tier(selected)
+    cell.has_conflict = False
+    cell.conflict_evidence_ids = list(dict.fromkeys([
+        *cell.conflict_evidence_ids,
+        *superseded,
+    ]))
+    return state, superseded
+
+
+@router.post(
+    "/search/{session_id}/evidence/resolve",
+    response_model=ResolveEvidenceResponse,
+)
+async def resolve_evidence(session_id: str, req: ResolveEvidenceRequest):
+    """Adopt one source for a conflicting cell while retaining the audit trail."""
+    from pathlib import Path
+
+    from searchos.socm import WorkspaceManager
+
+    prior = sessions.get(session_id)
+    if prior and prior.get("status") == "running":
+        raise HTTPException(409, f"Session {session_id} is still running")
+    workspace_root = Path(WORKSPACE_ROOT).resolve()
+    workspace_path = (workspace_root / session_id).resolve()
+    if workspace_path.parent != workspace_root:
+        raise HTTPException(400, "Invalid session id")
+    state_file = workspace_path / "search_state.json"
+    if not state_file.exists():
+        raise HTTPException(404, f"Search state for session {session_id} not found")
+
+    workspace = WorkspaceManager(WORKSPACE_ROOT, session_id)
+    superseded: list[str] = []
+
+    def apply_choice(state: Any) -> Any:
+        nonlocal superseded
+        state, superseded = _resolve_evidence_choice(state, req)
+        return state
+
+    updated = workspace.atomic_update_state(apply_choice)
+    result = prior.get("result") if prior else None
+    if result is not None:
+        result.search_state = updated
+        result.coverage_score = updated.coverage_map.coverage_score
+        result.evidence_count = updated.evidence_graph.node_count
+
+    return ResolveEvidenceResponse(
+        status="resolved",
+        selected_evidence_id=req.evidence_id,
+        superseded_evidence_ids=superseded,
+        search_state=updated.model_dump(),
     )
 
 

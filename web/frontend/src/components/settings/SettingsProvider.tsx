@@ -15,6 +15,7 @@ import { CheckCircle2, CircleAlert, Info, X } from "lucide-react";
 
 import { getSettings } from "@/lib/api";
 import type { EffortLevel, SettingsData } from "@/lib/types";
+import MaxEffortAtmosphere from "@/components/effects/MaxEffortAtmosphere";
 
 export interface RunOverrides {
   effort?: EffortLevel;
@@ -150,6 +151,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   );
 
   const clearOverrides = useCallback(() => setOverrides({}), []);
+  const effectiveMaxEffort = overrides.effort === "max"
+    || (overrides.effort == null && settings?.effort.level === "max");
 
   return (
     <Ctx.Provider
@@ -159,8 +162,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         uiPrefs, setUiPrefs,
         notify: showToast,
       }}
-    >
+      >
       {children}
+      <MaxEffortAtmosphere active={effectiveMaxEffort} />
       {toast && (
         <div
           role={toast.tone === "error" ? "alert" : "status"}

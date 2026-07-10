@@ -192,8 +192,12 @@ export interface ProviderSwitchResult {
 export interface CoverageCell {
   value: string | string[];
   status: "missing" | "filled" | "uncertain" | "hard_cell";
-  source: string | string[];
-  confidence: number;
+  source?: string | string[];
+  confidence?: number;
+  supporting_evidence_ids?: string[];
+  primary_evidence_id?: string;
+  has_conflict?: boolean;
+  conflict_evidence_ids?: string[];
 }
 
 export interface TableSchema {
@@ -232,21 +236,36 @@ export interface CoverageMap {
 export interface EvidenceNode {
   id: string;
   claim: string;
+  value?: string;
   source: string;
   confidence: number;
   entity: string;
   attribute: string;
-  quality_score: number;
+  quality_score?: number;
   table_id?: string;
   alignment?: "full" | "partial" | "loose";
   alignment_note?: string;
   source_excerpt?: string;
+  source_authority?: "official" | "industry_pr" | "aggregator" | "news" | "blog" | "unclear" | string;
+  status?: "active" | "rejected" | "superseded";
+  created_at?: number;
 }
 
 export interface EvidenceEdge {
   from_id: string;
   to_id: string;
   relation: "support" | "conflict" | "refine";
+}
+
+export interface ResolveEvidenceRequest extends RepairCellTarget {
+  evidence_id: string;
+}
+
+export interface ResolveEvidenceResponse {
+  status: "resolved";
+  selected_evidence_id: string;
+  superseded_evidence_ids: string[];
+  search_state: SearchState;
 }
 
 export interface SubQuestion {

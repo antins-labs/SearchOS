@@ -6,7 +6,7 @@ import { X, Maximize2, Minimize2, Table2, FileText, FolderTree, Activity, Info }
 import AgentWall from "@/components/workbench/AgentWall";
 import TraceDrawer from "@/components/workbench/TraceDrawer";
 import CoverageTable from "@/components/coverage/CoverageTable";
-import EvidenceList from "@/components/evidence/EvidenceList";
+import EvidenceList, { unresolvedConflictCount } from "@/components/evidence/EvidenceList";
 import FileTree from "@/components/workspace/FileTree";
 import FileViewer from "@/components/workspace/FileViewer";
 import AsyncFeedback from "@/components/ui/AsyncFeedback";
@@ -37,6 +37,8 @@ interface Props {
   onWidthCommit: (width: number) => void;
   onResizeStateChange: (resizing: boolean) => void;
   onRepairCells?: (cells: RepairCellTarget[]) => void;
+  onResolveEvidence?: (target: RepairCellTarget, evidenceId: string) => Promise<void>;
+  onReverifyEvidence?: (target: RepairCellTarget) => void;
 }
 
 const TABS: { id: ActivityTab; label: string; icon: ReactNode }[] = [
@@ -64,6 +66,8 @@ export default function ExecutionDrawer({
   onWidthCommit,
   onResizeStateChange,
   onRepairCells,
+  onResolveEvidence,
+  onReverifyEvidence,
 }: Props) {
   const [traceAgent, setTraceAgent] = useState<string | null>(null);
   const [max, setMax] = useState(false);
@@ -89,6 +93,11 @@ export default function ExecutionDrawer({
         : null;
   const activeWorker = turn.workers.find((w) => w.name === traceAgent) ?? null;
   const running = turn.workers.filter((w) => w.status === "running").length;
+  const conflictCount = unresolvedConflictCount(
+    state?.evidence_graph?.nodes ?? [],
+    state?.evidence_graph?.edges ?? [],
+    state?.coverage_map,
+  );
 
   const onTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => {
     let nextIndex: number | null = null;
@@ -155,6 +164,11 @@ export default function ExecutionDrawer({
             >
               {t.icon}
               {t.label}
+              {t.id === "evidence" && conflictCount > 0 && (
+                <span className="min-w-4 rounded bg-err/10 px-1 text-center text-[10px] text-err">
+                  {conflictCount}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -174,7 +188,13 @@ export default function ExecutionDrawer({
           {tab === "evidence" && (
             historicalStateUnavailable
               ? <HistoricalStateNotice kind="Evidence" />
-              : <EvidenceList nodes={state?.evidence_graph?.nodes ?? []} />
+              : <EvidenceList
+                  nodes={state?.evidence_graph?.nodes ?? []}
+                  edges={state?.evidence_graph?.edges ?? []}
+                  coverageMap={state?.coverage_map}
+                  onResolve={onResolveEvidence}
+                  onReverify={onReverifyEvidence}
+                />
           )}
           {tab === "files" &&
             (selectedFile && sessionId ? (
