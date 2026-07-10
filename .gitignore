@@ -46,3 +46,7 @@ demo_video/
 
 # Web settings overlay (user-local, written by the web UI)
 web_settings.json
+
+# Local design and iteration plans
+docs/tui-textual-redesign.md
+docs/webui-improvement-plan.md
