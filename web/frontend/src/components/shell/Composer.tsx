@@ -1,11 +1,34 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { ArrowUp, Gauge, KeyRound, Loader2, Plus, SlidersHorizontal, Square, Table2, X } from "lucide-react";
+import { useEffect, useId, useMemo, useReducer, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import {
+  AlertCircle,
+  ArrowUp,
+  ClipboardPaste,
+  Gauge,
+  KeyRound,
+  Link2,
+  Loader2,
+  Minus,
+  Plus,
+  Redo2,
+  SlidersHorizontal,
+  Square,
+  Table2,
+  Undo2,
+  X,
+} from "lucide-react";
 
 import { useSettings } from "@/components/settings/SettingsProvider";
 import RunOverridesPopover from "@/components/settings/RunOverridesPopover";
 import Select from "@/components/ui/Select";
+import {
+  parseDelimitedTable,
+  validateSchemaDrafts,
+  type RelationDraft,
+  type SchemaSnapshot,
+  type TableDraft,
+} from "@/lib/schemaDraft";
 
 export interface SubmitOpts {
   type?: string;
@@ -59,23 +82,6 @@ const csv = (s: string) => {
   return items.length ? items : undefined;
 };
 
-type TableDraft = {
-  id: string;
-  entityName: string;
-  primaryKey: string;
-  rows: string[];
-  columns: string[];
-};
-
-type RelationDraft = {
-  id: string;
-  fromDraftId: string;
-  fromColumn: string;
-  toDraftId: string;
-  kind: "one_to_many" | "many_to_many";
-  label: string;
-};
-
 type DrawPoint = {
   x: number;
   y: number;
@@ -84,6 +90,8 @@ type DrawPoint = {
 type DrawPreview = DrawPoint & {
   width: number;
   height: number;
+  dragWidth: number;
+  dragHeight: number;
   rows: number;
   cols: number;
 };
@@ -91,6 +99,57 @@ type DrawPreview = DrawPoint & {
 const DRAW_CELL_W = 108;
 const DRAW_CELL_H = 34;
 const MIN_DRAW_SIZE = 26;
+const HISTORY_LIMIT = 60;
+
+type SchemaHistoryState = {
+  past: SchemaSnapshot[];
+  present: SchemaSnapshot;
+  future: SchemaSnapshot[];
+  mergeKey: string | null;
+};
+
+type SchemaHistoryAction =
+  | { type: "commit"; update: (snapshot: SchemaSnapshot) => SchemaSnapshot; mergeKey?: string }
+  | { type: "break" }
+  | { type: "undo" }
+  | { type: "redo" };
+
+const EMPTY_SCHEMA: SchemaSnapshot = { tableDrafts: [], relationDrafts: [] };
+
+function schemaHistoryReducer(state: SchemaHistoryState, action: SchemaHistoryAction): SchemaHistoryState {
+  if (action.type === "commit") {
+    const next = action.update(state.present);
+    if (next === state.present) return state;
+    if (action.mergeKey && action.mergeKey === state.mergeKey) {
+      return { ...state, present: next, future: [] };
+    }
+    return {
+      past: [...state.past, state.present].slice(-HISTORY_LIMIT),
+      present: next,
+      future: [],
+      mergeKey: action.mergeKey ?? null,
+    };
+  }
+  if (action.type === "break") return state.mergeKey ? { ...state, mergeKey: null } : state;
+  if (action.type === "undo") {
+    const previous = state.past.at(-1);
+    if (!previous) return state;
+    return {
+      past: state.past.slice(0, -1),
+      present: previous,
+      future: [state.present, ...state.future],
+      mergeKey: null,
+    };
+  }
+  const next = state.future[0];
+  if (!next) return state;
+  return {
+    past: [...state.past, state.present].slice(-HISTORY_LIMIT),
+    present: next,
+    future: state.future.slice(1),
+    mergeKey: null,
+  };
+}
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
@@ -99,10 +158,10 @@ const cleanList = (items: string[]) => {
   return cleaned.length ? cleaned : undefined;
 };
 
-const makeDraft = (rows: number, dataCols: number, index: number): TableDraft => ({
-  id: `draft_${Date.now()}_${index}`,
+const makeDraft = (rows: number, dataCols: number, id: string): TableDraft => ({
+  id,
   entityName: "",
-  primaryKey: "",
+  primaryKey: "ID",
   rows: Array.from({ length: rows }, () => ""),
   columns: Array.from({ length: dataCols }, (_, i) => `字段 ${i + 1}`),
 });
@@ -145,20 +204,43 @@ export default function Composer({
   const [showOverrides, setShowOverrides] = useState(false);
   const [entities, setEntities] = useState("");
   const [attrs, setAttrs] = useState("");
-  const [tableDrafts, setTableDrafts] = useState<TableDraft[]>([]);
-  const [relationDrafts, setRelationDrafts] = useState<RelationDraft[]>([]);
+  const [schemaHistory, dispatchSchema] = useReducer(schemaHistoryReducer, {
+    past: [],
+    present: EMPTY_SCHEMA,
+    future: [],
+    mergeKey: null,
+  });
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState<DrawPoint | null>(null);
   const [dragNow, setDragNow] = useState<DrawPoint | null>(null);
+  const [showPaste, setShowPaste] = useState(false);
+  const [pasteEntityName, setPasteEntityName] = useState("");
+  const [pasteText, setPasteText] = useState("");
   const [sel, setSel] = useState(0);
   const [menuDismissed, setMenuDismissed] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
+  const schemaIdPrefix = useId().replace(/[^a-z0-9]/gi, "");
+  const schemaIdCounter = useRef(0);
   const { overrides, clearOverrides } = useSettings();
+  const { tableDrafts, relationDrafts } = schemaHistory.present;
+  const schemaValidation = useMemo(
+    () => validateSchemaDrafts(tableDrafts, relationDrafts),
+    [relationDrafts, tableDrafts],
+  );
+  const schemaInvalid = tableDrafts.length > 0 && !schemaValidation.valid;
+  const pasteResult = useMemo(() => parseDelimitedTable(pasteText), [pasteText]);
+  const issueFor = (key: string) => schemaValidation.byKey[key]?.[0];
+  const tablesWithIssues = new Set(
+    schemaValidation.issues.flatMap((issue) => issue.key.startsWith("table:") ? [issue.key.split(":")[1]] : []),
+  );
 
   const overridesActive = overrides.effort != null || overrides.max_time != null;
   // Pinned schema follows the *content*, not the panel visibility — collapsing
   // the panel must not silently drop what the user typed.
-  const activeDraft = tableDrafts.find((draft) => draft.id === activeDraftId) ?? null;
+  const resolvedActiveDraftId = activeDraftId && tableDrafts.some((draft) => draft.id === activeDraftId)
+    ? activeDraftId
+    : tableDrafts[0]?.id ?? null;
+  const activeDraft = tableDrafts.find((draft) => draft.id === resolvedActiveDraftId) ?? null;
   const hasDraftTables = tableDrafts.length > 0;
   const resolvedEntityName = activeDraft?.entityName.trim() ?? "";
   const resolvedPrimaryKey = activeDraft?.primaryKey.trim() || (resolvedEntityName ? `${resolvedEntityName} ID` : "ID");
@@ -216,6 +298,15 @@ export default function Composer({
   const matches = slashTyping ? COMMANDS.filter((c) => c.cmd.startsWith(text.toLowerCase())) : [];
   const menuOpen = matches.length > 0 && focused && !menuDismissed;
 
+  const commitSchema = (update: (snapshot: SchemaSnapshot) => SchemaSnapshot, mergeKey?: string) => {
+    dispatchSchema({ type: "commit", update, mergeKey });
+  };
+  const breakSchemaMerge = () => dispatchSchema({ type: "break" });
+  const nextSchemaId = (kind: "draft" | "rel") => {
+    schemaIdCounter.current += 1;
+    return `${kind}_${schemaIdPrefix}_${schemaIdCounter.current}`;
+  };
+
   useEffect(() => {
     if (autoFocus) ref.current?.focus();
   }, [autoFocus]);
@@ -253,6 +344,10 @@ export default function Composer({
       setText("");
       return;
     }
+    if (hasDraftTables && !schemaValidation.valid) {
+      setShowSchema(true);
+      return;
+    }
     onSubmit(body, {
       type: m?.[1]?.toLowerCase(),
       entities: pinnedRows,
@@ -269,9 +364,13 @@ export default function Composer({
   const clearSchema = () => {
     setEntities("");
     setAttrs("");
-    setTableDrafts([]);
-    setRelationDrafts([]);
+    if (hasDraftTables || relationDrafts.length > 0) {
+      commitSchema(() => EMPTY_SCHEMA);
+    }
     setActiveDraftId(null);
+    setShowPaste(false);
+    setPasteEntityName("");
+    setPasteText("");
     setShowSchema(false);
   };
 
@@ -284,15 +383,19 @@ export default function Composer({
   };
 
   const drawPreview = (a: DrawPoint, b: DrawPoint): DrawPreview => {
-    const width = Math.abs(b.x - a.x);
-    const height = Math.abs(b.y - a.y);
-    const cols = clamp(Math.round(width / DRAW_CELL_W), 2, 8);
-    const rows = clamp(Math.round(height / DRAW_CELL_H), 1, 12);
+    const dragWidth = Math.abs(b.x - a.x);
+    const dragHeight = Math.abs(b.y - a.y);
+    const cols = clamp(Math.round(dragWidth / DRAW_CELL_W), 2, 8);
+    const rows = clamp(Math.round(dragHeight / DRAW_CELL_H) - 1, 1, 12);
+    const width = cols * DRAW_CELL_W;
+    const height = (rows + 1) * DRAW_CELL_H;
     return {
-      x: Math.min(a.x, b.x),
-      y: Math.min(a.y, b.y),
+      x: b.x >= a.x ? a.x : Math.max(0, a.x - width),
+      y: b.y >= a.y ? a.y : Math.max(0, a.y - height),
       width,
       height,
+      dragWidth,
+      dragHeight,
       rows,
       cols,
     };
@@ -314,27 +417,29 @@ export default function Composer({
   };
 
   const finishDrawing = () => {
-    if (preview && preview.width >= MIN_DRAW_SIZE && preview.height >= MIN_DRAW_SIZE) {
-      const draft = makeDraft(preview.rows, Math.max(1, preview.cols - 1), tableDrafts.length);
-      setTableDrafts((drafts) => [...drafts, draft]);
+    if (preview && preview.dragWidth >= MIN_DRAW_SIZE && preview.dragHeight >= MIN_DRAW_SIZE) {
+      const draft = makeDraft(preview.rows, Math.max(1, preview.cols - 1), nextSchemaId("draft"));
+      commitSchema((snapshot) => ({ ...snapshot, tableDrafts: [...snapshot.tableDrafts, draft] }));
       setActiveDraftId(draft.id);
     }
     setDragStart(null);
     setDragNow(null);
   };
 
-  const updateDraft = (patch: Partial<TableDraft>) => {
-    if (!activeDraftId) return;
-    setTableDrafts((drafts) => drafts.map((draft) => draft.id === activeDraftId ? { ...draft, ...patch } : draft));
+  const updateDraft = (patch: Partial<TableDraft>, mergeKey?: string) => {
+    if (!resolvedActiveDraftId) return;
+    commitSchema((snapshot) => ({
+      ...snapshot,
+      tableDrafts: snapshot.tableDrafts.map((draft) => draft.id === resolvedActiveDraftId ? { ...draft, ...patch } : draft),
+    }), mergeKey);
   };
 
   const removeDraft = (id: string) => {
-    setTableDrafts((drafts) => {
-      const next = drafts.filter((draft) => draft.id !== id);
-      if (activeDraftId === id) setActiveDraftId(next[0]?.id ?? null);
-      return next;
-    });
-    setRelationDrafts((drafts) => drafts.filter((draft) => draft.fromDraftId !== id && draft.toDraftId !== id));
+    commitSchema((snapshot) => ({
+      tableDrafts: snapshot.tableDrafts.filter((draft) => draft.id !== id),
+      relationDrafts: snapshot.relationDrafts.filter((draft) => draft.fromDraftId !== id && draft.toDraftId !== id),
+    }));
+    if (activeDraftId === id) setActiveDraftId(tableDrafts.find((draft) => draft.id !== id)?.id ?? null);
   };
 
   const addRelation = () => {
@@ -342,39 +447,73 @@ export default function Composer({
     const from = tableDrafts[1] ?? tableDrafts[0];
     const to = tableDrafts[0];
     const fromColumn = cleanList(from.columns)?.[0] ?? draftPrimaryKey(from);
-    setRelationDrafts((drafts) => [
-      ...drafts,
-      {
-        id: `rel_${Date.now()}_${drafts.length}`,
-        fromDraftId: from.id,
-        fromColumn,
-        toDraftId: to.id,
-        kind: "one_to_many",
-        label: "",
-      },
-    ]);
+    const relationId = nextSchemaId("rel");
+    commitSchema((snapshot) => ({
+      ...snapshot,
+      relationDrafts: [
+        ...snapshot.relationDrafts,
+        {
+          id: relationId,
+          fromDraftId: from.id,
+          fromColumn,
+          toDraftId: to.id,
+          kind: "one_to_many",
+          label: "",
+        },
+      ],
+    }));
   };
 
-  const updateRelation = (id: string, patch: Partial<RelationDraft>) => {
-    setRelationDrafts((drafts) => drafts.map((draft) => draft.id === id ? { ...draft, ...patch } : draft));
+  const updateRelation = (id: string, patch: Partial<RelationDraft>, mergeKey?: string) => {
+    commitSchema((snapshot) => ({
+      ...snapshot,
+      relationDrafts: snapshot.relationDrafts.map((draft) => draft.id === id ? { ...draft, ...patch } : draft),
+    }), mergeKey);
   };
 
   const removeRelation = (id: string) => {
-    setRelationDrafts((drafts) => drafts.filter((draft) => draft.id !== id));
+    commitSchema((snapshot) => ({
+      ...snapshot,
+      relationDrafts: snapshot.relationDrafts.filter((draft) => draft.id !== id),
+    }));
   };
 
   const updateDraftRow = (index: number, value: string) => {
     if (!activeDraft) return;
     const rows = [...activeDraft.rows];
     rows[index] = value;
-    updateDraft({ rows });
+    updateDraft({ rows }, `table:${activeDraft.id}:row:${index}`);
   };
 
   const updateDraftColumn = (index: number, value: string) => {
     if (!activeDraft) return;
-    const columns = [...activeDraft.columns];
-    columns[index] = value;
-    updateDraft({ columns });
+    const previous = activeDraft.columns[index];
+    commitSchema((snapshot) => ({
+      tableDrafts: snapshot.tableDrafts.map((draft) => {
+        if (draft.id !== activeDraft.id) return draft;
+        const columns = [...draft.columns];
+        columns[index] = value;
+        return { ...draft, columns };
+      }),
+      relationDrafts: snapshot.relationDrafts.map((relation) => (
+        relation.fromDraftId === activeDraft.id && relation.fromColumn === previous
+          ? { ...relation, fromColumn: value }
+          : relation
+      )),
+    }), `table:${activeDraft.id}:column:${index}`);
+  };
+
+  const updatePrimaryKey = (value: string) => {
+    if (!activeDraft) return;
+    const previous = activeDraft.primaryKey;
+    commitSchema((snapshot) => ({
+      tableDrafts: snapshot.tableDrafts.map((draft) => draft.id === activeDraft.id ? { ...draft, primaryKey: value } : draft),
+      relationDrafts: snapshot.relationDrafts.map((relation) => (
+        relation.fromDraftId === activeDraft.id && relation.fromColumn === previous
+          ? { ...relation, fromColumn: value }
+          : relation
+      )),
+    }), `table:${activeDraft.id}:primary`);
   };
 
   const addDraftRow = () => {
@@ -389,7 +528,58 @@ export default function Composer({
 
   const removeDraftColumn = (index: number) => {
     if (!activeDraft || activeDraft.columns.length <= 1) return;
-    updateDraft({ columns: activeDraft.columns.filter((_, i) => i !== index) });
+    const removed = activeDraft.columns[index];
+    const columns = activeDraft.columns.filter((_, i) => i !== index);
+    const replacement = columns[0] ?? activeDraft.primaryKey;
+    commitSchema((snapshot) => ({
+      tableDrafts: snapshot.tableDrafts.map((draft) => draft.id === activeDraft.id ? { ...draft, columns } : draft),
+      relationDrafts: snapshot.relationDrafts.map((relation) => (
+        relation.fromDraftId === activeDraft.id && relation.fromColumn === removed
+          ? { ...relation, fromColumn: replacement }
+          : relation
+      )),
+    }));
+  };
+
+  const resizeRows = (count: number) => {
+    if (!activeDraft) return;
+    const nextCount = clamp(count, 1, 50);
+    const rows = Array.from({ length: nextCount }, (_, index) => activeDraft.rows[index] ?? "");
+    updateDraft({ rows });
+  };
+
+  const resizeColumns = (count: number) => {
+    if (!activeDraft) return;
+    const nextCount = clamp(count, 1, 20);
+    const columns = Array.from(
+      { length: nextCount },
+      (_, index) => activeDraft.columns[index] ?? `字段 ${index + 1}`,
+    );
+    const validColumns = new Set([activeDraft.primaryKey, ...columns]);
+    commitSchema((snapshot) => ({
+      tableDrafts: snapshot.tableDrafts.map((draft) => draft.id === activeDraft.id ? { ...draft, columns } : draft),
+      relationDrafts: snapshot.relationDrafts.map((relation) => (
+        relation.fromDraftId === activeDraft.id && !validColumns.has(relation.fromColumn)
+          ? { ...relation, fromColumn: columns[0] ?? activeDraft.primaryKey }
+          : relation
+      )),
+    }));
+  };
+
+  const importPastedTable = () => {
+    if (!pasteResult.ok || !pasteEntityName.trim()) return;
+    const draft: TableDraft = {
+      id: nextSchemaId("draft"),
+      entityName: pasteEntityName.trim(),
+      primaryKey: pasteResult.table.headers[0],
+      rows: pasteResult.table.rows.map((row) => row[0]).filter(Boolean),
+      columns: pasteResult.table.headers.slice(1),
+    };
+    commitSchema((snapshot) => ({ ...snapshot, tableDrafts: [...snapshot.tableDrafts, draft] }));
+    setActiveDraftId(draft.id);
+    setPasteEntityName("");
+    setPasteText("");
+    setShowPaste(false);
   };
 
   const onKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -415,8 +605,11 @@ export default function Composer({
           type="button"
           onClick={() => setShowSchema((v) => !v)}
           title="Pin table rows & columns (optional)"
+          aria-label="Edit table schema"
           className={`mb-0.5 shrink-0 rounded-lg p-1.5 transition-colors ${
-            showSchema || schemaPinned ? "bg-clay text-accent-ink" : "text-ink-faint hover:text-ink-dim"
+            schemaInvalid
+              ? "bg-err/10 text-err"
+              : showSchema || schemaPinned ? "bg-clay text-accent-ink" : "text-ink-faint hover:text-ink-dim"
           }`}
         >
           <SlidersHorizontal size={hero ? 17 : 15} />
@@ -432,7 +625,8 @@ export default function Composer({
           <Gauge size={hero ? 17 : 15} />
         </button>
         {schemaPinned && !showSchema && (
-          <span className="mb-1 flex shrink-0 items-center gap-1 rounded-md bg-clay px-1.5 py-0.5 text-[11px] text-accent-ink">
+          <span className={`mb-1 flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] ${schemaInvalid ? "bg-err/10 text-err" : "bg-clay text-accent-ink"}`}>
+            {schemaInvalid && <AlertCircle size={11} />}
             {hasDraftTables ? `${tableDrafts.length} tables` : `${pinnedRows?.length ?? 0} rows × ${pinnedCols?.length ?? 0} cols`}
             <button type="button" aria-label="Clear pinned schema" onClick={clearSchema}
               className="rounded-sm transition-opacity hover:opacity-70">
@@ -503,16 +697,19 @@ export default function Composer({
       {/* manual schema row */}
       {showSchema && (
         <div className="rise-in mt-2">
-          {hasDraftTables && (
-            <div className="mb-2 flex flex-wrap items-center gap-1.5">
+          <div className="mb-2 flex items-start gap-2">
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
               {tableDrafts.map((draft, i) => {
                 const label = draft.entityName.trim() || `Table ${i + 1}`;
-                const active = draft.id === activeDraftId;
+                const active = draft.id === resolvedActiveDraftId;
+                const invalid = tablesWithIssues.has(draft.id);
                 return (
                   <div
                     key={draft.id}
                     className={`flex items-center rounded-lg border text-[12px] transition-colors ${
-                      active
+                      invalid
+                        ? "border-err/40 bg-err/5 text-err"
+                        : active
                         ? "border-line-strong bg-clay text-accent-ink"
                         : "border-line bg-surface text-ink-dim hover:bg-surface-2"
                     }`}
@@ -524,6 +721,7 @@ export default function Composer({
                     >
                       <Table2 size={12} />
                       <span className="max-w-24 truncate">{label}</span>
+                      {invalid && <AlertCircle size={11} />}
                     </button>
                     {tableDrafts.length > 1 && (
                       <button
@@ -538,41 +736,112 @@ export default function Composer({
                   </div>
                 );
               })}
-              <button
-                type="button"
-                onClick={() => setActiveDraftId(null)}
-                className="flex items-center gap-1 rounded-lg border border-line bg-surface px-2 py-1 text-[12px] text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink-dim"
-              >
-                <Plus size={12} />
-                Table
+              {hasDraftTables && (
+                <button
+                  type="button"
+                  onClick={() => setActiveDraftId(null)}
+                  className="flex items-center gap-1 rounded-lg border border-line bg-surface px-2 py-1 text-[12px] text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink-dim"
+                >
+                  <Plus size={12} />
+                  Table
+                </button>
+              )}
+            </div>
+            <div className="flex shrink-0 items-center gap-0.5">
+              <button type="button" onClick={() => setShowPaste((value) => !value)}
+                aria-label="Paste CSV or TSV" title="Paste CSV or TSV"
+                className={`grid h-7 w-7 place-items-center rounded-md transition-colors ${showPaste ? "bg-clay text-accent-ink" : "text-ink-faint hover:bg-surface-2 hover:text-ink"}`}>
+                <ClipboardPaste size={14} />
               </button>
+              <button type="button" onClick={() => dispatchSchema({ type: "undo" })}
+                disabled={schemaHistory.past.length === 0} aria-label="Undo schema change" title="Undo"
+                className="grid h-7 w-7 place-items-center rounded-md text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink disabled:cursor-not-allowed disabled:opacity-25">
+                <Undo2 size={14} />
+              </button>
+              <button type="button" onClick={() => dispatchSchema({ type: "redo" })}
+                disabled={schemaHistory.future.length === 0} aria-label="Redo schema change" title="Redo"
+                className="grid h-7 w-7 place-items-center rounded-md text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink disabled:cursor-not-allowed disabled:opacity-25">
+                <Redo2 size={14} />
+              </button>
+            </div>
+          </div>
+
+          {showPaste && (
+            <div className="surface mb-2 overflow-hidden rounded-xl">
+              <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2">
+                <label className="flex min-w-[190px] flex-1 items-center gap-2 text-[12px]">
+                  <span className="shrink-0 text-ink-faint">Entity</span>
+                  <input value={pasteEntityName} onChange={(event) => setPasteEntityName(event.target.value)}
+                    placeholder="Customers" autoFocus spellCheck={false}
+                    className="min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-ink-faint" />
+                </label>
+                {pasteResult.ok && (
+                  <span className="text-[11px] text-ink-faint">
+                    {pasteResult.table.rows.length} rows · {pasteResult.table.headers.length} columns · {pasteResult.table.delimiter === "\t" ? "TSV" : "CSV"}
+                  </span>
+                )}
+              </div>
+              <textarea value={pasteText} onChange={(event) => setPasteText(event.target.value)} rows={4}
+                placeholder={'customer_id,name,region\nC-001,Acme,APAC'} spellCheck={false}
+                className="block w-full resize-y bg-transparent px-3 py-2 font-mono text-[12px] leading-5 text-ink outline-none placeholder:text-ink-faint" />
+              <div className="flex items-center gap-2 border-t border-line px-3 py-2">
+                {pasteText && !pasteResult.ok && <span role="alert" className="min-w-0 flex-1 text-[11px] text-err">{pasteResult.error}</span>}
+                {!pasteText && <span className="min-w-0 flex-1 text-[11px] text-ink-faint">CSV / TSV</span>}
+                <button type="button" onClick={() => { setShowPaste(false); setPasteText(""); setPasteEntityName(""); }}
+                  className="rounded-md px-2 py-1 text-[12px] text-ink-faint hover:bg-surface-2 hover:text-ink">Cancel</button>
+                <button type="button" onClick={importPastedTable} disabled={!pasteResult.ok || !pasteEntityName.trim()}
+                  className="rounded-md bg-accent px-2.5 py-1 text-[12px] font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30">Create table</button>
+              </div>
             </div>
           )}
 
           {activeDraft ? (
             <div className="surface overflow-hidden rounded-xl">
               <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2 text-[13px]">
-                <label className="flex min-w-[180px] flex-1 items-center gap-2">
+                <label title={issueFor(`table:${activeDraft.id}:entity`)} className={`flex min-w-[180px] flex-1 items-center gap-2 rounded-md px-2 py-1 ${issueFor(`table:${activeDraft.id}:entity`) ? "bg-err/5 text-err ring-1 ring-err/35" : ""}`}>
                   <span className="shrink-0 text-ink-faint">Entity</span>
                   <input
                     autoFocus
                     value={activeDraft.entityName}
-                    onChange={(e) => updateDraft({ entityName: e.target.value })}
+                    onChange={(e) => updateDraft({ entityName: e.target.value }, `table:${activeDraft.id}:entity`)}
+                    onBlur={breakSchemaMerge}
                     placeholder="客户"
+                    aria-invalid={!!issueFor(`table:${activeDraft.id}:entity`)}
                     spellCheck={false}
                     className="min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-ink-faint"
                   />
                 </label>
-                <label className="flex min-w-[170px] flex-1 items-center gap-2">
+                <label title={issueFor(`table:${activeDraft.id}:primary`)} className={`flex min-w-[170px] flex-1 items-center gap-2 rounded-md px-2 py-1 ${issueFor(`table:${activeDraft.id}:primary`) ? "bg-err/5 text-err ring-1 ring-err/35" : ""}`}>
                   <KeyRound size={13} className="shrink-0 text-accent-ink" />
                   <input
                     value={activeDraft.primaryKey}
-                    onChange={(e) => updateDraft({ primaryKey: e.target.value })}
+                    onChange={(e) => updatePrimaryKey(e.target.value)}
+                    onBlur={breakSchemaMerge}
                     placeholder={resolvedEntityName ? `${resolvedEntityName} ID` : "ID"}
+                    aria-label="Primary key column"
+                    aria-invalid={!!issueFor(`table:${activeDraft.id}:primary`)}
                     spellCheck={false}
                     className="min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-ink-faint"
                   />
                 </label>
+                <div className="flex items-center gap-2 text-[11px] text-ink-faint">
+                  <span className="flex items-center rounded-md border border-line bg-surface-2/50">
+                    <span className="px-1.5">Rows</span>
+                    <button type="button" onClick={() => resizeRows(activeDraft.rows.length - 1)} disabled={activeDraft.rows.length <= 1}
+                      aria-label="Remove last row" title="Remove last row" className="grid h-6 w-6 place-items-center border-l border-line hover:bg-clay hover:text-ink disabled:opacity-25"><Minus size={11} /></button>
+                    <span className="min-w-6 border-l border-line px-1 text-center font-mono text-ink-dim">{activeDraft.rows.length}</span>
+                    <button type="button" onClick={() => resizeRows(activeDraft.rows.length + 1)}
+                      aria-label="Add row" title="Add row" className="grid h-6 w-6 place-items-center border-l border-line hover:bg-clay hover:text-ink"><Plus size={11} /></button>
+                  </span>
+                  <span className="flex items-center rounded-md border border-line bg-surface-2/50">
+                    <span className="px-1.5">Cols</span>
+                    <button type="button" onClick={() => resizeColumns(activeDraft.columns.length - 1)} disabled={activeDraft.columns.length <= 1}
+                      aria-label="Remove last column" title="Remove last column" className="grid h-6 w-6 place-items-center border-l border-line hover:bg-clay hover:text-ink disabled:opacity-25"><Minus size={11} /></button>
+                    <span className="min-w-6 border-l border-line px-1 text-center font-mono text-ink-dim">{activeDraft.columns.length + 1}</span>
+                    <button type="button" onClick={() => resizeColumns(activeDraft.columns.length + 1)}
+                      aria-label="Add column" title="Add column" className="grid h-6 w-6 place-items-center border-l border-line hover:bg-clay hover:text-ink"><Plus size={11} /></button>
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={() => removeDraft(activeDraft.id)}
@@ -581,6 +850,12 @@ export default function Composer({
                   Redraw
                 </button>
               </div>
+              {(issueFor(`table:${activeDraft.id}:entity`) || issueFor(`table:${activeDraft.id}:primary`)) && (
+                <div role="alert" className="flex flex-wrap gap-x-3 gap-y-1 border-b border-err/20 bg-err/5 px-3 py-1.5 text-[11px] text-err">
+                  {issueFor(`table:${activeDraft.id}:entity`) && <span>{issueFor(`table:${activeDraft.id}:entity`)}</span>}
+                  {issueFor(`table:${activeDraft.id}:primary`) && <span>{issueFor(`table:${activeDraft.id}:primary`)}</span>}
+                </div>
+              )}
               <div className="overflow-x-auto">
                 <table className="min-w-full table-fixed border-collapse text-[13px]">
                   <thead>
@@ -592,11 +867,13 @@ export default function Composer({
                         </div>
                       </th>
                       {activeDraft.columns.map((col, i) => (
-                        <th key={i} className="w-36 border-r border-line px-2 py-1.5 text-left font-medium">
+                        <th key={i} title={issueFor(`table:${activeDraft.id}:column:${i}`)} className={`w-36 border-r px-2 py-1.5 text-left font-medium ${issueFor(`table:${activeDraft.id}:column:${i}`) ? "border-err/40 bg-err/5" : "border-line"}`}>
                           <div className="flex items-center gap-1">
                             <input
                               value={col}
                               onChange={(e) => updateDraftColumn(i, e.target.value)}
+                              onBlur={breakSchemaMerge}
+                              aria-invalid={!!issueFor(`table:${activeDraft.id}:column:${i}`)}
                               onKeyDown={(e) => {
                                 if (e.key === "Tab" && !e.shiftKey && i === activeDraft.columns.length - 1) {
                                   addDraftColumn();
@@ -632,10 +909,12 @@ export default function Composer({
                   <tbody>
                     {activeDraft.rows.map((row, rowIndex) => (
                       <tr key={rowIndex} className="border-b border-line last:border-b-0">
-                        <td className="border-r border-line px-2 py-1.5">
+                        <td title={issueFor(`table:${activeDraft.id}:row:${rowIndex}`)} className={`border-r px-2 py-1.5 ${issueFor(`table:${activeDraft.id}:row:${rowIndex}`) ? "border-err/40 bg-err/5" : "border-line"}`}>
                           <input
                             value={row}
                             onChange={(e) => updateDraftRow(rowIndex, e.target.value)}
+                            onBlur={breakSchemaMerge}
+                            aria-invalid={!!issueFor(`table:${activeDraft.id}:row:${rowIndex}`)}
                             onKeyDown={(e) => {
                               if (e.key === "Enter" && rowIndex === activeDraft.rows.length - 1) {
                                 e.preventDefault();
@@ -679,6 +958,11 @@ export default function Composer({
                 onPointerUp={finishDrawing}
                 onPointerCancel={finishDrawing}
                 className="surface relative h-44 cursor-crosshair overflow-hidden rounded-xl bg-surface-2/45"
+                style={{
+                  touchAction: "none",
+                  backgroundImage: "linear-gradient(to right, var(--line) 1px, transparent 1px), linear-gradient(to bottom, var(--line) 1px, transparent 1px)",
+                  backgroundSize: `${DRAW_CELL_W}px ${DRAW_CELL_H}px`,
+                }}
               >
                 <div className="pointer-events-none absolute left-3 top-2 flex items-center gap-2 text-[12px] text-ink-faint">
                   <Table2 size={14} />
@@ -699,8 +983,8 @@ export default function Composer({
                     {Array.from({ length: preview.cols * (preview.rows + 1) }).map((_, i) => (
                       <div key={i} className="border-b border-r border-accent/35" />
                     ))}
-                    <div className="absolute right-1 top-1 rounded bg-accent px-1.5 py-0.5 text-[11px] text-white">
-                      {preview.rows} × {preview.cols}
+                    <div className="absolute right-1 top-1 whitespace-nowrap rounded bg-accent px-1.5 py-0.5 text-[11px] text-white">
+                      {preview.rows} rows · {preview.cols} cols
                     </div>
                   </div>
                 )}
@@ -755,69 +1039,87 @@ export default function Composer({
                     const fromMeta = tableMetaByDraftId.get(rel.fromDraftId) ?? tableMetas[0];
                     const toMeta = tableMetaByDraftId.get(rel.toDraftId) ?? tableMetas[0];
                     const fromAttrs = fromMeta?.attrs ?? [];
+                    const relationIssue = issueFor(`relation:${rel.id}`);
                     return (
-                      <div key={rel.id} className="grid grid-cols-1 gap-1.5 text-[12px] sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
-                        <Select
-                          value={rel.fromDraftId}
-                          onChange={(value) => {
-                            const nextFrom = tableMetaByDraftId.get(value);
-                            updateRelation(rel.id, {
-                              fromDraftId: value,
-                              fromColumn: nextFrom?.attrs.find((attr) => attr !== nextFrom.primaryKey) ?? nextFrom?.primaryKey ?? "",
-                            });
-                          }}
-                          options={tableMetas.map((meta) => ({ value: meta.draft.id, label: meta.label }))}
-                          ariaLabel="Source table"
-                          className="w-full"
-                          size="sm"
-                        />
-                        <Select
-                          value={fromAttrs.includes(rel.fromColumn) ? rel.fromColumn : fromAttrs[0] ?? ""}
-                          onChange={(value) => updateRelation(rel.id, { fromColumn: value })}
-                          options={fromAttrs.map((attr) => ({ value: attr, label: attr }))}
-                          ariaLabel="Foreign key column"
-                          className="w-full"
-                          size="sm"
-                        />
-                        <Select
-                          value={rel.toDraftId}
-                          onChange={(value) => updateRelation(rel.id, { toDraftId: value })}
-                          options={tableMetas.map((meta) => ({
-                            value: meta.draft.id,
-                            label: `${meta.label}.${meta.primaryKey}`,
-                          }))}
-                          ariaLabel="Target table and primary key"
-                          className="w-full"
-                          size="sm"
-                        />
-                        <div className="flex items-center gap-1">
+                      <div key={rel.id} className={`rounded-lg p-1.5 text-[12px] ${relationIssue ? "bg-err/5 ring-1 ring-err/30" : "bg-surface-2/35"}`}>
+                        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
                           <Select
-                            value={rel.kind}
-                            onChange={(value) => updateRelation(rel.id, { kind: value as RelationDraft["kind"] })}
-                            options={[
-                              { value: "one_to_many", label: "1:N" },
-                              { value: "many_to_many", label: "N:N" },
-                            ]}
-                            ariaLabel="Relation type"
+                            value={rel.fromDraftId}
+                            onChange={(value) => {
+                              const nextFrom = tableMetaByDraftId.get(value);
+                              const nextTarget = value === rel.toDraftId
+                                ? tableMetas.find((meta) => meta.draft.id !== value)?.draft.id ?? rel.toDraftId
+                                : rel.toDraftId;
+                              updateRelation(rel.id, {
+                                fromDraftId: value,
+                                fromColumn: nextFrom?.attrs.find((attr) => attr !== nextFrom.primaryKey) ?? nextFrom?.primaryKey ?? "",
+                                toDraftId: nextTarget,
+                              });
+                            }}
+                            options={tableMetas.map((meta) => ({ value: meta.draft.id, label: meta.label }))}
+                            ariaLabel="Source table"
                             className="w-full"
                             size="sm"
                           />
-                          <button
-                            type="button"
-                            aria-label="Remove relation"
-                            onClick={() => removeRelation(rel.id)}
-                            className="rounded-md p-1 text-ink-faint transition-colors hover:bg-clay hover:text-ink-dim"
-                          >
-                            <X size={12} />
-                          </button>
+                          <Select
+                            value={fromAttrs.includes(rel.fromColumn) ? rel.fromColumn : fromAttrs[0] ?? ""}
+                            onChange={(value) => updateRelation(rel.id, { fromColumn: value })}
+                            options={fromAttrs.map((attr) => ({ value: attr, label: attr }))}
+                            ariaLabel="Foreign key column"
+                            className="w-full"
+                            size="sm"
+                          />
+                          <Select
+                            value={rel.toDraftId}
+                            onChange={(value) => updateRelation(rel.id, { toDraftId: value })}
+                            options={tableMetas.map((meta) => ({
+                              value: meta.draft.id,
+                              label: `${meta.label}.${meta.primaryKey}`,
+                              disabled: meta.draft.id === rel.fromDraftId,
+                            }))}
+                            ariaLabel="Target table and primary key"
+                            className="w-full"
+                            size="sm"
+                          />
+                          <div className="flex items-center gap-1">
+                            <Select
+                              value={rel.kind}
+                              onChange={(value) => updateRelation(rel.id, { kind: value as RelationDraft["kind"] })}
+                              options={[
+                                { value: "one_to_many", label: "1:N" },
+                                { value: "many_to_many", label: "N:N" },
+                              ]}
+                              ariaLabel="Relation type"
+                              className="w-full"
+                              size="sm"
+                            />
+                            <button
+                              type="button"
+                              aria-label="Remove relation"
+                              onClick={() => removeRelation(rel.id)}
+                              className="rounded-md p-1 text-ink-faint transition-colors hover:bg-clay hover:text-ink-dim"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                          <input
+                            value={rel.label}
+                            onChange={(e) => updateRelation(rel.id, { label: e.target.value }, `relation:${rel.id}:label`)}
+                            onBlur={breakSchemaMerge}
+                            placeholder={`${fromMeta?.label ?? "From"} -> ${toMeta?.label ?? "To"}`}
+                            spellCheck={false}
+                            className="rounded-md border border-line bg-surface px-2 py-1 text-ink outline-none placeholder:text-ink-faint sm:col-span-4"
+                          />
                         </div>
-                        <input
-                          value={rel.label}
-                          onChange={(e) => updateRelation(rel.id, { label: e.target.value })}
-                          placeholder={`${fromMeta?.label ?? "From"} -> ${toMeta?.label ?? "To"}`}
-                          spellCheck={false}
-                          className="rounded-md border border-line bg-surface px-2 py-1 text-ink outline-none placeholder:text-ink-faint sm:col-span-4"
-                        />
+                        {relationIssue && (
+                          <div role="alert" className="mt-1 flex items-center gap-1 text-[11px] text-err"><AlertCircle size={11} />{relationIssue}</div>
+                        )}
+                        {rel.kind === "many_to_many" && !relationIssue && (
+                          <div className="mt-1 flex items-center gap-1 text-[11px] text-warn">
+                            <Link2 size={11} />
+                            Junction semantics: {fromMeta?.label}.{rel.fromColumn} ↔ {toMeta?.label}.{toMeta?.primaryKey}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -827,6 +1129,13 @@ export default function Composer({
                   Add a relation after creating at least two tables.
                 </div>
               )}
+            </div>
+          )}
+
+          {hasDraftTables && !schemaValidation.valid && (
+            <div role="alert" className="mt-2 flex items-start gap-2 rounded-lg border border-err/30 bg-err/5 px-3 py-2 text-[12px] text-err">
+              <AlertCircle className="mt-0.5 shrink-0" size={14} />
+              <span>{schemaValidation.issues.length} schema {schemaValidation.issues.length === 1 ? "issue" : "issues"} must be fixed before search.</span>
             </div>
           )}
 
