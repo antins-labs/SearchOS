@@ -33,6 +33,7 @@ class TrajectoryLogger:
     def __init__(self, path: str | Path | None = None) -> None:
         self._path: Path | None = Path(path) if path else None
         self._step_count = 0
+        self._tool_counts: dict[str, int] = {}
         self._listeners: list = []
 
     def set_path(self, path: str | Path) -> None:
@@ -80,6 +81,14 @@ class TrajectoryLogger:
 
     def _append(self, record: dict) -> None:
         assert self._path is not None
+        if record.get("type") == "step":
+            action = record.get("action")
+            if isinstance(action, dict):
+                action_name = str(action.get("name") or "")
+            else:
+                action_name = str(action or "")
+            if action_name:
+                self._tool_counts[action_name] = self._tool_counts.get(action_name, 0) + 1
         self._path.parent.mkdir(parents=True, exist_ok=True)
         with open(self._path, "a", encoding="utf-8") as f:
             f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
@@ -96,6 +105,14 @@ class TrajectoryLogger:
         if "timestamp" not in record:
             record["timestamp"] = _now_iso()
         self._append(record)
+
+    @property
+    def step_count(self) -> int:
+        return self._step_count
+
+    @property
+    def tool_counts(self) -> dict[str, int]:
+        return dict(self._tool_counts)
 
     @staticmethod
     def _compute_step_value(delta: StateDelta) -> float:
@@ -218,11 +235,6 @@ class TrajectoryLogger:
         # For now, return all valuable steps (task-level filtering requires
         # step→task mapping which we don't have yet in Phase 3)
         return self.export_valuable_steps(min_step_value)
-
-    @property
-    def step_count(self) -> int:
-        return self._step_count
-
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()

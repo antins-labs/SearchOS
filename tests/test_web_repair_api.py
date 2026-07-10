@@ -1,5 +1,7 @@
 """Targeted coverage-cell repair API regression tests."""
 
+# ruff: noqa: E402, I001
+
 from __future__ import annotations
 
 import asyncio
@@ -59,6 +61,7 @@ def test_prepare_repair_tasks_groups_by_table_and_entity_and_keeps_scope():
     repair = next(task for task in state.frontier.questions if task.id == task_ids[0])
     assert repair.target_cells == ["Acme.revenue", "Acme.employees"]
     assert repair.created_by == "user"
+    assert repair.planner == "deterministic"
     assert "unrelated" not in task_ids
     unrelated = next(task for task in state.frontier.questions if task.id == "unrelated")
     assert unrelated.status.value == "pending"
@@ -130,6 +133,8 @@ def test_prepare_repair_tasks_accepts_a_filled_conflicting_cell():
 
 
 def test_repair_endpoint_passes_an_exact_scheduler_allowlist(monkeypatch):
+    from searchos.harness import repair_planner
+
     state = _state()
     captured: dict[str, object] = {}
 
@@ -140,6 +145,30 @@ def test_repair_endpoint_passes_an_exact_scheduler_allowlist(monkeypatch):
     monkeypatch.setattr(search, "_load_prior_state", lambda _session_id: state)
     monkeypatch.setattr(search, "_launch_search", fake_launch)
     monkeypatch.setattr(search, "init_search_provider", lambda _provider: None)
+    monkeypatch.setattr(
+        repair_planner,
+        "plan_repair_tasks",
+        AsyncMock(return_value=repair_planner.RepairPlanningOutcome(
+            planner="llm",
+            latency_ms=17,
+            tasks=[
+                repair_planner.RepairTaskPlan(
+                    table_id="_default",
+                    entity="Acme",
+                    attributes=["revenue"],
+                    title="Verify Acme revenue",
+                    search_queries=["Acme official revenue"],
+                ),
+                repair_planner.RepairTaskPlan(
+                    table_id="_default",
+                    entity="Beta",
+                    attributes=["employees"],
+                    title="Verify Beta employees",
+                    search_queries=["Beta official employee count"],
+                ),
+            ],
+        )),
+    )
     search.sessions.clear()
 
     response = asyncio.run(search.repair_cells(
@@ -148,6 +177,8 @@ def test_repair_endpoint_passes_an_exact_scheduler_allowlist(monkeypatch):
     ))
 
     assert response.status == "running"
+    assert response.planner == "llm"
+    assert response.planning_latency_ms == 17
     assert len(response.task_ids) == 2
     assert captured["targeted_repair_task_ids"] == set(response.task_ids)
     assert captured["targeted_repair_cells"] == [
@@ -155,6 +186,9 @@ def test_repair_endpoint_passes_an_exact_scheduler_allowlist(monkeypatch):
         "_default/Beta.employees",
     ]
     assert captured["follow_up"] is True
+    repair_tasks = [task for task in state.frontier.questions if task.id in response.task_ids]
+    assert all(task.planner == "llm" for task in repair_tasks)
+    assert "Acme official revenue" in repair_tasks[0].task_prompt
 
 
 def test_repair_endpoint_rejects_running_session():

@@ -9,6 +9,7 @@ import { Card, OfflineSkeleton, Row, SectionShell } from "@/components/settings/
 import Select from "@/components/settings/controls/Select";
 import TextField from "@/components/settings/controls/TextField";
 import KeyEditor from "@/components/settings/models/KeyEditor";
+import BackendDiagnosticPanel from "@/components/settings/diagnostics/BackendDiagnosticPanel";
 
 const BROWSER_BACKENDS = ["jina", "aiohttp", "crawl4ai", "search_engine"];
 
@@ -135,6 +136,10 @@ export default function SearchSection() {
           />
         </Row>
       </Card>
+      <div>
+        <h3 className="mb-2 text-[14px] font-medium text-ink">Connection tests</h3>
+        <BackendDiagnosticPanel disabled={disabled} />
+      </div>
     </SectionShell>
   );
 }

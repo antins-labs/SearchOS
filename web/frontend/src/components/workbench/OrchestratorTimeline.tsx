@@ -1,12 +1,13 @@
 "use client";
 
-import type { ComponentType } from "react";
+import { useState, type ComponentType, type ReactNode } from "react";
 import {
   Users, LayoutGrid, BarChart3, FileCheck, Eye, Compass, Search, BookOpen, CheckCircle2,
-  Loader2, MessageSquarePlus,
+  Loader2, Maximize2, MessageSquarePlus,
 } from "lucide-react";
 import type { WSEvent } from "@/lib/types";
 import { agentLabel } from "./trace";
+import ToolCallDetailDialog, { type ToolCallDetail } from "./ToolCallDetailDialog";
 
 /* The orchestrator's own run trajectory: each step is a card — its reasoning
  * (thinking) on top, the action it took as a small coloured chip below. A
@@ -27,6 +28,7 @@ interface ActionView {
   checks?: CheckAgent[];    // check_agents report
   result?: string;          // tool observation preview
   spin?: boolean;           // in-flight (tool_call_started, no step yet)
+  toolCall?: ToolCallDetail;
 }
 
 const STR = (v: unknown) => (typeof v === "string" ? v : "");
@@ -92,6 +94,7 @@ function buildCards(events: WSEvent[]): Card[] {
   let wave: DispatchAgent[] = [];
   let waveKey = -1;
   let pendingReasoning = "";
+  let pendingWaveTool: ToolCallDetail | null = null;
   // Latest tool call that has started but whose `step` (result) hasn't
   // landed yet — check_agents can block for minutes while agents work.
   let inFlight: { k: number; tool: string } | null = null;
@@ -106,10 +109,12 @@ function buildCards(events: WSEvent[]): Card[] {
         icon: Users, tone: CHIP.accent,
         label: wave.length > 1 ? `Dispatched ${wave.length} agents (concurrent)` : "Dispatched 1 agent",
         agents: wave,
+        toolCall: pendingWaveTool ?? undefined,
       },
     });
     wave = [];
     pendingReasoning = "";
+    pendingWaveTool = null;
   };
 
   events.forEach((e, i) => {
@@ -156,9 +161,19 @@ function buildCards(events: WSEvent[]): Card[] {
     if (t === "step") {
       inFlight = null; // the step record carries this call's result
       const name = actionName(d.action);
-      const result = trim(STR(d.observation).trim(), 220);
+      const args = actionArgs(d.action);
+      const fullResult = STR(d.observation || d.observation_summary).trim();
+      const result = trim(fullResult, 220);
+      const toolCall: ToolCallDetail = {
+        tool: name,
+        arguments: args,
+        output: fullResult,
+        agent: agent || "orchestrator",
+        timestamp: STR(d.timestamp),
+      };
       if (name === "enqueue_tasks") {
         pendingReasoning = STR(d.reasoning).trim() || pendingReasoning;
+        pendingWaveTool = toolCall;
         return;
       }
       flush();
@@ -171,12 +186,14 @@ function buildCards(events: WSEvent[]): Card[] {
             label: running.length ? `Checked ${running.length} in-flight agents` : "Checked on sub-agents",
             checks: running,
             result,
+            toolCall,
           },
         });
         return;
       }
-      const view = stepView(name, actionArgs(d.action));
+      const view = stepView(name, args);
       if (view && result) view.result = result;
+      if (view) view.toolCall = toolCall;
       out.push({ k: i, reasoning: STR(d.reasoning).trim(), action: view });
     } else if (t === "agent_final") {
       inFlight = null;
@@ -206,6 +223,7 @@ function buildCards(events: WSEvent[]): Card[] {
 
 export default function OrchestratorTimeline({ events }: { events: WSEvent[] }) {
   const cards = buildCards(events);
+  const [selectedTool, setSelectedTool] = useState<ToolCallDetail | null>(null);
   if (cards.length === 0) {
     return <div className="px-4 py-3 text-[12.5px] text-ink-faint">Orchestrator is starting…</div>;
   }
@@ -215,47 +233,72 @@ export default function OrchestratorTimeline({ events }: { events: WSEvent[] }) 
         <div key={c.k} className="rise-in surface rounded-xl px-3.5 py-3">
           {c.reasoning && <p className="mb-2.5 line-clamp-4 text-[13px] leading-relaxed text-ink">{c.reasoning}</p>}
           {c.action && (
-            <div className={`rounded-lg px-3 py-2 ${c.action.tone}`}>
-              <div className="flex items-center gap-1.5 text-[12.5px] font-medium">
-                <c.action.icon size={13} className={c.action.spin ? "animate-spin" : undefined} />
-                {c.action.label}
-                {c.action.detail && <span className="font-normal opacity-80">· {c.action.detail}</span>}
-              </div>
-
-              {/* tool result preview */}
-              {c.action.result && (
-                <div className="mt-1.5 line-clamp-3 font-mono text-[11px] font-normal leading-relaxed opacity-75">
-                  ⎿ {c.action.result}
+              <ActionBlock action={c.action} onOpenTool={setSelectedTool}>
+                <div className="flex items-center gap-1.5 text-[12.5px] font-medium">
+                  <c.action.icon size={13} className={c.action.spin ? "animate-spin" : undefined} />
+                  {c.action.label}
+                  {c.action.detail && <span className="font-normal opacity-80">· {c.action.detail}</span>}
+                  {c.action.toolCall && <Maximize2 className="ml-auto shrink-0 opacity-60" size={12} />}
                 </div>
-              )}
 
-              {/* dispatch wave — codename + task per concurrent agent */}
-              {c.action.agents && c.action.agents.length > 0 && (
-                <ul className="mt-2 space-y-1.5">
-                  {c.action.agents.map((a, ai) => (
-                    <li key={ai} className="flex gap-2 text-[11.5px] font-normal leading-snug">
-                      <span className="shrink-0 font-mono font-medium text-accent-ink">{agentLabel(a.name)}</span>
-                      <span className="line-clamp-2 text-ink-dim">{a.task}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+                {/* tool result preview */}
+                {c.action.result && (
+                  <div className="mt-1.5 line-clamp-3 font-mono text-[11px] font-normal leading-relaxed opacity-75">
+                    ⎿ {c.action.result}
+                  </div>
+                )}
 
-              {/* check report — codename + status per agent */}
-              {c.action.checks && c.action.checks.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {c.action.checks.map((a, ai) => (
-                    <span key={ai} className="flex items-center gap-1.5 rounded-md bg-paper px-2 py-1 font-mono text-[11px] text-ink-dim">
-                      <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT[a.status] ?? "bg-ink-faint"}`} />
-                      {agentLabel(a.name)}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
+                {/* dispatch wave — codename + task per concurrent agent */}
+                {c.action.agents && c.action.agents.length > 0 && (
+                  <ul className="mt-2 space-y-1.5">
+                    {c.action.agents.map((a, ai) => (
+                      <li key={ai} className="flex gap-2 text-[11.5px] font-normal leading-snug">
+                        <span className="shrink-0 font-mono font-medium text-accent-ink">{agentLabel(a.name)}</span>
+                        <span className="line-clamp-2 text-ink-dim">{a.task}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {/* check report — codename + status per agent */}
+                {c.action.checks && c.action.checks.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {c.action.checks.map((a, ai) => (
+                      <span key={ai} className="flex items-center gap-1.5 rounded-md bg-paper px-2 py-1 font-mono text-[11px] text-ink-dim">
+                        <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT[a.status] ?? "bg-ink-faint"}`} />
+                        {agentLabel(a.name)}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </ActionBlock>
           )}
         </div>
       ))}
+      <ToolCallDetailDialog detail={selectedTool} onClose={() => setSelectedTool(null)} />
     </div>
+  );
+}
+
+function ActionBlock({
+  action,
+  onOpenTool,
+  children,
+}: {
+  action: ActionView;
+  onOpenTool: (detail: ToolCallDetail) => void;
+  children: ReactNode;
+}) {
+  const className = `w-full rounded-lg px-3 py-2 text-left ${action.tone}`;
+  if (!action.toolCall) return <div className={className}>{children}</div>;
+  return (
+    <button
+      type="button"
+      onClick={() => onOpenTool(action.toolCall!)}
+      aria-label={`View full parameters and output for ${action.toolCall.tool}`}
+      className={`${className} transition-[filter] hover:brightness-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40`}
+    >
+      {children}
+    </button>
   );
 }

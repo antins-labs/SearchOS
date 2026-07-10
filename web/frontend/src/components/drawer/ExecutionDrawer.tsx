@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { X, Maximize2, Minimize2, Table2, FileText, FolderTree, Activity, GitCompareArrows, Info } from "lucide-react";
+import { X, Maximize2, Minimize2, Table2, FileText, FolderTree, Activity, Gauge, GitCompareArrows, Info, ListTodo, ChevronDown } from "lucide-react";
 import AgentWall from "@/components/workbench/AgentWall";
 import TraceDrawer from "@/components/workbench/TraceDrawer";
 import CoverageTable from "@/components/coverage/CoverageTable";
@@ -11,6 +11,8 @@ import FileTree from "@/components/workspace/FileTree";
 import FileViewer from "@/components/workspace/FileViewer";
 import AsyncFeedback from "@/components/ui/AsyncFeedback";
 import VersionsPanel from "@/components/drawer/VersionsPanel";
+import ResourcePanel from "@/components/drawer/ResourcePanel";
+import FrontierPanel from "@/components/drawer/FrontierPanel";
 import type { Turn } from "@/lib/conversation";
 import type { FileNode, RepairCellTarget } from "@/lib/types";
 import {
@@ -43,12 +45,16 @@ interface Props {
   onReverifyEvidence?: (target: RepairCellTarget) => void;
   onBranchTurn?: (turnId: string, focusComposer: boolean) => Promise<void> | void;
   branchingTurnId?: string | null;
+  subagentsCollapsed: boolean;
+  onSubagentsCollapsedChange: (collapsed: boolean) => void;
 }
 
 const TABS: { id: ActivityTab; label: string; icon: ReactNode }[] = [
   { id: "coverage", label: "Coverage", icon: <Table2 size={13} /> },
   { id: "evidence", label: "Evidence", icon: <FileText size={13} /> },
+  { id: "tasks", label: "Tasks", icon: <ListTodo size={13} /> },
   { id: "versions", label: "Versions", icon: <GitCompareArrows size={13} /> },
+  { id: "usage", label: "Usage", icon: <Gauge size={13} /> },
   { id: "files", label: "Files", icon: <FolderTree size={13} /> },
   { id: "events", label: "Events", icon: <Activity size={13} /> },
 ];
@@ -76,6 +82,8 @@ export default function ExecutionDrawer({
   onReverifyEvidence,
   onBranchTurn,
   branchingTurnId = null,
+  subagentsCollapsed,
+  onSubagentsCollapsedChange,
 }: Props) {
   const [traceAgent, setTraceAgent] = useState<string | null>(null);
   const [max, setMax] = useState(false);
@@ -106,6 +114,9 @@ export default function ExecutionDrawer({
     state?.evidence_graph?.edges ?? [],
     state?.coverage_map,
   );
+  const activeFrontierCount = (state?.frontier?.questions ?? []).filter((task) => (
+    ["pending", "open", "running", "exploring", "blocked"].includes(task.status)
+  )).length;
 
   const onTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => {
     let nextIndex: number | null = null;
@@ -147,10 +158,21 @@ export default function ExecutionDrawer({
       <div className="min-h-0 flex-1 overflow-y-auto">
         {/* sub-agents */}
         <div className="border-b border-line">
-          <div className="px-4 pt-3 text-[11px] uppercase tracking-wider text-ink-faint">
-            {turn.workers.length === 1 ? "Subagent" : "Subagents"} · {turn.workers.length}{running > 0 && ` · ${running} active`}
-          </div>
-          <AgentWall workers={turn.workers} onSelect={setTraceAgent} />
+          <button
+            type="button"
+            aria-expanded={!subagentsCollapsed}
+            aria-controls="activity-subagents"
+            onClick={() => onSubagentsCollapsedChange(!subagentsCollapsed)}
+            className="flex w-full items-center gap-2 px-4 py-3 text-left text-[11px] uppercase tracking-wider text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink-dim"
+          >
+            <span>{turn.workers.length === 1 ? "Subagent" : "Subagents"} · {turn.workers.length}{running > 0 && ` · ${running} active`}</span>
+            <ChevronDown size={14} className={`ml-auto transition-transform ${subagentsCollapsed ? "-rotate-90" : ""}`} />
+          </button>
+          {!subagentsCollapsed && (
+            <div id="activity-subagents">
+              <AgentWall workers={turn.workers} onSelect={setTraceAgent} />
+            </div>
+          )}
         </div>
 
         {/* tabs */}
@@ -175,6 +197,11 @@ export default function ExecutionDrawer({
               {t.id === "evidence" && conflictCount > 0 && (
                 <span className="min-w-4 rounded bg-err/10 px-1 text-center text-[10px] text-err">
                   {conflictCount}
+                </span>
+              )}
+              {t.id === "tasks" && activeFrontierCount > 0 && (
+                <span className="min-w-4 rounded bg-accent-soft px-1 text-center text-[10px] text-accent-ink">
+                  {activeFrontierCount}
                 </span>
               )}
             </button>
@@ -204,6 +231,7 @@ export default function ExecutionDrawer({
                   onReverify={onReverifyEvidence}
                 />
           )}
+          {tab === "tasks" && <FrontierPanel tasks={state?.frontier?.questions ?? []} />}
           {tab === "versions" && (
             <VersionsPanel
               key={turn.id}
@@ -213,6 +241,7 @@ export default function ExecutionDrawer({
               onBranch={onBranchTurn}
             />
           )}
+          {tab === "usage" && <ResourcePanel turn={turn} />}
           {tab === "files" &&
             (selectedFile && sessionId ? (
               <FileViewer key={`${sessionId}:${selectedFile}`} sessionId={sessionId} filePath={selectedFile} onClose={() => onSelectFile(null)} />

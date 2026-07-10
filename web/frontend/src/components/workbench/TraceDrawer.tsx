@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { X, Loader2, CheckCircle2, XCircle, Circle } from "lucide-react";
 import type { AgentCardData } from "./AgentCard";
 import { TraceLine, agentLabel } from "./trace";
+import ToolCallDetailDialog, { type ToolCallDetail } from "./ToolCallDetailDialog";
 
 const STATUS = {
   pending: { icon: <Circle size={13} className="text-ink-faint" />, label: "pending" },
@@ -20,6 +21,7 @@ export default function TraceDrawer({
   worker: AgentCardData | null;
   onClose: () => void;
 }) {
+  const [selectedTool, setSelectedTool] = useState<ToolCallDetail | null>(null);
   const open = worker != null;
   useEffect(() => {
     if (!open) return;
@@ -62,7 +64,9 @@ export default function TraceDrawer({
           {worker.events.length === 0 ? (
             <div className="text-ink-faint">No trace recorded yet.</div>
           ) : (
-            worker.events.map((e, i) => <TraceLine key={i} event={e} />)
+            worker.events.map((e, i) => (
+              <TraceLine key={i} event={e} onOpenTool={setSelectedTool} />
+            ))
           )}
           {worker.status === "running" && (
             <div className="flex items-center gap-1.5 pt-1 text-accent dark:text-accent">
@@ -71,6 +75,7 @@ export default function TraceDrawer({
           )}
         </div>
       </aside>
+      <ToolCallDetailDialog detail={selectedTool} onClose={() => setSelectedTool(null)} />
     </div>
   );
 }

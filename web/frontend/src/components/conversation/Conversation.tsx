@@ -259,6 +259,12 @@ function RepairSummary({ turn }: { turn: Turn }) {
         <span className="text-[12px] text-ink-dim">
           {filled}/{rows.length} filled · {evidenceCount} new {evidenceCount === 1 ? "source" : "sources"}
         </span>
+        {repair.planner && (
+          <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] text-ink-faint">
+            {repair.planner === "llm" ? "LLM planned" : "Safe fallback"}
+            {typeof repair.planningLatencyMs === "number" ? ` · ${repair.planningLatencyMs} ms` : ""}
+          </span>
+        )}
         {turn.status === "running" && <Loader2 className="ml-auto animate-spin text-accent-ink" size={14} />}
       </div>
       <div className="divide-y divide-line">

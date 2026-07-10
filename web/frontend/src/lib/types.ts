@@ -268,12 +268,23 @@ export interface ResolveEvidenceResponse {
   search_state: SearchState;
 }
 
-export interface SubQuestion {
+export interface FrontierTask {
   id: string;
   question: string;
-  status: "open" | "exploring" | "resolved";
+  kind?: "search" | "write" | "explore";
+  status: "pending" | "running" | "completed" | "blocked" | "cancelled" | "open" | "exploring" | "resolved";
   priority: number;
-  assigned_worker: string;
+  target_cells?: string[];
+  table_id?: string;
+  agent_type?: string;
+  skills?: string[];
+  max_searches?: number | null;
+  task_prompt?: string;
+  assigned_agent_id?: string;
+  assigned_worker?: string;
+  attempts?: number;
+  created_by?: string;
+  planner?: "llm" | "deterministic" | "";
   resolution: string;
 }
 
@@ -307,7 +318,7 @@ export interface TaskDAG {
 export interface SearchState {
   intent: string;
   task_type: "wide" | "deep" | "local" | "hybrid";
-  frontier: { questions: SubQuestion[] };
+  frontier: { questions: FrontierTask[] };
   explored_paths: { query: string; useful: boolean }[];
   evidence_graph: { nodes: EvidenceNode[]; edges: EvidenceEdge[] };
   coverage_map: CoverageMap;
@@ -320,7 +331,32 @@ export interface TokenUsage {
   prompt_tokens: number;
   completion_tokens: number;
   total_tokens: number;
+  cached_prompt_tokens?: number;
   llm_calls: number;
+  cache_hit_calls?: number;
+  cache_hit_rate?: number;
+  by_role?: Record<string, {
+    prompt_tokens: number;
+    completion_tokens: number;
+    cached_prompt_tokens?: number;
+    llm_calls: number;
+    cache_hit_calls?: number;
+  }>;
+}
+
+export interface TokenPhaseUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  cached_prompt_tokens?: number;
+  llm_calls: number;
+  cache_hit_calls?: number;
+}
+
+export interface ModelDistributionItem {
+  profile: string;
+  model: string;
+  provider: string;
 }
 
 export interface SearchResult {
@@ -337,8 +373,47 @@ export interface SearchResult {
   eval_verdict?: string;
   workspace_path?: string;
   token_usage?: TokenUsage;
+  token_phases?: Record<string, TokenPhaseUsage>;
+  tool_counts?: Record<string, number>;
+  model_distribution?: Record<string, ModelDistributionItem>;
   search_state?: SearchState;
   error?: string;
+}
+
+export interface DiagnosticBase {
+  ok: boolean;
+  kind: "provider" | "search" | "browser";
+  latency_ms: number;
+  error?: string | null;
+}
+
+export interface ProviderDiagnostic extends DiagnosticBase {
+  kind: "provider";
+  role: string;
+  provider?: string;
+  model?: string;
+  thinking_enabled?: boolean;
+  thinking_style?: string;
+  thinking_status?: "not_requested" | "not_configured" | "accepted" | "observed";
+  response_preview?: string;
+  usage?: { input_tokens: number; output_tokens: number; total_tokens: number };
+}
+
+export interface SearchDiagnostic extends DiagnosticBase {
+  kind: "search";
+  provider: string;
+  result_count?: number;
+  results?: { title: string; domain: string }[];
+}
+
+export interface BrowserDiagnostic extends DiagnosticBase {
+  kind: "browser";
+  backend: string;
+  implementation?: string;
+  status_code?: number;
+  title?: string;
+  content_chars?: number;
+  proxy: { configured: boolean; endpoint: string };
 }
 
 export interface FileNode {

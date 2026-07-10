@@ -1,6 +1,9 @@
 "use client";
 
+import { Maximize2 } from "lucide-react";
+
 import type { WSEvent, EvidenceNode } from "@/lib/types";
+import type { ToolCallDetail } from "./ToolCallDetailDialog";
 
 /* ── agent naming ──────────────────────────────────────────────
    Backend names the first search agent `search_agent` (no suffix),
@@ -106,6 +109,40 @@ export interface Step {
   detail: string;
 }
 
+function rawActionArgs(event: WSEvent): string {
+  const data = (event.data ?? {}) as Record<string, unknown>;
+  if (data.type === "orchestrator_tool") {
+    return typeof data.args === "string"
+      ? data.args
+      : JSON.stringify(data.args ?? "");
+  }
+  const action = data.action;
+  if (action && typeof action === "object") {
+    const args = (action as Record<string, unknown>).args;
+    return typeof args === "string" ? args : JSON.stringify(args ?? "");
+  }
+  return typeof action === "string" ? action : "";
+}
+
+/** Full payload behind a rendered tool step. */
+export function toolCallDetail(event: WSEvent): ToolCallDetail | null {
+  if (event.type !== "trajectory") return null;
+  const data = (event.data ?? {}) as Record<string, unknown>;
+  const type = String(data.type || "");
+  if (type !== "step" && type !== "orchestrator_tool") return null;
+  const { name } = actionInfo(event);
+  if (!name) return null;
+  return {
+    tool: name,
+    arguments: rawActionArgs(event),
+    output: String(
+      data.observation || data.observation_summary || data.result_preview || "",
+    ),
+    agent: String(data.agent || ""),
+    timestamp: String(data.timestamp || ""),
+  };
+}
+
 /** Recent steps for an agent, newest last, collapsing consecutive duplicates
  *  (e.g. paging through the same page yields the same title repeatedly). */
 export function recentSteps(events: WSEvent[], n: number): Step[] {
@@ -134,7 +171,13 @@ export function agentGoal(events: WSEvent[]): string {
 }
 
 /** One line in a full trace log. Returns null for events we don't render. */
-export function TraceLine({ event }: { event: WSEvent }) {
+export function TraceLine({
+  event,
+  onOpenTool,
+}: {
+  event: WSEvent;
+  onOpenTool?: (detail: ToolCallDetail) => void;
+}) {
   if (event.type === "trajectory") {
     const d = (event.data ?? {}) as Record<string, unknown>;
     const t = String(d.type || "");
@@ -159,11 +202,26 @@ export function TraceLine({ event }: { event: WSEvent }) {
     if (t === "step" || t === "orchestrator_tool") {
       const s = stepText(event);
       if (!s) return null;
-      return (
-        <div className="leading-relaxed">
+      const detail = toolCallDetail(event);
+      const content = (
+        <>
           <span className="text-accent-ink dark:text-accent">{s.verb}</span>
           {s.detail && <span className="text-ink-dim"> {s.detail}</span>}
-        </div>
+          {detail && onOpenTool && (
+            <Maximize2 className="ml-auto shrink-0 text-ink-faint" size={11} />
+          )}
+        </>
+      );
+      if (!detail || !onOpenTool) return <div className="leading-relaxed">{content}</div>;
+      return (
+        <button
+          type="button"
+          onClick={() => onOpenTool(detail)}
+          aria-label={`View full parameters and output for ${detail.tool}`}
+          className="flex w-full items-start gap-1 rounded-md px-1.5 py-1 text-left leading-relaxed transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+        >
+          {content}
+        </button>
       );
     }
     return null;

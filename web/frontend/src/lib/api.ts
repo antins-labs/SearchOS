@@ -2,16 +2,19 @@
 
 import type {
   AdvancedView,
+  BrowserDiagnostic,
   EffortLevel,
   EffortView,
   FileNode,
   ModelsView,
   ProvidersResponse,
+  ProviderDiagnostic,
   RepairRequest,
   ResolveEvidenceRequest,
   ResolveEvidenceResponse,
   RunDefaultsView,
   SearchRequest,
+  SearchDiagnostic,
   SearchResult,
   SearchState,
   SettingsData,
@@ -22,13 +25,17 @@ import type {
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const REQUEST_TIMEOUT_MS = 12000;
 
-function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+  timeoutMs = REQUEST_TIMEOUT_MS,
+): Promise<Response> {
   const controller = new AbortController();
   return new Promise((resolve, reject) => {
     const timeout = globalThis.setTimeout(() => {
       controller.abort();
       reject(new Error("Request timed out"));
-    }, REQUEST_TIMEOUT_MS);
+    }, timeoutMs);
 
     fetch(input, { ...init, signal: init.signal ?? controller.signal }).then(
       (response) => {
@@ -84,12 +91,16 @@ export async function startSearch(req: SearchRequest): Promise<{ session_id: str
 export async function startRepair(
   sessionId: string,
   req: RepairRequest,
-): Promise<{ session_id: string; task_ids: string[] }> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/search/${sessionId}/repair`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(req),
-  });
+): Promise<RepairStartResponse> {
+  const res = await fetchWithTimeout(
+    `${API_BASE}/api/search/${sessionId}/repair`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req),
+    },
+    35000,
+  );
   if (!res.ok) {
     let detail = res.statusText;
     try {
@@ -103,6 +114,14 @@ export async function startRepair(
     throw new Error(`Repair failed: ${detail}`);
   }
   return readJsonWithTimeout(res);
+}
+
+export interface RepairStartResponse {
+  session_id: string;
+  task_ids: string[];
+  planner: "llm" | "deterministic";
+  planning_latency_ms: number;
+  planning_warning?: string | null;
 }
 
 export async function resolveEvidence(
@@ -170,6 +189,13 @@ export interface HistoryTurn {
   coverage_score: number | null;
   evidence_count: number | null;
   completed_at?: string | null;
+  elapsed_s?: number | null;
+  total_queries?: number | null;
+  total_steps?: number | null;
+  tool_counts?: SearchResult["tool_counts"] | null;
+  token_usage?: SearchResult["token_usage"] | null;
+  token_phases?: SearchResult["token_phases"] | null;
+  model_distribution?: SearchResult["model_distribution"] | null;
 }
 
 export interface HistoryDetail {
@@ -369,6 +395,32 @@ export const createProfile = (body: {
 
 export const deleteProfile = (name: string) =>
   putJson<ModelsView>(`/api/settings/profiles/${encodeURIComponent(name)}`, {}, "DELETE");
+
+async function runDiagnostic<T>(path: string, body: unknown): Promise<T> {
+  const controller = new AbortController();
+  const timeout = globalThis.setTimeout(() => controller.abort(), 65000);
+  try {
+    const res = await fetch(`${API_BASE}/api/diagnostics/${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`Diagnostic failed: ${res.statusText}`);
+    return await res.json() as T;
+  } finally {
+    globalThis.clearTimeout(timeout);
+  }
+}
+
+export const testProvider = (role: string) =>
+  runDiagnostic<ProviderDiagnostic>("provider", { role });
+
+export const testSearchBackend = (query: string) =>
+  runDiagnostic<SearchDiagnostic>("search", { query });
+
+export const testBrowserBackend = (url: string) =>
+  runDiagnostic<BrowserDiagnostic>("browser", { url });
 
 // ---- WebSocket ----
 

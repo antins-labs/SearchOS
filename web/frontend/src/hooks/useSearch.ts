@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import type { RepairRequest, SearchRequest, SearchResult, SearchState, WSEvent } from "@/lib/types";
-import { startSearch, startRepair, getSearchResult, getSearchState, connectWebSocket } from "@/lib/api";
+import { startSearch, startRepair, getSearchResult, getSearchState, connectWebSocket, type RepairStartResponse } from "@/lib/api";
 
 
 /**
@@ -305,6 +305,7 @@ export function useSearch() {
     knownSessionId = null,
     tail = false,
     failureStatus = "error",
+    onStarted,
   }: {
     start: () => Promise<{ session_id: string }>;
     seen?: WSEvent[];
@@ -312,6 +313,7 @@ export function useSearch() {
     knownSessionId?: string | null;
     tail?: boolean;
     failureStatus?: "idle" | "error";
+    onStarted?: (response: { session_id: string; [key: string]: unknown }) => void;
   }) => {
     const generation = ++generationRef.current;
     clearRuntime();
@@ -332,8 +334,10 @@ export function useSearch() {
     });
 
     try {
-      const { session_id } = await start();
+      const response = await start();
+      const { session_id } = response;
       if (generation !== generationRef.current) return null;
+      onStarted?.(response);
       setSession((s) => ({ ...s, sessionId: session_id }));
       startStreams(session_id, tail, generation);
       return null;
@@ -362,7 +366,11 @@ export function useSearch() {
   const repair = useCallback((
     sessionId: string,
     req: RepairRequest,
-    opts?: { seen?: WSEvent[]; initialState?: SearchState | null },
+    opts?: {
+      seen?: WSEvent[];
+      initialState?: SearchState | null;
+      onStarted?: (response: RepairStartResponse) => void;
+    },
   ) => beginRun({
     start: () => startRepair(sessionId, req),
     seen: opts?.seen,
@@ -370,6 +378,7 @@ export function useSearch() {
     knownSessionId: sessionId,
     tail: false,
     failureStatus: "error",
+    onStarted: (response) => opts?.onStarted?.(response as unknown as RepairStartResponse),
   }), [beginRun]);
 
   /** Re-attach to a session the backend is still running — history reopen,

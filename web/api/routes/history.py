@@ -115,6 +115,91 @@ def _load_turn_snapshots(ws: Path) -> dict[int, dict[str, Any]]:
     return snapshots
 
 
+def _load_turn_resources(ws: Path) -> dict[int, dict[str, Any]]:
+    """Recover per-turn resource totals from durable task_complete events."""
+    trajectory = ws / "trajectory.jsonl"
+    if not trajectory.exists():
+        return {}
+    resources: dict[int, dict[str, Any]] = {}
+    turn_index = 0
+    for line in trajectory.read_text(encoding="utf-8", errors="replace").splitlines():
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if record.get("type") != "task_complete":
+            continue
+        resources[turn_index] = {
+            key: record.get(key)
+            for key in (
+                "elapsed_s", "total_queries", "total_steps", "tool_counts",
+                "token_usage", "token_phases", "model_distribution", "timestamp",
+            )
+            if record.get(key) is not None
+        }
+        turn_index += 1
+    return resources
+
+
+def _trajectory_records_for_turn(
+    ws: Path,
+    turn_index: int,
+    turn_count: int,
+) -> list[dict[str, Any]]:
+    """Return the trajectory segment aligned to one reconstructed turn."""
+    trajectory = ws / "trajectory.jsonl"
+    if not trajectory.exists() or turn_count <= 0:
+        return []
+
+    segments: list[list[dict[str, Any]]] = []
+    for line in trajectory.read_text(encoding="utf-8", errors="replace").splitlines():
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if record.get("type") == "task_start" or not segments:
+            segments.append([])
+        segments[-1].append(record)
+
+    segment_index = len(segments) - (turn_count - turn_index)
+    if segment_index < 0 or segment_index >= len(segments):
+        return []
+    if turn_index == 0:
+        return [record for segment in segments[:segment_index + 1] for record in segment]
+    return segments[segment_index]
+
+
+def _write_branch_trajectory(
+    source_ws: Path,
+    branch_ws: Path,
+    *,
+    source_turn_index: int,
+    source_turn_count: int,
+    branch_id: str,
+) -> int:
+    records = _trajectory_records_for_turn(
+        source_ws,
+        source_turn_index,
+        source_turn_count,
+    )
+    if not records:
+        return 0
+    rewritten = []
+    for record in records:
+        copied = dict(record)
+        if "session_id" in copied:
+            copied["session_id"] = branch_id
+        rewritten.append(copied)
+    (branch_ws / "trajectory.jsonl").write_text(
+        "\n".join(
+            json.dumps(record, ensure_ascii=False, default=str)
+            for record in rewritten
+        ) + "\n",
+        encoding="utf-8",
+    )
+    return len(rewritten)
+
+
 def _turn_views(
     turns: list[dict[str, Any]],
     snapshots: dict[int, dict[str, Any]],
@@ -122,6 +207,7 @@ def _turn_views(
     latest_state: dict[str, Any] | None,
     latest_coverage: float | None,
     latest_evidence_count: int | None,
+    resources: dict[int, dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     """Attach the state that belongs to each reconstructed dialogue turn.
 
@@ -131,16 +217,18 @@ def _turn_views(
     """
     views: list[dict[str, Any]] = []
     last_index = len(turns) - 1
+    resources = resources or {}
     for index, turn in enumerate(turns):
         view = dict(turn)
         snapshot = snapshots.get(index)
+        resource = resources.get(index, {})
         if snapshot is not None:
             view.update({
                 "search_state": snapshot["search_state"],
                 "state_source": "snapshot",
                 "coverage_score": snapshot.get("coverage_score"),
                 "evidence_count": snapshot.get("evidence_count"),
-                "completed_at": snapshot.get("completed_at"),
+                "completed_at": snapshot.get("completed_at") or resource.get("timestamp"),
             })
         elif index == last_index and latest_state is not None:
             view.update({
@@ -148,7 +236,7 @@ def _turn_views(
                 "state_source": "latest",
                 "coverage_score": latest_coverage,
                 "evidence_count": latest_evidence_count,
-                "completed_at": None,
+                "completed_at": resource.get("timestamp"),
             })
         else:
             view.update({
@@ -156,8 +244,18 @@ def _turn_views(
                 "state_source": "unavailable",
                 "coverage_score": None,
                 "evidence_count": None,
-                "completed_at": None,
+                "completed_at": resource.get("timestamp"),
             })
+        for key in (
+            "elapsed_s", "total_queries", "total_steps", "tool_counts",
+            "token_usage", "token_phases", "model_distribution",
+        ):
+            value = (
+                snapshot.get(key)
+                if snapshot and snapshot.get(key) is not None
+                else resource.get(key)
+            )
+            view[key] = value
         views.append(view)
     return views
 
@@ -282,6 +380,7 @@ async def load_history(session_id: str):
         latest_state=state,
         latest_coverage=float(coverage) if coverage is not None else None,
         latest_evidence_count=int(evidence_count) if evidence_count is not None else None,
+        resources=_load_turn_resources(ws),
     )
 
     return {
@@ -421,10 +520,18 @@ async def branch_history_turn(session_id: str, turn_index: int):
     query = str(source_turn.get("query") or state.intent or "Research version")
     answer = str(source_turn.get("answer") or "")
     _write_branch_conversation(branch_ws, query, answer)
+    copied_event_count = _write_branch_trajectory(
+        source_ws,
+        branch_ws,
+        source_turn_index=turn_index,
+        source_turn_count=len(turns),
+        branch_id=branch_id,
+    )
     (branch_ws / ".display_title").write_text(f"{query} · branch", encoding="utf-8")
     origin = {
         "source_session_id": session_id,
         "source_turn_index": turn_index,
+        "copied_event_count": copied_event_count,
         "created_at": datetime.now(UTC).isoformat(),
     }
     (branch_ws / ".branch_origin.json").write_text(

@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { RotateCcw } from "lucide-react";
+import { Clock3, RotateCcw, Search, Users } from "lucide-react";
 
 import type { EffortLevel } from "@/lib/types";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import NumberField from "@/components/settings/controls/NumberField";
 import PillGroup from "@/components/settings/controls/PillGroup";
+import { estimateRunBudget } from "@/lib/budgetEstimate";
 
 interface Props {
   /** "down" opens below the trigger (hero composer), "up" above (bottom bar). */
@@ -47,6 +48,10 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
   const levelTime = (lvl: string | undefined): number | undefined =>
     lvl ? settings?.effort?.levels?.[lvl as EffortLevel]?.default_max_time_s : undefined;
   const impliedTime = levelTime(overrides.effort) ?? defaults?.max_time_s ?? 1800;
+  const selectedLevel = overrides.effort ?? settings?.effort.level ?? "medium";
+  const estimate = settings
+    ? estimateRunBudget(selectedLevel, settings.effort.levels, overrides.max_time ?? impliedTime)
+    : null;
 
   return (
     <div
@@ -100,6 +105,29 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
             }
           />
         </div>
+
+        {estimate && (
+          <div className="border-t border-line pt-3" aria-label="Estimated run budget">
+            <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-ink-faint">Budget estimate</div>
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <Clock3 className="mb-1 text-accent-ink" size={12} />
+                <div className="text-[12px] font-medium tabular-nums text-ink">{Math.round(estimate.maxTimeSeconds / 60)}m</div>
+                <div className="text-[9.5px] text-ink-faint">time cap</div>
+              </div>
+              <div>
+                <Users className="mb-1 text-accent-ink" size={12} />
+                <div className="text-[12px] font-medium tabular-nums text-ink">{estimate.parallelAgents}</div>
+                <div className="text-[9.5px] text-ink-faint">parallel agents</div>
+              </div>
+              <div>
+                <Search className="mb-1 text-accent-ink" size={12} />
+                <div className="text-[12px] font-medium tabular-nums text-ink">~{estimate.searchesPerWave}</div>
+                <div className="text-[9.5px] text-ink-faint">searches / wave</div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

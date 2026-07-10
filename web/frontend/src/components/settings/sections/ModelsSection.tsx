@@ -7,6 +7,7 @@ import Select from "@/components/settings/controls/Select";
 import NewProfileCard from "@/components/settings/models/NewProfileCard";
 import ProfileCard from "@/components/settings/models/ProfileCard";
 import ProviderConnections from "@/components/settings/models/ProviderConnections";
+import ProviderDiagnosticPanel from "@/components/settings/diagnostics/ProviderDiagnosticPanel";
 
 const SECTION_DESC =
   "Providers, model cards, and role bindings. API keys are stored in .env and never shown.";
@@ -46,6 +47,7 @@ export default function ModelsSection() {
         <SubSection title="Providers"
           description="Define your provider connections — an endpoint plus one or more API keys. Vendor presets pre-fill a new connection; model cards below point at these by name and inherit protocol / endpoint / key.">
           <ProviderConnections />
+          <ProviderDiagnosticPanel />
         </SubSection>
 
         <SubSection title="Models"

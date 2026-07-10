@@ -15,7 +15,7 @@ for path in (str(_REPO), str(_REPO / "web")):
     if path not in sys.path:
         sys.path.insert(0, path)
 
-from api.routes.history import _turn_views
+from api.routes.history import _load_turn_resources, _trajectory_records_for_turn, _turn_views
 from searchos.socm.state import SearchState
 from searchos.socm.workspace import WorkspaceManager
 
@@ -107,6 +107,69 @@ def test_turn_views_prefers_exact_snapshot_over_latest_fallback():
     assert views[1]["search_state"]["intent"] == "second-at-the-time"
 
 
+def test_turn_resources_restore_usage_from_trajectory(tmp_path):
+    trajectory = tmp_path / "trajectory.jsonl"
+    trajectory.write_text("\n".join([
+        json.dumps({"type": "task_start", "query": "first"}),
+        json.dumps({
+            "type": "task_complete",
+            "elapsed_s": 12.5,
+            "total_queries": 3,
+            "tool_counts": {"search": 3, "open": 2},
+            "token_usage": {"total_tokens": 1200, "llm_calls": 4},
+        }),
+    ]) + "\n", encoding="utf-8")
+
+    resources = _load_turn_resources(tmp_path)
+    views = _turn_views(
+        [{"query": "first", "answer": "answer"}],
+        {0: {"search_state": {"intent": "first"}}},
+        latest_state=None,
+        latest_coverage=None,
+        latest_evidence_count=None,
+        resources=resources,
+    )
+
+    assert views[0]["elapsed_s"] == 12.5
+    assert views[0]["total_queries"] == 3
+    assert views[0]["tool_counts"]["open"] == 2
+    assert views[0]["token_usage"]["total_tokens"] == 1200
+
+
+def test_trajectory_turn_segments_preserve_full_tool_payload(tmp_path):
+    records = [
+        {"type": "task_start", "query": "first", "session_id": "source"},
+        {
+            "type": "step",
+            "agent": "orchestrator",
+            "action": {"name": "search", "args": {"query": "first query"}},
+            "observation": "first full output",
+        },
+        {"type": "task_complete", "session_id": "source"},
+        {"type": "task_start", "query": "second", "session_id": "source"},
+        {
+            "type": "step",
+            "agent": "orchestrator",
+            "action": {
+                "name": "open",
+                "args": {"id_or_url": "https://example.com"},
+            },
+            "observation": "second full output",
+        },
+        {"type": "task_complete", "session_id": "source"},
+    ]
+    (tmp_path / "trajectory.jsonl").write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+
+    second = _trajectory_records_for_turn(tmp_path, 1, 2)
+
+    assert [record["type"] for record in second] == ["task_start", "step", "task_complete"]
+    assert second[1]["action"]["args"]["id_or_url"] == "https://example.com"
+    assert second[1]["observation"] == "second full output"
+
+
 def test_branched_workspace_appends_after_copied_baseline(tmp_path):
     workspace = WorkspaceManager(tmp_path, "branch")
     workspace.create()
@@ -154,6 +217,16 @@ async def test_history_turn_branch_is_independent_and_restorable(tmp_path, monke
     state = SearchState(intent="original research")
     source.save_state(state)
     history._write_branch_conversation(source.path, "original question", "original answer")
+    source.trajectory_path.write_text("\n".join([
+        json.dumps({"type": "task_start", "session_id": "source", "query": "original question"}),
+        json.dumps({
+            "type": "step",
+            "agent": "orchestrator",
+            "action": {"name": "search", "args": {"query": "full original query"}},
+            "observation": "full original tool output",
+        }),
+        json.dumps({"type": "task_complete", "session_id": "source"}),
+    ]) + "\n", encoding="utf-8")
     source.save_turn_snapshot(
         "original question",
         state,
@@ -174,6 +247,14 @@ async def test_history_turn_branch_is_independent_and_restorable(tmp_path, monke
     }]
     origin = json.loads((branch.path / ".branch_origin.json").read_text(encoding="utf-8"))
     assert origin["source_session_id"] == "source"
+    assert origin["copied_event_count"] == 3
+    branch_records = [
+        json.loads(line)
+        for line in branch.trajectory_path.read_text(encoding="utf-8").splitlines()
+    ]
+    assert branch_records[0]["session_id"] == response.session_id
+    assert branch_records[1]["action"]["args"]["query"] == "full original query"
+    assert branch_records[1]["observation"] == "full original tool output"
     assert (branch.path / "turn_snapshots" / "0001.json").exists()
 
 

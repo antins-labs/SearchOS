@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-export type ActivityTab = "coverage" | "evidence" | "versions" | "files" | "events";
+export type ActivityTab = "coverage" | "evidence" | "tasks" | "versions" | "usage" | "files" | "events";
 
 export const DEFAULT_ACTIVITY_WIDTH = 560;
 export const MIN_ACTIVITY_WIDTH = 360;
@@ -11,11 +11,16 @@ export const MAX_ACTIVITY_WIDTH = 760;
 type ActivityPreferences = {
   tab: ActivityTab;
   width: number;
+  subagentsCollapsed: boolean;
 };
 
 const STORAGE_KEY = "searchos.activity.preferences.v1";
-const DEFAULT_PREFERENCES: ActivityPreferences = { tab: "coverage", width: DEFAULT_ACTIVITY_WIDTH };
-const VALID_TABS = new Set<ActivityTab>(["coverage", "evidence", "versions", "files", "events"]);
+const DEFAULT_PREFERENCES: ActivityPreferences = {
+  tab: "coverage",
+  width: DEFAULT_ACTIVITY_WIDTH,
+  subagentsCollapsed: false,
+};
+const VALID_TABS = new Set<ActivityTab>(["coverage", "evidence", "tasks", "versions", "usage", "files", "events"]);
 const listeners = new Set<() => void>();
 let current: ActivityPreferences | null = null;
 
@@ -28,6 +33,9 @@ function readPreferences(): ActivityPreferences {
     return {
       tab: parsed.tab && VALID_TABS.has(parsed.tab) ? parsed.tab : DEFAULT_PREFERENCES.tab,
       width: Number.isFinite(parsed.width) ? clampWidth(Number(parsed.width)) : DEFAULT_PREFERENCES.width,
+      subagentsCollapsed: typeof parsed.subagentsCollapsed === "boolean"
+        ? parsed.subagentsCollapsed
+        : DEFAULT_PREFERENCES.subagentsCollapsed,
     };
   } catch {
     return DEFAULT_PREFERENCES;
@@ -62,6 +70,7 @@ export function updateActivityPreferences(patch: Partial<ActivityPreferences>, p
   current = {
     tab: patch.tab && VALID_TABS.has(patch.tab) ? patch.tab : previous.tab,
     width: patch.width == null ? previous.width : clampWidth(patch.width),
+    subagentsCollapsed: patch.subagentsCollapsed ?? previous.subagentsCollapsed,
   };
   if (persist && typeof window !== "undefined") {
     try {

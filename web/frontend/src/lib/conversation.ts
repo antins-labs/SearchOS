@@ -1,4 +1,4 @@
-import type { CoverageCell, RepairCellTarget, SearchState, WSEvent } from "./types";
+import type { CoverageCell, ModelDistributionItem, RepairCellTarget, SearchState, TokenPhaseUsage, TokenUsage, WSEvent } from "./types";
 import type { WorkerInfo } from "@/hooks/useSearch";
 
 export interface RepairCellSnapshot extends RepairCellTarget {
@@ -21,12 +21,21 @@ export interface Turn {
   repair?: {
     cells: RepairCellSnapshot[];
     evidenceIdsBefore: string[];
+    planner?: "llm" | "deterministic";
+    planningLatencyMs?: number;
+    planningWarning?: string | null;
   };
   meta: {
     coverageScore?: number;
     evidenceCount?: number;
     elapsed?: number;
     verdict?: string | null;
+    totalQueries?: number;
+    totalSteps?: number;
+    toolCounts?: Record<string, number>;
+    tokenUsage?: TokenUsage;
+    tokenPhases?: Record<string, TokenPhaseUsage>;
+    modelDistribution?: Record<string, ModelDistributionItem>;
   };
   error?: string | null;
 }

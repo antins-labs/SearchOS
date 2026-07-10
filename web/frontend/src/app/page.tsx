@@ -109,8 +109,14 @@ export default function Home() {
                   evidenceCount: session.result?.evidence_count,
                   elapsed: session.result?.elapsed_s ?? session.elapsed,
                   verdict: session.result?.eval_verdict ?? null,
+                  totalQueries: session.result?.total_queries,
+                  totalSteps: session.result?.total_steps,
+                  toolCounts: session.result?.tool_counts,
+                  tokenUsage: session.result?.token_usage,
+                  tokenPhases: session.result?.token_phases,
+                  modelDistribution: session.result?.model_distribution,
                 }
-              : t.meta,
+              : { ...t.meta, elapsed: session.elapsed },
         };
       }),
     );
@@ -261,6 +267,20 @@ export default function Home() {
       {
         seen: turns.flatMap((item) => item.events),
         initialState: sourceTurn.searchState,
+        onStarted: (response) => {
+          setTurns((current) => current.map((item) => item.id === id && item.repair
+            ? {
+                ...item,
+                repair: {
+                  ...item.repair,
+                  planner: response.planner,
+                  planningLatencyMs: response.planning_latency_ms,
+                  planningWarning: response.planning_warning,
+                },
+              }
+            : item));
+          if (response.planning_warning) notify(response.planning_warning, "info");
+        },
       },
     ).then((startError) => {
       if (!startError) return;
@@ -429,6 +449,13 @@ export default function Home() {
             meta: {
               coverageScore: h.coverage_score ?? undefined,
               evidenceCount: h.evidence_count ?? undefined,
+              elapsed: h.elapsed_s ?? undefined,
+              totalQueries: h.total_queries ?? undefined,
+              totalSteps: h.total_steps ?? undefined,
+              toolCounts: h.tool_counts ?? undefined,
+              tokenUsage: h.token_usage ?? undefined,
+              tokenPhases: h.token_phases ?? undefined,
+              modelDistribution: h.model_distribution ?? undefined,
             },
             error: null,
           };
@@ -677,6 +704,8 @@ export default function Home() {
               : undefined}
             onBranchTurn={sessionActive ? undefined : handleBranchTurn}
             branchingTurnId={branchingTurnId}
+            subagentsCollapsed={activityPreferences.subagentsCollapsed}
+            onSubagentsCollapsedChange={(subagentsCollapsed) => updateActivityPreferences({ subagentsCollapsed })}
           />
         )}
       </div>

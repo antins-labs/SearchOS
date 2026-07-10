@@ -15,7 +15,15 @@ sys.path.insert(0, str(_REPO_ROOT / "web"))
 from contextlib import asynccontextmanager  # noqa: E402
 
 from api import settings_store  # noqa: E402
-from api.routes import history, models, search, settings, stream, workspace  # noqa: E402
+from api.routes import (  # noqa: E402
+    diagnostics,
+    history,
+    models,
+    search,
+    settings,
+    stream,
+    workspace,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -53,6 +61,7 @@ app.include_router(stream.router)
 app.include_router(history.router)
 app.include_router(settings.router)
 app.include_router(models.router)
+app.include_router(diagnostics.router)
 
 
 @app.get("/api/health")

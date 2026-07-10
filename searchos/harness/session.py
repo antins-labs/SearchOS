@@ -220,6 +220,35 @@ class SearchSession:
         self._sub_agent_model = _resolve("sub_agent")
         self._skill_runtime_model = _resolve("skill_runtime")
 
+        role_models = {
+            "orchestrator": self._model,
+            "judge": self._judge_model,
+            "extraction": self._extraction_model,
+            "alias_resolver": self._alias_resolver_model,
+            "synthesis": self._synthesis_model,
+            "skill_evolver": self._skill_evolver_model,
+            "post_mortem": self._post_mortem_model,
+            "sub_agent": self._sub_agent_model,
+            "skill_runtime": self._skill_runtime_model,
+        }
+        self._model_distribution: dict[str, dict[str, str]] = {}
+        for role, profile_name in settings.roles.items():
+            model = role_models.get(role)
+            profile = settings.profiles.get(profile_name)
+            model_name = (
+                getattr(model, "model_name", None) if model is not None else None
+            ) or (
+                getattr(model, "model", None) if model is not None else None
+            ) or (profile.model if profile else "")
+            self._model_distribution[role] = {
+                "profile": profile_name,
+                "model": str(model_name),
+                "provider": (
+                    profile.provider
+                    if profile else model.__class__.__name__ if model is not None else "unknown"
+                ),
+            }
+
         self._blueprint = blueprint or SearchBlueprint()
         self._skill_registry = skill_registry
         self._workspace_root = workspace_root
@@ -887,7 +916,7 @@ class SearchSession:
             eval_verdict="COMPLETE",
             coverage_score=final_search_state.coverage_map.coverage_score,
             evidence_count=final_search_state.evidence_graph.node_count,
-            total_queries=traj_logger.step_count,
+            total_queries=traj_logger.tool_counts.get("search", 0),
             total_steps=traj_logger.step_count,
             elapsed_s=elapsed,
             final_messages=final_messages,
@@ -907,14 +936,20 @@ class SearchSession:
             "evidence_backed_coverage": _evidence_backed_coverage(final_search_state),
             "frontier_progress": _frontier_progress(final_search_state),
             "evidence_count": result.evidence_count,
+            "total_queries": result.total_queries,
             "total_steps": result.total_steps,
             "elapsed_s": result.elapsed_s,
+            "tool_counts": traj_logger.tool_counts,
+            "model_distribution": self._model_distribution,
             "frontier_resolved": final_search_state.frontier.resolved_count,
             "frontier_total": len(final_search_state.frontier.questions),
             "token_usage": token_dict,
             "token_phases": token_phases,
         })
         result.token_usage = token_dict
+        result.token_phases = token_phases
+        result.tool_counts = traj_logger.tool_counts
+        result.model_distribution = self._model_distribution
 
         try:
             workspace.save_turn_snapshot(
@@ -924,6 +959,12 @@ class SearchSession:
                     "coverage_score": result.coverage_score,
                     "evidence_count": result.evidence_count,
                     "elapsed_s": result.elapsed_s,
+                    "total_queries": result.total_queries,
+                    "total_steps": result.total_steps,
+                    "tool_counts": result.tool_counts,
+                    "token_usage": result.token_usage,
+                    "token_phases": result.token_phases,
+                    "model_distribution": result.model_distribution,
                 },
             )
         except Exception:
@@ -1383,7 +1424,10 @@ class SearchResult:
         self.elapsed_s = elapsed_s
         self.final_messages = final_messages or []
         self.access_task: asyncio.Task[None] | None = None
-        self.token_usage: dict[str, int] = {}
+        self.token_usage: dict[str, Any] = {}
+        self.token_phases: dict[str, Any] = {}
+        self.tool_counts: dict[str, int] = {}
+        self.model_distribution: dict[str, dict[str, str]] = {}
 
     def summary(self) -> str:
         tokens = self.token_usage.get("total_tokens", 0)

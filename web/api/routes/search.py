@@ -91,6 +91,9 @@ class RepairRequest(BaseModel):
 class RepairResponse(SearchResponse):
     task_ids: list[str]
     cells: list[RepairCellRequest]
+    planner: Literal["llm", "deterministic"] = "deterministic"
+    planning_latency_ms: int = 0
+    planning_warning: str | None = None
 
 
 class ResolveEvidenceRequest(RepairCellRequest):
@@ -287,14 +290,10 @@ async def _launch_search(
     return SearchResponse(session_id=session_id, status="running")
 
 
-def _prepare_repair_tasks(
+def _validate_repair_cells(
     state: Any,
     cells: list[RepairCellRequest],
-) -> tuple[list[str], list[str]]:
-    import time
-
-    from searchos.socm import FrontierTask, FrontierTaskStatus
-
+) -> list[RepairCellRequest]:
     repairable = {"missing", "uncertain", "hard_cell"}
     unique: list[RepairCellRequest] = []
     seen: set[tuple[str, str, str]] = set()
@@ -334,6 +333,39 @@ def _prepare_repair_tasks(
 
     if errors:
         raise HTTPException(422, detail=errors)
+    return unique
+
+
+def _prepare_repair_tasks(
+    state: Any,
+    cells: list[RepairCellRequest],
+    *,
+    plans: list[Any] | None = None,
+    planner: Literal["llm", "deterministic"] = "deterministic",
+) -> tuple[list[str], list[str]]:
+    import time
+
+    from searchos.harness.repair_planner import (
+        RepairTarget,
+        deterministic_repair_plan,
+        render_repair_task_prompt,
+        validate_repair_plan,
+    )
+    from searchos.socm import FrontierTask, FrontierTaskStatus
+
+    unique = _validate_repair_cells(state, cells)
+    repair_targets = [
+        RepairTarget(
+            table_id=cell.table_id,
+            entity=cell.entity,
+            attribute=cell.attribute,
+        )
+        for cell in unique
+    ]
+    task_plans = validate_repair_plan(
+        deterministic_repair_plan(repair_targets) if plans is None else plans,
+        repair_targets,
+    )
 
     requested_targets = {
         (cell.table_id, f"{cell.entity}.{cell.attribute}") for cell in unique
@@ -356,31 +388,23 @@ def _prepare_repair_tasks(
             existing.resolution = "superseded by user targeted repair"
             existing.updated_at = now
 
-    grouped: dict[tuple[str, str], list[str]] = {}
-    for cell in unique:
-        grouped.setdefault((cell.table_id, cell.entity), []).append(cell.attribute)
-
     task_ids: list[str] = []
     target_cells: list[str] = []
-    for (table_id, entity), attributes in grouped.items():
-        targets = [f"{entity}.{attribute}" for attribute in attributes]
-        target_cells.extend(f"{table_id}/{target}" for target in targets)
-        attribute_list = ", ".join(attributes)
+    for plan in task_plans:
+        targets = [f"{plan.entity}.{attribute}" for attribute in plan.attributes]
+        target_cells.extend(f"{plan.table_id}/{target}" for target in targets)
+        attribute_list = ", ".join(plan.attributes)
         task = FrontierTask(
             id=f"repair_{uuid.uuid4().hex[:10]}",
-            question=f"Repair {entity}: {attribute_list}",
-            task_prompt=(
-                f"Targeted repair for table {table_id!r}. Find and verify only "
-                f"{attribute_list} for entity {entity!r}. Prefer current, authoritative "
-                "sources and capture direct evidence for every target cell. Do not add "
-                "entities, columns, or investigate unrelated fields."
-            ),
+            question=plan.title or f"Repair {plan.entity}: {attribute_list}",
+            task_prompt=render_repair_task_prompt(plan),
             kind="search",
             priority=1.0,
             target_cells=targets,
-            table_id=table_id,
+            table_id=plan.table_id,
             agent_type="search_agent",
             created_by="user",
+            planner=planner,
         )
         accepted = state.frontier.add(task)
         if accepted is None:
@@ -393,6 +417,7 @@ def _prepare_repair_tasks(
 @router.post("/search/{session_id}/repair", response_model=RepairResponse)
 async def repair_cells(session_id: str, req: RepairRequest):
     """Run a scope-locked search for selected missing or weak coverage cells."""
+    from searchos.harness.repair_planner import RepairTarget, plan_repair_tasks
     from searchos.harness.telemetry.conversation_context import build_preamble
 
     prior = sessions.get(session_id)
@@ -403,7 +428,24 @@ async def repair_cells(session_id: str, req: RepairRequest):
         raise HTTPException(404, f"Search state for session {session_id} not found")
 
     init_search_provider(settings_store.store.models.search_provider)
-    task_ids, target_cells = _prepare_repair_tasks(state, req.cells)
+    validated_cells = _validate_repair_cells(state, req.cells)
+    planning = await plan_repair_tasks(
+        state,
+        [
+            RepairTarget(
+                table_id=cell.table_id,
+                entity=cell.entity,
+                attribute=cell.attribute,
+            )
+            for cell in validated_cells
+        ],
+    )
+    task_ids, target_cells = _prepare_repair_tasks(
+        state,
+        validated_cells,
+        plans=planning.tasks,
+        planner=planning.planner,
+    )
     context_preamble = build_preamble(
         [turn.model_dump() for turn in (req.history or [])],
     ) or None
@@ -424,6 +466,9 @@ async def repair_cells(session_id: str, req: RepairRequest):
         status=started.status,
         task_ids=task_ids,
         cells=req.cells,
+        planner=planning.planner,
+        planning_latency_ms=planning.latency_ms,
+        planning_warning=planning.warning,
     )
 
 
@@ -640,6 +685,9 @@ async def get_search_result(session_id: str):
         "eval_verdict": result.eval_verdict,
         "workspace_path": result.workspace_path,
         "token_usage": getattr(result, "token_usage", None),
+        "token_phases": getattr(result, "token_phases", None),
+        "tool_counts": getattr(result, "tool_counts", None),
+        "model_distribution": getattr(result, "model_distribution", None),
         "search_state": result.search_state.model_dump(),
     }
 
