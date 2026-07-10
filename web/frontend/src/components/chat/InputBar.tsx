@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { Send, Settings2 } from "lucide-react";
 
+import Select from "@/components/ui/Select";
+
 interface Props {
   onSubmit: (query: string, opts: { entities?: string[]; attrs?: string[]; type?: string }) => void;
   disabled?: boolean;
@@ -42,15 +44,17 @@ export default function InputBar({ onSubmit, disabled }: Props) {
             value={attrs}
             onChange={(e) => setAttrs(e.target.value)}
           />
-          <select
-            className="rounded bg-gray-100 px-3 py-1.5 text-gray-700 outline-none dark:bg-zinc-800 dark:text-zinc-300"
+          <Select
             value={taskType}
-            onChange={(e) => setTaskType(e.target.value)}
-          >
-            <option value="wide">Wide Search</option>
-            <option value="deep">Deep Search</option>
-            <option value="local">Local Search</option>
-          </select>
+            onChange={setTaskType}
+            ariaLabel="Search type"
+            className="w-full"
+            options={[
+              { value: "wide", label: "Wide Search" },
+              { value: "deep", label: "Deep Search" },
+              { value: "local", label: "Local Search" },
+            ]}
+          />
         </div>
       )}
       <form onSubmit={handleSubmit} className="flex items-center gap-2">

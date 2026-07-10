@@ -7,11 +7,10 @@ import { createProfile } from "@/lib/api";
 import type { ModelsView } from "@/lib/types";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import Toggle from "@/components/settings/controls/Toggle";
+import Select from "@/components/ui/Select";
 
 const inputCls =
   "surface w-full rounded-lg px-2.5 py-1.5 font-mono text-[12px] text-ink outline-none transition-colors placeholder:font-sans placeholder:text-ink-faint focus:border-accent disabled:opacity-40";
-const selectCls =
-  "surface w-full rounded-lg px-2.5 py-1.5 text-[12px] text-ink outline-none transition-colors focus:border-accent disabled:opacity-40";
 const NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
 
 /**
@@ -94,23 +93,33 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
           <>
             <label className="block">
               <span className="mb-1 block text-[11px] text-ink-faint">Provider</span>
-              <select value={providerRef} onChange={(e) => onProviderRef(e.target.value)} disabled={busy}
-                aria-label="Provider connection" className={selectCls}>
-                <option value="" disabled>Select a provider…</option>
-                {connNames.map((n) => <option key={n} value={n}>{conns[n].label || n}</option>)}
-              </select>
+              <Select
+                value={providerRef}
+                onChange={onProviderRef}
+                disabled={busy}
+                ariaLabel="Provider connection"
+                className="w-full"
+                options={[
+                  { value: "", label: "Select a provider...", disabled: true },
+                  ...connNames.map((name) => ({ value: name, label: conns[name].label || name })),
+                ]}
+              />
             </label>
             {keyChoices.length > 1 && (
               <label className="block">
                 <span className="mb-1 block text-[11px] text-ink-faint">API key</span>
-                <select value={keyEnv} onChange={(e) => setKeyEnv(e.target.value)} disabled={busy}
-                  aria-label="API key" className={selectCls}>
-                  {keyChoices.map((k) => (
-                    <option key={k.env} value={k.env}>
-                      {k.env}{k.env === primaryEnv ? " (default)" : ""}{k.key_set ? "" : " — not set"}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  value={keyEnv}
+                  onChange={setKeyEnv}
+                  disabled={busy}
+                  ariaLabel="API key"
+                  className="w-full"
+                  monospace
+                  options={keyChoices.map((key) => ({
+                    value: key.env,
+                    label: `${key.env}${key.env === primaryEnv ? " (default)" : ""}${key.key_set ? "" : " - not set"}`,
+                  }))}
+                />
               </label>
             )}
             <input value={name} onChange={(e) => setName(e.target.value)} disabled={busy}

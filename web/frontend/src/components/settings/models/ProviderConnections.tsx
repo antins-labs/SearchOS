@@ -13,14 +13,13 @@ import type { ModelsView, ProvidersResponse } from "@/lib/types";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import KeyEditor from "@/components/settings/models/KeyEditor";
 import SecretField from "@/components/settings/controls/SecretField";
+import Select from "@/components/ui/Select";
 
 const PROTOCOLS = ["openai_compatible", "openai", "anthropic"];
 const THINKING_STYLES = ["none", "chat_template_kwargs", "enable_thinking"];
 
 const inputCls =
   "surface w-full rounded-lg px-2.5 py-1.5 font-mono text-[12px] text-ink outline-none transition-colors placeholder:font-sans placeholder:text-ink-faint focus:border-accent disabled:opacity-40";
-const selectCls =
-  "surface w-full rounded-lg px-2.5 py-1.5 font-mono text-[12px] text-ink outline-none transition-colors focus:border-accent disabled:opacity-40";
 const NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
 const ENV_RE = /^[A-Z][A-Z0-9_]{0,63}$/;
 
@@ -156,23 +155,33 @@ export default function ProviderConnections() {
         <>
           <label className="block">
             <span className="mb-1 block text-[11px] text-ink-faint">Start from a preset (optional)</span>
-            <select value={f.template} onChange={(e) => onTemplate(e.target.value)} disabled={busy}
-              aria-label="Preset template" className={selectCls}>
-              <option value="custom">Custom (manual)</option>
-              {allPresets.map((p) => (
-                <option key={p.name} value={p.name}>{p.label} ({p.name})</option>
-              ))}
-            </select>
+            <Select
+              value={f.template}
+              onChange={onTemplate}
+              disabled={busy}
+              ariaLabel="Preset template"
+              className="w-full"
+              monospace
+              options={[
+                { value: "custom", label: "Custom (manual)" },
+                ...allPresets.map((p) => ({ value: p.name, label: `${p.label} (${p.name})` })),
+              ]}
+            />
           </label>
           <input value={f.name} onChange={(e) => patch({ name: e.target.value })} disabled={busy}
             placeholder="Connection name (e.g. my-antchat)" aria-label="Connection name"
             spellCheck={false} className={inputCls} />
         </>
       )}
-      <select value={f.protocol} onChange={(e) => patch({ protocol: e.target.value })} disabled={busy}
-        aria-label="Protocol" className={selectCls}>
-        {PROTOCOLS.map((v) => <option key={v} value={v}>{v}</option>)}
-      </select>
+      <Select
+        value={f.protocol}
+        onChange={(value) => patch({ protocol: value })}
+        disabled={busy}
+        ariaLabel="Protocol"
+        className="w-full"
+        monospace
+        options={PROTOCOLS.map((value) => ({ value, label: value }))}
+      />
       <input value={f.apiBase} onChange={(e) => patch({ apiBase: e.target.value })} disabled={busy}
         placeholder="API base (empty = SDK default)" aria-label="API base"
         spellCheck={false} className={inputCls} />
@@ -202,10 +211,15 @@ export default function ProviderConnections() {
       </div>
 
       {f.protocol !== "anthropic" && (
-        <select value={f.thinkingStyle} onChange={(e) => patch({ thinkingStyle: e.target.value })} disabled={busy}
-          aria-label="Thinking style" className={selectCls}>
-          {THINKING_STYLES.map((v) => <option key={v} value={v}>thinking: {v}</option>)}
-        </select>
+        <Select
+          value={f.thinkingStyle}
+          onChange={(value) => patch({ thinkingStyle: value })}
+          disabled={busy}
+          ariaLabel="Thinking style"
+          className="w-full"
+          monospace
+          options={THINKING_STYLES.map((value) => ({ value, label: `thinking: ${value}` }))}
+        />
       )}
       {f.target === "" && (
         <SecretField value={f.apiKey} onChange={(v) => patch({ apiKey: v })} disabled={busy}

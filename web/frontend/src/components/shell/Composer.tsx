@@ -5,6 +5,7 @@ import { ArrowUp, Gauge, KeyRound, Plus, SlidersHorizontal, Square, Table2, X } 
 
 import { useSettings } from "@/components/settings/SettingsProvider";
 import RunOverridesPopover from "@/components/settings/RunOverridesPopover";
+import Select from "@/components/ui/Select";
 
 export interface SubmitOpts {
   type?: string;
@@ -743,50 +744,50 @@ export default function Composer({
                     const fromAttrs = fromMeta?.attrs ?? [];
                     return (
                       <div key={rel.id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-1.5 text-[12px]">
-                        <select
+                        <Select
                           value={rel.fromDraftId}
-                          onChange={(e) => {
-                            const nextFrom = tableMetaByDraftId.get(e.target.value);
+                          onChange={(value) => {
+                            const nextFrom = tableMetaByDraftId.get(value);
                             updateRelation(rel.id, {
-                              fromDraftId: e.target.value,
+                              fromDraftId: value,
                               fromColumn: nextFrom?.attrs.find((attr) => attr !== nextFrom.primaryKey) ?? nextFrom?.primaryKey ?? "",
                             });
                           }}
-                          className="min-w-0 rounded-md border border-line bg-surface px-2 py-1 text-ink outline-none"
-                        >
-                          {tableMetas.map((meta) => (
-                            <option key={meta.draft.id} value={meta.draft.id}>{meta.label}</option>
-                          ))}
-                        </select>
-                        <select
+                          options={tableMetas.map((meta) => ({ value: meta.draft.id, label: meta.label }))}
+                          ariaLabel="Source table"
+                          className="w-full"
+                          size="sm"
+                        />
+                        <Select
                           value={fromAttrs.includes(rel.fromColumn) ? rel.fromColumn : fromAttrs[0] ?? ""}
-                          onChange={(e) => updateRelation(rel.id, { fromColumn: e.target.value })}
-                          className="min-w-0 rounded-md border border-line bg-surface px-2 py-1 text-ink outline-none"
-                        >
-                          {fromAttrs.map((attr) => (
-                            <option key={attr} value={attr}>{attr}</option>
-                          ))}
-                        </select>
-                        <select
+                          onChange={(value) => updateRelation(rel.id, { fromColumn: value })}
+                          options={fromAttrs.map((attr) => ({ value: attr, label: attr }))}
+                          ariaLabel="Foreign key column"
+                          className="w-full"
+                          size="sm"
+                        />
+                        <Select
                           value={rel.toDraftId}
-                          onChange={(e) => updateRelation(rel.id, { toDraftId: e.target.value })}
-                          className="min-w-0 rounded-md border border-line bg-surface px-2 py-1 text-ink outline-none"
-                        >
-                          {tableMetas.map((meta) => (
-                            <option key={meta.draft.id} value={meta.draft.id}>
-                              {meta.label}.{meta.primaryKey}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(value) => updateRelation(rel.id, { toDraftId: value })}
+                          options={tableMetas.map((meta) => ({
+                            value: meta.draft.id,
+                            label: `${meta.label}.${meta.primaryKey}`,
+                          }))}
+                          ariaLabel="Target table and primary key"
+                          className="w-full"
+                          size="sm"
+                        />
                         <div className="flex items-center gap-1">
-                          <select
+                          <Select
                             value={rel.kind}
-                            onChange={(e) => updateRelation(rel.id, { kind: e.target.value as RelationDraft["kind"] })}
-                            className="rounded-md border border-line bg-surface px-2 py-1 text-ink outline-none"
-                          >
-                            <option value="one_to_many">1:N</option>
-                            <option value="many_to_many">N:N</option>
-                          </select>
+                            onChange={(value) => updateRelation(rel.id, { kind: value as RelationDraft["kind"] })}
+                            options={[
+                              { value: "one_to_many", label: "1:N" },
+                              { value: "many_to_many", label: "N:N" },
+                            ]}
+                            ariaLabel="Relation type"
+                            size="sm"
+                          />
                           <button
                             type="button"
                             aria-label="Remove relation"
