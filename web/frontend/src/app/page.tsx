@@ -7,7 +7,7 @@ import { useSearch } from "@/hooks/useSearch";
 import { branchHistoryTurn, getWorkspaceFiles, listHistory, loadHistory, renameHistory, deleteHistory, resolveEvidence, steerSearch, stopSearch, type HistoryItem, type HistoryTurn } from "@/lib/api";
 import { deriveAnswer, foldWorkers } from "@/lib/derive";
 import type { FileNode, RepairCellTarget, SearchRequest, SearchState, WSEvent } from "@/lib/types";
-import type { Turn } from "@/lib/conversation";
+import { historyEventSegments, type Turn } from "@/lib/conversation";
 import type { SubmitOpts } from "@/components/shell/Composer";
 
 import HistoryRail from "@/components/shell/HistoryRail";
@@ -202,6 +202,9 @@ export default function Home() {
           relations: opts.relations,
           effort: overrides.effort,
           max_time: overrides.max_time,
+          skills: overrides.skills,
+          trusted_domains: overrides.trusted_domains,
+          excluded_domains: overrides.excluded_domains,
           follow_up_to: followUpTo,
           history,
         },
@@ -262,6 +265,9 @@ export default function Home() {
         cells: snapshots.map(({ table_id, entity, attribute }) => ({ table_id, entity, attribute })),
         effort: overrides.effort,
         max_time: overrides.max_time,
+        skills: overrides.skills,
+        trusted_domains: overrides.trusted_domains,
+        excluded_domains: overrides.excluded_domains,
         history,
       },
       {
@@ -407,9 +413,9 @@ export default function Home() {
         const isRunning = data.status === "running";
         // Restore the full dialogue: one Turn per reconstructed turn. Each
         // run appends a `task_start` trajectory event, so the flat event log
-        // splits into per-turn segments — every restored turn gets its own
-        // orchestration trace, same as a live run. Segments tail-align to
-        // turns (surplus leading segments fold into the first turn).
+        // splits into per-turn segments. Only segments that reached
+        // `task_complete` align with completed dialogue turns; interrupted
+        // runs must not shift another version's orchestration trace.
         const hist: HistoryTurn[] = data.turns.length ? data.turns : [{
           query: data.query,
           answer: data.answer ?? "",
@@ -418,22 +424,10 @@ export default function Home() {
           coverage_score: data.coverage_score,
           evidence_count: data.evidence_count,
         }];
-        const segments: WSEvent[][] = [];
-        for (const e of events) {
-          const d = (e.data ?? {}) as Record<string, unknown>;
-          const isBoundary = e.type === "trajectory" && d.type === "task_start";
-          if (isBoundary || segments.length === 0) segments.push([]);
-          segments[segments.length - 1].push(e);
-        }
+        const segments = historyEventSegments(events, hist.length);
         const last = hist.length - 1;
-        const segFor = (i: number): WSEvent[] => {
-          const idx = segments.length - (hist.length - i);
-          if (idx < 0) return [];
-          if (i === 0) return segments.slice(0, idx + 1).flat();
-          return segments[idx] ?? [];
-        };
         const restored: Turn[] = hist.map((h, i) => {
-          const segEvents = segFor(i);
+          const segEvents = segments[i] ?? [];
           const turnRunning = i === last && isRunning;
           return {
             id: i === last ? data.session_id : `${data.session_id}#${i}`,
@@ -702,6 +696,7 @@ export default function Home() {
             onReverifyEvidence={drawerEditable
               ? (target) => handleRepair(drawerTurn, [target])
               : undefined}
+            onSelectTurn={handleOpenDrawer}
             onBranchTurn={sessionActive ? undefined : handleBranchTurn}
             branchingTurnId={branchingTurnId}
             subagentsCollapsed={activityPreferences.subagentsCollapsed}

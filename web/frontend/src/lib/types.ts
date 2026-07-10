@@ -31,6 +31,8 @@ export interface SearchRequest {
   max_time?: number;
   effort?: EffortLevel;
   skills?: SkillOverrides;
+  trusted_domains?: string[];
+  excluded_domains?: string[];
   /** Follow-up: extend this prior session (same workspace + coverage table). */
   follow_up_to?: string;
   /** Prior turns echoed back so the orchestrator sees the conversation. */
@@ -48,6 +50,8 @@ export interface RepairRequest {
   max_time?: number;
   effort?: EffortLevel;
   skills?: SkillOverrides;
+  trusted_domains?: string[];
+  excluded_domains?: string[];
   history?: { query: string; answer: string }[];
 }
 
@@ -284,7 +288,7 @@ export interface FrontierTask {
   assigned_worker?: string;
   attempts?: number;
   created_by?: string;
-  planner?: "llm" | "deterministic" | "";
+  planner?: "orchestrator" | "llm" | "deterministic" | "";
   resolution: string;
 }
 

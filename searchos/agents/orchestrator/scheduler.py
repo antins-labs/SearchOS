@@ -50,6 +50,16 @@ class Scheduler:
         # oversells past max_parallel_agents.
         self._tick_lock = asyncio.Lock()
 
+    def allow_tasks(self, task_ids: list[str] | set[str]) -> None:
+        """Extend a targeted run's dynamic task allowlist.
+
+        Normal sessions use ``None`` and remain unrestricted. Repair sessions
+        start with an empty set; only tasks accepted from the scope-checked
+        ``enqueue_tasks`` call are admitted here.
+        """
+        if self._task_allowlist is not None:
+            self._task_allowlist.update(task_ids)
+
     # ---- automatic side-work (unchanged from old Broker) ----
 
     async def drop_blocked_cycles(self) -> dict[str, Any]:

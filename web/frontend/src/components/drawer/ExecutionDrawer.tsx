@@ -43,6 +43,7 @@ interface Props {
   onRepairCells?: (cells: RepairCellTarget[]) => void;
   onResolveEvidence?: (target: RepairCellTarget, evidenceId: string) => Promise<void>;
   onReverifyEvidence?: (target: RepairCellTarget) => void;
+  onSelectTurn?: (turnId: string) => void;
   onBranchTurn?: (turnId: string, focusComposer: boolean) => Promise<void> | void;
   branchingTurnId?: string | null;
   subagentsCollapsed: boolean;
@@ -80,6 +81,7 @@ export default function ExecutionDrawer({
   onRepairCells,
   onResolveEvidence,
   onReverifyEvidence,
+  onSelectTurn,
   onBranchTurn,
   branchingTurnId = null,
   subagentsCollapsed,
@@ -155,7 +157,7 @@ export default function ExecutionDrawer({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="isolate min-h-0 flex-1 overflow-y-auto">
         {/* sub-agents */}
         <div className="border-b border-line">
           <button
@@ -176,7 +178,7 @@ export default function ExecutionDrawer({
         </div>
 
         {/* tabs */}
-        <div role="tablist" aria-label="Activity views" className="sticky top-0 z-10 flex gap-1 overflow-x-auto border-b border-line bg-surface px-1 sm:px-3">
+        <div role="tablist" aria-label="Activity views" className="sticky top-0 z-50 flex gap-1 overflow-x-auto border-b border-line bg-surface px-1 sm:px-3">
           {TABS.map((t, index) => (
             <button
               key={t.id}
@@ -238,6 +240,7 @@ export default function ExecutionDrawer({
               turns={turns}
               initialTurnId={turn.id}
               busyTurnId={branchingTurnId}
+              onSelectTurn={onSelectTurn}
               onBranch={onBranchTurn}
             />
           )}

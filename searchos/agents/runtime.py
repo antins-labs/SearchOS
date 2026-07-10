@@ -231,6 +231,10 @@ _skill_registry_var: ContextVar[Any] = ContextVar("so_orch_skills", default=None
 _trajectory_logger_var: ContextVar[Any] = ContextVar("so_orch_traj", default=None)
 _conversation_logger_var: ContextVar[Any] = ContextVar("so_orch_conv", default=None)
 _query_var: ContextVar[str] = ContextVar("so_orch_query", default="")
+_repair_target_allowlist_var: ContextVar[set[str] | None] = ContextVar(
+    "so_orch_repair_target_allowlist",
+    default=None,
+)
 
 _task_pool_var: ContextVar[dict[str, Any] | None] = ContextVar("so_orch_task_pool", default=None)
 _completed_var: ContextVar[dict[str, Any] | None] = ContextVar("so_orch_completed", default=None)
@@ -367,6 +371,11 @@ class _Ctx:
         return _query_var.get()
 
     @property
+    def repair_target_allowlist(self) -> set[str] | None:
+        scope = _repair_target_allowlist_var.get()
+        return set(scope) if scope is not None else None
+
+    @property
     def budget_exhausted(self) -> bool:
         box = _budget_exhausted_var.get()
         return bool(box[0]) if box else False
@@ -395,6 +404,7 @@ def set_orchestrator_context(
     conversation_logger: Any = None,
     query: str = "",
     scheduler_task_allowlist: set[str] | None = None,
+    repair_target_allowlist: set[str] | None = None,
 ) -> None:
     """Bind runtime context for orchestrator tools in the current task."""
     _workspace_var.set(workspace)
@@ -410,6 +420,9 @@ def set_orchestrator_context(
     _trajectory_logger_var.set(trajectory_logger)
     _conversation_logger_var.set(conversation_logger)
     _query_var.set(query)
+    _repair_target_allowlist_var.set(
+        set(repair_target_allowlist) if repair_target_allowlist is not None else None
+    )
     _task_pool_var.set({})
     _completed_var.set({})
     _agent_graph_var.set({})
@@ -425,5 +438,8 @@ def set_orchestrator_context(
     # Scheduler (own tick lock, own WriterTriggerSensor stages), defeating
     # both the concurrency cap and the writer trigger memory.
     from searchos.agents.orchestrator.scheduler import Scheduler
-    _scheduler_var.set(Scheduler(task_allowlist=scheduler_task_allowlist))
+    task_allowlist = scheduler_task_allowlist
+    if repair_target_allowlist is not None and task_allowlist is None:
+        task_allowlist = set()
+    _scheduler_var.set(Scheduler(task_allowlist=task_allowlist))
     _budget_exhausted_var.set([False])

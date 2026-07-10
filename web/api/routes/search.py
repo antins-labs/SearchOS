@@ -62,6 +62,8 @@ class SearchRequest(BaseModel):
     max_time: int | None = None       # None → stored default → settings.default_max_time_s
     effort: Literal["low", "medium", "high", "max"] | None = None  # this run only
     skills: SkillOverrides | None = None
+    trusted_domains: list[str] = Field(default_factory=list, max_length=20)
+    excluded_domains: list[str] = Field(default_factory=list, max_length=50)
     # Follow-up (same contract as the TUI): reuse the prior session's
     # workspace + SearchState so the coverage table carries over, and feed the
     # orchestrator the conversation history as a context preamble.
@@ -81,17 +83,22 @@ class RepairCellRequest(BaseModel):
 
 
 class RepairRequest(BaseModel):
-    cells: list[RepairCellRequest] = Field(min_length=1, max_length=20)
+    # The selected cells are validated against the persisted CoverageMap below,
+    # so the real scope bound is the session itself. Repair-all must not fail at
+    # an arbitrary request-size threshold before that validation runs.
+    cells: list[RepairCellRequest] = Field(min_length=1)
     max_time: int | None = None
     effort: Literal["low", "medium", "high", "max"] | None = None
     skills: SkillOverrides | None = None
+    trusted_domains: list[str] = Field(default_factory=list, max_length=20)
+    excluded_domains: list[str] = Field(default_factory=list, max_length=50)
     history: list[HistoryTurn] | None = None
 
 
 class RepairResponse(SearchResponse):
     task_ids: list[str]
     cells: list[RepairCellRequest]
-    planner: Literal["llm", "deterministic"] = "deterministic"
+    planner: Literal["orchestrator", "llm", "deterministic"] = "orchestrator"
     planning_latency_ms: int = 0
     planning_warning: str | None = None
 
@@ -269,6 +276,8 @@ async def _launch_search(
                 follow_up=follow_up,
                 targeted_repair_task_ids=targeted_repair_task_ids,
                 targeted_repair_cells=targeted_repair_cells,
+                trusted_domains=req.trusted_domains,
+                excluded_domains=req.excluded_domains,
                 **skill_kwargs,
             )
             sessions[session_id]["result"] = result
@@ -417,7 +426,6 @@ def _prepare_repair_tasks(
 @router.post("/search/{session_id}/repair", response_model=RepairResponse)
 async def repair_cells(session_id: str, req: RepairRequest):
     """Run a scope-locked search for selected missing or weak coverage cells."""
-    from searchos.harness.repair_planner import RepairTarget, plan_repair_tasks
     from searchos.harness.telemetry.conversation_context import build_preamble
 
     prior = sessions.get(session_id)
@@ -429,23 +437,10 @@ async def repair_cells(session_id: str, req: RepairRequest):
 
     init_search_provider(settings_store.store.models.search_provider)
     validated_cells = _validate_repair_cells(state, req.cells)
-    planning = await plan_repair_tasks(
-        state,
-        [
-            RepairTarget(
-                table_id=cell.table_id,
-                entity=cell.entity,
-                attribute=cell.attribute,
-            )
-            for cell in validated_cells
-        ],
-    )
-    task_ids, target_cells = _prepare_repair_tasks(
-        state,
-        validated_cells,
-        plans=planning.tasks,
-        planner=planning.planner,
-    )
+    target_cells = [
+        f"{cell.table_id}/{cell.entity}.{cell.attribute}"
+        for cell in validated_cells
+    ]
     context_preamble = build_preamble(
         [turn.model_dump() for turn in (req.history or [])],
     ) or None
@@ -458,17 +453,14 @@ async def repair_cells(session_id: str, req: RepairRequest):
         context_preamble=context_preamble,
         follow_up=True,
         query=query,
-        targeted_repair_task_ids=set(task_ids),
         targeted_repair_cells=target_cells,
     )
     return RepairResponse(
         session_id=started.session_id,
         status=started.status,
-        task_ids=task_ids,
+        task_ids=[],
         cells=req.cells,
-        planner=planning.planner,
-        planning_latency_ms=planning.latency_ms,
-        planning_warning=planning.warning,
+        planner="orchestrator",
     )
 
 

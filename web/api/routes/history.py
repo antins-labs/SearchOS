@@ -146,7 +146,12 @@ def _trajectory_records_for_turn(
     turn_index: int,
     turn_count: int,
 ) -> list[dict[str, Any]]:
-    """Return the trajectory segment aligned to one reconstructed turn."""
+    """Return the successful trajectory segment aligned to one dialogue turn.
+
+    Not every ``task_start`` becomes a completed conversation turn. Interrupted
+    runs have no ``task_complete`` and must not shift later turns or be folded
+    into the first turn when a historical version is copied.
+    """
     trajectory = ws / "trajectory.jsonl"
     if not trajectory.exists() or turn_count <= 0:
         return []
@@ -161,12 +166,17 @@ def _trajectory_records_for_turn(
             segments.append([])
         segments[-1].append(record)
 
-    segment_index = len(segments) - (turn_count - turn_index)
-    if segment_index < 0 or segment_index >= len(segments):
+    completed = [
+        segment
+        for segment in segments
+        if any(record.get("type") == "task_complete" for record in segment)
+    ]
+    candidates = completed or segments
+    aligned = candidates[-turn_count:]
+    aligned_index = turn_index - (turn_count - len(aligned))
+    if aligned_index < 0 or aligned_index >= len(aligned):
         return []
-    if turn_index == 0:
-        return [record for segment in segments[:segment_index + 1] for record in segment]
-    return segments[segment_index]
+    return aligned[aligned_index]
 
 
 def _write_branch_trajectory(

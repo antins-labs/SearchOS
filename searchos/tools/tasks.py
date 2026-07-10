@@ -341,6 +341,55 @@ async def enqueue_tasks(items_json: str) -> str:
             if not task_text:
                 errors.append(f"item[{i}]: 'task' is required")
                 continue
+            target_table = str(
+                item.get("target_table") or item.get("table_id") or ""
+            ).strip()
+            tcells = _coerce_str_list(item.get("target_cells"))
+            bad_cells = [c for c in tcells if "." not in c]
+            if bad_cells:
+                errors.append(
+                    f"item[{i}]: dropped target_cells entries not in "
+                    f"'Entity.Attribute' form: {bad_cells!r}"
+                )
+                tcells = [c for c in tcells if "." in c]
+
+            repair_scope = _ctx.repair_target_allowlist
+            if repair_scope is not None:
+                if kind != "search" or agent_type != "search_agent":
+                    rejected.append({
+                        "index": i,
+                        "reason": "targeted repair only permits search_agent tasks",
+                    })
+                    continue
+                if not target_table or not tcells:
+                    rejected.append({
+                        "index": i,
+                        "reason": (
+                            "targeted repair requires target_table and explicit "
+                            "target_cells"
+                        ),
+                    })
+                    continue
+                canonical: set[str] = set()
+                normalized_cells: list[str] = []
+                for cell in tcells:
+                    if "/" in cell:
+                        cell_table, short_cell = cell.split("/", 1)
+                        canonical.add(cell)
+                        normalized_cells.append(
+                            short_cell if cell_table == target_table else cell
+                        )
+                    else:
+                        canonical.add(f"{target_table}/{cell}")
+                        normalized_cells.append(cell)
+                outside = sorted(canonical - repair_scope)
+                if outside:
+                    rejected.append({
+                        "index": i,
+                        "reason": f"target cells outside repair allowlist: {outside}",
+                    })
+                    continue
+                tcells = normalized_cells
             raw_skills = item.get("skills") or []
             if isinstance(raw_skills, str):
                 raw_skills = [s.strip() for s in raw_skills.split(",") if s.strip()]
@@ -370,9 +419,8 @@ async def enqueue_tasks(items_json: str) -> str:
             if kind == "search":
                 reason = _task_redundancy_reason(
                     s,
-                    target_cells=list(item.get("target_cells") or []),
-                    table_id=str(item.get("target_table")
-                                 or item.get("table_id") or "").strip(),
+                    target_cells=tcells,
+                    table_id=target_table,
                 )
                 if reason:
                     rejected.append({
@@ -384,14 +432,6 @@ async def enqueue_tasks(items_json: str) -> str:
                     })
                     continue
             new_id = item.get("id") or f"t_{uuid.uuid4().hex[:8]}"
-            tcells = _coerce_str_list(item.get("target_cells"))
-            bad_cells = [c for c in tcells if "." not in c]
-            if bad_cells:
-                errors.append(
-                    f"item[{i}]: dropped target_cells entries not in "
-                    f"'Entity.Attribute' form: {bad_cells!r}"
-                )
-                tcells = [c for c in tcells if "." in c]
             ft = FrontierTask(
                 id=new_id,
                 question=task_text[:200],
@@ -403,10 +443,11 @@ async def enqueue_tasks(items_json: str) -> str:
                 depth=int(item.get("depth", 0)),
                 blocked_by=_coerce_str_list(item.get("blocked_by")),
                 target_cells=tcells,
-                table_id=str(item.get("target_table") or item.get("table_id") or "").strip(),
+                table_id=target_table,
                 agent_type=agent_type,
                 skills=skills,
                 created_by=str(item.get("created_by", "orchestrator")),
+                planner="orchestrator" if repair_scope is not None else "",
             )
             accepted = s.frontier.add(ft)
             if accepted is None:
@@ -426,9 +467,9 @@ async def enqueue_tasks(items_json: str) -> str:
     }
     if queued:
         try:
-            response["scheduler_actions"] = _compact_scheduler_actions(
-                await _scheduler().tick()
-            )
+            scheduler = _scheduler()
+            scheduler.allow_tasks(queued)
+            response["scheduler_actions"] = _compact_scheduler_actions(await scheduler.tick())
         except Exception:  # noqa: BLE001 — tick 失败不应吞掉入队结果
             logger.warning("post-enqueue scheduler tick failed", exc_info=True)
     # Expose pool capacity so orchestrator can decide split granularity.

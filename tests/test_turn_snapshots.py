@@ -52,6 +52,28 @@ def test_workspace_persists_snapshots_by_successful_turn(tmp_path):
     assert second_data["coverage_score"] == 1.0
 
 
+def test_interrupted_run_does_not_create_snapshot_index_gap(tmp_path):
+    workspace = WorkspaceManager(tmp_path, "session")
+    workspace.create()
+    workspace.trajectory_path.write_text(
+        "\n".join([
+            json.dumps({"type": "task_start", "query": "first"}),
+            _complete_event("first"),
+        ]) + "\n",
+        encoding="utf-8",
+    )
+    first = workspace.save_turn_snapshot("first", SearchState(intent="first"))
+
+    with workspace.trajectory_path.open("a", encoding="utf-8") as stream:
+        stream.write(json.dumps({"type": "task_start", "query": "abandoned"}) + "\n")
+        stream.write(json.dumps({"type": "task_start", "query": "second"}) + "\n")
+        stream.write(_complete_event("second") + "\n")
+    second = workspace.save_turn_snapshot("second", SearchState(intent="second"))
+
+    assert first.name == "0001.json"
+    assert second.name == "0002.json"
+
+
 def test_turn_views_never_reuses_latest_state_for_earlier_legacy_turns():
     turns = [
         {"query": "first", "answer": "a"},
@@ -146,6 +168,13 @@ def test_trajectory_turn_segments_preserve_full_tool_payload(tmp_path):
             "observation": "first full output",
         },
         {"type": "task_complete", "session_id": "source"},
+        {"type": "task_start", "query": "interrupted", "session_id": "source"},
+        {
+            "type": "step",
+            "agent": "orchestrator",
+            "action": {"name": "search", "args": {"query": "must not copy"}},
+            "observation": "abandoned output",
+        },
         {"type": "task_start", "query": "second", "session_id": "source"},
         {
             "type": "step",
@@ -163,9 +192,13 @@ def test_trajectory_turn_segments_preserve_full_tool_payload(tmp_path):
         encoding="utf-8",
     )
 
+    first = _trajectory_records_for_turn(tmp_path, 0, 2)
     second = _trajectory_records_for_turn(tmp_path, 1, 2)
 
+    assert [record["type"] for record in first] == ["task_start", "step", "task_complete"]
+    assert first[0]["query"] == "first"
     assert [record["type"] for record in second] == ["task_start", "step", "task_complete"]
+    assert second[0]["query"] == "second"
     assert second[1]["action"]["args"]["id_or_url"] == "https://example.com"
     assert second[1]["observation"] == "second full output"
 
@@ -256,6 +289,15 @@ async def test_history_turn_branch_is_independent_and_restorable(tmp_path, monke
     assert branch_records[1]["action"]["args"]["query"] == "full original query"
     assert branch_records[1]["observation"] == "full original tool output"
     assert (branch.path / "turn_snapshots" / "0001.json").exists()
+
+    loaded = await history.load_history(response.session_id)
+    copied_step = next(
+        event["data"] for event in loaded["events"]
+        if event["data"].get("type") == "step"
+    )
+    assert len(loaded["turns"]) == 1
+    assert copied_step["action"]["args"]["query"] == "full original query"
+    assert copied_step["observation"] == "full original tool output"
 
 
 @pytest.mark.asyncio

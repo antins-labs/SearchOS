@@ -21,6 +21,7 @@ interface Props {
   turns: Turn[];
   initialTurnId: string;
   busyTurnId?: string | null;
+  onSelectTurn?: (turnId: string) => void;
   onBranch?: (turnId: string, focusComposer: boolean) => Promise<void> | void;
 }
 
@@ -63,7 +64,13 @@ function ChangeRow({ change }: { change: CoverageCellDiff }) {
   );
 }
 
-export default function VersionsPanel({ turns, initialTurnId, busyTurnId = null, onBranch }: Props) {
+export default function VersionsPanel({
+  turns,
+  initialTurnId,
+  busyTurnId = null,
+  onSelectTurn,
+  onBranch,
+}: Props) {
   const initialIndex = Math.max(0, turns.findIndex((turn) => turn.id === initialTurnId));
   const [selectedIndex, setSelectedIndex] = useState(initialIndex);
   const [showAll, setShowAll] = useState(false);
@@ -78,6 +85,14 @@ export default function VersionsPanel({ turns, initialTurnId, busyTurnId = null,
   const selectedBusy = selected?.id === busyTurnId;
   const canBranch = !!selected?.sessionId && !!selected.searchState && selected.status === "completed" && !!onBranch;
 
+  const selectVersion = (index: number) => {
+    const target = turns[index];
+    if (!target) return;
+    setSelectedIndex(index);
+    setShowAll(false);
+    onSelectTurn?.(target.id);
+  };
+
   const onVersionKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     let next = index;
     if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (index + 1) % turns.length;
@@ -86,9 +101,10 @@ export default function VersionsPanel({ turns, initialTurnId, busyTurnId = null,
     else if (event.key === "End") next = turns.length - 1;
     else return;
     event.preventDefault();
-    setSelectedIndex(next);
-    setShowAll(false);
-    document.getElementById(`research-version-${next}`)?.focus();
+    selectVersion(next);
+    window.requestAnimationFrame(() => {
+      document.getElementById(`research-version-${next}`)?.focus();
+    });
   };
 
   if (!selected) return <div className="p-4 text-[13px] text-ink-faint">No research versions yet</div>;
@@ -110,7 +126,7 @@ export default function VersionsPanel({ turns, initialTurnId, busyTurnId = null,
                 aria-selected={selectedVersion}
                 tabIndex={selectedVersion ? 0 : -1}
                 title={turn.query}
-                onClick={() => { setSelectedIndex(index); setShowAll(false); }}
+                onClick={() => selectVersion(index)}
                 onKeyDown={(event) => onVersionKeyDown(event, index)}
                 className={`flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-[12px] transition-colors ${
                   selectedVersion

@@ -5,8 +5,10 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import sys
 from pathlib import Path
+from typing import Any, cast
 from unittest.mock import AsyncMock
 
 import pytest
@@ -19,7 +21,8 @@ for path in (str(_REPO), str(_REPO / "web")):
 
 from api.routes import search
 from searchos.agents.orchestrator.scheduler import Scheduler
-from searchos.socm import CellStatus, FrontierTask, SearchState
+from searchos.socm import CellStatus, FrontierTask, FrontierTaskStatus, SearchState
+from searchos.socm.workspace import WorkspaceManager
 
 
 def _state() -> SearchState:
@@ -40,6 +43,14 @@ def _cell(entity: str, attribute: str) -> search.RepairCellRequest:
         entity=entity,
         attribute=attribute,
     )
+
+
+def test_repair_request_accepts_repair_all_selection():
+    cells = [_cell(f"Entity {index}", "revenue") for index in range(42)]
+
+    request = search.RepairRequest(cells=cells)
+
+    assert len(request.cells) == 42
 
 
 def test_prepare_repair_tasks_groups_by_table_and_entity_and_keeps_scope():
@@ -132,9 +143,7 @@ def test_prepare_repair_tasks_accepts_a_filled_conflicting_cell():
     assert targets == ["_default/Acme.revenue"]
 
 
-def test_repair_endpoint_passes_an_exact_scheduler_allowlist(monkeypatch):
-    from searchos.harness import repair_planner
-
+def test_repair_endpoint_delegates_exact_cell_allowlist_to_orchestrator(monkeypatch):
     state = _state()
     captured: dict[str, object] = {}
 
@@ -145,30 +154,6 @@ def test_repair_endpoint_passes_an_exact_scheduler_allowlist(monkeypatch):
     monkeypatch.setattr(search, "_load_prior_state", lambda _session_id: state)
     monkeypatch.setattr(search, "_launch_search", fake_launch)
     monkeypatch.setattr(search, "init_search_provider", lambda _provider: None)
-    monkeypatch.setattr(
-        repair_planner,
-        "plan_repair_tasks",
-        AsyncMock(return_value=repair_planner.RepairPlanningOutcome(
-            planner="llm",
-            latency_ms=17,
-            tasks=[
-                repair_planner.RepairTaskPlan(
-                    table_id="_default",
-                    entity="Acme",
-                    attributes=["revenue"],
-                    title="Verify Acme revenue",
-                    search_queries=["Acme official revenue"],
-                ),
-                repair_planner.RepairTaskPlan(
-                    table_id="_default",
-                    entity="Beta",
-                    attributes=["employees"],
-                    title="Verify Beta employees",
-                    search_queries=["Beta official employee count"],
-                ),
-            ],
-        )),
-    )
     search.sessions.clear()
 
     response = asyncio.run(search.repair_cells(
@@ -177,18 +162,73 @@ def test_repair_endpoint_passes_an_exact_scheduler_allowlist(monkeypatch):
     ))
 
     assert response.status == "running"
-    assert response.planner == "llm"
-    assert response.planning_latency_ms == 17
-    assert len(response.task_ids) == 2
-    assert captured["targeted_repair_task_ids"] == set(response.task_ids)
+    assert response.planner == "orchestrator"
+    assert response.planning_latency_ms == 0
+    assert response.task_ids == []
+    assert "targeted_repair_task_ids" not in captured
     assert captured["targeted_repair_cells"] == [
         "_default/Acme.revenue",
         "_default/Beta.employees",
     ]
     assert captured["follow_up"] is True
-    repair_tasks = [task for task in state.frontier.questions if task.id in response.task_ids]
-    assert all(task.planner == "llm" for task in repair_tasks)
-    assert "Acme official revenue" in repair_tasks[0].task_prompt
+    assert not any(task.created_by == "user" for task in state.frontier.questions)
+
+
+def test_orchestrator_repair_enqueue_is_scope_checked_and_dynamically_allowed(
+    tmp_path,
+    monkeypatch,
+):
+    from searchos.agents.runtime import set_orchestrator_context
+    from searchos.tools import tasks as task_tools
+
+    workspace = WorkspaceManager(tmp_path, "orchestrator-repair")
+    workspace.create()
+    workspace.save_state(_state())
+    set_orchestrator_context(
+        workspace=workspace,
+        model=cast(Any, object()),
+        repair_target_allowlist={"_default/Acme.revenue"},
+    )
+
+    class FakeScheduler:
+        def __init__(self):
+            self.allowed: list[str] = []
+
+        def allow_tasks(self, task_ids):
+            self.allowed.extend(task_ids)
+
+        async def tick(self):
+            return {}
+
+    scheduler = FakeScheduler()
+    monkeypatch.setattr(task_tools, "_scheduler", lambda: scheduler)
+    payload = [{
+        "agent_type": "search_agent",
+        "task": "Repair Acme revenue from an authoritative source",
+        "target_table": "_default",
+        "target_cells": ["_default/Acme.revenue"],
+    }, {
+        "agent_type": "search_agent",
+        "task": "Also investigate an unselected cell",
+        "target_table": "_default",
+        "target_cells": ["Beta.employees"],
+    }]
+
+    result = json.loads(asyncio.run(task_tools.enqueue_tasks.ainvoke({
+        "items_json": json.dumps(payload),
+    })))
+
+    assert len(result["queued"]) == 1
+    assert len(result["rejected"]) == 1
+    assert "outside repair allowlist" in result["rejected"][0]["reason"]
+    assert scheduler.allowed == result["queued"]
+    queued = next(
+        task
+        for task in workspace.load_state().frontier.questions
+        if task.id in result["queued"]
+    )
+    assert queued.target_cells == ["Acme.revenue"]
+    assert queued.planner == "orchestrator"
 
 
 def test_repair_endpoint_rejects_running_session():
@@ -202,6 +242,56 @@ def test_repair_endpoint_rejects_running_session():
         assert exc.value.status_code == 409
     finally:
         search.sessions.pop("busy", None)
+
+
+def test_looped_repair_agent_does_not_leave_frontier_task_running(tmp_path):
+    from searchos.agents.orchestrator.lifecycle import _compute_agent_report
+    from searchos.agents.runtime import _ctx, set_orchestrator_context
+
+    workspace = WorkspaceManager(tmp_path, "repair-session")
+    workspace.create()
+    state = _state()
+    state.frontier.add(FrontierTask(
+        id="repair-task",
+        question="Repair Acme revenue",
+        status=FrontierTaskStatus.RUNNING,
+        assigned_agent_id="search_agent",
+        attempts=1,
+        target_cells=["Acme.revenue"],
+        table_id="_default",
+        created_by="user",
+    ))
+    state.agent_status["search-agent-thread"] = "looped"
+    workspace.save_state(state)
+
+    set_orchestrator_context(
+        workspace=workspace,
+        model=cast(Any, object()),
+        scheduler_task_allowlist={"repair-task"},
+    )
+    _ctx.agent_graphs["search_agent"] = {
+        "agent_type": "search_agent",
+        "assigned_task_id": "repair-task",
+        "extraction_mw": None,
+    }
+
+    report = _compute_agent_report(
+        agent_id="search_agent",
+        thread_id="search-agent-thread",
+        pre_snapshot={"evidence_ids": set(), "filled_keys": set()},
+        started_at=0,
+        status="completed",
+        result="Completed",
+        last_ai_text="Found an answer but produced no new evidence.",
+    )
+
+    repair = next(
+        task for task in workspace.load_state().frontier.questions
+        if task.id == "repair-task"
+    )
+    assert report.status == "looped"
+    assert repair.status == FrontierTaskStatus.PENDING
+    assert repair.assigned_agent_id == ""
 
 
 def test_targeted_scheduler_disables_scope_expanding_stages(monkeypatch):

@@ -669,9 +669,10 @@ class HarnessMiddleware(_AgentMiddlewareBase):
                 "reasoning": reasoning,
                 "action": {
                     "name": tool_name,
-                    "args": str(self._extract_tool_input(request))[:200],
+                    "args": self._extract_tool_input(request),
                 },
-                "observation": obs_text[:500],
+                "observation": obs_text,
+                "observation_preview": obs_text[:500],
                 "state_delta": delta.model_dump(),
                 "step_value": step_value,
             }

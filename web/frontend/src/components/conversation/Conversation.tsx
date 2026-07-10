@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, CheckCircle2, Loader2, Search, Wrench, WifiOff } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronDown, Layers3, Loader2, Search, Wrench, WifiOff } from "lucide-react";
 import Composer, { type SubmitOpts } from "@/components/shell/Composer";
 import OrchestrationCard from "./OrchestrationCard";
 import Answer, { cleanAnswer } from "./Answer";
@@ -227,6 +227,7 @@ function compactValue(value: CoverageCell["value"] | undefined): string {
 }
 
 function RepairSummary({ turn }: { turn: Turn }) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const state = turn.searchState;
   const repair = turn.repair;
   if (!repair) return null;
@@ -249,26 +250,87 @@ function RepairSummary({ turn }: { turn: Turn }) {
     return { target, current, evidenceCount, changed };
   });
   const filled = rows.filter((row) => row.current?.status === "filled").length;
+  const remaining = rows.length - filled;
+  const changed = rows.filter((row) => row.changed).length;
   const evidenceCount = rows.reduce((sum, row) => sum + row.evidenceCount, 0);
+  const largeRepair = rows.length > 8;
+  const progress = rows.length ? Math.round((filled / rows.length) * 100) : 0;
+  const orderedRows = largeRepair
+    ? [...rows].sort((a, b) => {
+        const aFilled = a.current?.status === "filled" ? 1 : 0;
+        const bFilled = b.current?.status === "filled" ? 1 : 0;
+        return aFilled - bFilled || Number(b.changed) - Number(a.changed);
+      })
+    : rows;
+  const unresolvedPreview = orderedRows.filter((row) => row.current?.status !== "filled").slice(0, 3);
+  const showRows = !largeRepair || detailsOpen;
 
   return (
     <section className="mb-5 border-y border-line py-3" aria-label="Repair results">
-      <div className="mb-2.5 flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Wrench className="text-accent-ink" size={15} />
         <h3 className="text-[13px] font-semibold text-ink">Targeted repair</h3>
-        <span className="text-[12px] text-ink-dim">
-          {filled}/{rows.length} filled · {evidenceCount} new {evidenceCount === 1 ? "source" : "sources"}
-        </span>
         {repair.planner && (
           <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] text-ink-faint">
-            {repair.planner === "llm" ? "LLM planned" : "Safe fallback"}
-            {typeof repair.planningLatencyMs === "number" ? ` · ${repair.planningLatencyMs} ms` : ""}
+            {repair.planner === "orchestrator"
+              ? "Orchestrator planned"
+              : repair.planner === "llm" ? "LLM planned" : "Safe fallback"}
+            {repair.planner !== "orchestrator" && typeof repair.planningLatencyMs === "number"
+              ? ` · ${repair.planningLatencyMs} ms`
+              : ""}
           </span>
         )}
         {turn.status === "running" && <Loader2 className="ml-auto animate-spin text-accent-ink" size={14} />}
       </div>
-      <div className="divide-y divide-line">
-        {rows.map(({ target, current, evidenceCount: cellEvidence, changed }) => {
+
+      <div className="mt-3">
+        <div
+          role="progressbar"
+          aria-label="Repair completion"
+          aria-valuemin={0}
+          aria-valuemax={rows.length}
+          aria-valuenow={filled}
+          className="h-1.5 overflow-hidden rounded-full bg-surface-2"
+        >
+          <div className="h-full rounded-full bg-ok transition-[width] duration-300" style={{ width: `${progress}%` }} />
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11.5px] text-ink-dim">
+          <span><b className="font-semibold text-ok">{filled}</b> filled</span>
+          <span><b className={`font-semibold ${remaining ? "text-warn" : "text-ink"}`}>{remaining}</b> remaining</span>
+          <span><b className="font-semibold text-ink">{changed}</b> changed</span>
+          <span><b className="font-semibold text-ink">{evidenceCount}</b> new {evidenceCount === 1 ? "source" : "sources"}</span>
+          <span className="ml-auto tabular-nums text-ink-faint">{progress}%</span>
+        </div>
+      </div>
+
+      {largeRepair && !detailsOpen && unresolvedPreview.length > 0 && (
+        <div className="mt-2.5 flex min-w-0 items-center gap-2 text-[11px] text-ink-faint">
+          <Search size={12} className="shrink-0 text-warn" />
+          <span className="shrink-0">Needs attention</span>
+          <span className="min-w-0 truncate text-ink-dim">
+            {unresolvedPreview.map(({ target }) => `${target.entity} · ${target.attribute}`).join("  /  ")}
+          </span>
+          {remaining > unresolvedPreview.length && <span className="shrink-0">+{remaining - unresolvedPreview.length}</span>}
+        </div>
+      )}
+
+      {largeRepair && (
+        <button
+          type="button"
+          aria-expanded={detailsOpen}
+          onClick={() => setDetailsOpen((value) => !value)}
+          className="mt-3 flex w-full items-center gap-2 border-t border-line pt-2.5 text-left text-[12px] text-ink-dim transition-colors hover:text-ink"
+        >
+          <Layers3 size={13} className="text-accent-ink" />
+          <span>{detailsOpen ? "Hide cell details" : `View ${rows.length} cell details`}</span>
+          {!detailsOpen && remaining > 0 && <span className="text-warn">{remaining} unresolved</span>}
+          <ChevronDown size={14} className={`ml-auto text-ink-faint transition-transform ${detailsOpen ? "rotate-180" : ""}`} />
+        </button>
+      )}
+
+      {showRows && (
+        <div className={`divide-y divide-line ${largeRepair ? "mt-2 max-h-[360px] overflow-y-auto pr-1" : "mt-2.5"}`}>
+        {orderedRows.map(({ target, current, evidenceCount: cellEvidence, changed: cellChanged }) => {
           const beforeStatus = REPAIR_STATUS[target.before.status];
           const afterStatus = REPAIR_STATUS[current?.status ?? target.before.status];
           return (
@@ -281,7 +343,7 @@ function RepairSummary({ turn }: { turn: Turn }) {
                   <span className={beforeStatus.className}>{beforeStatus.label}</span>
                   <ArrowRight className="shrink-0 text-ink-faint" size={12} />
                   <span className={afterStatus.className}>{afterStatus.label}</span>
-                  {changed && current && (
+                  {cellChanged && current && (
                     <span className="min-w-0 truncate text-ink-faint" title={compactValue(current.value)}>
                       {compactValue(target.before.value)} → {compactValue(current.value)}
                     </span>
@@ -295,7 +357,8 @@ function RepairSummary({ turn }: { turn: Turn }) {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </section>
   );
 }

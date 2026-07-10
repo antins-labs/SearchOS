@@ -14,12 +14,15 @@ import {
 import { CheckCircle2, CircleAlert, Info, X } from "lucide-react";
 
 import { getSettings } from "@/lib/api";
-import type { EffortLevel, SettingsData } from "@/lib/types";
+import type { EffortLevel, SettingsData, SkillOverrides } from "@/lib/types";
 import MaxEffortAtmosphere from "@/components/effects/MaxEffortAtmosphere";
 
 export interface RunOverrides {
   effort?: EffortLevel;
   max_time?: number;
+  skills?: SkillOverrides;
+  trusted_domains?: string[];
+  excluded_domains?: string[];
 }
 
 export interface UiPrefs {

@@ -735,6 +735,14 @@ def _compute_agent_report(
         return SearchReport(agent_id=agent_id, status=status,
                             result=result, duration_s=duration_s)
 
+    state = _ctx.workspace.load_state()
+
+    # Sensor signals are the final run outcome. Apply them before deciding
+    # whether the bound Frontier task completed or needs to be recycled.
+    sensor_status = state.agent_status.get(thread_id)
+    if sensor_status == "looped":
+        status = "looped"
+
     # Agent 没有正常完成时回收其绑定任务：留在 RUNNING 会让后续同 target 的
     # 重派被 _find_duplicate 判重而静默拒绝，目标永远得不到验证。
     if status in ("error", "failed", "looped"):
@@ -745,13 +753,7 @@ def _compute_agent_report(
             )
         if bound_task_id:
             _recycle_failed_task(bound_task_id, agent_id, status, result)
-
-    state = _ctx.workspace.load_state()
-
-    # Sensor-driven status override (LoopSensor sets "looped")
-    sensor_status = state.agent_status.get(thread_id)
-    if sensor_status == "looped":
-        status = "looped"
+            state = _ctx.workspace.load_state()
 
     if agent_type == "explore_agent":
         # Stash the briefing as a synthetic page so create_schema can

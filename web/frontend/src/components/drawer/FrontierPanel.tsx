@@ -53,8 +53,10 @@ function TaskRow({ task }: { task: FrontierTask }) {
             {agent && <span className="truncate">{agent.replaceAll("_", " ")}</span>}
             {task.planner && (
               <span className="inline-flex items-center gap-1 text-accent-ink">
-                {task.planner === "llm" && <Sparkles size={10} />}
-                {task.planner === "llm" ? "LLM planned" : "Safe fallback"}
+                {(task.planner === "llm" || task.planner === "orchestrator") && <Sparkles size={10} />}
+                {task.planner === "orchestrator"
+                  ? "Orchestrator"
+                  : task.planner === "llm" ? "LLM planned" : "Safe fallback"}
               </span>
             )}
           </div>

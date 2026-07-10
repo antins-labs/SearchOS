@@ -119,7 +119,7 @@ export async function startRepair(
 export interface RepairStartResponse {
   session_id: string;
   task_ids: string[];
-  planner: "llm" | "deterministic";
+  planner: "orchestrator" | "llm" | "deterministic";
   planning_latency_ms: number;
   planning_warning?: string | null;
 }

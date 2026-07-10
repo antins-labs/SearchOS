@@ -47,6 +47,15 @@ function cellText(cell: CoverageCell | undefined): string {
   return Array.isArray(cell.value) ? cell.value.join(" ") : String(cell.value ?? "");
 }
 
+function isRepairableCell(cell: CoverageCell | undefined): cell is CoverageCell {
+  return !!cell && (
+    cell.status === "missing"
+    || cell.status === "uncertain"
+    || cell.status === "hard_cell"
+    || cell.has_conflict === true
+  );
+}
+
 function renderCellValue(cell: CoverageCell): React.ReactNode {
   if (cell.status === "filled") {
     const dot = <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-ok/70" />;
@@ -379,7 +388,7 @@ function TableSection({
                   if (!cell) return <td key={column} className="whitespace-nowrap border-b border-line px-3 py-2 text-ink-faint">--</td>;
                   const sourceTitle = Array.isArray(cell.source) ? cell.source.join(", ") : cell.source;
                   const evidenceClickable = !!onCellClick && cell.status !== "missing";
-                  const repairable = cell.status === "missing" || cell.status === "uncertain" || cell.status === "hard_cell";
+                  const repairable = isRepairableCell(cell);
                   const repairKey = `${table_id}/${entity}.${column}`;
                   const repairSelectable = repairMode && repairable && !!onToggleRepairCell;
                   const clickable = repairSelectable || (!repairMode && evidenceClickable);
@@ -480,10 +489,22 @@ export default function CoverageTable({ coverageMap, evidence, onRepairCells }: 
   const withCells = base.filter((t) => cellKeys.some((k) => k.startsWith(`${t.table_id}/`)));
   const tables = withCells.length ? withCells : base;
   const relations = coverageMap.relations || [];
-  const repairableCount = Object.values(coverageMap.cells).filter((cell) => (
-    cell.status === "missing" || cell.status === "uncertain" || cell.status === "hard_cell"
-  )).length;
+  const repairableTargets = tables.flatMap((schema) => {
+    const dataColumns = schema.attributes.filter(
+      (attribute) => !(schema.primary_key ?? []).includes(attribute),
+    );
+    return schema.entities.flatMap((entity) => dataColumns.flatMap((attribute) => {
+      const key = `${schema.table_id}/${entity}.${attribute}`;
+      return isRepairableCell(coverageMap.cells[key])
+        ? [{ key, target: { table_id: schema.table_id, entity, attribute } }]
+        : [];
+    }));
+  });
+  const repairableCount = repairableTargets.length;
   const selectedRepairKeys = new Set(repairSelection.keys());
+  const allRepairableSelected = repairableCount > 0 && repairableTargets.every(
+    ({ key }) => repairSelection.has(key),
+  );
 
   const toggleRepairCell = (target: RepairCellTarget) => {
     const key = `${target.table_id}/${target.entity}.${target.attribute}`;
@@ -500,6 +521,13 @@ export default function CoverageTable({ coverageMap, evidence, onRepairCells }: 
     setRepairSelection(new Map());
   };
 
+  const toggleAllRepairable = () => {
+    setRepairSelection(() => {
+      if (allRepairableSelected) return new Map();
+      return new Map(repairableTargets.map(({ key, target }) => [key, target]));
+    });
+  };
+
   return (
     <div className="p-4">
       {onRepairCells && repairableCount > 0 && (
@@ -513,8 +541,19 @@ export default function CoverageTable({ coverageMap, evidence, onRepairCells }: 
             </button>
           ) : (
             <>
+              <button
+                type="button"
+                aria-pressed={allRepairableSelected}
+                onClick={toggleAllRepairable}
+                className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12px] font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink"
+              >
+                {allRepairableSelected
+                  ? <CheckSquare2 className="text-accent-ink" size={14} />
+                  : <Square size={14} />}
+                {allRepairableSelected ? "Clear all" : "Select all"}
+              </button>
               <span role="status" className="mr-auto text-[12px] text-ink-dim">
-                {repairSelection.size} selected
+                {repairSelection.size}/{repairableCount} selected
               </span>
               <button type="button" onClick={closeRepairMode}
                 className="rounded-md px-2.5 py-1.5 text-[12px] text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">

@@ -56,7 +56,7 @@ class FrontierTask(CamelModel):
     # 429-recycle path so the next tick doesn't refill straight into the limit.
     not_before: float = 0.0
     created_by: str = ""  # explore | orchestrator | search | writer | sensor | scheduler | user
-    planner: str = ""  # llm | deterministic (for user-initiated repair tasks)
+    planner: str = ""  # orchestrator | llm | deterministic
     last_agent_report_excerpt: str = ""
 
     created_at: float = 0.0

@@ -27,7 +27,9 @@ from searchos.tools.simple_browser.state import (
     _get_source_page,
     _persist_page,
     _read_page_from_disk,
+    apply_source_controls,
     get_provider,
+    is_url_allowed,
 )
 
 logger = logging.getLogger(__name__)
@@ -49,7 +51,7 @@ async def search(query: str) -> str:
     if query and query not in _get_browser().search_history:
         _get_browser().search_history.append(query)
 
-    results = await provider.search(query, max_results)
+    results = apply_source_controls(await provider.search(query, max_results))
 
     for r in results:
         if r.url and (r.content or r.snippet):
@@ -115,6 +117,9 @@ async def open(id_or_url: Any, loc: int = 0) -> str:
                 loc = max(0, snip.line_idx - 4)
     else:
         return f"Error: invalid id_or_url: {id_or_url!r}"
+
+    if not is_url_allowed(url):
+        return f"Error: source domain is excluded for this run: {url}"
 
     cached = browser.get_page_by_url(url)
     if cached:

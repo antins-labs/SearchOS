@@ -75,15 +75,22 @@ def effective_skill_kwargs(overrides=None) -> dict[str, set[str] | None]:
     all_names = set().union(*pools.values()) if pools else set()
 
     def pick(field: str):
-        if overrides is not None and getattr(overrides, field, None) is not None:
+        fields_set = (
+            getattr(overrides, "model_fields_set", set())
+            if overrides is not None
+            else set()
+        )
+        if field in fields_set:
             return getattr(overrides, field)
         return getattr(store.skills, field)
 
     only = pick("access_only")
     kwargs: dict[str, set[str] | None] = {
         "access_only": (set(only) & pools.get("access", set())) if only is not None else None,
-        "access_deny": set(pick("access_deny")) & all_names,
-        "strategy_deny": set(pick("strategy_deny")) & all_names,
-        "orchestrator_deny": set(pick("orchestrator_deny")) & all_names,
+        "access_deny": set(pick("access_deny") or ()) & pools.get("access", all_names),
+        "strategy_deny": set(pick("strategy_deny") or ()) & pools.get("strategy", all_names),
+        "orchestrator_deny": set(pick("orchestrator_deny") or ()) & pools.get(
+            "orchestrator", all_names
+        ),
     }
     return kwargs

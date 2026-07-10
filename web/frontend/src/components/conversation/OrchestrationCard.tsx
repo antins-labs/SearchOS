@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, ArrowRight } from "lucide-react";
+import { Check, ChevronDown, ArrowRight, Ban, ShieldCheck, Sparkles } from "lucide-react";
 import type { SearchState, WSEvent } from "@/lib/types";
 import { deriveCoverage, deriveStepCount } from "@/lib/derive";
 import OrchestratorTimeline from "@/components/workbench/OrchestratorTimeline";
@@ -19,6 +19,37 @@ interface Props {
   onOpen: () => void;
 }
 
+function deriveRunDetails(events: WSEvent[]) {
+  const skills = new Set<string>();
+  let trustedDomains: string[] = [];
+  let excludedDomains: string[] = [];
+
+  for (const event of events) {
+    const data = event.type === "trajectory" && event.data && typeof event.data === "object"
+      ? event.data as Record<string, unknown>
+      : event;
+    const type = String(data.type ?? "");
+    if (type === "run_config") {
+      trustedDomains = Array.isArray(data.trusted_domains)
+        ? data.trusted_domains.filter((value): value is string => typeof value === "string")
+        : [];
+      excludedDomains = Array.isArray(data.excluded_domains)
+        ? data.excluded_domains.filter((value): value is string => typeof value === "string")
+        : [];
+    }
+    if (type === "dispatch" && Array.isArray(data.skills)) {
+      data.skills.forEach((value) => { if (typeof value === "string" && value) skills.add(value); });
+    }
+    if (type === "step" && data.action && typeof data.action === "object") {
+      const name = (data.action as { name?: unknown }).name;
+      if (typeof name === "string" && name.startsWith("skill_") && name.length > 6) {
+        skills.add(name.slice(6));
+      }
+    }
+  }
+  return { skills: Array.from(skills), trustedDomains, excludedDomains };
+}
+
 /** The orchestrator's run, as one collapsible card in the conversation: its
  *  think→action trajectory inside, auto-collapsing on completion so the final
  *  answer is what you see. "View agents & evidence" opens the detail drawer. */
@@ -28,6 +59,11 @@ export default function OrchestrationCard({ events, searchState, status, workers
   const steps = deriveStepCount(events);
   const active = workers.filter((w) => w.status === "running").length;
   const doneAgents = workers.filter((w) => w.status === "completed").length;
+  const runDetails = deriveRunDetails(events);
+  const visibleSkills = runDetails.skills.slice(0, 3);
+  const hasRunDetails = runDetails.skills.length > 0
+    || runDetails.trustedDomains.length > 0
+    || runDetails.excludedDomains.length > 0;
 
   const [open, setOpen] = useState(status !== "completed");
   const collapsedOnce = useRef(false);
@@ -68,6 +104,35 @@ export default function OrchestrationCard({ events, searchState, status, workers
         </span>
         <ChevronDown size={16} className={`text-ink-faint transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
+
+      {hasRunDetails && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line px-4 py-2 text-[10.5px] text-ink-dim">
+          {runDetails.skills.length > 0 && (
+            <span className="flex min-w-0 items-center gap-1.5" title={runDetails.skills.join(", ")}>
+              <Sparkles size={11} className="shrink-0 text-accent-ink" />
+              <span className="text-ink-faint">Skills</span>
+              {visibleSkills.map((skill) => (
+                <span key={skill} className="max-w-28 truncate font-mono text-ink">{skill}</span>
+              ))}
+              {runDetails.skills.length > visibleSkills.length && (
+                <span className="tabular-nums text-ink-faint">+{runDetails.skills.length - visibleSkills.length}</span>
+              )}
+            </span>
+          )}
+          {runDetails.trustedDomains.length > 0 && (
+            <span className="flex items-center gap-1" title={runDetails.trustedDomains.join(", ")}>
+              <ShieldCheck size={11} className="text-ok" />
+              <span>{runDetails.trustedDomains.length} trusted</span>
+            </span>
+          )}
+          {runDetails.excludedDomains.length > 0 && (
+            <span className="flex items-center gap-1" title={runDetails.excludedDomains.join(", ")}>
+              <Ban size={11} className="text-err" />
+              <span>{runDetails.excludedDomains.length} excluded</span>
+            </span>
+          )}
+        </div>
+      )}
 
       {/* body — the orchestrator trajectory */}
       {open && (

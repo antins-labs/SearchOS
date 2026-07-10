@@ -14,6 +14,7 @@ import logging
 import re
 from contextvars import ContextVar
 from dataclasses import dataclass, field
+from urllib.parse import urlparse
 
 from searchos.config.settings import settings
 from searchos.tools.simple_browser.render import (
@@ -410,6 +411,84 @@ _shared_search_history: list[str] = []
 _shared_opened_urls: list[str] = []
 _provider: SearchProvider | None = None
 VIEW_TOKENS = settings.browser_view_tokens
+
+
+@dataclass(frozen=True)
+class SourceControls:
+    """Per-run source preferences inherited by every spawned sub-agent."""
+
+    trusted_domains: tuple[str, ...] = ()
+    excluded_domains: tuple[str, ...] = ()
+
+
+_source_controls_var: ContextVar[SourceControls] = ContextVar(
+    "sf_source_controls",
+    default=SourceControls(),
+)
+
+
+def normalize_domain(value: str) -> str:
+    """Turn a hostname or pasted URL into a comparable lowercase hostname."""
+    raw = str(value or "").strip().lower()
+    if not raw:
+        return ""
+    parsed = urlparse(raw if "://" in raw else f"//{raw}")
+    host = (parsed.hostname or "").strip(".")
+    if host.startswith("*."):
+        host = host[2:]
+    if not host or any(char.isspace() for char in host):
+        return ""
+    return host
+
+
+def _normalize_domains(values: list[str] | tuple[str, ...] | None) -> tuple[str, ...]:
+    return tuple(dict.fromkeys(filter(None, (normalize_domain(value) for value in values or ()))))
+
+
+def set_source_controls(
+    trusted_domains: list[str] | tuple[str, ...] | None = None,
+    excluded_domains: list[str] | tuple[str, ...] | None = None,
+) -> SourceControls:
+    """Bind source controls to the current run's async context."""
+    controls = SourceControls(
+        trusted_domains=_normalize_domains(trusted_domains),
+        excluded_domains=_normalize_domains(excluded_domains),
+    )
+    _source_controls_var.set(controls)
+    return controls
+
+
+def get_source_controls() -> SourceControls:
+    return _source_controls_var.get()
+
+
+def _domain_matches(host: str, domain: str) -> bool:
+    return host == domain or host.endswith(f".{domain}")
+
+
+def is_url_allowed(url: str, controls: SourceControls | None = None) -> bool:
+    host = normalize_domain(url)
+    if not host:
+        return True
+    active = controls or get_source_controls()
+    return not any(_domain_matches(host, domain) for domain in active.excluded_domains)
+
+
+def apply_source_controls(
+    results: list[SearchResult],
+    controls: SourceControls | None = None,
+) -> list[SearchResult]:
+    """Remove excluded sources and stably rank trusted sources first."""
+    active = controls or get_source_controls()
+    allowed = [result for result in results if is_url_allowed(result.url, active)]
+    if not active.trusted_domains:
+        return allowed
+
+    def trusted_rank(result: SearchResult) -> int:
+        host = normalize_domain(result.url)
+        return 0 if any(_domain_matches(host, domain) for domain in active.trusted_domains) else 1
+
+    return sorted(allowed, key=trusted_rank)
 
 
 def _get_browser() -> BrowserState:

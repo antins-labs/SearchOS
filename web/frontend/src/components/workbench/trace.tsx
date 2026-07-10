@@ -136,7 +136,7 @@ export function toolCallDetail(event: WSEvent): ToolCallDetail | null {
     tool: name,
     arguments: rawActionArgs(event),
     output: String(
-      data.observation || data.observation_summary || data.result_preview || "",
+      data.observation || data.result || data.observation_summary || data.result_preview || "",
     ),
     agent: String(data.agent || ""),
     timestamp: String(data.timestamp || ""),

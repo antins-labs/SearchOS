@@ -283,6 +283,8 @@ class SearchSession:
         access_deny: "set[str] | None" = None,
         strategy_deny: "set[str] | None" = None,
         orchestrator_deny: "set[str] | None" = None,
+        trusted_domains: "list[str] | None" = None,
+        excluded_domains: "list[str] | None" = None,
         follow_up: bool = False,
         targeted_repair_task_ids: "set[str] | None" = None,
         targeted_repair_cells: "list[str] | None" = None,
@@ -309,8 +311,16 @@ class SearchSession:
         sub-agent catalog. ``orchestrator_deny`` (optional): orchestrator-skill
         names dropped from the orchestrator playbook. Both default to all-on;
         the ``/skill`` picker passes the names the user has unchecked.
+
+        ``trusted_domains`` rank matching search results first while
+        ``excluded_domains`` remove matching results and block direct opens.
+        Both controls are task-local and inherited by spawned sub-agents.
         """
         start_time = time.time()
+        targeted_repair_mode = (
+            targeted_repair_cells is not None
+            or targeted_repair_task_ids is not None
+        )
 
         # --- Token tracking (per-run, ContextVar-backed) ---
         from searchos.util.token_tracker import start_tracking
@@ -321,8 +331,9 @@ class SearchSession:
         workspace.create()
 
         # --- Reset cross-agent browser state for this fresh session ---
-        from searchos.tools.simple_browser.state import reset_browser
+        from searchos.tools.simple_browser.state import reset_browser, set_source_controls
         reset_browser()
+        source_controls = set_source_controls(trusted_domains, excluded_domains)
 
         # --- State ---
         state = initial_state or SearchState(intent=query)
@@ -361,6 +372,18 @@ class SearchSession:
             "query": query,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
+        traj_logger._append_raw({
+            "type": "run_config",
+            "skills": {
+                "access_mode": "only" if access_only is not None else "router",
+                "access_only": sorted(access_only or ()),
+                "access_deny": sorted(access_deny or ()),
+                "strategy_deny": sorted(strategy_deny or ()),
+                "orchestrator_deny": sorted(orchestrator_deny or ()),
+            },
+            "trusted_domains": list(source_controls.trusted_domains),
+            "excluded_domains": list(source_controls.excluded_domains),
+        })
 
         # --- Set up orchestrator tools context ---
         from searchos.agents.orchestrator import get_orchestrator_tools
@@ -385,6 +408,9 @@ class SearchSession:
             post_mortem_model=self._post_mortem_model,
             query=query,
             scheduler_task_allowlist=targeted_repair_task_ids,
+            repair_target_allowlist=(
+                set(targeted_repair_cells or ()) if targeted_repair_mode else None
+            ),
         )
         if _provider is not None:
             set_browser_provider(_provider)
@@ -396,8 +422,13 @@ class SearchSession:
 
         from datetime import datetime as _dt
         orchestrator_tools = get_orchestrator_tools()
-        if targeted_repair_task_ids is not None:
-            repair_tool_allowlist = {"check_agents", "inspect_table"}
+        if targeted_repair_mode:
+            repair_tool_allowlist = {
+                "enqueue_tasks",
+                "stop_task",
+                "check_agents",
+                "inspect_table",
+            }
             orchestrator_tools = [
                 tool for tool in orchestrator_tools
                 if getattr(tool, "name", "") in repair_tool_allowlist
@@ -465,13 +496,17 @@ class SearchSession:
             orchestrator_playbook=orchestrator_playbook,
             follow_up=follow_up or bool(context_preamble),
         )
-        if targeted_repair_task_ids is not None:
+        if targeted_repair_mode:
             system_prompt += (
                 "\n\n## Targeted Repair Mode (overrides the normal workflow)\n"
-                "Repair tasks are already dispatched. Do not create a schema, edit "
-                "entities, enqueue or stop tasks, or broaden the scope. Use "
-                "`check_agents` until the dispatched agents finish; use `inspect_table` "
-                "only to verify the selected cells, then report their changes."
+                "The selected cells in the user message are an immutable allowlist. "
+                "Plan the work yourself and call `enqueue_tasks` with search_agent "
+                "tasks. Every task MUST provide the exact `target_table` and explicit "
+                "`target_cells`, and their cells must be a subset of the allowlist; "
+                "the tool rejects any wider scope. Group and stage tasks as you judge "
+                "best for the available pool. Do not create or edit schemas or entities. "
+                "Use `check_agents`, adapt later waves from returned evidence, inspect "
+                "only the selected cells, then report their changes."
             )
 
         conv_logger.register_sub_agent(
@@ -528,14 +563,16 @@ class SearchSession:
             name="orchestrator",
         )
 
-        if targeted_repair_task_ids is not None:
+        if targeted_repair_mode:
             from searchos.agents.runtime import _scheduler
 
-            dispatch_result = await _scheduler().drain_ready_tasks()
+            dispatch_result = None
+            if targeted_repair_task_ids:
+                dispatch_result = await _scheduler().drain_ready_tasks()
             traj_logger._append_raw({
                 "type": "harness",
-                "kind": "targeted_repair_dispatched",
-                "task_ids": sorted(targeted_repair_task_ids),
+                "kind": "targeted_repair_delegated",
+                "task_ids": sorted(targeted_repair_task_ids or ()),
                 "target_cells": list(targeted_repair_cells or []),
                 "dispatch": dispatch_result,
             })
@@ -574,16 +611,18 @@ class SearchSession:
                 user_content = (
                     f"{context_preamble}\n\n---\n当前问题：{query}"
                 )
-            if targeted_repair_task_ids is not None:
+            if targeted_repair_mode:
                 targets = ", ".join(targeted_repair_cells or [])
                 user_content = (
                     "[TARGETED CELL REPAIR]\n"
                     f"Repair only these coverage cells: {targets}.\n"
-                    "The corresponding search tasks are already queued and dispatched. "
-                    "Do not create or change schemas, add entities, expand scope, or "
-                    "enqueue new work. Use check_agents to collect the repair agents, "
-                    "inspect only the selected cells and their new evidence, then "
-                    "summarize what changed."
+                    "You own the repair plan and dispatch. Split these cells into focused "
+                    "search_agent tasks with enqueue_tasks; set target_table and "
+                    "target_cells on every task (`target_cells` may use Entity.Attribute "
+                    "or the full table/Entity.Attribute key). Do not create or change schemas, add "
+                    "entities, or expand beyond this allowlist. Keep dispatching and "
+                    "checking agents until the selected cells are repaired or the "
+                    "available evidence is exhausted, then summarize what changed."
                 )
             input_payload: dict[str, Any] = {
                 "messages": [{"role": "user", "content": user_content}],
@@ -652,7 +691,7 @@ class SearchSession:
                                     on_event({
                                         "type": "orchestrator_tool_call",
                                         "tool": _name, "tool_call_id": _tcid,
-                                        "args": _truncate_args(_targs),
+                                        "args": _full_args(_targs),
                                     })
                                 except Exception:
                                     pass
@@ -666,7 +705,7 @@ class SearchSession:
                                         "type": "tool_call_started",
                                         "agent": "orchestrator",
                                         "tool": _name, "tool_call_id": _tcid,
-                                        "args": _truncate_args(_targs),
+                                        "args": _full_args(_targs),
                                     })
                                 except Exception:
                                     pass
@@ -1069,7 +1108,6 @@ class _PhaseTracker:
         return phases
 
 
-_ARGS_MAX_LEN = 300
 _RESULT_MAX_LEN = 500
 
 
@@ -1093,7 +1131,7 @@ def _log_orchestrator_tool_events(
             tc_id = tc.get("id", "") if isinstance(tc, dict) else getattr(tc, "id", "")
             name = tc.get("name", "") if isinstance(tc, dict) else getattr(tc, "name", "")
             args = tc.get("args", {}) if isinstance(tc, dict) else getattr(tc, "args", {})
-            pending[tc_id] = {"tool": name, "args": _truncate_args(args)}
+            pending[tc_id] = {"tool": name, "args": _full_args(args)}
         return
 
     # ToolMessage → merge with pending and emit
@@ -1107,6 +1145,7 @@ def _log_orchestrator_tool_events(
         if entry:
             entry["type"] = "orchestrator_tool"
             entry["tool_call_id"] = tc_id
+            entry["result"] = content
             entry["result_preview"] = content[:_RESULT_MAX_LEN]
             traj_logger._append_raw(entry)
         else:
@@ -1116,19 +1155,16 @@ def _log_orchestrator_tool_events(
                 "tool": tool_name,
                 "tool_call_id": tc_id,
                 "args": {},
+                "result": content,
                 "result_preview": content[:_RESULT_MAX_LEN],
             })
 
 
-def _truncate_args(args: Any) -> dict[str, Any]:
-    """Truncate tool call args for trajectory readability."""
+def _full_args(args: Any) -> dict[str, Any]:
+    """Keep complete tool args in the durable trajectory."""
     if not isinstance(args, dict):
-        return {"raw": str(args)[:_ARGS_MAX_LEN]}
-    truncated: dict[str, Any] = {}
-    for k, v in args.items():
-        s = str(v)
-        truncated[k] = s[:_ARGS_MAX_LEN] if len(s) > _ARGS_MAX_LEN else v
-    return truncated
+        return {"raw": str(args)}
+    return dict(args)
 
 
 def _export_eval_table(
