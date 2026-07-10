@@ -9,6 +9,7 @@ export interface Turn {
   events: WSEvent[];
   workers: WorkerInfo[];
   searchState: SearchState | null;
+  stateSource?: "live" | "snapshot" | "latest" | "unavailable";
   answer: string;
   /** Live follow-ups steered into this turn while it was running. */
   followUps?: string[];

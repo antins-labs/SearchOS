@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo, type CSSProperties }
 import { Menu } from "lucide-react";
 
 import { useSearch } from "@/hooks/useSearch";
-import { getWorkspaceFiles, listHistory, loadHistory, renameHistory, deleteHistory, steerSearch, stopSearch, type HistoryItem } from "@/lib/api";
+import { getWorkspaceFiles, listHistory, loadHistory, renameHistory, deleteHistory, steerSearch, stopSearch, type HistoryItem, type HistoryTurn } from "@/lib/api";
 import { deriveAnswer, foldWorkers } from "@/lib/derive";
 import type { FileNode, SearchRequest, SearchState, WSEvent } from "@/lib/types";
 import type { Turn } from "@/lib/conversation";
@@ -147,7 +147,7 @@ export default function Home() {
       const id = `t${++turnSeq}`;
       const turn: Turn = {
         id, query: q, sessionId: null, status: "running",
-        events: [], workers: [], searchState: null, answer: "", meta: {}, error: null,
+        events: [], workers: [], searchState: null, stateSource: "live", answer: "", meta: {}, error: null,
       };
       setTurns((prevTurns) => [...prevTurns, turn]);
       setActiveTurnId(id);
@@ -264,8 +264,14 @@ export default function Home() {
         // splits into per-turn segments — every restored turn gets its own
         // orchestration trace, same as a live run. Segments tail-align to
         // turns (surplus leading segments fold into the first turn).
-        const hist: { query: string; answer: string; steers?: string[] }[] =
-          data.turns?.length ? data.turns : [{ query: data.query, answer: data.answer ?? "" }];
+        const hist: HistoryTurn[] = data.turns.length ? data.turns : [{
+          query: data.query,
+          answer: data.answer ?? "",
+          search_state: data.search_state,
+          state_source: data.search_state ? "latest" : "unavailable",
+          coverage_score: data.coverage_score,
+          evidence_count: data.evidence_count,
+        }];
         const segments: WSEvent[][] = [];
         for (const e of events) {
           const d = (e.data ?? {}) as Record<string, unknown>;
@@ -290,15 +296,14 @@ export default function Home() {
             status: turnRunning ? "running" as const : "completed" as const,
             events: segEvents,
             workers: foldWorkers(segEvents, !turnRunning),
-            searchState: i === last ? ((data.search_state as SearchState) ?? null) : null,
-            answer: i === last ? (data.answer || h.answer || "") : h.answer,
+            searchState: h.search_state,
+            stateSource: turnRunning ? "live" : h.state_source,
+            answer: h.answer || (i === last ? data.answer : ""),
             followUps: h.steers?.length ? h.steers : undefined,
-            meta: i === last
-              ? {
-                  coverageScore: data.coverage_score ?? undefined,
-                  evidenceCount: data.evidence_count ?? undefined,
-                }
-              : {},
+            meta: {
+              coverageScore: h.coverage_score ?? undefined,
+              evidenceCount: h.evidence_count ?? undefined,
+            },
             error: null,
           };
         });

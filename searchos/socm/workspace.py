@@ -102,6 +102,69 @@ class WorkspaceManager:
         if self._state:
             self._write_json_locked("coverage_map.json", self._state.coverage_map.model_dump())
 
+    def save_turn_snapshot(
+        self,
+        query: str,
+        state: SearchState,
+        metadata: dict[str, Any] | None = None,
+    ) -> Path:
+        """Persist the completed state for one conversational turn.
+
+        Follow-up runs reuse ``search_state.json``, so that file only reflects
+        the latest turn. Snapshot numbering follows successful
+        ``task_complete`` events, which keeps interrupted runs from creating
+        gaps in the user-visible conversation.
+        """
+        snapshots_dir = self._path / "turn_snapshots"
+        snapshots_dir.mkdir(parents=True, exist_ok=True)
+        lock_path = self._path / ".turn_snapshots.lock"
+        lock_path.touch(exist_ok=True)
+
+        with lock_path.open() as lock_fd:
+            fcntl.flock(lock_fd, fcntl.LOCK_EX)
+            try:
+                completed_turns = 0
+                if self.trajectory_path.exists():
+                    for line in self.trajectory_path.read_text(
+                        encoding="utf-8", errors="replace",
+                    ).splitlines():
+                        try:
+                            if json.loads(line).get("type") == "task_complete":
+                                completed_turns += 1
+                        except (json.JSONDecodeError, AttributeError):
+                            continue
+
+                if completed_turns:
+                    turn_index = completed_turns - 1
+                else:
+                    existing = [
+                        int(path.stem) - 1
+                        for path in snapshots_dir.glob("*.json")
+                        if path.stem.isdigit()
+                    ]
+                    turn_index = max(existing, default=-1) + 1
+
+                payload: dict[str, Any] = {
+                    "version": 1,
+                    "turn_index": turn_index,
+                    "query": query,
+                    "completed_at": datetime.now().astimezone().isoformat(),
+                    "search_state": state.model_dump(),
+                }
+                if metadata:
+                    payload.update(metadata)
+
+                target = snapshots_dir / f"{turn_index + 1:04d}.json"
+                tmp = snapshots_dir / f".{target.name}.tmp"
+                tmp.write_text(
+                    json.dumps(payload, ensure_ascii=False, indent=2, default=str),
+                    encoding="utf-8",
+                )
+                os.replace(tmp, target)
+                return target
+            finally:
+                fcntl.flock(lock_fd, fcntl.LOCK_UN)
+
     # ---- Plan ----
 
     def save_plan(self, plan_text: str) -> None:

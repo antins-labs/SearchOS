@@ -89,6 +89,74 @@ def _custom_title(ws: Path) -> str:
     return ""
 
 
+def _load_turn_snapshots(ws: Path) -> dict[int, dict[str, Any]]:
+    """Load valid versioned turn snapshots, ignoring corrupt/unknown files."""
+    snapshots_dir = ws / "turn_snapshots"
+    if not snapshots_dir.exists():
+        return {}
+
+    snapshots: dict[int, dict[str, Any]] = {}
+    for path in sorted(snapshots_dir.glob("*.json")):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8", errors="replace"))
+            turn_index = payload.get("turn_index")
+            if (
+                payload.get("version") != 1
+                or not isinstance(turn_index, int)
+                or turn_index < 0
+                or not isinstance(payload.get("search_state"), dict)
+            ):
+                continue
+            snapshots[turn_index] = payload
+        except Exception:
+            logger.warning("Failed to parse turn snapshot %s", path)
+    return snapshots
+
+
+def _turn_views(
+    turns: list[dict[str, Any]],
+    snapshots: dict[int, dict[str, Any]],
+    *,
+    latest_state: dict[str, Any] | None,
+    latest_coverage: float | None,
+    latest_evidence_count: int | None,
+) -> list[dict[str, Any]]:
+    """Attach the state that belongs to each reconstructed dialogue turn.
+
+    Legacy workspaces have no snapshots. Their final turn may safely use the
+    current ``search_state.json``; earlier turns are explicitly unavailable so
+    clients never mistake the latest table/evidence for historical state.
+    """
+    views: list[dict[str, Any]] = []
+    last_index = len(turns) - 1
+    for index, turn in enumerate(turns):
+        view = dict(turn)
+        snapshot = snapshots.get(index)
+        if snapshot is not None:
+            view.update({
+                "search_state": snapshot["search_state"],
+                "state_source": "snapshot",
+                "coverage_score": snapshot.get("coverage_score"),
+                "evidence_count": snapshot.get("evidence_count"),
+            })
+        elif index == last_index and latest_state is not None:
+            view.update({
+                "search_state": latest_state,
+                "state_source": "latest",
+                "coverage_score": latest_coverage,
+                "evidence_count": latest_evidence_count,
+            })
+        else:
+            view.update({
+                "search_state": None,
+                "state_source": "unavailable",
+                "coverage_score": None,
+                "evidence_count": None,
+            })
+        views.append(view)
+    return views
+
+
 def _session_meta(ws: Path) -> dict[str, Any] | None:
     sid = ws.name
     state_file = ws / "search_state.json"
@@ -145,7 +213,7 @@ async def list_history():
 @router.get("/history/{session_id}")
 async def load_history(session_id: str):
     """Load a full past session from its workspace: state + answer + trajectory."""
-    ws = Path(WORKSPACE_ROOT) / session_id
+    ws = _safe_ws(session_id)
     if not ws.exists():
         raise HTTPException(404, f"Session {session_id} not found")
 
@@ -203,7 +271,13 @@ async def load_history(session_id: str):
 
     # Full user↔AI dialogue so a reload shows every turn, not title + last answer.
     from searchos.harness.telemetry.conversation_context import conversation_turns
-    turns = conversation_turns(ws)
+    turns = _turn_views(
+        conversation_turns(ws),
+        _load_turn_snapshots(ws),
+        latest_state=state,
+        latest_coverage=float(coverage) if coverage is not None else None,
+        latest_evidence_count=int(evidence_count) if evidence_count is not None else None,
+    )
 
     return {
         "session_id": session_id,

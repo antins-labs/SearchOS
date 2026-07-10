@@ -66,6 +66,11 @@ export default function Conversation({ turns, running, reconnecting = false, sto
 function TurnView({ turn, onOpen, registerRef }: { turn: Turn; onOpen: () => void; registerRef?: (el: HTMLDivElement | null) => void }) {
   const done = turn.status === "completed";
   const hasTable = Object.keys(turn.searchState?.coverage_map?.cells ?? {}).some((k) => !k.startsWith("_"));
+  const tableStateLabel = turn.stateSource === "snapshot"
+    ? "Turn snapshot"
+    : turn.stateSource === "latest"
+      ? "Latest session state"
+      : null;
 
   return (
     <div ref={registerRef} className="mb-10 scroll-mt-6 last:mb-2">
@@ -119,8 +124,9 @@ function TurnView({ turn, onOpen, registerRef }: { turn: Turn; onOpen: () => voi
 
           {done && hasTable && (
             <div className="mb-4 overflow-hidden rounded-xl border border-line">
-              <div className="border-b border-line bg-surface-2 px-3.5 py-2">
+              <div className="flex items-center justify-between gap-3 border-b border-line bg-surface-2 px-3.5 py-2">
                 <span className="font-serif text-[14px] font-semibold text-ink">Final table</span>
+                {tableStateLabel && <span className="text-[11px] text-ink-faint">{tableStateLabel}</span>}
               </div>
               <div className="max-h-[440px] overflow-auto">
                 <CoverageTable

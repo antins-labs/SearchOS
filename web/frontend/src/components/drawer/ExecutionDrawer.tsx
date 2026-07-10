@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { X, Maximize2, Minimize2, Table2, FileText, FolderTree, Activity } from "lucide-react";
+import { X, Maximize2, Minimize2, Table2, FileText, FolderTree, Activity, Info } from "lucide-react";
 import AgentWall from "@/components/workbench/AgentWall";
 import TraceDrawer from "@/components/workbench/TraceDrawer";
 import CoverageTable from "@/components/coverage/CoverageTable";
@@ -58,6 +58,14 @@ export default function ExecutionDrawer({
   }, [max, traceAgent]);
 
   const state = turn.searchState;
+  const historicalStateUnavailable = turn.stateSource === "unavailable";
+  const stateLabel = turn.stateSource === "snapshot"
+    ? "Turn snapshot"
+    : turn.stateSource === "latest"
+      ? "Latest session state"
+      : turn.stateSource === "unavailable"
+        ? "Snapshot unavailable"
+        : null;
   const activeWorker = turn.workers.find((w) => w.name === traceAgent) ?? null;
   const running = turn.workers.filter((w) => w.status === "running").length;
 
@@ -66,6 +74,12 @@ export default function ExecutionDrawer({
       {/* header */}
       <div className="flex items-center gap-2 border-b border-line px-4 py-3">
         <span className="font-serif text-[16px] font-semibold text-ink">Activity</span>
+        {stateLabel && (
+          <span className="flex items-center gap-1 text-[11px] text-ink-faint">
+            <Info size={12} />
+            {stateLabel}
+          </span>
+        )}
         <div className="ml-auto flex items-center gap-1">
           <button onClick={() => setMax((v) => !v)} title={max ? "Restore" : "Maximize"}
             className="hidden rounded-lg p-1.5 text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink min-[1180px]:inline-flex">
@@ -105,12 +119,20 @@ export default function ExecutionDrawer({
 
         <div className="p-1">
           {tab === "coverage" && (
-            <CoverageTable
-              coverageMap={state?.coverage_map ?? null}
-              evidence={state?.evidence_graph?.nodes ?? []}
-            />
+            historicalStateUnavailable ? (
+              <HistoricalStateNotice kind="Coverage" />
+            ) : (
+              <CoverageTable
+                coverageMap={state?.coverage_map ?? null}
+                evidence={state?.evidence_graph?.nodes ?? []}
+              />
+            )
           )}
-          {tab === "evidence" && <EvidenceList nodes={state?.evidence_graph?.nodes ?? []} />}
+          {tab === "evidence" && (
+            historicalStateUnavailable
+              ? <HistoricalStateNotice kind="Evidence" />
+              : <EvidenceList nodes={state?.evidence_graph?.nodes ?? []} />
+          )}
           {tab === "files" &&
             (selectedFile && sessionId ? (
               <FileViewer key={`${sessionId}:${selectedFile}`} sessionId={sessionId} filePath={selectedFile} onClose={() => onSelectFile(null)} />
@@ -141,6 +163,20 @@ export default function ExecutionDrawer({
   }
 
   return <div className="drawer-in h-full">{body}</div>;
+}
+
+function HistoricalStateNotice({ kind }: { kind: "Coverage" | "Evidence" }) {
+  return (
+    <div role="note" className="flex items-start gap-2.5 p-4 text-[13px] text-ink-dim">
+      <Info className="mt-0.5 shrink-0 text-accent-ink" size={16} />
+      <div>
+        <p className="font-medium text-ink">{kind} snapshot unavailable for this turn</p>
+        <p className="mt-1 max-w-md text-[12px] leading-5 text-ink-faint">
+          This conversation predates per-turn snapshots. Its latest session state remains available on the final turn.
+        </p>
+      </div>
+    </div>
+  );
 }
 
 function EventsLog({ events }: { events: { type: string; data?: unknown }[] }) {

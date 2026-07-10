@@ -10,8 +10,10 @@ import type {
   RunDefaultsView,
   SearchRequest,
   SearchResult,
+  SearchState,
   SettingsData,
   SkillsView,
+  WSEvent,
 } from "./types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -110,14 +112,37 @@ export interface HistoryItem {
   updated_at: number;
 }
 
+export type HistoryStateSource = "snapshot" | "latest" | "unavailable";
+
+export interface HistoryTurn {
+  query: string;
+  answer: string;
+  steers?: string[];
+  search_state: SearchState | null;
+  state_source: HistoryStateSource;
+  coverage_score: number | null;
+  evidence_count: number | null;
+}
+
+export interface HistoryDetail {
+  session_id: string;
+  query: string;
+  status: "running" | "completed" | "incomplete";
+  turns: HistoryTurn[];
+  coverage_score: number | null;
+  evidence_count: number | null;
+  answer: string;
+  search_state: SearchState | null;
+  events: WSEvent[];
+}
+
 export async function listHistory(): Promise<HistoryItem[]> {
   const res = await fetchWithTimeout(`${API_BASE}/api/history`, { cache: "no-store" });
   if (!res.ok) throw new Error(`Load history failed: ${res.statusText}`);
   return readJsonWithTimeout(res);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function loadHistory(sessionId: string): Promise<any> {
+export async function loadHistory(sessionId: string): Promise<HistoryDetail> {
   const res = await fetchWithTimeout(`${API_BASE}/api/history/${sessionId}`);
   if (!res.ok) throw new Error(`Load session failed: ${res.statusText}`);
   return readJsonWithTimeout(res);

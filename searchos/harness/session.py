@@ -876,6 +876,21 @@ class SearchSession:
         })
         result.token_usage = token_dict
 
+        try:
+            workspace.save_turn_snapshot(
+                query,
+                final_search_state,
+                {
+                    "coverage_score": result.coverage_score,
+                    "evidence_count": result.evidence_count,
+                    "elapsed_s": result.elapsed_s,
+                },
+            )
+        except Exception:
+            # Snapshot persistence enriches history but must never turn an
+            # otherwise successful search into a failed run.
+            logger.warning("Failed to persist turn snapshot", exc_info=True)
+
         logger.info(
             "Search complete: coverage=%.0f%%, evidence=%d, time=%.1fs, tokens=%d (%d calls)",
             result.coverage_score * 100,
