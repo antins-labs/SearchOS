@@ -7,6 +7,7 @@ import type {
   FileNode,
   ModelsView,
   ProvidersResponse,
+  RepairRequest,
   RunDefaultsView,
   SearchRequest,
   SearchResult,
@@ -75,6 +76,27 @@ export async function startSearch(req: SearchRequest): Promise<{ session_id: str
     body: JSON.stringify(req),
   });
   if (!res.ok) throw new Error(`Search failed: ${res.statusText}`);
+  return readJsonWithTimeout(res);
+}
+
+export async function startRepair(
+  sessionId: string,
+  req: RepairRequest,
+): Promise<{ session_id: string; task_ids: string[] }> {
+  const res = await fetchWithTimeout(`${API_BASE}/api/search/${sessionId}/repair`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const body = await readJsonWithTimeout<{ detail?: string | string[] }>(res);
+      if (Array.isArray(body.detail)) detail = body.detail.join("; ");
+      else if (body.detail) detail = body.detail;
+    } catch { /* keep statusText */ }
+    throw new Error(`Repair failed: ${detail}`);
+  }
   return readJsonWithTimeout(res);
 }
 

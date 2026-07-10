@@ -109,6 +109,8 @@ class FrontierMemory(CamelModel):
             for q in self.questions:
                 if q.kind != "search" or q.status not in active:
                     continue
+                if q.table_id != task.table_id:
+                    continue
                 if not q.target_cells or not _cellish(q.target_cells):
                     continue
                 if new_cells.issubset(frozenset(q.target_cells)):

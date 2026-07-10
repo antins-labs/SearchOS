@@ -11,7 +11,7 @@ import FileTree from "@/components/workspace/FileTree";
 import FileViewer from "@/components/workspace/FileViewer";
 import AsyncFeedback from "@/components/ui/AsyncFeedback";
 import type { Turn } from "@/lib/conversation";
-import type { FileNode } from "@/lib/types";
+import type { FileNode, RepairCellTarget } from "@/lib/types";
 import {
   DEFAULT_ACTIVITY_WIDTH,
   MAX_ACTIVITY_WIDTH,
@@ -36,6 +36,7 @@ interface Props {
   onWidthChange: (width: number) => void;
   onWidthCommit: (width: number) => void;
   onResizeStateChange: (resizing: boolean) => void;
+  onRepairCells?: (cells: RepairCellTarget[]) => void;
 }
 
 const TABS: { id: ActivityTab; label: string; icon: ReactNode }[] = [
@@ -62,6 +63,7 @@ export default function ExecutionDrawer({
   onWidthChange,
   onWidthCommit,
   onResizeStateChange,
+  onRepairCells,
 }: Props) {
   const [traceAgent, setTraceAgent] = useState<string | null>(null);
   const [max, setMax] = useState(false);
@@ -165,6 +167,7 @@ export default function ExecutionDrawer({
               <CoverageTable
                 coverageMap={state?.coverage_map ?? null}
                 evidence={state?.evidence_graph?.nodes ?? []}
+                onRepairCells={onRepairCells}
               />
             )
           )}

@@ -255,6 +255,8 @@ class SearchSession:
         strategy_deny: "set[str] | None" = None,
         orchestrator_deny: "set[str] | None" = None,
         follow_up: bool = False,
+        targeted_repair_task_ids: "set[str] | None" = None,
+        targeted_repair_cells: "list[str] | None" = None,
     ) -> SearchResult:
         """Execute a complete search session via Orchestrator pattern.
 
@@ -353,6 +355,7 @@ class SearchSession:
             skill_evolver_model=self._skill_evolver_model,
             post_mortem_model=self._post_mortem_model,
             query=query,
+            scheduler_task_allowlist=targeted_repair_task_ids,
         )
         if _provider is not None:
             set_browser_provider(_provider)
@@ -364,6 +367,12 @@ class SearchSession:
 
         from datetime import datetime as _dt
         orchestrator_tools = get_orchestrator_tools()
+        if targeted_repair_task_ids is not None:
+            repair_tool_allowlist = {"check_agents", "inspect_table"}
+            orchestrator_tools = [
+                tool for tool in orchestrator_tools
+                if getattr(tool, "name", "") in repair_tool_allowlist
+            ]
         from searchos.agents.toolset_render import render_toolset
 
         # Inject ALL orchestrator-layer skills into the playbook directly — no
@@ -427,6 +436,14 @@ class SearchSession:
             orchestrator_playbook=orchestrator_playbook,
             follow_up=follow_up or bool(context_preamble),
         )
+        if targeted_repair_task_ids is not None:
+            system_prompt += (
+                "\n\n## Targeted Repair Mode (overrides the normal workflow)\n"
+                "Repair tasks are already dispatched. Do not create a schema, edit "
+                "entities, enqueue or stop tasks, or broaden the scope. Use "
+                "`check_agents` until the dispatched agents finish; use `inspect_table` "
+                "only to verify the selected cells, then report their changes."
+            )
 
         conv_logger.register_sub_agent(
             agent_name="orchestrator",
@@ -482,6 +499,18 @@ class SearchSession:
             name="orchestrator",
         )
 
+        if targeted_repair_task_ids is not None:
+            from searchos.agents.runtime import _scheduler
+
+            dispatch_result = await _scheduler().drain_ready_tasks()
+            traj_logger._append_raw({
+                "type": "harness",
+                "kind": "targeted_repair_dispatched",
+                "task_ids": sorted(targeted_repair_task_ids),
+                "target_cells": list(targeted_repair_cells or []),
+                "dispatch": dispatch_result,
+            })
+
         # --- Run Orchestrator ---
         logger.info(
             "Starting Orchestrator: %s (session=%s)",
@@ -515,6 +544,17 @@ class SearchSession:
             if context_preamble:
                 user_content = (
                     f"{context_preamble}\n\n---\n当前问题：{query}"
+                )
+            if targeted_repair_task_ids is not None:
+                targets = ", ".join(targeted_repair_cells or [])
+                user_content = (
+                    "[TARGETED CELL REPAIR]\n"
+                    f"Repair only these coverage cells: {targets}.\n"
+                    "The corresponding search tasks are already queued and dispatched. "
+                    "Do not create or change schemas, add entities, expand scope, or "
+                    "enqueue new work. Use check_agents to collect the repair agents, "
+                    "inspect only the selected cells and their new evidence, then "
+                    "summarize what changed."
                 )
             input_payload: dict[str, Any] = {
                 "messages": [{"role": "user", "content": user_content}],

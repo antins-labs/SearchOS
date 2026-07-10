@@ -1,5 +1,9 @@
-import type { SearchState, WSEvent } from "./types";
+import type { CoverageCell, RepairCellTarget, SearchState, WSEvent } from "./types";
 import type { WorkerInfo } from "@/hooks/useSearch";
+
+export interface RepairCellSnapshot extends RepairCellTarget {
+  before: Pick<CoverageCell, "status" | "value">;
+}
 
 export interface Turn {
   id: string;
@@ -13,6 +17,11 @@ export interface Turn {
   answer: string;
   /** Live follow-ups steered into this turn while it was running. */
   followUps?: string[];
+  /** Scope and baseline retained for a targeted coverage repair turn. */
+  repair?: {
+    cells: RepairCellSnapshot[];
+    evidenceIdsBefore: string[];
+  };
   meta: {
     coverageScore?: number;
     evidenceCount?: number;

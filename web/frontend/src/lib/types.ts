@@ -37,6 +37,20 @@ export interface SearchRequest {
   history?: { query: string; answer: string }[];
 }
 
+export interface RepairCellTarget {
+  table_id: string;
+  entity: string;
+  attribute: string;
+}
+
+export interface RepairRequest {
+  cells: RepairCellTarget[];
+  max_time?: number;
+  effort?: EffortLevel;
+  skills?: SkillOverrides;
+  history?: { query: string; answer: string }[];
+}
+
 // ---- Settings (mirrors web/api/routes/settings.py views) ----
 
 export type EffortLevel = "low" | "medium" | "high" | "max";

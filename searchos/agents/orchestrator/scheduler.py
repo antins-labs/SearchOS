@@ -36,11 +36,14 @@ class Scheduler:
     stages don't re-fire across ticks.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, task_allowlist: set[str] | None = None) -> None:
         from searchos.harness.middleware.sensor.writer_trigger_sensor import (
             WriterTriggerSensor,
         )
         self._writer_sensor = WriterTriggerSensor()
+        # Targeted repair runs may dispatch only the explicitly queued repair
+        # tasks. None keeps the normal unrestricted scheduler behavior.
+        self._task_allowlist = set(task_allowlist) if task_allowlist is not None else None
         # Serializes tick() chains. Two concurrent ticks (parallel tool
         # calls in one orchestrator turn) each read `running` before the
         # other registers its spawns — both see free slots and the pool
@@ -328,6 +331,7 @@ class Scheduler:
             q for q in state.frontier.questions
             if q.status == FrontierTaskStatus.PENDING
             and q.kind != "write"  # writer singleton handled separately
+            and (self._task_allowlist is None or q.id in self._task_allowlist)
             and (not q.blocked_by or all(d in terminal for d in q.blocked_by))
         ]
         # Rate-limit cooldown: tasks recycled off a 429 carry not_before —
@@ -455,13 +459,22 @@ class Scheduler:
 
     async def tick(self) -> dict[str, Any]:
         async with self._tick_lock:
+            targeted = self._task_allowlist is not None
             return {
                 "drop_blocked_cycles": await self.drop_blocked_cycles(),
                 "unblock_ready_tasks": await self.unblock_ready_tasks(),
                 "reap_zombie_tasks": await self.reap_zombie_tasks(),
-                "detect_evidence_conflicts": await self.detect_evidence_conflicts(),
-                "maybe_spawn_writer": await self.maybe_spawn_writer(),
-                "maybe_continue_writer": await self.maybe_continue_writer(),
+                "detect_evidence_conflicts": (
+                    {"action": "disabled_targeted_repair"}
+                    if targeted else await self.detect_evidence_conflicts()
+                ),
+                "maybe_spawn_writer": (
+                    {"action": "disabled_targeted_repair"}
+                    if targeted else await self.maybe_spawn_writer()
+                ),
+                "maybe_continue_writer": (
+                    {"action": "disabled_targeted_repair"}
+                    if targeted else await self.maybe_continue_writer()
+                ),
                 "drain_ready_tasks": await self.drain_ready_tasks(),
             }
-

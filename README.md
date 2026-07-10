@@ -51,13 +51,10 @@
 
 ## 📣 News
 
-- **2026-07-10** — Visual relational schema drafting: draw one or more tables directly in the search composer, name primary keys and columns, seed rows, and connect tables with one-to-many or many-to-many relations before dispatch. SearchOS now lets you shape the coverage model as naturally as asking the question. 🧩
-- **2026-07-09** — Full session restore + live trace: reopen a search in the Web UI or via TUI `/resume` with its complete multi-turn conversation, orchestration history, coverage state, and evidence intact; the orchestrator timeline now streams live reasoning and tool progress as the run unfolds. ⏪
-- **2026-07-08** — Unified configuration center across Web UI and TUI: create reusable provider connections and model cards, bind models to agent roles, manage API keys, search backends, skills, budgets, and reasoning effort, and apply per-run overrides without hand-editing environment files. ⚙️
-- **2026-07-07** — **“SEARCHOS: AGENTIC SEARCH OPERATING SYSTEM” — THE FRAMEWORK OUT NOW.** The initial open-source release ships the multi-agent search runtime, citation-grounded relational coverage engine, interactive TUI, and Web UI; `./web/start.sh` brings up the REST/WS API (`:8000`) + frontend (`:3000`) in one line. 🚀
-- **2026-07-05** — Open-source multi-provider support: `SF_PROVIDER` connects to 21 presets in one line — vendor Coding Plans (Zhipu / Kimi / MiniMax / Alibaba / Volcengine, Anthropic protocol), pay-as-you-go APIs (DeepSeek / OpenAI / OpenRouter / SiliconFlow / Gemini / xAI…), and local deployment (Ollama / vLLM); first-run CLI setup wizard + pluggable search backends (Serper / Tavily). High-frequency roles like extraction automatically fall to each vendor's lightweight tier to cut cost. 🔌
-- **2026-07-02** — Direct answers for follow-up questions: follow-ups reuse the previous round's coverage map and skip re-searching when the answer is already in the table; chunked extraction for oversized skill payloads. 🧠
-- **2026-06-25** — Interactive TUI command shell: `/skill` collapsible multi-select catalog, live mid-run steering, tool stream on screen; skill library restructured into core / catalog / runtime layers; split-tunnel egress — domestic sites go direct, overseas via proxy, one run reaches sources on both sides. 🖥️
+- **2026-07-10** — **A whole new way to research.** Draw the structure of your question. SearchOS turns it into citation-backed research you can explore, refine, and export. 🧩
+- **2026-07-09** — **Pick up exactly where you left off.** Every session returns with its conversation, progress, evidence, and live activity intact. ⏪
+- **2026-07-08** — **Everything in one place.** Models, providers, search, skills, and budgets now come together in one beautifully simple control center. ⚙️
+- **2026-07-07** — **SearchOS is now open source.** Multi-agent search, structured research, TUI, and Web UI. All together. Ready for everyone. 🚀
 
 ## ✨ Highlights
 
@@ -349,9 +346,7 @@ searchos_workspace/ Session workspaces for interactive runs (timestamped directo
 
 ## 🙏 Acknowledgements
 
-SearchOS is designed and built by its core contributors, **Yuyao Zhang** and **Junjie Gao** (Ant Group), under the supervision of their advisors, **Ji-Rong Wen** and **Zhicheng Dou** (Renmin University of China). We also thank Ant Insurance and its AI-native product 保险快查 for their strong support, and are especially grateful to **Kai Yang**, **Hui Li** and **Xingzhong Xu**, the initiators of this project and leaders of 保险快查.
-
-SearchOS is built on [LangGraph](https://github.com/langchain-ai/langgraph) / [LangChain](https://github.com/langchain-ai/langchain) / [deepagents](https://github.com/langchain-ai/deepagents); the TUI is powered by [Textual](https://github.com/Textualize/textual).
+SearchOS is designed and built by its core contributors, **Yuyao Zhang** and **Junjie Gao** (Ant Group), under the supervision of their advisors, **Ji-Rong Wen** and **Zhicheng Dou** (Renmin University of China). We also thank Ant Insurance for its strong support, and are especially grateful to **Kai Yang** and **Xingzhong Xu**, the initiators and leaders of this project.
 
 ## 📚 Citation
 

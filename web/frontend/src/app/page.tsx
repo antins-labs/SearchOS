@@ -6,7 +6,7 @@ import { Menu } from "lucide-react";
 import { useSearch } from "@/hooks/useSearch";
 import { getWorkspaceFiles, listHistory, loadHistory, renameHistory, deleteHistory, steerSearch, stopSearch, type HistoryItem, type HistoryTurn } from "@/lib/api";
 import { deriveAnswer, foldWorkers } from "@/lib/derive";
-import type { FileNode, SearchRequest, SearchState, WSEvent } from "@/lib/types";
+import type { FileNode, RepairCellTarget, SearchRequest, SearchState, WSEvent } from "@/lib/types";
 import type { Turn } from "@/lib/conversation";
 import type { SubmitOpts } from "@/components/shell/Composer";
 
@@ -26,7 +26,7 @@ import {
 let turnSeq = 0;
 
 export default function Home() {
-  const { session, run, attach, reset } = useSearch();
+  const { session, run, repair, attach, reset } = useSearch();
   const { overrides, notify } = useSettings();
   const [turns, setTurns] = useState<Turn[]>([]);
   const [activeTurnId, setActiveTurnId] = useState<string | null>(null);
@@ -191,6 +191,62 @@ export default function Home() {
   const handleRerun = useCallback((query: string) => {
     handleSubmit(query, {}, true);
   }, [handleSubmit]);
+
+  const handleRepair = useCallback((sourceTurn: Turn, cells: RepairCellTarget[]) => {
+    if (sessionActive || !sourceTurn.sessionId || !sourceTurn.searchState || cells.length === 0) return;
+    const snapshots = cells.flatMap((cell) => {
+      const key = `${cell.table_id}/${cell.entity}.${cell.attribute}`;
+      const before = sourceTurn.searchState?.coverage_map.cells[key];
+      return before ? [{ ...cell, before: { status: before.status, value: before.value } }] : [];
+    });
+    if (snapshots.length === 0) {
+      notify("Those cells are no longer available. Refresh the result and try again.");
+      return;
+    }
+
+    stopPendingRef.current = false;
+    setStopPending(false);
+    const id = `t${++turnSeq}`;
+    const count = snapshots.length;
+    const turn: Turn = {
+      id,
+      query: `Repair ${count} selected ${count === 1 ? "cell" : "cells"}`,
+      sessionId: sourceTurn.sessionId,
+      status: "running",
+      events: [],
+      workers: [],
+      searchState: sourceTurn.searchState,
+      stateSource: "live",
+      answer: "",
+      repair: {
+        cells: snapshots,
+        evidenceIdsBefore: sourceTurn.searchState.evidence_graph.nodes.map((node) => node.id),
+      },
+      meta: {},
+      error: null,
+    };
+    setTurns((current) => [...current, turn]);
+    setActiveTurnId(id);
+    setSelectedFile(null);
+    if (drawerTurnId === sourceTurn.id) setDrawerTurnId(id);
+
+    const history = turns
+      .filter((item) => item.status === "completed")
+      .map((item) => ({ query: item.query, answer: item.answer }));
+    repair(
+      sourceTurn.sessionId,
+      {
+        cells: snapshots.map(({ table_id, entity, attribute }) => ({ table_id, entity, attribute })),
+        effort: overrides.effort,
+        max_time: overrides.max_time,
+        history,
+      },
+      {
+        seen: turns.flatMap((item) => item.events),
+        initialState: sourceTurn.searchState,
+      },
+    );
+  }, [drawerTurnId, notify, overrides, repair, sessionActive, turns]);
 
   // Live follow-up: inject into the running orchestrator (sub-agents keep
   // running) instead of queueing a new search — same as the TUI mid-run path.
@@ -496,6 +552,7 @@ export default function Home() {
             onSteer={handleSteer}
             onStop={handleStop}
             onRerun={handleRerun}
+            onRepair={handleRepair}
             onOpenDrawer={handleOpenDrawer}
             registerTurnRef={(id, el) => { turnRefs.current[id] = el; }}
           />
@@ -521,6 +578,12 @@ export default function Home() {
             onWidthChange={(width) => updateActivityPreferences({ width }, false)}
             onWidthCommit={(width) => updateActivityPreferences({ width })}
             onResizeStateChange={setDrawerResizing}
+            onRepairCells={
+              !sessionActive
+              && [...turns].reverse().find((turn) => turn.status === "completed" && !!turn.sessionId && !!turn.searchState)?.id === drawerTurn.id
+                ? (cells) => handleRepair(drawerTurn, cells)
+                : undefined
+            }
           />
         )}
       </div>

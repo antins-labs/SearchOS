@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import type { SearchRequest, SearchResult, SearchState, WSEvent } from "@/lib/types";
-import { startSearch, getSearchResult, getSearchState, connectWebSocket } from "@/lib/api";
+import type { RepairRequest, SearchRequest, SearchResult, SearchState, WSEvent } from "@/lib/types";
+import { startSearch, startRepair, getSearchResult, getSearchState, connectWebSocket } from "@/lib/api";
 
 
 /**
@@ -298,19 +298,33 @@ export function useSearch() {
     openSocket(sessionId, generation, tail);
   }, [openSocket, reconcileStatus]);
 
-  const run = useCallback(async (req: SearchRequest, opts?: { seen?: WSEvent[] }) => {
+  const beginRun = useCallback(async ({
+    start,
+    seen = [],
+    initialState = null,
+    knownSessionId = null,
+    tail = false,
+    failureStatus = "error",
+  }: {
+    start: () => Promise<{ session_id: string }>;
+    seen?: WSEvent[];
+    initialState?: SearchState | null;
+    knownSessionId?: string | null;
+    tail?: boolean;
+    failureStatus?: "idle" | "error";
+  }) => {
     const generation = ++generationRef.current;
     clearRuntime();
     terminalRef.current = false;
     reconnectAttemptRef.current = 0;
     statusCheckRef.current = null;
-    seenRef.current = new Set((opts?.seen ?? []).map(eventSignature));
+    seenRef.current = new Set(seen.map(eventSignature));
 
     setSession({
-      sessionId: null,
+      sessionId: knownSessionId,
       status: "running",
       result: null,
-      liveState: null,
+      liveState: initialState,
       events: [],
       workers: [],
       error: null,
@@ -318,24 +332,43 @@ export function useSearch() {
     });
 
     try {
-      const { session_id } = await startSearch(req);
+      const { session_id } = await start();
       if (generation !== generationRef.current) return;
       setSession((s) => ({ ...s, sessionId: session_id }));
-      startStreams(session_id, !!req.follow_up_to, generation);
+      startStreams(session_id, tail, generation);
     } catch (e) {
       if (generation !== generationRef.current) return;
       clearRuntime();
       const msg = e instanceof TypeError
         ? "Backend unreachable — run ./start.sh api"
         : e instanceof Error ? e.message : String(e);
-      // POST never succeeded: drop back to the entry screen instead of an empty workbench
       setSession((s) => ({
         ...s,
-        status: s.sessionId ? "error" : "idle",
+        status: failureStatus,
         error: msg,
       }));
     }
   }, [clearRuntime, startStreams]);
+
+  const run = useCallback((req: SearchRequest, opts?: { seen?: WSEvent[] }) => beginRun({
+    start: () => startSearch(req),
+    seen: opts?.seen,
+    tail: !!req.follow_up_to,
+    failureStatus: "idle",
+  }), [beginRun]);
+
+  const repair = useCallback((
+    sessionId: string,
+    req: RepairRequest,
+    opts?: { seen?: WSEvent[]; initialState?: SearchState | null },
+  ) => beginRun({
+    start: () => startRepair(sessionId, req),
+    seen: opts?.seen,
+    initialState: opts?.initialState,
+    knownSessionId: sessionId,
+    tail: false,
+    failureStatus: "error",
+  }), [beginRun]);
 
   /** Re-attach to a session the backend is still running — history reopen,
    *  or switching back to a live run after navigating away. Seeds the
@@ -390,7 +423,7 @@ export function useSearch() {
     });
   }, [clearRuntime]);
 
-  return { session, run, attach, reset };
+  return { session, run, repair, attach, reset };
 }
 
 /**

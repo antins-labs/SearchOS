@@ -394,6 +394,7 @@ def set_orchestrator_context(
     post_mortem_model: BaseChatModel | None = None,
     conversation_logger: Any = None,
     query: str = "",
+    scheduler_task_allowlist: set[str] | None = None,
 ) -> None:
     """Bind runtime context for orchestrator tools in the current task."""
     _workspace_var.set(workspace)
@@ -424,5 +425,5 @@ def set_orchestrator_context(
     # Scheduler (own tick lock, own WriterTriggerSensor stages), defeating
     # both the concurrency cap and the writer trigger memory.
     from searchos.agents.orchestrator.scheduler import Scheduler
-    _scheduler_var.set(Scheduler())
+    _scheduler_var.set(Scheduler(task_allowlist=scheduler_task_allowlist))
     _budget_exhausted_var.set([False])

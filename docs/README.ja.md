@@ -51,10 +51,10 @@
 
 ## 📣 News
 
-- **2026-07-07** — Web UI 対応：`./web/start.sh` 一発で REST/WS API（`:8000`）+ Web フロントエンド（`:3000`）を起動。ブラウザから検索を発行し、エージェントウォールとカバレッジマップがセル単位で埋まる様子をリアルタイムに確認、引用付きの合成回答を閲覧できます。🌐
-- **2026-07-05** — オープンソース版マルチプロバイダ対応：`SF_PROVIDER` で 21 のプリセットにワンライン接続——各社 Coding Plan（智譜 / Kimi / MiniMax / アリババ / Volcengine、Anthropic プロトコル）、従量課金 API（DeepSeek / OpenAI / OpenRouter / SiliconFlow / Gemini / xAI…）、ローカルデプロイ（Ollama / vLLM）。初回実行時の CLI セットアップウィザード + プラガブルな検索バックエンド（Serper / Tavily）。抽出などの高頻度ロールは各社の軽量モデルに自動フォールバックしてコスト削減。🔌
-- **2026-07-02** — マルチターン追問への直接回答：追問は前ラウンドのカバレッジマップを引き継ぎ、答えが既にテーブルにあれば再検索しません。超長スキルペイロードの分割抽出もリリース。🧠
-- **2026-06-25** — インタラクティブ TUI コマンドシェル：`/skill` の折りたたみ式マルチセレクト、実行中のリアルタイム介入（steering）、ツールストリームの画面表示。スキルライブラリを core / catalog / runtime の三層に再構成。split-tunnel エグレス——国内サイトは直接接続、海外はプロキシ経由で、一度の実行で内外のデータソースに到達。🖥️
+- **2026-07-10** — **リサーチを、構造から。** 問いを描くだけで、SearchOS が探索・改善・書き出しまでできる、引用に裏付けられたリサーチへ変えます。 🧩
+- **2026-07-09** — **続きは、離れたその場所から。** 会話も進捗もエビデンスもライブアクティビティも、そのまま戻ってきます。 ⏪
+- **2026-07-08** — **すべての設定を、ひとつの場所に。** モデル、プロバイダ、検索、スキル、予算を、シンプルなコントロールセンターに集約しました。 ⚙️
+- **2026-07-07** — **SearchOS、オープンソースで登場。** マルチエージェント検索、構造化リサーチ、TUI、Web UI。そのすべてを、すべての人へ。 🚀
 
 ## ✨ ハイライト
 
@@ -340,9 +340,7 @@ searchos_workspace/ インタラクティブ実行のセッションワークス
 
 ## 🙏 Acknowledgements
 
-SearchOS はコアコントリビューターの **Yuyao Zhang** と **Junjie Gao**（Ant Group）が設計・構築し、アドバイザーの **Ji-Rong Wen** と **Zhicheng Dou**（中国人民大学）が指導しました。また、Ant Insurance とその AI ネイティブプロダクト「保险快查」の力強いサポートに感謝するとともに、本プロジェクトの発起人であり「保险快查」を率いる **Kai Yang**、**Hui Li** と **Xingzhong Xu** に深く感謝します。
-
-SearchOS は [LangGraph](https://github.com/langchain-ai/langgraph) / [LangChain](https://github.com/langchain-ai/langchain) / [deepagents](https://github.com/langchain-ai/deepagents) の上に構築され、TUI は [Textual](https://github.com/Textualize/textual) ベースです。
+SearchOS はコアコントリビューターの **Yuyao Zhang** と **Junjie Gao**（Ant Group）が設計・構築し、アドバイザーの **Ji-Rong Wen** と **Zhicheng Dou**（中国人民大学）が指導しました。また、Ant Insurance の力強いサポートに感謝するとともに、本プロジェクトの発起人およびリーダーである **Kai Yang** と **Xingzhong Xu** に深く感謝します。
 
 ## 📚 Citation
 

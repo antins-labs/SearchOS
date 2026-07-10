@@ -7,21 +7,25 @@ import {
   ArrowUp,
   ArrowUpDown,
   Check,
+  CheckSquare2,
   Columns3,
   Filter,
   Maximize2,
   Minimize2,
   RotateCcw,
   Search,
+  Square,
+  Wrench,
   X,
 } from "lucide-react";
-import type { CoverageMap, TableSchema, CoverageCell, EvidenceNode } from "@/lib/types";
+import type { CoverageMap, TableSchema, CoverageCell, EvidenceNode, RepairCellTarget } from "@/lib/types";
 import CellEvidencePopover, { type CellRef } from "./CellEvidencePopover";
 
 interface Props {
   coverageMap: CoverageMap | null;
   /** When provided, filled cells become clickable and open their evidence. */
   evidence?: EvidenceNode[];
+  onRepairCells?: (cells: RepairCellTarget[]) => void;
 }
 
 // Filled cells stay readable (near-normal text) with only a whisper of tint —
@@ -74,11 +78,17 @@ function TableSection({
   cells,
   onCellClick,
   selectedCell,
+  repairMode,
+  selectedRepairKeys,
+  onToggleRepairCell,
 }: {
   schema: TableSchema;
   cells: Record<string, CoverageCell>;
   onCellClick?: (ref: CellRef) => void;
   selectedCell: CellRef | null;
+  repairMode: boolean;
+  selectedRepairKeys: Set<string>;
+  onToggleRepairCell?: (target: RepairCellTarget) => void;
 }) {
   const { table_id, entities, attributes, primary_key, row_label, table_label } = schema;
   const isDefault = table_id === "_default" || table_id.startsWith("_");
@@ -368,31 +378,53 @@ function TableSection({
                   const cell = cells[`${table_id}/${entity}.${column}`];
                   if (!cell) return <td key={column} className="whitespace-nowrap border-b border-line px-3 py-2 text-ink-faint">--</td>;
                   const sourceTitle = Array.isArray(cell.source) ? cell.source.join(", ") : cell.source;
-                  const clickable = !!onCellClick && cell.status !== "missing";
+                  const evidenceClickable = !!onCellClick && cell.status !== "missing";
+                  const repairable = cell.status === "missing" || cell.status === "uncertain" || cell.status === "hard_cell";
+                  const repairKey = `${table_id}/${entity}.${column}`;
+                  const repairSelectable = repairMode && repairable && !!onToggleRepairCell;
+                  const clickable = repairSelectable || (!repairMode && evidenceClickable);
                   const cellRef = { tableId: table_id, entity, attribute: column, cell };
-                  const cellSelected = selectedCell?.tableId === table_id
+                  const evidenceSelected = selectedCell?.tableId === table_id
                     && selectedCell.entity === entity
                     && selectedCell.attribute === column;
+                  const repairSelected = selectedRepairKeys.has(repairKey);
                   const cellTitle = cell.status === "filled"
                     ? (typeof cell.value === "string" ? cell.value : Array.isArray(cell.value) ? cell.value.join("\n") : "")
                     : sourceTitle ? `Source: ${sourceTitle}` : undefined;
-                  const openEvidence = () => onCellClick?.(cellRef);
+                  const activateCell = () => {
+                    if (repairSelectable) {
+                      onToggleRepairCell?.({ table_id, entity, attribute: column });
+                    } else if (evidenceClickable) {
+                      onCellClick?.(cellRef);
+                    }
+                  };
                   return (
                     <td key={column}
                       role={clickable ? "button" : undefined}
                       tabIndex={clickable ? 0 : undefined}
-                      aria-haspopup={clickable ? "dialog" : undefined}
-                      aria-pressed={clickable ? cellSelected : undefined}
-                      aria-label={clickable ? `${column} for ${displayEntity(entity)}: ${cellText(cell) || cell.status}. View evidence` : undefined}
-                      className={`whitespace-nowrap border-b border-line px-3 py-2 ${STATUS_COLORS[cell.status] || ""} ${clickable ? "cursor-pointer transition-colors hover:bg-clay/40 focus-visible:bg-clay/50 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]" : ""} ${cellSelected ? "bg-clay/60" : ""}`}
-                      title={clickable ? `${cellTitle ?? ""}${cellTitle ? "\n" : ""}Click to view evidence` : cellTitle}
-                      onClick={clickable ? openEvidence : undefined}
+                      aria-haspopup={!repairMode && evidenceClickable ? "dialog" : undefined}
+                      aria-pressed={clickable ? (repairSelectable ? repairSelected : evidenceSelected) : undefined}
+                      aria-label={clickable ? `${column} for ${displayEntity(entity)}: ${cellText(cell) || cell.status}. ${repairSelectable ? (repairSelected ? "Remove from repair" : "Select for repair") : "View evidence"}` : undefined}
+                      className={`whitespace-nowrap border-b border-line px-3 py-2 ${STATUS_COLORS[cell.status] || ""} ${clickable ? "cursor-pointer transition-colors hover:bg-clay/40 focus-visible:bg-clay/50 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]" : ""} ${evidenceSelected || repairSelected ? "bg-clay/60" : ""} ${repairMode && repairable ? "outline outline-1 outline-inset outline-warn/30" : ""}`}
+                      title={clickable
+                        ? `${cellTitle ?? ""}${cellTitle ? "\n" : ""}${repairSelectable
+                          ? (repairSelected ? "Click to remove from repair" : "Click to select for repair")
+                          : "Click to view evidence"}`
+                        : cellTitle}
+                      onClick={clickable ? activateCell : undefined}
                       onKeyDown={clickable ? (event) => {
                         if (event.key !== "Enter" && event.key !== " ") return;
                         event.preventDefault();
-                        openEvidence();
+                        activateCell();
                       } : undefined}>
-                      {renderCellValue(cell)}
+                      <div className="flex items-start gap-2">
+                        {repairSelectable && (
+                          repairSelected
+                            ? <CheckSquare2 className="mt-0.5 shrink-0 text-accent-ink" size={14} />
+                            : <Square className="mt-0.5 shrink-0 text-warn" size={14} />
+                        )}
+                        <div className="min-w-0">{renderCellValue(cell)}</div>
+                      </div>
                     </td>
                   );
                 })}
@@ -429,8 +461,10 @@ function SortIndicator({ column, sort }: { column: string; sort: SortState }) {
     : <ArrowDown className="shrink-0 text-accent-ink" size={12} />;
 }
 
-export default function CoverageTable({ coverageMap, evidence }: Props) {
+export default function CoverageTable({ coverageMap, evidence, onRepairCells }: Props) {
   const [selected, setSelected] = useState<CellRef | null>(null);
+  const [repairMode, setRepairMode] = useState(false);
+  const [repairSelection, setRepairSelection] = useState<Map<string, RepairCellTarget>>(() => new Map());
 
   if (!coverageMap || !coverageMap.tables || Object.keys(coverageMap.tables).length === 0) {
     return <div className="p-4 text-sm text-ink-faint">No coverage data yet.</div>;
@@ -446,9 +480,55 @@ export default function CoverageTable({ coverageMap, evidence }: Props) {
   const withCells = base.filter((t) => cellKeys.some((k) => k.startsWith(`${t.table_id}/`)));
   const tables = withCells.length ? withCells : base;
   const relations = coverageMap.relations || [];
+  const repairableCount = Object.values(coverageMap.cells).filter((cell) => (
+    cell.status === "missing" || cell.status === "uncertain" || cell.status === "hard_cell"
+  )).length;
+  const selectedRepairKeys = new Set(repairSelection.keys());
+
+  const toggleRepairCell = (target: RepairCellTarget) => {
+    const key = `${target.table_id}/${target.entity}.${target.attribute}`;
+    setRepairSelection((current) => {
+      const next = new Map(current);
+      if (next.has(key)) next.delete(key);
+      else next.set(key, target);
+      return next;
+    });
+  };
+
+  const closeRepairMode = () => {
+    setRepairMode(false);
+    setRepairSelection(new Map());
+  };
 
   return (
     <div className="p-4">
+      {onRepairCells && repairableCount > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 border-b border-line pb-3">
+          {!repairMode ? (
+            <button type="button" onClick={() => { setSelected(null); setRepairMode(true); }}
+              className="flex items-center gap-1.5 rounded-md bg-warn/10 px-2.5 py-1.5 text-[12px] font-medium text-warn transition-colors hover:bg-warn/15">
+              <Wrench size={13} />
+              Repair cells
+              <span className="font-normal opacity-80">{repairableCount}</span>
+            </button>
+          ) : (
+            <>
+              <span role="status" className="mr-auto text-[12px] text-ink-dim">
+                {repairSelection.size} selected
+              </span>
+              <button type="button" onClick={closeRepairMode}
+                className="rounded-md px-2.5 py-1.5 text-[12px] text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">
+                Cancel
+              </button>
+              <button type="button" disabled={repairSelection.size === 0}
+                onClick={() => { onRepairCells([...repairSelection.values()]); closeRepairMode(); }}
+                className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-[12px] font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30">
+                <Wrench size={13} /> Repair
+              </button>
+            </>
+          )}
+        </div>
+      )}
       {tables.map((schema) => (
         <TableSection
           key={schema.table_id}
@@ -456,6 +536,9 @@ export default function CoverageTable({ coverageMap, evidence }: Props) {
           cells={coverageMap.cells}
           onCellClick={evidence ? setSelected : undefined}
           selectedCell={selected}
+          repairMode={repairMode}
+          selectedRepairKeys={selectedRepairKeys}
+          onToggleRepairCell={onRepairCells ? toggleRepairCell : undefined}
         />
       ))}
 

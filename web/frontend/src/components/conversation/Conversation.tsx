@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, WifiOff } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, Search, Wrench, WifiOff } from "lucide-react";
 import Composer, { type SubmitOpts } from "@/components/shell/Composer";
 import OrchestrationCard from "./OrchestrationCard";
 import Answer, { cleanAnswer } from "./Answer";
@@ -9,6 +9,7 @@ import AnswerActions from "./AnswerActions";
 import CoverageTable from "@/components/coverage/CoverageTable";
 import ResultExportMenu from "@/components/coverage/ResultExportMenu";
 import type { Turn } from "@/lib/conversation";
+import type { CoverageCell, RepairCellTarget } from "@/lib/types";
 
 interface Props {
   turns: Turn[];
@@ -19,13 +20,17 @@ interface Props {
   onSteer?: (text: string) => void;
   onStop?: () => void;
   onRerun: (query: string) => void;
+  onRepair: (turn: Turn, cells: RepairCellTarget[]) => void;
   onOpenDrawer: (turnId: string) => void;
   registerTurnRef?: (id: string, el: HTMLDivElement | null) => void;
 }
 
-export default function Conversation({ turns, running, reconnecting = false, stopping = false, onSubmit, onSteer, onStop, onRerun, onOpenDrawer, registerTurnRef }: Props) {
+export default function Conversation({ turns, running, reconnecting = false, stopping = false, onSubmit, onSteer, onStop, onRerun, onRepair, onOpenDrawer, registerTurnRef }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [composerFocusRequest, setComposerFocusRequest] = useState(0);
+  const repairSource = [...turns].reverse().find((turn) => (
+    turn.status === "completed" && !!turn.sessionId && !!turn.searchState
+  ));
   // Follow the bottom only while a search is live; a freshly loaded historical
   // session should rest at the top, not jump to its references.
   useEffect(() => {
@@ -42,6 +47,9 @@ export default function Conversation({ turns, running, reconnecting = false, sto
               turn={t}
               onOpen={() => onOpenDrawer(t.id)}
               onRerun={() => onRerun(t.query)}
+              onRepairCells={!running && repairSource?.id === t.id
+                ? (cells) => onRepair(t, cells)
+                : undefined}
               onContinue={index === turns.length - 1 && t.status === "completed"
                 ? () => setComposerFocusRequest((value) => value + 1)
                 : undefined}
@@ -77,6 +85,7 @@ function TurnView({
   onOpen,
   onRerun,
   onContinue,
+  onRepairCells,
   runDisabled,
   registerRef,
 }: {
@@ -84,6 +93,7 @@ function TurnView({
   onOpen: () => void;
   onRerun: () => void;
   onContinue?: () => void;
+  onRepairCells?: (cells: RepairCellTarget[]) => void;
   runDisabled: boolean;
   registerRef?: (el: HTMLDivElement | null) => void;
 }) {
@@ -142,6 +152,10 @@ function TurnView({
             <p className="mb-4 rounded-lg border border-err/30 bg-err/5 px-3 py-2 text-[13px] text-err">{turn.error}</p>
           )}
 
+          {turn.repair && (
+            <RepairSummary turn={turn} />
+          )}
+
           {done && displayAnswer && (
             <div className="mb-5">
               <div className={answerCollapsed ? "max-h-[320px] overflow-hidden" : undefined}>
@@ -173,6 +187,7 @@ function TurnView({
                 <CoverageTable
                   coverageMap={turn.searchState?.coverage_map ?? null}
                   evidence={turn.searchState?.evidence_graph?.nodes ?? []}
+                  onRepairCells={onRepairCells}
                 />
               </div>
             </div>
@@ -195,5 +210,85 @@ function TurnView({
         </div>
       </div>
     </div>
+  );
+}
+
+const REPAIR_STATUS: Record<CoverageCell["status"], { label: string; className: string }> = {
+  missing: { label: "Missing", className: "text-ink-faint" },
+  uncertain: { label: "Uncertain", className: "text-warn" },
+  hard_cell: { label: "Hard", className: "text-err" },
+  filled: { label: "Filled", className: "text-ok" },
+};
+
+function compactValue(value: CoverageCell["value"] | undefined): string {
+  if (Array.isArray(value)) return value.join(", ") || "--";
+  return value || "--";
+}
+
+function RepairSummary({ turn }: { turn: Turn }) {
+  const state = turn.searchState;
+  const repair = turn.repair;
+  if (!repair) return null;
+
+  const primaryTable = Object.keys(state?.coverage_map?.tables ?? {})[0] ?? "_default";
+  const previousEvidence = new Set(repair.evidenceIdsBefore);
+  const newEvidence = (state?.evidence_graph?.nodes ?? []).filter((node) => !previousEvidence.has(node.id));
+  const rows = repair.cells.map((target) => {
+    const key = `${target.table_id}/${target.entity}.${target.attribute}`;
+    const current = state?.coverage_map?.cells[key];
+    const evidenceCount = newEvidence.filter((node) => (
+      (node.table_id || primaryTable) === target.table_id
+      && node.entity === target.entity
+      && node.attribute === target.attribute
+    )).length;
+    const changed = !!current && (
+      current.status !== target.before.status
+      || JSON.stringify(current.value) !== JSON.stringify(target.before.value)
+    );
+    return { target, current, evidenceCount, changed };
+  });
+  const filled = rows.filter((row) => row.current?.status === "filled").length;
+  const evidenceCount = rows.reduce((sum, row) => sum + row.evidenceCount, 0);
+
+  return (
+    <section className="mb-5 border-y border-line py-3" aria-label="Repair results">
+      <div className="mb-2.5 flex flex-wrap items-center gap-2">
+        <Wrench className="text-accent-ink" size={15} />
+        <h3 className="text-[13px] font-semibold text-ink">Targeted repair</h3>
+        <span className="text-[12px] text-ink-dim">
+          {filled}/{rows.length} filled · {evidenceCount} new {evidenceCount === 1 ? "source" : "sources"}
+        </span>
+        {turn.status === "running" && <Loader2 className="ml-auto animate-spin text-accent-ink" size={14} />}
+      </div>
+      <div className="divide-y divide-line">
+        {rows.map(({ target, current, evidenceCount: cellEvidence, changed }) => {
+          const beforeStatus = REPAIR_STATUS[target.before.status];
+          const afterStatus = REPAIR_STATUS[current?.status ?? target.before.status];
+          return (
+            <div key={`${target.table_id}/${target.entity}.${target.attribute}`} className="grid gap-1 py-2 text-[12px] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-3">
+              <div className="min-w-0">
+                <div className="truncate font-medium text-ink" title={`${target.table_id} / ${target.entity} / ${target.attribute}`}>
+                  {target.entity} · {target.attribute}
+                </div>
+                <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-ink-dim">
+                  <span className={beforeStatus.className}>{beforeStatus.label}</span>
+                  <ArrowRight className="shrink-0 text-ink-faint" size={12} />
+                  <span className={afterStatus.className}>{afterStatus.label}</span>
+                  {changed && current && (
+                    <span className="min-w-0 truncate text-ink-faint" title={compactValue(current.value)}>
+                      {compactValue(target.before.value)} → {compactValue(current.value)}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 text-ink-dim">
+                {current?.status === "filled" ? <CheckCircle2 className="text-ok" size={13} /> : <Search className="text-ink-faint" size={13} />}
+                {cellEvidence} new {cellEvidence === 1 ? "source" : "sources"}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

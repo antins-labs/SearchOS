@@ -50,10 +50,10 @@
 
 ## 📣 News
 
-- **2026-07-07** — Web UI 支持：`./web/start.sh` 一键拉起 REST/WS API（`:8000`）+ Web 前端（`:3000`），在浏览器里发起搜索，实时看智能体墙与覆盖表逐格填充，合成答案逐格带引用。🌐
-- **2026-07-05** — 开源多厂商适配：`SF_PROVIDER` 一键接入 21 个预设——各家 Coding Plan（智谱/Kimi/MiniMax/阿里/火山，Anthropic 协议）、按量 API（DeepSeek/OpenAI/OpenRouter/硅基流动/Gemini/xAI…）与本地部署（Ollama/vLLM）；首跑命令行配置向导 + 可插拔搜索后端（Serper/Tavily）。抽取等高频角色自动落到各厂商轻量档降本。🔌
-- **2026-07-02** — 多轮追问直答：追问沿用上一轮覆盖表，能直接回答的不再重复检索；超长 skill 载荷分段抽取上线。🧠
-- **2026-06-25** — 交互式 TUI 指令外壳：`/skill` 目录折叠多选、运行中实时插话（steering）、工具流上屏，技能库按 core / catalog / runtime 三层重构；split-tunnel 出口——国内站点直连、境外走代理，一次运行通中外数据源。🖥️
+- **2026-07-10** — **研究，从画出结构开始。** 描绘问题，SearchOS 把它变成可探索、可完善、可导出的引用级研究成果。 🧩
+- **2026-07-09** — **离开多久，都能原样回来。** 对话、进度、证据与实时动态完整保留，打开即可继续。 ⏪
+- **2026-07-08** — **所有设置，一个地方。** 模型、服务商、搜索、技能与预算，汇聚在一个简单而完整的控制中心。 ⚙️
+- **2026-07-07** — **SearchOS，正式开源。** 多智能体搜索、结构化研究、TUI 与 Web UI，第一次完整走到所有人面前。 🚀
 
 ## ✨ 核心亮点
 
@@ -335,9 +335,7 @@ searchos_workspace/ 交互运行的会话工作区（时间戳目录）
 
 ## 🙏 Acknowledgements
 
-SearchOS 由核心贡献者 **Yuyao Zhang** 与 **Junjie Gao**（蚂蚁集团）设计并构建，导师 **Ji-Rong Wen** 与 **Zhicheng Dou**（中国人民大学）指导。同时感谢蚂蚁保及其 AI 原生产品「保险快查」的大力支持，并特别感谢本项目的发起人、保险快查负责人 **Kai Yang**、**Hui Li** 与 **Xingzhong Xu**。
-
-SearchOS 构建于 [LangGraph](https://github.com/langchain-ai/langgraph) / [LangChain](https://github.com/langchain-ai/langchain) / [deepagents](https://github.com/langchain-ai/deepagents) 之上，TUI 基于 [Textual](https://github.com/Textualize/textual)。
+SearchOS 由核心贡献者 **Yuyao Zhang** 与 **Junjie Gao**（蚂蚁集团）设计并构建，并由导师 **Ji-Rong Wen** 与 **Zhicheng Dou**（中国人民大学）指导。我们也感谢蚂蚁保的大力支持，并特别感谢本项目的发起者和领导者 **Kai Yang** 与 **Xingzhong Xu**。
 
 ## 📚 Citation
 
