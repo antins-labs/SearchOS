@@ -495,7 +495,8 @@ async def main():
                 data = result.get('data', {})
                 print(f"  Name: {data.get('name', 'N/A')}")
                 print(f"  Party: {data.get('party', 'N/A')}")
-                print(f"  Education: {data.get('education', data.get("bachelor's", 'N/A'))}")
+                education = data.get('education', data.get("bachelor's", 'N/A'))
+                print(f"  Education: {education}")
                 print(f"  Keys found: {list(data.keys())[:15]}")
             elif expected_type == 'office':
                 sections = result.get('sections', [])

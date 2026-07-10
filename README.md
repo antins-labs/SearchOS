@@ -200,10 +200,16 @@ The full artifact (a replayable directory with the trajectory, page cache, and S
 Requires Python ≥ 3.11:
 
 ```bash
+./install.sh                # 一键安装：Python、Access Skill、Chromium 与 Web 前端
+source .venv/bin/activate
+
 pip install -e .            # base dependencies (incl. OpenAI/Anthropic dual-protocol clients; coding plans work out of the box)
+pip install -e ".[access]"  # bundled Access Skill executors
 pip install -e ".[eval]"    # evaluation: pandas / numpy / python-dotenv
-pip install -e ".[all]"     # all optional backends: tavily / playwright / crawl4ai / langsmith
+pip install -e ".[all]"     # all optional runtime dependencies
 ```
+
+中文完整说明见 [`docs/installation.md`](docs/installation.md)。
 
 ## ⚙️ Configuration
 

@@ -9,8 +9,12 @@ description = "Robust for Open Domain Information Seeking"
 requires-python = ">=3.11"
 license = "MIT"
 dependencies = [
+    # 直接导入的运行时依赖必须在这里显式声明，不能依赖其他包顺带安装。
+    "certifi>=2024.8.30",
     "langchain-core>=1.2.0",
+    "langchain>=1.0.0,<2.0.0",
     "langchain-openai>=1.0.0",
+    "openai>=1.0.0,<3.0.0",
     # 各厂商 coding plan（GLM/Kimi/MiniMax/Qwen/火山…）均走 Anthropic 协议端点，
     # 因此 langchain-anthropic 是核心依赖而非可选。
     "langchain-anthropic>=0.3.0",
@@ -18,7 +22,10 @@ dependencies = [
     "deepagents>=0.4.0",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "PyYAML>=6.0.0",
     "httpx>=0.28.0",
+    "requests>=2.32.0",
     "tiktoken>=0.7.0",
     "rich>=14.2.0",
     "textual>=8.0",
@@ -29,9 +36,8 @@ dependencies = [
     "uvicorn>=0.30.0",
 ]
 
-# CLI 入口待 S3(searchos/cli.py 尚未建)接入。
-# [project.scripts]
-# searchos = "searchos.cli:main"
+[project.scripts]
+searchos = "searchos.cli:main"
 
 [project.optional-dependencies]
 tavily = ["tavily-python>=0.5.0"]
@@ -39,8 +45,19 @@ browser = ["playwright>=1.40.0"]
 crawl4ai = ["crawl4ai>=0.4.0"]
 anthropic = ["langchain-anthropic>=0.3.0"]  # 已进核心依赖；保留 extra 向后兼容
 observability = ["langsmith>=0.2.0"]
-eval = ["pandas>=2.0", "numpy>=1.24", "python-dotenv>=1.0"]
-all = ["searchos[tavily,browser,crawl4ai,anthropic,observability]"]
+eval = ["pandas>=2.0", "numpy>=1.24"]
+# 仓库内 Access Skill executor 的完整依赖。基础安装保持轻量；一键安装默认启用本组。
+access = [
+    "beautifulsoup4>=4.12.0",
+    "curl-cffi>=0.7.0",
+    "openpyxl>=3.1.0",
+    "pandas>=2.0",
+    "pillow>=10.0.0",
+    "playwright>=1.40.0",
+    "PyPDF2>=3.0.0",
+    "python-dateutil>=2.9.0",
+]
+all = ["searchos[access,tavily,crawl4ai,observability,eval]"]
 dev = ["pytest>=8.0", "pytest-asyncio>=0.23.0", "ruff>=0.4.0"]
 
 [tool.hatch.build.targets.wheel]

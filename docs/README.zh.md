@@ -41,7 +41,7 @@
 > **▶️ 快速运行：**
 >
 > ```bash
-> pip install -e . && python -m searchos "2025 年 QS 学科排名各学科前五的大学及其申请截止日期"
+> ./install.sh && source .venv/bin/activate && searchos "2025 年 QS 学科排名各学科前五的大学及其申请截止日期"
 > ```
 >
 > 首次运行自动进入**配置向导**：选模型厂商（各家 coding plan / 按量 API / 本地部署）、填 API key 即可跑通。
@@ -189,10 +189,18 @@ SearchOS 对这四类失败逐条给出机制层面的解法：
 要求 Python ≥ 3.11：
 
 ```bash
-pip install -e .            # 基础依赖（含 OpenAI/Anthropic 双协议客户端，coding plan 开箱即用）
-pip install -e ".[eval]"    # 评测：pandas / numpy / python-dotenv
-pip install -e ".[all]"     # 全部可选后端：tavily / playwright / crawl4ai / langsmith
+./install.sh                # 推荐：Python + Access Skill + Chromium + Web 前端
+source .venv/bin/activate
+
+pip install -e .            # 手动：仅基础运行依赖
+pip install -e ".[access]"  # 手动：仓库内 Access Skill 依赖
+pip install -e ".[eval]"    # 手动：评测依赖
+pip install -e ".[all]"     # 手动：全部可选运行依赖
 ```
+
+一键安装要求 Node.js ≥ 20.9；可用 `./install.sh --core` 跳过 Access Skill 和浏览器运行时，或用 `./install.sh --all --dev` 准备完整开发环境。详见[安装指南](installation.md)。
+
+如果 `python -m searchos` 正常、但 `searchos` 的错误堆栈指向其他仓库，请重新执行 `source .venv/bin/activate && hash -r`；详见安装指南中的[同名命令排查](installation.md#searchos-命令指向其他仓库)。
 
 ## ⚙️ 配置
 

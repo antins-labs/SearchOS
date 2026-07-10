@@ -11,6 +11,8 @@ Supported instruments:
 - Stocks: AAPL, MSFT, GOOGL, AMZN, TSLA, etc.
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import re
