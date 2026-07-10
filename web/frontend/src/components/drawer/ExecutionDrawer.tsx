@@ -219,6 +219,7 @@ export default function ExecutionDrawer({
                 coverageMap={state?.coverage_map ?? null}
                 evidence={state?.evidence_graph?.nodes ?? []}
                 onRepairCells={onRepairCells}
+                animationScope={turn.id}
               />
             )
           )}

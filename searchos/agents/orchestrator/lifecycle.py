@@ -1087,7 +1087,12 @@ async def _spawn_sub_agent(
     # system prompt forks the prompt-cache prefix on every dispatch, so
     # same-type sub-agents could never share the cached persona/toolset.
     from datetime import datetime as _dt
-    prompt_parts.append(f"Current date: {_dt.now().strftime('%Y-%m-%d')}")
+
+    from searchos.agents.temporal import render_temporal_grounding
+    prompt_parts.append(render_temporal_grounding(
+        _dt.now().strftime("%Y-%m-%d"),
+        agent_type,
+    ))
 
     # Explore-specific budget self-awareness. The harness hard-blocks
     # open() once max_opens is hit, but explore has no extraction

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 
 __all__ = [
     "COVERAGE_AWARE_ROW_PROMPT",
@@ -72,6 +73,8 @@ def _render_column_desc_block(
 
 _PROMPT_HEADER = """\
 You are a structured data extractor.
+## Runtime as-of date
+    {current_date}
 ## Overall research goal (defines what is IN SCOPE for the table)
     {global_task}
 ## Current sub-agent assignment (the slice being worked right now)
@@ -108,6 +111,9 @@ A ROW = one real-world entity that is in scope. For each row, decide (A) should 
 
 ## Evidence discipline — every value must exist on THIS page
 You are an extractor, not an analyst: a cell holds what a page STATES, or null.
+- TEMPORAL FIT IS REQUIRED: match the value's event/effective date or reporting period to the task and column description. The page publication date is metadata, not automatically the date of the fact.
+- For "current/latest/as of" columns, reject a value when the page does not establish that it applies at the requested cutoff. When several periods appear, extract only the matching one; never choose by visual order alone.
+- A future target, forecast, schedule, or announcement is not a completed current value. Extract it only when the requested column explicitly asks for plans/forecasts, preserving its future date and status.
 - THE PAGE IS THE ONLY SOURCE. A value you know from memory, world knowledge, a typical/likely figure, or another entity's row is FABRICATION even if it happens to be correct. A page that merely LISTS entities (an announcement, a ranking, an index) states NO attribute values — extracting prices/dates/figures from such a page is fabrication. Null is a correct, expected answer; a guessed value is a defect.
 - UNIFORMITY RED FLAG: if you notice the same value landing in the same column for many different entities (e.g. dozens of rows all "100元/人"), stop — real-world values are not that uniform. Re-check the page; keep the value ONLY for rows where the page states it.
 - NO ARITHMETIC, NO CONVERSION: copy numbers exactly as printed, original unit and wording included — the harness converts units deterministically after ingest. Never produce a value by combining or transforming others — no sums, differences, averages, rate math, unit rescaling, and no completing an identity (total = sum of parts) however certain it seems. Sources need not share scope, period, or rounding basis, so a derived number is fabricated evidence even when the arithmetic is right.
@@ -210,6 +216,7 @@ def build_fill_row_prompt(
     coverage_snapshot: str,
 ) -> str:
     return FILL_ROW_PROMPT.format(
+        current_date=date.today().isoformat(),
         global_task=global_task or sub_agent_task,
         sub_agent_task=sub_agent_task,
         primary_key=list(primary_key),
@@ -235,6 +242,7 @@ def build_discover_row_prompt(
     known_pk_list: str,
 ) -> str:
     return DISCOVER_ROW_PROMPT.format(
+        current_date=date.today().isoformat(),
         global_task=global_task or sub_agent_task,
         sub_agent_task=sub_agent_task,
         primary_key=list(primary_key),
@@ -267,6 +275,7 @@ def build_coverage_aware_row_prompt(
     pages_block = _render_pages_block(pages)
 
     return COVERAGE_AWARE_ROW_PROMPT.format(
+        current_date=date.today().isoformat(),
         global_task=global_task or sub_agent_task,
         sub_agent_task=sub_agent_task,
         primary_key=list(primary_key),

@@ -438,6 +438,12 @@ html[data-effort="max"]:not(.dark) .max-effort-chip {
   .max-effort-pulse,
   .max-effort-ripples { display: none; }
   .max-effort-frame { opacity: 0.8; }
+  .coverage-cell-piece-land,
+  .coverage-cell-piece-land::after,
+  .coverage-cell-piece-land .coverage-cell-content,
+  .coverage-cell-piece-land .coverage-filled-dot {
+    animation: none !important;
+  }
 }
 
 /* Spinner ring */
@@ -455,6 +461,57 @@ html[data-effort="max"]:not(.dark) .max-effort-chip {
   background-image: linear-gradient(90deg, transparent 25%, rgba(var(--accent-rgb), 0.14) 50%, transparent 75%);
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
+}
+
+/* Coverage value placement: a short, weighty board-piece landing. */
+@keyframes coverage-piece-land {
+  0%   { opacity: 0; transform: translateY(-9px) scale(1.055); filter: blur(1.5px); }
+  42%  { opacity: 1; transform: translateY(1.5px) scale(0.985); filter: blur(0); }
+  66%  { transform: translateY(-1px) scale(1.008); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+@keyframes coverage-board-impact {
+  0%   { background-color: rgba(var(--accent-rgb), 0.16); box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.55), inset 0 0 24px rgba(var(--accent-rgb), 0.18); }
+  38%  { background-color: rgba(var(--accent-rgb), 0.08); box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.28), inset 0 0 14px rgba(var(--accent-rgb), 0.1); }
+  100% { background-color: transparent; box-shadow: inset 0 0 0 1px transparent, inset 0 0 0 transparent; }
+}
+@keyframes coverage-impact-ring {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.25); }
+  16%  { opacity: 0.55; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(3.2); }
+}
+@keyframes coverage-dot-settle {
+  0%   { transform: scale(0); box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent); }
+  48%  { transform: scale(1.7); box-shadow: 0 0 0 5px color-mix(in srgb, var(--ok) 0%, transparent); }
+  100% { transform: scale(1); box-shadow: none; }
+}
+.coverage-cell-piece-land {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  animation: coverage-board-impact 0.9s cubic-bezier(0.2, 0.72, 0.2, 1) both;
+}
+.coverage-cell-piece-land::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(var(--accent-rgb), 0.55);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: coverage-impact-ring 0.78s cubic-bezier(0.16, 0.68, 0.24, 1) both;
+}
+.coverage-cell-piece-land .coverage-cell-content {
+  position: relative;
+  z-index: 1;
+  transform-origin: 18px 70%;
+  animation: coverage-piece-land 0.72s cubic-bezier(0.18, 0.78, 0.24, 1) both;
+}
+.coverage-cell-piece-land .coverage-filled-dot {
+  animation: coverage-dot-settle 0.72s cubic-bezier(0.18, 0.78, 0.24, 1) both;
 }
 
 /* Panel resize handles (react-resizable-panels) */

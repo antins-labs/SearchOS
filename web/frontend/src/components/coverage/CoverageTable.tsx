@@ -26,6 +26,8 @@ interface Props {
   /** When provided, filled cells become clickable and open their evidence. */
   evidence?: EvidenceNode[];
   onRepairCells?: (cells: RepairCellTarget[]) => void;
+  /** Stable per-turn id: changing it suppresses animations for historical data. */
+  animationScope?: string;
 }
 
 // Filled cells stay readable (near-normal text) with only a whisper of tint —
@@ -38,6 +40,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 type SortState = { column: string; direction: "asc" | "desc" } | null;
+type CellLandingSnapshot = { status: CoverageCell["status"]; value: string };
 
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
 
@@ -45,6 +48,10 @@ function cellText(cell: CoverageCell | undefined): string {
   if (!cell || cell.status === "missing") return "";
   if (cell.status === "hard_cell" && (!cell.value || cell.value.length === 0)) return "N/A";
   return Array.isArray(cell.value) ? cell.value.join(" ") : String(cell.value ?? "");
+}
+
+function landingSnapshot(cell: CoverageCell): CellLandingSnapshot {
+  return { status: cell.status, value: JSON.stringify(cell.value ?? null) };
 }
 
 function isRepairableCell(cell: CoverageCell | undefined): cell is CoverageCell {
@@ -58,7 +65,7 @@ function isRepairableCell(cell: CoverageCell | undefined): cell is CoverageCell 
 
 function renderCellValue(cell: CoverageCell): React.ReactNode {
   if (cell.status === "filled") {
-    const dot = <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-ok/70" />;
+    const dot = <span className="coverage-filled-dot mt-[7px] h-1 w-1 shrink-0 rounded-full bg-ok/70" />;
     if (Array.isArray(cell.value)) {
       return (
         <div className="flex items-start gap-1.5">
@@ -89,6 +96,7 @@ function TableSection({
   selectedCell,
   repairMode,
   selectedRepairKeys,
+  landingTokens,
   onToggleRepairCell,
 }: {
   schema: TableSchema;
@@ -97,6 +105,7 @@ function TableSection({
   selectedCell: CellRef | null;
   repairMode: boolean;
   selectedRepairKeys: Set<string>;
+  landingTokens: ReadonlyMap<string, number>;
   onToggleRepairCell?: (target: RepairCellTarget) => void;
 }) {
   const { table_id, entities, attributes, primary_key, row_label, table_label } = schema;
@@ -397,6 +406,7 @@ function TableSection({
                     && selectedCell.entity === entity
                     && selectedCell.attribute === column;
                   const repairSelected = selectedRepairKeys.has(repairKey);
+                  const landingToken = landingTokens.get(repairKey);
                   const cellTitle = cell.status === "filled"
                     ? (typeof cell.value === "string" ? cell.value : Array.isArray(cell.value) ? cell.value.join("\n") : "")
                     : sourceTitle ? `Source: ${sourceTitle}` : undefined;
@@ -408,13 +418,13 @@ function TableSection({
                     }
                   };
                   return (
-                    <td key={column}
+                    <td key={`${column}:${landingToken ?? 0}`}
                       role={clickable ? "button" : undefined}
                       tabIndex={clickable ? 0 : undefined}
                       aria-haspopup={!repairMode && evidenceClickable ? "dialog" : undefined}
                       aria-pressed={clickable ? (repairSelectable ? repairSelected : evidenceSelected) : undefined}
                       aria-label={clickable ? `${column} for ${displayEntity(entity)}: ${cellText(cell) || cell.status}. ${repairSelectable ? (repairSelected ? "Remove from repair" : "Select for repair") : "View evidence"}` : undefined}
-                      className={`whitespace-nowrap border-b border-line px-3 py-2 ${STATUS_COLORS[cell.status] || ""} ${clickable ? "cursor-pointer transition-colors hover:bg-clay/40 focus-visible:bg-clay/50 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]" : ""} ${evidenceSelected || repairSelected ? "bg-clay/60" : ""} ${repairMode && repairable ? "outline outline-1 outline-inset outline-warn/30" : ""}`}
+                      className={`whitespace-nowrap border-b border-line px-3 py-2 ${STATUS_COLORS[cell.status] || ""} ${landingToken ? "coverage-cell-piece-land" : ""} ${clickable ? "cursor-pointer transition-colors hover:bg-clay/40 focus-visible:bg-clay/50 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]" : ""} ${evidenceSelected || repairSelected ? "bg-clay/60" : ""} ${repairMode && repairable ? "outline outline-1 outline-inset outline-warn/30" : ""}`}
                       title={clickable
                         ? `${cellTitle ?? ""}${cellTitle ? "\n" : ""}${repairSelectable
                           ? (repairSelected ? "Click to remove from repair" : "Click to select for repair")
@@ -426,7 +436,7 @@ function TableSection({
                         event.preventDefault();
                         activateCell();
                       } : undefined}>
-                      <div className="flex items-start gap-2">
+                      <div className="coverage-cell-content flex items-start gap-2">
                         {repairSelectable && (
                           repairSelected
                             ? <CheckSquare2 className="mt-0.5 shrink-0 text-accent-ink" size={14} />
@@ -470,10 +480,74 @@ function SortIndicator({ column, sort }: { column: string; sort: SortState }) {
     : <ArrowDown className="shrink-0 text-accent-ink" size={12} />;
 }
 
-export default function CoverageTable({ coverageMap, evidence, onRepairCells }: Props) {
+export default function CoverageTable({ coverageMap, evidence, onRepairCells, animationScope = "default" }: Props) {
   const [selected, setSelected] = useState<CellRef | null>(null);
   const [repairMode, setRepairMode] = useState(false);
   const [repairSelection, setRepairSelection] = useState<Map<string, RepairCellTarget>>(() => new Map());
+  const [landingTokens, setLandingTokens] = useState<Map<string, number>>(() => new Map());
+  const previousCellsRef = useRef<Map<string, CellLandingSnapshot> | null>(null);
+  const previousScopeRef = useRef(animationScope);
+  const landingSequenceRef = useRef(0);
+  const landingTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  useEffect(() => {
+    const cells = coverageMap?.cells;
+    if (!cells) {
+      previousCellsRef.current = null;
+      return;
+    }
+    const current = new Map(
+      Object.entries(cells).map(([key, cell]) => [key, landingSnapshot(cell)]),
+    );
+    if (previousScopeRef.current !== animationScope || previousCellsRef.current === null) {
+      previousScopeRef.current = animationScope;
+      previousCellsRef.current = current;
+      landingTimersRef.current.forEach(clearTimeout);
+      landingTimersRef.current.clear();
+      queueMicrotask(() => {
+        if (previousScopeRef.current === animationScope) setLandingTokens(new Map());
+      });
+      return;
+    }
+
+    const landed: string[] = [];
+    for (const [key, snapshot] of current) {
+      const previous = previousCellsRef.current.get(key);
+      if (
+        snapshot.status === "filled"
+        && (!previous || previous.status !== "filled" || previous.value !== snapshot.value)
+      ) {
+        landed.push(key);
+      }
+    }
+    previousCellsRef.current = current;
+    if (!landed.length) return;
+
+    const tokens = new Map<string, number>();
+    for (const key of landed) tokens.set(key, ++landingSequenceRef.current);
+    queueMicrotask(() => {
+      setLandingTokens((active) => new Map([...active, ...tokens]));
+    });
+    for (const [key, token] of tokens) {
+      const previousTimer = landingTimersRef.current.get(key);
+      if (previousTimer) clearTimeout(previousTimer);
+      const timer = setTimeout(() => {
+        setLandingTokens((active) => {
+          if (active.get(key) !== token) return active;
+          const next = new Map(active);
+          next.delete(key);
+          return next;
+        });
+        landingTimersRef.current.delete(key);
+      }, 1100);
+      landingTimersRef.current.set(key, timer);
+    }
+  }, [animationScope, coverageMap?.cells]);
+
+  useEffect(() => () => {
+    landingTimersRef.current.forEach(clearTimeout);
+    landingTimersRef.current.clear();
+  }, []);
 
   if (!coverageMap || !coverageMap.tables || Object.keys(coverageMap.tables).length === 0) {
     return <div className="p-4 text-sm text-ink-faint">No coverage data yet.</div>;
@@ -577,6 +651,7 @@ export default function CoverageTable({ coverageMap, evidence, onRepairCells }: 
           selectedCell={selected}
           repairMode={repairMode}
           selectedRepairKeys={selectedRepairKeys}
+          landingTokens={landingTokens}
           onToggleRepairCell={onRepairCells ? toggleRepairCell : undefined}
         />
       ))}

@@ -189,6 +189,7 @@ function TurnView({
                   coverageMap={turn.searchState?.coverage_map ?? null}
                   evidence={turn.searchState?.evidence_graph?.nodes ?? []}
                   onRepairCells={onRepairCells}
+                  animationScope={turn.id}
                 />
               </div>
             </div>

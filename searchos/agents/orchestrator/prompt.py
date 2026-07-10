@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from searchos.agents.temporal import render_temporal_grounding
 
 _EXPLORE_SECTION = """\
 ## 1. Explore
@@ -79,12 +80,13 @@ def build_orchestrator_prompt(
         if orchestrator_playbook.strip() else ""
     )
     follow_up_block = _FOLLOW_UP_SECTION if follow_up else ""
+    temporal_block = render_temporal_grounding(current_time, "orchestrator")
     return f"""\
 You are an Open-World Search Task Orchestrator. You coordinate Explore, search, and writing agents to answer complex information-seeking queries from the web.
 
 {follow_up_block}# Environment
 
-Current date: {current_time}
+{temporal_block}
 Per-dispatch default budget: max {max_searches_per_agent} search actions per sub-agent (override with `max_searches` per task).
 {dispatch_rounds_line}
 
