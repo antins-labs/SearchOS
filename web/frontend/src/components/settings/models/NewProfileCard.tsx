@@ -27,6 +27,8 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
   const [name, setName] = useState("");
   const [model, setModel] = useState("");
   const [temp, setTemp] = useState("");
+  const [rpm, setRpm] = useState("0");
+  const [tpm, setTpm] = useState("0");
   const [enableThinking, setEnableThinking] = useState(false);
 
   const conns = settings?.models.provider_connections ?? {};
@@ -47,11 +49,14 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
   };
 
   const tempValid = temp.trim() === "" || !Number.isNaN(Number(temp));
+  const quotaValue = (value: string) => value.trim() === "" ? 0 : Number(value);
+  const quotaValid = (value: string) => Number.isSafeInteger(quotaValue(value)) && quotaValue(value) >= 0;
+  const limitsValid = quotaValid(rpm) && quotaValid(tpm);
   const nameOk = NAME_RE.test(name.trim()) && !(name.trim() in profiles);
-  const canCreate = nameOk && model.trim() !== "" && providerRef !== "" && tempValid && !busy;
+  const canCreate = nameOk && model.trim() !== "" && providerRef !== "" && tempValid && limitsValid && !busy;
 
   const reset = () => {
-    setProviderRef(""); setKeyEnv(""); setName(""); setModel(""); setTemp(""); setEnableThinking(false);
+    setProviderRef(""); setKeyEnv(""); setName(""); setModel(""); setTemp(""); setRpm("0"); setTpm("0"); setEnableThinking(false);
   };
 
   const create = async () => {
@@ -63,6 +68,7 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
         // "" (or the default key) lets the connection's default key stand.
         api_key_env: keyEnv && keyEnv !== primaryEnv ? keyEnv : undefined,
         temperature: temp.trim() === "" ? null : Number(temp),
+        rpm: quotaValue(rpm), tpm: quotaValue(tpm),
         enable_thinking: thinkingControllable && enableThinking,
       }),
       merge: (s, models: ModelsView) => ({ ...s, models }),
@@ -129,6 +135,16 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
             <input value={temp} onChange={(e) => setTemp(e.target.value)} disabled={busy}
               placeholder="Temperature (empty = omit)" aria-label="Temperature" inputMode="decimal"
               spellCheck={false} className={`${inputCls} ${tempValid ? "" : "border-err"}`} />
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block"><span className="mb-1 block text-[11px] text-ink-faint">RPM</span>
+                <input value={rpm} onChange={(e) => setRpm(e.target.value)} disabled={busy}
+                  placeholder="0 = unlimited" aria-label="RPM" inputMode="numeric" spellCheck={false}
+                  className={`${inputCls} ${quotaValid(rpm) ? "" : "border-err"}`} /></label>
+              <label className="block"><span className="mb-1 block text-[11px] text-ink-faint">TPM</span>
+                <input value={tpm} onChange={(e) => setTpm(e.target.value)} disabled={busy}
+                  placeholder="0 = unlimited" aria-label="TPM" inputMode="numeric" spellCheck={false}
+                  className={`${inputCls} ${quotaValid(tpm) ? "" : "border-err"}`} /></label>
+            </div>
             {effProtocol !== "anthropic" && (thinkingControllable ? (
               <div className="flex items-center justify-between py-0.5">
                 <span className="text-[12px] text-ink-dim">Thinking</span>

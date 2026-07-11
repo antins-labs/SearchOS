@@ -355,6 +355,8 @@ def _session_meta(ws: Path) -> dict[str, Any] | None:
     mem = sessions.get(sid)
     if mem and mem.get("status") == "running":
         status = "running"
+    elif mem and mem.get("status") == "error":
+        status = "error"
     elif result_file.exists():
         status = "completed"
     else:

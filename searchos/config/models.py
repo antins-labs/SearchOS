@@ -88,14 +88,14 @@ def resolve_profile(role: str) -> ModelProfile:
 
 def _rate_limit_kwargs(profile: ModelProfile) -> dict[str, Any]:
     """Shared limiter + usage callback for the profile's quota bucket."""
-    if not (profile.rpm or profile.tpm):
-        return {}
     from searchos.util.llm_rate_limiter import get_shared_rate_limiter
 
     limiter, usage_cb = get_shared_rate_limiter(
         (profile.api_base, profile.model, profile.api_key_env),
         rpm=profile.rpm, tpm=profile.tpm,
     )
+    if not (profile.rpm or profile.tpm):
+        return {}
     return {"rate_limiter": limiter, "callbacks": [usage_cb]}
 
 

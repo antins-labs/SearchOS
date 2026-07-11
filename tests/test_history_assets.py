@@ -114,3 +114,15 @@ def test_history_asset_filters_can_select_projects_favorites_and_archive(monkeyp
     assert [item["session_id"] for item in favorites] == ["one"]
     assert [item["session_id"] for item in archived] == ["one"]
     assert [item["session_id"] for item in project] == ["one"]
+
+
+def test_history_preserves_failed_runtime_status_for_attention_views(monkeypatch, tmp_path):
+    _workspace(tmp_path, "failed", title="Failed research")
+    monkeypatch.setattr(history, "WORKSPACE_ROOT", str(tmp_path))
+    history.sessions["failed"] = {"status": "error"}
+    try:
+        items = asyncio.run(history.list_history())
+    finally:
+        history.sessions.pop("failed", None)
+
+    assert items[0]["status"] == "error"

@@ -307,6 +307,30 @@ def test_patch_base_profile_override_and_clear(client):
     assert p["overridden"] == []
 
 
+def test_patch_profile_rate_limits_and_clear(client):
+    c, _ = client
+    c.put("/api/settings/provider", json={"preset": "ollama", "model": "qwen3:32b"})
+
+    r = c.patch("/api/settings/profiles/main", json={"rpm": 120, "tpm": 250000})
+    assert r.status_code == 200, r.text
+    profile = r.json()["profiles"]["main"]
+    assert profile["rpm"] == 120
+    assert profile["tpm"] == 250000
+    assert set(profile["overridden"]) == {"rpm", "tpm"}
+
+    r = c.patch("/api/settings/profiles/main", json={"rpm": None, "tpm": None})
+    profile = r.json()["profiles"]["main"]
+    assert profile["rpm"] == 0
+    assert profile["tpm"] == 0
+    assert profile["overridden"] == []
+
+
+def test_profile_rate_limits_reject_negative_values(client):
+    c, _ = client
+    assert c.patch("/api/settings/profiles/main", json={"rpm": -1}).status_code == 422
+    assert c.patch("/api/settings/profiles/main", json={"tpm": -1}).status_code == 422
+
+
 def test_patch_unknown_profile_404(client):
     c, _ = client
     r = c.patch("/api/settings/profiles/nope", json={"model": "x"})
@@ -316,11 +340,12 @@ def test_patch_unknown_profile_404(client):
 def test_custom_profile_lifecycle(client):
     c, _ = client
     body = {"name": "my-vllm", "model": "Qwen3-32B", "api_base": "http://localhost:8000/v1",
-            "api_key_env": "MY_VLLM_KEY"}
+            "api_key_env": "MY_VLLM_KEY", "rpm": 45, "tpm": 90000}
     r = c.post("/api/settings/profiles", json=body)
     assert r.status_code == 200, r.text
     p = r.json()["profiles"]["my-vllm"]
     assert p["custom"] is True and p["model"] == "Qwen3-32B"
+    assert p["rpm"] == 45 and p["tpm"] == 90000
 
     # 自定义 profile 的 key env 自动进白名单
     r = c.put("/api/settings/keys", json={"env": "MY_VLLM_KEY", "value": "vk-1"})

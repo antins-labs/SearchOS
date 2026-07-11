@@ -34,11 +34,16 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
 
   const [model, setModel] = useState("");
   const [temp, setTemp] = useState("");
+  const [rpm, setRpm] = useState("0");
+  const [tpm, setTpm] = useState("0");
   const [enableThinking, setEnableThinking] = useState(false);
   const [providerRef, setProviderRef] = useState("");  // "" = env default / inline
   const [keyEnv, setKeyEnv] = useState("");             // which of the connection's keys
 
-  const conns = settings?.models.provider_connections ?? {};
+  const conns = useMemo(
+    () => settings?.models.provider_connections ?? {},
+    [settings?.models.provider_connections],
+  );
   const connNames = Object.keys(conns);
   const selConn = providerRef ? conns[providerRef] : undefined;
   const keyChoices = selConn?.api_key_envs ?? [];
@@ -55,6 +60,8 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
   const startEdit = () => {
     setModel(p.model);
     setTemp(p.temperature === null ? "" : String(p.temperature));
+    setRpm(String(p.rpm));
+    setTpm(String(p.tpm));
     setEnableThinking(p.enable_thinking);
     setProviderRef(p.provider_ref ?? "");
     setKeyEnv(p.api_key_env);
@@ -76,6 +83,9 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
   };
 
   const tempValid = temp.trim() === "" || !Number.isNaN(Number(temp));
+  const quotaValue = (value: string) => value.trim() === "" ? 0 : Number(value);
+  const quotaValid = (value: string) => Number.isSafeInteger(quotaValue(value)) && quotaValue(value) >= 0;
+  const limitsValid = quotaValid(rpm) && quotaValid(tpm);
 
   const save = async () => {
     const patch: Parameters<typeof patchProfile>[1] = {};
@@ -94,6 +104,11 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
     const newTemp = temp.trim() === "" ? null : Number(temp);
     if (newTemp !== p.temperature) patch.temperature = newTemp;
 
+    const newRpm = quotaValue(rpm);
+    const newTpm = quotaValue(tpm);
+    if (newRpm !== p.rpm) patch.rpm = newRpm;
+    if (newTpm !== p.tpm) patch.tpm = newTpm;
+
     const thinkingOn = thinkingControllable ? enableThinking : p.enable_thinking;
     if (thinkingOn !== p.enable_thinking) patch.enable_thinking = thinkingOn;
 
@@ -105,6 +120,7 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
   const reset = () =>
     call(() => patchProfile(name, {
       model: "", api_base: "", api_key_env: "", provider_ref: "", temperature: null,
+      rpm: null, tpm: null,
     }), "Couldn't reset model");
 
   const remove = async () => {
@@ -184,6 +200,21 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
             placeholder="Temperature (empty = omit)" aria-label={`Temperature for ${name}`}
             inputMode="decimal" spellCheck={false}
             className={`${inputCls} ${tempValid ? "" : "border-err"}`} />
+          <div className="grid grid-cols-2 gap-2">
+            <label className="block">
+              <span className="mb-1 block text-[11px] text-ink-faint">RPM</span>
+              <input value={rpm} onChange={(e) => setRpm(e.target.value)} disabled={busy}
+                placeholder="0 = unlimited" aria-label={`RPM for ${name}`} inputMode="numeric" spellCheck={false}
+                className={`${inputCls} ${quotaValid(rpm) ? "" : "border-err"}`} />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[11px] text-ink-faint">TPM</span>
+              <input value={tpm} onChange={(e) => setTpm(e.target.value)} disabled={busy}
+                placeholder="0 = unlimited" aria-label={`TPM for ${name}`} inputMode="numeric" spellCheck={false}
+                className={`${inputCls} ${quotaValid(tpm) ? "" : "border-err"}`} />
+            </label>
+          </div>
+          <p className="text-[10.5px] text-ink-faint">Per-minute quota shared by profiles using the same endpoint, model, and API key. 0 disables the limit.</p>
           {effProtocol !== "anthropic" && (thinkingControllable ? (
             <div className="flex items-center justify-between py-0.5">
               <span className="text-[12px] text-ink-dim">Thinking</span>
@@ -201,7 +232,7 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
               className="text-[12px] text-ink-faint transition-colors hover:text-ink-dim disabled:opacity-40">
               Cancel
             </button>
-            <button type="button" onClick={save} disabled={busy || !tempValid}
+            <button type="button" onClick={save} disabled={busy || !tempValid || !limitsValid}
               className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1 text-[12px] text-white transition-opacity hover:opacity-90 disabled:opacity-25">
               {busy && <Loader2 size={11} className="animate-spin" />} Save
             </button>
@@ -215,6 +246,9 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
             <div className="truncate">key env: <span className="font-mono">{p.api_key_env}</span></div>
             <div className="truncate">
               temperature: {p.temperature === null ? "omitted" : p.temperature}
+            </div>
+            <div className="truncate">
+              quota: <span className="text-ink-dim">{p.rpm || "unlimited"} RPM · {p.tpm || "unlimited"} TPM</span>
             </div>
             <div className="truncate">
               thinking: {p.thinking_style === "none"

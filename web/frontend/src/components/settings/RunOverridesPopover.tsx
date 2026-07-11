@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -26,6 +27,7 @@ import { useSettings } from "@/components/settings/SettingsProvider";
 import NumberField from "@/components/settings/controls/NumberField";
 import PillGroup from "@/components/settings/controls/PillGroup";
 import { estimateRunBudget } from "@/lib/budgetEstimate";
+import { EFFORT_GUIDANCE } from "@/lib/effortGuidance";
 
 interface Props {
   /** "down" opens below the trigger (hero composer), "up" above (bottom bar). */
@@ -132,9 +134,29 @@ function DomainInput({
 export default function RunOverridesPopover({ direction, onClose }: Props) {
   const { settings, overrides, setOverrides, clearOverrides } = useSettings();
   const ref = useRef<HTMLDivElement>(null);
+  const [popoverMaxHeight, setPopoverMaxHeight] = useState<number>();
   const [skillsOpen, setSkillsOpen] = useState(false);
   const [skillFilter, setSkillFilter] = useState("");
   const [skillCategory, setSkillCategory] = useState<SkillCategory>("access");
+
+  useLayoutEffect(() => {
+    const updateMaxHeight = () => {
+      const element = ref.current;
+      if (!element) return;
+
+      const rect = element.getBoundingClientRect();
+      const viewportPadding = 16;
+      const heightCap = Math.min(window.innerHeight * 0.78, 720);
+      const availableHeight = direction === "down"
+        ? window.innerHeight - rect.top - viewportPadding
+        : rect.bottom - viewportPadding;
+      setPopoverMaxHeight(Math.max(0, Math.floor(Math.min(heightCap, availableHeight))));
+    };
+
+    updateMaxHeight();
+    window.addEventListener("resize", updateMaxHeight);
+    return () => window.removeEventListener("resize", updateMaxHeight);
+  }, [direction, skillsOpen]);
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -243,7 +265,8 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
   return (
     <div
       ref={ref}
-      className={`rise-in surface absolute left-0 z-30 max-h-[min(78vh,720px)] w-[min(440px,calc(100vw-2rem))] overflow-y-auto rounded-xl p-3.5 shadow-xl ${overrides.effort === "max" ? "max-effort-popover" : ""} ${
+      style={popoverMaxHeight == null ? undefined : { maxHeight: popoverMaxHeight }}
+      className={`rise-in surface absolute left-0 z-30 max-h-[min(78vh,720px)] w-[min(440px,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-xl p-3.5 shadow-xl [scrollbar-gutter:stable] ${overrides.effort === "max" ? "max-effort-popover" : ""} ${
         direction === "down" ? "top-full mt-2" : "bottom-full mb-2"
       }`}
     >
@@ -277,6 +300,10 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
             }
           />
         </div>
+        <p className="-mt-1 text-[10.5px] leading-relaxed text-ink-faint">
+          <span className="font-medium text-ink-dim">{EFFORT_GUIDANCE[selectedLevel].title}:</span>{" "}
+          {EFFORT_GUIDANCE[selectedLevel].summary}
+        </p>
 
         <div className="flex items-center justify-between gap-3">
           <span className="text-[13px] text-ink">Time limit</span>
@@ -310,7 +337,7 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
               <div>
                 <Search className="mb-1 text-accent-ink" size={12} />
                 <div className="text-[12px] font-medium tabular-nums text-ink">~{estimate.searchesPerWave}</div>
-                <div className="text-[9.5px] text-ink-faint">searches / wave</div>
+                <div className="text-[9.5px] text-ink-faint">search() calls / wave</div>
               </div>
             </div>
           </div>
@@ -379,7 +406,7 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
                         className="min-w-0 flex-1 bg-transparent text-[12px] text-ink outline-none placeholder:text-ink-faint"
                       />
                     </label>
-                    <div className="max-h-44 overflow-y-auto border-y border-line">
+                    <div className="max-h-44 overflow-y-auto overscroll-contain border-y border-line [scrollbar-gutter:stable]">
                       {categorySkills.length ? categorySkills.map((skill) => (
                         <label key={skill.name} className="flex cursor-pointer items-start gap-2 border-b border-line/60 px-1 py-2 last:border-b-0 hover:bg-surface-2/60">
                           <input

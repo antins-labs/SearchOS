@@ -97,6 +97,8 @@ class ProfilePatch(BaseModel, extra="forbid"):
     temperature: float | None = None
     enable_thinking: bool | None = None
     thinking_style: Literal["chat_template_kwargs", "enable_thinking", "none"] | None = None
+    rpm: int | None = Field(default=None, ge=0)
+    tpm: int | None = Field(default=None, ge=0)
 
 
 class ProfileCreate(BaseModel, extra="forbid"):
@@ -111,6 +113,8 @@ class ProfileCreate(BaseModel, extra="forbid"):
     temperature: float | None = None
     enable_thinking: bool = False
     thinking_style: Literal["chat_template_kwargs", "enable_thinking", "none"] = "none"
+    rpm: int = Field(default=0, ge=0)
+    tpm: int = Field(default=0, ge=0)
 
 
 _PROFILE_NAME_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$")
@@ -282,6 +286,9 @@ async def patch_profile(name: str, req: ProfilePatch):
                 cp.enable_thinking = req.enable_thinking
             if req.thinking_style is not None:
                 cp.thinking_style = req.thinking_style
+            for field in ("rpm", "tpm"):
+                if field in req.model_fields_set:
+                    setattr(cp, field, getattr(req, field) or 0)
         else:
             ov = s.models.profile_overrides.get(name) or ProfileOverride()
             for field in ("model", "api_base", "api_key_env"):
@@ -296,6 +303,9 @@ async def patch_profile(name: str, req: ProfilePatch):
                 ov.temperature = req.temperature
             if req.enable_thinking is not None:
                 ov.enable_thinking = req.enable_thinking
+            for field in ("rpm", "tpm"):
+                if field in req.model_fields_set:
+                    setattr(ov, field, getattr(req, field))
             if ov == ProfileOverride():
                 s.models.profile_overrides.pop(name, None)
             else:
@@ -337,6 +347,7 @@ async def create_profile(req: ProfileCreate):
             api_key_env=req.api_key_env or "OPENAI_API_KEY",
             temperature=req.temperature, enable_thinking=req.enable_thinking,
             thinking_style=req.thinking_style,
+            rpm=req.rpm, tpm=req.tpm,
         )
 
     await settings_store.update(patch)

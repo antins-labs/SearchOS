@@ -100,16 +100,25 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
       )}
 
       <section className="border-b border-line" aria-labelledby="model-usage-title">
-        <div className="flex items-center gap-2 px-4 pb-2 pt-4">
-          <DatabaseZap className="text-accent-ink" size={14} />
-          <h3 id="model-usage-title" className="text-[12px] font-semibold uppercase tracking-wider text-ink-dim">Model usage</h3>
+        <div className="flex items-center justify-between gap-3 px-4 pb-2 pt-4">
+          <div className="flex items-center gap-2">
+            <DatabaseZap className="text-accent-ink" size={14} />
+            <h3 id="model-usage-title" className="text-[12px] font-semibold uppercase tracking-wider text-ink-dim">Model usage</h3>
+          </div>
+          <div className="flex items-center gap-2.5 text-[9.5px] text-ink-faint" aria-label="Token bar legend">
+            <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-ok" />Cached</span>
+            <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-accent" />Uncached</span>
+          </div>
         </div>
         {byRole.length ? (
           <div className="divide-y divide-line">
             {byRole.map(([role, roleUsage]) => {
               const roleTokens = roleUsage.prompt_tokens + roleUsage.completion_tokens;
+              const cachedTokens = Math.min(roleUsage.cached_prompt_tokens ?? 0, roleUsage.prompt_tokens, roleTokens);
+              const cacheRate = roleUsage.prompt_tokens > 0 ? cachedTokens / roleUsage.prompt_tokens : 0;
               const model = turn.meta.modelDistribution?.[role];
               const width = totalTokens ? Math.max(3, (roleTokens / totalTokens) * 100) : 0;
+              const cachedWidth = roleTokens ? (cachedTokens / roleTokens) * 100 : 0;
               return (
                 <div key={role} className="px-4 py-2.5">
                   <div className="flex items-center justify-between gap-3 text-[12px]">
@@ -119,11 +128,18 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
                     </div>
                     <div className="shrink-0 text-right tabular-nums text-ink-dim">
                       <div>{compactNumber(roleTokens)} tokens</div>
-                      <div className="text-[10px] text-ink-faint">{roleUsage.llm_calls} calls</div>
+                      <div className="text-[10px] text-ink-faint">
+                        {roleUsage.llm_calls} calls · <span title={`${compactNumber(cachedTokens)} cached prompt tokens`}>{Math.round(cacheRate * 100)}% cached</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="mt-2 h-1 overflow-hidden rounded-full bg-surface-2">
-                    <div className="h-full rounded-full bg-accent" style={{ width: `${width}%` }} />
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2"
+                    role="img"
+                    aria-label={`${role.replaceAll("_", " ")}: ${compactNumber(roleTokens)} total tokens, ${compactNumber(cachedTokens)} cached, ${Math.round(cacheRate * 100)} percent cache hit`}>
+                    <div className="flex h-full overflow-hidden rounded-full" style={{ width: `${width}%` }}>
+                      <div className="h-full bg-ok" style={{ width: `${cachedWidth}%` }} />
+                      <div className="h-full bg-accent" style={{ width: `${100 - cachedWidth}%` }} />
+                    </div>
                   </div>
                 </div>
               );

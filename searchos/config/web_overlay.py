@@ -90,6 +90,8 @@ class ProfileOverride(BaseModel, extra="forbid"):
     provider_ref: str | None = None
     temperature: float | None = None
     enable_thinking: bool | None = None
+    rpm: int | None = Field(default=None, ge=0)
+    tpm: int | None = Field(default=None, ge=0)
 
 
 class CustomProfile(BaseModel, extra="forbid"):
@@ -107,6 +109,8 @@ class CustomProfile(BaseModel, extra="forbid"):
     max_tokens: int = 16384
     enable_thinking: bool = False
     thinking_style: Literal["chat_template_kwargs", "enable_thinking", "none"] = "none"
+    rpm: int = Field(default=0, ge=0)
+    tpm: int = Field(default=0, ge=0)
 
 
 class ModelsOverlay(BaseModel, extra="forbid"):
@@ -325,6 +329,8 @@ def apply_to_runtime() -> None:
             max_tokens=cp.max_tokens,  # agent-work default; ModelProfile's 4096 is too tight
             enable_thinking=cp.enable_thinking,
             thinking_style=conn.thinking_style if conn else cp.thinking_style,
+            rpm=cp.rpm,
+            tpm=cp.tpm,
         )
 
     for name, ov in store.models.profile_overrides.items():
@@ -347,6 +353,10 @@ def apply_to_runtime() -> None:
             profile.temperature = ov.temperature
         if ov.enable_thinking is not None:
             profile.enable_thinking = ov.enable_thinking
+        if ov.rpm is not None:
+            profile.rpm = ov.rpm
+        if ov.tpm is not None:
+            profile.tpm = ov.tpm
 
     for role, profile in store.models.roles.items():
         if role not in settings.roles:

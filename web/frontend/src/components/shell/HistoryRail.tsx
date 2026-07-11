@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Archive,
   ArchiveRestore,
+  AlertTriangle,
   Check,
+  ChevronDown,
   FolderKanban,
   Inbox,
   Loader2,
@@ -16,6 +18,7 @@ import {
   RotateCcw,
   Search,
   Settings,
+  SlidersHorizontal,
   Star,
   Tags,
   Trash2,
@@ -23,11 +26,12 @@ import {
 } from "lucide-react";
 import { getHealth, type HistoryAssetPatch } from "@/lib/api";
 import ThemeToggle from "@/components/ThemeToggle";
+import Select from "@/components/ui/Select";
 
 export interface HistoryRailItem {
   id: string;
   title: string;
-  status: "running" | "completed" | "error";
+  status: "running" | "completed" | "incomplete" | "error";
   coverageScore: number | null;
   updatedAt: number;
   project: string;
@@ -38,7 +42,9 @@ export interface HistoryRailItem {
 
 interface Props {
   items: HistoryRailItem[];
-  projects: string[];
+  projects: { name: string; count: number }[];
+  tags: { name: string; count: number }[];
+  assetCounts: { all: number; favorites: number; archived: number; attention: number; unassigned: number };
   activeId: string | null;
   collapsed: boolean;
   searchQuery: string;
@@ -56,12 +62,15 @@ interface Props {
   onRetryHistory?: () => void;
 }
 
-type View = "all" | "favorites" | "archived" | `project:${string}`;
+type View = "all" | "attention" | "favorites" | "archived" | "unassigned" | `project:${string}` | `tag:${string}`;
+type SortOrder = "recent" | "oldest" | "title" | "coverage";
+type Density = "comfortable" | "compact";
 type EditDraft = { title: string; project: string; tags: string };
 
 const DOT: Record<string, string> = {
   running: "bg-accent glow-pulse",
   completed: "bg-ok",
+  incomplete: "bg-warn",
   error: "bg-err",
 };
 
@@ -84,9 +93,15 @@ function formatUpdated(timestamp: number): string {
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
+function needsAttention(item: HistoryRailItem): boolean {
+  return item.status !== "completed" || (item.coverageScore != null && item.coverageScore < 0.999);
+}
+
 export default function HistoryRail({
   items,
   projects,
+  tags,
+  assetCounts,
   activeId,
   collapsed,
   searchQuery,
@@ -105,6 +120,9 @@ export default function HistoryRail({
 }: Props) {
   const [health, setHealth] = useState<{ status: string } | null | undefined>(undefined);
   const [view, setView] = useState<View>("all");
+  const [sort, setSort] = useState<SortOrder>("recent");
+  const [density, setDensity] = useState<Density>("comfortable");
+  const [tagsExpanded, setTagsExpanded] = useState(false);
   const [menuId, setMenuId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -119,21 +137,39 @@ export default function HistoryRail({
     return () => { alive = false; clearInterval(interval); };
   }, []);
 
+  const setListDensity = (value: Density) => {
+    setDensity(value);
+  };
+
   const filtered = useMemo(() => items.filter((item) => {
+    if (view === "attention") return !item.archived && needsAttention(item);
     if (view === "favorites") return item.favorite && !item.archived;
     if (view === "archived") return item.archived;
+    if (view === "unassigned") return !item.archived && !item.project;
     if (view.startsWith("project:")) return !item.archived && item.project === view.slice(8);
+    if (view.startsWith("tag:")) return !item.archived && item.tags.includes(view.slice(4));
     return !item.archived;
   }), [items, view]);
 
+  const sorted = useMemo(() => [...filtered].sort((a, b) => {
+    if (sort === "oldest") return a.updatedAt - b.updatedAt;
+    if (sort === "title") return a.title.localeCompare(b.title);
+    if (sort === "coverage") return (a.coverageScore ?? -1) - (b.coverageScore ?? -1);
+    return b.updatedAt - a.updatedAt;
+  }), [filtered, sort]);
+
   const groups = useMemo(() => {
+    if (searchQuery) return [{ label: "Search results", items: sorted }];
+    if (sort === "title") return [{ label: "Alphabetical", items: sorted }];
+    if (sort === "coverage") return [{ label: "Lowest coverage first", items: sorted }];
     const result: { label: string; items: HistoryRailItem[] }[] = [];
-    for (const label of ["Today", "Previous 7 days", "Older"]) {
-      const group = filtered.filter((item) => groupLabel(item.updatedAt) === label);
+    const labels = sort === "oldest" ? ["Older", "Previous 7 days", "Today"] : ["Today", "Previous 7 days", "Older"];
+    for (const label of labels) {
+      const group = sorted.filter((item) => groupLabel(item.updatedAt) === label);
       if (group.length) result.push({ label, items: group });
     }
     return result;
-  }, [filtered]);
+  }, [searchQuery, sort, sorted]);
 
   const startEdit = (item: HistoryRailItem) => {
     setEditingId(item.id);
@@ -181,18 +217,18 @@ export default function HistoryRail({
       <div key={item.id} className="relative">
         <div className={`group relative flex items-start rounded-lg pr-1 transition-colors ${item.id === activeId ? "bg-clay/60" : "hover:bg-surface-2"}`}>
           <button onClick={() => onSelect(item.id)} disabled={busy} aria-busy={itemLoading}
-            className="flex min-w-0 flex-1 items-start gap-2 py-2 pl-2.5 text-left disabled:cursor-wait disabled:opacity-70">
+            className={`flex min-w-0 flex-1 items-start gap-2 pl-2.5 text-left disabled:cursor-wait disabled:opacity-70 ${density === "compact" ? "py-1.5" : "py-2"}`}>
             {itemLoading ? <Loader2 className="mt-1 shrink-0 animate-spin text-accent-ink" size={12} />
               : <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${DOT[item.status] ?? "bg-ink-faint"}`} />}
             <span className="min-w-0 flex-1">
               <span className={`block truncate text-[13px] ${item.id === activeId ? "text-ink" : "text-ink-dim group-hover:text-ink"}`}>{item.title}</span>
-              <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[10.5px] text-ink-faint">
+              <span className={`${density === "compact" ? "hidden" : "mt-0.5 flex"} min-w-0 items-center gap-1.5 text-[10.5px] text-ink-faint`}>
                 {item.project && <span className="max-w-24 truncate">{item.project}</span>}
                 {item.project && coverage !== null && <span>·</span>}
                 {coverage !== null && <span>{coverage}%</span>}
                 <span className="ml-auto shrink-0">{formatUpdated(item.updatedAt)}</span>
               </span>
-              {item.tags.length > 0 && <span className="mt-1 flex gap-1 overflow-hidden">
+              {density === "comfortable" && item.tags.length > 0 && <span className="mt-1 flex gap-1 overflow-hidden">
                 {item.tags.slice(0, 2).map((tag) => <span key={tag} className="max-w-20 truncate rounded bg-surface px-1 py-0.5 text-[9.5px] text-ink-faint">{tag}</span>)}
                 {item.tags.length > 2 && <span className="text-[9.5px] text-ink-faint">+{item.tags.length - 2}</span>}
               </span>}
@@ -248,7 +284,7 @@ export default function HistoryRail({
 
   return (
     <div className="flex h-full flex-col border-r border-line">
-      <datalist id="research-projects">{projects.map((project) => <option key={project} value={project} />)}</datalist>
+      <datalist id="research-projects">{projects.map((project) => <option key={project.name} value={project.name} />)}</datalist>
       <div className="flex items-center justify-between px-3 pb-2 pt-4">
         <div className="wordmark flex items-center gap-2 px-1 text-[19px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -271,13 +307,32 @@ export default function HistoryRail({
 
       <div className="px-3 pb-2">
         <div className="space-y-0.5">
-          {viewButton("all", "All research", <Inbox size={14} />, items.filter((item) => !item.archived).length)}
-          {viewButton("favorites", "Favorites", <Star size={14} />, items.filter((item) => item.favorite && !item.archived).length)}
-          {viewButton("archived", "Archived", <Archive size={14} />, items.filter((item) => item.archived).length)}
+          {viewButton("all", "All research", <Inbox size={14} />, assetCounts.all)}
+          {viewButton("attention", "Needs review", <AlertTriangle size={14} />, assetCounts.attention)}
+          {viewButton("favorites", "Favorites", <Star size={14} />, assetCounts.favorites)}
+          {viewButton("archived", "Archived", <Archive size={14} />, assetCounts.archived)}
         </div>
-        {projects.length > 0 && <div className="mt-3">
+        {(projects.length > 0 || assetCounts.unassigned > 0) && <div className="mt-3">
           <div className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-ink-faint">Projects</div>
-          <div className="max-h-28 space-y-0.5 overflow-y-auto">{projects.map((project) => viewButton(`project:${project}`, project, <FolderKanban size={13} />))}</div>
+          <div className="max-h-28 space-y-0.5 overflow-y-auto">
+            {projects.map((project) => viewButton(`project:${project.name}`, project.name, <FolderKanban size={13} />, project.count))}
+            {assetCounts.unassigned > 0 && viewButton("unassigned", "Unassigned", <FolderKanban size={13} />, assetCounts.unassigned)}
+          </div>
+        </div>}
+        {tags.length > 0 && <div className="mt-3">
+          <div className="flex items-center justify-between px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-ink-faint">
+            <span>Tags</span>
+            {tags.length > 6 && <button type="button" onClick={() => setTagsExpanded((value) => !value)} aria-label={tagsExpanded ? "Show fewer tags" : "Show all tags"}
+              className="rounded p-0.5 hover:bg-surface-2"><ChevronDown size={11} className={`transition-transform ${tagsExpanded ? "rotate-180" : ""}`} /></button>}
+          </div>
+          <div className={`${tagsExpanded ? "max-h-32 overflow-y-auto" : ""} flex flex-wrap gap-1 px-1`}>
+            {(tagsExpanded ? tags : tags.slice(0, 6)).map((tag) => (
+              <button key={tag.name} type="button" onClick={() => setView(`tag:${tag.name}`)}
+                className={`flex max-w-full items-center gap-1 rounded-md border px-1.5 py-1 text-[10.5px] transition-colors ${view === `tag:${tag.name}` ? "border-line-strong bg-clay text-accent-ink" : "border-line bg-surface text-ink-faint hover:bg-surface-2 hover:text-ink-dim"}`}>
+                <span className="max-w-24 truncate">#{tag.name}</span><span className="tabular-nums opacity-70">{tag.count}</span>
+              </button>
+            ))}
+          </div>
         </div>}
       </div>
 
@@ -285,6 +340,25 @@ export default function HistoryRail({
         {historyStatus === "error" && <div role="alert" className="mb-2 flex items-start gap-2 rounded-md border border-err/30 bg-err/5 px-2.5 py-2 text-[12px] text-err">
           <span className="min-w-0 flex-1 leading-4">Research history is unavailable</span>
           {onRetryHistory && <button type="button" onClick={onRetryHistory} title="Retry history" className="shrink-0 rounded p-0.5 hover:bg-err/10"><RotateCcw size={13} /></button>}
+        </div>}
+        {historyStatus !== "loading" && <div className="sticky top-0 z-10 mb-1 flex items-center gap-1 bg-paper/95 px-1 py-1 backdrop-blur-sm">
+          <Select
+            value={sort}
+            onChange={(value) => setSort(value as SortOrder)}
+            ariaLabel="Sort research"
+            size="sm"
+            className="min-w-0 flex-1"
+            options={[
+              { value: "recent", label: "Recently updated" },
+              { value: "oldest", label: "Oldest updated" },
+              { value: "title", label: "Title A–Z" },
+              { value: "coverage", label: "Lowest coverage" },
+            ]}
+          />
+          <button type="button" onClick={() => setListDensity(density === "compact" ? "comfortable" : "compact")}
+            aria-label={density === "compact" ? "Use comfortable list density" : "Use compact list density"}
+            title={density === "compact" ? "Comfortable density" : "Compact density"}
+            className="grid h-7 w-7 place-items-center rounded-md border border-line bg-surface text-ink-faint hover:bg-surface-2 hover:text-ink"><SlidersHorizontal size={12} /></button>
         </div>}
         {historyStatus === "loading" && items.length === 0 ? <div role="status" className="flex items-center gap-2 px-2 pt-2 text-[12.5px] text-ink-faint"><Loader2 className="animate-spin" size={14} /> Loading research…</div>
           : filtered.length === 0 ? <p className="px-2 pt-2 text-[12.5px] text-ink-faint">{searchQuery ? "No matching research" : view === "archived" ? "No archived research" : "No research here yet"}</p>

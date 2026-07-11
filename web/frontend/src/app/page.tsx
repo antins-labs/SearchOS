@@ -621,6 +621,27 @@ export default function Home() {
     return items;
   }, [history, historySearchResults, openTurn]);
   const projects = useMemo(() => Array.from(new Set(history.map((item) => item.project).filter(Boolean))).sort(), [history]);
+  const projectFacets = useMemo(() => projects.map((name) => ({
+    name,
+    count: history.filter((item) => !item.archived && item.project === name).length,
+  })), [history, projects]);
+  const tagFacets = useMemo(() => {
+    const counts = new Map<string, number>();
+    history.filter((item) => !item.archived).forEach((item) => item.tags.forEach((tag) => {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }));
+    return Array.from(counts, ([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }, [history]);
+  const assetCounts = useMemo(() => ({
+    all: history.filter((item) => !item.archived).length,
+    favorites: history.filter((item) => item.favorite && !item.archived).length,
+    archived: history.filter((item) => item.archived).length,
+    attention: history.filter((item) => !item.archived && (
+      item.status !== "completed" || (item.coverage_score != null && item.coverage_score < 0.999)
+    )).length,
+    unassigned: history.filter((item) => !item.archived && !item.project).length,
+  }), [history]);
 
   const drawerOpen = !!drawerTurn;
   const latestEditableTurn = [...turns].reverse().find((turn) => (
@@ -663,7 +684,9 @@ export default function Home() {
           onSelect={(id) => { setMobileRailOpen(false); void handleSelect(id); }}
           onUpdateAssets={(id, patch) => { void handleUpdateHistoryAssets(id, patch); }}
           onDelete={(id) => { void handleDelete(id); }}
-          projects={projects}
+          projects={projectFacets}
+          tags={tagFacets}
+          assetCounts={assetCounts}
           searchQuery={historyQuery}
           searching={historySearching}
           onSearch={setHistoryQuery}

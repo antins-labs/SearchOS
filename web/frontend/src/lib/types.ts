@@ -100,6 +100,8 @@ export interface ProfileInfo {
   api_key_set: boolean;
   temperature: number | null;
   max_tokens: number | null;
+  rpm: number;
+  tpm: number;
   enable_thinking: boolean;
   thinking_style: "chat_template_kwargs" | "enable_thinking" | "none";
   custom: boolean;

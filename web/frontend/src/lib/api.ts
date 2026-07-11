@@ -410,6 +410,8 @@ export const patchProfile = (name: string, patch: {
   temperature?: number | null;
   enable_thinking?: boolean;
   thinking_style?: "chat_template_kwargs" | "enable_thinking" | "none";
+  rpm?: number | null;
+  tpm?: number | null;
 }) => putJson<ModelsView>(`/api/settings/profiles/${encodeURIComponent(name)}`, patch, "PATCH");
 
 export const createProfile = (body: {
@@ -422,6 +424,8 @@ export const createProfile = (body: {
   temperature?: number | null;
   enable_thinking?: boolean;
   thinking_style?: "chat_template_kwargs" | "enable_thinking" | "none";
+  rpm?: number;
+  tpm?: number;
 }) => putJson<ModelsView>("/api/settings/profiles", body, "POST");
 
 export const deleteProfile = (name: string) =>

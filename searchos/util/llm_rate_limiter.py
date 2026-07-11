@@ -70,6 +70,12 @@ class SlidingWindowRateLimiter(BaseRateLimiter):
             self._token_events.append((time.monotonic(), n))
             self._token_sum += n
 
+    def set_limits(self, rpm: int, tpm: int) -> None:
+        """Update this shared quota bucket without discarding window history."""
+        with self._lock:
+            self.rpm = max(0, rpm)
+            self.tpm = max(0, tpm)
+
     # -- BaseRateLimiter interface --
 
     def acquire(self, *, blocking: bool = True) -> bool:
@@ -98,7 +104,7 @@ class UsageReportingCallback(BaseCallbackHandler):
         self._limiter.record_tokens(total)
 
 
-# One (limiter, callback) per bucket; first registration wins on rpm/tpm.
+# One (limiter, callback) per bucket; later registrations refresh rpm/tpm.
 _registry: dict[tuple[str, str, str], tuple[SlidingWindowRateLimiter, UsageReportingCallback]] = {}
 _registry_lock = threading.Lock()
 
@@ -115,6 +121,8 @@ def get_shared_rate_limiter(
             limiter = SlidingWindowRateLimiter(rpm=rpm, tpm=tpm)
             entry = (limiter, UsageReportingCallback(limiter))
             _registry[key] = entry
+        else:
+            entry[0].set_limits(rpm, tpm)
         return entry
 
 

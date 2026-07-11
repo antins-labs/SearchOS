@@ -8,22 +8,26 @@ import type { EffortLevel } from "@/lib/types";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { Card, OfflineSkeleton, Row, SectionShell } from "@/components/settings/primitives";
 import NumberField from "@/components/settings/controls/NumberField";
-
-const LEVEL_HINTS: Record<EffortLevel, string> = {
-  low: "Quick pass, small budgets",
-  medium: "Balanced (default)",
-  high: "Thorough, more agents & searches",
-  max: "Deep dig, no expense spared",
-};
+import { EFFORT_GUIDANCE } from "@/lib/effortGuidance";
 
 const KNOB_LABELS: Record<string, string> = {
-  orch_max_iterations: "Orchestrator iterations",
-  max_parallel_agents: "Parallel agents",
-  max_searches_per_sub_agent: "Searches per agent",
-  max_searches_per_sub_agent_ceiling: "Searches ceiling",
-  max_finds_per_sub_agent: "Finds per agent",
-  default_max_time_s: "Time budget (s)",
-  skill_router_top_k: "Skill router top-k",
+  orch_max_iterations: "Orchestrator step limit",
+  max_parallel_agents: "Concurrent agent limit",
+  max_searches_per_sub_agent: "search() default calls / agent",
+  max_searches_per_sub_agent_ceiling: "search() hard cap / agent",
+  max_finds_per_sub_agent: "find() calls / agent",
+  default_max_time_s: "Run time limit (s)",
+  skill_router_top_k: "Candidate Skill limit",
+};
+
+const KNOB_HINTS: Record<string, string> = {
+  orch_max_iterations: "Maximum orchestrator decision and tool-call steps.",
+  max_parallel_agents: "Maximum sub-agents that may run at the same time.",
+  max_searches_per_sub_agent: "Default number of search() tool calls assigned to each sub-agent.",
+  max_searches_per_sub_agent_ceiling: "Hard upper bound when a task requests more search() calls than the default.",
+  max_finds_per_sub_agent: "Maximum find() calls available to each sub-agent for locating text inside opened pages.",
+  default_max_time_s: "Wall-clock limit applied by this Effort preset.",
+  skill_router_top_k: "Maximum candidate Skills retained by the router before a run.",
 };
 
 export default function BudgetSection() {
@@ -33,7 +37,7 @@ export default function BudgetSection() {
   if (!settings) {
     return (
       <SectionShell id="budget" title="Budget & limits"
-        description="Effort controls how many iterations, agents and searches a run may spend.">
+        description="Choose by task complexity, then optionally tune orchestration and tool-call budgets.">
         <OfflineSkeleton />
       </SectionShell>
     );
@@ -111,7 +115,7 @@ export default function BudgetSection() {
 
   return (
     <SectionShell id="budget" title="Budget & limits"
-      description="Effort controls how many iterations, agents and searches a run may spend.">
+      description="Choose by task complexity, then optionally tune orchestration and tool-call budgets.">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {levels.map((level) => (
           <button
@@ -126,12 +130,13 @@ export default function BudgetSection() {
                 : "border-line bg-surface hover:border-line-strong"
             }`}
           >
-            <div className={`text-[13.5px] font-medium capitalize ${
+            <div className={`flex items-baseline gap-1.5 text-[13.5px] font-medium capitalize ${
               effort.level === level ? "text-accent-ink" : "text-ink"
             }`}>
-              {level}
+              <span>{level}</span>
+              <span className="text-[10.5px] font-normal text-ink-faint">{EFFORT_GUIDANCE[level].title}</span>
             </div>
-            <div className="mt-0.5 text-[11.5px] leading-snug text-ink-faint">{LEVEL_HINTS[level]}</div>
+            <div className="mt-1 text-[11px] leading-snug text-ink-faint">{EFFORT_GUIDANCE[level].summary}</div>
           </button>
         ))}
       </div>
@@ -149,12 +154,20 @@ export default function BudgetSection() {
         {showAdvanced && (
           <div className="rise-in mt-2">
             <Card>
-              {Object.entries(effort.knobs).map(([key, val]) => (
-                <Row key={key} label={KNOB_LABELS[key] ?? key}
-                  hint={key in effort.overrides ? `overrides ${effort.level} preset (${effort.levels[effort.level]?.[key]})` : undefined}>
-                  <NumberField value={val} onCommit={(v) => setKnob(key, v)} disabled={disabled} />
-                </Row>
-              ))}
+              <div className="border-b border-line px-4 py-2.5 text-[11px] leading-relaxed text-ink-faint">
+                Budgets map to literal tool calls. <span className="font-mono text-ink-dim">open()</span> uses role-specific limits because Explore and Search agents open pages at different rates.
+              </div>
+              {Object.entries(effort.knobs).map(([key, val]) => {
+                const overrideHint = key in effort.overrides
+                  ? `Overrides ${effort.level} preset (${effort.levels[effort.level]?.[key]}).`
+                  : "";
+                return (
+                  <Row key={key} label={KNOB_LABELS[key] ?? key}
+                    hint={[KNOB_HINTS[key], overrideHint].filter(Boolean).join(" ") || undefined}>
+                    <NumberField value={val} onCommit={(v) => setKnob(key, v)} disabled={disabled} />
+                  </Row>
+                );
+              })}
               {hasOverrides && (
                 <div className="px-4 py-2.5">
                   <button

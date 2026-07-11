@@ -76,13 +76,15 @@ def models_view() -> dict:
             "api_key_set": key_set(p.api_key_env, p.api_key_fallback),
             "temperature": p.temperature,
             "max_tokens": p.max_tokens,
+            "rpm": p.rpm,
+            "tpm": p.tpm,
             "enable_thinking": p.enable_thinking,
             "thinking_style": p.thinking_style,
             "custom": name in cp_map,
             "provider_ref": provider_ref,
             "overridden": sorted(
                 f for f in ("model", "api_base", "api_key_env", "provider_ref",
-                            "temperature", "enable_thinking")
+                            "temperature", "enable_thinking", "rpm", "tpm")
                 if ov is not None and getattr(ov, f) is not None
             ),
         }
