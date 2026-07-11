@@ -15,7 +15,7 @@
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+"></a>
   <a href="https://github.com/langchain-ai/langgraph"><img src="https://img.shields.io/badge/Built_with-LangGraph-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white" alt="LangGraph"></a>
   <a href="https://github.com/Textualize/textual"><img src="https://img.shields.io/badge/TUI-Textual-0B0B0B?style=for-the-badge&logo=gnometerminal&logoColor=white" alt="Textual TUI"></a>
-  <a href="LEGAL.md"><img src="https://img.shields.io/badge/License-MIT-0E9B9B?style=for-the-badge" alt="License: MIT"></a>
+  <a href="../LEGAL.md"><img src="https://img.shields.io/badge/License-MIT-0E9B9B?style=for-the-badge" alt="License: MIT"></a>
 </p>
 
 <p align="center">
@@ -42,11 +42,11 @@
 > **▶️ 빠른 실행:**
 >
 > ```bash
-> pip install -e . && python -m searchos "2025년 QS 학과별 랭킹 각 분야 상위 5개 대학과 지원 마감일"
+> ./install.sh && source .venv/bin/activate && searchos "2025년 QS 학과별 랭킹 각 분야 상위 5개 대학과 지원 마감일"
 > ```
 >
 > 첫 실행 시 자동으로 **설정 마법사**가 시작됩니다: 모델 프로바이더(각사 coding plan / 종량제 API / 로컬 배포)를 선택하고 API 키만 입력하면 바로 동작합니다.
-> 또는 `python -m searchos`로 풀스크린 TUI에 들어가 작업 파견, 도구 스트림, 커버리지 맵의 성장을 실시간으로 볼 수 있습니다.
+> 또는 `searchos`로 풀스크린 TUI에 들어가 작업 파견, 도구 스트림, 커버리지 맵의 성장을 실시간으로 볼 수 있습니다.
 > `./web/start.sh`로 REST/WS API(`:8000`) + 웹 프런트엔드(`:3000`)를 한 번에 띄워 브라우저에서 검색을 실행하고 에이전트 월과 커버리지 맵을 라이브로 볼 수도 있습니다.
 
 ## 📣 News
@@ -207,16 +207,22 @@ SearchOS는 이 네 가지 실패에 각각 메커니즘 수준의 해법을 제
 Python ≥ 3.11이 필요합니다:
 
 ```bash
-pip install -e .            # 기본 의존성 (OpenAI/Anthropic 양 프로토콜 클라이언트 포함, coding plan 즉시 사용 가능)
-pip install -e ".[eval]"    # 평가용: pandas / numpy / python-dotenv
-pip install -e ".[all]"     # 모든 옵션 백엔드: tavily / playwright / crawl4ai / langsmith
+./install.sh                # 권장: Python 환경 + Access Skills + Chromium + Web 프런트엔드
+source .venv/bin/activate
+
+pip install -e .            # 수동: 코어 의존성
+pip install -e ".[access]"  # 수동: Access Skill 의존성
+pip install -e ".[eval]"    # 수동: 평가 의존성
+pip install -e ".[all]"     # 수동: 모든 선택 의존성
 ```
+
+전체 설치에는 Node.js ≥ 20.9도 필요합니다. `--core`, `--no-web`, `--all --dev`로 구성을 선택할 수 있습니다. 자세한 내용은 [설치 가이드](installation.md)를 참조하세요.
 
 ## ⚙️ 설정
 
-**첫 실행 시 설정 마법사가 자동으로 시작됩니다**: 사용 가능한 모델 설정이 감지되지 않으면 `python -m searchos`가 커맨드라인에서 프로바이더 선택과 API 키 입력을 안내하고 `.env`에 기록합니다(`python -m searchos --setup`으로 언제든 재설정 가능).
+**첫 실행 시 설정 마법사가 자동으로 시작됩니다**: 사용 가능한 모델 설정이 없으면 `searchos`가 프로바이더와 API 키를 안내하고 `.env`에 저장합니다(`searchos --setup`으로 재설정). Web Settings와 TUI의 `/model`, `/search`, `/config`는 같은 `web_settings.json`을 공유합니다.
 
-수동 설정도 가능합니다——[`.env.example`](../.env.example)을 `.env`로 복사하고 `SF_PROVIDER` 프리셋 하나를 골라 해당 API 키만 넣으면 됩니다(12개 모델 롤 바인딩이 자동 생성됩니다):
+수동 설정도 가능합니다——[`.env.example`](../.env.example)을 `.env`로 복사하고 `SF_PROVIDER` 프리셋 하나를 골라 해당 API 키만 넣으면 됩니다(11개 모델 롤 바인딩이 자동 생성됩니다):
 
 ```bash
 # 각사 Coding Plan (Anthropic 프로토콜 구독 엔드포인트, 가성비 우수)
@@ -236,7 +242,7 @@ SF_JINA_API_KEY=...           # 옵션: Jina 페칭 (미설정 시 비인증 쿼
 
 전체 프리셋(각사 엔드포인트·모델 ID·키 발급 방법·알려진 특이사항)은 [`docs/providers.md`](../docs/providers.md)를 참조하세요. `SF_PROVIDER`를 설정하지 않으면 [`searchos/config/settings.py`](../searchos/config/settings.py) 내장 게이트웨이 기본값(`OPENAI_API_KEY` + `SF_EXTRACTION_API_KEY`)이 사용됩니다.
 
-모든 설정은 `settings.py`에 집약되며 `SF_` 프리픽스 환경 변수로 덮어씁니다. 중첩 필드는 `__`로 구분합니다(부분 덮어쓰기는 기본값과 **깊은 병합**을 하므로 작성한 필드만 변경됩니다). 모델은 **롤** 단위로 바인딩되어(12개 롤 → 모델 프로파일) 어블레이션과 비용 절감이 쉽습니다:
+모든 설정은 `settings.py`에 집약되며 `SF_` 프리픽스 환경 변수로 덮어씁니다. 중첩 필드는 `__`로 구분합니다. 모델은 **롤** 단위로 바인딩되어(11개 롤 → 모델 프로파일) 프로바이더 혼합, 속도 제한, 어블레이션, 비용 절감을 지원합니다:
 
 | 자주 쓰는 설정 | 설명 |
 | --- | --- |
@@ -246,8 +252,10 @@ SF_JINA_API_KEY=...           # 옵션: Jina 페칭 (미설정 시 비인증 쿼
 | `SF_BROWSER_BACKEND` | 페칭 백엔드: `jina` \| `aiohttp` \| `crawl4ai` \| `search_engine` |
 | `SF_ROLES__JUDGE=main` | 특정 롤의 모델 프로파일만 교체 (고급 / 어블레이션) |
 | `SF_PROFILES__MAIN__TEMPERATURE=0.3` | 단일 프로파일의 필드 레벨 덮어쓰기 (고급 / 어블레이션) |
+| `SF_PROFILES__MAIN__RPM=60` / `...__TPM=100000` | 프로파일별 요청/Token 제한 |
 | `SF_MAX_PARALLEL_AGENTS` | 서브 에이전트 동시 실행 상한 (기본 8) |
-| `SF_ENABLE_EXPLORE` / `SF_ENABLE_SKILLS` | 어블레이션 스위치: 정찰 끄기 / 스킬 끄기 |
+| `SF_ENABLE_EXPLORE_BATCH` / `SF_EXPLORE_MIN_WAVES` / `SF_EXPLORE_MAX_WAVES` | 병렬 Explore와 wave 범위 (기본 2–3) |
+| `SF_ENABLE_EXPLORE` / `SF_ENABLE_SKILLS` | 어블레이션 스위치: Explore / Skill 끄기 |
 | `SF_SKIP_SYNTHESIS` | 평가 모드: 합성을 건너뛰고 커버리지 맵에서 바로 테이블 출력 |
 
 ## 🧭 빠른 시작
@@ -273,8 +281,12 @@ SF_JINA_API_KEY=...           # 옵션: Jina 페칭 (미설정 시 비인증 쿼
 | 커맨드 | 별칭 / 단축키 | 동작 |
 | --- | --- | --- |
 | `/new` | `/clear` · `Ctrl-N` | 새 주제: 대화 히스토리와 커버리지 맵을 비우고, 다음 질문은 새 워크스페이스에서 시작 |
+| `/resume [session-id]` | `/load` | 대화, 궤적, 커버리지, 증거가 포함된 이전 세션 복원. ID를 생략하면 선택기 표시 |
 | `/effort [low\|medium\|high\|max]` | — | 투입 레벨: 이터레이션 상한·동시 실행 수·에이전트당 검색 예산·실행 시간 제한·스킬 라우팅 top-k를 한 번에 조정. 인자 없이 실행하면 인터랙티브 선택기가 열리며, 실행 중 변경은 다음 라운드부터 적용 |
 | `/skill` | — | 스킬 관리: 인자 없이 실행하면 그룹화된 다중 선택 대화상자 표시. 서브커맨드 `list`(목록), `only <이름…>`(화이트리스트, 접두어 매칭), `on` / `off <이름…>`(켜기/끄기), `all`(라우터에 반환)로 활성 세트를 세밀하게 제어 |
+| `/model` | — | Provider 연결, 모델 카드, 역할, 속도 제한 공유 설정 |
+| `/search [auto\|serper\|tavily\|ragflow]` | — | 검색 백엔드 확인·전환 |
+| `/config [key value]` | `/set` | 공유 설정 화면 또는 실행 기본값 빠른 변경 |
 | `/verbose` | `/detail` · `Ctrl-T` | 간략 / 상세 도구 스트림 전환 |
 | `/stop` | `/cancel` · `Esc` | 현재 실행 중단 (대기 중 Esc는 프로그램 종료) |
 | `/help` | `/?` | 커맨드 도움말 |
@@ -335,14 +347,17 @@ SearchOS는 두 벤치마크의 모든 F1에서 선두이며, 향상은 주로 *
 
 ```
 searchos/
-├── agents/        Orchestrator (prompt / catalog / scheduler / lifecycle)와 3종 서브 에이전트 정의
-├── harness/       SearchSession 메인 루프, 3계층 미들웨어, 합성, 트라젝토리와 대화 로그
+├── agents/        Orchestrator와 Explore, Search, 선택적 Writer agent
+├── harness/       SearchSession, Context/Sensor/Evidence Intake, 복구 계획, 합성, 텔레메트리
 ├── socm/          공유 검색 상태: Frontier / Evidence Graph / Coverage Map / Strategy
 ├── tools/         롤별 도구: schema, tasks, writer, simple_browser …
-├── skills/        스킬 시스템: core 계약 / catalog 등록과 라우팅 / runtime 실행 / evolution 진화 / library 스킬 라이브러리
-├── tui/           Textual 풀스크린 인터페이스 (실시간 대시보드, /skill 관리, 후속 질문과 개입)
-├── config/        settings.py (pydantic-settings, SF_ 프리픽스 덮어쓰기) + 모델 롤 바인딩
-└── cli.py         python -m searchos 진입점
+├── skills/        계약/manifest, routing, 격리 runtime, creation/evolution, 라이브러리
+├── tui/           Textual UI: 라이브 화면, 복원, 설정, Skill, 후속 질문, 개입
+├── config/        Provider, 모델 카드/역할, 속도 제한, effort, 공유 설정 overlay
+└── cli.py         `searchos` / `python -m searchos` 진입점
+
+web/api/           FastAPI REST/WS: 실행, 기록 자산, snapshot/branch, repair, 설정, Skill jobs
+web/frontend/      Next.js 리서치 워크스페이스: composer, live run, evidence, versions, usage, history
 
 eval/              평가 프레임워크: run.py 진입점, runner, benchmarks, scorers, reformat
 datasets/          WideSearch / GISA / xbench / browsecomp / frames / webwalker

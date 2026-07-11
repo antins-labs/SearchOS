@@ -12,6 +12,7 @@
 
 <p align="center">
   <a href="https://antins-labs.github.io/SearchOS/"><img src="https://img.shields.io/badge/🌐_Website-searchos-2563EB?style=for-the-badge" alt="Website"></a>
+  <a href="https://www.youtube.com/watch?v=DZNXxMcxnMQ&amp;list=PLXMUs3Ayz3EQ"><img src="https://img.shields.io/badge/YouTube-Playlist-FF0000?style=for-the-badge&amp;logo=youtube&amp;logoColor=white" alt="YouTube Playlist"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+"></a>
   <a href="https://github.com/langchain-ai/langgraph"><img src="https://img.shields.io/badge/Built_with-LangGraph-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white" alt="LangGraph"></a>
   <a href="https://github.com/Textualize/textual"><img src="https://img.shields.io/badge/TUI-Textual-0B0B0B?style=for-the-badge&logo=gnometerminal&logoColor=white" alt="Textual TUI"></a>
@@ -42,11 +43,13 @@
 > **▶️ Quick run:**
 >
 > ```bash
-> pip install -e . && python -m searchos "Top-5 universities per subject in the 2025 QS rankings, with application deadlines"
+> ./install.sh
+> source .venv/bin/activate
+> searchos "Top-5 universities per subject in the 2025 QS rankings, with application deadlines"
 > ```
 >
-> The first run launches a **setup wizard**: pick a model provider (vendor coding plans / pay-as-you-go APIs / local deployment), paste an API key, and you're up.
-> Or run `python -m searchos` for the full-screen TUI to watch task dispatch, tool streams, and the coverage map grow in real time.
+> `install.sh` prepares the Python environment, bundled Access Skill dependencies, Chromium, and the Web frontend. The first run then launches a **setup wizard**: pick a model provider (vendor coding plans / pay-as-you-go APIs / local deployment), paste an API key, and you're up.
+> Run `searchos` with no query for the full-screen TUI to watch task dispatch, tool streams, and the coverage map grow in real time.
 > You can also run `./web/start.sh` to bring up the REST/WS API (`:8000`) + web frontend (`:3000`) and launch searches from the browser with a live agent wall and coverage map.
 
 ## 📣 News
@@ -209,22 +212,22 @@ The full artifact (a replayable directory with the trajectory, page cache, and S
 Requires Python ≥ 3.11:
 
 ```bash
-./install.sh                # 一键安装：Python、Access Skill、Chromium 与 Web 前端
+./install.sh                # recommended: Python env + Access Skills + Chromium + Web frontend
 source .venv/bin/activate
 
-pip install -e .            # base dependencies (incl. OpenAI/Anthropic dual-protocol clients; coding plans work out of the box)
-pip install -e ".[access]"  # bundled Access Skill executors
-pip install -e ".[eval]"    # evaluation: pandas / numpy / python-dotenv
-pip install -e ".[all]"     # all optional runtime dependencies
+pip install -e .            # manual: core CLI/TUI and Web API dependencies
+pip install -e ".[access]"  # manual: bundled Access Skill executors
+pip install -e ".[eval]"    # manual: evaluation dependencies
+pip install -e ".[all]"     # manual: all optional runtime dependencies
 ```
 
-中文完整说明见 [`docs/installation.md`](docs/installation.md)。
+The full installer also requires Node.js ≥ 20.9. Use `./install.sh --core` to skip Access Skill and browser runtimes, `--no-web` to skip frontend dependencies, or `--all --dev` for a complete development environment. See the [installation guide](docs/installation.md).
 
 ## ⚙️ Configuration
 
-**The first run launches a setup wizard automatically**: when no usable model configuration is detected, `python -m searchos` walks you through picking a provider and entering an API key on the command line, then writes `.env` (re-run anytime with `python -m searchos --setup`).
+**The first run launches a setup wizard automatically**: when no usable model configuration is detected, `searchos` walks you through picking a provider and entering an API key, then writes `.env` (re-run anytime with `searchos --setup`). The Web Settings page and TUI commands `/model`, `/search`, and `/config` write to the same `web_settings.json` overlay, so CLI, TUI, and Web runs share one configuration.
 
-You can also configure manually — copy [`.env.example`](.env.example) to `.env`, pick one `SF_PROVIDER` preset, and add the matching API key (bindings for all 12 model roles are generated automatically):
+You can also configure manually — copy [`.env.example`](.env.example) to `.env`, pick one `SF_PROVIDER` preset, and add the matching API key (bindings for all 11 model roles are generated automatically):
 
 ```bash
 # Vendor Coding Plan (Anthropic-protocol subscription endpoints, great value)
@@ -244,7 +247,7 @@ SF_JINA_API_KEY=...           # optional: Jina fetching (without it you use the 
 
 All presets (each vendor's endpoints, model IDs, how to get keys, and known quirks) are in [`docs/providers.md`](docs/providers.md). Without `SF_PROVIDER`, the built-in gateway defaults in [`searchos/config/settings.py`](searchos/config/settings.py) apply (`OPENAI_API_KEY` + `SF_EXTRACTION_API_KEY`).
 
-All configuration is centralized in `settings.py`; `SF_`-prefixed environment variables override it, with `__` separating nested fields (partial overrides **deep-merge** with defaults, changing only the fields you set). Models are bound by **role** (12 roles → model profiles), which makes ablations and cost reduction easy:
+All configuration is centralized in `settings.py`; `SF_`-prefixed environment variables override it, with `__` separating nested fields (partial overrides **deep-merge** with defaults, changing only the fields you set). Models are bound by **role** (11 roles → model profiles), which makes provider mixing, rate control, ablations, and cost reduction straightforward:
 
 | Common settings | Description |
 | --- | --- |
@@ -254,8 +257,10 @@ All configuration is centralized in `settings.py`; `SF_`-prefixed environment va
 | `SF_BROWSER_BACKEND` | Fetch backend: `jina` \| `aiohttp` \| `crawl4ai` \| `search_engine` |
 | `SF_ROLES__JUDGE=main` | Rebind a single role's model profile (advanced / ablation) |
 | `SF_PROFILES__MAIN__TEMPERATURE=0.3` | Field-level override on one profile (advanced / ablation) |
+| `SF_PROFILES__MAIN__RPM=60` / `...__TPM=100000` | Per-profile sliding-window request/token limits; `0` disables a limit |
 | `SF_MAX_PARALLEL_AGENTS` | Sub-agent concurrency cap (default 8) |
-| `SF_ENABLE_EXPLORE` / `SF_ENABLE_SKILLS` | Ablation switches: disable scouting / disable skills |
+| `SF_ENABLE_EXPLORE_BATCH` / `SF_EXPLORE_MIN_WAVES` / `SF_EXPLORE_MAX_WAVES` | Parallel Explore mode and adaptive wave bounds (default 2–3) |
+| `SF_ENABLE_EXPLORE` / `SF_ENABLE_SKILLS` | Ablation switches: disable Explore / disable Skills |
 | `SF_SKIP_SYNTHESIS` | Evaluation mode: skip synthesis and export the table straight from the coverage map |
 
 ## 🧭 Quick start
@@ -281,8 +286,12 @@ Slash commands work at any time (including mid-run):
 | Command | Alias / shortcut | What it does |
 | --- | --- | --- |
 | `/new` | `/clear` · `Ctrl-N` | New topic: clears conversation history and the coverage map; the next question starts from a fresh workspace |
+| `/resume [session-id]` | `/load` | Restore a previous session with its conversation, trajectory, coverage, and evidence; omit the id to open the picker |
 | `/effort [low\|medium\|high\|max]` | — | Effort tier: adjusts iteration cap, concurrency, per-agent search budget, wall-clock limit, and skill-routing top-k in one go; with no argument it opens an interactive picker; mid-run changes take effect next round |
 | `/skill` | — | Skill management: no argument opens a grouped multi-select dialog; subcommands `list`, `only <names…>` (whitelist, fuzzy prefix match), `on` / `off <names…>`, `all` (reset to router control) for fine-grained control |
+| `/model` | — | Open shared model settings: provider connections, model cards, role bindings, and per-profile limits |
+| `/search [auto\|serper\|tavily\|ragflow]` | — | Inspect or switch the shared search backend |
+| `/config [key value]` | `/set` | Open the shared settings panel or quickly change supported run defaults |
 | `/verbose` | `/detail` · `Ctrl-T` | Toggle compact / detailed tool stream |
 | `/stop` | `/cancel` · `Esc` | Interrupt the current run (Esc exits the program when idle) |
 | `/help` | `/?` | Command help |
@@ -343,14 +352,17 @@ SearchOS leads on all F1 metrics across both benchmarks, with gains driven prima
 
 ```
 searchos/
-├── agents/        Orchestrator (prompt / catalog / scheduler / lifecycle) and the three sub-agent definitions
-├── harness/       SearchSession main loop, three middleware layers, synthesis, trajectory & conversation logs
+├── agents/        Orchestrator plus Explore, Search, and optional Writer agent definitions
+├── harness/       SearchSession, Context/Sensor/Evidence Intake middleware, repair planning, synthesis, telemetry
 ├── socm/          Shared search state: Frontier / Evidence Graph / Coverage Map / Strategy
 ├── tools/         Tools grouped by role: schema, tasks, writer, simple_browser …
-├── skills/        Skill system: core contracts / catalog registry & routing / runtime execution / evolution / skill library
-├── tui/           Textual full-screen interface (live dashboard, /skill management, follow-ups & steering)
-├── config/        settings.py (pydantic-settings, SF_ prefix overrides) + model role bindings
-└── cli.py         python -m searchos entry point
+├── skills/        Contracts/manifests, routing, isolated runtime, creation/evolution workflows, skill library
+├── tui/           Textual interface: live dashboard, resume, settings, Skills, follow-ups, steering
+├── config/        providers, model cards/roles, rate limits, effort presets, env + shared settings overlay
+└── cli.py         `searchos` / `python -m searchos` entry point
+
+web/api/           FastAPI REST/WS service: runs, history/assets, snapshots/branching, repair, settings, Skill jobs
+web/frontend/      Next.js research workspace: composer, live run, evidence, versions, usage, history library
 
 eval/              Evaluation framework: run.py entry, runner, benchmarks, scorers, reformat
 datasets/          WideSearch / GISA / xbench / browsecomp / frames / webwalker
