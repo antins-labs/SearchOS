@@ -25,6 +25,12 @@ _Avoid_：可信脚本
 **Generated Skill**：由 Dynamic Builder 生成、仅允许访问生成任务目标主机的候选 Access Skill。
 _Avoid_：自动可信 Skill
 
+**Evidence Observation**：来自页面、Access Skill 或 Agent Summary，等待抽取与验证的一份来源观测。
+_Avoid_：原始工具结果、待写节点
+
+**Evidence Intake**：将 Evidence Observation 经过切片、Judge、Grounding、去重和原子提交转化为 Evidence Graph 与 Coverage Map 更新的生命周期。
+_Avoid_：Evidence Middleware、抽取回调
+
 ## Relationships
 
 - 一个 **Access Skill** 恰好包含一个 **Executor**
@@ -33,6 +39,8 @@ _Avoid_：自动可信 Skill
 - **Bundled Skill** 与 **Generated Skill** 使用同一 Skill Execution 接口，但适用不同的 Execution Policy
 - **Bundled Skill** 可使用受识别的 **Browser Automation**；**Generated Skill** 不可启动任何子进程
 - **Generated Skill** 只有通过隔离 smoke test 后才能晋升为 **Bundled Skill** 候选
+- 每个 **Evidence Observation** 只能在一次 **Evidence Intake** 生命周期中被预留一次
+- 一次 **Evidence Intake** 提交必须让 Evidence Graph 与 Coverage Map 的更新原子可见
 
 ## Example dialogue
 

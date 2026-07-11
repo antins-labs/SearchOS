@@ -1,14 +1,14 @@
-"""Extraction layer (paper §3.3) — the ONLY writer of Evidence / Coverage.
+"""Extraction layer（paper §3.3）。
 
-Intercepts browser + access-skill results, parses them into ``EvidenceNode``
-records, and atomically updates ``CoverageMap`` via
-``WorkspaceManager.atomic_update_state``.
+``EvidenceExtractionMiddleware`` 是 Agent 生命周期 Adapter；``EvidenceIntake``
+是 Evidence Graph 与 Coverage Map 的唯一写入模块。
 """
 
 from searchos.harness.middleware.extraction.evidence_extraction import (
     EvidenceExtractionMiddleware,
 )
+from searchos.harness.middleware.extraction.intake import EvidenceIntake
 
 ExtractionMiddleware = EvidenceExtractionMiddleware  # plan §三 alias
 
-__all__ = ["EvidenceExtractionMiddleware", "ExtractionMiddleware"]
+__all__ = ["EvidenceExtractionMiddleware", "EvidenceIntake", "ExtractionMiddleware"]

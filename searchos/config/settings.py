@@ -236,7 +236,15 @@ class Settings(BaseSettings):
     # so a single judge call never overruns the input/output window — mainly
     # for skill JSON payloads, which can be huge. Segments extract concurrently.
     extraction_chunk_char_budget: int = 40_000
+    # Structured payloads also split by their longest array. This prevents a
+    # compact JSON response containing thousands of records from becoming one
+    # enormous FILL/DISCOVER prompt even when its character count is modest.
+    extraction_chunk_max_records: int = 50
     extraction_chunk_overlap_chars: int = 200  # overlap on non-JSON char splits
+    # Skill 原始返回仍完整进入 Intake；这里只限制同步返回给 Agent 的预览，
+    # 防止几千行 JSON 挤占后续规划与推理上下文。
+    extraction_agent_context_max_chars: int = 12_000
+    extraction_agent_context_preview_records: int = 5
     # Cross-table backfill: after extracting a flush's pages for the
     # sub-agent's target_table, re-run extraction on the SAME pages for
     # every relation-linked table. Without it, evidence for a table the

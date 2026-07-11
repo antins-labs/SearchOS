@@ -9,12 +9,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from searchos.harness.middleware.extraction.evidence_extraction import (
-    EvidenceExtractionMiddleware as MW,
-    _extract_context,
-)
+from searchos.harness.middleware.extraction.intake import EvidenceIntake as Intake
+from searchos.harness.middleware.extraction.intake._engine import _extract_context
 from searchos.harness.middleware.extraction.prompts import build_fill_row_prompt
-
 
 PAGES = [
     {
@@ -38,13 +35,13 @@ PAGES = [
 class TestResolveRowPage:
     def test_trusts_valid_source_page(self):
         row = {"景点名称": "水立方", "_source_page": 2}
-        text, url = MW._resolve_row_page(row, PAGES)
+        text, url = Intake._resolve_row_page(row, PAGES)
         assert url == PAGES[1]["source_url"]
         assert "水立方" in text
 
     def test_source_page_accepts_numeric_string(self):
         row = {"景点名称": "香山公园", "_source_page": "1"}
-        _text, url = MW._resolve_row_page(row, PAGES)
+        _text, url = Intake._resolve_row_page(row, PAGES)
         assert url == PAGES[0]["source_url"]
 
     @pytest.mark.parametrize("bad", [None, "", 0, 99, "abc"])
@@ -55,25 +52,25 @@ class TestResolveRowPage:
             "_source_page": bad,
             "_source_excerpt": "门票30元，开放时间9:00-18:00",
         }
-        _text, url = MW._resolve_row_page(row, PAGES)
+        _text, url = Intake._resolve_row_page(row, PAGES)
         assert url == PAGES[1]["source_url"]
 
     def test_fallback_scores_by_cell_text_containment(self):
         # 无 excerpt、无页码：按行内文本命中数选页。
         row = {"景点名称": "香山公园", "景区等级": "5A"}
-        _text, url = MW._resolve_row_page(row, PAGES)
+        _text, url = Intake._resolve_row_page(row, PAGES)
         assert url == PAGES[0]["source_url"]
 
     def test_single_page_is_trivial(self):
         row = {"景点名称": "别处的实体", "_source_page": 42}
-        text, url = MW._resolve_row_page(row, PAGES[:1])
+        text, url = Intake._resolve_row_page(row, PAGES[:1])
         assert url == PAGES[0]["source_url"]
         assert text == PAGES[0]["content"]
 
     def test_never_returns_joined_urls(self):
         # 任何行都只绑一个 URL——不再出现逗号拼接串。
         for row in ({}, {"_source_page": "nope"}, {"景点名称": "水立方"}):
-            _text, url = MW._resolve_row_page(row, PAGES)
+            _text, url = Intake._resolve_row_page(row, PAGES)
             assert url in {p["source_url"] for p in PAGES}
             assert "," not in url
 
@@ -89,17 +86,19 @@ class TestDedupRows:
             {"景点名称": "香山公园", "景区等级": "AAAA级", "_source_page": 1},
             {"景点名称": "香山公园", "门票价格": "10", "_source_page": 2},
         ]
-        assert len(MW._dedup_rows(rows, self.SCHEMA)) == 2
+        assert len(Intake._dedup_rows(rows, self.SCHEMA)) == 2
 
     def test_same_pk_same_page_keeps_fuller_row(self):
         rows = [
             {"景点名称": "香山公园", "景区等级": "AAAA级", "_source_page": 1},
             {
-                "景点名称": "香山公园", "景区等级": "AAAA级",
-                "门票价格": "10", "_source_page": 1,
+                "景点名称": "香山公园",
+                "景区等级": "AAAA级",
+                "门票价格": "10",
+                "_source_page": 1,
             },
         ]
-        out = MW._dedup_rows(rows, self.SCHEMA)
+        out = Intake._dedup_rows(rows, self.SCHEMA)
         assert len(out) == 1
         assert out[0]["门票价格"] == "10"
 
@@ -108,7 +107,7 @@ class TestDedupRows:
             {"景点名称": "香山公园", "景区等级": "AAAA级"},
             {"景点名称": "香山公园"},
         ]
-        assert len(MW._dedup_rows(rows, self.SCHEMA)) == 1
+        assert len(Intake._dedup_rows(rows, self.SCHEMA)) == 1
 
 
 class TestExtractContext:
@@ -146,10 +145,7 @@ class TestExtractContext:
         assert "海淀区将支持" in ctx
 
     def test_preamble_hit_kept_when_body_lacks_value(self):
-        page = (
-            "Title: 香山公园升级为5A "
-            "Markdown Content: 正文只谈红叶，不提等级。"
-        )
+        page = "Title: 香山公园升级为5A Markdown Content: 正文只谈红叶，不提等级。"
         ctx = _extract_context(page, "5A", "香山公园")
         assert "5A" in ctx
 

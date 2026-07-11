@@ -936,7 +936,7 @@ def _compute_agent_report(
         if n.id not in pre_snapshot["evidence_ids"]
     ]
     extraction_mw = info.get("extraction_mw") if info else None
-    own_ids = getattr(extraction_mw, "_added_node_ids", None)
+    own_ids = getattr(extraction_mw, "committed_node_ids", None)
     if own_ids is not None:
         agent_new_nodes = [n for n in new_nodes if n.id in own_ids]
     elif scope_entities:

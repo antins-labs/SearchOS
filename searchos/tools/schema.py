@@ -26,6 +26,11 @@ def _orch_ctx():
     return _ctx
 
 
+def _select_replay_model(context: Any) -> Any:
+    """Explore 回放与在线 Evidence Intake 使用同一个 extraction profile。"""
+    return context.extraction_model or context.judge_model
+
+
 # ---------------------------------------------------------------------------
 # Schema-validation helpers
 # ---------------------------------------------------------------------------
@@ -450,18 +455,19 @@ async def create_schema(
     # sub-agents observe an empty SOCM that explore already populated.
     pending_count = 0
     from searchos.config.settings import settings
+    replay_model = _select_replay_model(_orch_ctx())
     if (
         settings.enable_explore_replay
         and state.pending_agent_summaries
-        and _orch_ctx().judge_model is not None
+        and replay_model is not None
     ):
-        from searchos.harness.middleware.extraction.evidence_extraction import (
+        from searchos.harness.middleware.extraction.intake import (
             replay_pending_summaries,
         )
         try:
             pending_count = await replay_pending_summaries(
                 _orch_ctx().workspace,
-                _orch_ctx().judge_model,
+                replay_model,
                 [t["table_id"] for t in parsed_tables],
                 trajectory_logger=_orch_ctx().trajectory_logger,
             )
