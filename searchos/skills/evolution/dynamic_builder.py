@@ -21,11 +21,10 @@ import json
 import logging
 import os
 import shutil
-import subprocess
 import sys
-import tempfile
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,8 @@ Goal:
 - Discover the site's real HTTP API.
 - Prefer direct aiohttp/httpx calls over browser automation in the final skill.
 - Write a complete access skill in the workspace: executor.py, manifest.yaml, skill.md.
-- Verify the generated executor by importing and calling its execute() function.
+- Verify the generated executor through SearchOS Skill Execution; never import
+  executor.py into the builder process.
 
 Tools:
 - run_python: run probe or verification code from the skill directory.
@@ -47,8 +47,9 @@ Tools:
 - read_file: inspect a file under the skill directory.
 
 Recommended workflow:
-1. Use Playwright in run_python to open the probe URLs and log XHR/fetch
-   requests, response bodies, request payloads, and headers.
+1. Use direct aiohttp/httpx probes against the supplied target hosts. Probe
+   code runs in an isolated worker: arbitrary subprocesses, user files,
+   environment secrets, and non-target network hosts are blocked.
 2. Identify API endpoints, required cookies, session-init calls, and custom
    headers that control JSON/binary response modes.
 3. Reproduce the API with aiohttp/httpx.
@@ -58,10 +59,8 @@ Recommended workflow:
 Final executor contract:
 - expose async execute(params: dict[str, Any], ctx: Any) -> dict[str, Any]
   ``ctx`` is a SearchOS SkillContext (fields: query, skill_dir, browser,
-  judge_model). It is NOT a Playwright object — never call ctx.new_page() /
-  ctx.goto(), and never pass ctx into a helper typed as a Playwright
-  BrowserContext. If the skill needs Playwright, launch and manage your OWN
-  browser/context inside the executor (and close it before returning).
+  judge_model). Isolated executors receive ``browser=None`` and
+  ``judge_model=None``; fetch target-host data directly with aiohttp/httpx.
 - dispatch on params["function"] (always present — see manifest below)
 - return structured dicts with explicit error fields instead of raising for
   normal user/input/API errors
@@ -109,7 +108,7 @@ Probe URLs:
 
 
 class BuilderWorkspace:
-    """Filesystem and subprocess tools exposed to the builder agent."""
+    """受 Skill Execution 策略约束的构建工作区。"""
 
     # OpenAI Chat Completions tool format (the builder runs against any
     # OpenAI-compatible endpoint).
@@ -120,8 +119,8 @@ class BuilderWorkspace:
                 "name": "run_python",
                 "description": (
                     "Run Python code from the skill output directory. Use this "
-                    "for Playwright probes, HTTP API tests, and executor "
-                    "verification."
+                    "for target-host HTTP API probes and executor verification. "
+                    "Subprocesses and non-target hosts are blocked."
                 ),
                 "parameters": {
                     "type": "object",
@@ -165,41 +164,24 @@ class BuilderWorkspace:
         },
     ]
 
-    def __init__(self, output_dir: Path) -> None:
+    def __init__(self, output_dir: Path, *, allowed_hosts: tuple[str, ...] = ()) -> None:
         self.output_dir = output_dir.resolve()
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.allowed_hosts = allowed_hosts
 
     async def run_python(self, code: str, timeout: float = 120.0) -> dict[str, Any]:
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-            f.write(code)
-            script_path = Path(f.name)
+        from searchos.skills.runtime.executor_runtime import (
+            ExecutionPolicy,
+            run_python_probe,
+        )
 
-        try:
-            proc = await asyncio.create_subprocess_exec(
-                sys.executable,
-                str(script_path),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                cwd=str(self.output_dir),
-            )
-            stdout, stderr = await asyncio.wait_for(
-                proc.communicate(),
-                timeout=max(1.0, float(timeout or 120.0)),
-            )
-            return {
-                "exit_code": proc.returncode,
-                "stdout": stdout.decode("utf-8", errors="replace")[:8000],
-                "stderr": stderr.decode("utf-8", errors="replace")[:4000],
-            }
-        except asyncio.TimeoutError:
-            proc.kill()
-            return {
-                "exit_code": -1,
-                "stdout": "",
-                "stderr": f"execution timed out after {timeout}s",
-            }
-        finally:
-            script_path.unlink(missing_ok=True)
+        selected_timeout = max(1.0, float(timeout or 120.0))
+        policy = ExecutionPolicy.generated(
+            self.allowed_hosts,
+            timeout_s=selected_timeout,
+            cpu_time_s=max(2, int(selected_timeout) + 1),
+        )
+        return await run_python_probe(code, self.output_dir, policy=policy)
 
     async def write_file(self, path: str, content: str) -> dict[str, Any]:
         target = self._resolve_inside(path)
@@ -282,7 +264,15 @@ async def build_skill(
     staging = final_dir.parent / f".staging_{final_dir.name}_{os.getpid()}"
     if staging.exists():
         shutil.rmtree(staging, ignore_errors=True)
-    workspace = BuilderWorkspace(staging)
+    allowed_hosts = tuple(sorted({
+        host.lower().strip(),
+        *(
+            parsed.hostname.lower()
+            for url in probe_urls
+            if (parsed := urlparse(url)).hostname
+        ),
+    }))
+    workspace = BuilderWorkspace(staging, allowed_hosts=allowed_hosts)
 
     model_id = model or os.environ.get("DYNAMIC_BUILDER_MODEL", DEFAULT_MODEL)
     client = openai.AsyncOpenAI(
@@ -335,7 +325,10 @@ async def build_skill(
         logger.warning("dynamic builder did not produce a complete skill for %s", host)
         shutil.rmtree(staging, ignore_errors=True)
         return None
-    if not await _skill_smoke_passes(workspace.output_dir):
+    if not await _skill_smoke_passes(
+        workspace.output_dir,
+        allowed_hosts=allowed_hosts,
+    ):
         logger.warning(
             "built skill for %s fails its functional smoke test "
             "(every function network/access-errors) — not installing", host,
@@ -443,7 +436,12 @@ def _manifest_functions(output_dir: Path) -> list[str]:
     return re.findall(r"^\s*-\s*([A-Za-z_]\w*)", desc, re.M)
 
 
-async def _skill_smoke_passes(output_dir: Path, *, max_funcs: int = 6) -> bool:
+async def _skill_smoke_passes(
+    output_dir: Path,
+    *,
+    allowed_hosts: tuple[str, ...] = (),
+    max_funcs: int = 6,
+) -> bool:
     """Call ``execute()`` on the listed functions and judge whether the skill
     actually works against its site.
 
@@ -456,7 +454,8 @@ async def _skill_smoke_passes(output_dir: Path, *, max_funcs: int = 6) -> bool:
     import re
 
     import yaml
-    from searchos.skills.runtime.executor_runtime import run_executor
+
+    from searchos.skills.runtime.executor_runtime import ExecutionPolicy, run_executor
 
     funcs = _manifest_functions(output_dir)
     if not funcs:
@@ -469,7 +468,12 @@ async def _skill_smoke_passes(output_dir: Path, *, max_funcs: int = 6) -> bool:
     saw_network_fail = False
     for name in funcs[:max_funcs]:
         try:
-            res = await run_executor(output_dir, {"function": name}, {})
+            res = await run_executor(
+                output_dir,
+                {"function": name},
+                {},
+                policy=ExecutionPolicy.generated(allowed_hosts),
+            )
         except Exception:
             saw_network_fail = True
             continue

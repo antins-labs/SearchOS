@@ -10,16 +10,12 @@ API Structure:
 - Main GRAS page payload: /_nuxt/static/{build_hash}/rankings/gras/{year}/payload.js
 - Payload format: __NUXT_JSONP__("/path", {...data...});
 
-The payload.js files contain obfuscated JSONP that we parse using Node.js.
+The payload.js files contain JSONP whose JSON arguments are parsed directly.
 """
 
-import asyncio
 import json
-import os
 import re
-import subprocess
-import tempfile
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 import httpx
 
@@ -27,7 +23,7 @@ BASE_URL = "https://www.shanghairanking.com"
 CACHE_TTL = 3600  # 1 hour cache for build hash
 
 # Global cache for build hash
-_build_hash_cache: Optional[str] = None
+_build_hash_cache: str | None = None
 
 
 async def get_build_hash(client: httpx.AsyncClient) -> str:
@@ -49,27 +45,20 @@ async def get_build_hash(client: httpx.AsyncClient) -> str:
 
 
 def parse_nuxt_payload(content: str) -> Dict[str, Any]:
-    """Parse NUXT JSONP payload using Node.js."""
-    # Convert JSONP to a simple variable assignment
-    js_code = content.replace("__NUXT_JSONP__", "var result = ") + "\nconsole.log(JSON.stringify(result));"
-    
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.js', delete=False) as f:
-        f.write(js_code)
-        temp_path = f.name
-    
-    try:
-        result = subprocess.run(
-            ['node', temp_path],
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
-        if result.returncode != 0:
-            raise ValueError(f"Node.js parsing failed: {result.stderr}")
-        
-        return json.loads(result.stdout)
-    finally:
-        os.unlink(temp_path)
+    """Parse the JSON arguments from a NUXT JSONP callback without eval/Node."""
+    match = re.fullmatch(
+        r'\s*__NUXT_JSONP__\(\s*("(?:\\.|[^"\\])*")\s*,\s*(.*?)\s*\)\s*;?\s*',
+        content,
+        re.DOTALL,
+    )
+    if not match:
+        raise ValueError("Invalid NUXT JSONP payload")
+    # Validate the route argument too; malformed prefixes must not be ignored.
+    json.loads(match.group(1))
+    payload = json.loads(match.group(2))
+    if not isinstance(payload, dict):
+        raise ValueError("NUXT JSONP payload must contain an object")
+    return payload
 
 
 def process_ranking_data(uni: Dict[str, Any]) -> Dict[str, Any]:

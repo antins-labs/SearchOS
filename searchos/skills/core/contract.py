@@ -12,9 +12,10 @@ Which fields on ``ctx`` are populated depends on the invocation mode:
   ``query`` / ``judge_model`` from the just-fetched page; ``browser`` is
   None (the skill should not fetch more pages — the dispatcher already
   did).
-- **Agent-called**: sub-agent provides ``params`` from the tool call;
-  ``browser`` exposes search/open/find for skills that do their own
-  fetch. Page fields are empty.
+- **Agent-called**: sub-agent provides ``params`` from the tool call. The
+  executor runs in an isolated process, so ``browser`` / ``judge_model`` are
+  intentionally ``None``; skills fetch through their policy-approved direct
+  HTTP implementation. Page fields are empty.
 
 ``skill_dir`` is always set so skills can load sibling manifest files
 (selectors.yaml, schema.py, prompt_hint.md).
@@ -53,10 +54,10 @@ class SkillContext:
     query: str = ""
     skill_dir: Path | None = None
 
-    # ---- Agent-called mode (tools for skills that fetch on their own) ----
+    # ---- Legacy seam (isolated workers intentionally leave this None) ----
     browser: Any = None
 
-    # ---- Shared resources ----
+    # ---- Legacy seam (models and credentials never cross into workers) ----
     judge_model: Any = None
 
     # Escape hatch for future additions without breaking existing skills.

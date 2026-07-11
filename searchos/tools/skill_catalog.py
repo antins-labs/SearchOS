@@ -291,7 +291,9 @@ def render_skill_sets(skill_names: list[str]) -> list:
     import yaml
 
     from searchos.skills.catalog.registry import (
-        SKILL_BLACKLIST, _env_excluded, _env_only,
+        SKILL_BLACKLIST,
+        _env_excluded,
+        _env_only,
     )
     only = _env_only()                          # None = no whitelist
     excluded = _env_excluded() | set(SKILL_BLACKLIST)
@@ -414,11 +416,8 @@ def _make_typed_tool(
                          "(repeated failures); try another approach."
             })
 
-        from searchos.skills.runtime.executor_runtime import run_executor
-        from searchos.tools.simple_browser import search, open, find
         from searchos.agents.orchestrator.lifecycle import _ctx, _record_skill_failure
-
-        browser_tools = {"search": search, "open": open, "find": find}
+        from searchos.skills.runtime.executor_runtime import run_executor
 
         query = ""
         if _ctx.workspace is not None:
@@ -428,10 +427,9 @@ def _make_typed_tool(
                 pass
 
         result = await run_executor(
-            skill_dir, dict(kwargs), browser_tools,
+            skill_dir,
+            dict(kwargs),
             query=query,
-            judge_model=getattr(_ctx, "skill_runtime_model", None)
-                       or getattr(_ctx, "judge_model", None),
         )
 
         # Failure signal = the executor's own verdict. Evidence is extracted

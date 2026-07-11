@@ -50,3 +50,4 @@ web_settings.json
 # Local design and iteration plans
 docs/tui-textual-redesign.md
 docs/webui-improvement-plan.md
+docs/searchanything-technical-design.md

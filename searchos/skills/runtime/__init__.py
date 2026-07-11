@@ -1,2 +1,10 @@
-"""技能执行层（paper §T0-T3）：运行 executor.py(executor_runtime)、
-网络代理 shim 与 CN 分流(executor_proxy)。"""
+"""Skill Execution：隔离 worker、权限策略、资源限制与代理适配。"""
+
+from searchos.skills.runtime.executor_runtime import (
+    ExecutionPolicy,
+    NetworkAccess,
+    run_executor,
+    run_python_probe,
+)
+
+__all__ = ["ExecutionPolicy", "NetworkAccess", "run_executor", "run_python_probe"]

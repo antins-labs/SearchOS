@@ -8,11 +8,12 @@ SEC requires User-Agent header with contact info for automated access.
 """
 
 import asyncio
-import aiohttp
+import json
 import re
-from typing import Any, Optional
+from typing import Any
+
+import aiohttp
 from bs4 import BeautifulSoup
-from datetime import datetime
 
 # SEC requires User-Agent with company/contact info for automated tools
 DEFAULT_USER_AGENT = "SearchOS Bot contact@searchos.example.com"
@@ -68,11 +69,7 @@ async def get_company_by_ticker(ticker: str, user_agent: str = DEFAULT_USER_AGEN
         if status != 200:
             return {"error": f"Failed to fetch ticker mapping: status {status}", "status": status}
         
-        try:
-            data = eval(text)  # JSON parsing
-        except:
-            import json
-            data = json.loads(text)
+        data = json.loads(text)
         
         # Find matching ticker
         for key, entry in data.items():
@@ -257,7 +254,7 @@ async def get_company_facts(cik: str, user_agent: str = DEFAULT_USER_AGENT) -> d
 
 async def get_financial_data(
     cik: str,
-    concepts: Optional[list] = None,
+    concepts: list | None = None,
     user_agent: str = DEFAULT_USER_AGENT
 ) -> dict:
     """
