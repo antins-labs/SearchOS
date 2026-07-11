@@ -247,6 +247,12 @@ class Settings(BaseSettings):
     # --- Ablation flags ---
     enable_explore: bool = True  # False → orchestrator skips explore_agent
     enable_explore_replay: bool = True  # False → create_schema skips replaying explore summaries into extraction
+    # True: concurrent coverage waves; False: legacy serial search/open/find.
+    enable_explore_batch: bool = True
+    # Explore uses broad concurrent waves. Interactive runs must complete at
+    # least two waves; eval.runner raises this to max_waves for benchmarks.
+    explore_min_waves: int = 2
+    explore_max_waves: int = 3
     judge_max_input_chars: int = 128_000
     skip_synthesis: bool = False  # eval: export table directly from CoverageMap
 
@@ -273,6 +279,9 @@ def reload_settings_in_place(fresh: Settings | None = None) -> None:
 
 # Per-agent budget overrides (max_searches, max_opens, max_finds).
 AGENT_BUDGET_OVERRIDES: dict[str, dict[str, int]] = {
-    "explore_agent": {"max_searches": 8, "max_opens": 8, "max_finds": 8},
+    # Fits the maximum documented 12 + 8 + 6 three-wave coverage schedule;
+    # opens get extra headroom for small conflict-verification branches.
+    # A single explore_web call can consume many units concurrently.
+    "explore_agent": {"max_searches": 30, "max_opens": 36, "max_finds": 0},
     "search_agent": {"max_searches": 15, "max_opens": 15, "max_finds": 15},
 }

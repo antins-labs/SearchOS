@@ -11,7 +11,10 @@ AGENT_TYPE = "explore_agent"
 
 
 def get_tools(skill_names: list[str] | None = None) -> list:
-    """Browse-only toolset — explore reads pages, writes no SOCM."""
-    from searchos.tools.simple_browser import get_simple_browser_tools
+    """根据开关选择并发覆盖波次或旧版串行浏览工具。"""
+    from searchos.config.settings import settings
+    from searchos.tools.simple_browser import explore_web, get_simple_browser_tools
 
+    if settings.enable_explore_batch:
+        return [explore_web]
     return list(get_simple_browser_tools())

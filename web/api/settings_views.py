@@ -141,6 +141,7 @@ def run_defaults_view() -> dict:
         "max_time_s": rd.max_time_s if rd.max_time_s is not None else settings.default_max_time_s,
         "search_max_results": settings.search_max_results,
         "enable_skills": settings.enable_skills,
+        "enable_explore_batch": settings.enable_explore_batch,
     }
 
 

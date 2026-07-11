@@ -24,7 +24,9 @@ export function foldWorkers(events: WSEvent[], final = false): WorkerInfo[] {
     if (dtype === "agent_error" || dtype === "error" || status === "error") next = "error";
     map.set(agent, {
       name: agent,
-      intent: prev?.intent ?? (agent.startsWith("warmup") ? "explore" : agent.startsWith("writer") ? "write" : "search"),
+      intent: prev?.intent ?? ((agent.startsWith("explore") || agent.startsWith("warmup"))
+        ? "explore"
+        : agent.startsWith("writer") ? "write" : "search"),
       scope: prev?.scope ?? agent,
       status: next,
       events: prev ? [...prev.events, e] : [e],

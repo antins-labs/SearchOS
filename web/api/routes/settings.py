@@ -54,6 +54,7 @@ class MiscUpdate(BaseModel, extra="forbid"):
     max_time_s: int | None = Field(default=None, gt=0)
     search_max_results: int | None = Field(default=None, gt=0)
     enable_skills: bool | None = None
+    enable_explore_batch: bool | None = None
     browser_backend: Literal["aiohttp", "crawl4ai", "search_engine", "jina"] | None = None
 
 
@@ -186,6 +187,8 @@ async def put_misc(req: MiscUpdate):
             s.run_defaults.search_max_results = req.search_max_results
         if req.enable_skills is not None:
             s.run_defaults.enable_skills = req.enable_skills
+        if req.enable_explore_batch is not None:
+            s.run_defaults.enable_explore_batch = req.enable_explore_batch
         if req.browser_backend is not None:
             s.models.browser_backend = req.browser_backend
 

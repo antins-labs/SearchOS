@@ -441,7 +441,7 @@ export function useSearch() {
  * Aggregate per-sub-agent activity from the event stream.
  *
  * Sub-agents are identified by the `agent` field on trajectory events
- * (`warmup_agent`, `search_agent_2`, `writer_agent`, …). The orchestrator's
+ * (`explore_agent`, `search_agent_2`, `writer_agent`, …). The orchestrator's
  * own steps (`agent === "orchestrator"`) drive the timeline, not a card,
  * so they are excluded here. Blackboard streams (when present) carry the
  * same `agent` field and are folded in too.
@@ -476,7 +476,9 @@ function updateWorkers(current: WorkerInfo[], event: WSEvent): WorkerInfo[] {
     name: agent,
     intent:
       prev?.intent ??
-      (agent.startsWith("warmup") ? "explore" : agent.startsWith("writer") ? "write" : "search"),
+      ((agent.startsWith("explore") || agent.startsWith("warmup"))
+        ? "explore"
+        : agent.startsWith("writer") ? "write" : "search"),
     scope: prev?.scope ?? agent,
     status: nextStatus,
     events: prev ? [...prev.events, event] : [event],

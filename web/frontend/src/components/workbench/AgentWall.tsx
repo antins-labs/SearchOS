@@ -5,7 +5,7 @@ import AgentCard, { type AgentCardData } from "./AgentCard";
 import { agentNum } from "./trace";
 
 function rank(name: string): number {
-  if (name.startsWith("warmup")) return -1; // warmup first
+  if (name.startsWith("explore") || name.startsWith("warmup")) return -1; // explore first
   if (name.startsWith("writer")) return 9999; // writer last
   return Number(agentNum(name)) || 0;
 }

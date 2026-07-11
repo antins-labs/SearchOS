@@ -327,6 +327,7 @@ export const putMisc = (patch: {
   max_time_s?: number;
   search_max_results?: number;
   enable_skills?: boolean;
+  enable_explore_batch?: boolean;
   browser_backend?: string;
 }) => putJson<RunDefaultsView & { browser_backend: string }>("/api/settings/misc", patch);
 

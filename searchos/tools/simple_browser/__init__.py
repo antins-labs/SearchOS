@@ -10,6 +10,7 @@ Layout:
 - ``backend/``— fetch backends (aiohttp / crawl4ai / jina / search_engine)
 """
 
+from searchos.tools.simple_browser.batch import explore_web
 from searchos.tools.simple_browser.render import PageContents, process_html
 from searchos.tools.simple_browser.state import (
     FETCH_ERROR_SENTINEL,
@@ -31,6 +32,7 @@ __all__ = [
     "search",
     "open",
     "find",
+    "explore_web",
     "set_browser_provider",
     "reset_browser",
     "reset_browser_for_sub_agent",

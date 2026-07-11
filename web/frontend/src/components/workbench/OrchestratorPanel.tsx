@@ -157,7 +157,7 @@ const DOT: Record<string, string> = {
 };
 
 function rank(name: string): number {
-  if (name.startsWith("warmup")) return -1;
+  if (name.startsWith("explore") || name.startsWith("warmup")) return -1;
   if (name.startsWith("writer")) return 9999;
   return Number(agentNum(name)) || 0;
 }
@@ -216,7 +216,7 @@ export default function OrchestratorPanel({
           </div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-1.5">
             {sortedWorkers.map((w) => {
-              const isWarm = w.name.startsWith("warmup");
+              const isExplore = w.name.startsWith("explore") || w.name.startsWith("warmup");
               return (
                 <button
                   key={w.name}
@@ -226,7 +226,7 @@ export default function OrchestratorPanel({
                 >
                   <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${DOT[w.status] || DOT.pending}`} />
                   <span className="font-mono text-[11px] font-medium text-amber-600 dark:text-amber-400">
-                    {isWarm ? "W" : agentNum(w.name) || "·"}
+                    {isExplore ? "E" : agentNum(w.name) || "·"}
                   </span>
                 </button>
               );

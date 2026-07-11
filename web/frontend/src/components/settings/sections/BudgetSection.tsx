@@ -88,6 +88,7 @@ export default function BudgetSection() {
           max_time_s: view.max_time_s,
           search_max_results: view.search_max_results,
           enable_skills: view.enable_skills,
+          enable_explore_batch: view.enable_explore_batch,
         },
       }),
       errorLabel: "Couldn't save default",

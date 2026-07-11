@@ -212,9 +212,23 @@ def test_aggregate_shape_unchanged(client):
     assert set(d["effort"]) == {"level", "knobs", "overrides", "levels"}
     assert set(d["models"]) >= {"active_provider_preset", "profiles", "roles",
                                 "role_overrides", "search", "browser_backend"}
-    assert set(d["run_defaults"]) == {"max_time_s", "search_max_results", "enable_skills"}
+    assert set(d["run_defaults"]) == {
+        "max_time_s", "search_max_results", "enable_skills", "enable_explore_batch",
+    }
     assert set(d["advanced"]) == {"llm_max_retries", "browser_disk_cache_dir",
                                   "https_proxy", "search_max_results", "overridden"}
+
+
+def test_explore_batch_toggle_roundtrip(client):
+    c, _ = client
+    from searchos.config.settings import settings
+
+    r = c.put("/api/settings/misc", json={"enable_explore_batch": False})
+
+    assert r.status_code == 200, r.text
+    assert r.json()["enable_explore_batch"] is False
+    assert settings.enable_explore_batch is False
+    assert c.get("/api/settings").json()["run_defaults"]["enable_explore_batch"] is False
 
 
 # ---------------------------------------------------------------------------

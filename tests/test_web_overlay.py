@@ -73,6 +73,7 @@ def test_advanced_none_leaves_env_untouched(clean_overlay):
 def test_migrate_seeds_overlay_from_env(clean_overlay, monkeypatch):
     wo = clean_overlay
     monkeypatch.setenv("SF_ENABLE_SKILLS", "false")
+    monkeypatch.setenv("SF_ENABLE_EXPLORE_BATCH", "false")
     monkeypatch.setenv("SF_SEARCH_PROVIDER", "serper")
     monkeypatch.setenv("SF_BROWSER_DISK_CACHE_DIR", "/tmp/pc")
     monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:1080")
@@ -80,10 +81,12 @@ def test_migrate_seeds_overlay_from_env(clean_overlay, monkeypatch):
     seeded = wo.migrate_legacy_env_into_overlay()
 
     assert wo.store.run_defaults.enable_skills is False
+    assert wo.store.run_defaults.enable_explore_batch is False
     assert wo.store.models.search_provider == "serper"
     assert wo.store.advanced.browser_disk_cache_dir == "/tmp/pc"
     assert wo.store.advanced.https_proxy == "http://127.0.0.1:1080"
     assert "SF_ENABLE_SKILLS" in seeded and "SF_SEARCH_PROVIDER" in seeded
+    assert "SF_ENABLE_EXPLORE_BATCH" in seeded
 
 
 def test_migrate_is_idempotent(clean_overlay, monkeypatch):

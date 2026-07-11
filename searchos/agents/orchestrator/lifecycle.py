@@ -68,6 +68,19 @@ _KIND_TO_AGENT_BY_KIND = {
     "write": "writer_agent",
     "explore": "explore_agent",
 }
+
+_LEGACY_EXPLORE_BUDGET = {"max_searches": 8, "max_opens": 8, "max_finds": 8}
+
+
+def _agent_budget_override(agent_type: str) -> dict[str, int]:
+    """Resolve the active per-role budget, including Explore rollback mode."""
+    from searchos.config.settings import AGENT_BUDGET_OVERRIDES, settings
+
+    if agent_type == "explore_agent" and not settings.enable_explore_batch:
+        return dict(_LEGACY_EXPLORE_BUDGET)
+    return dict(AGENT_BUDGET_OVERRIDES.get(agent_type, {}))
+
+
 def _strip_markdown_tables(text: str) -> str:
     """Replace markdown pipe-tables in a sub-agent brief with a one-line stub.
 
@@ -600,7 +613,7 @@ def _extract_explore_open_pages(messages: list) -> list[dict]:
         if "tool" not in kind:
             continue
         name = (getattr(msg, "name", "") or "").lower()
-        if name not in ("open", "browser_open"):
+        if name not in ("open", "browser_open", "explore_web"):
             continue
         content = getattr(msg, "content", "") or ""
         if isinstance(content, list):
@@ -612,15 +625,25 @@ def _extract_explore_open_pages(messages: list) -> list[dict]:
         if not content.strip() or content.lstrip().lower().startswith("error"):
             continue
         content = content.strip()
-        if len(content) < _EXPLORE_PAGE_MIN_CHARS:
-            continue
-        m = _EXPLORE_PAGE_URL_HDR.search(content)
-        url = m.group(1).strip() if m else ""
-        if not url.startswith("http"):
-            continue
-        if len(content) > _EXPLORE_PAGE_MAX_CHARS:
-            content = content[:_EXPLORE_PAGE_MAX_CHARS]
-        out.append({"source_url": url, "content": content})
+        # ``explore_web`` returns several independently replayable page
+        # blocks in one tool result. Keep every block; treating the combined
+        # output as one page would silently retain only its first hub URL.
+        candidates = [content]
+        if name == "explore_web":
+            candidates = [
+                block.split("<<<END_EXPLORE_PAGE>>>", 1)[0].strip()
+                for block in content.split("<<<EXPLORE_PAGE>>>")[1:]
+            ]
+        for page_content in candidates:
+            if len(page_content) < _EXPLORE_PAGE_MIN_CHARS:
+                continue
+            m = _EXPLORE_PAGE_URL_HDR.search(page_content)
+            url = m.group(1).strip() if m else ""
+            if not url.startswith("http"):
+                continue
+            if len(page_content) > _EXPLORE_PAGE_MAX_CHARS:
+                page_content = page_content[:_EXPLORE_PAGE_MAX_CHARS]
+            out.append({"source_url": url, "content": page_content})
     # Dedup by URL — keep the longest body per URL
     by_url: dict[str, dict] = {}
     for item in out:
@@ -1075,7 +1098,14 @@ async def _spawn_sub_agent(
     prompt_parts: list[str] = []
 
     from pathlib import Path
-    agent_md_path = Path(role.__file__).parent / "agent.md"
+    from searchos.config.settings import settings as _prompt_settings
+
+    agent_md_name = (
+        "agent_legacy.md"
+        if agent_type == "explore_agent" and not _prompt_settings.enable_explore_batch
+        else "agent.md"
+    )
+    agent_md_path = Path(role.__file__).parent / agent_md_name
     if agent_md_path.exists():
         from searchos.agents.toolset_render import render_toolset
         persona = agent_md_path.read_text(encoding="utf-8")
@@ -1102,28 +1132,40 @@ async def _spawn_sub_agent(
     # budget before emitting the briefing. Pull the cap from
     # AGENT_BUDGET_OVERRIDES so this stays in sync with settings.
     if agent_type == "explore_agent":
-        from searchos.config.settings import (
-            AGENT_BUDGET_OVERRIDES, settings as _s,
-        )
-        _ov = AGENT_BUDGET_OVERRIDES.get("explore_agent", {})
+        from searchos.config.settings import settings as _s
+
+        _ov = _agent_budget_override("explore_agent")
         _max_s = _ov.get("max_searches", _s.max_searches_per_sub_agent)
         _max_o = _ov.get("max_opens", 0)
         _max_f = _ov.get("max_finds", _s.max_finds_per_sub_agent)
-        prompt_parts.append(
-            "# Budget discipline\n\n"
-            f"You have a hard cap of **{_max_s} `search()` calls** and "
-            f"**{_max_o} `open()` calls** and "
-            f"**{_max_f} `find()` calls** for this scouting run.\n\n"
-            f"After your **{max(1, _max_o - 1)}-th** `open()`, do **one** "
-            "last `find()` if needed and then **immediately emit the final "
-            "briefing** as a plain assistant message (no tool call) covering "
-            "the fields listed under '# Output' above. Do not try one more "
-            "open — the harness will hard-block it and you will be reported "
-            "as failed without ever delivering the briefing.\n\n"
-            "Coverage and evidence nodes will stay at zero throughout your "
-            "run — that is by design (no extraction middleware is attached "
-            "to explore). Your value is the briefing text, nothing else."
-        )
+        if _s.enable_explore_batch:
+            prompt_parts.append(
+                "# Runtime coverage contract\n\n"
+                f"Complete at least **{_s.explore_min_waves}** and at most "
+                f"**{_s.explore_max_waves}** `explore_web` coverage waves. "
+                "A credible hub alone never satisfies the completion rule.\n\n"
+                f"The hard resource caps are **{_max_s} underlying searches** and "
+                f"**{_max_o} underlying page opens**. One batch call is charged "
+                "by the number of queries and `queries × open_top_k`, not as one "
+                "unit. If a proposed batch does not fit, shrink it to the "
+                "remaining capacity.\n\n"
+                "After the minimum waves, stop only when the saturation checklist "
+                "in your role prompt passes or the resource/wave cap is reached. "
+                "Always reserve one final model turn to emit the complete briefing "
+                "as a plain assistant message with no tool call.\n\n"
+                "Coverage and evidence nodes will stay at zero throughout your "
+                "run — that is by design (no extraction middleware is attached "
+                "to explore). Your value is the briefing text, nothing else."
+            )
+        else:
+            prompt_parts.append(
+                "# Legacy budget discipline\n\n"
+                f"You have a hard cap of **{_max_s} `search()` calls**, "
+                f"**{_max_o} `open()` calls**, and **{_max_f} `find()` calls**. "
+                f"After your **{max(1, _max_o - 1)}-th** `open()`, do one final "
+                "`find()` if needed and immediately emit the final briefing as "
+                "a plain assistant message with no tool call."
+            )
 
     scope_entities = _detect_scope_entities(
         task, state.coverage_map.table_schema.entities,
@@ -1189,13 +1231,10 @@ async def _spawn_sub_agent(
     # Create middleware for trajectory logging + loop detection
     middleware_stack = []
     if _ctx.trajectory_logger:
-        from searchos.config.settings import (
-            settings,
-            AGENT_BUDGET_OVERRIDES,
-        )
+        from searchos.config.settings import settings
         from searchos.harness.middleware.sensor.loop_sensor import LoopSensorImpl
 
-        override = AGENT_BUDGET_OVERRIDES.get(agent_type, {})
+        override = _agent_budget_override(agent_type)
         # Precedence: per-task > agent-type override > settings default.
         if search_budget is not None:
             max_searches = max(

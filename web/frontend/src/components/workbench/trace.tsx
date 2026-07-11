@@ -16,7 +16,7 @@ export function agentNum(name: string): string {
 }
 
 export function agentLabel(name: string): string {
-  if (name.startsWith("warmup")) return "Warmup";
+  if (name.startsWith("explore") || name.startsWith("warmup")) return "Explore";
   if (name.startsWith("writer")) return "Writer";
   if (name.startsWith("search_agent")) {
     const n = agentNum(name);
@@ -47,7 +47,18 @@ export function actionInfo(e: WSEvent): { name: string; arg: string } {
       (d.type === "orchestrator_tool" ? String(d.tool || "") : "") ||
       "";
   }
-  const arg =
+  let batchArg = "";
+  if (name === "explore_web") {
+    try {
+      const parsed = JSON.parse(s) as { queries?: unknown[] };
+      if (Array.isArray(parsed.queries)) batchArg = `${parsed.queries.length} query paths`;
+    } catch {
+      const queryList = s.match(/["']queries["']\s*:\s*\[([^\]]*)\]/)?.[1] || "";
+      const count = (queryList.match(/https?:\/\/|["'][^"']+["']/g) || []).length;
+      if (count) batchArg = `${count} query paths`;
+    }
+  }
+  const arg = batchArg ||
     s.match(/'query':\s*'([^']*)'/)?.[1] ||
     s.match(/'pattern':\s*'([^']*)'/)?.[1] ||
     s.match(/'id_or_url':\s*'([^']*)'/)?.[1] ||
@@ -76,6 +87,7 @@ export function cleanObs(e: WSEvent): string {
 }
 
 const VERB: Record<string, string> = {
+  explore_web: "Exploring wave",
   search: "Searching",
   open: "Reading",
   find: "Finding",

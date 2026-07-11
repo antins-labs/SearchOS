@@ -122,6 +122,7 @@ class RunDefaults(BaseModel, extra="forbid"):
     max_time_s: int | None = None
     search_max_results: int | None = None
     enable_skills: bool | None = None
+    enable_explore_batch: bool | None = None
 
 
 class AdvancedOverlay(BaseModel, extra="forbid"):
@@ -220,6 +221,7 @@ def save_overlay() -> None:
 # overlay owns them; the migration itself is non-destructive (seed only).
 MIGRATABLE_ENV_KEYS: tuple[str, ...] = (
     "SF_ENABLE_SKILLS",
+    "SF_ENABLE_EXPLORE_BATCH",
     "SF_SEARCH_PROVIDER",
     "SF_BROWSER_DISK_CACHE_DIR",
     "HTTP_PROXY",
@@ -242,6 +244,13 @@ def migrate_legacy_env_into_overlay() -> list[str]:
     if store.run_defaults.enable_skills is None and raw_skills:
         store.run_defaults.enable_skills = raw_skills in {"1", "true", "yes", "on"}
         seeded.append("SF_ENABLE_SKILLS")
+
+    raw_explore_batch = os.environ.get("SF_ENABLE_EXPLORE_BATCH", "").strip().lower()
+    if store.run_defaults.enable_explore_batch is None and raw_explore_batch:
+        store.run_defaults.enable_explore_batch = raw_explore_batch in {
+            "1", "true", "yes", "on",
+        }
+        seeded.append("SF_ENABLE_EXPLORE_BATCH")
 
     search = os.environ.get("SF_SEARCH_PROVIDER", "").strip()
     if store.models.search_provider is None and search:
@@ -354,6 +363,8 @@ def apply_to_runtime() -> None:
         settings.search_max_results = store.run_defaults.search_max_results
     if store.run_defaults.enable_skills is not None:
         settings.enable_skills = store.run_defaults.enable_skills
+    if store.run_defaults.enable_explore_batch is not None:
+        settings.enable_explore_batch = store.run_defaults.enable_explore_batch
 
     # Advanced knobs. Proxy is not a settings field — the HTTP stack reads it
     # from the environment, so export it there (and to HTTP_PROXY); clearing the

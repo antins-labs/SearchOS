@@ -409,6 +409,14 @@ async def run_benchmark(
     run_tag = datetime.now().strftime("%Y%m%d_%H%M%S")
     sem = asyncio.Semaphore(concurrency)
 
+    # Benchmark recall must not depend on interactive saturation heuristics.
+    # Force every Explore Agent through the configured verification wave, then
+    # restore the process-wide setting for callers that reuse this interpreter.
+    from searchos.config.settings import settings as runtime_settings
+
+    previous_min_waves = runtime_settings.explore_min_waves
+    runtime_settings.explore_min_waves = runtime_settings.explore_max_waves
+
     from searchos.harness.session import SearchSession
 
     def _factory(per_question_root: str) -> SearchSession:
@@ -436,7 +444,10 @@ async def run_benchmark(
         ))
         for sample in samples
     ]
-    records = await asyncio.gather(*tasks, return_exceptions=False)
+    try:
+        records = await asyncio.gather(*tasks, return_exceptions=False)
+    finally:
+        runtime_settings.explore_min_waves = previous_min_waves
 
     # Drain background skill-evolution / access-skill-generation tasks before
     # the event loop closes. They're fire-and-forget per question (so they

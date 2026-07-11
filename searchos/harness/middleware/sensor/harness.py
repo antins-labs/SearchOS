@@ -259,6 +259,7 @@ class HarnessMiddleware(_AgentMiddlewareBase):
 
         self._budget_warning_ratio = budget_warning_ratio
         self._tool_call_count = 0
+        self._explore_wave_count = 0
         self._force_stop_reason: str | None = None
         # Sticky: stays True after any harness-initiated stop (budget /
         # sensor force-stop), unlike _force_stop_reason which is one-shot.
@@ -445,6 +446,48 @@ class HarnessMiddleware(_AgentMiddlewareBase):
         # -- Call the LLM --
         response = await handler(request)
 
+        # Explore completeness is a hard runtime contract, not merely a
+        # prompt preference. If the model tries to finish before the minimum
+        # number of broad waves, discard that premature terminal response and
+        # retry the model call with an explicit control signal. Resource
+        # exhaustion still wins so an agent can always emit a partial brief.
+        retry_count = 0
+        while (
+            _agent_kind(self._worker_name) == "explore"
+            and settings.enable_explore_batch
+            and not self._extract_tool_calls_info(response)
+            and self._explore_wave_count < settings.explore_min_waves
+            and not self.budget.fully_exhausted
+            and retry_count < settings.explore_max_waves
+        ):
+            retry_count += 1
+            remaining = settings.explore_min_waves - self._explore_wave_count
+            reminder = (
+                "[Harness EXPLORE_MIN_WAVES] Premature completion refused. "
+                f"Completed {self._explore_wave_count}/"
+                f"{settings.explore_min_waves} required coverage waves; "
+                f"run {remaining} more explore_web wave(s) against measured "
+                "gaps before writing the final briefing. One credible hub is "
+                "not a completeness signal."
+            )
+            existing_sys = request.system_message
+            if existing_sys:
+                retry_sys = SystemMessage(
+                    content=str(existing_sys.content) + "\n\n" + reminder,
+                )
+            else:
+                retry_sys = SystemMessage(content=reminder)
+            retry_request = dc_replace(request, system_message=retry_sys)
+            if self.trajectory_logger:
+                self.trajectory_logger._append_raw({
+                    "type": "harness",
+                    "kind": "explore_min_wave_retry",
+                    "agent": self._worker_name,
+                    "completed_waves": self._explore_wave_count,
+                    "required_waves": settings.explore_min_waves,
+                })
+            response = await handler(retry_request)
+
         # -- Capture reasoning to attach to subsequent tool-call steps --
         reasoning = self._extract_reasoning_text(response)
         tool_calls_info = self._extract_tool_calls_info(response)
@@ -472,6 +515,7 @@ class HarnessMiddleware(_AgentMiddlewareBase):
         """Run lightweight sensors every step; trigger evaluator on conditions."""
 
         tool_name = self._extract_tool_name(request)
+        tool_input = self._extract_tool_input(request)
 
         # Hard block: sensor-requested tool block.
         if tool_name in self._blocked_tools:
@@ -551,14 +595,23 @@ class HarnessMiddleware(_AgentMiddlewareBase):
             # tool kind — search budget running out must not freeze find /
             # open, which carry their own budgets.
             dim = None
-            if self._is_search_tool(tool_name) and self.budget.queries_exhausted:
-                dim = ("search", self.budget.consumed_queries, self.budget.max_queries)
-            elif self._is_open_tool(tool_name) and self.budget.opens_exhausted:
-                dim = ("open", self.budget.consumed_opens, self.budget.max_opens)
-            elif self._is_find_tool(tool_name) and self.budget.finds_exhausted:
-                dim = ("find", self.budget.consumed_finds, self.budget.max_finds)
+            dimensions = (
+                ("search", self._is_search_tool(tool_name),
+                 self.budget.consumed_queries, self.budget.max_queries),
+                ("open", self._is_open_tool(tool_name),
+                 self.budget.consumed_opens, self.budget.max_opens),
+                ("find", self._is_find_tool(tool_name),
+                 self.budget.consumed_finds, self.budget.max_finds),
+            )
+            for dim_name, applies, used, cap in dimensions:
+                if not applies or cap <= 0:
+                    continue
+                cost = self._tool_budget_cost(tool_name, tool_input, dim_name)
+                if used >= cap or used + cost > cap:
+                    dim = (dim_name, used, cap, cost)
+                    break
             if dim is not None:
-                dim_name, used, cap = dim
+                dim_name, used, cap, cost = dim
                 self._tool_call_count += 1
                 if self.trajectory_logger:
                     self.trajectory_logger._append_raw({
@@ -571,8 +624,10 @@ class HarnessMiddleware(_AgentMiddlewareBase):
                     })
                 return self._build_blocked_tool_message(
                     request,
-                    f"[Harness] {dim_name} budget exhausted ({used}/{cap} used) — "
-                    f"'{tool_name}' is blocked. Remaining budgets: "
+                    f"[Harness] {dim_name} budget cannot fit this call "
+                    f"({used}/{cap} used, call costs {cost}) — '{tool_name}' "
+                    "is blocked. Shrink this batch to the remaining capacity. "
+                    "Remaining budgets: "
                     f"{self._remaining_budgets_summary()}. Keep working with "
                     "the remaining tools on sources you already found, or "
                     "wrap up with what you have.",
@@ -584,14 +639,19 @@ class HarnessMiddleware(_AgentMiddlewareBase):
         # -- Execute the tool --
         result = await handler(request)
         self._tool_call_count += 1
+        if tool_name == "explore_web":
+            self._explore_wave_count += 1
 
         # Only search results are truncated (snippet lists — safe).
         # open()/find() content is the data the agent is reading.
         if self._is_search_tool(tool_name):
-            result = self._truncate_tool_output(result, max_chars=6000)
+            # explore_web also carries the opened-page excerpts for the whole
+            # wave. Preserve a larger bounded window so late query families
+            # are not erased by the generic search-snippet cap.
+            max_chars = 48_000 if tool_name == "explore_web" else 6_000
+            result = self._truncate_tool_output(result, max_chars=max_chars)
 
         # -- Lightweight sensors (every step) --
-        tool_input = self._extract_tool_input(request)
         for sensor in self.sensors:
             if sensor.trigger_on == "every_step":
                 signal = await sensor.check(tool_name, result, tool_input=tool_input)
@@ -629,20 +689,23 @@ class HarnessMiddleware(_AgentMiddlewareBase):
         # Budget tracking. Each sub-agent has its own self.budget; the
         # session-wide bump aggregates into the persisted state.budget.
         if self._is_search_tool(tool_name):
-            self.budget.consume_query()
+            search_cost = self._tool_budget_cost(tool_name, tool_input, "search")
+            self.budget.consume_query(search_cost)
             result = self._notify_if_dim_just_exhausted("search", result)
             try:
                 from searchos.agents.orchestrator.lifecycle import (
                     _bump_session_search_count,
                 )
-                _bump_session_search_count(1)
+                _bump_session_search_count(search_cost)
             except Exception:
                 pass
-        elif self._is_open_tool(tool_name):
-            self.budget.consume_open()
+        if self._is_open_tool(tool_name):
+            open_cost = self._tool_budget_cost(tool_name, tool_input, "open")
+            self.budget.consume_open(open_cost)
             result = self._notify_if_dim_just_exhausted("open", result)
-        elif self._is_find_tool(tool_name):
-            self.budget.consume_find()
+        if self._is_find_tool(tool_name):
+            find_cost = self._tool_budget_cost(tool_name, tool_input, "find")
+            self.budget.consume_find(find_cost)
             result = self._notify_if_dim_just_exhausted("find", result)
 
         # -- Unified step logging: reasoning + action + observation + state_delta --
@@ -1413,7 +1476,7 @@ class HarnessMiddleware(_AgentMiddlewareBase):
         # optional budget dimensions below. SOCM state tools (update_frontier
         # etc.) are free.
         return name in {"web_search", "tavily_search", "serper_search",
-                        "browser_navigate", "search"}
+                        "browser_navigate", "search", "explore_web"}
 
     @staticmethod
     def _is_open_tool(name: str) -> bool:
@@ -1421,11 +1484,29 @@ class HarnessMiddleware(_AgentMiddlewareBase):
         # ``BudgetState.max_opens > 0`` (off by default for
         # search/writer; enabled for sub-agents via
         # AGENT_BUDGET_OVERRIDES). ``find`` has its own budget dimension.
-        return name in {"open", "browser_open"}
+        return name in {"open", "browser_open", "explore_web"}
 
     @staticmethod
     def _is_find_tool(name: str) -> bool:
         return name in {"find", "browser_find"}
+
+    @staticmethod
+    def _tool_budget_cost(name: str, tool_input: Any, dimension: str) -> int:
+        """Return underlying work units for a possibly batched tool call."""
+        if name != "explore_web" or not isinstance(tool_input, dict):
+            return 1
+        queries = tool_input.get("queries") or []
+        n_queries = len(queries) if isinstance(queries, (list, tuple)) else 1
+        n_queries = max(1, min(n_queries, 12))
+        if dimension == "search":
+            return n_queries
+        if dimension == "open":
+            try:
+                open_top_k = int(tool_input.get("open_top_k", 1))
+            except (TypeError, ValueError):
+                open_top_k = 1
+            return n_queries * max(1, min(open_top_k, 2))
+        return 1
 
     # Number of recent tool-result messages to keep intact.
     # Older tool results are compressed to a one-line summary.

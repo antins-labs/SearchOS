@@ -142,6 +142,7 @@ export interface RunDefaultsView {
   max_time_s: number;
   search_max_results: number;
   enable_skills: boolean;
+  enable_explore_batch: boolean;
 }
 
 // First-class runtime knobs not covered by effort. Proxy / cache dir are not
