@@ -38,6 +38,16 @@
   🎬 <b><a href="https://youtu.be/DZNXxMcxnMQ">完整 Demo 视频（YouTube）</a></b>
 </p>
 
+<p align="center">
+  <a href="https://youtu.be/WsjcDtCN0Cs" title="观看 SearchOS 中文产品讲解">
+    <img src="../assets/gallery/product-demo-zh.jpg" alt="SearchOS 中文产品讲解：结构化覆盖表、证据溯源、研究补漏与报告导出" width="95%">
+  </a>
+</p>
+
+<p align="center">
+  🎬 <b><a href="https://youtu.be/WsjcDtCN0Cs">完整产品讲解（中文）</a></b>
+</p>
+
 > **▶️ 快速运行：**
 >
 > ```bash
