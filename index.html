@@ -508,6 +508,73 @@
         .demo-placeholder svg { opacity: .55; transition: opacity .25s ease, transform .25s ease; }
         .demo-placeholder:hover svg { opacity: .85; transform: scale(1.06); }
 
+        /* ===== WEB UI PRODUCT TOUR ===== */
+        .tour-shell {
+            display: grid; grid-template-columns: minmax(250px, .72fr) minmax(0, 1.65fr); gap: clamp(28px, 5vw, 64px);
+            align-items: center; padding: clamp(24px, 4vw, 44px);
+            border: 1px solid var(--hairline-strong); border-radius: 24px;
+            background:
+                radial-gradient(640px 360px at 82% 20%, rgba(37,99,235,.09), transparent 68%),
+                linear-gradient(145deg, var(--card-bg), var(--surface-2));
+            box-shadow: var(--shadow-soft);
+        }
+        .tour-copy h2 { margin: 10px 0 16px; font-size: clamp(32px, 4vw, 52px); line-height: 1.06; }
+        .tour-copy p { color: var(--muted); font-size: 16px; line-height: 1.72; }
+        .tour-steps { display: grid; gap: 10px; margin: 24px 0 26px; }
+        .tour-step { display: flex; align-items: center; gap: 11px; color: var(--ink); font-size: 14px; font-weight: 600; }
+        .tour-step::before {
+            content: ""; width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%;
+            background: var(--blue); box-shadow: 0 0 0 5px rgba(37,99,235,.1);
+        }
+        .tour-tabs {
+            display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--hairline);
+            border-radius: 12px; background: var(--ovr-8);
+        }
+        .tour-tab {
+            min-height: 38px; padding: 0 16px; border: 0; border-radius: 9px; cursor: pointer;
+            color: var(--muted); background: transparent; font: 700 13px/1 var(--font-ui);
+            transition: color .2s ease, background .2s ease, box-shadow .2s ease;
+        }
+        .tour-tab:hover { color: var(--ink); }
+        .tour-tab[aria-selected="true"] {
+            color: var(--blue-glow); background: var(--surface); box-shadow: 0 5px 16px rgba(30,45,75,.1);
+        }
+        .tour-player {
+            position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden;
+            border: 1.5px solid var(--hairline-strong); border-radius: 18px; background: #05070b;
+            box-shadow: 0 22px 58px rgba(0,0,0,.22);
+        }
+        .tour-player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+        .tour-poster {
+            position: absolute; inset: 0; display: block; width: 100%; height: 100%; padding: 0; border: 0;
+            cursor: pointer; overflow: hidden; background: #05070b;
+        }
+        .tour-poster img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .45s ease, opacity .3s ease; }
+        .tour-poster::after {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(3,7,18,.02), rgba(3,7,18,.28));
+            transition: background .3s ease;
+        }
+        .tour-poster:hover img { transform: scale(1.018); }
+        .tour-poster:hover::after { background: linear-gradient(180deg, transparent, rgba(3,7,18,.2)); }
+        .tour-play {
+            position: absolute; z-index: 2; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            display: grid; place-items: center; width: clamp(64px, 8vw, 88px); aspect-ratio: 1; border-radius: 50%;
+            color: white; background: rgba(37,99,235,.92); border: 1px solid rgba(255,255,255,.55);
+            box-shadow: 0 16px 42px rgba(0,0,0,.36); transition: transform .25s ease, background .25s ease;
+        }
+        .tour-play::before {
+            content: ""; width: 0; height: 0; margin-left: 6px;
+            border-top: 12px solid transparent; border-bottom: 12px solid transparent; border-left: 19px solid currentColor;
+        }
+        .tour-poster:hover .tour-play { transform: translate(-50%, -50%) scale(1.07); background: rgba(29,78,216,.98); }
+        .tour-language-badge {
+            position: absolute; z-index: 2; right: 16px; top: 16px; padding: 7px 11px; border-radius: 999px;
+            color: white; background: rgba(3,7,18,.7); border: 1px solid rgba(255,255,255,.22);
+            font: 700 11px/1 var(--font-ui); letter-spacing: .06em; text-transform: uppercase;
+            -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+        }
+
         /* ===== RESULTS PLACEHOLDER ===== */
         .results-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
         .result-cell { text-align: center; padding: 24px 18px; }
@@ -1262,6 +1329,9 @@
             .proof-grid { grid-template-columns: 1fr; }
             .quad-grid { grid-template-columns: 1fr; }
             .hero-actions { flex-direction: column; align-items: center; }
+            .tour-shell { grid-template-columns: 1fr; }
+            .tour-copy { text-align: center; }
+            .tour-steps { width: fit-content; margin-inline: auto; text-align: left; }
             #resources .container > div { grid-template-columns: 1fr; }
         }
         @media (max-width: 640px) {
@@ -1278,6 +1348,11 @@
             .hero-title { font-size: clamp(46px, 15vw, 72px); }
             .hero-desc { font-size: clamp(17px, 4.6vw, 21px); }
             .hero-actions .btn { min-height: 52px; }
+            .tour-shell { padding: 18px; border-radius: 18px; }
+            .tour-copy h2 { font-size: clamp(30px, 10vw, 42px); }
+            .tour-tabs { display: flex; }
+            .tour-tab { flex: 1; }
+            .tour-player { border-radius: 13px; }
         }
 
         /* ===== REDUCED MOTION ===== */
@@ -1294,6 +1369,7 @@
 <nav class="side-toc" id="sideToc" aria-label="Section navigation">
     <span class="toc-marker" id="tocMarker"></span>
     <a href="#demo" data-target="demo"><span class="toc-dot"></span><span class="toc-label">Introduction</span></a>
+    <a href="#product-tour" data-target="product-tour"><span class="toc-dot"></span><span class="toc-label">Product Tour</span></a>
     <a href="#overview" data-target="overview"><span class="toc-dot"></span><span class="toc-label">Overview</span></a>
     <a href="#arch" data-target="arch"><span class="toc-dot"></span><span class="toc-label">Architecture</span></a>
     <a href="#internals" data-target="internals"><span class="toc-dot"></span><span class="toc-label">Design</span></a>
@@ -1334,6 +1410,7 @@
     </div>
     <nav class="nav" id="mainNav">
         <a href="#demo">Introduction</a>
+        <a href="#product-tour">Product Tour</a>
         <a href="#overview" class="active">Overview</a>
         <a href="#arch">Architecture</a>
         <a href="#internals">Design</a>
@@ -1374,6 +1451,10 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                 Introduction
             </a>
+            <a href="#product-tour" class="btn">
+                <span aria-hidden="true">▶</span>
+                Product Tour
+            </a>
         </div>
     </div>
 </div>
@@ -1391,6 +1472,112 @@
         </div>
     </div>
 </section>
+
+<!-- ===== WEB UI PRODUCT TOUR ===== -->
+<section id="product-tour" class="section" aria-labelledby="productTourTitle">
+    <div class="container">
+        <div class="tour-shell reveal">
+            <div class="tour-copy">
+                <div class="kicker">Product Tour</div>
+                <h2 id="productTourTitle">See SearchOS in Action</h2>
+                <p>Follow the complete Web UI workflow, from connecting model and search providers to building a schema, tracing live research, verifying evidence, repairing gaps, and exporting the final result.</p>
+                <div class="tour-steps" aria-label="Product tour highlights">
+                    <span class="tour-step">Configure providers and API keys</span>
+                    <span class="tour-step">Build structured, evidence-backed research</span>
+                    <span class="tour-step">Repair gaps and export final reports</span>
+                </div>
+                <div class="tour-tabs" role="tablist" aria-label="Product tour language">
+                    <button class="tour-tab" id="tourTabEn" type="button" role="tab" aria-selected="true" aria-controls="tourPlayer" data-tour-lang="en">English</button>
+                    <button class="tour-tab" id="tourTabZh" type="button" role="tab" aria-selected="false" aria-controls="tourPlayer" data-tour-lang="zh">中文</button>
+                </div>
+            </div>
+            <div class="tour-player" id="tourPlayer" role="tabpanel" aria-labelledby="tourTabEn"></div>
+        </div>
+    </div>
+</section>
+
+<script>
+(function () {
+    const tours = {
+        en: {
+            videoId: 'wxy74AqykwY',
+            poster: 'assets/gallery/product-demo-en.jpg',
+            badge: 'English',
+            title: 'SearchOS product tour in English'
+        },
+        zh: {
+            videoId: 'WsjcDtCN0Cs',
+            poster: 'assets/gallery/product-demo-zh.jpg',
+            badge: '中文',
+            title: 'SearchOS 中文产品演示'
+        }
+    };
+
+    const player = document.getElementById('tourPlayer');
+    const tabs = Array.from(document.querySelectorAll('[data-tour-lang]'));
+    let activeLanguage = 'en';
+
+    function mountPoster(language) {
+        const tour = tours[language];
+        const poster = document.createElement('button');
+        const image = document.createElement('img');
+        const play = document.createElement('span');
+        const badge = document.createElement('span');
+
+        poster.type = 'button';
+        poster.className = 'tour-poster';
+        poster.setAttribute('aria-label', 'Play ' + tour.title);
+
+        image.src = tour.poster;
+        image.alt = '';
+        image.loading = 'lazy';
+        image.decoding = 'async';
+
+        play.className = 'tour-play';
+        play.setAttribute('aria-hidden', 'true');
+
+        badge.className = 'tour-language-badge';
+        badge.textContent = tour.badge;
+
+        poster.append(image, play, badge);
+        poster.addEventListener('click', function () {
+            const iframe = document.createElement('iframe');
+            iframe.src = 'https://www.youtube-nocookie.com/embed/' + tour.videoId + '?autoplay=1&rel=0';
+            iframe.title = tour.title;
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+            iframe.allowFullscreen = true;
+            player.replaceChildren(iframe);
+        });
+
+        player.replaceChildren(poster);
+    }
+
+    function setLanguage(language) {
+        activeLanguage = tours[language] ? language : 'en';
+        tabs.forEach(function (tab) {
+            const isActive = tab.dataset.tourLang === activeLanguage;
+            tab.setAttribute('aria-selected', String(isActive));
+            tab.tabIndex = isActive ? 0 : -1;
+            if (isActive) player.setAttribute('aria-labelledby', tab.id);
+        });
+        mountPoster(activeLanguage);
+    }
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () { setLanguage(tab.dataset.tourLang); });
+        tab.addEventListener('keydown', function (event) {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+            event.preventDefault();
+            const nextLanguage = activeLanguage === 'en' ? 'zh' : 'en';
+            setLanguage(nextLanguage);
+            document.querySelector('[data-tour-lang="' + nextLanguage + '"]').focus();
+        });
+    });
+
+    setLanguage((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
+})();
+</script>
 
 <!-- ===== 1. OVERVIEW ===== -->
 <section id="overview" class="section">
