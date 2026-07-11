@@ -39,6 +39,17 @@
   🎬 <b><a href="https://youtu.be/DZNXxMcxnMQ">フルデモ動画（YouTube）</a></b>
 </p>
 
+<p align="center">
+  <a href="https://youtu.be/wxy74AqykwY" title="SearchOS 製品ウォークスルーを見る（英語）">
+    <img src="../assets/gallery/product-demo-en.jpg" alt="SearchOS 製品ウォークスルー：セットアップ、カバレッジ、エビデンス、修復、エクスポート" width="95%">
+  </a>
+</p>
+
+<p align="center">
+  🎬 <b><a href="https://youtu.be/wxy74AqykwY">製品ウォークスルー（英語）</a></b>
+  <br><sub>英語音声・英語字幕</sub>
+</p>
+
 > **▶️ クイックスタート：**
 >
 > ```bash

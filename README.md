@@ -39,6 +39,17 @@
   🎬 <b><a href="https://youtu.be/DZNXxMcxnMQ">Full demo video (YouTube)</a></b>
 </p>
 
+<p align="center">
+  <a href="https://youtu.be/wxy74AqykwY" title="Watch the narrated SearchOS product walkthrough in English">
+    <img src="assets/gallery/product-demo-en.jpg" alt="SearchOS product walkthrough: setup, live coverage, evidence, repair, and export" width="95%">
+  </a>
+</p>
+
+<p align="center">
+  🎬 <b><a href="https://youtu.be/wxy74AqykwY">Full product walkthrough (English)</a></b>
+  <br><sub>English narration and subtitles · Setup, schema building, verifiable evidence, repair, and export</sub>
+</p>
+
 > **▶️ Quick run:**
 >
 > ```bash

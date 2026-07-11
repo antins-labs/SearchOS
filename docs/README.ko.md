@@ -39,6 +39,17 @@
   🎬 <b><a href="https://youtu.be/DZNXxMcxnMQ">전체 데모 영상 (YouTube)</a></b>
 </p>
 
+<p align="center">
+  <a href="https://youtu.be/wxy74AqykwY" title="SearchOS 제품 워크스루 보기 (영어)">
+    <img src="../assets/gallery/product-demo-en.jpg" alt="SearchOS 제품 워크스루: 설정, 커버리지, 근거, 보완 검색, 내보내기" width="95%">
+  </a>
+</p>
+
+<p align="center">
+  🎬 <b><a href="https://youtu.be/wxy74AqykwY">제품 워크스루 (영어)</a></b>
+  <br><sub>영어 내레이션 및 영어 자막</sub>
+</p>
+
 > **▶️ 빠른 실행:**
 >
 > ```bash
