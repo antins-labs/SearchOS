@@ -51,7 +51,6 @@ class SchemaRelationRequest(BaseModel):
 
 class SearchRequest(BaseModel):
     query: str
-    type: str | None = None  # wide / deep / local / hybrid
     entities: list[str] | None = None
     attrs: list[str] | None = None
     table_label: str | None = None
@@ -117,11 +116,10 @@ class ResolveEvidenceResponse(BaseModel):
 @router.post("/search", response_model=SearchResponse)
 async def create_search(req: SearchRequest):
     """Start a new search session (runs in background)."""
+    from searchos.harness.telemetry.conversation_context import build_preamble
+    from searchos.socm import ForeignKey, Relation, RelationKind
     from searchos.socm.frontier import FrontierTask
     from searchos.socm.state import SearchState
-    from searchos.socm import ForeignKey, Relation, RelationKind
-
-    from searchos.harness.telemetry.conversation_context import build_preamble
 
     init_search_provider(settings_store.store.models.search_provider)
 
@@ -722,7 +720,12 @@ def _read_answer(session_id: str, result: Any) -> str:
 
     # 3. Writer's report (result.json answer / report.md).
     try:
-        r = json.loads((ws / "output" / "result.json").read_text(encoding="utf-8", errors="replace"))
+        r = json.loads(
+            (ws / "output" / "result.json").read_text(
+                encoding="utf-8",
+                errors="replace",
+            ),
+        )
         if r.get("answer"):
             return str(r["answer"])
     except Exception:

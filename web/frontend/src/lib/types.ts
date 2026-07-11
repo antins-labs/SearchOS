@@ -20,7 +20,6 @@ export interface SchemaRelationRequest {
 
 export interface SearchRequest {
   query: string;
-  type?: "wide" | "deep" | "local" | "hybrid";
   entities?: string[];
   attrs?: string[];
   table_label?: string;

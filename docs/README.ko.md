@@ -51,6 +51,7 @@
 
 ## 📣 News
 
+- **2026-07-11** — **더 빠르게 시작하고, 더 넓게 탐색하며, 모든 과정을 확인하세요.** 새로운 원커맨드 설치 프로그램으로 바로 시작할 수 있습니다. 병렬 Explore waves가 웹을 배치 단위로 탐색하고, 실시간 진행 상황과 엔티티별로 묶인 근거가 모든 발견을 명확하게 보여 줍니다. 스킬은 이제 강화된 격리 워커에서 실행됩니다. ⚡
 - **2026-07-10** — **리서치, 이제 구조부터 시작합니다.** 질문의 구조를 그리면 SearchOS가 탐색하고, 다듬고, 내보낼 수 있는 인용 기반 리서치로 완성합니다. 🧩
 - **2026-07-09** — **멈춘 바로 그곳에서, 다시.** 대화와 진행 상황, 근거, 실시간 활동이 그대로 돌아옵니다. ⏪
 - **2026-07-08** — **모든 설정을, 한곳에서.** 모델, 프로바이더, 검색, 스킬, 예산을 하나의 간결한 컨트롤 센터에 담았습니다. ⚙️
@@ -70,6 +71,20 @@
 ## 🎥 Gallery
 
 <table align="center">
+  <tr>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/dfzu9aeK0Cs" title="SearchOS-Web Demo · YouTube에서 보기">
+        <img src="../assets/gallery/web-demo.jpg" alt="SearchOS-Web Demo" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-Web Demo</b></sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/bS07neJm6FA" title="SearchOS-Web Demo 2 · YouTube에서 보기">
+        <img src="https://img.youtube.com/vi/bS07neJm6FA/hqdefault.jpg" alt="SearchOS-Web Demo 2" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-Web Demo 2</b></sub>
+    </td>
+  </tr>
   <tr>
     <td width="50%" align="center">
       <a href="https://youtu.be/YhJdc7Qhr1U" title="SearchOS-demo1 · YouTube에서 보기">

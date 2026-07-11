@@ -31,7 +31,6 @@ import {
 } from "@/lib/schemaDraft";
 
 export interface SubmitOpts {
-  type?: string;
   entities?: string[];
   attrs?: string[];
   tableLabel?: string;
@@ -71,9 +70,6 @@ interface Props {
 }
 
 const COMMANDS = [
-  { cmd: "/wide", hint: "Compare entities across attributes — forge a table" },
-  { cmd: "/deep", hint: "Hunt down one hard-to-find fact" },
-  { cmd: "/local", hint: "Search the local corpus" },
   { cmd: "/schema", hint: "Pin rows (entities) and cols (attributes)" },
 ];
 
@@ -329,15 +325,12 @@ export default function Composer({
     if (cmd === "/schema") {
       setShowSchema((v) => !v);
       setText("");
-    } else {
-      setText(`${cmd} `);
     }
     ref.current?.focus();
   };
 
   const submit = () => {
-    const m = text.trim().match(/^\/(wide|deep|local)\s+([\s\S]+)$/i);
-    const body = (m ? m[2] : text).trim();
+    const body = text.trim();
     if (!body || body.startsWith("/")) return;
     if (running) {
       // Mid-run: steer the live orchestrator rather than queue a new search.
@@ -351,7 +344,6 @@ export default function Composer({
       return;
     }
     onSubmit(body, {
-      type: m?.[1]?.toLowerCase(),
       entities: pinnedRows,
       attrs: pinnedCols,
       tableLabel: hasDraftTables ? resolvedEntityName || undefined : undefined,

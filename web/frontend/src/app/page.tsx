@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback, useRef, useMemo, type CSSProperties }
 import { Menu } from "lucide-react";
 
 import { useSearch } from "@/hooks/useSearch";
-import { branchHistoryTurn, getWorkspaceFiles, listHistory, loadHistory, renameHistory, deleteHistory, resolveEvidence, steerSearch, stopSearch, type HistoryItem, type HistoryTurn } from "@/lib/api";
+import { branchHistoryTurn, getWorkspaceFiles, listHistory, loadHistory, updateHistoryAssets, deleteHistory, resolveEvidence, steerSearch, stopSearch, type HistoryAssetPatch, type HistoryItem, type HistoryTurn } from "@/lib/api";
 import { deriveAnswer, foldWorkers } from "@/lib/derive";
-import type { FileNode, RepairCellTarget, SearchRequest, SearchState, WSEvent } from "@/lib/types";
+import type { FileNode, RepairCellTarget, SearchState, WSEvent } from "@/lib/types";
 import { historyEventSegments, type Turn } from "@/lib/conversation";
 import type { SubmitOpts } from "@/components/shell/Composer";
 
@@ -36,9 +36,12 @@ export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [drawerResizing, setDrawerResizing] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [historyQuery, setHistoryQuery] = useState("");
+  const [historySearchResults, setHistorySearchResults] = useState<HistoryItem[] | null>(null);
+  const [historySearching, setHistorySearching] = useState(false);
   const [historyStatus, setHistoryStatus] = useState<"loading" | "ready" | "error">("loading");
   const [historyLoadingId, setHistoryLoadingId] = useState<string | null>(null);
-  const [historyMutation, setHistoryMutation] = useState<{ id: string; kind: "rename" | "delete" } | null>(null);
+  const [historyMutation, setHistoryMutation] = useState<{ id: string; kind: "delete" | "update" } | null>(null);
   const [stopPending, setStopPending] = useState(false);
   const [branchingTurnId, setBranchingTurnId] = useState<string | null>(null);
   const [composerFocusRequest, setComposerFocusRequest] = useState(0);
@@ -80,6 +83,26 @@ export default function Home() {
     }
   }, [notify]);
   useEffect(() => { void refreshHistory(); }, [refreshHistory]);
+
+  useEffect(() => {
+    const query = historyQuery.trim();
+    if (!query) {
+      setHistorySearchResults(null);
+      setHistorySearching(false);
+      return;
+    }
+    let alive = true;
+    setHistorySearching(true);
+    const timer = window.setTimeout(() => {
+      void listHistory(query)
+        .then((items) => { if (alive) setHistorySearchResults(items); })
+        .catch((error) => {
+          if (alive) notify(`Couldn’t search research history: ${error instanceof Error ? error.message : String(error)}`);
+        })
+        .finally(() => { if (alive) setHistorySearching(false); });
+    }, 250);
+    return () => { alive = false; window.clearTimeout(timer); };
+  }, [historyQuery, notify]);
 
   // Sync the live `session` into the active (running) turn.
   useEffect(() => {
@@ -192,7 +215,6 @@ export default function Home() {
       run(
         {
           query: q,
-          type: (opts.type as SearchRequest["type"]) || undefined,
           entities: opts.entities,
           attrs: opts.attrs,
           table_label: opts.tableLabel,
@@ -512,23 +534,27 @@ export default function Home() {
     }
   }, [branchingTurnId, handleSelect, notify, refreshHistory, sessionActive, turns]);
 
-  const handleRename = useCallback(async (id: string, title: string) => {
+  const handleUpdateHistoryAssets = useCallback(async (id: string, patch: HistoryAssetPatch) => {
     if (historyBusyRef.current) return;
     historyBusyRef.current = true;
-    setHistoryMutation({ id, kind: "rename" });
+    setHistoryMutation({ id, kind: "update" });
     try {
-      await renameHistory(id, title);
-      setHistory((prev) => prev.map((h) => (h.session_id === id ? { ...h, title } : h)));
-      setTurns((prev) => prev.map((t) => ((t.sessionId ?? t.id) === id ? { ...t, query: title } : t)));
-      notify("Conversation renamed", "success");
+      await updateHistoryAssets(id, patch);
+      const merge = (item: HistoryItem) => item.session_id === id ? { ...item, ...patch } : item;
+      setHistory((items) => items.map(merge));
+      setHistorySearchResults((items) => items?.map(merge) ?? null);
+      if (patch.title !== undefined) {
+        setTurns((items) => items.map((turn) => ((turn.sessionId ?? turn.id) === id ? { ...turn, query: patch.title! } : turn)));
+      }
+      notify(patch.archived === true ? "Research archived" : patch.archived === false ? "Research restored" : "Research details saved", "success");
       void refreshHistory();
-    } catch (e) {
-      notify(`Couldn’t rename this conversation: ${e instanceof Error ? e.message : String(e)}. Your previous title was kept.`);
+    } catch (error) {
+      notify(`Couldn’t update this research: ${error instanceof Error ? error.message : String(error)}. No changes were saved.`);
     } finally {
       historyBusyRef.current = false;
       setHistoryMutation(null);
     }
-  }, [refreshHistory, notify]);
+  }, [notify, refreshHistory]);
 
   const handleDelete = useCallback(async (id: string) => {
     if (historyBusyRef.current) return;
@@ -537,6 +563,7 @@ export default function Home() {
     try {
       await deleteHistory(id);
       setHistory((prev) => prev.filter((h) => h.session_id !== id));
+      setHistorySearchResults((prev) => prev?.filter((h) => h.session_id !== id) ?? null);
       if (openId === id) handleNew();
       notify("Conversation deleted", "success");
       void refreshHistory();
@@ -572,17 +599,28 @@ export default function Home() {
 
   // Rail = disk history; prepend the live run if it isn't on disk yet.
   const railItems = useMemo(() => {
-    const items = history.map((h) => ({
+    const source = historySearchResults ?? history;
+    const items = source.map((h) => ({
       id: h.session_id,
       title: h.title,
       status: (h.status === "incomplete" ? "completed" : h.status) as "running" | "completed" | "error",
+      coverageScore: h.coverage_score,
+      updatedAt: h.updated_at,
+      project: h.project,
+      tags: h.tags,
+      favorite: h.favorite,
+      archived: h.archived,
     }));
     if (openTurn && openTurn.status === "running") {
       const sid = openTurn.sessionId ?? openTurn.id;
-      if (!items.some((i) => i.id === sid)) items.unshift({ id: sid, title: openTurn.query, status: "running" });
+      if (!items.some((i) => i.id === sid)) items.unshift({
+        id: sid, title: openTurn.query, status: "running", coverageScore: null,
+        updatedAt: Date.now() / 1000, project: "", tags: [], favorite: false, archived: false,
+      });
     }
     return items;
-  }, [history, openTurn]);
+  }, [history, historySearchResults, openTurn]);
+  const projects = useMemo(() => Array.from(new Set(history.map((item) => item.project).filter(Boolean))).sort(), [history]);
 
   const drawerOpen = !!drawerTurn;
   const latestEditableTurn = [...turns].reverse().find((turn) => (
@@ -623,8 +661,12 @@ export default function Home() {
           onToggle={() => mobileRailOpen ? setMobileRailOpen(false) : setRailCollapsed((v) => !v)}
           onNew={() => { setMobileRailOpen(false); handleNew(); }}
           onSelect={(id) => { setMobileRailOpen(false); void handleSelect(id); }}
-          onRename={(id, title) => { void handleRename(id, title); }}
+          onUpdateAssets={(id, patch) => { void handleUpdateHistoryAssets(id, patch); }}
           onDelete={(id) => { void handleDelete(id); }}
+          projects={projects}
+          searchQuery={historyQuery}
+          searching={historySearching}
+          onSearch={setHistoryQuery}
           onOpenSettings={() => { setMobileRailOpen(false); setSettingsOpen(true); }}
           loadingId={historyLoadingId}
           mutation={historyMutation}

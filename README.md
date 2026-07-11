@@ -51,6 +51,7 @@
 
 ## 📣 News
 
+- **2026-07-11** — **Start faster. Search wider. See every step.** A new one-command installer gets SearchOS running; parallel Explore waves scout the web in batches, while live progress and evidence grouped by entity make every discovery easier to follow. Skills now run in hardened, isolated workers. ⚡
 - **2026-07-10** — **A whole new way to research.** Draw the structure of your question. SearchOS turns it into citation-backed research you can explore, refine, and export. 🧩
 - **2026-07-09** — **Pick up exactly where you left off.** Every session returns with its conversation, progress, evidence, and live activity intact. ⏪
 - **2026-07-08** — **Everything in one place.** Models, providers, search, skills, and budgets now come together in one beautifully simple control center. ⚙️
@@ -78,38 +79,46 @@
       <sub>▶️ <b>SearchOS-Web Demo</b></sub>
     </td>
     <td width="50%" align="center">
+      <a href="https://youtu.be/bS07neJm6FA" title="SearchOS-Web Demo 2 · Watch on YouTube">
+        <img src="https://img.youtube.com/vi/bS07neJm6FA/hqdefault.jpg" alt="SearchOS-Web Demo 2" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-Web Demo 2</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
       <a href="https://youtu.be/YhJdc7Qhr1U" title="SearchOS-demo1 · Watch on YouTube">
         <img src="assets/gallery/demo1.jpg" alt="SearchOS-demo1" width="100%">
       </a>
       <sub>▶️ <b>SearchOS-demo1</b></sub>
     </td>
-  </tr>
-  <tr>
     <td width="50%" align="center">
       <a href="https://youtu.be/Qve7GX7yahs" title="SearchOS-demo2 · Watch on YouTube">
         <img src="assets/gallery/demo2.jpg" alt="SearchOS-demo2" width="100%">
       </a>
       <sub>▶️ <b>SearchOS-demo2</b></sub>
     </td>
+  </tr>
+  <tr>
     <td width="50%" align="center">
       <a href="https://youtu.be/IA_-sO2avTA" title="SearchOS-demo3 · Watch on YouTube">
         <img src="assets/gallery/demo3.jpg" alt="SearchOS-demo3" width="100%">
       </a>
       <sub>▶️ <b>SearchOS-demo3</b></sub>
     </td>
-  </tr>
-  <tr>
     <td width="50%" align="center">
       <a href="https://youtu.be/HxCLoauXoYg" title="SearchOS-demo4 · Watch on YouTube">
         <img src="assets/gallery/demo4.jpg" alt="SearchOS-demo4" width="100%">
       </a>
       <sub>▶️ <b>SearchOS-demo4</b></sub>
     </td>
-    <td width="50%" align="center">
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
       <a href="https://youtu.be/-QmjRr_3B1s" title="SearchOS-demo5 · Watch on YouTube">
-        <img src="assets/gallery/demo5.jpg" alt="SearchOS-demo5" width="100%">
+        <img src="assets/gallery/demo5.jpg" alt="SearchOS-demo5" width="50%">
       </a>
-      <sub>▶️ <b>SearchOS-demo5</b></sub>
+      <br><sub>▶️ <b>SearchOS-demo5</b></sub>
     </td>
   </tr>
 </table>

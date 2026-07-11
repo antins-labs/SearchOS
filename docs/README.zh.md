@@ -50,6 +50,7 @@
 
 ## 📣 News
 
+- **2026-07-11** — **更快开始，更广搜索，全程可见。** 全新一键安装器让 SearchOS 快速就绪；并行 Explore waves 分批探索开放网络，实时进度与按实体分组的证据让每一次发现都清晰可追。Skill 现已在强化隔离的工作进程中运行。 ⚡
 - **2026-07-10** — **研究，从画出结构开始。** 描绘问题，SearchOS 把它变成可探索、可完善、可导出的引用级研究成果。 🧩
 - **2026-07-09** — **离开多久，都能原样回来。** 对话、进度、证据与实时动态完整保留，打开即可继续。 ⏪
 - **2026-07-08** — **所有设置，一个地方。** 模型、服务商、搜索、技能与预算，汇聚在一个简单而完整的控制中心。 ⚙️
@@ -69,6 +70,20 @@
 ## 🎥 Gallery
 
 <table align="center">
+  <tr>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/dfzu9aeK0Cs" title="SearchOS-Web Demo · 在 YouTube 观看">
+        <img src="../assets/gallery/web-demo.jpg" alt="SearchOS-Web Demo" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-Web Demo</b></sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/bS07neJm6FA" title="SearchOS-Web Demo 2 · 在 YouTube 观看">
+        <img src="https://img.youtube.com/vi/bS07neJm6FA/hqdefault.jpg" alt="SearchOS-Web Demo 2" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-Web Demo 2</b></sub>
+    </td>
+  </tr>
   <tr>
     <td width="50%" align="center">
       <a href="https://youtu.be/YhJdc7Qhr1U" title="SearchOS-demo1 · 在 YouTube 观看">

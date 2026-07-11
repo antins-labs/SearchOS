@@ -51,6 +51,7 @@
 
 ## 📣 News
 
+- **2026-07-11** — **より速く始め、より広く探し、すべての過程を見渡す。** 新しいワンコマンドインストーラーですぐに起動。並列 Explore waves がウェブをバッチ探索し、ライブ進捗とエンティティ別に整理されたエビデンスが、発見の流れを明確にします。スキルは強化された隔離ワーカー内で実行されるようになりました。 ⚡
 - **2026-07-10** — **リサーチを、構造から。** 問いを描くだけで、SearchOS が探索・改善・書き出しまでできる、引用に裏付けられたリサーチへ変えます。 🧩
 - **2026-07-09** — **続きは、離れたその場所から。** 会話も進捗もエビデンスもライブアクティビティも、そのまま戻ってきます。 ⏪
 - **2026-07-08** — **すべての設定を、ひとつの場所に。** モデル、プロバイダ、検索、スキル、予算を、シンプルなコントロールセンターに集約しました。 ⚙️
@@ -70,6 +71,20 @@
 ## 🎥 Gallery
 
 <table align="center">
+  <tr>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/dfzu9aeK0Cs" title="SearchOS-Web Demo · YouTube で見る">
+        <img src="../assets/gallery/web-demo.jpg" alt="SearchOS-Web Demo" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-Web Demo</b></sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/bS07neJm6FA" title="SearchOS-Web Demo 2 · YouTube で見る">
+        <img src="https://img.youtube.com/vi/bS07neJm6FA/hqdefault.jpg" alt="SearchOS-Web Demo 2" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-Web Demo 2</b></sub>
+    </td>
+  </tr>
   <tr>
     <td width="50%" align="center">
       <a href="https://youtu.be/YhJdc7Qhr1U" title="SearchOS-demo1 · YouTube で見る">

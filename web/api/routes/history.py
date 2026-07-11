@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from api.deps import WORKSPACE_ROOT, sessions
 
@@ -25,6 +25,69 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
 
 _INTENT_RE = re.compile(r'"intent"\s*:\s*"((?:[^"\\]|\\.)*)"')
+_RESEARCH_META_FILE = ".research_meta.json"
+_SEARCH_FILE_LIMIT = 8 * 1024 * 1024
+
+
+def _default_research_meta() -> dict[str, Any]:
+    return {"project": "", "tags": [], "favorite": False, "archived": False}
+
+
+def _read_research_meta(ws: Path) -> dict[str, Any]:
+    meta = _default_research_meta()
+    try:
+        payload = json.loads((ws / _RESEARCH_META_FILE).read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError, OSError, TypeError):
+        return meta
+    if not isinstance(payload, dict):
+        return meta
+    project = payload.get("project")
+    tags = payload.get("tags")
+    meta["project"] = project.strip() if isinstance(project, str) else ""
+    meta["tags"] = (
+        [tag.strip() for tag in tags if isinstance(tag, str) and tag.strip()]
+        if isinstance(tags, list)
+        else []
+    )
+    meta["favorite"] = payload.get("favorite") is True
+    meta["archived"] = payload.get("archived") is True
+    return meta
+
+
+def _write_research_meta(ws: Path, meta: dict[str, Any]) -> None:
+    path = ws / _RESEARCH_META_FILE
+    temp = ws / f"{_RESEARCH_META_FILE}.tmp"
+    temp.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    temp.replace(path)
+
+
+def _read_search_text(path: Path) -> str:
+    try:
+        with path.open("rb") as stream:
+            return stream.read(_SEARCH_FILE_LIMIT).decode("utf-8", errors="replace")
+    except OSError:
+        return ""
+
+
+def _history_search_blob(ws: Path, meta: dict[str, Any]) -> str:
+    """Build a bounded full-text document from durable user-facing artifacts."""
+    parts = [meta["project"], " ".join(meta["tags"]), _custom_title(ws)]
+    for relative in (
+        "output/report.md",
+        "output/result.json",
+        "search_state.json",
+        "conversations/orchestrator.json",
+    ):
+        parts.append(_read_search_text(ws / relative))
+    return "\n".join(parts).casefold()
+
+
+def _matches_history_query(ws: Path, meta: dict[str, Any], query: str) -> bool:
+    terms = [term.casefold() for term in query.split() if term.strip()]
+    if not terms:
+        return True
+    blob = _history_search_blob(ws, meta)
+    return all(term in blob for term in terms)
 
 
 def _read_intent_fast(state_file: Path) -> str:
@@ -303,12 +366,19 @@ def _session_meta(ws: Path) -> dict[str, Any] | None:
         "status": status,
         "coverage_score": coverage,
         "updated_at": ws.stat().st_mtime,
+        **_read_research_meta(ws),
     }
 
 
 @router.get("/history")
-async def list_history():
-    """List all past sessions on disk, newest first."""
+async def list_history(
+    q: str = "",
+    project: str | None = None,
+    tags: list[str] | None = None,
+    favorite: bool | None = None,
+    archived: bool | None = None,
+):
+    """List and search durable research sessions, newest first."""
     root = Path(WORKSPACE_ROOT)
     if not root.exists():
         return []
@@ -317,8 +387,21 @@ async def list_history():
         if not ws.is_dir():
             continue
         meta = _session_meta(ws)
-        if meta:
-            out.append(meta)
+        if not meta:
+            continue
+        if project is not None and meta["project"] != project.strip():
+            continue
+        requested_tags = [tag.strip().casefold() for tag in (tags or []) if tag.strip()]
+        available_tags = {tag.casefold() for tag in meta["tags"]}
+        if requested_tags and not all(tag in available_tags for tag in requested_tags):
+            continue
+        if favorite is not None and meta["favorite"] is not favorite:
+            continue
+        if archived is not None and meta["archived"] is not archived:
+            continue
+        if q.strip() and not _matches_history_query(ws, meta, q.strip()[:200]):
+            continue
+        out.append(meta)
     out.sort(key=lambda m: m["updated_at"], reverse=True)
     return out
 
@@ -571,23 +654,57 @@ async def branch_history_turn(session_id: str, turn_index: int):
     )
 
 
-class RenameRequest(BaseModel):
-    title: str
+class HistoryUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, max_length=240)
+    project: str | None = Field(default=None, max_length=120)
+    tags: list[str] | None = Field(default=None, max_length=20)
+    favorite: bool | None = None
+    archived: bool | None = None
 
 
 @router.patch("/history/{session_id}")
-async def rename_history(session_id: str, req: RenameRequest):
-    """Set a custom display title (stored as a .display_title file)."""
+async def update_history(session_id: str, req: HistoryUpdateRequest):
+    """Update display and research-asset metadata for one session."""
     ws = _safe_ws(session_id)
     if not ws.exists():
         raise HTTPException(404, f"Session {session_id} not found")
-    title = req.title.strip()
-    f = ws / ".display_title"
-    if title:
-        f.write_text(title, encoding="utf-8")
-    elif f.exists():
-        f.unlink()  # empty title → revert to the original
-    return {"ok": True, "session_id": session_id, "title": title}
+    title: str | None = None
+    if req.title is not None:
+        title = req.title.strip()
+        f = ws / ".display_title"
+        if title:
+            f.write_text(title, encoding="utf-8")
+        elif f.exists():
+            f.unlink()  # empty title → revert to the original
+
+    meta = _read_research_meta(ws)
+    if req.project is not None:
+        meta["project"] = req.project.strip()
+    if req.tags is not None:
+        normalized: list[str] = []
+        seen: set[str] = set()
+        for raw_tag in req.tags:
+            tag = raw_tag.strip()
+            key = tag.casefold()
+            if not tag or key in seen:
+                continue
+            if len(tag) > 40:
+                raise HTTPException(422, "Tags must be 40 characters or fewer")
+            seen.add(key)
+            normalized.append(tag)
+        meta["tags"] = normalized
+    if req.favorite is not None:
+        meta["favorite"] = req.favorite
+    if req.archived is not None:
+        meta["archived"] = req.archived
+    _write_research_meta(ws, meta)
+
+    return {
+        "ok": True,
+        "session_id": session_id,
+        "title": title if title is not None else _custom_title(ws),
+        **meta,
+    }
 
 
 @router.delete("/history/{session_id}")

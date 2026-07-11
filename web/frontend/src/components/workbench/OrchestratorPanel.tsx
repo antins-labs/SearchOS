@@ -27,7 +27,7 @@ interface Props {
   status: "idle" | "running" | "completed" | "error";
   workers: WorkerLite[];
   onSelectWorker: (name: string) => void;
-  onSubmit: (q: string, opts: { type?: string }) => void;
+  onSubmit: (q: string, opts: Record<string, never>) => void;
 }
 
 type Icon = ComponentType<{ size?: number; className?: string }>;

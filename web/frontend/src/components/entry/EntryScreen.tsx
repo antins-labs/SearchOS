@@ -24,7 +24,7 @@ function OrbMark({ size = 20, className = "" }: { size?: number; className?: str
 }
 
 interface Props {
-  onSubmit: (query: string, opts: { entities?: string[]; attrs?: string[]; type?: string }) => void;
+  onSubmit: (query: string, opts: { entities?: string[]; attrs?: string[] }) => void;
   initialQuery?: string;
   error?: string | null;
 }
@@ -38,9 +38,6 @@ function Kbd({ children }: { children: React.ReactNode }) {
 }
 
 const COMMANDS = [
-  { cmd: "/wide", hint: "compare entities across attributes — forge a table" },
-  { cmd: "/deep", hint: "hunt down one hard-to-find fact" },
-  { cmd: "/local", hint: "search the local corpus" },
   { cmd: "/schema", hint: "pin entities & attributes manually" },
 ];
 
@@ -85,9 +82,6 @@ export default function EntryScreen({ onSubmit, initialQuery, error }: Props) {
   const matches = slashTyping ? COMMANDS.filter((c) => c.cmd.startsWith(query.toLowerCase())) : [];
   const menuOpen = matches.length > 0 && inputFocused;
 
-  const modeMatch = query.match(/^\/(wide|deep|local)(\s|$)/i);
-  const mode = modeMatch?.[1]?.toLowerCase() ?? "auto";
-
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
@@ -120,19 +114,16 @@ export default function EntryScreen({ onSubmit, initialQuery, error }: Props) {
     if (cmd === "/schema") {
       setShowSchema((v) => !v);
       setQuery("");
-    } else {
-      setQuery(`${cmd} `);
     }
     inputRef.current?.focus();
   };
 
   const submit = () => {
-    const m = query.trim().match(/^\/(wide|deep|local)\s+([\s\S]+)$/i);
-    const text = (m ? m[2] : query).trim();
+    const text = query.trim();
     if (!text) return;
     if (text.startsWith("/")) {
       const token = text.split(/\s+/)[0];
-      setCmdError(`unknown or incomplete command: ${token} — try /wide, /deep or /local followed by a query`);
+      setCmdError(`unknown or incomplete command: ${token}`);
       return;
     }
     const csv = (s: string) => {
@@ -140,7 +131,6 @@ export default function EntryScreen({ onSubmit, initialQuery, error }: Props) {
       return items.length > 0 ? items : undefined;
     };
     onSubmit(text, {
-      type: m?.[1]?.toLowerCase(),
       entities: showSchema ? csv(entities) : undefined,
       attrs: showSchema ? csv(attrs) : undefined,
     });
@@ -376,11 +366,8 @@ export default function EntryScreen({ onSubmit, initialQuery, error }: Props) {
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <span>
-            mode <span className="text-blue-500 dark:text-blue-400">{mode}</span>
-            {showSchema && <span className="text-violet-500 dark:text-violet-400"> · schema</span>}
-          </span>
-          <span className="opacity-30">·</span>
+          {showSchema && <span className="text-violet-500 dark:text-violet-400">schema pinned</span>}
+          {showSchema && <span className="opacity-30">·</span>}
           {statusDot}
         </div>
       </footer>

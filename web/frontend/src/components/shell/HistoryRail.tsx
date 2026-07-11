@@ -1,31 +1,63 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { PanelLeftClose, PanelLeft, Plus, Search, Pencil, Settings, Trash2, Check, X, Loader2, RotateCcw } from "lucide-react";
-import { getHealth } from "@/lib/api";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  Archive,
+  ArchiveRestore,
+  Check,
+  FolderKanban,
+  Inbox,
+  Loader2,
+  MoreHorizontal,
+  PanelLeft,
+  PanelLeftClose,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Search,
+  Settings,
+  Star,
+  Tags,
+  Trash2,
+  X,
+} from "lucide-react";
+import { getHealth, type HistoryAssetPatch } from "@/lib/api";
 import ThemeToggle from "@/components/ThemeToggle";
 
-export interface HistoryItem {
+export interface HistoryRailItem {
   id: string;
   title: string;
   status: "running" | "completed" | "error";
+  coverageScore: number | null;
+  updatedAt: number;
+  project: string;
+  tags: string[];
+  favorite: boolean;
+  archived: boolean;
 }
 
 interface Props {
-  items: HistoryItem[];
+  items: HistoryRailItem[];
+  projects: string[];
   activeId: string | null;
   collapsed: boolean;
+  searchQuery: string;
+  searching?: boolean;
+  onSearch: (query: string) => void;
   onToggle: () => void;
   onNew: () => void;
   onSelect: (id: string) => void;
-  onRename: (id: string, title: string) => void;
+  onUpdateAssets: (id: string, patch: HistoryAssetPatch) => void;
   onDelete: (id: string) => void;
   onOpenSettings: () => void;
   loadingId?: string | null;
-  mutation?: { id: string; kind: "rename" | "delete" } | null;
+  mutation?: { id: string; kind: "delete" | "update" } | null;
   historyStatus?: "loading" | "ready" | "error";
   onRetryHistory?: () => void;
 }
+
+type View = "all" | "favorites" | "archived" | `project:${string}`;
+type EditDraft = { title: string; project: string; tags: string };
 
 const DOT: Record<string, string> = {
   running: "bg-accent glow-pulse",
@@ -33,210 +65,235 @@ const DOT: Record<string, string> = {
   error: "bg-err",
 };
 
+function groupLabel(timestamp: number): string {
+  const date = new Date(timestamp * 1000);
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const value = date.getTime();
+  if (value >= startToday) return "Today";
+  if (value >= startToday - 6 * 86400000) return "Previous 7 days";
+  return "Older";
+}
+
+function formatUpdated(timestamp: number): string {
+  const date = new Date(timestamp * 1000);
+  const today = new Date();
+  if (date.toDateString() === today.toDateString()) {
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+  return date.toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
 export default function HistoryRail({
-  items, activeId, collapsed, onToggle, onNew, onSelect, onRename, onDelete, onOpenSettings,
-  loadingId = null, mutation = null, historyStatus = "ready", onRetryHistory,
+  items,
+  projects,
+  activeId,
+  collapsed,
+  searchQuery,
+  searching = false,
+  onSearch,
+  onToggle,
+  onNew,
+  onSelect,
+  onUpdateAssets,
+  onDelete,
+  onOpenSettings,
+  loadingId = null,
+  mutation = null,
+  historyStatus = "ready",
+  onRetryHistory,
 }: Props) {
-  const [q, setQ] = useState("");
   const [health, setHealth] = useState<{ status: string } | null | undefined>(undefined);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState("");
+  const [view, setView] = useState<View>("all");
+  const [menuId, setMenuId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const editingIdRef = useRef<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<EditDraft>({ title: "", project: "", tags: "" });
   const busy = !!loadingId || !!mutation;
-
-  const commitRename = (id: string) => {
-    if (editingIdRef.current !== id || busy) return;
-    editingIdRef.current = null;
-    const t = editValue.trim();
-    if (t) onRename(id, t);
-    setEditingId(null);
-  };
-
-  const beginRename = (id: string, title: string) => {
-    if (busy) return;
-    editingIdRef.current = id;
-    setEditingId(id);
-    setEditValue(title);
-  };
-
-  const cancelRename = () => {
-    editingIdRef.current = null;
-    setEditingId(null);
-  };
 
   useEffect(() => {
     let alive = true;
-    const check = () => getHealth().then((h) => alive && setHealth(h));
-    check();
-    const iv = setInterval(check, 15000);
-    return () => { alive = false; clearInterval(iv); };
+    const check = () => getHealth().then((result) => alive && setHealth(result));
+    void check();
+    const interval = setInterval(check, 15000);
+    return () => { alive = false; clearInterval(interval); };
   }, []);
+
+  const filtered = useMemo(() => items.filter((item) => {
+    if (view === "favorites") return item.favorite && !item.archived;
+    if (view === "archived") return item.archived;
+    if (view.startsWith("project:")) return !item.archived && item.project === view.slice(8);
+    return !item.archived;
+  }), [items, view]);
+
+  const groups = useMemo(() => {
+    const result: { label: string; items: HistoryRailItem[] }[] = [];
+    for (const label of ["Today", "Previous 7 days", "Older"]) {
+      const group = filtered.filter((item) => groupLabel(item.updatedAt) === label);
+      if (group.length) result.push({ label, items: group });
+    }
+    return result;
+  }, [filtered]);
+
+  const startEdit = (item: HistoryRailItem) => {
+    setEditingId(item.id);
+    setDraft({ title: item.title, project: item.project, tags: item.tags.join(", ") });
+    setMenuId(null);
+  };
+
+  const saveEdit = (id: string) => {
+    const title = draft.title.trim();
+    if (!title || busy) return;
+    onUpdateAssets(id, {
+      title,
+      project: draft.project.trim(),
+      tags: draft.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
+    });
+    setEditingId(null);
+  };
 
   if (collapsed) {
     return (
       <div className="flex h-full flex-col items-center gap-3 border-r border-line py-4">
-        <button onClick={onToggle} title="Expand" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink">
-          <PanelLeft size={18} />
-        </button>
-        <button onClick={onNew} title="New chat" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink">
-          <Plus size={18} />
-        </button>
-        <span
-          title={health === undefined ? "Connecting" : health ? "Connected" : "Offline"}
-          className={`mt-auto h-1.5 w-1.5 rounded-full ${health === undefined ? "bg-warn" : health ? "bg-ok glow-pulse" : "bg-err"}`}
-        />
-        <button onClick={onOpenSettings} title="Settings" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink">
-          <Settings size={18} />
-        </button>
+        <button onClick={onToggle} title="Expand" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><PanelLeft size={18} /></button>
+        <button onClick={onNew} title="New research" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><Plus size={18} /></button>
+        <button onClick={() => { setView("favorites"); onToggle(); }} title="Favorites" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><Star size={18} /></button>
+        <span title={health === undefined ? "Connecting" : health ? "Connected" : "Offline"}
+          className={`mt-auto h-1.5 w-1.5 rounded-full ${health === undefined ? "bg-warn" : health ? "bg-ok glow-pulse" : "bg-err"}`} />
+        <button onClick={onOpenSettings} title="Settings" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><Settings size={18} /></button>
       </div>
     );
   }
 
-  const filtered = q ? items.filter((i) => i.title.toLowerCase().includes(q.toLowerCase())) : items;
+  const viewButton = (target: View, label: string, icon: ReactNode, count?: number) => (
+    <button type="button" onClick={() => setView(target)}
+      className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12.5px] transition-colors ${view === target ? "bg-clay/70 text-ink" : "text-ink-dim hover:bg-surface-2 hover:text-ink"}`}>
+      <span className="text-ink-faint">{icon}</span><span className="min-w-0 flex-1 truncate">{label}</span>
+      {count !== undefined && count > 0 && <span className="text-[11px] tabular-nums text-ink-faint">{count}</span>}
+    </button>
+  );
+
+  const renderItem = (item: HistoryRailItem) => {
+    const itemLoading = loadingId === item.id;
+    const itemMutation = mutation?.id === item.id;
+    const coverage = item.coverageScore == null ? null : Math.round(item.coverageScore * 100);
+    return (
+      <div key={item.id} className="relative">
+        <div className={`group relative flex items-start rounded-lg pr-1 transition-colors ${item.id === activeId ? "bg-clay/60" : "hover:bg-surface-2"}`}>
+          <button onClick={() => onSelect(item.id)} disabled={busy} aria-busy={itemLoading}
+            className="flex min-w-0 flex-1 items-start gap-2 py-2 pl-2.5 text-left disabled:cursor-wait disabled:opacity-70">
+            {itemLoading ? <Loader2 className="mt-1 shrink-0 animate-spin text-accent-ink" size={12} />
+              : <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${DOT[item.status] ?? "bg-ink-faint"}`} />}
+            <span className="min-w-0 flex-1">
+              <span className={`block truncate text-[13px] ${item.id === activeId ? "text-ink" : "text-ink-dim group-hover:text-ink"}`}>{item.title}</span>
+              <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[10.5px] text-ink-faint">
+                {item.project && <span className="max-w-24 truncate">{item.project}</span>}
+                {item.project && coverage !== null && <span>·</span>}
+                {coverage !== null && <span>{coverage}%</span>}
+                <span className="ml-auto shrink-0">{formatUpdated(item.updatedAt)}</span>
+              </span>
+              {item.tags.length > 0 && <span className="mt-1 flex gap-1 overflow-hidden">
+                {item.tags.slice(0, 2).map((tag) => <span key={tag} className="max-w-20 truncate rounded bg-surface px-1 py-0.5 text-[9.5px] text-ink-faint">{tag}</span>)}
+                {item.tags.length > 2 && <span className="text-[9.5px] text-ink-faint">+{item.tags.length - 2}</span>}
+              </span>}
+            </span>
+          </button>
+
+          {itemMutation ? <Loader2 className="mt-2.5 shrink-0 animate-spin text-ink-faint" size={13} /> : <>
+            <button type="button" title={item.favorite ? "Remove from favorites" : "Add to favorites"}
+              onClick={() => onUpdateAssets(item.id, { favorite: !item.favorite })}
+              className={`mt-1.5 rounded p-1 transition-opacity ${item.favorite ? "text-accent-ink" : "text-ink-faint opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"}`}>
+              <Star size={13} fill={item.favorite ? "currentColor" : "none"} />
+            </button>
+            <button type="button" title="Research actions" onClick={() => setMenuId(menuId === item.id ? null : item.id)}
+              className="mt-1.5 rounded p-1 text-ink-faint opacity-0 transition-opacity hover:bg-surface group-focus-within:opacity-100 group-hover:opacity-100">
+              <MoreHorizontal size={14} />
+            </button>
+          </>}
+        </div>
+
+        {menuId === item.id && (
+          <div className="absolute right-1 top-8 z-20 w-36 rounded-lg border border-line bg-surface p-1 shadow-lg">
+            <button type="button" onClick={() => startEdit(item)} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[12px] text-ink-dim hover:bg-surface-2"><Pencil size={12} /> Edit details</button>
+            <button type="button" onClick={() => { onUpdateAssets(item.id, { archived: !item.archived }); setMenuId(null); }}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[12px] text-ink-dim hover:bg-surface-2">
+              {item.archived ? <ArchiveRestore size={12} /> : <Archive size={12} />} {item.archived ? "Restore" : "Archive"}
+            </button>
+            {confirmId === item.id ? <div className="mt-1 flex items-center justify-between border-t border-line px-1 pt-1 text-[11px] text-err">
+              Delete?<span><button type="button" title="Confirm delete" onClick={() => onDelete(item.id)} className="rounded p-1 hover:bg-err/10"><Check size={13} /></button>
+              <button type="button" title="Cancel delete" onClick={() => setConfirmId(null)} className="rounded p-1 text-ink-faint hover:bg-surface-2"><X size={13} /></button></span>
+            </div> : <button type="button" onClick={() => setConfirmId(item.id)} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[12px] text-err hover:bg-err/10"><Trash2 size={12} /> Delete</button>}
+          </div>
+        )}
+
+        {editingId === item.id && (
+          <div className="mx-1 mb-2 mt-1 space-y-2 rounded-lg border border-line bg-surface p-2.5">
+            <input autoFocus value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })}
+              aria-label="Research title" placeholder="Research title" className="w-full rounded-md border border-line bg-paper px-2 py-1.5 text-[12px] text-ink outline-none focus:border-accent" />
+            <div className="relative"><FolderKanban className="absolute left-2 top-2 text-ink-faint" size={12} />
+              <input value={draft.project} onChange={(event) => setDraft({ ...draft, project: event.target.value })}
+                list="research-projects" aria-label="Project" placeholder="Project (optional)" className="w-full rounded-md border border-line bg-paper py-1.5 pl-7 pr-2 text-[12px] text-ink outline-none focus:border-accent" /></div>
+            <div className="relative"><Tags className="absolute left-2 top-2 text-ink-faint" size={12} />
+              <input value={draft.tags} onChange={(event) => setDraft({ ...draft, tags: event.target.value })}
+                aria-label="Tags" placeholder="Tags, separated by commas" className="w-full rounded-md border border-line bg-paper py-1.5 pl-7 pr-2 text-[12px] text-ink outline-none focus:border-accent" /></div>
+            <div className="flex justify-end gap-1.5">
+              <button type="button" onClick={() => setEditingId(null)} className="rounded-md px-2 py-1 text-[11px] text-ink-faint hover:bg-surface-2">Cancel</button>
+              <button type="button" disabled={!draft.title.trim() || busy} onClick={() => saveEdit(item.id)} className="rounded-md bg-ink px-2 py-1 text-[11px] text-paper disabled:opacity-40">Save</button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="flex h-full flex-col border-r border-line">
-      {/* header */}
+      <datalist id="research-projects">{projects.map((project) => <option key={project} value={project} />)}</datalist>
       <div className="flex items-center justify-between px-3 pb-2 pt-4">
         <div className="wordmark flex items-center gap-2 px-1 text-[19px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/searchos-mark.png" alt="" className="h-6 w-6 rounded-md dark:bg-white dark:p-0.5" />
-          SearchOS
+          <img src="/searchos-mark.png" alt="" className="h-6 w-6 rounded-md dark:bg-white dark:p-0.5" /> SearchOS
         </div>
-        <button onClick={onToggle} title="Collapse" className="rounded-lg p-1.5 text-ink-faint hover:bg-surface-2 hover:text-ink">
-          <PanelLeftClose size={17} />
-        </button>
+        <button onClick={onToggle} title="Collapse" className="rounded-lg p-1.5 text-ink-faint hover:bg-surface-2 hover:text-ink"><PanelLeftClose size={17} /></button>
       </div>
 
-      {/* new chat */}
+      <div className="px-3 pb-2"><button onClick={onNew}
+        className="flex w-full items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-2 text-[14px] font-medium text-ink transition-colors hover:bg-surface-2"><Plus size={16} /> New research</button></div>
+
       <div className="px-3 pb-2">
-        <button
-          onClick={onNew}
-          className="flex w-full items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-2 text-[14px] font-medium text-ink transition-colors hover:bg-surface-2"
-        >
-          <Plus size={16} /> New chat
-        </button>
-      </div>
-
-      {/* search */}
-      <div className="px-3 pb-3">
-        <label className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[13px] text-ink-faint">
-          <Search size={14} />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search"
-            className="w-full bg-transparent text-ink outline-none placeholder:text-ink-faint"
-          />
+        <label className="flex items-center gap-2 rounded-lg border border-transparent bg-surface-2/60 px-2.5 py-1.5 text-[13px] text-ink-faint focus-within:border-line">
+          {searching ? <Loader2 className="animate-spin" size={14} /> : <Search size={14} />}
+          <input value={searchQuery} onChange={(event) => onSearch(event.target.value)} placeholder="Search all research…" aria-label="Search research history"
+            className="w-full bg-transparent text-ink outline-none placeholder:text-ink-faint" />
+          {searchQuery && <button type="button" onClick={() => onSearch("")} aria-label="Clear search" className="rounded p-0.5 hover:bg-surface"><X size={12} /></button>}
         </label>
       </div>
 
-      {/* list */}
-      <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-2">
-        {historyStatus === "error" && (
-          <div role="alert" className="mb-2 flex items-start gap-2 rounded-md border border-err/30 bg-err/5 px-2.5 py-2 text-[12px] text-err">
-            <span className="min-w-0 flex-1 leading-4">History is unavailable</span>
-            {onRetryHistory && (
-              <button type="button" onClick={onRetryHistory} title="Retry history" aria-label="Retry loading history" className="shrink-0 rounded p-0.5 hover:bg-err/10">
-                <RotateCcw size={13} />
-              </button>
-            )}
-          </div>
-        )}
-        {historyStatus === "loading" && items.length === 0 ? (
-          <div role="status" className="flex items-center gap-2 px-2 pt-2 text-[12.5px] text-ink-faint">
-            <Loader2 className="animate-spin" size={14} />
-            Loading history…
-          </div>
-        ) : filtered.length === 0 ? (
-          <p className="px-2 pt-2 text-[12.5px] text-ink-faint">{items.length ? "No matches" : "No conversations yet"}</p>
-        ) : (
-          <>
-            <div className="px-2 pb-1 pt-1 text-[11px] uppercase tracking-wider text-ink-faint">Recent</div>
-            {filtered.map((it) => {
-              const itemLoading = loadingId === it.id;
-              const itemMutation = mutation?.id === it.id ? mutation.kind : null;
-              if (editingId === it.id) {
-                return (
-                  <div key={it.id} className="px-1 py-1">
-                    <input
-                      autoFocus
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={() => commitRename(it.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") commitRename(it.id);
-                        if (e.key === "Escape") cancelRename();
-                      }}
-                      className="w-full rounded-md border border-line-strong bg-surface px-2 py-1.5 text-[13.5px] text-ink outline-none focus:border-accent"
-                    />
-                  </div>
-                );
-              }
-              return (
-                <div
-                  key={it.id}
-                  onMouseLeave={() => { if (confirmId === it.id) setConfirmId(null); }}
-                  className={`group relative flex items-center rounded-lg pr-1 transition-colors ${
-                    it.id === activeId ? "bg-clay/60" : "hover:bg-surface-2"
-                  }`}
-                >
-                  <button
-                    onClick={() => onSelect(it.id)}
-                    disabled={busy}
-                    aria-busy={itemLoading}
-                    className={`flex min-w-0 flex-1 items-center gap-2 py-2 pl-2.5 text-left text-[13.5px] ${
-                      it.id === activeId ? "text-ink" : "text-ink-dim group-hover:text-ink"
-                    } disabled:cursor-wait disabled:opacity-70`}
-                  >
-                    {itemLoading ? (
-                      <Loader2 className="shrink-0 animate-spin text-accent-ink" size={13} />
-                    ) : (
-                      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${DOT[it.status] ?? "bg-ink-faint"}`} />
-                    )}
-                    <span className="truncate">{it.title}</span>
-                  </button>
-
-                  {itemMutation ? (
-                    <span className="flex shrink-0 items-center px-1" title={itemMutation === "rename" ? "Renaming" : "Deleting"}>
-                      <Loader2 className="animate-spin text-ink-faint" size={14} />
-                    </span>
-                  ) : confirmId === it.id ? (
-                    <span className="flex shrink-0 items-center gap-0.5 pl-1">
-                      <button title="Confirm delete" disabled={busy} onClick={() => onDelete(it.id)}
-                        className="rounded p-1 text-err hover:bg-err/10"><Check size={14} /></button>
-                      <button title="Cancel" disabled={busy} onClick={() => setConfirmId(null)}
-                        className="rounded p-1 text-ink-faint hover:bg-surface-2 hover:text-ink"><X size={14} /></button>
-                    </span>
-                  ) : (
-                    <span className="flex shrink-0 items-center gap-0.5 pl-1 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
-                      <button title="Rename" disabled={busy} onClick={() => beginRename(it.id, it.title)}
-                        className="rounded p-1 text-ink-faint hover:bg-surface-2 hover:text-ink"><Pencil size={13} /></button>
-                      <button title="Delete" disabled={busy} onClick={() => setConfirmId(it.id)}
-                        className="rounded p-1 text-ink-faint hover:bg-surface-2 hover:text-err"><Trash2 size={13} /></button>
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </>
-        )}
+      <div className="px-3 pb-2">
+        <div className="space-y-0.5">
+          {viewButton("all", "All research", <Inbox size={14} />, items.filter((item) => !item.archived).length)}
+          {viewButton("favorites", "Favorites", <Star size={14} />, items.filter((item) => item.favorite && !item.archived).length)}
+          {viewButton("archived", "Archived", <Archive size={14} />, items.filter((item) => item.archived).length)}
+        </div>
+        {projects.length > 0 && <div className="mt-3">
+          <div className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-ink-faint">Projects</div>
+          <div className="max-h-28 space-y-0.5 overflow-y-auto">{projects.map((project) => viewButton(`project:${project}`, project, <FolderKanban size={13} />))}</div>
+        </div>}
       </div>
 
-      {/* footer */}
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-2">
+        {historyStatus === "error" && <div role="alert" className="mb-2 flex items-start gap-2 rounded-md border border-err/30 bg-err/5 px-2.5 py-2 text-[12px] text-err">
+          <span className="min-w-0 flex-1 leading-4">Research history is unavailable</span>
+          {onRetryHistory && <button type="button" onClick={onRetryHistory} title="Retry history" className="shrink-0 rounded p-0.5 hover:bg-err/10"><RotateCcw size={13} /></button>}
+        </div>}
+        {historyStatus === "loading" && items.length === 0 ? <div role="status" className="flex items-center gap-2 px-2 pt-2 text-[12.5px] text-ink-faint"><Loader2 className="animate-spin" size={14} /> Loading research…</div>
+          : filtered.length === 0 ? <p className="px-2 pt-2 text-[12.5px] text-ink-faint">{searchQuery ? "No matching research" : view === "archived" ? "No archived research" : "No research here yet"}</p>
+          : groups.map((group) => <div key={group.label} className="mb-2"><div className="px-2 pb-1 pt-1 text-[10px] uppercase tracking-wider text-ink-faint">{group.label}</div>{group.items.map(renderItem)}</div>)}
+      </div>
+
       <div className="flex items-center justify-between border-t border-line px-4 py-3 text-[12px] text-ink-faint">
-        <span className="flex items-center gap-1.5">
-          <span className={`h-1.5 w-1.5 rounded-full ${health === undefined ? "bg-warn" : health ? "bg-ok glow-pulse" : "bg-err"}`} />
-          {health === undefined ? "Connecting" : health ? "Connected" : "Offline"}
-        </span>
-        <span className="flex items-center gap-0.5">
-          <button onClick={onOpenSettings} title="Settings"
-            className="rounded-md p-1.5 text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink">
-            <Settings size={16} />
-          </button>
-          <ThemeToggle />
-        </span>
+        <span className="flex items-center gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${health === undefined ? "bg-warn" : health ? "bg-ok glow-pulse" : "bg-err"}`} />{health === undefined ? "Connecting" : health ? "Connected" : "Offline"}</span>
+        <span className="flex items-center gap-0.5"><button onClick={onOpenSettings} title="Settings" className="rounded-md p-1.5 text-ink-faint hover:bg-surface-2 hover:text-ink"><Settings size={16} /></button><ThemeToggle /></span>
       </div>
     </div>
   );

@@ -176,6 +176,18 @@ export interface HistoryItem {
   status: "running" | "completed" | "incomplete" | "error";
   coverage_score: number | null;
   updated_at: number;
+  project: string;
+  tags: string[];
+  favorite: boolean;
+  archived: boolean;
+}
+
+export interface HistoryAssetPatch {
+  title?: string;
+  project?: string;
+  tags?: string[];
+  favorite?: boolean;
+  archived?: boolean;
 }
 
 export type HistoryStateSource = "snapshot" | "latest" | "unavailable";
@@ -210,8 +222,11 @@ export interface HistoryDetail {
   events: WSEvent[];
 }
 
-export async function listHistory(): Promise<HistoryItem[]> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/history`, { cache: "no-store" });
+export async function listHistory(query = ""): Promise<HistoryItem[]> {
+  const params = new URLSearchParams();
+  if (query.trim()) params.set("q", query.trim());
+  const suffix = params.size ? `?${params.toString()}` : "";
+  const res = await fetchWithTimeout(`${API_BASE}/api/history${suffix}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`Load history failed: ${res.statusText}`);
   return readJsonWithTimeout(res);
 }
@@ -245,12 +260,27 @@ export async function branchHistoryTurn(sessionId: string, turnIndex: number): P
 }
 
 export async function renameHistory(sessionId: string, title: string): Promise<void> {
+  await updateHistoryAssets(sessionId, { title });
+}
+
+export async function updateHistoryAssets(
+  sessionId: string,
+  patch: HistoryAssetPatch,
+): Promise<HistoryAssetPatch & { session_id: string; title: string }> {
   const res = await fetchWithTimeout(`${API_BASE}/api/history/${sessionId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title }),
+    body: JSON.stringify(patch),
   });
-  if (!res.ok) throw new Error(`Rename failed: ${res.statusText}`);
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const body = await readJsonWithTimeout<{ detail?: string }>(res);
+      if (body.detail) detail = body.detail;
+    } catch { /* keep statusText */ }
+    throw new Error(`Update failed: ${detail}`);
+  }
+  return readJsonWithTimeout(res);
 }
 
 export async function deleteHistory(sessionId: string): Promise<void> {

@@ -3,10 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { Send, Settings2 } from "lucide-react";
 
-import Select from "@/components/ui/Select";
-
 interface Props {
-  onSubmit: (query: string, opts: { entities?: string[]; attrs?: string[]; type?: string }) => void;
+  onSubmit: (query: string, opts: { entities?: string[]; attrs?: string[] }) => void;
   disabled?: boolean;
 }
 
@@ -15,7 +13,6 @@ export default function InputBar({ onSubmit, disabled }: Props) {
   const [showConfig, setShowConfig] = useState(false);
   const [entities, setEntities] = useState("");
   const [attrs, setAttrs] = useState("");
-  const [taskType, setTaskType] = useState("wide");
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -23,7 +20,6 @@ export default function InputBar({ onSubmit, disabled }: Props) {
     onSubmit(query.trim(), {
       entities: entities ? entities.split(",").map((s) => s.trim()) : undefined,
       attrs: attrs ? attrs.split(",").map((s) => s.trim()) : undefined,
-      type: taskType,
     });
     setQuery("");
   };
@@ -31,7 +27,7 @@ export default function InputBar({ onSubmit, disabled }: Props) {
   return (
     <div className="border-t border-gray-200 bg-gray-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
       {showConfig && (
-        <div className="mb-3 grid grid-cols-3 gap-2 text-sm">
+        <div className="mb-3 grid grid-cols-2 gap-2 text-sm">
           <input
             className="rounded bg-gray-100 px-3 py-1.5 text-gray-700 placeholder-gray-400 outline-none focus:ring-1 focus:ring-blue-500 dark:bg-zinc-800 dark:text-zinc-300 dark:placeholder-zinc-600"
             placeholder="Entities: Tesla,BYD,NIO"
@@ -43,17 +39,6 @@ export default function InputBar({ onSubmit, disabled }: Props) {
             placeholder="Attributes: revenue,employees"
             value={attrs}
             onChange={(e) => setAttrs(e.target.value)}
-          />
-          <Select
-            value={taskType}
-            onChange={setTaskType}
-            ariaLabel="Search type"
-            className="w-full"
-            options={[
-              { value: "wide", label: "Wide Search" },
-              { value: "deep", label: "Deep Search" },
-              { value: "local", label: "Local Search" },
-            ]}
           />
         </div>
       )}
