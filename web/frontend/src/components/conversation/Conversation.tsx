@@ -28,20 +28,51 @@ interface Props {
 
 export default function Conversation({ turns, running, reconnecting = false, stopping = false, onSubmit, onSteer, onStop, onRerun, onRepair, onOpenDrawer, registerTurnRef, focusRequest = 0 }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollViewportRef = useRef<HTMLDivElement>(null);
+  const scrollContentRef = useRef<HTMLDivElement>(null);
+  const autoFollowRef = useRef(true);
   const [composerFocusRequest, setComposerFocusRequest] = useState(0);
   const repairSource = [...turns].reverse().find((turn) => (
     turn.status === "completed" && !!turn.sessionId && !!turn.searchState
   ));
-  // Follow the bottom only while a search is live; a freshly loaded historical
-  // session should rest at the top, not jump to its references.
+  // A new live run starts at the bottom. Historical sessions still open at
+  // the top because this only fires when `running` becomes true.
   useEffect(() => {
-    if (running) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [turns.length, running]);
+    if (!running) return;
+    autoFollowRef.current = true;
+    requestAnimationFrame(() => {
+      const viewport = scrollViewportRef.current;
+      if (viewport) viewport.scrollTop = viewport.scrollHeight;
+    });
+  }, [running, turns.length]);
+
+  // Streaming events mutate the current turn without changing `turns.length`.
+  // ResizeObserver follows every resulting height change (reasoning, answer,
+  // coverage table, etc.) while the user remains near the bottom.
+  useEffect(() => {
+    const content = scrollContentRef.current;
+    const viewport = scrollViewportRef.current;
+    if (!content || !viewport) return;
+    const observer = new ResizeObserver(() => {
+      if (running && autoFollowRef.current) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
+    });
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [running]);
+
+  const trackAutoFollow = () => {
+    const viewport = scrollViewportRef.current;
+    if (!viewport) return;
+    const distanceFromBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
+    autoFollowRef.current = distanceFromBottom < 96;
+  };
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-[760px] px-3 pb-6 pt-16 sm:px-5 min-[1180px]:px-6 min-[1180px]:py-8">
+      <div ref={scrollViewportRef} onScroll={trackAutoFollow} className="min-h-0 flex-1 overflow-y-auto">
+        <div ref={scrollContentRef} className="mx-auto max-w-[760px] px-3 pb-6 pt-16 sm:px-5 min-[1180px]:px-6 min-[1180px]:py-8">
           {turns.map((t, index) => (
             <TurnView
               key={t.id}
@@ -72,7 +103,7 @@ export default function Conversation({ turns, running, reconnecting = false, sto
         </div>
       )}
 
-      <div className="border-t border-line bg-paper">
+      <div className="bg-paper">
         <div className="mx-auto max-w-[760px] px-3 py-3 sm:px-5 min-[1180px]:px-6 min-[1180px]:py-4">
           <Composer onSubmit={onSubmit} onSteer={onSteer} onStop={onStop} running={running} stopping={stopping} focusRequest={composerFocusRequest + focusRequest} variant="bar" />
         </div>

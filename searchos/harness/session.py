@@ -383,6 +383,11 @@ class SearchSession:
             },
             "trusted_domains": list(source_controls.trusted_domains),
             "excluded_domains": list(source_controls.excluded_domains),
+            "explore": {
+                "batch_enabled": settings.enable_explore_batch,
+                "min_waves": settings.explore_min_waves,
+                "max_waves": settings.explore_max_waves,
+            },
         })
 
         # --- Set up orchestrator tools context ---

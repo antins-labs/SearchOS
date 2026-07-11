@@ -633,6 +633,21 @@ class HarnessMiddleware(_AgentMiddlewareBase):
                     "wrap up with what you have.",
                 )
 
+        # Surface sub-agent work as soon as the model emits the tool call.
+        # Previously only the completed ``step`` was durable, so a wide
+        # Explore batch left the Web UI silent for the entire network wait.
+        if self.trajectory_logger and _agent_kind(self._worker_name) == "explore":
+            tool_call_id = ""
+            if hasattr(request, "tool_call") and isinstance(request.tool_call, dict):
+                tool_call_id = str(request.tool_call.get("id") or "")
+            self.trajectory_logger._append_raw({
+                "type": "tool_call_started",
+                "agent": self._worker_name or "sub_agent",
+                "tool": tool_name,
+                "tool_call_id": tool_call_id,
+                "args": tool_input if isinstance(tool_input, dict) else {"raw": str(tool_input)},
+            })
+
         # -- Snapshot state BEFORE tool call (for state_delta) --
         state_before = self._snapshot_state()
 

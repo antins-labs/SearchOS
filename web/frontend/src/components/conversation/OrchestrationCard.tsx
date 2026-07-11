@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, ArrowRight, Ban, ShieldCheck, Sparkles } from "lucide-react";
+import { Check, ChevronDown, ArrowRight, Ban, ShieldCheck, Sparkles, Compass } from "lucide-react";
 import type { SearchState, WSEvent } from "@/lib/types";
 import { deriveCoverage, deriveStepCount } from "@/lib/derive";
 import OrchestratorTimeline from "@/components/workbench/OrchestratorTimeline";
+import { deriveExploreProgress, type ExploreProgress } from "@/lib/exploreProgress";
 
 export interface WorkerLite {
   name: string;
@@ -60,6 +61,7 @@ export default function OrchestrationCard({ events, searchState, status, workers
   const active = workers.filter((w) => w.status === "running").length;
   const doneAgents = workers.filter((w) => w.status === "completed").length;
   const runDetails = deriveRunDetails(events);
+  const explore = deriveExploreProgress(events);
   const visibleSkills = runDetails.skills.slice(0, 3);
   const hasRunDetails = runDetails.skills.length > 0
     || runDetails.trustedDomains.length > 0
@@ -89,7 +91,9 @@ export default function OrchestrationCard({ events, searchState, status, workers
           </span>
         )}
         <span className="text-[13px] font-medium text-ink">
-          {running ? "Orchestrating search" : "Orchestration trace"}
+          {running && explore.present && explore.phase !== "completed"
+            ? "Exploring information landscape"
+            : running ? "Orchestrating search" : "Orchestration trace"}
         </span>
         <span className="ml-auto text-[12px] text-ink-dim">
           <b className="font-semibold text-ink">{displayedAgents}</b> {displayedAgents === 1 ? "agent" : "agents"}
@@ -137,6 +141,7 @@ export default function OrchestrationCard({ events, searchState, status, workers
       {/* body — the orchestrator trajectory */}
       {open && (
         <div className="border-t border-line bg-paper/40">
+          {explore.present && <ExploreProgressPanel progress={explore} />}
           <OrchestratorTimeline events={events} />
         </div>
       )}
@@ -150,6 +155,54 @@ export default function OrchestrationCard({ events, searchState, status, workers
         View agents &amp; evidence
         <ArrowRight size={13} />
       </button>
+    </div>
+  );
+}
+
+function ExploreProgressPanel({ progress }: { progress: ExploreProgress }) {
+  const active = progress.phase === "running" || progress.phase === "planning";
+  const currentWave = Math.min(progress.wavesCompleted + (progress.phase === "running" ? 1 : 0), progress.maxWaves);
+  const currentWaveTarget = currentWave > progress.minWaves ? progress.maxWaves : progress.minWaves;
+  const detail = progress.mode === "legacy"
+    ? progress.phase === "completed"
+      ? `Legacy Explore completed · ${progress.legacySteps} browser steps`
+      : progress.currentTool
+        ? `Running ${progress.currentTool} · ${progress.legacySteps} steps completed`
+        : `Planning the next browser step · ${progress.legacySteps} completed`
+    : progress.phase === "completed"
+      ? `${progress.wavesCompleted} waves · ${progress.queriesCompleted} queries · ${progress.pagesOpened} pages opened`
+      : progress.phase === "running"
+        ? `Wave ${currentWave}/${currentWaveTarget} · ${progress.currentQueries} query paths searching and opening pages in parallel`
+        : progress.phase === "analyzing"
+          ? `Wave ${progress.wavesCompleted}/${progress.minWaves} complete · analyzing coverage gaps`
+          : "Designing orthogonal query families for broad recall";
+
+  return (
+    <div className="border-b border-line px-4 py-3">
+      <div className="flex items-center gap-2">
+        <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${active ? "bg-accent/10 text-accent-ink" : "bg-surface-2 text-ink-dim"}`}>
+          {active ? <span className="spin-ring h-3 w-3" /> : <Compass size={14} />}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[12.5px] font-medium text-ink">Explore</span>
+            <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[10px] capitalize text-ink-dim">
+              {progress.phase}
+            </span>
+          </div>
+          <p className="mt-0.5 truncate text-[11.5px] text-ink-dim" title={detail}>{detail}</p>
+        </div>
+        {progress.mode === "batch" && (
+          <div className="flex shrink-0 items-center gap-1" aria-label={`${progress.wavesCompleted} Explore waves completed`}>
+            {Array.from({ length: progress.maxWaves }, (_, index) => {
+              const wave = index + 1;
+              const done = wave <= progress.wavesCompleted;
+              const live = progress.phase === "running" && wave === currentWave;
+              return <span key={wave} className={`h-1.5 w-5 rounded-full ${done ? "bg-ok" : live ? "bg-accent animate-pulse" : "bg-line-strong"}`} />;
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

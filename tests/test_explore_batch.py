@@ -200,3 +200,53 @@ async def test_legacy_toggle_allows_normal_terminal_response(monkeypatch):
 
     assert calls == 1
     assert response.content == "legacy briefing"
+
+
+async def test_subagent_tool_started_event_is_emitted_before_batch_finishes():
+    from dataclasses import dataclass
+
+    from searchos.harness.middleware.sensor.budget import BudgetState
+    from searchos.harness.middleware.sensor.harness import HarnessMiddleware
+
+    class Logger:
+        def __init__(self):
+            self.events = []
+
+        def _append_raw(self, event):
+            self.events.append(event)
+
+        def _compute_step_value(self, _delta):
+            return 0.0
+
+        _step_count = 0
+
+    @dataclass
+    class Request:
+        tool_call: dict
+
+    logger = Logger()
+    middleware = HarnessMiddleware(
+        worker_name="explore_agent",
+        trajectory_logger=logger,
+        budget=BudgetState(max_queries=30, max_opens=36),
+    )
+    request = Request(tool_call={
+        "name": "explore_web",
+        "id": "wave-1",
+        "args": {"queries": ["official list", "regional list"], "open_top_k": 1},
+    })
+
+    async def handler(_request):
+        assert logger.events[-1]["type"] == "tool_call_started"
+        return "Wave totals: 2 queries, 4 hits, 2 unique pages opened."
+
+    await middleware.awrap_tool_call(request, handler)
+
+    started = logger.events[0]
+    assert started == {
+        "type": "tool_call_started",
+        "agent": "explore_agent",
+        "tool": "explore_web",
+        "tool_call_id": "wave-1",
+        "args": {"queries": ["official list", "regional list"], "open_top_k": 1},
+    }

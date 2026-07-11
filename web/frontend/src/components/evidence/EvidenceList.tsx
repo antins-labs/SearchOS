@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Check,
+  ChevronRight,
   ExternalLink,
   GitCompareArrows,
   Link2,
@@ -36,6 +37,11 @@ interface ConflictGroup {
   nodes: EvidenceNode[];
   primaryId?: string;
   resolved: boolean;
+}
+
+interface EntityEvidenceGroup {
+  entity: string;
+  nodes: EvidenceNode[];
 }
 
 const AUTHORITY_WEIGHT: Record<string, number> = {
@@ -88,6 +94,27 @@ function capturedAt(timestamp?: number): string {
 function quality(node: EvidenceNode): number {
   if (typeof node.quality_score === "number") return node.quality_score;
   return node.confidence * (AUTHORITY_WEIGHT[node.source_authority || "unclear"] ?? 0.6);
+}
+
+export function groupEvidenceByEntity(nodes: EvidenceNode[]): EntityEvidenceGroup[] {
+  const groups = new Map<string, EvidenceNode[]>();
+  for (const node of nodes) {
+    const entity = node.entity?.trim() || "Unassigned evidence";
+    const bucket = groups.get(entity) ?? [];
+    bucket.push(node);
+    groups.set(entity, bucket);
+  }
+  return [...groups.entries()]
+    .map(([entity, entityNodes]) => ({
+      entity,
+      nodes: entityNodes.slice().sort((a, b) => (
+        Number((a.status ?? "active") !== "active")
+        - Number((b.status ?? "active") !== "active")
+        || a.attribute.localeCompare(b.attribute)
+        || quality(b) - quality(a)
+      )),
+    }))
+    .sort((a, b) => a.entity.localeCompare(b.entity));
 }
 
 function buildConflictGroups(
@@ -192,6 +219,7 @@ export default function EvidenceList({
     [coverageMap, edges, nodes],
   );
   const displayEdges = useMemo(() => relationEdges(edges, groups), [edges, groups]);
+  const entityGroups = useMemo(() => groupEvidenceByEntity(nodes), [nodes]);
   const openConflicts = groups.filter((group) => !group.resolved).length;
 
   if (!nodes.length) {
@@ -252,10 +280,80 @@ export default function EvidenceList({
       )}
 
       {view === "all" && (
-        <div className="divide-y divide-line px-3">
-          {nodes.map((node) => <EvidenceRow key={node.id} node={node} />)}
-        </div>
+        <EntityEvidenceGroups groups={entityGroups} />
       )}
+    </div>
+  );
+}
+
+function EntityEvidenceGroups({ groups }: { groups: EntityEvidenceGroup[] }) {
+  const [expanded, setExpanded] = useState<Set<string>>(
+    () => new Set(groups.slice(0, 1).map((group) => group.entity)),
+  );
+
+  const toggle = (entity: string) => {
+    setExpanded((current) => {
+      const next = new Set(current);
+      if (next.has(entity)) next.delete(entity);
+      else next.add(entity);
+      return next;
+    });
+  };
+
+  return (
+    <div className="space-y-2 p-3">
+      {groups.map((group) => {
+        const isOpen = expanded.has(group.entity);
+        const attributes = [...new Set(group.nodes.map((node) => node.attribute).filter(Boolean))];
+        const sources = new Set(group.nodes.map((node) => sourceLabel(node.source))).size;
+        const active = group.nodes.filter((node) => (node.status ?? "active") === "active").length;
+        return (
+          <section key={group.entity} className="overflow-hidden rounded-lg border border-line bg-paper/60 shadow-sm">
+            <button
+              type="button"
+              aria-expanded={isOpen}
+              onClick={() => toggle(group.entity)}
+              className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-surface-2"
+            >
+              <ChevronRight
+                size={14}
+                className={`shrink-0 text-ink-faint transition-transform ${isOpen ? "rotate-90" : ""}`}
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex min-w-0 items-center gap-2">
+                  <h3 className="truncate text-[13px] font-semibold text-ink" title={group.entity}>
+                    {group.entity}
+                  </h3>
+                  <span className="shrink-0 rounded bg-surface-2 px-1.5 py-0.5 text-[10px] text-ink-dim">
+                    {group.nodes.length}
+                  </span>
+                </div>
+                <p className="mt-0.5 truncate text-[10.5px] text-ink-faint">
+                  {attributes.length} attributes · {sources} sources
+                  {active !== group.nodes.length ? ` · ${active} active` : ""}
+                </p>
+              </div>
+              <div className="hidden max-w-[42%] flex-wrap justify-end gap-1 min-[520px]:flex">
+                {attributes.slice(0, 3).map((attribute) => (
+                  <span key={attribute} className="max-w-28 truncate rounded bg-clay/50 px-1.5 py-0.5 text-[10px] text-accent-ink">
+                    {attribute}
+                  </span>
+                ))}
+                {attributes.length > 3 && (
+                  <span className="px-1 py-0.5 text-[10px] text-ink-faint">+{attributes.length - 3}</span>
+                )}
+              </div>
+            </button>
+            {isOpen && (
+              <div className="divide-y divide-line border-t border-line px-3">
+                {group.nodes.map((node) => (
+                  <EvidenceRow key={node.id} node={node} compactEntity />
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
     </div>
   );
 }
@@ -321,7 +419,7 @@ function ConflictSource({
   const status = node.status ?? "active";
   const excerpt = cleanExcerpt(node.source_excerpt ?? "");
   return (
-    <article className={`rounded-md border p-2.5 ${status === "active" ? "border-line bg-paper/60" : "border-line bg-surface-2 opacity-65"}`}>
+    <article className={`flex h-full flex-col rounded-md border p-2.5 ${status === "active" ? "border-line bg-paper/60" : "border-line bg-surface-2 opacity-65"}`}>
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
@@ -351,7 +449,7 @@ function ConflictSource({
           <span className="line-clamp-4">{excerpt}</span>
         </blockquote>
       )}
-      <div className="mt-2.5 flex items-center gap-2">
+      <div className="mt-auto flex items-center gap-2 pt-2.5">
         <span className="min-w-0 flex-1 truncate text-[10.5px] text-ink-faint" title={node.source}>{sourceLabel(node.source)}</span>
         {!resolved && status === "active" && onUse && (
           <button type="button" onClick={onUse} disabled={disabled}
@@ -406,7 +504,7 @@ function RelationsView({ edges, nodes }: { edges: EvidenceEdge[]; nodes: Evidenc
   );
 }
 
-function EvidenceRow({ node }: { node: EvidenceNode }) {
+function EvidenceRow({ node, compactEntity = false }: { node: EvidenceNode; compactEntity?: boolean }) {
   const status = node.status ?? "active";
   return (
     <article className={`py-3 ${status === "active" ? "" : "opacity-60"}`}>
@@ -415,7 +513,7 @@ function EvidenceRow({ node }: { node: EvidenceNode }) {
         <div className="min-w-0 flex-1">
           <p className="text-[13px] leading-5 text-ink">{node.claim}</p>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10.5px] text-ink-dim">
-            {node.entity && <span>{node.entity}.{node.attribute}</span>}
+            {node.entity && <span>{compactEntity ? node.attribute : `${node.entity}.${node.attribute}`}</span>}
             <span>Quality {(quality(node) * 100).toFixed(0)}%</span>
             <span className="capitalize">{status}</span>
             {node.source && /^https?:\/\//.test(node.source) && (

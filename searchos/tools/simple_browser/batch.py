@@ -206,11 +206,11 @@ async def explore_web(
     pages = await _open_many(urls)
 
     summary = (
-        f"\n\nWave totals: {len(clean_queries)} queries, "
+        f"Wave totals: {len(clean_queries)} queries, "
         f"{sum(len(results) for _, results, _ in rows)} hits, "
         f"{len(pages)} unique pages opened."
     )
-    return _render_search_rows(rows) + "\n" + _render_pages(pages) + summary
+    return summary + "\n\n" + _render_search_rows(rows) + "\n" + _render_pages(pages)
 
 
 __all__ = ["explore_web"]
