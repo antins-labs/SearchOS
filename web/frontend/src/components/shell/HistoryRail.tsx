@@ -202,7 +202,7 @@ export default function HistoryRail({
   }
 
   const viewButton = (target: View, label: string, icon: ReactNode, count?: number) => (
-    <button type="button" onClick={() => setView(target)}
+    <button key={target} type="button" onClick={() => setView(target)}
       className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12.5px] transition-colors ${view === target ? "bg-clay/70 text-ink" : "text-ink-dim hover:bg-surface-2 hover:text-ink"}`}>
       <span className="text-ink-faint">{icon}</span><span className="min-w-0 flex-1 truncate">{label}</span>
       {count !== undefined && count > 0 && <span className="text-[11px] tabular-nums text-ink-faint">{count}</span>}

@@ -14,6 +14,7 @@ build/
 
 # Workspace (runtime generated)
 searchos_workspace/
+searchos_skill_jobs/
 eval_workspace/
 test_workspace/
 baseline_output/
@@ -54,5 +55,8 @@ web_settings.json
 docs/tui-textual-redesign.md
 docs/webui-improvement-plan.md
 docs/searchanything-technical-design.md
+
+# Local publication assets (not part of the repository)
+doc/pub/assets/
 
 CONTEXT.md

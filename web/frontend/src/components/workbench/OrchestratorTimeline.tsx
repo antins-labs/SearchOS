@@ -198,7 +198,9 @@ function buildCards(events: WSEvent[]): Card[] {
     } else if (t === "agent_final") {
       inFlight = null;
       flush();
-      out.push({ k: i, reasoning: STR(d.reasoning).trim(), action: { icon: CheckCircle2, tone: CHIP.ok, label: "Finished & synthesized" } });
+      // The final answer is rendered below the trajectory with full Markdown
+      // support. Repeating its truncated trace copy here exposes raw Markdown.
+      out.push({ k: i, reasoning: "", action: { icon: CheckCircle2, tone: CHIP.ok, label: "Finished & synthesized" } });
     }
   });
   flush();

@@ -9,8 +9,10 @@ this module imports standalone, ahead of the agents-layer migration.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import time
 from typing import Any
 
 from langchain_core.tools import tool
@@ -29,6 +31,109 @@ def _orch_ctx():
 def _select_replay_model(context: Any) -> Any:
     """Explore 回放与在线 Evidence Intake 使用同一个 extraction profile。"""
     return context.extraction_model or context.judge_model
+
+
+def _cell_value(raw_value: Any) -> str:
+    if isinstance(raw_value, list):
+        return "; ".join(str(item).strip() for item in raw_value if str(item).strip())
+    if raw_value is None:
+        return ""
+    return str(raw_value).strip()
+
+
+def _resolve_attribute_entity(cmap: Any, table_id: str, raw_key: str) -> str | None:
+    """Resolve an attributes_json key, accepting the common comma form for
+    composite PKs in addition to the canonical ``|`` representation."""
+    canonical = cmap.resolve_entity(raw_key, table_id=table_id)
+    if canonical is not None:
+        return canonical
+    primary_key = cmap.tables[table_id].primary_key or []
+    if len(primary_key) <= 1 or "|" in raw_key:
+        return None
+    parts = [part.strip() for part in raw_key.split(",")]
+    if len(parts) != len(primary_key) or not all(parts):
+        return None
+    return cmap.resolve_entity("|".join(parts), table_id=table_id)
+
+
+def _assert_cell_value(
+    state: Any,
+    *,
+    table_id: str,
+    entity: str,
+    attribute: str,
+    value: str,
+    source: str,
+    evidence_prefix: str,
+    alignment_note: str,
+    overwrite: bool = False,
+) -> bool:
+    """Commit synthetic Evidence and project it into the Coverage Cell.
+
+    ``overwrite`` supersedes the cell's prior evidence before applying the new
+    assertion. Normal add assertions remain low-tier evidence and therefore do
+    not displace a stronger direct-page value.
+    """
+    from searchos.socm import CoverageCell, EvidenceNode, EvidenceStatus
+
+    cell_key = state.coverage_map.cell_key(table_id, entity, attribute)
+    cell = state.coverage_map.cells.get(cell_key)
+    if cell is None or not value:
+        return False
+
+    seed = f"{evidence_prefix}_{table_id}_{entity}_{attribute}_{value}"
+    evidence_id = f"f_{evidence_prefix}_{hashlib.md5(seed.encode()).hexdigest()[:10]}"
+
+    if overwrite:
+        replaced_ids = set(cell.supporting_evidence_ids)
+        for node in state.evidence_graph.nodes:
+            if node.id in replaced_ids:
+                node.status = EvidenceStatus.SUPERSEDED
+        state.coverage_map.cells[cell_key] = CoverageCell()
+
+    node = next(
+        (item for item in state.evidence_graph.nodes if item.id == evidence_id),
+        None,
+    )
+    if node is None:
+        node = EvidenceNode(
+            id=evidence_id,
+            finding=f"{entity} {attribute}: {value}",
+            value=value,
+            source=source,
+            source_excerpt="",
+            confidence=0.7,
+            entity=entity,
+            attribute=attribute,
+            alignment="full",
+            alignment_note=alignment_note,
+            source_authority="aggregator",
+            table_id=table_id,
+            created_at=time.time(),
+        )
+        state.evidence_graph.add_node(node)
+    else:
+        node.status = EvidenceStatus.ACTIVE
+
+    state.coverage_map.fill_from_evidence([node])
+    return True
+
+
+def _clear_cell_value(state: Any, *, table_id: str, entity: str, attribute: str) -> bool:
+    from searchos.socm import CellStatus, CoverageCell, EvidenceStatus
+
+    cell_key = state.coverage_map.cell_key(table_id, entity, attribute)
+    cell = state.coverage_map.cells.get(cell_key)
+    if cell is None or (
+        cell.status == CellStatus.MISSING and not cell.supporting_evidence_ids
+    ):
+        return False
+    rejected_ids = set(cell.supporting_evidence_ids)
+    for node in state.evidence_graph.nodes:
+        if node.id in rejected_ids:
+            node.status = EvidenceStatus.REJECTED
+    state.coverage_map.cells[cell_key] = CoverageCell()
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -540,6 +645,8 @@ async def add_entities(
             PK values omitted from this dict simply get empty rows (current
             behavior). List-valued columns: pass the value as a JSON array
             — it's stored as one evidence node with the items joined by "; ".
+            Composite PK keys use ``"part1|part2"``; the common
+            ``"part1,part2"`` form is also accepted when unambiguous.
     """
     if _orch_ctx().workspace is None:
         return "Error: workspace not initialized"
@@ -576,18 +683,13 @@ async def add_entities(
     if tid not in cmap.tables:
         return f"Error: unknown table_id {tid!r}. Available: {list(cmap.tables)}"
 
-    asserted_source = "agent://orchestrator/asserted"
-
     added: list[str] = []
     skipped: list[str] = []
     revived: list[str] = []
     backfill_delta = {"v": 0}
-    asserted_cells = {"v": 0, "skipped_unknown_col": 0}
+    asserted_cells = {"v": 0, "skipped_unknown_col": 0, "unknown_entity": 0}
 
     def _apply(s: Any) -> Any:
-        from searchos.socm import EvidenceNode
-        import time as _time, hashlib as _hashlib
-
         for e in new_entities:
             if isinstance(e, (list, tuple)):
                 name = "|".join(str(v).strip() for v in e)
@@ -609,7 +711,9 @@ async def add_entities(
         valid_attrs = set(schema.attributes)
         pk_cols = set(schema.primary_key or [])
         for pk_value, col_vals in asserted.items():
-            if pk_value not in schema.entities:
+            canonical = _resolve_attribute_entity(s.coverage_map, tid, pk_value)
+            if canonical is None:
+                asserted_cells["unknown_entity"] += 1
                 continue
             for col, raw_val in col_vals.items():
                 if col not in valid_attrs:
@@ -617,34 +721,19 @@ async def add_entities(
                     continue
                 if col in pk_cols:
                     continue
-                if isinstance(raw_val, list):
-                    val = "; ".join(str(v).strip() for v in raw_val if str(v).strip())
-                else:
-                    val = str(raw_val).strip()
+                val = _cell_value(raw_val)
                 if not val:
                     continue
-                seed = f"asserted_{tid}_{pk_value}_{col}_{val}"
-                eid = f"f_assert_{_hashlib.md5(seed.encode()).hexdigest()[:10]}"
-                node = EvidenceNode(
-                    id=eid,
-                    finding=f"{pk_value} {col}: {val}",
-                    value=val,
-                    source=asserted_source,
-                    source_excerpt="",
-                    confidence=0.7,
-                    entity=pk_value,
-                    attribute=col,
-                    alignment="full",
-                    alignment_note="asserted by orchestrator from sub-agent summary",
-                    source_authority="aggregator",
+                if _assert_cell_value(
+                    s,
                     table_id=tid,
-                    created_at=_time.time(),
-                )
-                s.evidence_graph.add_node(node)
-                cell_key = s.coverage_map.cell_key(tid, pk_value, col)
-                cell = s.coverage_map.cells.get(cell_key)
-                if cell is not None and eid not in cell.supporting_evidence_ids:
-                    cell.supporting_evidence_ids.append(eid)
+                    entity=canonical,
+                    attribute=col,
+                    value=val,
+                    source="agent://orchestrator/asserted",
+                    evidence_prefix="assert",
+                    alignment_note="asserted by orchestrator from sub-agent summary",
+                ):
                     asserted_cells["v"] += 1
 
         backfill_delta["v"] = s.coverage_map.backfill_from_evidence(s.evidence_graph)
@@ -657,11 +746,13 @@ async def add_entities(
         if backfill_delta["v"] > 0 else ""
     )
     asserted_msg = ""
-    if asserted_cells["v"] or asserted_cells["skipped_unknown_col"]:
+    if any(asserted_cells.values()):
         asserted_msg = (
             f" Asserted {asserted_cells['v']} cell value(s) from inline attributes"
             + (f" (skipped {asserted_cells['skipped_unknown_col']} unknown columns)"
                if asserted_cells["skipped_unknown_col"] else "")
+            + (f" (skipped {asserted_cells['unknown_entity']} unknown PK rows)"
+               if asserted_cells["unknown_entity"] else "")
             + "."
         )
     revived_msg = f" Revived {len(revived)} previously-removed row(s)." if revived else ""
@@ -800,15 +891,11 @@ async def edit_entities(
     if tid not in cmap.tables:
         return f"Error: unknown table_id {tid!r}. Available: {list(cmap.tables)}"
 
-    asserted_source = "agent://orchestrator/edit"
     renamed: list[str] = []
     set_cells = {"v": 0, "cleared": 0, "skipped_unknown_col": 0}
     errors: list[str] = []
 
     def _apply(s: Any) -> Any:
-        from searchos.socm import CellStatus, EvidenceNode, EvidenceStatus
-        import time as _time, hashlib as _hashlib
-
         for item in edits:
             if not isinstance(item, dict) or "entity" not in item:
                 errors.append("each edit must be an object with 'entity' key")
@@ -850,71 +937,28 @@ async def edit_entities(
                         continue
                     if col in pk_cols:
                         continue
-                    if isinstance(raw_val, list):
-                        val = "; ".join(
-                            str(v).strip() for v in raw_val if str(v).strip()
-                        )
-                    elif raw_val is None:
-                        val = ""
-                    else:
-                        val = str(raw_val).strip()
+                    val = _cell_value(raw_val)
                     if not val:
-                        # Empty value = clear the cell: reset it to MISSING
-                        # and reject its evidence (kept for audit, not cited).
-                        cell_key = s.coverage_map.cell_key(tid, canonical, col)
-                        cell = s.coverage_map.cells.get(cell_key)
-                        if cell is None or (
-                            cell.status == CellStatus.MISSING
-                            and not cell.supporting_evidence_ids
+                        if _clear_cell_value(
+                            s,
+                            table_id=tid,
+                            entity=canonical,
+                            attribute=col,
                         ):
-                            continue
-                        rejected_ids = set(cell.supporting_evidence_ids)
-                        for node in s.evidence_graph.nodes:
-                            if node.id in rejected_ids:
-                                node.status = EvidenceStatus.REJECTED
-                        cell.status = CellStatus.MISSING
-                        cell.supporting_evidence_ids = []
-                        cell.best_alignment = ""
-                        cell.best_confidence = 0.0
-                        cell.best_tier = 1
-                        cell.display_hint = ""
-                        cell.primary_evidence_id = ""
-                        cell.has_conflict = False
-                        cell.conflict_evidence_ids = []
-                        set_cells["cleared"] += 1
+                            set_cells["cleared"] += 1
                         continue
-                    seed = f"edit_{tid}_{canonical}_{col}_{val}"
-                    eid = f"f_edit_{_hashlib.md5(seed.encode()).hexdigest()[:10]}"
-                    node = EvidenceNode(
-                        id=eid,
-                        finding=f"{canonical} {col}: {val}",
-                        value=val,
-                        source=asserted_source,
-                        source_excerpt="",
-                        confidence=0.7,
+                    if _assert_cell_value(
+                        s,
+                        table_id=tid,
                         entity=canonical,
                         attribute=col,
-                        alignment="full",
+                        value=val,
+                        source="agent://orchestrator/edit",
+                        evidence_prefix="edit",
                         alignment_note="edited by orchestrator",
-                        source_authority="aggregator",
-                        table_id=tid,
-                        created_at=_time.time(),
-                    )
-                    s.evidence_graph.add_node(node)
-                    cell_key = s.coverage_map.cell_key(tid, canonical, col)
-                    cell = s.coverage_map.cells.get(cell_key)
-                    if cell is not None:
-                        if eid not in cell.supporting_evidence_ids:
-                            cell.supporting_evidence_ids.append(eid)
-                        cell.primary_evidence_id = eid
-                        cell.display_hint = val[:120]
-                        cell.best_alignment = "full"
-                        cell.best_confidence = 0.7
-                        cell.best_tier = 2
-                        cell.status = CellStatus.FILLED
-                        cell.has_conflict = False
-                        cell.conflict_evidence_ids = []
-                    set_cells["v"] += 1
+                        overwrite=True,
+                    ):
+                        set_cells["v"] += 1
         return s
 
     state = _orch_ctx().workspace.atomic_update_state(_apply)
