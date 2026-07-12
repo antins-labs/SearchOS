@@ -67,6 +67,7 @@ class AdvancedUpdate(BaseModel, extra="forbid"):
     browser_disk_cache_dir: str | None = None
     https_proxy: str | None = None
     search_max_results: int | None = Field(default=None, gt=0)
+    use_layered_context: bool | None = None
 
 
 # --- endpoints ---
@@ -215,6 +216,8 @@ async def put_advanced(req: AdvancedUpdate):
             s.advanced.https_proxy = req.https_proxy
         if "search_max_results" in sent:
             s.run_defaults.search_max_results = req.search_max_results
+        if "use_layered_context" in sent:
+            s.advanced.use_layered_context = req.use_layered_context
 
     await settings_store.update(patch, reload=True)
     return advanced_view()

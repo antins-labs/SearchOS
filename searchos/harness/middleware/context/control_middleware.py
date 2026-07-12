@@ -4,8 +4,8 @@ Composes the two historically-separate control responsibilities into
 one middleware so spawn code adds ONE middleware instead of picking
 ``LayeredContextMiddleware`` vs ``DynamicTrimMiddleware`` each time:
 
-1. Context compression — delegates to ``LayeredContextMiddleware`` when
-   ``SF_USE_LAYERED_CONTEXT=1`` is set, otherwise falls back to the
+1. Context compression — delegates to ``SearchEpisodeMiddleware`` when
+   ``settings.use_layered_context`` is enabled, otherwise falls back to the
    cheaper ``DynamicTrimMiddleware``.
 2. Skill injection — optional strategy-skill prompt fragments (plan §6)
    folded into the system prompt via a caller-supplied
@@ -21,14 +21,15 @@ runs AFTER prompt is built.
 
 from __future__ import annotations
 
-import os
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from langchain.agents.middleware.types import AgentMiddleware
 
-from searchos.harness.middleware.context.dynamic_trim import DynamicTrimMiddleware
-from searchos.harness.middleware.context.layered_context import LayeredContextMiddleware
-
+from searchos.harness.middleware.context.dynamic_trim import (
+    DynamicTrimMiddleware,
+)
+from searchos.harness.middleware.context.layered_context import SearchEpisodeMiddleware
 
 SkillPromptProvider = Callable[[str], str]
 
@@ -46,30 +47,28 @@ class ControlMiddleware(AgentMiddleware):
     def __init__(
         self,
         *,
-        judge_model: Any = None,
         workspace: Any = None,
-        layer1_max_tokens: int = 40000,
         layer2_max_tokens: int = 8000,
-        layer3_max_tokens: int = 2000,
+        evidence_source: Any = None,
         trim_max_tokens_fraction: float = 0.85,
         trim_max_tokens: int | None = None,
         skill_prompt_provider: SkillPromptProvider | None = None,
         force_layered: bool | None = None,
     ) -> None:
         # Decide the inner strategy. ``force_layered`` lets tests pin
-        # either path; production defaults to the env flag.
+        # either path; production reads the unified runtime settings.
         if force_layered is None:
-            use_layered = os.getenv("SF_USE_LAYERED_CONTEXT", "0") == "1"
+            from searchos.config.settings import settings
+
+            use_layered = settings.use_layered_context
         else:
             use_layered = force_layered
 
-        if use_layered and judge_model is not None:
-            inner: AgentMiddleware = LayeredContextMiddleware(
-                judge_model=judge_model,
+        if use_layered and workspace is not None:
+            inner: AgentMiddleware = SearchEpisodeMiddleware(
                 workspace=workspace,
-                layer1_max_tokens=layer1_max_tokens,
-                layer2_max_tokens=layer2_max_tokens,
-                layer3_max_tokens=layer3_max_tokens,
+                evidence_source=evidence_source,
+                history_max_tokens=layer2_max_tokens,
             )
         else:
             trim_kwargs: dict[str, Any] = {}
@@ -119,3 +118,6 @@ class ControlMiddleware(AgentMiddleware):
         if hasattr(self._inner, "after_tool"):
             return self._inner.after_tool(state, runtime)  # type: ignore[arg-type]
         return None
+
+    async def awrap_model_call(self, request: Any, handler: Callable):  # type: ignore[override]
+        return await self._inner.awrap_model_call(request, handler)

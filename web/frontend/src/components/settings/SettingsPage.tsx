@@ -6,8 +6,9 @@ import { ArrowLeft, RotateCcw, WifiOff } from "lucide-react";
 
 import { resetSettings } from "@/lib/api";
 import { useSettings } from "@/components/settings/SettingsProvider";
-import SectionNav, { SECTIONS } from "@/components/settings/SectionNav";
+import SectionNav, { SECTIONS, type SectionId } from "@/components/settings/SectionNav";
 import BudgetSection from "@/components/settings/sections/BudgetSection";
+import ExperimentalSection from "@/components/settings/sections/ExperimentalSection";
 import SkillsSection from "@/components/settings/sections/SkillsSection";
 import ModelsSection from "@/components/settings/sections/ModelsSection";
 import SearchSection from "@/components/settings/sections/SearchSection";
@@ -15,12 +16,12 @@ import AppearanceSection from "@/components/settings/sections/AppearanceSection"
 
 export default function SettingsPage() {
   const { status, refresh, mutate } = useSettings();
-  const [active, setActive] = useState(SECTIONS[0].id);
+  const [active, setActive] = useState<SectionId>(SECTIONS[0].id);
   const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const scrollTo = (id: string) => {
+  const scrollTo = (id: SectionId) => {
     setActive(id);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -62,6 +63,7 @@ export default function SettingsPage() {
           <SearchSection />
           <SkillsSection />
           <BudgetSection />
+          <ExperimentalSection />
           <AppearanceSection />
 
           <section className="border-t border-line pt-6">

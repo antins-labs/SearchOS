@@ -369,6 +369,7 @@ export const putAdvanced = (patch: {
   browser_disk_cache_dir?: string | null;
   https_proxy?: string | null;
   search_max_results?: number | null;
+  use_layered_context?: boolean | null;
 }) => putJson<AdvancedView>("/api/settings/advanced", patch);
 
 export const resetSettings = () =>

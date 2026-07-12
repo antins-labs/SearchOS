@@ -7,6 +7,14 @@ or ``DynamicTrimMiddleware`` as its inner compressor.
 
 from searchos.harness.middleware.context.control_middleware import ControlMiddleware
 from searchos.harness.middleware.context.dynamic_trim import DynamicTrimMiddleware
-from searchos.harness.middleware.context.layered_context import LayeredContextMiddleware
+from searchos.harness.middleware.context.layered_context import (
+    LayeredContextMiddleware,
+    SearchEpisodeMiddleware,
+)
 
-__all__ = ["ControlMiddleware", "DynamicTrimMiddleware", "LayeredContextMiddleware"]
+__all__ = [
+    "ControlMiddleware",
+    "DynamicTrimMiddleware",
+    "LayeredContextMiddleware",
+    "SearchEpisodeMiddleware",
+]

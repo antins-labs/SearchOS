@@ -5,25 +5,27 @@ import Link from "next/link";
 import { ExternalLink, WifiOff, X } from "lucide-react";
 
 import { useSettings } from "@/components/settings/SettingsProvider";
-import SectionNav, { SECTIONS } from "@/components/settings/SectionNav";
+import SectionNav, { SECTIONS, type SectionId } from "@/components/settings/SectionNav";
 import BudgetSection from "@/components/settings/sections/BudgetSection";
 import SkillsSection from "@/components/settings/sections/SkillsSection";
 import ModelsSection from "@/components/settings/sections/ModelsSection";
 import SearchSection from "@/components/settings/sections/SearchSection";
+import ExperimentalSection from "@/components/settings/sections/ExperimentalSection";
 import AppearanceSection from "@/components/settings/sections/AppearanceSection";
 import useDialogFocus from "@/hooks/useDialogFocus";
 
-const BODIES: Record<string, React.ComponentType> = {
+const BODIES: Record<SectionId, React.ComponentType> = {
   models: ModelsSection,
   search: SearchSection,
   skills: SkillsSection,
   budget: BudgetSection,
+  experimental: ExperimentalSection,
   appearance: AppearanceSection,
 };
 
 export default function SettingsModal({ onClose }: { onClose: () => void }) {
   const { status, refresh } = useSettings();
-  const [active, setActive] = useState(SECTIONS[0].id);
+  const [active, setActive] = useState<SectionId>(SECTIONS[0].id);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 

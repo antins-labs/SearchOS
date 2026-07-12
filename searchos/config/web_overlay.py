@@ -143,6 +143,7 @@ class AdvancedOverlay(BaseModel, extra="forbid"):
     llm_max_retries: int | None = None
     browser_disk_cache_dir: str | None = None
     https_proxy: str | None = None  # applied to both HTTP_PROXY and HTTPS_PROXY
+    use_layered_context: bool | None = None
 
 
 class WebSettings(BaseModel, extra="forbid"):
@@ -384,6 +385,8 @@ def apply_to_runtime() -> None:
         settings.llm_max_retries = adv.llm_max_retries
     if adv.browser_disk_cache_dir is not None:
         settings.browser_disk_cache_dir = adv.browser_disk_cache_dir
+    if adv.use_layered_context is not None:
+        settings.use_layered_context = adv.use_layered_context
     if adv.https_proxy is not None:
         for var in ("HTTP_PROXY", "HTTPS_PROXY"):
             if adv.https_proxy:

@@ -8,7 +8,6 @@ import { useSettings } from "@/components/settings/SettingsProvider";
 import { Card, OfflineSkeleton, Row, SectionShell } from "@/components/settings/primitives";
 import Select from "@/components/settings/controls/Select";
 import TextField from "@/components/settings/controls/TextField";
-import Toggle from "@/components/settings/controls/Toggle";
 import KeyEditor from "@/components/settings/models/KeyEditor";
 import BackendDiagnosticPanel from "@/components/settings/diagnostics/BackendDiagnosticPanel";
 
@@ -27,10 +26,13 @@ export default function SearchSection() {
     );
   }
 
-  const { models, advanced, run_defaults } = settings;
+  const { models, advanced } = settings;
   const disabled = status !== "ready";
 
-  const setAdvanced = (patch: { https_proxy?: string; browser_disk_cache_dir?: string }) =>
+  const setAdvanced = (patch: {
+    https_proxy?: string;
+    browser_disk_cache_dir?: string;
+  }) =>
     mutate({
       optimistic: (s) => ({ ...s, advanced: { ...s.advanced, ...patch } }),
       call: () => putAdvanced(patch),
@@ -50,23 +52,6 @@ export default function SearchSection() {
       optimistic: (s) => ({ ...s, models: { ...s.models, browser_backend: backend } }),
       call: () => putMisc({ browser_backend: backend }),
       errorLabel: "Couldn't switch browser backend",
-    });
-
-  const setExploreBatch = (enabled: boolean) =>
-    mutate({
-      optimistic: (s) => ({
-        ...s,
-        run_defaults: { ...s.run_defaults, enable_explore_batch: enabled },
-      }),
-      call: () => putMisc({ enable_explore_batch: enabled }),
-      merge: (s, view) => ({
-        ...s,
-        run_defaults: {
-          ...s.run_defaults,
-          enable_explore_batch: view.enable_explore_batch,
-        },
-      }),
-      errorLabel: "Couldn't switch Explore mode",
     });
 
   return (
@@ -129,17 +114,6 @@ export default function SearchSection() {
             ariaLabel="Browser backend"
             options={BROWSER_BACKENDS.map((b) => ({ value: b, label: b }))}
             onChange={setBrowserBackend}
-          />
-        </Row>
-        <Row
-          label="Parallel Explore waves"
-          hint="On: concurrent broad-recall waves. Off: legacy serial search/open/find."
-        >
-          <Toggle
-            checked={run_defaults.enable_explore_batch}
-            onChange={setExploreBatch}
-            disabled={disabled}
-            label="Enable parallel Explore waves"
           />
         </Row>
         {models.browser_backend === "jina" && (

@@ -224,6 +224,7 @@ class Settings(BaseSettings):
     layered_context_layer1_max_tokens: int = 50_000
     layered_context_layer2_max_tokens: int = 8_000
     layered_context_layer3_max_tokens: int = 2_000
+    use_layered_context: bool = False
 
     # --- Feature flags ---
     enable_trajectory_logging: bool = True

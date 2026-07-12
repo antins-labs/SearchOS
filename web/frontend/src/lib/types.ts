@@ -153,6 +153,7 @@ export interface AdvancedView {
   browser_disk_cache_dir: string;
   https_proxy: string;
   search_max_results: number;
+  use_layered_context: boolean;
   overridden: string[]; // which knobs the overlay currently pins
 }
 

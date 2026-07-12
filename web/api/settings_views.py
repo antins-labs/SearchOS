@@ -162,8 +162,12 @@ def advanced_view() -> dict:
         "browser_disk_cache_dir": settings.browser_disk_cache_dir,
         "https_proxy": proxy,
         "search_max_results": settings.search_max_results,
+        "use_layered_context": settings.use_layered_context,
         "overridden": sorted(
-            f for f in ("llm_max_retries", "browser_disk_cache_dir", "https_proxy")
+            f for f in (
+                "llm_max_retries", "browser_disk_cache_dir", "https_proxy",
+                "use_layered_context",
+            )
             if getattr(adv, f) is not None
         ),
     }

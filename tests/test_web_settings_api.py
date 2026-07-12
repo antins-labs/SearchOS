@@ -26,7 +26,8 @@ def client(tmp_path, monkeypatch):
     from searchos.config.settings import reload_settings_in_place
 
     for var in ("SF_PROVIDER", "SF_MODEL", "SF_FAST_MODEL", "SF_API_BASE",
-                "SF_API_KEY_ENV", "SF_BUILTIN_OPENAI_BASE", "SF_BUILTIN_ANTHROPIC_BASE"):
+                "SF_API_KEY_ENV", "SF_BUILTIN_OPENAI_BASE", "SF_BUILTIN_ANTHROPIC_BASE",
+                "SF_USE_LAYERED_CONTEXT"):
         monkeypatch.delenv(var, raising=False)
     for preset in PRESETS.values():
         monkeypatch.delenv(preset.api_key_env, raising=False)
@@ -216,7 +217,8 @@ def test_aggregate_shape_unchanged(client):
         "max_time_s", "search_max_results", "enable_skills", "enable_explore_batch",
     }
     assert set(d["advanced"]) == {"llm_max_retries", "browser_disk_cache_dir",
-                                  "https_proxy", "search_max_results", "overridden"}
+                                  "https_proxy", "search_max_results",
+                                  "use_layered_context", "overridden"}
 
 
 def test_explore_batch_toggle_roundtrip(client):
@@ -229,6 +231,19 @@ def test_explore_batch_toggle_roundtrip(client):
     assert r.json()["enable_explore_batch"] is False
     assert settings.enable_explore_batch is False
     assert c.get("/api/settings").json()["run_defaults"]["enable_explore_batch"] is False
+
+
+def test_layered_context_toggle_roundtrip(client):
+    c, _ = client
+    from searchos.config.settings import settings
+
+    r = c.put("/api/settings/advanced", json={"use_layered_context": True})
+
+    assert r.status_code == 200, r.text
+    assert r.json()["use_layered_context"] is True
+    assert settings.use_layered_context is True
+    assert "use_layered_context" in r.json()["overridden"]
+    assert c.get("/api/settings").json()["advanced"]["use_layered_context"] is True
 
 
 # ---------------------------------------------------------------------------

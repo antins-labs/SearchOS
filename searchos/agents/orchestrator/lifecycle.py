@@ -1267,14 +1267,6 @@ async def _spawn_sub_agent(
         from searchos.harness.middleware.context import ControlMiddleware
         from searchos.harness.middleware.extraction import ExtractionMiddleware
 
-        control_mw: list = [ControlMiddleware(
-            judge_model=_ctx.judge_model,
-            workspace=_ctx.workspace,
-            layer1_max_tokens=settings.layered_context_layer1_max_tokens,
-            layer2_max_tokens=settings.layered_context_layer2_max_tokens,
-            layer3_max_tokens=settings.layered_context_layer3_max_tokens,
-            trim_max_tokens_fraction=0.85,
-        )]
         sensor_mw: list = [worker_mw]
         extraction_mw: list = []
         _extraction_instance = None
@@ -1291,6 +1283,13 @@ async def _spawn_sub_agent(
             # this, the per-turn snapshot may miss evidence that's still in the
             # background flush queue from the prior tool call.
             worker_mw._extraction_mw = _extraction_instance
+        control_mw: list = [ControlMiddleware(
+            workspace=_ctx.workspace,
+            layer2_max_tokens=settings.layered_context_layer2_max_tokens,
+            evidence_source=_extraction_instance,
+            trim_max_tokens_fraction=0.85,
+            force_layered=False if not is_search_type else None,
+        )]
         middleware_stack.extend(build_layered_stack(
             control=control_mw, sensor=sensor_mw, extraction=extraction_mw,
         ))

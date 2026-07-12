@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, type KeyboardEvent } from "react";
-import { Blocks, Cpu, Gauge, Globe, Palette, type LucideIcon } from "lucide-react";
+import { Blocks, Cpu, FlaskConical, Gauge, Globe, Palette, type LucideIcon } from "lucide-react";
 
 export interface SectionDef {
   id: string;
@@ -9,17 +9,20 @@ export interface SectionDef {
   icon: LucideIcon;
 }
 
-export const SECTIONS: SectionDef[] = [
+export const SECTIONS = [
   { id: "models", label: "Models", icon: Cpu },
   { id: "search", label: "Search & browse", icon: Globe },
   { id: "skills", label: "Skills", icon: Blocks },
   { id: "budget", label: "Budget & limits", icon: Gauge },
+  { id: "experimental", label: "Experimental", icon: FlaskConical },
   { id: "appearance", label: "Appearance", icon: Palette },
-];
+] as const satisfies readonly SectionDef[];
+
+export type SectionId = (typeof SECTIONS)[number]["id"];
 
 interface Props {
-  active: string;
-  onSelect: (id: string) => void;
+  active: SectionId;
+  onSelect: (id: SectionId) => void;
   mode?: "navigation" | "tabs";
 }
 
