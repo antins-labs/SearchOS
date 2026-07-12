@@ -15,7 +15,7 @@
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+"></a>
   <a href="https://github.com/langchain-ai/langgraph"><img src="https://img.shields.io/badge/Built_with-LangGraph-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white" alt="LangGraph"></a>
   <a href="https://github.com/Textualize/textual"><img src="https://img.shields.io/badge/TUI-Textual-0B0B0B?style=for-the-badge&logo=gnometerminal&logoColor=white" alt="Textual TUI"></a>
-  <a href="../LEGAL.md"><img src="https://img.shields.io/badge/License-MIT-0E9B9B?style=for-the-badge" alt="License: MIT"></a>
+  <a href="../LICENSE"><img src="https://img.shields.io/badge/License-MIT-0E9B9B?style=for-the-badge" alt="License: MIT"></a>
 </p>
 
 <p align="center">
@@ -101,12 +101,6 @@
         <img src="../assets/gallery/demo1.jpg" alt="SearchOS-demo1" width="100%">
       </a>
       <sub>▶️ <b>SearchOS-demo1</b></sub>
-    </td>
-    <td width="50%" align="center">
-      <a href="https://youtu.be/Qve7GX7yahs" title="SearchOS-demo2 · YouTube で見る">
-        <img src="../assets/gallery/demo2.jpg" alt="SearchOS-demo2" width="100%">
-      </a>
-      <sub>▶️ <b>SearchOS-demo2</b></sub>
     </td>
   </tr>
   <tr>
@@ -397,4 +391,4 @@ SearchOS はコアコントリビューターの **Yuyao Zhang** と **Junjie Ga
 
 ## 📄 License
 
-MIT。詳細は [LEGAL.md](../LEGAL.md)。
+[MIT License](../LICENSE) の下で公開されています。ソースコード内のコメントに関する追加条項は [LEGAL.md](../LEGAL.md) を参照してください。

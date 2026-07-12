@@ -1,126 +1,160 @@
-# 配置体系分层
+# Configuration Layers
 
-SearchOS 的配置分两条主线：**密钥留在 `.env`，其余一切可调项留在 overlay
-（`web_settings.json`）**。overlay 是 Web 与 CLI/TUI 共享的单一用户配置源，**最后
-叠加、优先级最高**。理解每层"谁写、谁读、何时读"即可推断任何配置改动的生效时机。
+**English** | [简体中文](zh/configuration.md)
 
+SearchOS separates configuration into two tracks: **secrets stay in `.env`,
+while every other user-adjustable setting lives in the overlay
+(`web_settings.json`)**. The overlay is the single user-configuration source
+shared by the Web UI and CLI/TUI. It is applied last and therefore has the
+highest priority.
+
+```text
+L5  Per-run request overrides   POST /api/search body (effort / max_time / skills)
+L4  User settings overlay       web_settings.json — effort / skills / models /
+                                run_defaults / advanced; shared by Web and TUI
+L3  Explicit SF_* overrides     SF_PROFILES__* / SF_ROLES__* and similar values
+                                from .env, merged recursively
+L2  SF_PROVIDER preset          providers.py generates default profiles and roles
+L1  Secrets in .env             *_API_KEY values loaded into the process environment
 ```
-L5  per-run 请求覆盖        POST /api/search 请求体（effort / max_time / skills）
-L4  overlay（唯一用户配置源） web_settings.json —— effort / skills / models /
-                            run_defaults / advanced；Web 与 TUI 共同读写
-L3  显式 SF_* 覆写（高级/兼容） .env 中的 SF_PROFILES__* / SF_ROLES__* 等，深合并
-L2  SF_PROVIDER 预设        providers.py 按厂商生成默认 profiles / roles
-L1  .env（只放密钥）         各 *_API_KEY 值 —— process env 基础层
-```
 
-**precedence**：代码默认 → `SF_*` env（L2/L3）→ overlay（L4）。冲突时 overlay 赢。
-`SF_*` 仍可用（power user / 向后兼容），但**不再是推荐路径**；日常配置走
-`searchos --setup`、Web 设置页、或 TUI 的 `/effort` `/skill` `/search` `/config`。
+**Precedence:** code defaults → `SF_*` environment configuration (L2/L3) →
+overlay (L4). The overlay wins when values conflict. `SF_*` variables remain
+available for power users and backward compatibility, but the recommended
+interfaces are `searchos --setup`, the Web settings page, and the TUI commands
+`/effort`, `/skill`, `/search`, and `/config`.
 
-## 各层职责
+## Layer responsibilities
 
-| 层 | 谁写 | 谁读 | 读取时机 |
+| Layer | Written by | Read by | Read timing |
 |---|---|---|---|
-| L1 `.env` | 手动 / `searchos --setup` / web 设置页（仅密钥值） | 所有进程启动 `load_dotenv` | 进程启动一次 |
-| L2 预设 | `SF_PROVIDER` 环境变量 | `config/providers.py` | `Settings()` 构造时 |
-| L3 覆写 | `.env` 中的 `SF_PROFILES__*` 等 | `config/settings.py` validator | `Settings()` 构造时 |
-| L4 overlay | web 设置 API / TUI 命令 / 向导（`web/api/settings_store.py` + `config/web_overlay.py`） | `load_and_apply()`；每次变更即时应用 | 启动 + 每次写入 |
-| L5 per-run | 前端 Composer 的 run overrides | `web/api/routes/search.py` | 每次发起搜索 |
+| L1 `.env` | Manual edits, `searchos --setup`, or the Web settings page (secret values only) | All processes through `load_dotenv` | Once at process startup |
+| L2 presets | `SF_PROVIDER` environment variable | `config/providers.py` | When `Settings()` is constructed |
+| L3 overrides | `SF_PROFILES__*` and related values in `.env` | The `config/settings.py` validator | When `Settings()` is constructed |
+| L4 overlay | Web settings API, TUI commands, or the wizard (`web/api/settings_store.py` + `config/web_overlay.py`) | `load_and_apply()` and each settings update | At startup and after every write |
+| L5 per-run | Run overrides in the Web Composer | `web/api/routes/search.py` | For each search request |
 
-## overlay 的四个区
+## The four overlay sections
 
-- **effort**：预算档位（low/medium/high/max）+ 逐 knob 覆盖（并发、迭代、每代理
-  搜索/发现数、墙钟上限、skill router top-k）。见 `config/effort.py` 的 `EFFORT_KEYS`。
-- **skills**：`access_only` / `access_deny` / `strategy_deny` / `orchestrator_deny`。
-  （env 层的 `SEARCHOS_SKILL_LAYERS_DISABLED` / `SEARCHOS_SKILL_ONLY` 仍作为高级
-  调试开关保留，但常规路径是 overlay / UI。）
-- **models**：provider 连接、模型卡（custom_profiles / profile_overrides）、角色
-  绑定、`search_provider`、`browser_backend`。
-- **advanced**：effort 覆盖不到的一等公民 knob——`llm_max_retries`、
-  `browser_disk_cache_dir`、`https_proxy`。`https_proxy` 不是 `settings` 字段，
-  `apply_to_runtime()` 会把它**反向导出到 `os.environ` 的 `HTTP_PROXY`/`HTTPS_PROXY`**
-  （空值则移除），因此 `.env` 里不再需要代理；`search_max_results` 走 `run_defaults`。
+- **effort** — budget preset (`low`, `medium`, `high`, or `max`) plus individual
+  overrides for concurrency, iterations, searches and discoveries per agent,
+  wall-clock limit, and Skill router top-k. See `EFFORT_KEYS` in
+  `config/effort.py`.
+- **skills** — `access_only`, `access_deny`, `strategy_deny`, and
+  `orchestrator_deny`. The environment-level
+  `SEARCHOS_SKILL_LAYERS_DISABLED` and `SEARCHOS_SKILL_ONLY` switches remain
+  available for advanced debugging, but normal configuration belongs in the
+  overlay or UI.
+- **models** — provider connections, model cards (`custom_profiles` and
+  `profile_overrides`), role bindings, `search_provider`, and
+  `browser_backend`.
+- **advanced** — first-class controls outside the effort presets, including
+  `llm_max_retries`, `browser_disk_cache_dir`, and `https_proxy`.
+  `https_proxy` is not a `settings` field: `apply_to_runtime()` exports it back
+  to `HTTP_PROXY` and `HTTPS_PROXY` in `os.environ`, removing them when the
+  value is empty. `search_max_results` belongs to `run_defaults`.
 
-## 密钥流转
+## Secret flow
 
-- **`.env` 只放密钥值**（各 `*_API_KEY` / `RAGFLOW_USER_ID` 等），是唯一的密钥
-  持久化点。三个写入口：手动编辑、`searchos --setup`、web 设置页
-  （`PUT /api/settings/provider` 与 `PUT /api/settings/keys`）——共用
-  `searchos/config/env_file.py` 的原子写（tmp + `os.replace`，原位替换保留注释）。
-- 代理（`HTTPS_PROXY`）**不再当作 .env key**：它属 overlay 的 advanced 区，经
-  `PUT /api/settings/advanced` 写入、运行时导出到 `os.environ`。
-- Web API 写 `.env` 时变量名走**白名单**（各预设/profile 的 `api_key_env` +
-  搜索/浏览后端 key），值经 `validate_env_value` 校验（拒绝换行、引号、`#` 等，
-  防 .env 行注入）。
-- **任何 API 响应与日志绝不包含密钥值**——只有 `key_set` / `api_key_set` 布尔。
-  代理 / 缓存目录**不是密钥**，其值会在设置页回显、可编辑。
-- 跨进程并发写（TUI 与 web 同时改 `.env`）是 last-writer-wins；进程内 web 侧
-  在一把 asyncio 锁下串行。
+- **`.env` stores secret values only**, including `*_API_KEY` and
+  `RAGFLOW_USER_ID`. Manual edits, `searchos --setup`, and the Web settings
+  endpoints (`PUT /api/settings/provider` and `PUT /api/settings/keys`) all use
+  the atomic writer in `searchos/config/env_file.py`. It writes a temporary file
+  and replaces the original while preserving comments.
+- Proxy configuration is not treated as a secret. `PUT /api/settings/advanced`
+  stores it in the overlay and exports it to the process environment at runtime.
+- Environment-variable names written by the Web API must pass an allowlist
+  assembled from provider/profile `api_key_env` values and search/browser keys.
+  `validate_env_value` rejects newlines, quotes, and `#` to prevent `.env` line
+  injection.
+- API responses and logs never include secret values. They expose only booleans
+  such as `key_set` or `api_key_set`. Proxy and cache-directory values are not
+  secrets and remain visible and editable in the UI.
+- Concurrent writes from separate TUI and Web processes are last-writer-wins.
+  Within the Web process, one asyncio lock serializes updates.
 
-## 从旧 .env 迁移
+## Migrating an older `.env`
 
-`load_and_apply()` 启动时调 `migrate_legacy_env_into_overlay()`：把旧
-`.env`/env 里的 `SF_ENABLE_SKILLS` / `SF_SEARCH_PROVIDER` / `SF_BROWSER_DISK_CACHE_DIR`
-/ `HTTP(S)_PROXY` **非破坏性地 seed 进 overlay**（overlay 对应字段为空时才写），
-行为不变、幂等。物理清理 `.env` 里这些旧行走显式动作：重跑 `searchos --setup`
-结束时会提示确认删除（值已进 overlay）。Web 侧因 overlay 优先，旧 .env 行自动失活。
+At startup, `load_and_apply()` calls `migrate_legacy_env_into_overlay()`. It
+non-destructively seeds legacy values such as `SF_ENABLE_SKILLS`,
+`SF_SEARCH_PROVIDER`, `SF_BROWSER_DISK_CACHE_DIR`, and `HTTP(S)_PROXY` into
+empty overlay fields. The migration is idempotent and preserves behavior.
 
-## CLI/TUI 与 Web 的一致性
+Run `searchos --setup` again to remove migrated legacy lines explicitly after
+confirmation. Because the overlay has higher priority, those old `.env` lines
+are otherwise inactive in the Web UI.
 
-- 搜索后端：CLI 的 `_setup_provider` 与 web 的 `init_search_provider` 都读
-  overlay 的 `models.search_provider`（未配时回落 `SF_SEARCH_PROVIDER` → 按 key 推断
-  → ragflow）。
-- TUI 的 `/effort`、`/skill`、`/search`、`/model`、`/config` 都**写回 overlay 并
-  `save_overlay()`**，重启后保留、与 web 设置页同源。
-- `/config`（无参）打开 **交互式设置面板**（`searchos/tui/config_modal.py`，
-  Claude-Code 风格：↑↓ 选择、回车 编辑/切换/进入子菜单、←→ 切换枚举值、Esc 逐级
-  返回，改动即时生效并落盘）——覆盖与 web 设置页对等的全部区：Model（角色绑定 /
-  模型卡增删改 / Provider 连接增删改 + key 录入）、Search（后端 / key / 结果数 /
-  代理）、Browse（浏览后端 / Jina key / 缓存目录）、Budget（effort / 墙钟 / 重试）、
-  Runtime（技能总开关）。`/model` 直达 Model 区；`/config <项> <值>` 仍可快改。
-- 面板里录入的 API key **值走 `.env` 原子写**（与 web/向导同一写入点），界面只显示
-  ●已设置/○未设置，绝不回显。
+## CLI/TUI and Web consistency
 
-## 生效时机（快照 vs 实时读）
+- Both CLI `_setup_provider` and Web `init_search_provider` read
+  `models.search_provider` from the overlay. If it is absent, they fall back to
+  `SF_SEARCH_PROVIDER`, infer a provider from available keys, and finally use
+  the backward-compatible RagFlow default.
+- TUI commands `/effort`, `/skill`, `/search`, `/model`, and `/config` update the
+  overlay through `save_overlay()`. Their values survive restarts and remain in
+  sync with the Web settings page.
+- `/config` without arguments opens the interactive settings panel in
+  `searchos/tui/config_modal.py`. It covers model role bindings, model cards,
+  provider connections and keys, search and browser backends, proxy and cache
+  settings, effort budgets, retries, and the runtime Skill switch. `/model`
+  opens the Model section directly; `/config <item> <value>` remains available
+  for quick edits.
+- API keys entered in the TUI use the same atomic `.env` writer as the Web UI
+  and setup wizard. The interface displays only whether each key is configured.
 
-| 配置 | 读取方式 | 运行时改 env 后 |
+## When changes take effect
+
+| Configuration | Read behavior | Effect of changing the environment at runtime |
 |---|---|---|
-| 模型 API key（`profile.api_key_env`） | `get_model_for()` 每次调用现读 `os.environ` | 新 session 立即生效 |
-| `SERPER_API_KEY` / `TAVILY_API_KEY` / `RAGFLOW_*` | 每次构造搜索 provider 时现读 | 下次搜索立即生效 |
-| `SF_PROVIDER` / `SF_MODEL` / `SF_API_BASE` / `SF_JINA_API_KEY` 等 `SF_*` | `settings = Settings()` **import 时快照** | 需 `reload_settings_in_place()` |
+| Model API key (`profile.api_key_env`) | `get_model_for()` reads `os.environ` for each call | Applies to new sessions immediately |
+| `SERPER_API_KEY`, `TAVILY_API_KEY`, and `RAGFLOW_*` | Read whenever a search provider is constructed | Applies to the next search |
+| `SF_PROVIDER`, `SF_MODEL`, `SF_API_BASE`, `SF_JINA_API_KEY`, and other `SF_*` values | The module-level `settings = Settings()` is an import-time snapshot | Requires `reload_settings_in_place()` |
 
-Web 端点改 env 后统一走 `settings_store.update_env()` 事务：
+Web settings endpoints update environment-backed configuration through the
+`settings_store.update_env()` transaction:
 
+```text
+Inside the lock:
+  update os.environ
+  → construct Settings() as a dry run (roll back on failure)
+  → atomically write .env
+  → reload_settings_in_place()
+  → reapply the L4 overlay
 ```
-锁内：os.environ 先行更新 → Settings() dry-run（失败则回滚 environ，不落盘）
-    → .env 原子写盘 → reload_settings_in_place() → 重放 L4 覆盖层
-```
 
-最后一步的重放是**必须的**：原地重建单例会把 effort 档位等 web 设置重置回
-env 基础值，`apply_to_runtime()` 负责把 L4 增量重新压回去。
+Reapplying L4 is essential because rebuilding the singleton would otherwise
+replace Web-managed effort settings with their environment-level defaults.
 
-切换 provider 预设时还会：清空 L4 的 role 覆写与 per-profile 字段覆写（预设的
-profile 名整体更换，旧值必然悬空或错配）、清除上一家厂商遗留的
-`SF_MODEL`/`SF_FAST_MODEL`/`SF_API_BASE` 覆写（除非请求中显式指定）。运行中的
-session 不受影响——模型结构在 `SearchSession` 构造时已快照。
+Changing a provider preset also clears L4 role overrides and per-profile field
+overrides whose profile names belong to the old preset. It removes stale
+`SF_MODEL`, `SF_FAST_MODEL`, and `SF_API_BASE` overrides unless the request
+supplies replacements. Running sessions are unaffected because a
+`SearchSession` snapshots its model configuration when created.
 
-L4 还承载 per-profile 定制（web 设置页 Models 区的 profile 卡）：
+L4 supports two forms of model customization:
 
-- **字段覆写**（`models.profile_overrides`）：对预设/内置 profile 的
-  model / api_base / api_key_env 做稀疏覆盖，可单字段清除还原。之所以不走
-  L3 的 `SF_PROFILES__*`：env 变量名寻址不了带点的 profile 名（如
-  `qwen3.5-35b`），且切换预设时无法安全清理 .env 行。
-- **自定义 profile**（`models.custom_profiles`）：用户新建的完整 profile
-  （model + 协议 + api_base + api_key_env），跨 provider 切换保留，可绑定到
-  任意角色；`main`/`judge`/`fast`/`synthesis`/`reformat` 为预设保留名不可用。
+- **Profile overrides** (`models.profile_overrides`) sparsely override `model`,
+  `api_base`, or `api_key_env` on built-in profiles. These values do not use L3
+  because environment-variable paths cannot address profile names containing
+  dots, and stale values cannot be cleaned safely during preset switches.
+- **Custom profiles** (`models.custom_profiles`) define a complete model,
+  protocol, API base, and key variable. They survive provider switches and can
+  bind to any role. `main`, `judge`, `fast`, `synthesis`, and `reformat` are
+  reserved preset names.
 
-## 相关模块
+## Related modules
 
-- `searchos/config/settings.py` — Settings 单例 + `reload_settings_in_place()`
-- `searchos/config/profiles.py` — `ModelProfile` / `ROLE_NAMES` / 内置默认 profiles
-- `searchos/config/providers.py` — `SF_PROVIDER` 预设注册表（见 [providers.md](providers.md)）
-- `searchos/config/env_file.py` — `.env` 原子读写、值校验、`remove_env_keys`
-- `searchos/config/web_overlay.py` — overlay 数据模型、`apply_to_runtime()`、迁移函数（Web 与 CLI/TUI 共享）
-- `searchos/config/effort.py` — effort 档位（TUI `/effort` 与 web 共用）
-- `web/api/settings_store.py` — L4 overlay 的写事务（锁 + dry-run 回滚 + reload 重放）
-- `web/api/routes/models.py` / `routes/settings.py` — 设置 API 端点
+- `searchos/config/settings.py` — `Settings` singleton and
+  `reload_settings_in_place()`
+- `searchos/config/profiles.py` — `ModelProfile`, `ROLE_NAMES`, and built-in
+  profiles
+- `searchos/config/providers.py` — `SF_PROVIDER` preset registry; see
+  [Provider configuration](providers.md)
+- `searchos/config/env_file.py` — atomic `.env` reads/writes, value validation,
+  and `remove_env_keys`
+- `searchos/config/web_overlay.py` — overlay model, `apply_to_runtime()`, and
+  migration
+- `searchos/config/effort.py` — effort presets shared by the TUI and Web UI
+- `web/api/settings_store.py` — L4 write transaction, validation rollback, and
+  overlay replay
+- `web/api/routes/models.py` and `routes/settings.py` — settings API endpoints

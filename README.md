@@ -16,7 +16,7 @@
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+"></a>
   <a href="https://github.com/langchain-ai/langgraph"><img src="https://img.shields.io/badge/Built_with-LangGraph-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white" alt="LangGraph"></a>
   <a href="https://github.com/Textualize/textual"><img src="https://img.shields.io/badge/TUI-Textual-0B0B0B?style=for-the-badge&logo=gnometerminal&logoColor=white" alt="Textual TUI"></a>
-  <a href="LEGAL.md"><img src="https://img.shields.io/badge/License-MIT-0E9B9B?style=for-the-badge" alt="License: MIT"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-0E9B9B?style=for-the-badge" alt="License: MIT"></a>
 </p>
 
 <p align="center">
@@ -106,32 +106,24 @@
       <sub>▶️ <b>SearchOS-demo1</b></sub>
     </td>
     <td width="50%" align="center">
-      <a href="https://youtu.be/Qve7GX7yahs" title="SearchOS-demo2 · Watch on YouTube">
-        <img src="assets/gallery/demo2.jpg" alt="SearchOS-demo2" width="100%">
+      <a href="https://youtu.be/IA_-sO2avTA" title="SearchOS-demo3 · Watch on YouTube">
+        <img src="assets/gallery/demo3.jpg" alt="SearchOS-demo3" width="100%">
       </a>
       <sub>▶️ <b>SearchOS-demo2</b></sub>
     </td>
   </tr>
   <tr>
     <td width="50%" align="center">
-      <a href="https://youtu.be/IA_-sO2avTA" title="SearchOS-demo3 · Watch on YouTube">
-        <img src="assets/gallery/demo3.jpg" alt="SearchOS-demo3" width="100%">
+      <a href="https://youtu.be/HxCLoauXoYg" title="SearchOS-demo4 · Watch on YouTube">
+        <img src="assets/gallery/demo4.jpg" alt="SearchOS-demo4" width="100%">
       </a>
       <sub>▶️ <b>SearchOS-demo3</b></sub>
     </td>
     <td width="50%" align="center">
-      <a href="https://youtu.be/HxCLoauXoYg" title="SearchOS-demo4 · Watch on YouTube">
-        <img src="assets/gallery/demo4.jpg" alt="SearchOS-demo4" width="100%">
-      </a>
-      <sub>▶️ <b>SearchOS-demo4</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2" align="center">
       <a href="https://youtu.be/-QmjRr_3B1s" title="SearchOS-demo5 · Watch on YouTube">
-        <img src="assets/gallery/demo5.jpg" alt="SearchOS-demo5" width="50%">
+        <img src="assets/gallery/demo5.jpg" alt="SearchOS-demo5" width="100%">
       </a>
-      <br><sub>▶️ <b>SearchOS-demo5</b></sub>
+      <br><sub>▶️ <b>SearchOS-demo4</b></sub>
     </td>
   </tr>
 </table>
@@ -400,4 +392,5 @@ The paper (*SearchOS-v1*) is in preparation and its citation entry will replace 
 
 ## 📄 License
 
-MIT — see also [LEGAL.md](LEGAL.md).
+MIT — see [LICENSE](LICENSE). Additional terms about source-code comments are
+described in [LEGAL.md](LEGAL.md).

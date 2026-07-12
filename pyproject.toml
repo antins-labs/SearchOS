@@ -5,9 +5,34 @@ build-backend = "hatchling.build"
 [project]
 name = "searchos"
 version = "0.1.0"
-description = "Robust for Open Domain Information Seeking"
+description = "Schedule search agents the way an OS schedules processes."
+readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
+authors = [
+    { name = "Yuyao Zhang" },
+    { name = "Junjie Gao" },
+]
+keywords = [
+    "agentic-search",
+    "information-retrieval",
+    "multi-agent-systems",
+    "open-domain-research",
+    "search-agents",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     # 直接导入的运行时依赖必须在这里显式声明，不能依赖其他包顺带安装。
     "certifi>=2024.8.30",
@@ -35,6 +60,12 @@ dependencies = [
     "fastapi>=0.115.0",
     "uvicorn>=0.30.0",
 ]
+
+[project.urls]
+Homepage = "https://antins-labs.github.io/SearchOS/"
+Documentation = "https://github.com/antins-labs/SearchOS/tree/main/docs"
+Repository = "https://github.com/antins-labs/SearchOS"
+Issues = "https://github.com/antins-labs/SearchOS/issues"
 
 [project.scripts]
 searchos = "searchos.cli:main"

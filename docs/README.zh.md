@@ -15,7 +15,7 @@
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+"></a>
   <a href="https://github.com/langchain-ai/langgraph"><img src="https://img.shields.io/badge/Built_with-LangGraph-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white" alt="LangGraph"></a>
   <a href="https://github.com/Textualize/textual"><img src="https://img.shields.io/badge/TUI-Textual-0B0B0B?style=for-the-badge&logo=gnometerminal&logoColor=white" alt="Textual TUI"></a>
-  <a href="../LEGAL.md"><img src="https://img.shields.io/badge/License-MIT-0E9B9B?style=for-the-badge" alt="License: MIT"></a>
+  <a href="../LICENSE"><img src="https://img.shields.io/badge/License-MIT-0E9B9B?style=for-the-badge" alt="License: MIT"></a>
 </p>
 
 <p align="center">
@@ -100,12 +100,6 @@
         <img src="../assets/gallery/demo1.jpg" alt="SearchOS-demo1" width="100%">
       </a>
       <sub>▶️ <b>SearchOS-demo1</b></sub>
-    </td>
-    <td width="50%" align="center">
-      <a href="https://youtu.be/Qve7GX7yahs" title="SearchOS-demo2 · 在 YouTube 观看">
-        <img src="../assets/gallery/demo2.jpg" alt="SearchOS-demo2" width="100%">
-      </a>
-      <sub>▶️ <b>SearchOS-demo2</b></sub>
     </td>
   </tr>
   <tr>
@@ -223,7 +217,7 @@ pip install -e ".[eval]"    # 手动：评测依赖
 pip install -e ".[all]"     # 手动：全部可选运行依赖
 ```
 
-一键安装要求 Node.js ≥ 20.9；可用 `./install.sh --core` 跳过 Access Skill 和浏览器运行时，或用 `./install.sh --all --dev` 准备完整开发环境。详见[安装指南](installation.md)。
+一键安装要求 Node.js ≥ 20.9；可用 `./install.sh --core` 跳过 Access Skill 和浏览器运行时，或用 `./install.sh --all --dev` 准备完整开发环境。详见[安装指南](zh/installation.md)。
 
 如果 `python -m searchos` 正常、但 `searchos` 的错误堆栈指向其他仓库，请重新执行 `source .venv/bin/activate && hash -r`；详见安装指南中的[同名命令排查](installation.md#searchos-命令指向其他仓库)。
 
@@ -249,7 +243,7 @@ SF_MODEL=qwen3:32b
 SF_JINA_API_KEY=...           # 可选：Jina 抓取（不填走未认证配额，易 429）
 ```
 
-全部预设（含各厂商端点、模型 id、Key 获取方式与已知怪癖）见 [`docs/providers.md`](../docs/providers.md)。不设 `SF_PROVIDER` 时沿用 [`searchos/config/settings.py`](../searchos/config/settings.py) 内置的网关默认值（`OPENAI_API_KEY` + `SF_EXTRACTION_API_KEY`）。
+全部预设（含各厂商端点、模型 id、Key 获取方式与已知怪癖）见 [`docs/zh/providers.md`](zh/providers.md)。不设 `SF_PROVIDER` 时沿用 [`searchos/config/settings.py`](../searchos/config/settings.py) 内置的网关默认值（`OPENAI_API_KEY` + `SF_EXTRACTION_API_KEY`）。
 
 所有配置集中在 `settings.py`，`SF_` 前缀环境变量覆盖，嵌套字段用 `__` 分隔（部分覆写与默认值**深合并**，只改你写的字段）。模型按**角色**绑定（11 个角色 → 模型 profile），便于混用厂商、限速、消融与降本：
 
@@ -394,4 +388,4 @@ SearchOS 由核心贡献者 **Yuyao Zhang** 与 **Junjie Gao**（蚂蚁集团）
 
 ## 📄 License
 
-MIT，另见 [LEGAL.md](../LEGAL.md)。
+本项目采用 [MIT License](../LICENSE)。关于源代码注释的附加说明见 [LEGAL.md](../LEGAL.md)。
