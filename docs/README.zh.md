@@ -352,14 +352,33 @@ web/frontend/      Next.js 研究工作台：composer、实时运行、证据、
 
 eval/              评测框架：run.py 入口、runner、benchmarks、scorers、reformat
 datasets/          仓库内置的 WideSearch 与 GISA 评测数据
-baselines/         对照基线（gpt-oss-simple-browser 等）
 eval_results/      评测输出（每题一目录，含完整可复盘 session）
 searchos_workspace/ 交互运行的会话工作区（时间戳目录）
 ```
 
+## 👥 作者
+
+<p align="center">
+  <strong>Yuyao Zhang</strong><sup>1,2,*,‡</sup> ·
+  <strong>Junjie Gao</strong><sup>2,*</sup> ·
+  <strong>Zhengxian Wu</strong><sup>2</sup> ·
+  <strong>Jiaming Fan</strong><sup>2</sup> ·
+  <strong>Jin Zhang</strong><sup>2</sup> ·
+  <strong>Shihan Ma</strong><sup>2</sup> ·
+  <strong>Yao Yao</strong><sup>2</sup> ·
+  <strong>Weiran Qi</strong><sup>2</sup> ·
+  <strong>Guiyu Ma</strong><sup>2</sup> ·
+  <strong>Xingzhong Xu</strong><sup>2</sup> ·
+  <strong>Kai Yang</strong><sup>2</sup> ·
+  <strong>Ji-Rong Wen</strong><sup>1</sup> ·
+  <strong>Zhicheng Dou</strong><sup>1,†</sup>
+</p>
+
+<p align="center"><sup>1</sup> 中国人民大学 · <sup>2</sup> 蚂蚁集团</p>
+
 ## 🙏 Acknowledgements
 
-SearchOS 由核心贡献者 **Yuyao Zhang** 与 **Junjie Gao**（蚂蚁集团）设计并构建，并由导师 **Ji-Rong Wen** 与 **Zhicheng Dou**（中国人民大学）指导。我们也感谢蚂蚁保的大力支持，并特别感谢本项目的发起者和领导者 **Kai Yang** 与 **Xingzhong Xu**。
+SearchOS 由上述作者与贡献者共同完成。感谢蚂蚁保在项目推进过程中给予的大力支持。
 
 ## 📚 Citation
 
@@ -368,7 +387,7 @@ SearchOS 由核心贡献者 **Yuyao Zhang** 与 **Junjie Gao**（蚂蚁集团）
 ```bibtex
 @misc{searchos2026,
   title        = {SearchOS-v1: Towards Robust Open-Domain Information-Seeking Agents Collaboration},
-  author       = {Zhang, Yuyao and Gao, Junjie and Wu, Zhengxian and Zhang, Jin and Ma, Shihan and Yao, Yao and Qi, Weiran and Xu, Xingzhong and Yang, Kai and Wen, Ji-Rong and Dou, Zhicheng},
+  author       = {Zhang, Yuyao and Gao, Junjie and Wu, Zhengxian and Fan, Jiaming and Zhang, Jin and Ma, Shihan and Yao, Yao and Qi, Weiran and Ma, Guiyu and Xu, Xingzhong and Yang, Kai and Wen, Ji-Rong and Dou, Zhicheng},
   year         = {2026},
   howpublished = {\url{https://github.com/antins-labs/SearchOS}}
 }

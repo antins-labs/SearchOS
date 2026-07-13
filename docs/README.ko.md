@@ -353,14 +353,33 @@ web/frontend/      Next.js 리서치 워크스페이스: composer, live run, evi
 
 eval/              평가 프레임워크: run.py 진입점, runner, benchmarks, scorers, reformat
 datasets/          저장소에 포함된 WideSearch / GISA 벤치마크 데이터
-baselines/         비교용 베이스라인 (gpt-oss-simple-browser 등)
 eval_results/      평가 출력 (문제당 1 디렉터리, 완전히 리플레이 가능한 세션 포함)
 searchos_workspace/ 인터랙티브 실행의 세션 워크스페이스 (타임스탬프 디렉터리)
 ```
 
+## 👥 Authors
+
+<p align="center">
+  <strong>Yuyao Zhang</strong><sup>1,2,*,‡</sup> ·
+  <strong>Junjie Gao</strong><sup>2,*</sup> ·
+  <strong>Zhengxian Wu</strong><sup>2</sup> ·
+  <strong>Jiaming Fan</strong><sup>2</sup> ·
+  <strong>Jin Zhang</strong><sup>2</sup> ·
+  <strong>Shihan Ma</strong><sup>2</sup> ·
+  <strong>Yao Yao</strong><sup>2</sup> ·
+  <strong>Weiran Qi</strong><sup>2</sup> ·
+  <strong>Guiyu Ma</strong><sup>2</sup> ·
+  <strong>Xingzhong Xu</strong><sup>2</sup> ·
+  <strong>Kai Yang</strong><sup>2</sup> ·
+  <strong>Ji-Rong Wen</strong><sup>1</sup> ·
+  <strong>Zhicheng Dou</strong><sup>1,†</sup>
+</p>
+
+<p align="center"><sup>1</sup> Renmin University of China · <sup>2</sup> Ant Group</p>
+
 ## 🙏 Acknowledgements
 
-SearchOS는 핵심 기여자 **Yuyao Zhang**과 **Junjie Gao**(Ant Group)가 설계·구축했으며, 어드바이저 **Ji-Rong Wen**과 **Zhicheng Dou**(런민대학교)의 지도를 받았습니다. 또한 Ant Insurance의 든든한 지원에 감사드리며, 특히 이 프로젝트의 창시자이자 리더인 **Kai Yang**과 **Xingzhong Xu**에게 깊이 감사드립니다.
+SearchOS는 위에 나열된 저자와 기여자들의 공동 노력으로 개발되었습니다. 프로젝트 전반에 걸쳐 든든한 지원을 제공한 Ant Insurance에 감사드립니다.
 
 ## 📚 Citation
 
@@ -369,7 +388,7 @@ SearchOS는 핵심 기여자 **Yuyao Zhang**과 **Junjie Gao**(Ant Group)가 설
 ```bibtex
 @misc{searchos2026,
   title        = {SearchOS-v1: Towards Robust Open-Domain Information-Seeking Agents Collaboration},
-  author       = {Zhang, Yuyao and Gao, Junjie and Wu, Zhengxian and Zhang, Jin and Ma, Shihan and Yao, Yao and Qi, Weiran and Xu, Xingzhong and Yang, Kai and Wen, Ji-Rong and Dou, Zhicheng},
+  author       = {Zhang, Yuyao and Gao, Junjie and Wu, Zhengxian and Fan, Jiaming and Zhang, Jin and Ma, Shihan and Yao, Yao and Qi, Weiran and Ma, Guiyu and Xu, Xingzhong and Yang, Kai and Wen, Ji-Rong and Dou, Zhicheng},
   year         = {2026},
   howpublished = {\url{https://github.com/antins-labs/SearchOS}}
 }

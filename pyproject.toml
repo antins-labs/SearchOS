@@ -89,7 +89,7 @@ access = [
     "python-dateutil>=2.9.0",
 ]
 all = ["searchos[access,tavily,crawl4ai,observability,eval]"]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.23.0", "ruff>=0.4.0"]
+dev = ["ruff>=0.4.0"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["searchos"]
@@ -100,7 +100,3 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
-
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]

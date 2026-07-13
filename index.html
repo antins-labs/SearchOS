@@ -735,6 +735,24 @@
         .tile ul li { margin: 3px 0; }
         .tile ul li::marker { color: var(--blue-glow); }
 
+        /* ===== AUTHORS ===== */
+        .authors-card { padding: clamp(24px, 4vw, 38px); }
+        .authors-list {
+            position: relative; z-index: 1; display: flex; flex-wrap: wrap;
+            justify-content: center; gap: 12px 20px; max-width: 1050px; margin: 0 auto;
+        }
+        .author-name { color: var(--ink); font-weight: 650; white-space: nowrap; }
+        .author-name sup { margin-left: 3px; color: var(--blue-glow); font-size: .68em; font-weight: 700; }
+        .author-affiliations {
+            position: relative; z-index: 1; margin: 24px 0 0; text-align: center;
+            color: var(--muted); font-size: 14px;
+        }
+        .author-affiliations span + span::before { content: "·"; margin: 0 10px; color: var(--faint); }
+        .acknowledgement-note {
+            position: relative; z-index: 1; max-width: 850px; margin: 24px auto 0;
+            padding-top: 24px; border-top: 1px solid var(--hairline); text-align: center; color: var(--muted);
+        }
+
         /* ===== BUTTONS ===== */
         .btn {
             position: relative; display: inline-flex; align-items: center; gap: 9px;
@@ -1395,7 +1413,7 @@
     <a href="#results" data-target="results"><span class="toc-dot"></span><span class="toc-label">Results</span></a>
     <a href="#gallery" data-target="gallery"><span class="toc-dot"></span><span class="toc-label">Gallery</span></a>
     <a href="#resources" data-target="resources"><span class="toc-dot"></span><span class="toc-label">Resources</span></a>
-    <a href="#acknowledgements" data-target="acknowledgements"><span class="toc-dot"></span><span class="toc-label">Acknowledgements</span></a>
+    <a href="#acknowledgements" data-target="acknowledgements"><span class="toc-dot"></span><span class="toc-label">Authors</span></a>
 </nav>
 
 <!-- ===== RIGHT PROGRESS RAIL + ROCKET TO TOP ===== -->
@@ -1435,7 +1453,7 @@
         <a href="#flow">Case Study</a>
         <a href="#results">Results</a>
         <a href="#gallery">Gallery</a>
-        <a href="#acknowledgements">Acknowledgements</a>
+        <a href="#acknowledgements">Authors</a>
     </nav>
     <div class="header-right">
         <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle day / night theme" title="Toggle day / night">
@@ -3364,8 +3382,9 @@ searchos   # interactive TUI</code></pre>
   title={SearchOS-v1: Towards Robust Open-Domain
          Information-Seeking Agents Collaboration},
   author={Zhang, Yuyao and Gao, Junjie and Wu, Zhengxian and
-          Zhang, Jin and Ma, Shihan and Yao, Yao and Qi, Weiran and
-          Xu, Xingzhong and Yang, Kai and Wen, Ji-Rong and Dou, Zhicheng},
+          Fan, Jiaming and Zhang, Jin and Ma, Shihan and Yao, Yao and
+          Qi, Weiran and Ma, Guiyu and Xu, Xingzhong and Yang, Kai and
+          Wen, Ji-Rong and Dou, Zhicheng},
   year={2026},
   howpublished={\url{https://github.com/antins-labs/SearchOS}}
 }</code></pre>
@@ -3374,15 +3393,34 @@ searchos   # interactive TUI</code></pre>
     </div>
 </section>
 
-<!-- ===== ACKNOWLEDGEMENTS ===== -->
+<!-- ===== AUTHORS & ACKNOWLEDGEMENTS ===== -->
 <section id="acknowledgements" class="section">
     <div class="container">
         <div class="section-head reveal">
             <div class="kicker">Credits</div>
-            <h2>Acknowledgements</h2>
+            <h2>Authors <span style="font-family:var(--font-body); font-weight:600">&amp;</span> Acknowledgements</h2>
         </div>
-        <div class="card-spotlight tile reveal" style="--reveal-delay:100ms">
-            <p>SearchOS is designed and built by its core contributors, <strong>Yuyao Zhang</strong> and <strong>Junjie Gao</strong> (Ant Group), under the supervision of their advisors, <strong>Ji-Rong Wen</strong> and <strong>Zhicheng Dou</strong> (Renmin University of China). We also thank Ant Insurance for its strong support, and are especially grateful to <strong>Kai Yang</strong> and <strong>Xingzhong Xu</strong>, the initiators and leaders of this project.</p>
+        <div class="card-spotlight tile authors-card reveal" style="--reveal-delay:100ms">
+            <div class="authors-list" aria-label="SearchOS authors">
+                <span class="author-name">Yuyao Zhang<sup>1,2,*,‡</sup></span>
+                <span class="author-name">Junjie Gao<sup>2,*</sup></span>
+                <span class="author-name">Zhengxian Wu<sup>2</sup></span>
+                <span class="author-name">Jiaming Fan<sup>2</sup></span>
+                <span class="author-name">Jin Zhang<sup>2</sup></span>
+                <span class="author-name">Shihan Ma<sup>2</sup></span>
+                <span class="author-name">Yao Yao<sup>2</sup></span>
+                <span class="author-name">Weiran Qi<sup>2</sup></span>
+                <span class="author-name">Guiyu Ma<sup>2</sup></span>
+                <span class="author-name">Xingzhong Xu<sup>2</sup></span>
+                <span class="author-name">Kai Yang<sup>2</sup></span>
+                <span class="author-name">Ji-Rong Wen<sup>1</sup></span>
+                <span class="author-name">Zhicheng Dou<sup>1,†</sup></span>
+            </div>
+            <p class="author-affiliations">
+                <span><sup>1</sup> Renmin University of China</span>
+                <span><sup>2</sup> Ant Group</span>
+            </p>
+            <p class="acknowledgement-note">SearchOS was developed through the joint efforts of the authors and contributors listed above. We thank Ant Insurance for its strong support throughout the project.</p>
         </div>
     </div>
 </section>
