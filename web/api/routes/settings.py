@@ -64,6 +64,7 @@ class AdvancedUpdate(BaseModel, extra="forbid"):
     override back to the env/code default; ``https_proxy`` sent as "" forces
     no-proxy (unsets HTTP(S)_PROXY). Proxy / cache dir are not secrets."""
     llm_max_retries: int | None = Field(default=None, ge=0, le=20)
+    orch_coverage_stall_rounds: int | None = Field(default=None, ge=0, le=100)
     browser_disk_cache_dir: str | None = None
     https_proxy: str | None = None
     search_max_results: int | None = Field(default=None, gt=0)
@@ -209,6 +210,8 @@ async def put_advanced(req: AdvancedUpdate):
         # its base (plain replay would keep the mutated value).
         if "llm_max_retries" in sent:
             s.advanced.llm_max_retries = req.llm_max_retries
+        if "orch_coverage_stall_rounds" in sent:
+            s.advanced.orch_coverage_stall_rounds = req.orch_coverage_stall_rounds
         if "browser_disk_cache_dir" in sent:
             s.advanced.browser_disk_cache_dir = req.browser_disk_cache_dir
         if "https_proxy" in sent:

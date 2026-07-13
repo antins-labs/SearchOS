@@ -3,6 +3,7 @@
 import { putAdvanced, putMisc } from "@/lib/api";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { Card, OfflineSkeleton, Row, SectionShell } from "@/components/settings/primitives";
+import NumberField from "@/components/settings/controls/NumberField";
 import Toggle from "@/components/settings/controls/Toggle";
 
 export default function ExperimentalSection() {
@@ -48,6 +49,17 @@ export default function ExperimentalSection() {
       errorLabel: "Couldn't switch episode folding",
     });
 
+  const setCoverageStallRounds = (rounds: number) =>
+    mutate({
+      optimistic: (s) => ({
+        ...s,
+        advanced: { ...s.advanced, orch_coverage_stall_rounds: rounds },
+      }),
+      call: () => putAdvanced({ orch_coverage_stall_rounds: rounds }),
+      merge: (s, view) => ({ ...s, advanced: view }),
+      errorLabel: "Couldn't update coverage stall rounds",
+    });
+
   return (
     <SectionShell id="experimental" title="Experimental"
       description="Try evolving research behaviors. These settings apply to new runs.">
@@ -72,6 +84,18 @@ export default function ExperimentalSection() {
             onChange={setEpisodeFolding}
             disabled={disabled}
             label="Fold completed search episodes"
+          />
+        </Row>
+        <Row
+          label="Coverage stall rounds"
+          hint="Stop after this many search-agent result rounds add no rows or filled cells. Set 0 to disable."
+        >
+          <NumberField
+            value={advanced.orch_coverage_stall_rounds}
+            min={0}
+            max={100}
+            onCommit={setCoverageStallRounds}
+            disabled={disabled}
           />
         </Row>
       </Card>

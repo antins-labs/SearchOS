@@ -366,6 +366,7 @@ export const putMisc = (patch: {
 // no-proxy. Proxy / cache dir are not secrets.
 export const putAdvanced = (patch: {
   llm_max_retries?: number | null;
+  orch_coverage_stall_rounds?: number | null;
   browser_disk_cache_dir?: string | null;
   https_proxy?: string | null;
   search_max_results?: number | null;

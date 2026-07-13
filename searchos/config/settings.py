@@ -128,6 +128,9 @@ class Settings(BaseSettings):
     orch_max_iterations: int = 50
     orch_trim_max_tokens: int = 128_000
     orch_max_dispatches: int = 0
+    # Consecutive search-agent result batches with no new rows / filled cells.
+    # 0 disables coverage-stall early termination.
+    orch_coverage_stall_rounds: int = 3
     orch_premature_end_max_resumes: int = 2
 
     # --- SOCM injection throttle (sub-agents only) ---

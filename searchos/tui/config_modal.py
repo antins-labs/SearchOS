@@ -2,7 +2,7 @@
 
 One generic ``ConfigModal``（可滚动列表 + ↑↓ 导航 + Enter 编辑/切换 + Esc 逐级
 返回）drives every section, mirroring the web Settings page: Model（角色绑定 /
-模型卡 / Provider 连接）、Search、Browse、Budget、Runtime。All edits persist
+模型卡 / Provider 连接）、Search、Browse、Budget、Experimental、Runtime。All edits persist
 IMMEDIATELY to the shared ``web_settings.json`` overlay（overlay 写入 +
 ``apply_to_runtime()`` + ``save_overlay()``，与 web 的「PUT 即持久」语义一致）；
 API-key VALUES go to ``.env`` via the same atomic writer the web/wizard use and
@@ -569,7 +569,7 @@ def _model_section_items(app) -> list[Item]:
 
 
 # --------------------------------------------------------------------------
-# Search / Browse / Budget / Runtime 区
+# Search / Browse / Budget / Experimental / Runtime 区
 # --------------------------------------------------------------------------
 
 def _set_search_backend(app, v: str) -> str | None:
@@ -722,6 +722,26 @@ def _budget_section_items(app) -> list[Item]:
     ]
 
 
+def _experimental_section_items(app) -> list[Item]:
+    def _set_coverage_stall_rounds(v):
+        if v is None:
+            _store().advanced.orch_coverage_stall_rounds = None
+            _sync(reload=True)
+            return None
+        if not (0 <= v <= 100):
+            return "范围 0–100"
+        _store().advanced.orch_coverage_stall_rounds = v
+        _sync()
+        return None
+
+    return [
+        Item("int", "Coverage 停滞轮数",
+             get=lambda: _settings().orch_coverage_stall_rounds,
+             set=_set_coverage_stall_rounds,
+             help="连续多少个搜索代理返回批次无新增行/填充值后结束；0=关闭，留空=恢复默认"),
+    ]
+
+
 def _runtime_section_items(app) -> list[Item]:
     def _set_skills(v):
         _store().run_defaults.enable_skills = bool(v)
@@ -749,6 +769,8 @@ def build_root_menu(app) -> MenuBuilder:
         items += _browse_section_items(app)
         items.append(Item("header", "Budget 预算"))
         items += _budget_section_items(app)
+        items.append(Item("header", "Experimental 实验"))
+        items += _experimental_section_items(app)
         items.append(Item("header", "Runtime 运行"))
         items += _runtime_section_items(app)
         return "设置", items

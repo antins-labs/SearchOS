@@ -150,6 +150,7 @@ export interface RunDefaultsView {
 // secrets, so their resolved values round-trip (unlike API keys).
 export interface AdvancedView {
   llm_max_retries: number;
+  orch_coverage_stall_rounds: number;
   browser_disk_cache_dir: string;
   https_proxy: string;
   search_max_results: number;

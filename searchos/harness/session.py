@@ -534,12 +534,19 @@ class SearchSession:
             max_iterations=settings.orch_max_iterations,
             max_time_s=self._blueprint.budget.max_time_s,
         )
+        from searchos.harness.middleware.sensor.coverage_stall_sensor import (
+            CoverageStallSensor,
+        )
         from searchos.harness.middleware.sensor.dispatch_round_sensor import (
             DispatchRoundSensor,
         )
         orch_harness = HarnessMiddleware(
             sensors=[
                 DispatchRoundSensor(max_rounds=settings.orch_max_dispatches),
+                CoverageStallSensor(
+                    workspace=workspace,
+                    max_stalled_rounds=settings.orch_coverage_stall_rounds,
+                ),
             ],
             budget=orch_budget,
             trajectory_logger=traj_logger,

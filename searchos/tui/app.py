@@ -1392,9 +1392,9 @@ class SearchOSApp(App):
 
     def _cmd_config(self, arg: str) -> None:
         """Settings panel + quick-set. ``/config`` alone opens the interactive
-        panel（Model/Search/Browse/Budget/Runtime，即改即存）; ``/config <key>
+        panel（Model/Search/Browse/Budget/Experimental/Runtime，即改即存）; ``/config <key>
         <value>`` sets one knob directly. Keys: retries, cache, proxy, results,
-        maxtime, skills(on|off), role <role> <profile>."""
+        maxtime, stall, skills(on|off), role <role> <profile>."""
         from searchos.config.settings import ROLE_NAMES, settings
         from searchos.config.web_overlay import apply_to_runtime, save_overlay, store
 
@@ -1418,6 +1418,11 @@ class SearchOSApp(App):
             if n is None:
                 return
             store.advanced.llm_max_retries = max(0, min(20, n))
+        elif key in ("stall", "stallrounds", "coverage-stall"):
+            n = _int(rest)
+            if n is None:
+                return
+            store.advanced.orch_coverage_stall_rounds = max(0, min(100, n))
         elif key in ("cache", "cachedir"):
             store.advanced.browser_disk_cache_dir = rest or None
         elif key == "proxy":
@@ -1450,7 +1455,7 @@ class SearchOSApp(App):
         else:
             self._write_marker(
                 "未知配置项。可用：retries / cache / proxy / results / maxtime / "
-                "skills on|off / role <角色> <模型卡>", DANGER)
+                "stall / skills on|off / role <角色> <模型卡>", DANGER)
             return
 
         apply_to_runtime()  # push onto the settings singleton (roles/knobs/proxy)
@@ -1474,6 +1479,7 @@ class SearchOSApp(App):
         search = store.models.search_provider or f"auto ({resolve_search_provider_name('')})"
         rows = [
             ("retries (LLM 重试)", str(settings.llm_max_retries)),
+            ("stall (Coverage 停滞轮数)", str(settings.orch_coverage_stall_rounds)),
             ("results (每查询结果数)", str(settings.search_max_results)),
             ("maxtime (墙钟上限 s)", str(settings.default_max_time_s)),
             ("cache (页面缓存目录)", settings.browser_disk_cache_dir),

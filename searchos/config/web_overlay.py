@@ -141,6 +141,7 @@ class AdvancedOverlay(BaseModel, extra="forbid"):
     two-homes problem this overlay exists to remove.
     """
     llm_max_retries: int | None = None
+    orch_coverage_stall_rounds: int | None = None
     browser_disk_cache_dir: str | None = None
     https_proxy: str | None = None  # applied to both HTTP_PROXY and HTTPS_PROXY
     use_layered_context: bool | None = None
@@ -383,6 +384,8 @@ def apply_to_runtime() -> None:
     adv = store.advanced
     if adv.llm_max_retries is not None:
         settings.llm_max_retries = adv.llm_max_retries
+    if adv.orch_coverage_stall_rounds is not None:
+        settings.orch_coverage_stall_rounds = adv.orch_coverage_stall_rounds
     if adv.browser_disk_cache_dir is not None:
         settings.browser_disk_cache_dir = adv.browser_disk_cache_dir
     if adv.use_layered_context is not None:
