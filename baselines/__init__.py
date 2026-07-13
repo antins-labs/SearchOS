@@ -1,4 +1,4 @@
-"""SearchForge baselines package.
+"""SearchOS baselines package.
 
 Registers the hyphenated 'gpt-oss-simple-browser' directory as an importable
 Python package under the name 'baselines.gpt_oss_simple_browser'.
@@ -28,7 +28,7 @@ def _register_subpkg(dotted_name: str, fs_path: Path):
 # Top-level package
 _register_subpkg("baselines.gpt_oss_simple_browser", _BROWSER_DIR)
 
-# Sub-packages / modules used by searchforge
+# Sub-packages / modules used by SearchOS
 for _sub in ("tools", "llm"):
     _sub_dir = _BROWSER_DIR / _sub
     if _sub_dir.is_dir():

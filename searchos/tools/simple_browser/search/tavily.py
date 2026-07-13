@@ -23,7 +23,7 @@ class TavilyProvider(SearchProvider):
         try:
             from tavily import AsyncTavilyClient
         except ImportError:
-            raise RuntimeError("Install tavily-python: pip install 'searchforge[tavily]'")
+            raise RuntimeError("Install tavily-python: pip install 'searchos[tavily]'")
 
         key = self._api_key
         if not key:

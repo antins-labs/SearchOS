@@ -1,4 +1,4 @@
-"""Convert SearchForge raw output → benchmark-shaped prediction strings.
+"""Convert SearchOS raw output → benchmark-shaped prediction strings.
 
 The harness writes a long-form ``report.md`` (5-section markdown) with
 ``[N]`` citation markers in every cell. Both GISA and WideSearch evaluators

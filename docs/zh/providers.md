@@ -2,7 +2,7 @@
 
 [English](../providers.md) | **简体中文**
 
-SearchOS 的 12 个模型角色（orchestrator、extraction、judge…）统一经 `searchos/config/models.py:get_model_for(role)` 构造，底层是 LangChain 的 `ChatOpenAI` / `ChatAnthropic`。
+SearchOS 的 11 个模型角色（orchestrator、extraction、judge…）统一经 `searchos/config/models.py:get_model_for(role)` 构造，底层是 LangChain 的 `ChatOpenAI` / `ChatAnthropic`。
 
 **最快方式：首次运行 `python -m searchos` 会自动进入命令行配置向导**（选厂商 → 填 key → 写入 `.env`），或随时 `python -m searchos --setup` 重新配置。手动配置只需两行环境变量：
 
@@ -82,7 +82,7 @@ SF_MODEL=Qwen/Qwen3-32B     # 必填；端口非 8000 时用 SF_API_BASE 覆盖
 | profile | 角色 | 模型档 | 温度 | 输出上限 |
 |---|---|---|---|---|
 | `main` | orchestrator / sub_agent / skill_evolver / post_mortem / skill_router | 主力 | 0.7 | 16384 |
-| `judge` | judge / conflict_arbiter | 主力 | 0.0 | 16384 |
+| `judge` | judge | 主力 | 0.0 | 16384 |
 | `fast` | extraction / alias_resolver / skill_runtime | 轻量 | 0.0 | 32768 |
 | `synthesis` | synthesis | 轻量 | 0.3 | 32768 |
 | `reformat` | reformat（评测导表，需最大窗口） | 主力 | 0.0 | 65536 |

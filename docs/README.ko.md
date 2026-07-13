@@ -145,7 +145,7 @@ SearchOS는 이 네 가지 실패에 각각 메커니즘 수준의 해법을 제
 * **검색 상태는 시스템에, 대화 히스토리에 두지 않음** — SOCM이 작업 큐·증거 그래프·커버리지 맵을 공유 영속 상태(`search_state.json`)에 두어 언제든 스냅숏 / 복원 / 리플레이 가능. 서브 에이전트는 3계층 컨텍스트(SOCM 스냅숏 → 에피소드 요약 → 최근 워킹 메모리)로 전체 히스토리를 대체하고, 안정된 프리픽스는 prompt cache 친화적.
 * **엔티티 중심 모델링 + 루프를 끊는 센서** — 기본 키 + 속성의 정규화 멀티 테이블(외래 키 포함)로 같은 사실은 한 번만 조회하고, 파견은 항상 빈 셀을 겨냥. LoopSensor가 도구 호출마다 5종 루프 감지를 수행——먼저 리마인더로 궤도 수정, 개선 없으면 `looped`로 표시해 다른 각도로 재파견.
 * **검색과 추출의 분리** — 서브 에이전트는 올바른 페이지를 찾기만 하면 됨. 페이지를 열 때마다 judge 모델이 (entity, attribute, value, source, confidence)를 증거 그래프로 추출하고 단위 정규화·원문 발췌 앵커링을 수행——기준 일관, 출처 추적 가능.
-* **어려운 사이트는 스킬로, 어려운 문제는 방법론으로** — 검색 에이전트 전용 최초의 스킬 시스템: access 스킬이 "못 여는" 문제(안티봇 / 로그인 월)를, strategy 스킬이 "찾을 줄 모르는" 문제(랭킹 / 멀티홉 / 중의성 해소)를 해결하며 쿼리별로 라우팅 주입(자세한 내용은 [스킬 시스템](#-스킬-시스템) 참조).
+* **오픈 도메인 정보 탐색을 위한 역할 정렬형 3계층 스킬 시스템** — 방법론, 검색 전략, 사이트 단위의 실행 가능한 액세스 스킬을 하나의 체계로 통합 편성합니다(자세한 내용은 [스킬 시스템](#-스킬-시스템) 참조).
 
 ## 🧩 Framework
 
@@ -226,25 +226,15 @@ pip install -e ".[all]"     # 수동: 모든 선택 의존성
 
 **첫 실행 시 설정 마법사가 자동으로 시작됩니다**: 사용 가능한 모델 설정이 없으면 `searchos`가 프로바이더와 API 키를 안내하고 `.env`에 저장합니다(`searchos --setup`으로 재설정). Web Settings와 TUI의 `/model`, `/search`, `/config`는 같은 `web_settings.json`을 공유합니다.
 
-수동 설정도 가능합니다——[`.env.example`](../.env.example)을 `.env`로 복사하고 `SF_PROVIDER` 프리셋 하나를 골라 해당 API 키만 넣으면 됩니다(11개 모델 롤 바인딩이 자동 생성됩니다):
+시크릿은 수동으로도 설정할 수 있습니다. [`.env.example`](../.env.example)을 `.env`로 복사하고 실제로 사용하는 API 키만 입력하세요. 프로바이더, 모델, 검색 백엔드 및 기타 런타임 설정은 설정 마법사, Web Settings 또는 TUI에서 선택하며 `web_settings.json`에 저장됩니다.
 
 ```bash
-# 각사 Coding Plan (Anthropic 프로토콜 구독 엔드포인트, 가성비 우수)
-SF_PROVIDER=zhipu-coding      # 또는 kimi-coding / minimax-coding / qwen-coding / volcengine-coding
-ZHIPU_API_KEY=xxx
-
-# 또는 종량제 API (OpenAI 프로토콜)
-SF_PROVIDER=deepseek          # 또는 moonshot / dashscope / openai / openrouter / siliconflow / gemini ...
-DEEPSEEK_API_KEY=xxx
-
-# 또는 로컬 배포
-SF_PROVIDER=ollama            # 또는 vllm
-SF_MODEL=qwen3:32b
-
-SF_JINA_API_KEY=...           # 옵션: Jina 페칭 (미설정 시 비인증 쿼터 사용, 429가 나기 쉬움)
+ZHIPU_API_KEY=xxx             # 모델 프로바이더 키 예시
+SERPER_API_KEY=xxx            # 검색 프로바이더 키 예시
+JINA_API_KEY=xxx              # 선택 사항: Jina 가져오기 할당량 확대
 ```
 
-전체 프리셋(각사 엔드포인트·모델 ID·키 발급 방법·알려진 특이사항)은 [`docs/providers.md`](../docs/providers.md)를 참조하세요. `SF_PROVIDER`를 설정하지 않으면 [`searchos/config/settings.py`](../searchos/config/settings.py) 내장 게이트웨이 기본값(`OPENAI_API_KEY` + `SF_EXTRACTION_API_KEY`)이 사용됩니다.
+전체 프리셋(각사 엔드포인트·모델 ID·키 발급 방법·알려진 특이사항)은 [`docs/providers.md`](../docs/providers.md)를 참조하세요. 고급 사용자를 위한 `SF_PROVIDER` 및 기타 `SF_*` 환경 변수 전용 구성도 계속 지원됩니다.
 
 모든 설정은 `settings.py`에 집약되며 `SF_` 프리픽스 환경 변수로 덮어씁니다. 중첩 필드는 `__`로 구분합니다. 모델은 **롤** 단위로 바인딩되어(11개 롤 → 모델 프로파일) 프로바이더 혼합, 속도 제한, 어블레이션, 비용 절감을 지원합니다:
 
@@ -305,8 +295,6 @@ SF_JINA_API_KEY=...           # 옵션: Jina 페칭 (미설정 시 비인증 쿼
 | `high` | 100 | 35 | 60 min | 60 |
 | `max` | 150 | 50 | 120 min | 80 |
 
-설계 문서: [docs/tui-textual-redesign.md](../docs/tui-textual-redesign.md).
-
 ## 🧰 스킬 시스템
 
 3가지 카테고리의 스킬이 [`searchos/skills/library/`](../searchos/skills/library/)에 통합 배치되어 있습니다:
@@ -364,7 +352,7 @@ web/api/           FastAPI REST/WS: 실행, 기록 자산, snapshot/branch, repa
 web/frontend/      Next.js 리서치 워크스페이스: composer, live run, evidence, versions, usage, history
 
 eval/              평가 프레임워크: run.py 진입점, runner, benchmarks, scorers, reformat
-datasets/          WideSearch / GISA / xbench / browsecomp / frames / webwalker
+datasets/          저장소에 포함된 WideSearch / GISA 벤치마크 데이터
 baselines/         비교용 베이스라인 (gpt-oss-simple-browser 등)
 eval_results/      평가 출력 (문제당 1 디렉터리, 완전히 리플레이 가능한 세션 포함)
 searchos_workspace/ 인터랙티브 실행의 세션 워크스페이스 (타임스탬프 디렉터리)

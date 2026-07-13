@@ -1,6 +1,6 @@
 """
 Search tool - wraps the internal RAG API for web search.
-Adapted from SearchForge/tools/search.py.
+Adapted for SearchOS.
 """
 
 from __future__ import annotations

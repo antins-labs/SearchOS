@@ -420,7 +420,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
         timeout=30.0,
         follow_redirects=True,
         headers={
-            "User-Agent": "Mozilla/5.0 (compatible; SearchBot/1.0; +https://searchforge.ai/bot)",
+            "User-Agent": "Mozilla/5.0 (compatible; SearchOSBot/1.0; +https://github.com/antins-labs/SearchOS)",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.5",
         }

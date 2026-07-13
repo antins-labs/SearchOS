@@ -146,7 +146,7 @@ SearchOS answers each of the four failures with a mechanism-level fix:
 * **Search state lives in the system, not in conversation history** — SOCM keeps the task queue, evidence graph, and coverage map in one shared persistent state (`search_state.json`): snapshot, restore, replay at any time; sub-agents run on a three-layer context (SOCM snapshot → episodic summaries → recent working memory) instead of full history, keeping a stable prompt-cache-friendly prefix.
 * **Entity-centric modeling + loop-breaking sensors** — a normalized multi-table schema (primary keys + attributes, with foreign keys) means each fact is fetched once and dispatch always targets empty cells; LoopSensor runs five loop checks on every tool call — remind first, mark `looped` and re-dispatch from a different angle if it persists.
 * **Search and extraction are separated** — sub-agents just find the right pages; on every page open, a judge model extracts (entity, attribute, value, source, confidence) into the evidence graph, with unit normalization and excerpts anchored to the original text — consistent conventions, traceable sources.
-* **Skills for hard sites, methodology for hard questions** — the first skill system purpose-built for search agents: access skills solve "can't open" (anti-bot / login walls), strategy skills solve "don't know how to search" (rankings / multi-hop / disambiguation), routed per query (details in [Skill system](#-skill-system)).
+* **Role-aligned three-layer skill system for open-domain information seeking** — orchestrates methodology, search strategies, and site-level executable access skills in one system (details in [Skill system](#-skill-system)).
 
 ## 🧩 Framework
 
@@ -229,25 +229,15 @@ The full installer also requires Node.js ≥ 20.9. Use `./install.sh --core` to 
 
 **The first run launches a setup wizard automatically**: when no usable model configuration is detected, `searchos` walks you through picking a provider and entering an API key, then writes `.env` (re-run anytime with `searchos --setup`). The Web Settings page and TUI commands `/model`, `/search`, and `/config` write to the same `web_settings.json` overlay, so CLI, TUI, and Web runs share one configuration.
 
-You can also configure manually — copy [`.env.example`](.env.example) to `.env`, pick one `SF_PROVIDER` preset, and add the matching API key (bindings for all 11 model roles are generated automatically):
+You can also configure secrets manually: copy [`.env.example`](.env.example) to `.env` and add only the API keys you use. Choose providers, models, search backends, and other runtime settings through the setup wizard, Web Settings, or TUI; those choices are stored in `web_settings.json`.
 
 ```bash
-# Vendor Coding Plan (Anthropic-protocol subscription endpoints, great value)
-SF_PROVIDER=zhipu-coding      # or kimi-coding / minimax-coding / qwen-coding / volcengine-coding
-ZHIPU_API_KEY=xxx
-
-# Or pay-as-you-go API (OpenAI protocol)
-SF_PROVIDER=deepseek          # or moonshot / dashscope / openai / openrouter / siliconflow / gemini ...
-DEEPSEEK_API_KEY=xxx
-
-# Or local deployment
-SF_PROVIDER=ollama            # or vllm
-SF_MODEL=qwen3:32b
-
-SF_JINA_API_KEY=...           # optional: Jina fetching (without it you use the unauthenticated quota, prone to 429)
+ZHIPU_API_KEY=xxx             # example model-provider key
+SERPER_API_KEY=xxx            # example search-provider key
+JINA_API_KEY=xxx              # optional: higher Jina fetching quota
 ```
 
-All presets (each vendor's endpoints, model IDs, how to get keys, and known quirks) are in [`docs/providers.md`](docs/providers.md). Without `SF_PROVIDER`, the built-in gateway defaults in [`searchos/config/settings.py`](searchos/config/settings.py) apply (`OPENAI_API_KEY` + `SF_EXTRACTION_API_KEY`).
+All presets (each vendor's endpoints, model IDs, how to get keys, and known quirks) are in [`docs/providers.md`](docs/providers.md). Advanced environment-only configuration through `SF_PROVIDER` and other `SF_*` overrides remains supported and is documented there.
 
 All configuration is centralized in `settings.py`; `SF_`-prefixed environment variables override it, with `__` separating nested fields (partial overrides **deep-merge** with defaults, changing only the fields you set). Models are bound by **role** (11 roles → model profiles), which makes provider mixing, rate control, ablations, and cost reduction straightforward:
 
@@ -308,8 +298,6 @@ The four `/effort` budget tiers at a glance (these modify global settings and ta
 | `high` | 100 | 35 | 60 min | 60 |
 | `max` | 150 | 50 | 120 min | 80 |
 
-Design doc: [docs/tui-textual-redesign.md](docs/tui-textual-redesign.md).
-
 ## 🧰 Skill system
 
 Three categories of skills, all under [`searchos/skills/library/`](searchos/skills/library/):
@@ -367,7 +355,7 @@ web/api/           FastAPI REST/WS service: runs, history/assets, snapshots/bran
 web/frontend/      Next.js research workspace: composer, live run, evidence, versions, usage, history library
 
 eval/              Evaluation framework: run.py entry, runner, benchmarks, scorers, reformat
-datasets/          WideSearch / GISA / xbench / browsecomp / frames / webwalker
+datasets/          Bundled WideSearch and GISA benchmark data
 baselines/         Baselines for comparison (gpt-oss-simple-browser, etc.)
 eval_results/      Evaluation output (one directory per case, with a fully replayable session)
 searchos_workspace/ Session workspaces for interactive runs (timestamped directories)

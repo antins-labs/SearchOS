@@ -1,7 +1,7 @@
 """Report synthesis — deterministic coverage-table render + writer-finalize message.
 
-Migrated from searchforge/prompts/synthesis_prompt.py; the LLM multi-stage prose
-fallback (build_prose_*) was dropped — the writer agent produces the report body.
+The legacy LLM multi-stage prose fallback (build_prose_*) was dropped — the
+writer agent produces the report body.
 
 Output quality priorities:
 1. Match user's language (Chinese query → Chinese report, English → English)
@@ -681,5 +681,3 @@ def build_writer_finalize_message(
         f"### Sources\n{sources_list or '_(no sources)_'}\n\n"
         f"Now emit the final body."
     )
-
-

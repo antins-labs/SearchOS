@@ -1,4 +1,4 @@
-# SearchForge 前端设计源真相 (DESIGN.md)
+# SearchOS 前端设计源真相 (DESIGN.md)
 
 > 面向用户的 web 前端重构。基调:**Claude 暖棕编辑风**(warm-brown editorial)。
 > 目标:消除"上世纪僵硬感",达到 ChatGPT/Claude 网页那种克制的高级感。

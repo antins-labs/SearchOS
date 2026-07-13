@@ -2,7 +2,7 @@
 
 **English** | [简体中文](zh/providers.md)
 
-SearchOS constructs its 12 model roles—such as `orchestrator`, `extraction`,
+SearchOS constructs its 11 model roles—such as `orchestrator`, `extraction`,
 and `judge`—through `searchos/config/models.py:get_model_for(role)`, backed by
 LangChain's `ChatOpenAI` and `ChatAnthropic` clients.
 
@@ -111,7 +111,7 @@ lighter model to control cost.
 | Profile | Roles | Model tier | Temperature | Output limit |
 |---|---|---|---|---|
 | `main` | orchestrator / sub_agent / skill_evolver / post_mortem / skill_router | Primary | 0.7 | 16384 |
-| `judge` | judge / conflict_arbiter | Primary | 0.0 | 16384 |
+| `judge` | judge | Primary | 0.0 | 16384 |
 | `fast` | extraction / alias_resolver / skill_runtime | Light | 0.0 | 32768 |
 | `synthesis` | synthesis | Light | 0.3 | 32768 |
 | `reformat` | reformat (evaluation table export) | Primary | 0.0 | 65536 |

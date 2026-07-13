@@ -1,6 +1,6 @@
 """SearchOS live dashboard — run progress as stacked rich panels.
 
-Ported from searchforge/util/live_view.py: same four sections (Agents /
+SearchOS dashboard with four sections (Agents /
 Progress+Coverage / Frontier / Events) and the same symbol/colour vocabulary,
 but driven by an in-process trajectory callback (``feed``) instead of tailing
 the file, and rendered to an ANSI string for embedding in the prompt_toolkit

@@ -281,7 +281,7 @@ def _build_default_backend() -> BrowserBackend:
         except ImportError as e:
             logger.warning(
                 "crawl4ai backend requested but import failed (%s); "
-                "falling back to aiohttp. Install with: pip install searchforge[crawl4ai]",
+                "falling back to aiohttp. Install with: pip install searchos[crawl4ai]",
                 e,
             )
             return AiohttpBackend()
