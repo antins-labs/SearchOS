@@ -325,6 +325,10 @@ class SearchSession:
         # --- Token tracking (per-run, ContextVar-backed) ---
         from searchos.util.token_tracker import start_tracking
         token_usage = start_tracking()
+        from searchos.tools.simple_browser.usage import (
+            start_tracking as start_browser_tracking,
+        )
+        browser_usage = start_browser_tracking()
 
         # --- Workspace ---
         workspace = WorkspaceManager(self._workspace_root, session_id)
@@ -996,9 +1000,11 @@ class SearchSession:
             "frontier_total": len(final_search_state.frontier.questions),
             "token_usage": token_dict,
             "token_phases": token_phases,
+            "browser_usage": browser_usage.to_dict(),
         })
         result.token_usage = token_dict
         result.token_phases = token_phases
+        result.browser_usage = browser_usage.to_dict()
         result.tool_counts = traj_logger.tool_counts
         result.model_distribution = self._model_distribution
 
@@ -1474,6 +1480,7 @@ class SearchResult:
         self.access_task: asyncio.Task[None] | None = None
         self.token_usage: dict[str, Any] = {}
         self.token_phases: dict[str, Any] = {}
+        self.browser_usage: dict[str, int] = {}
         self.tool_counts: dict[str, int] = {}
         self.model_distribution: dict[str, dict[str, str]] = {}
 

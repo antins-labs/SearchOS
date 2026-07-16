@@ -78,24 +78,7 @@ async def _run_one(
         "started_at": datetime.utcnow().isoformat() + "Z",
     }
 
-    cache_baseline = {"served": 0, "fetched": 0, "stored": 0}
-    jina_calls_baseline = 0
     async with sem:
-        # Snapshot AFTER acquiring the semaphore so the delta reflects
-        # roughly this question's own elapsed window. Snapshotting before
-        # the sem makes every queued task share a baseline of 0 → all
-        # deltas look cumulative.
-        try:
-            from searchos.tools.simple_browser.backend.base import BrowserService as _BS
-            from searchos.tools.simple_browser.backend.jina import JinaReaderBackend as _JRB
-            _svc = _BS.get()
-            if getattr(_svc, "_disk_cache", None) is not None:
-                cache_baseline = dict(_svc._disk_cache.stats)
-            if isinstance(_svc.backend, _JRB):
-                jina_calls_baseline = _svc.backend.api_calls
-        except Exception:
-            pass
-
         try:
             # Pre-filter: strip "single Markdown table with columns A,B,C" boilerplate
             # so the orchestrator's multi-table planning isn't shouted down by the user.
@@ -203,6 +186,14 @@ async def _run_one(
             record["coverage"] = getattr(search_result, "coverage_score", None)
             record["evidence_count"] = getattr(search_result, "evidence_count", None)
             record["token_usage"] = getattr(search_result, "token_usage", {})
+            browser_usage = getattr(search_result, "browser_usage", {}) or {}
+            record["page_cache"] = {
+                key: int(browser_usage.get(key, 0) or 0)
+                for key in ("served", "fetched", "stored", "coalesced")
+            }
+            record["jina_api_calls"] = int(
+                browser_usage.get("jina_api_calls", 0) or 0
+            )
 
             # Suspected RPM-storm abort. Don't persist the result — let the
             # next run retry this question rather than baking in a false zero
@@ -321,21 +312,16 @@ async def _run_one(
         if metrics.get("pk_only_match"):
             score_hint += " [PK-ONLY: score covers key column only]"
     cache_hint = ""
-    try:
-        from searchos.tools.simple_browser.backend.base import BrowserService
-        from searchos.tools.simple_browser.backend.jina import JinaReaderBackend as _JRB
-        svc = BrowserService.get()
-        if getattr(svc, "_disk_cache", None) is not None:
-            s = svc._disk_cache.stats
-            d = {k: s[k] - cache_baseline.get(k, 0) for k in s}
-            record["page_cache"] = d
-            cache_hint = f" cache=served{d['served']}/fetched{d['fetched']}/stored{d['stored']}"
-        if isinstance(svc.backend, _JRB):
-            jina_delta = svc.backend.api_calls - jina_calls_baseline
-            record["jina_api_calls"] = jina_delta
-            cache_hint += f" jina={jina_delta}"
-    except Exception:
-        pass
+    page_cache = record.get("page_cache") or {}
+    if page_cache:
+        cache_hint = (
+            f" cache=served{page_cache.get('served', 0)}"
+            f"/fetched{page_cache.get('fetched', 0)}"
+            f"/stored{page_cache.get('stored', 0)}"
+            f"/coalesced{page_cache.get('coalesced', 0)}"
+        )
+    if "jina_api_calls" in record:
+        cache_hint += f" jina={record['jina_api_calls']}"
     result_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"[progress] done {sample.id}{score_hint} elapsed={record.get('elapsed_s', 0):.1f}s{cache_hint}",
           flush=True)

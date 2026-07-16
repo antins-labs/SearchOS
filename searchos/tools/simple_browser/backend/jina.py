@@ -9,6 +9,7 @@ import re
 import aiohttp
 
 from searchos.tools.simple_browser.backend.base import FetchResult
+from searchos.tools.simple_browser.usage import record_jina_call
 
 _JINA_BASE = "https://r.jina.ai/"
 
@@ -65,6 +66,7 @@ class JinaReaderBackend:
     ) -> FetchResult:
         target = _JINA_BASE + url
         self.api_calls += 1
+        record_jina_call()
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
@@ -96,6 +98,7 @@ class JinaReaderBackend:
         """Jina Reader with ``X-Return-Format: html``. ``""`` on failure."""
         target = _JINA_BASE + url
         self.api_calls += 1
+        record_jina_call()
         headers = {**self._headers(), "X-Return-Format": "html"}
         try:
             async with aiohttp.ClientSession() as session:

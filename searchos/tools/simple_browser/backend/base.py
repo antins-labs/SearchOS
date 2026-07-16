@@ -13,6 +13,7 @@ Backends: aiohttp | crawl4ai | search_engine | jina.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from dataclasses import dataclass, field
 from typing import Protocol
@@ -106,6 +107,7 @@ class BrowserService:
             except Exception:  # noqa: BLE001
                 logger.debug("disk cache init failed", exc_info=True)
         self._html_upgrade_backend: BrowserBackend | None = None
+        self._inflight: dict[str, asyncio.Future[FetchResult]] = {}
 
     @classmethod
     def get(cls) -> "BrowserService":
@@ -129,51 +131,109 @@ class BrowserService:
         self, url: str, *, query: str = "", timeout: float = 20.0,
     ) -> FetchResult:
         if self._disk_cache is not None:
-            cached = self._disk_cache.get(url)
+            cached = self._disk_cache.peek(url)
             if cached is not None:
+                self._disk_cache.record_served()
                 self._record_html(cached)
                 return cached
-        r = await self._backend.fetch(url, query=query, timeout=timeout)
-        self._record_html(r)
-        if self._disk_cache is not None:
-            self._disk_cache.put(r)
-        return r
+
+        from searchos.tools.simple_browser.cache import _key
+
+        inflight_key = _key(url)
+        pending = self._inflight.get(inflight_key)
+        if pending is not None:
+            from searchos.tools.simple_browser.usage import record_cache_coalesced
+
+            result = await asyncio.shield(pending)
+            record_cache_coalesced()
+            return result
+
+        loop = asyncio.get_running_loop()
+        pending = loop.create_future()
+        self._inflight[inflight_key] = pending
+        try:
+            result = await self._fetch_uncached(
+                url,
+                query=query,
+                timeout=timeout,
+            )
+            pending.set_result(result)
+            return result
+        except BaseException as exc:
+            if not pending.done():
+                pending.set_exception(exc)
+                # The leader does not await its own future. Consume the
+                # exception when there are no followers to avoid a warning.
+                pending.add_done_callback(lambda future: future.exception())
+            raise
+        finally:
+            if self._inflight.get(inflight_key) is pending:
+                self._inflight.pop(inflight_key, None)
+
+    async def _fetch_uncached(
+        self,
+        url: str,
+        *,
+        query: str,
+        timeout: float,
+    ) -> FetchResult:
+        """Fetch one cache miss while coalescing across OS processes."""
+        cache = self._disk_cache
+        lock_handle = None
+        if cache is not None:
+            lock_handle = cache.open_fetch_lock(url)
+            deadline = asyncio.get_running_loop().time() + max(
+                5.0,
+                timeout + 5.0,
+            )
+            try:
+                while not cache.try_acquire_fetch_lock(lock_handle):
+                    if asyncio.get_running_loop().time() >= deadline:
+                        cache.release_fetch_lock(lock_handle)
+                        lock_handle = None
+                        logger.warning("cache fetch lock timed out for %s", url)
+                        break
+                    await asyncio.sleep(0.05)
+            except BaseException:
+                cache.release_fetch_lock(lock_handle)
+                raise
+
+        try:
+            if cache is not None and lock_handle is not None:
+                cached = cache.peek(url)
+                if cached is not None:
+                    cache.record_served()
+                    self._record_html(cached)
+                    return cached
+
+            if cache is not None:
+                cache.record_fetched()
+            result = await self._backend.fetch(
+                url,
+                query=query,
+                timeout=timeout,
+            )
+            self._record_html(result)
+            if cache is not None:
+                cache.put(result)
+            return result
+        finally:
+            if cache is not None:
+                cache.release_fetch_lock(lock_handle)
 
     async def fetch_many(
         self, urls: list[str], *, query: str = "", timeout: float = 20.0,
     ) -> list[FetchResult]:
-        cached_by_url: dict[str, FetchResult] = {}
-        misses: list[str] = []
-        if self._disk_cache is not None:
-            for u in urls:
-                hit = self._disk_cache.get(u)
-                (cached_by_url.__setitem__(u, hit) if hit is not None
-                 else misses.append(u))
-        else:
-            misses = list(urls)
-
-        fresh: list[FetchResult] = []
-        if misses:
-            fresh = await self._backend.fetch_many(misses, query=query, timeout=timeout)
-            if self._disk_cache is not None:
-                for r in fresh:
-                    self._disk_cache.put(r)
-        fresh_by_url = {r.url: r for r in fresh}
-
-        out: list[FetchResult] = []
-        for u in urls:
-            if u in cached_by_url:
-                out.append(cached_by_url[u])
-            elif u in fresh_by_url:
-                out.append(fresh_by_url[u])
-            else:
-                out.append(FetchResult(url=u, status=-3, error="backend_missing"))
-        for r in out:
-            self._record_html(r)
-        return out
+        return await asyncio.gather(*(
+            self.fetch(url, query=query, timeout=timeout) for url in urls
+        ))
 
     async def close(self) -> None:
         self._html_cache.clear()
+        for pending in self._inflight.values():
+            if not pending.done():
+                pending.cancel()
+        self._inflight.clear()
         await self._backend.close()
 
     def _record_html(self, r: FetchResult) -> None:
