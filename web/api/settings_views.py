@@ -35,6 +35,8 @@ def skills_view() -> dict:
     catalog = skills_catalog.skill_catalog()
     return {
         "enable_skills": settings.enable_skills,
+        "enable_access_skill_generation": settings.enable_access_skill_generation,
+        "access_skill_max_per_run": settings.access_skill_max_per_run,
         "access_mode": "only" if store.skills.access_only is not None else "router",
         "categories": {
             cat: [

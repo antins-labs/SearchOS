@@ -338,6 +338,8 @@ export const putSkills = (patch: {
   access_deny?: string[];
   strategy_deny?: string[];
   orchestrator_deny?: string[];
+  enable_access_skill_generation?: boolean | null;
+  access_skill_max_per_run?: number | null;
 }) => putJson<SkillsView>("/api/settings/skills", patch);
 
 export const patchSkill = (name: string, enabled: boolean) =>

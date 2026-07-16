@@ -734,7 +734,31 @@ def _experimental_section_items(app) -> list[Item]:
         _sync()
         return None
 
+    def _set_access_generation(v):
+        _store().skills.enable_access_skill_generation = bool(v)
+        _sync()
+        return None
+
+    def _set_access_generation_max(v):
+        if v is None:
+            _store().skills.access_skill_max_per_run = None
+            _sync(reload=True)
+            return None
+        if not (1 <= v <= 10):
+            return "范围 1–10"
+        _store().skills.access_skill_max_per_run = v
+        _sync()
+        return None
+
     return [
+        Item("bool", "自动生成 Access Skill",
+             get=lambda: _settings().enable_access_skill_generation,
+             set=_set_access_generation,
+             help="搜索结束后生成，供后续任务使用"),
+        Item("int", "每轮最多生成 Skill",
+             get=lambda: _settings().access_skill_max_per_run,
+             set=_set_access_generation_max,
+             help="范围 1–10（留空=恢复默认）"),
         Item("int", "Coverage 停滞轮数",
              get=lambda: _settings().orch_coverage_stall_rounds,
              set=_set_coverage_stall_rounds,

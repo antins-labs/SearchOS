@@ -99,9 +99,20 @@ def _rate_limit_kwargs(profile: ModelProfile) -> dict[str, Any]:
     return {"rate_limiter": limiter, "callbacks": [usage_cb]}
 
 
-def get_model_for(role: str) -> BaseChatModel:
-    """Build a fresh BaseChatModel for the role (new instance per call)."""
+def get_model_for(
+    role: str,
+    *,
+    model_override: str | None = None,
+) -> BaseChatModel:
+    """Build a fresh BaseChatModel for the role.
+
+    ``model_override`` changes only the wire model id while retaining the
+    role's configured provider, endpoint, key env, protocol, and limits. It is
+    intended for narrow CLI overrides; normal runtime calls should omit it.
+    """
     profile = resolve_profile(role)
+    if model_override:
+        profile = profile.model_copy(update={"model": model_override})
     # api_key_fallback covers local servers (Ollama/vLLM) that need a
     # placeholder key even without auth.
     api_key = os.environ.get(profile.api_key_env, "") or profile.api_key_fallback

@@ -3,11 +3,12 @@
 import { useMemo, useState } from "react";
 import { ChevronRight, Search } from "lucide-react";
 
-import { patchSkill, putMisc, putSkillCategory } from "@/lib/api";
+import { patchSkill, putMisc, putSkillCategory, putSkills } from "@/lib/api";
 import type { SkillsView } from "@/lib/types";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { OfflineSkeleton, SectionShell } from "@/components/settings/primitives";
 import Toggle from "@/components/settings/controls/Toggle";
+import NumberField from "@/components/settings/controls/NumberField";
 
 const BIG_GROUP = 40; // groups larger than this start collapsed (TUI parity)
 
@@ -81,6 +82,28 @@ export default function SkillsSection() {
       errorLabel: "Couldn't toggle skills system",
     });
 
+  const toggleAccessGeneration = (enabled: boolean) =>
+    mutate({
+      optimistic: (s) => ({
+        ...s,
+        skills: { ...s.skills, enable_access_skill_generation: enabled },
+      }),
+      call: () => putSkills({ enable_access_skill_generation: enabled }),
+      merge: mergeSkills,
+      errorLabel: "Couldn't toggle access-skill generation",
+    });
+
+  const setAccessGenerationMax = (count: number) =>
+    mutate({
+      optimistic: (s) => ({
+        ...s,
+        skills: { ...s.skills, access_skill_max_per_run: count },
+      }),
+      call: () => putSkills({ access_skill_max_per_run: count }),
+      merge: mergeSkills,
+      errorLabel: "Couldn't update access-skill generation limit",
+    });
+
   return (
     <SectionShell id="skills" title="Skills"
       description="Enable or disable the skills injected into orchestrator and sub-agents.">
@@ -100,6 +123,31 @@ export default function SkillsSection() {
           <Toggle checked={settings.skills.enable_skills} disabled={disabled} label="Enable skills"
             onChange={toggleSkillsSystem} />
         </span>
+      </div>
+
+      <div className="surface flex items-center justify-between gap-4 rounded-xl px-3 py-2.5">
+        <div className="min-w-0">
+          <div className="text-[13px] font-medium text-ink">Learn access skills</div>
+          <div className="text-[11.5px] text-ink-faint">Generate after a run; use in later runs.</div>
+        </div>
+        <div className="flex shrink-0 items-center gap-3">
+          <span className="flex items-center gap-1.5 text-[12px] text-ink-dim">
+            Max
+            <NumberField
+              value={settings.skills.access_skill_max_per_run}
+              min={1}
+              max={10}
+              onCommit={setAccessGenerationMax}
+              disabled={disabled || !settings.skills.enable_access_skill_generation}
+            />
+          </span>
+          <Toggle
+            checked={settings.skills.enable_access_skill_generation}
+            disabled={disabled}
+            label="Learn access skills"
+            onChange={toggleAccessGeneration}
+          />
+        </div>
       </div>
 
       {categories.every(([, skills]) => skills.length === 0) ? (

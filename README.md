@@ -316,7 +316,7 @@ SEARCHOS_SKILL_LAYERS_DISABLED=access                # disable by layer
 SEARCHOS_SKILLS_DISABLED=1                           # disable all
 ```
 
-After a session, high-frequency domains can optionally be mined and baked into new access skills automatically (`SF_ENABLE_ACCESS_SKILL_GENERATION`, off by default).
+After a session, high-frequency domains can optionally be mined and baked into new access skills for later runs. Enable this under **Settings → Skills** or TUI `/config`; generation uses the configured `skill_evolver` role. The legacy `SF_ENABLE_ACCESS_SKILL_GENERATION` variable remains migration-only.
 
 ## 📊 Evaluation
 

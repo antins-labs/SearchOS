@@ -312,7 +312,7 @@ SEARCHOS_SKILL_LAYERS_DISABLED=access                # 按层关闭
 SEARCHOS_SKILLS_DISABLED=1                           # 全部关闭
 ```
 
-会话结束后可选自动挖掘高频域名、烘焙新的 access 技能（`SF_ENABLE_ACCESS_SKILL_GENERATION`，默认关）。
+可在 Web「Skills」或 TUI `/config` 中开启自动学习：会话结束后挖掘高频域名、烘焙新的 access 技能，供后续任务使用。生成模型复用 `skill_evolver` 角色配置；旧变量 `SF_ENABLE_ACCESS_SKILL_GENERATION` 仅保留用于兼容迁移。
 
 ## 📊 评测
 

@@ -28,7 +28,6 @@ from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "GLM-5"
 MAX_TURNS = 25
 
 SYSTEM_PROMPT = """\
@@ -241,18 +240,29 @@ async def build_skill(
     *,
     notes: str = "",
     output_dir: Path | None = None,
+    builder_model: Any = None,
     model: str | None = None,
     max_turns: int = MAX_TURNS,
 ) -> Path | None:
-    """Build one access skill and return its directory on success."""
-    import openai
+    """Build one access skill and return its directory on success.
 
-    base_url = os.environ.get("DYNAMIC_BUILDER_BASE_URL", "")
-    if not base_url:
-        logger.error(
-            "DYNAMIC_BUILDER_BASE_URL is not set — the dynamic skill builder "
-            "needs an OpenAI-compatible endpoint (e.g. https://api.openai.com/v1). "
-            "Skipping skill generation for %s.", host,
+    The builder uses the already-resolved ``skill_evolver`` chat model so its
+    provider, endpoint, key env, protocol, retry policy, and rate limits all
+    come from the shared profile/role configuration. Tests and embedding
+    callers may inject ``builder_model`` directly. ``model`` is a CLI-only
+    wire-model override that retains the rest of the role profile.
+    """
+    if builder_model is None:
+        from searchos.config.models import get_model_for
+
+        builder_model = get_model_for("skill_evolver", model_override=model)
+
+    try:
+        tool_model = builder_model.bind_tools(BuilderWorkspace.TOOL_DEFINITIONS)
+    except Exception:
+        logger.warning(
+            "skill_evolver model does not support access-skill builder tools",
+            exc_info=True,
         )
         return None
 
@@ -274,44 +284,26 @@ async def build_skill(
     }))
     workspace = BuilderWorkspace(staging, allowed_hosts=allowed_hosts)
 
-    model_id = model or os.environ.get("DYNAMIC_BUILDER_MODEL", DEFAULT_MODEL)
-    client = openai.AsyncOpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY", ""),
-        base_url=base_url,
-    )
-
     logger.info("dynamic builder: host=%s output=%s", host, final_dir)
-    messages: list[dict[str, Any]] = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": _user_prompt(host, probe_urls, notes)},
+    from langchain_core.messages import HumanMessage, SystemMessage
+
+    messages: list[Any] = [
+        SystemMessage(content=SYSTEM_PROMPT),
+        HumanMessage(content=_user_prompt(host, probe_urls, notes)),
     ]
 
     for turn in range(max_turns):
         logger.info("dynamic builder: turn %s/%s", turn + 1, max_turns)
-        response = await client.chat.completions.create(
-            model=model_id,
-            max_tokens=8192,
-            tools=BuilderWorkspace.TOOL_DEFINITIONS,
-            messages=messages,
-        )
+        try:
+            msg = await tool_model.ainvoke(messages)
+        except Exception:
+            logger.warning("dynamic builder model call failed for %s", host, exc_info=True)
+            break
 
-        choice = response.choices[0]
-        msg = choice.message
-        tool_calls = msg.tool_calls or []
-        # Echo the assistant turn back verbatim (content + any tool_calls).
-        messages.append({
-            "role": "assistant",
-            "content": msg.content or "",
-            **({"tool_calls": [
-                {
-                    "id": tc.id,
-                    "type": "function",
-                    "function": {"name": tc.function.name,
-                                 "arguments": tc.function.arguments},
-                }
-                for tc in tool_calls
-            ]} if tool_calls else {}),
-        })
+        tool_calls = getattr(msg, "tool_calls", None) or []
+        # Preserve the provider-normalized assistant message, including tool
+        # calls, so the next turn remains valid for every supported protocol.
+        messages.append(msg)
 
         if not tool_calls:
             break
@@ -507,16 +499,33 @@ async def _skill_smoke_passes(
     return not saw_network_fail
 
 
-async def _run_tool(workspace: BuilderWorkspace, tool_call: Any) -> dict[str, Any]:
+async def _run_tool(workspace: BuilderWorkspace, tool_call: Any) -> Any:
+    """Execute one normalized LangChain tool call and return a ToolMessage."""
+    from langchain_core.messages import ToolMessage
+
+    name = ""
+    call_id = ""
     try:
-        args = json.loads(tool_call.function.arguments or "{}")
-        result = await workspace.dispatch(tool_call.function.name, args)
+        if not isinstance(tool_call, dict):
+            raise TypeError("tool call must be a normalized mapping")
+        name = str(tool_call.get("name", ""))
+        call_id = str(tool_call.get("id", ""))
+        args = tool_call.get("args") or {}
+        if isinstance(args, str):
+            args = json.loads(args or "{}")
+        if not isinstance(args, dict):
+            raise TypeError("tool call args must be an object")
+        result = await workspace.dispatch(name, args)
         payload = json.dumps(result, ensure_ascii=False, default=str)
     except Exception as exc:  # noqa: BLE001
         payload = json.dumps({"error": str(exc)}, ensure_ascii=False)
     if len(payload) > 10000:
         payload = f"{payload[:10000]}...[truncated]"
-    return {"role": "tool", "tool_call_id": tool_call.id, "content": payload}
+    return ToolMessage(
+        content=payload,
+        tool_call_id=call_id or "missing-tool-call-id",
+        name=name or None,
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -531,6 +540,22 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-turns", type=int, default=MAX_TURNS)
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
+
+    # The standalone builder shares the same config bootstrap as SearchOS:
+    # secrets from .env, then the web/TUI overlay for role/profile bindings.
+    try:
+        from dotenv import load_dotenv
+
+        for parent in [Path.cwd(), *Path(__file__).resolve().parents]:
+            env_file = parent / ".env"
+            if env_file.exists():
+                load_dotenv(env_file)
+                break
+    except Exception:
+        pass
+    from searchos.config.web_overlay import load_and_apply
+
+    load_and_apply()
 
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,

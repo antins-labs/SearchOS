@@ -74,6 +74,8 @@ export interface SkillInfo {
 
 export interface SkillsView {
   enable_skills: boolean;
+  enable_access_skill_generation: boolean;
+  access_skill_max_per_run: number;
   access_mode: "router" | "only";
   categories: Record<string, SkillInfo[]>; // orchestrator / access / strategy
 }

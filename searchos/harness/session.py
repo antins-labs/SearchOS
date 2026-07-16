@@ -1077,6 +1077,7 @@ class SearchSession:
                     reports = await generate_access_skills_from_trace(
                         workspace.trajectory_path,
                         judge_model=self._skill_evolver_model,
+                        builder_model=self._skill_evolver_model,
                         library_path=Path(lib) / "access",
                         max_per_run=settings.access_skill_max_per_run,
                         min_opens=settings.access_skill_min_opens,

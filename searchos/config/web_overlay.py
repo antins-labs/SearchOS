@@ -38,6 +38,10 @@ class SkillsOverlay(BaseModel, extra="forbid"):
     access_deny: list[str] = Field(default_factory=list)
     strategy_deny: list[str] = Field(default_factory=list)
     orchestrator_deny: list[str] = Field(default_factory=list)
+    # Reactive generation runs after a search and installs generated access
+    # skills for later runs. None keeps the env/code default.
+    enable_access_skill_generation: bool | None = None
+    access_skill_max_per_run: int | None = Field(default=None, ge=1, le=10)
 
 
 class ProviderConnection(BaseModel, extra="forbid"):
@@ -228,6 +232,8 @@ def save_overlay() -> None:
 MIGRATABLE_ENV_KEYS: tuple[str, ...] = (
     "SF_ENABLE_SKILLS",
     "SF_ENABLE_EXPLORE_BATCH",
+    "SF_ENABLE_ACCESS_SKILL_GENERATION",
+    "SF_ACCESS_SKILL_MAX_PER_RUN",
     "SF_SEARCH_PROVIDER",
     "SF_BROWSER_DISK_CACHE_DIR",
     "HTTP_PROXY",
@@ -257,6 +263,32 @@ def migrate_legacy_env_into_overlay() -> list[str]:
             "1", "true", "yes", "on",
         }
         seeded.append("SF_ENABLE_EXPLORE_BATCH")
+
+    raw_access_generation = os.environ.get(
+        "SF_ENABLE_ACCESS_SKILL_GENERATION", "",
+    ).strip().lower()
+    if store.skills.enable_access_skill_generation is None and raw_access_generation:
+        store.skills.enable_access_skill_generation = raw_access_generation in {
+            "1", "true", "yes", "on",
+        }
+        seeded.append("SF_ENABLE_ACCESS_SKILL_GENERATION")
+
+    raw_access_max = os.environ.get("SF_ACCESS_SKILL_MAX_PER_RUN", "").strip()
+    if store.skills.access_skill_max_per_run is None and raw_access_max:
+        try:
+            parsed_access_max = int(raw_access_max)
+            if 1 <= parsed_access_max <= 10:
+                store.skills.access_skill_max_per_run = parsed_access_max
+                seeded.append("SF_ACCESS_SKILL_MAX_PER_RUN")
+            else:
+                logger.warning(
+                    "Ignoring SF_ACCESS_SKILL_MAX_PER_RUN outside 1..10: %r",
+                    raw_access_max,
+                )
+        except ValueError:
+            logger.warning(
+                "Ignoring invalid SF_ACCESS_SKILL_MAX_PER_RUN: %r", raw_access_max,
+            )
 
     search = os.environ.get("SF_SEARCH_PROVIDER", "").strip()
     if store.models.search_provider is None and search:
@@ -377,6 +409,12 @@ def apply_to_runtime() -> None:
         settings.enable_skills = store.run_defaults.enable_skills
     if store.run_defaults.enable_explore_batch is not None:
         settings.enable_explore_batch = store.run_defaults.enable_explore_batch
+    if store.skills.enable_access_skill_generation is not None:
+        settings.enable_access_skill_generation = (
+            store.skills.enable_access_skill_generation
+        )
+    if store.skills.access_skill_max_per_run is not None:
+        settings.access_skill_max_per_run = store.skills.access_skill_max_per_run
 
     # Advanced knobs. Proxy is not a settings field — the HTTP stack reads it
     # from the environment, so export it there (and to HTTP_PROXY); clearing the

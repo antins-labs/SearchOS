@@ -44,6 +44,8 @@ class SkillsUpdate(BaseModel, extra="forbid"):
     access_deny: list[str] | None = None
     strategy_deny: list[str] | None = None
     orchestrator_deny: list[str] | None = None
+    enable_access_skill_generation: bool | None = None
+    access_skill_max_per_run: int | None = Field(default=None, ge=1, le=10)
 
 
 class SkillToggle(BaseModel, extra="forbid"):
@@ -112,6 +114,8 @@ async def put_skills(req: SkillsUpdate):
     if unmatched:
         raise HTTPException(400, {"detail": "Unknown skills", "unmatched": sorted(set(unmatched))})
 
+    sent = req.model_fields_set
+
     def patch(s):
         if req.access_only is not None:
             s.skills.access_only = req.access_only
@@ -121,9 +125,24 @@ async def put_skills(req: SkillsUpdate):
             s.skills.strategy_deny = req.strategy_deny
         if req.orchestrator_deny is not None:
             s.skills.orchestrator_deny = req.orchestrator_deny
+        if "enable_access_skill_generation" in sent:
+            s.skills.enable_access_skill_generation = (
+                req.enable_access_skill_generation
+            )
+        if "access_skill_max_per_run" in sent:
+            s.skills.access_skill_max_per_run = req.access_skill_max_per_run
         skills_catalog.normalize_access_only(pools.get("access", set()))
 
-    await settings_store.update(patch)
+    # Clearing an overlay value must rebuild the env-backed settings singleton
+    # before replaying the remaining overlay.
+    reload = any(
+        field in sent and getattr(req, field) is None
+        for field in (
+            "enable_access_skill_generation",
+            "access_skill_max_per_run",
+        )
+    )
+    await settings_store.update(patch, reload=reload)
     return skills_view()
 
 

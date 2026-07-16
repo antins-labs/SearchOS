@@ -243,6 +243,7 @@ async def generate_access_skills_from_trace(
     trajectory_path: str | Path,
     *,
     judge_model: Any = None,
+    builder_model: Any = None,
     library_path: str | Path | None = None,
     max_per_run: int = 2,
     min_opens: int = 3,
@@ -251,9 +252,10 @@ async def generate_access_skills_from_trace(
 ) -> list[dict[str, Any]]:
     """Triage the trajectory and bake an agent_called skill per selected host.
 
-    ``judge_model`` drives target selection (the model that ran the
-    search); without it, a heuristic fallback is used. Returns a per-host
-    report list. Failures are swallowed per-host.
+    ``judge_model`` drives target selection (the model that ran the search);
+    without it, a heuristic fallback is used. ``builder_model`` is the
+    role-resolved tool-calling model used to write the skill. Returns a
+    per-host report list. Failures are swallowed per-host.
     """
     from searchos.config.settings import settings
     from searchos.skills.evolution.dynamic_builder import build_skill
@@ -292,6 +294,7 @@ async def generate_access_skills_from_trace(
                 probe_urls=t["probe_urls"],
                 notes=t.get("reason", ""),
                 output_dir=lib_root / _skill_dir_name(host),
+                builder_model=builder_model,
                 model=model,
             )
         except Exception as e:  # noqa: BLE001
