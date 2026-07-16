@@ -286,6 +286,7 @@ class SearchSession:
         trusted_domains: "list[str] | None" = None,
         excluded_domains: "list[str] | None" = None,
         follow_up: bool = False,
+        fixed_schema: bool = False,
         targeted_repair_task_ids: "set[str] | None" = None,
         targeted_repair_cells: "list[str] | None" = None,
     ) -> SearchResult:
@@ -315,6 +316,10 @@ class SearchSession:
         ``trusted_domains`` rank matching search results first while
         ``excluded_domains`` remove matching results and block direct opens.
         Both controls are task-local and inherited by spawned sub-agents.
+
+        ``fixed_schema`` locks a schema already present in ``initial_state``.
+        The orchestrator can discover/add rows and fill cells, but cannot call
+        ``create_schema`` to replace or extend the experimental table design.
         """
         start_time = time.time()
         targeted_repair_mode = (
@@ -392,6 +397,7 @@ class SearchSession:
                 "min_waves": settings.explore_min_waves,
                 "max_waves": settings.explore_max_waves,
             },
+            "fixed_schema": fixed_schema,
         })
 
         # --- Set up orchestrator tools context ---
@@ -431,6 +437,11 @@ class SearchSession:
 
         from datetime import datetime as _dt
         orchestrator_tools = get_orchestrator_tools()
+        if fixed_schema:
+            orchestrator_tools = [
+                tool for tool in orchestrator_tools
+                if getattr(tool, "name", "") != "create_schema"
+            ]
         if targeted_repair_mode:
             repair_tool_allowlist = {
                 "enqueue_tasks",
@@ -505,6 +516,17 @@ class SearchSession:
             orchestrator_playbook=orchestrator_playbook,
             follow_up=follow_up or bool(context_preamble),
         )
+        if fixed_schema:
+            system_prompt += (
+                "\n\n## Fixed Prebuilt Schema Mode (experimental override)\n"
+                "The SOCM already contains the complete, immutable schema for this run. "
+                "This block overrides any earlier instruction to create or redesign a schema. "
+                "The create_schema tool is intentionally unavailable. Do not add tables or "
+                "reinterpret the table boundaries. You may discover rows, call add_entities / "
+                "edit_entities, dispatch Explore and search agents, and fill the existing cells. "
+                "After Explore, immediately plan searches against the existing table IDs and "
+                "relations. Every search task in a multi-table run must name target_table."
+            )
         if targeted_repair_mode:
             system_prompt += (
                 "\n\n## Targeted Repair Mode (overrides the normal workflow)\n"

@@ -222,6 +222,13 @@ Below are one or more sub-tables extracted from a research report. The \
 tables may have been produced by a multi-table planning workflow and \
 together hold the data needed to answer the user's question. Your job:
 
+0. **Stay inside the evidence boundary**: use ONLY facts present in the \
+sub-tables. NEVER answer from memory or outside knowledge. NEVER invent an \
+entity, key value, or factual cell absent from the sub-tables, and NEVER fill \
+a blank / unknown cell unless another supplied sub-table contains the value \
+joined on exact keys. A legitimate one-to-many or many-to-many join MAY emit \
+multiple combinations of supplied rows; that is not invention.
+
 1. **Join / merge** the sub-tables into a single table that answers the \
 question. If a column appears in multiple sub-tables, keep one. If \
 sub-tables describe rows from different categories (e.g. one per \
@@ -446,7 +453,17 @@ def _execute_join_plan(
             return None
         if any(s not in lk.columns for _, s in bring):
             return None
-        right = lk[lk_keys + [s for _, s in bring]].drop_duplicates(subset=lk_keys)
+        right = lk[lk_keys + [s for _, s in bring]].drop_duplicates()
+        # 该执行器只处理 many-to-one lookup。若连接键在 lookup 中不唯一，
+        # 直接 drop_duplicates(subset=keys) 会静默吞掉一对多的子行；此时
+        # 放弃确定性 lookup 路径，让保留全部子表的通用多表路径处理。
+        if right.duplicated(subset=lk_keys, keep=False).any():
+            logger.warning(
+                "code-join: lookup table %d is non-unique on keys %s; "
+                "declining lossy join plan",
+                li + 1, lk_keys,
+            )
+            return None
         rename = {lk_keys[i]: base_keys[i] for i in range(len(lk_keys))}
         rename.update({s: o for o, s in bring})
         right = right.rename(columns=rename)
@@ -666,6 +683,10 @@ async def join_and_reformat_with_llm(
     # be joined on exact keys. Letting the formatting LLM "eyeball" the join
     # mis-associates values across rows/keys (ws_zh_008: 2024 lookup counts
     # bled onto 2020 rows). Do the join in code; hand the LLM ONE table.
+    # 单表 reformat 只能整理现有行。多表输入的关系基数未知，不能用输入
+    # 行数之和作为上限；一对多会扩展基表，多对多还可能超过输入行数之和。
+    max_output_rows: Optional[int] = len(tables[0].index) \
+        if len(tables) == 1 else None
     if len(tables) >= 2:
         merged = await _maybe_code_join(
             tables,
@@ -675,6 +696,8 @@ async def join_and_reformat_with_llm(
         )
         if merged is not None and not merged.empty:
             tables = [merged]
+            # 关系已经由代码执行完毕；后续模型只负责格式化，不得再次扩行。
+            max_output_rows = len(merged.index)
 
     if target == "gisa":
         fence_lang = "tsv"
@@ -717,6 +740,13 @@ async def join_and_reformat_with_llm(
                 df = pd.read_csv(StringIO(body), sep="\t", dtype=str).fillna("")
                 df = df.loc[:, ~df.columns.astype(str).str.startswith("Unnamed")]
                 if df.shape[0] >= 1 and df.shape[1] >= 1:
+                    if max_output_rows is not None and len(df.index) > max_output_rows:
+                        logger.warning(
+                            "reformat: rejected ungrounded row expansion "
+                            "(input rows=%d, output rows=%d)",
+                            max_output_rows, len(df.index),
+                        )
+                        continue
                     df, nfix = enforce_numeric_fidelity(df, tables)
                     if nfix:
                         logger.warning(
@@ -733,6 +763,13 @@ async def join_and_reformat_with_llm(
         else:
             df = _markdown_to_df(body)
             if df is not None and not df.empty:
+                if max_output_rows is not None and len(df.index) > max_output_rows:
+                    logger.warning(
+                        "reformat: rejected ungrounded row expansion "
+                        "(input rows=%d, output rows=%d)",
+                        max_output_rows, len(df.index),
+                    )
+                    continue
                 df, nfix = enforce_numeric_fidelity(df, tables)
                 if nfix:
                     logger.warning(

@@ -15,7 +15,6 @@ import argparse
 import asyncio
 import json
 import logging
-import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -83,6 +82,20 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Seed the benchmark's unique_columns as a row-identity (primary "
              "key) hint into the query text + schema check. Off by default "
              "(ablation flag; only widesearch samples carry unique_columns).",
+    )
+    p.add_argument(
+        "--no-preprocess-query", dest="preprocess_query", action="store_false",
+        default=True,
+        help="Use the original benchmark query verbatim. Recommended for fixed-schema "
+             "ablations so query-cleaner variance cannot confound the comparison.",
+    )
+    p.add_argument(
+        "--fixed-schema-config", default=None,
+        help="JSON file containing per-sample fixed schema variants.",
+    )
+    p.add_argument(
+        "--schema-variant", choices=["single", "multi"], default=None,
+        help="Variant selected from --fixed-schema-config.",
     )
     p.add_argument("--no-search", action="store_true")
     p.add_argument("--verbose", "-v", action="store_true")
@@ -160,6 +173,35 @@ async def _amain(args: argparse.Namespace) -> int:
     if args.limit:
         samples = samples[:args.limit]
 
+    if bool(args.fixed_schema_config) != bool(args.schema_variant):
+        print(
+            "[eval] --fixed-schema-config and --schema-variant must be used together",
+            file=sys.stderr,
+        )
+        return 2
+
+    fixed_schemas = None
+    if args.fixed_schema_config:
+        from eval.fixed_schema import (
+            load_fixed_schema_variant,
+            validate_fixed_schema,
+        )
+
+        try:
+            fixed_schemas = load_fixed_schema_variant(
+                args.fixed_schema_config,
+                args.schema_variant,
+                sample_ids=[str(sample.id) for sample in samples],
+            )
+            for sample in samples:
+                validate_fixed_schema(
+                    fixed_schemas[str(sample.id)],
+                    required_columns=sample.required_columns or (),
+                )
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"[eval] invalid fixed schema config: {exc}", file=sys.stderr)
+            return 2
+
     print(f"[eval] benchmark={args.benchmark} samples={len(samples)} "
           f"concurrency={args.concurrency} output={output_dir}")
     if not samples:
@@ -176,6 +218,8 @@ async def _amain(args: argparse.Namespace) -> int:
         concurrency=args.concurrency,
         column_hints=args.column_hints,
         seed_primary_key=args.seed_primary_key,
+        preprocess_query=args.preprocess_query,
+        fixed_schemas=fixed_schemas,
     )
     print("\n[eval] summary:")
     print(json.dumps(summary, ensure_ascii=False, indent=2))

@@ -80,6 +80,7 @@ async def _extract_one(qdir, sample, sem, loop, grade) -> dict | None:
             answer_type=answer_type,
             original_query=pp.get("cleaned_query") or rec.get("question") or "",
             required_columns=pp.get("columns") or None,
+            key_columns=getattr(sample, "unique_columns", None),
             column_formats=pp.get("column_formats") or None,
             sort_hint=pp.get("sort", "") or "",
             filters=pp.get("filters") or None,

@@ -47,11 +47,46 @@ __all__ = [
 ]
 
 
-def _is_empty_report(raw_text: str) -> bool:
+def _is_empty_report(
+    raw_text: str,
+    *,
+    required_columns: Optional[list[str]] = None,
+    key_columns: Optional[list[str]] = None,
+) -> bool:
     t = (raw_text or "").strip()
     if not t:
         return True
-    return "_No report produced: 0 evidence nodes" in t
+    if "_No report produced: 0 evidence nodes" in t:
+        return True
+
+    # Markdown 并非空字符串也可能没有任何答案事实：eval_table 曾只导出
+    # 主键列，其余列全空，随后 reformat 模型根据问题自行补写。WideSearch
+    # 已提供 unique_columns，可用它区分行身份列与真正的答案列。
+    if not required_columns or not key_columns:
+        return False
+    key_names = {str(column).strip() for column in key_columns}
+    value_names = [
+        str(column).strip()
+        for column in required_columns
+        if str(column).strip() not in key_names
+    ]
+    if not value_names:
+        return False
+
+    tables = extract_all_tables(t)
+    if not tables:
+        return False
+    saw_value_column = False
+    for table in tables:
+        actual_by_name = {str(column).strip(): column for column in table.columns}
+        for name in value_names:
+            actual = actual_by_name.get(name)
+            if actual is None:
+                continue
+            saw_value_column = True
+            if any(str(value).strip() for value in table[actual].tolist()):
+                return False
+    return saw_value_column
 
 
 async def reformat_for_eval(
@@ -61,6 +96,7 @@ async def reformat_for_eval(
     answer_type: str = "table",
     original_query: str,
     required_columns: Optional[list[str]] = None,
+    key_columns: Optional[list[str]] = None,
     column_formats: Optional[dict[str, str]] = None,
     sort_hint: str = "",
     filters: Optional[list[str]] = None,
@@ -70,8 +106,14 @@ async def reformat_for_eval(
     # scored 0.9 with zero search evidence — plausible-looking, ungrounded,
     # and it masks the infrastructure failure). Never hand an empty report
     # to an LLM that also sees the question.
-    if _is_empty_report(raw_text):
-        logger.warning("reformat: empty/marker report — refusing LLM reduce")
+    if _is_empty_report(
+        raw_text,
+        required_columns=required_columns,
+        key_columns=key_columns,
+    ):
+        logger.warning(
+            "reformat: empty/marker/key-only report — refusing LLM reduce"
+        )
         return None, None
 
     common = dict(

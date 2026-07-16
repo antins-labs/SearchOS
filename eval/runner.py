@@ -55,6 +55,7 @@ async def _run_one(
     preprocess_query: bool = True,
     column_hints: bool = True,
     seed_primary_key: bool = False,
+    fixed_schema: dict[str, Any] | None = None,
 ) -> dict:
     from searchos.socm import SearchState  # local import: heavy
     from eval.reformat import load_session_output
@@ -173,11 +174,21 @@ async def _run_one(
                 required_attributes=list(seed_columns),
                 primary_key_hint=pk_hint,
             )
+            if fixed_schema is not None:
+                from eval.fixed_schema import install_fixed_schema
+
+                schema_summary = install_fixed_schema(
+                    initial_state,
+                    fixed_schema,
+                    required_columns=sample.required_columns or seed_columns,
+                )
+                record["fixed_schema"] = schema_summary
             t0 = time.time()
             search_result = await harness.run(
                 run_query,
                 session_id=session_id,
                 initial_state=initial_state,
+                fixed_schema=fixed_schema is not None,
             )
             elapsed = time.time() - t0
             workspace_path = search_result.workspace_path
@@ -243,6 +254,7 @@ async def _run_one(
                     answer_type=answer_type,
                     original_query=raw_query,
                     required_columns=reformat_cols,
+                    key_columns=getattr(sample, "unique_columns", None),
                     column_formats=reformat_formats,
                     sort_hint=reformat_sort,
                     filters=pp.get("filters") or None,
@@ -389,11 +401,23 @@ async def run_benchmark(
     concurrency: int = 4,
     column_hints: bool = True,
     seed_primary_key: bool = False,
+    preprocess_query: bool = True,
+    fixed_schemas: dict[str, dict[str, Any]] | None = None,
 ) -> dict:
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     run_tag = datetime.now().strftime("%Y%m%d_%H%M%S")
     sem = asyncio.Semaphore(concurrency)
+    if fixed_schemas is not None:
+        missing = [
+            str(sample.id)
+            for sample in samples
+            if str(sample.id) not in fixed_schemas
+        ]
+        if missing:
+            raise ValueError(
+                "fixed schemas missing selected samples: " + ", ".join(missing)
+            )
 
     # Benchmark recall must not depend on interactive saturation heuristics.
     # Force every Explore Agent through the configured verification wave, then
@@ -425,8 +449,10 @@ async def run_benchmark(
             output_dir=output_dir,
             sem=sem,
             harness_factory=_factory,
+            preprocess_query=preprocess_query,
             column_hints=column_hints,
             seed_primary_key=seed_primary_key,
+            fixed_schema=(fixed_schemas or {}).get(str(sample.id)),
         ))
         for sample in samples
     ]
@@ -459,7 +485,13 @@ async def run_benchmark(
     summary_path = output_dir / "_summary.json"
     summary_path.write_text(
         json.dumps({"benchmark": benchmark, "n_samples": len(records),
-                    "concurrency": concurrency, "summary": summary},
+                    "concurrency": concurrency,
+                    "preprocess_query": preprocess_query,
+                    "fixed_schema_variant": next(iter({
+                        str(spec.get("variant") or "")
+                        for spec in (fixed_schemas or {}).values()
+                    }), ""),
+                    "summary": summary},
                    ensure_ascii=False, indent=2),
         encoding="utf-8",
     )

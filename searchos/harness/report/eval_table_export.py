@@ -6,9 +6,13 @@ and no prose — suitable as direct input to the eval reformat LLM.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from searchos.socm import SearchState
+
+
+logger = logging.getLogger(__name__)
 
 
 _ALIGN_RANK = {"full": 3, "partial": 2, "loose": 1, "": 0}
@@ -239,6 +243,19 @@ def _build_joined_table(
         root_tid,
     )
 
+    # 关系导出不能让已有数据的子表行消失。过去外键零匹配或部分匹配时，
+    # 这里会返回看似合理的父表空行，并对下游隐藏 Evidence Graph 中的事实。
+    for tid, schema in tables.items():
+        represented = {ctx.get(tid) for ctx in contexts if ctx.get(tid)}
+        missing = [entity for entity in schema.entities if entity not in represented]
+        if missing:
+            logger.warning(
+                "eval_table join would drop %d row(s) from table %s; "
+                "falling back to lossless per-table export",
+                len(missing), tid,
+            )
+            return ""
+
     skip_attrs: dict[str, set[str]] = {}
     for rel in relations:
         child_tid = rel.from_table
@@ -322,6 +339,27 @@ def _render_component(
     """Join a component's tables when related; render the lone table otherwise."""
     if len(comp) == 1:
         return _build_single_table(cmap, next(iter(comp.values())), evidence_by_id)
+
+    # 若双表组件的父表只含主键，它不提供额外答案数据；同一值已作为外键存在
+    # 于子表。直接渲染答案粒度的子表，既不损失关系信息，也避免 "46" 与
+    # "第46届" 这类表面形式差异导致全部子表行被吞掉。
+    if len(comp) == 2 and len(relations) == 1:
+        rel = relations[0]
+        parent = comp.get(rel.foreign_key.target_table)
+        child = comp.get(rel.from_table)
+        target_columns = list(rel.foreign_key.target_columns or parent.primary_key) \
+            if parent is not None else []
+        if (
+            parent is not None
+            and child is not None
+            and child.entities
+            and not parent.data_columns
+            and rel.foreign_key.columns
+            and len(rel.foreign_key.columns) == len(target_columns)
+            and set(target_columns) == set(parent.attributes)
+        ):
+            return _build_single_table(cmap, child, evidence_by_id)
+
     joined = _build_joined_table(cmap, comp, relations, evidence_by_id)
     if joined:
         return joined
