@@ -12,6 +12,8 @@
 
 <p align="center">
   <a href="https://antins-labs.github.io/SearchOS/"><img src="https://img.shields.io/badge/🌐_Website-searchos-2563EB?style=for-the-badge" alt="Website"></a>
+  <a href="https://arxiv.org/abs/2607.15257"><img src="https://img.shields.io/badge/arXiv-2607.15257-B31B1B?style=for-the-badge&amp;logo=arxiv&amp;logoColor=white" alt="arXiv: 2607.15257"></a>
+  <a href="https://huggingface.co/papers/2607.15257"><img src="https://img.shields.io/badge/🤗_Hugging_Face-Paper-FFD21E?style=for-the-badge" alt="Hugging Face Paper"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+"></a>
   <a href="https://github.com/langchain-ai/langgraph"><img src="https://img.shields.io/badge/Built_with-LangGraph-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white" alt="LangGraph"></a>
   <a href="https://github.com/Textualize/textual"><img src="https://img.shields.io/badge/TUI-Textual-0B0B0B?style=for-the-badge&logo=gnometerminal&logoColor=white" alt="Textual TUI"></a>
@@ -60,6 +62,7 @@
 
 ## 📣 News
 
+- **2026-07-17** — **SearchOS-V1 论文正式上线 arXiv。** 前往 [arXiv](https://arxiv.org/abs/2607.15257) 或 [Hugging Face](https://huggingface.co/papers/2607.15257) 阅读。 📄
 - **2026-07-11** — **更快开始，更广搜索，全程可见。** 全新一键安装器让 SearchOS 快速就绪；并行 Explore waves 分批探索开放网络，实时进度与按实体分组的证据让每一次发现都清晰可追。Skill 现已在强化隔离的工作进程中运行。 ⚡
 - **2026-07-10** — **研究，从画出结构开始。** 描绘问题，SearchOS 把它变成可探索、可完善、可导出的引用级研究成果。 🧩
 - **2026-07-09** — **离开多久，都能原样回来。** 对话、进度、证据与实时动态完整保留，打开即可继续。 ⏪
