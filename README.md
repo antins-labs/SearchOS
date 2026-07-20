@@ -345,7 +345,7 @@ SearchOS leads on all F1 metrics across both benchmarks, with gains driven prima
 
 SearchOS is under active development. The roadmap below highlights our current priorities and may evolve as the project and research progress.
 
-- [ ] **SearchOS Technical Report** — Release the technical report with a detailed description of the system design, hierarchical skill architecture, evaluation methodology, and reproducible results.
+- [x] **SearchOS-V1 Technical Report** — Released on [arXiv](https://arxiv.org/abs/2607.15257), covering the system design, hierarchical skill architecture, evaluation methodology, and reproducible results.
 - [ ] **Automated Skill Generation Pipeline** — Develop an end-to-end pipeline for discovering, generating, validating, and maintaining reusable search skills. More details will be presented in follow-up research.
 - [ ] **Multimodal Search** — Extend search and evidence grounding beyond text to images, charts, audio, and video.
 - [ ] **Broader Data-Source Support** — Add more integrations for academic, enterprise, and domain-specific information sources.
