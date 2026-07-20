@@ -400,14 +400,14 @@ SearchOS was developed through the joint efforts of the authors and contributors
 
 ## 📚 Citation
 
-The paper (*SearchOS-v1*) is in preparation and its citation entry will replace this one upon release. Until then, if this project helps your research, please cite the repository:
+If SearchOS helps your research, please cite our [paper](https://arxiv.org/abs/2607.15257):
 
 ```bibtex
-@misc{searchos2026,
-  title        = {SearchOS-v1: Towards Robust Open-Domain Information-Seeking Agents Collaboration},
-  author       = {Zhang, Yuyao and Gao, Junjie and Wu, Zhengxian and Fan, Jiaming and Zhang, Jin and Ma, Shihan and Yao, Yao and Qi, Weiran and Ma, Guiyu and Xu, Xingzhong and Yang, Kai and Wen, Ji-Rong and Dou, Zhicheng},
-  year         = {2026},
-  howpublished = {\url{https://github.com/antins-labs/SearchOS}}
+@article{zhang2026searchos,
+  title={SearchOS-V1: Towards Robust Open-Domain Information-Seeking Agent Collaboration},
+  author={Zhang, Yuyao and Gao, Junjie and Wu, Zhengxian and Fan, Jiaming and Zhang, Jin and Ma, Shihan and Yao, Yao and Qi, Weiran and Jin, Chuyan and Ma, Guiyu and others},
+  journal={arXiv preprint arXiv:2607.15257},
+  year={2026}
 }
 ```
 
