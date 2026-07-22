@@ -113,7 +113,7 @@ L4 还承载 per-profile 定制（web 设置页 Models 区的 profile 卡）：
 
 - **字段覆写**（`models.profile_overrides`）：对预设/内置 profile 的
   model / api_base / api_key_env 做稀疏覆盖，可单字段清除还原。之所以不走
-  L3 的 `SF_PROFILES__*`：env 变量名寻址不了带点的 profile 名（如
+  L3 的 `SF_PROFILES__*`：是因为 env 变量名寻址不了带点的 profile 名（如
   `qwen3.5-35b`），且切换预设时无法安全清理 .env 行。
 - **自定义 profile**（`models.custom_profiles`）：用户新建的完整 profile
   （model + 协议 + api_base + api_key_env），跨 provider 切换保留，可绑定到
