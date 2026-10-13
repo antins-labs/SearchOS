@@ -1,0 +1,23 @@
+{
+  "description": "Fetches Delta Air Lines baggage policy information including carry-on rules, checked baggage fees, and FAQs from www.delta.com.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_carry_on_info: 获取随身行李规定、尺寸限制、允许携带物品清单; 参数: 无; 必填: 无\n  - get_baggage_faqs: 获取行李常见问题解答列表; 参数: 无; 必填: 无\n  - get_baggage_overview: 获取行李总览和费用信息; 参数: 无; 必填: 无\n  - search_baggage_info: 搜索特定行李信息，需要query参数; 参数: query; 必填: 无"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索查询关键词，用于search_baggage_info功能。\n示例: \"carry-on size\", \"liquid restrictions\", \"military baggage\""
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

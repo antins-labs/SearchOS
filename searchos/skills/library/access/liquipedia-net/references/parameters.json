@@ -1,0 +1,21 @@
+{
+  "description": "Extracts structured Dota 2 tournament data from Liquipedia.net, including tournament details, prize pool distribution, group standings, and match results.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_tournament_info: 获取锦标赛基本信息（系列赛、主办方、地点、时间、赛制等）; 参数: url; 必填: url\n  - get_prize_pool: 获取奖金池分配详情（名次、战队、奖金、百分比）; 参数: url; 必填: url\n  - get_group_standings: 获取小组赛排名（各组名次、战队、战绩）; 参数: url; 必填: url\n  - get_all_data: 获取所有可用的锦标赛数据（信息、奖金、小组、比赛）; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "Liquipedia锦标赛页面URL，例如 https://liquipedia.net/dota2/The_International/2021"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

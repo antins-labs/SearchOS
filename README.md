@@ -5,10 +5,10 @@
 </div>
 
 <p align="center">
-  <img src="assets/hero.svg" alt="SearchOS — from single-fact lookups to full-domain research, unified as citation-grounded relational schema completion" width="100%">
+  <img src="assets/hero.svg" alt="SearchOS — research with source citations" width="100%">
 </p>
 
-<h3 align="center">A multi-agent collaboration system for open-domain information seeking</h3>
+<h3 align="center">A multi-agent research workspace for the Web and your documents</h3>
 
 <p align="center">
   <a href="https://antins-labs.github.io/SearchOS/"><img src="https://img.shields.io/badge/🌐_Website-searchos-2563EB?style=for-the-badge" alt="Website"></a>
@@ -22,15 +22,331 @@
 </p>
 
 <p align="center">
-  <i>Schedule search the way an operating system schedules processes: compile an open-domain question
-  into a normalized coverage map, dispatch its empty cells to pipelined-parallel sub-agents,
-  write every piece of evidence — with its source — into a shared evidence graph, and synthesize
-  a citation-grounded answer from <b>search state</b> — state that lives in the system, not in conversation history.</i>
+  SearchOS coordinates agents to research the Web and your local documents, saves facts with their sources,
+  and organizes findings into comparison tables and reports when useful.
+  Build a knowledge library, refine a running investigation, and turn source access methods and research strategies into reusable skills.
 </p>
 
 <p align="center">
-  <img src="assets/main.png" alt="SearchOS system overview: multi-agent collaboration + middleware + SOCM + skill system" width="95%">
+  <a href="#-quick-start">Quick start</a> · <a href="#-local-and-hybrid-research">Local &amp; Hybrid</a> ·
+  <a href="#-skill-system">Skills</a> · <a href="#-configuration">Models &amp; configuration</a> ·
+  <a href="#-framework">Architecture</a>
 </p>
+
+## ✨ Highlights
+
+- 📚 **Research your own documents** — import PDFs, Office files, Markdown, spreadsheets, and images. Browse topics and documents in a list or graph, ask about selected files or an entire library, and follow citations back to the original material.
+- 🌐 **Combine local and Web sources** — choose Web, Local, or Hybrid. In Hybrid, the Orchestrator delegates to local and Web agents according to the question and combines their evidence in one answer.
+- 🔗 **Keep useful sources and findings** — save Web sources to your library, revisit cited passages, and extend existing evidence and tables through follow-up questions.
+- 🧰 **Create and reuse skills** — start from a website, task, or execution trace; inspect creation progress and installed packages in the Web UI. Portable packages use `SKILL.md` and ordinary CLI scripts.
+- 💬 **Steer research while it runs** — add a constraint, correct the scope, or ask for a final answer. A follow-up wakes a waiting Orchestrator without waiting for a sub-agent to finish.
+- 🗂️ **Inspect shared research state** — SOCM keeps tasks, evidence, coverage, and strategy in persistent state. Agents work against explicit gaps, while budget and progress checks help contain stalled work.
+
+## 📣 News
+
+- **2026-10-12** — **Portable Skills.** The skill system now uses `SKILL.md` packages and standalone CLI scripts. Create skills from websites, tasks, or execution traces, then export them for reuse in compatible agent harnesses with the required dependencies and execution permissions.
+- **2026-09-29** — **Composable Middleware.** Context management, evidence extraction, and budget and progress monitoring are now independently composable components, with default pipelines for different agent tasks and optional context compaction. See the [middleware guide](docs/middleware-composition.md).
+- **2026-09-15** — **Knowledge Library.** Organize documents and saved Web sources by topic, browse them in list or graph views, and ask questions across selected files or an entire library.
+- **2026-09-14** — **Multimodal Search.** Extend source reading to images and scanned documents, using multimodal models to retrieve information beyond the text layer.
+- **2026-09-13** — **Hybrid Search.** Coordinate local document reading and Web retrieval in one research workflow, combining their evidence into answers and comparison tables.
+- **2026-09-10** — **Local Search.** Search your own documents and read relevant passages to answer questions from local source material.
+- **2026-07-17** — **SearchOS-V1 on arXiv.** Read the paper on [arXiv](https://arxiv.org/abs/2607.15257) or [Hugging Face](https://huggingface.co/papers/2607.15257).
+- **2026-07-07** — **SearchOS is open source.** Multi-agent search, structured research, TUI, and Web UI.
+
+## 🧭 Quick start
+
+Requires **Python ≥ 3.11** and **Node.js ≥ 20.9** for the Web frontend. From the repository root:
+
+```bash
+./install.sh
+source .venv/bin/activate
+python -m pip install -e ".[local-docs]"
+searchos --setup
+./web/start.sh
+```
+
+The installer prepares Python, bundled Access Skill dependencies, Chromium, and the Web frontend. The additional `local-docs` step installs document parsers and PDF rendering dependencies. The setup wizard configures a model provider and API key; configure a search provider in Settings before using Web or Hybrid research.
+
+Open [the Web workspace](http://localhost:3000). The API runs on port `8000`. In Settings, connect your providers, add model configurations, and assign their uses. Image and scan reading needs a model that accepts image input.
+
+### Try a research workflow
+
+1. Open **Knowledge library**, create a library, and upload a few papers. Once their text is parsed, you can ask questions while summaries and topic indexing continue in the background.
+2. Choose **Local**, select the papers, and ask: “Compare these papers' methods and evaluation settings, with references to the original passages.”
+3. Choose **Hybrid** and ask: “Find related public work and compare it with these papers.” Select the same documents to keep the local scope explicit.
+4. During the Hybrid run, add: “Focus on methods evaluated on real tasks,” or “Stop collecting sources and summarize the evidence so far.”
+5. Open a citation to inspect its source. Save useful Web sources to the library for future research.
+
+CLI and TUI remain available:
+
+| Command | What it does |
+| --- | --- |
+| `python -m searchos "<query>"` | Run a Web query; report at `searchos_workspace/<timestamp>/output/report.md` |
+| `python -m searchos` | Open the TUI for Web research, live steering, follow-ups, and session management |
+| `python -m eval.run --benchmark widesearch --range 1-50` | Run evaluations; install the `eval` extra first |
+
+Use the Web workspace for knowledge-library management and Web/Local/Hybrid source selection.
+
+## 📚 Local and Hybrid research
+
+### Choose the source scope
+
+| Mode | Sources | Typical use |
+| --- | --- | --- |
+| **Web** | Online sources | Research public information and compare entities across sources |
+| **Local** | Selected documents, or the current library when no documents are selected | Read papers, compare reports, or locate information in your files |
+| **Hybrid** | Authorized local documents or library, plus the Web | Resolve a reference in your files, verify external information, or extend a local review |
+
+Local runs use a document QA agent directly. Hybrid runs use the Orchestrator to plan local and Web work; the question determines which sources are needed and whether work can proceed in parallel. Selecting a library allows discovery within its readable documents at submission time; selecting files narrows that scope. Other libraries are outside the run's local scope.
+
+### Build and navigate a library
+
+Supported formats include **PDF, DOCX, PPTX, XLSX, Markdown, TXT, CSV, TSV, JSON, JSONL, HTML**, and common image formats. The library organizes content into **topics → documents → sections**, with summaries for navigation. A document can belong to multiple topics; you can adjust its memberships in the list or graph view.
+
+You can rename libraries and documents, create or edit topics, and delete items from the library panel. Deleting a topic keeps its documents; deleting a document or library removes its sources and makes their historical citations unavailable. See the [local knowledge and search guide](docs/local-search-feature-introduction-zh.md) for the architecture, management APIs, and walkthroughs.
+
+The agent uses the catalog to locate material, searches within relevant sections, and reads original passages as needed. Summaries guide navigation; citations rely on the original material actually read. Depending on the file type, a citation can identify a page, slide, line, or spreadsheet region. See the [document indexing design](docs/local-document-recap.md) for parsing and summary details.
+
+Web source entries can be saved to an existing library and indexed for later questions. Follow-up research can reuse committed evidence and saved reading windows, then extend tables or collect additional facts when the question changes.
+
+### Read images and scanned pages
+
+Local parsing supports visual reading for scanned documents and images. For online sources, enable **image reading** in Search settings to let agents inspect image URLs and individual PDF pages. Auto mode chooses between direct image input and the configured vision model; Settings includes a separate image-input check.
+
+## 💬 Follow-ups and live steering
+
+Web/Hybrid runs in the browser and research sessions in the TUI accept input during execution. If the Orchestrator is waiting for sub-agents, your follow-up wakes it and triggers a model call with the new request. Active sub-agents keep running until the Orchestrator decides whether to continue or stop them. If a model call or another tool is already executing, the input is applied at the next complete tool boundary.
+
+After a run, follow-ups reuse the session's evidence and tables. The Orchestrator can answer from existing findings or schedule work for remaining gaps. Pure Local questions use their own document QA flow. See [runtime behavior](docs/development/runtime_performance.md) for steering and persistence details.
+
+### Interactive TUI
+
+`python -m searchos` opens the full-screen interface: a live dashboard on top (task dispatch, sub-agent status, coverage map growth) and the tool stream below. The input box supports new queries, live steering, and follow-ups:
+
+| When | What typing natural language does |
+| --- | --- |
+| Idle | Starts a new search run |
+| **Mid-run** | **Live steering** — wakes an Orchestrator waiting for sub-agents and starts its next model call with your input; use it to add constraints, change direction, or request a final answer |
+| After a run | **Multi-turn follow-up** — reuses the previous round's coverage map and evidence: if the answer is already in the table it is answered directly (no new search); otherwise the existing table is extended incrementally, never rebuilt from scratch |
+
+<details>
+<summary>TUI commands and effort presets</summary>
+
+Slash commands are available during a run; configuration changes apply as described below:
+
+| Command | Alias / shortcut | What it does |
+| --- | --- | --- |
+| `/new` | `/clear` · `Ctrl-N` | New topic: clears conversation history and the coverage map; the next question starts from a fresh workspace |
+| `/resume [session-id]` | `/load` | Restore a previous session with its conversation, trajectory, coverage, and evidence; omit the id to open the picker |
+| `/effort [low\|medium\|high\|max]` | — | Effort tier: adjusts iteration cap, task and tool budgets, wall-clock limit, and skill-routing top-k in one go; with no argument it opens an interactive picker; mid-run changes take effect next round |
+| `/skill` | — | Skill management: no argument opens a grouped multi-select dialog; subcommands `list`, `only <names…>` (whitelist, fuzzy prefix match), `on` / `off <names…>`, `all` (reset to router control) for fine-grained control |
+| `/model` | — | Open shared model settings: provider connections, model cards, model purpose assignments, and per-profile limits |
+| `/search [auto\|serper\|tavily\|ragflow]` | — | Inspect or switch the shared search backend |
+| `/config [key value]` | `/set` | Open the shared settings panel or quickly change supported run defaults |
+| `/verbose` | `/detail` · `Ctrl-T` | Toggle compact / detailed tool stream |
+| `/stop` | `/cancel` · `Esc` | Interrupt the current run (Esc exits the program when idle) |
+| `/help` | `/?` | Command help |
+| `/quit` | `/exit` · `Ctrl-D` | Exit SearchOS |
+
+The four `/effort` presets apply to subsequent runs; all four set the parallel sub-agent limit to 8:
+
+| Tier | Orchestrator iterations | Searches per agent | Wall-clock cap | Routing top-k |
+| --- | :---: | :---: | :---: | :---: |
+| `low` | 25 | 10 | 10 min | 20 |
+| `medium` (default) | 50 | 20 | 30 min | 40 |
+| `high` | 100 | 35 | 60 min | 60 |
+| `max` | 150 | 50 | 120 min | 80 |
+
+</details>
+
+## 🧰 Skill system
+
+Skills are reusable packages in [`searchos/skills/library/`](searchos/skills/library/):
+
+| Category | Purpose |
+| --- | --- |
+| **Access** | Retrieve data from a particular source or through a specific access method |
+| **Strategy** | Guide research methods such as ranking, disambiguation, and multi-hop retrieval |
+| **Orchestrator** | Guide task decomposition, dependencies, dispatch, and synthesis |
+
+### Create, update, and inspect skills
+
+Open **Skills** in the Web sidebar to search the library and inspect instructions and implementation files. Choose **Create skill** and supply a website, a task, or an execution trace. Task and trace analysis can create new packages or update existing ones when it identifies a reusable capability gap. SearchOS generates and validates candidates before publishing them, and records the action and outcome for each package. Submitted jobs continue while you navigate elsewhere.
+
+Validation depends on the category: Access packages run CLI examples; Strategy candidates are applied to a subtask and checked against their answer and sources; Orchestrator packages receive structural validation. Updates check the installed package version before replacement, while active tasks retain their loaded snapshots. See the [Portable Skills guide](docs/portable-skills.md) for package structure, creation and update flows, and cross-harness examples.
+
+### Use portable packages
+
+A package contains `SKILL.md` and, when needed, `scripts/`, `references/`, and dependency declarations. Its CLI scripts do not import SearchOS. Agents discover and load a package, execute its scripts, then read saved result pages through the same browser tools used for other sources. Reading those pages feeds evidence extraction and verification.
+
+```bash
+searchos skills validate /path/to/arxiv-search
+searchos skills install /path/to/arxiv-search --library searchos/skills/library
+searchos skills export /path/to/arxiv-search --output /path/to/export/arxiv-search
+```
+
+These package operations do not require a model. Running scripts requires their declared dependencies and a supported execution backend: `sandbox-exec` on macOS or `bubblewrap` on Linux. A host that cannot provide that backend reports execution as blocked. Exported packages use the destination host's own tools, dependencies, and permissions.
+
+Runtime routing recommends skills; explicit allowlists and disabled skills constrain discovery and execution. Local document QA exposes local reading tools only. Optional post-run skill generation in **Settings → Skills** analyzes the execution trace to create or update **Access, Strategy, and Orchestrator** packages, using the model assigned to skill creation.
+
+## ⚙️ Configuration
+
+Configure provider connections, model profiles, search, skills, and budgets in Web Settings. The setup wizard (`searchos --setup`) and TUI commands `/model`, `/search`, and `/config` share the `web_settings.json` configuration overlay with Web runs. Secrets can also be supplied through `.env`; copy [`.env.example`](.env.example) and fill in the keys you use.
+
+Models are assigned by **purpose**, covering agents and other model calls:
+
+| Group | Uses |
+| --- | --- |
+| **Research** | Planning and coordination, search and reading, evidence extraction, review and verification |
+| **Content processing** | Writing and answer fallback, document and topic summaries, images and scanned documents |
+| **Skills and failure review** | Skill selection and repair planning, skill creation and repair, failure review |
+| **Evaluation** | Evaluation result formatting |
+
+**Quick assignment** lets you select general, text-processing, and vision models, preview the affected assignments, and apply them together. Individual purposes remain editable; evaluation is configured separately. Multiple purposes can share a profile. A successful text connection test does not establish image-input support.
+
+Provider presets and environment-only configuration are documented in [providers](docs/providers.md). Common overrides include:
+
+| Setting | Description |
+| --- | --- |
+| `SF_MODEL` / `SF_FAST_MODEL` | Override the preset's main / lightweight model |
+| `SF_API_BASE` | Override the model endpoint |
+| `SF_SEARCH_PROVIDER` | Search backend: `serper` \| `tavily` \| `ragflow` |
+| `SF_BROWSER_BACKEND` | Fetch backend: `jina` \| `aiohttp` \| `crawl4ai` \| `search_engine` |
+| `SF_ROLES__JUDGE=main` | Assign a profile to a model purpose; `ROLES` remains the configuration key |
+| `SF_PROFILES__MAIN__RPM=60` / `SF_PROFILES__MAIN__TPM=100000` | Per-profile request/token limits; `0` disables a limit |
+| `SF_MAX_PARALLEL_AGENTS` | Sub-agent concurrency cap, default `8` |
+| `SF_ENABLE_EXPLORE_BATCH` / `SF_EXPLORE_MAX_WAVES` | Batch exploration and its maximum waves per call, default `3`; no minimum wave count |
+| `SF_ENABLE_EXPLORE` / `SF_ENABLE_SKILLS` | Disable Explore / Skills for controlled runs |
+| `SF_SKIP_SYNTHESIS` | Evaluation mode: export the coverage table without synthesis |
+
+### Installation options
+
+```bash
+python -m pip install -e .               # core CLI/TUI and Web API
+python -m pip install -e ".[access]"     # bundled Access Skill dependencies
+python -m pip install -e ".[local-docs]" # local document parsers and PDF rendering
+python -m pip install -e ".[eval]"       # evaluation dependencies
+python -m pip install -e ".[all]"        # all optional runtime dependencies
+```
+
+`./install.sh --core` skips Access Skill and browser runtimes; `--no-web` skips frontend dependencies. `./install.sh --all --dev` includes local-document, evaluation, and development dependencies. See the [installation guide](docs/installation.md).
+
+## 💡 Why SearchOS
+
+Long research tasks accumulate sources, unresolved questions, and partial conclusions. If that progress is carried only in conversation history, compression can hide useful facts and later agents can repeat completed work.
+
+SearchOS maintains tasks, evidence, coverage, and strategy in **SOCM — Search-Oriented Context Management**. Source reading feeds extraction and verification; committed facts retain their sources and can support later tasks or table cells. The Orchestrator schedules unresolved work against that state. Budget and progress monitoring help detect repeated or stalled activity, while the workspace exposes the resulting evidence and remaining gaps.
+
+Local libraries add persistent source material to this workflow. Their catalogs help agents locate relevant documents; Hybrid research connects those readings with public sources. Skills preserve reusable access methods and research procedures for later runs.
+
+## 🧩 Framework
+
+```mermaid
+flowchart TD
+    Q[Question and source scope] --> M{Mode}
+    M -->|Local| L[Document QA agent]
+    M -->|Web or Hybrid| O[Orchestrator]
+    O --> W[Web search agents]
+    O -->|Hybrid| R[Local search agents]
+    O -->|As needed| E[Explore]
+    E --> O
+    W --> X[Read, extract, verify]
+    R --> X
+    X --> S[SOCM: tasks, evidence, coverage, strategy]
+    S --> O
+    O --> A[Answer with citations]
+    L --> A
+```
+
+The Orchestrator selects the next action from the question and current evidence. In ordinary runs, **Explore is optional**: it resolves uncertainties about identity, scope, candidate sets, or sources, and can be dispatched again during research. The evaluation runner defaults to an initial Explore step; see [adaptive exploration](docs/adaptive-explore.md).
+
+**Source selection and result structure are separate decisions.** Hybrid research can collect findings before creating a table. Tables organize comparisons and expose missing cells when useful; table-bound Web search still requires a schema. Existing evidence can support additional tasks or cells without replacing the original facts.
+
+The **Context, Sensor, and Extraction** middleware handle context assembly, budgets and progress, and evidence intake. The Orchestrator normally produces the final answer; the optional Writer and synthesis fallback support other delivery paths. Session workspaces retain state, reading records, and execution logs for follow-ups and inspection.
+
+<details>
+<summary>SearchOS-V1 architecture overview</summary>
+
+<p align="center">
+  <img src="assets/main.png" alt="SearchOS-V1 architecture" width="95%">
+</p>
+
+</details>
+
+## 📊 Evaluation
+
+The following results are from **SearchOS-V1**. They evaluate the original Web research system; Local/Hybrid retrieval, portable skill creation, and the latest runtime changes have not been re-benchmarked in this table.
+
+On **WideSearch** (wide-table retrieval) and **GISA** (open-domain information seeking), compared against 2 single-agent baselines (ReAct / Plan-and-Solve) and 3 multi-agent systems (Table-as-Search / A-MapReduce / Web2BigTable). All scores are **max@3** (best of three runs per case, ×100); **bold** marks the best in each row. *Item* scores cells independently; *Row* requires a fully correct row.
+
+| Benchmark | Metric | ReAct | Plan-and-Solve | Table-as-Search | A-MapReduce | Web2BigTable | **SearchOS** |
+| --- | --- | :---: | :---: | :---: | :---: | :---: | :---: |
+| WideSearch | Item · Precision | 82.9 | 83.8 | 82.4 | 83.1 | 78.3 | **83.9** |
+| | Item · Recall | 70.2 | 72.9 | 73.5 | 74.2 | 73.4 | **79.7** |
+| | Item · F1 | 72.9 | 75.2 | 75.4 | 76.0 | 73.8 | **80.3** |
+| | Row · Precision | 58.0 | 58.7 | 57.1 | 56.9 | 57.5 | **59.0** |
+| | Row · Recall | 48.8 | 50.2 | 51.6 | 49.8 | 54.0 | **55.8** |
+| | Row · F1 | 50.9 | 52.2 | 52.7 | 51.4 | 54.5 | **56.5** |
+| GISA | Table · Item · F1 | 74.8 | 71.2 | 73.4 | 72.5 | 68.1 | **76.9** |
+| | Table · Row · F1 | 58.1 | 50.7 | 54.1 | 52.1 | 45.3 | **59.7** |
+| | Set · F1 | 61.6 | 63.1 | 60.9 | 62.5 | 56.7 | **76.5** |
+| | List · F1 | 67.1 | 53.8 | 54.2 | 57.4 | 65.5 | **68.1** |
+| | Item · EM | 0.0 | 16.7 | 16.7 | 33.3 | **50.0** | **50.0** |
+
+In these experiments, SearchOS-V1 leads on the reported F1 metrics across both benchmarks. On GISA enumeration tasks, Set · F1 exceeds the next-best baseline by 13.4 points.
+
+## 🗺️ Roadmap
+
+- [x] **SearchOS-V1 technical report** — architecture and Web research evaluation on [arXiv](https://arxiv.org/abs/2607.15257).
+- [x] **Local libraries and Hybrid research** — document import, topic navigation, original-source citations, and coordinated local/Web retrieval.
+- [x] **Skill creation and portable packages** — website/task/trace inputs, category-specific validation, a skill-library UI, and CLI install/export.
+- [x] **Visual reading** — images, scanned documents, and individual online PDF pages.
+- [ ] **Skill maintenance and broader validation** — improve long-term reliability across sources and execution environments.
+- [ ] **Audio and video research** — extend retrieval and evidence support to additional modalities.
+- [ ] **Broader source integrations** — academic, enterprise, and domain-specific collections.
+
+These are current development directions, with no fixed release dates. Suggestions and contributions are welcome through GitHub Issues.
+
+## 🗂️ Project layout
+
+```text
+searchos/
+├── agents/        Orchestrator, Explore, Web Search, Local Search, and optional Writer
+├── local/         Document parsers, summaries, topic catalog, source registry, and readers
+├── harness/       Sessions, live steering, Context/Sensor/Extraction middleware, telemetry
+├── socm/          Shared tasks, evidence, coverage, and strategy
+├── tools/         Schema, tasks, browser, skills, and other agent tools
+├── skills/        Portable packages, catalog, execution runtime, intent, and creation pipelines
+├── tui/           Live dashboard, session management, settings, and follow-ups
+├── config/        Providers, model purposes, limits, effort presets, and shared settings
+└── cli.py         searchos / python -m searchos
+
+web/api/           Runs, streaming, libraries, imports, skill creation jobs, and settings
+web/frontend/      Research workspace, knowledge-library views, Skills pages, and configuration
+eval/              Benchmark runners, scorers, and evaluation exports
+datasets/          WideSearch and GISA data
+eval_results/      Evaluation outputs
+searchos_workspace/ Research session workspaces
+```
+
+## 🎥 Gallery
+
+### Local Search introduction
+
+<p align="center">
+  <a href="https://youtu.be/l9vEq6SdvZA">
+    <img src="https://i.ytimg.com/vi/l9vEq6SdvZA/hqdefault.jpg" alt="Local Search introduction" width="720">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://youtu.be/l9vEq6SdvZA"><b>Watch the Local Search introduction on YouTube</b></a>
+</p>
+
+The recordings below demonstrate Web and TUI workflows.
+
+<details>
+<summary>Web and TUI demos</summary>
 
 <p align="center">
   <a href="https://youtu.be/DZNXxMcxnMQ">
@@ -51,40 +367,6 @@
 <p align="center">
   🎬 <b><a href="https://youtu.be/wxy74AqykwY">Full product walkthrough (English)</a></b>
 </p>
-
-> **▶️ Quick run:**
->
-> ```bash
-> ./install.sh
-> source .venv/bin/activate
-> searchos "Top-5 universities per subject in the 2025 QS rankings, with application deadlines"
-> ```
->
-> `install.sh` prepares the Python environment, bundled Access Skill dependencies, Chromium, and the Web frontend. The first run then launches a **setup wizard**: pick a model provider (vendor coding plans / pay-as-you-go APIs / local deployment), paste an API key, and you're up.
-> Run `searchos` with no query for the full-screen TUI to watch task dispatch, tool streams, and the coverage map grow in real time.
-> You can also run `./web/start.sh` to bring up the REST/WS API (`:8000`) + web frontend (`:3000`) and launch searches from the browser with a live agent wall and coverage map.
-
-## 📣 News
-
-- **2026-07-17** — **SearchOS-V1 is now on arXiv.** Read the paper on [arXiv](https://arxiv.org/abs/2607.15257) or [Hugging Face](https://huggingface.co/papers/2607.15257). 📄
-- **2026-07-11** — **Start faster. Search wider. See every step.** A new one-command installer gets SearchOS running; parallel Explore waves scout the web in batches, while live progress and evidence grouped by entity make every discovery easier to follow. Skills now run in hardened, isolated workers. ⚡
-- **2026-07-10** — **A whole new way to research.** Draw the structure of your question. SearchOS turns it into citation-backed research you can explore, refine, and export. 🧩
-- **2026-07-09** — **Pick up exactly where you left off.** Every session returns with its conversation, progress, evidence, and live activity intact. ⏪
-- **2026-07-08** — **Everything in one place.** Models, providers, search, skills, and budgets now come together in one beautifully simple control center. ⚙️
-- **2026-07-07** — **SearchOS is now open source.** Multi-agent search, structured research, TUI, and Web UI. All together. Ready for everyone. 🚀
-
-## ✨ Highlights
-
-- 🗂️ **Search state as a system asset** — SOCM (Search-Oriented Context Management) keeps the task queue, evidence graph, and coverage map in one persistent state shared by all agents: snapshot, restore, replay — nothing drowns in conversation history.
-- 🧩 **Coverage-map-driven, recall-first** — the question becomes normalized entity × attribute tables; dispatch keeps targeting empty cells until every one holds a sourced value.
-- ⚡ **Pipelined-parallel sub-agents** — search → open → find stages overlap across agents; wall-clock approaches the slowest single chain, not a serial sum.
-- 🔗 **Every cell carries a citation** — extraction middleware writes (entity, attribute, value, source) into the evidence graph; every answer traces back to its source.
-- 🛡️ **Sensor safety net** — five kinds of loop / stall detection on every tool call: remind first, re-dispatch from a new angle if it persists.
-- 🧰 **Skills + multi-provider out of the box** — access skills crack anti-bot / login-walled sites, strategy skills handle rankings / multi-hop / disambiguation; `SF_PROVIDER` connects any vendor in one line.
-
-> 📊 Leads on all headline F1 metrics on **WideSearch / GISA**, including **Set · F1 +13.4 over the next-best baseline** on enumeration questions (see [Evaluation](#-evaluation)).
-
-## 🎥 Gallery
 
 <table align="center">
   <tr>
@@ -131,248 +413,12 @@
   </tr>
 </table>
 
-<p align="center"><sub>Click a cover to watch on YouTube (more demos coming)</sub></p>
+<p align="center"><sub>Click a cover to watch on YouTube.</sub></p>
 
 <!-- To add a video: copy a <td>…</td> block above and swap the youtu.be link, assets/gallery thumbnail, and title -->
 
-## 💡 Why SearchOS
+</details>
 
-Pointing a general-purpose agent or deep-search agent at long-horizon search tasks commonly produces these failure modes:
-
-* **Opaque process** — intermediate search results drown in dozens of turns of conversation history; facts get lost after context compression; mid-run you can neither see progress nor resume or replay.
-* **Easy to loop** — no memory of what has already been checked: the same query gets re-issued with different phrasing, and the same entity's attributes are searched again in different subtasks.
-* **Blurred roles** — sub-agents must search, read, remember, and summarize all at once; on long tasks something always slips: extracted fields use inconsistent conventions, sources get dropped.
-* **Can't get in, can't search well** — anti-bot walls, login gates, and deep directories keep hard sites unreachable; ranking, multi-hop, and disambiguation questions aren't solved by simply searching more.
-
-SearchOS answers each of the four failures with a mechanism-level fix:
-
-* **Search state lives in the system, not in conversation history** — SOCM keeps the task queue, evidence graph, and coverage map in one shared persistent state (`search_state.json`): snapshot, restore, replay at any time; sub-agents run on a three-layer context (SOCM snapshot → episodic summaries → recent working memory) instead of full history, keeping a stable prompt-cache-friendly prefix.
-* **Entity-centric modeling + loop-breaking sensors** — a normalized multi-table schema (primary keys + attributes, with foreign keys) means each fact is fetched once and dispatch always targets empty cells; LoopSensor runs five loop checks on every tool call — remind first, mark `looped` and re-dispatch from a different angle if it persists.
-* **Search and extraction are separated** — sub-agents just find the right pages; on every page open, a judge model extracts (entity, attribute, value, source, confidence) into the evidence graph, with unit normalization and excerpts anchored to the original text — consistent conventions, traceable sources.
-* **Role-aligned three-layer skill system for open-domain information seeking** — orchestrates methodology, search strategies, and site-level executable access skills in one system (details in [Skill system](#-skill-system)).
-
-## 🧩 Framework
-
-```
-User query
-   │
-   ▼
-┌─────────────────────────── Orchestrator (sole decision maker) ───────────────────┐
-│   Explore scouting → create_schema builds the coverage map → enqueue_tasks       │
-│   dispatch → check_agents polling → assess/adjust → enough coverage or budget    │
-│   exhausted → synthesize                                                         │
-└──────┬──────────────────────────┬─────────────────────────────┬──────────────────┘
-       ▼                          ▼                             ▼
-  explore_agent              search_agent × N              writer_agent
- (query typing / hub pages / (searches the web per         (consumes SOCM, writes
-  candidate entities /        subtask, never writes         cited sections)
-  search plan)                state directly)
-       │                          │                             │
-       └────────────┬─────────────┴─────────────────────────────┘
-                    ▼
-      Three middleware layers: Context → Sensor → Extraction
-     (prompt assembly / budget & loop monitoring / judge-based auto extraction)
-                    │
-                    ▼
-┌──────────── SOCM · Search-Oriented Context Management (shared search state) ────┐
-│  Frontier Memory   task queue: priority + blocked_by DAG, three task types in   │
-│                    one shared pool                                              │
-│  Evidence Graph    findings / sources / confidence, support-conflict edges      │
-│  Coverage Map      entity × attribute, multi-table + foreign keys, per-column   │
-│                    types / formats / validation                                 │
-│  Strategy Memory   strategy & failure memory · Writer Outline · Budget          │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
-
-A session loops through six steps:
-
-1. **Explore** — a scout goes first: classifies the query type, locates hub pages, produces candidate entities and a search plan; it does not extract attribute values.
-2. **Schema** — the Orchestrator builds a normalized coverage map by entity type (multiple tables + relations); every entity Explore found is seated as a seed row.
-3. **Dispatch** — gaps are split into self-contained natural-language subtasks and dispatched to search agents in parallel by priority and dependency.
-4. **Extract** — after every page open, the Extraction middleware automatically extracts (entity, attribute, value, source, confidence) into the evidence graph and lights up the coverage map.
-5. **Assess** — subtasks are polled and harvested: new entities join the table, bad sources are blacklisted, conflicts go to arbitration, empty cells get targeted follow-ups.
-6. **Synthesize** — once the coverage self-check passes, the answer is joined out of SOCM in the user's requested format, citation by citation.
-
-### What the output looks like
-
-Every cell carries a back-anchored source number, with the sources listed at the end — this is what "citation-grounded relational schema completion" looks like in the final product (excerpt from a real run; the query, in Chinese, was *survey Hong Kong's popular insurance products in recent years*):
-
-```markdown
-### Major insurers in Hong Kong
-| Company     | English name   | 2024 APE rank | 2023 premiums  |
-|-------------|----------------|---------------|----------------|
-| 友邦保险     | AIA [6]        | #1 [6]        | HK$87.1B [6]   |
-| 保诚         | Prudential [6] | #2 [6]        | HK$65.3B [6]   |
-| 汇丰保险     | HSBC Life [6]  | #3 [6]        | HK$55.5B [6]   |
-| 宏利         | Manulife [6]   | #4 [6]        | HK$49.8B [6]   |
-
-### Sources
-[6] https://www.ia.org.hk/tc/infocenter/press_releases/20250425.html, https://inews.hket.com/…
-```
-
-The full artifact (a replayable directory with the trajectory, page cache, and SOCM state) lives under `searchos_workspace/<timestamp>/`.
-
-## 🚀 Installation
-
-Requires Python ≥ 3.11:
-
-```bash
-./install.sh                # recommended: Python env + Access Skills + Chromium + Web frontend
-source .venv/bin/activate
-
-pip install -e .            # manual: core CLI/TUI and Web API dependencies
-pip install -e ".[access]"  # manual: bundled Access Skill executors
-pip install -e ".[eval]"    # manual: evaluation dependencies
-pip install -e ".[all]"     # manual: all optional runtime dependencies
-```
-
-The full installer also requires Node.js ≥ 20.9. Use `./install.sh --core` to skip Access Skill and browser runtimes, `--no-web` to skip frontend dependencies, or `--all --dev` for a complete development environment. See the [installation guide](docs/installation.md).
-
-## ⚙️ Configuration
-
-**The first run launches a setup wizard automatically**: when no usable model configuration is detected, `searchos` walks you through picking a provider and entering an API key, then writes `.env` (re-run anytime with `searchos --setup`). The Web Settings page and TUI commands `/model`, `/search`, and `/config` write to the same `web_settings.json` overlay, so CLI, TUI, and Web runs share one configuration.
-
-You can also configure secrets manually: copy [`.env.example`](.env.example) to `.env` and add only the API keys you use. Choose providers, models, search backends, and other runtime settings through the setup wizard, Web Settings, or TUI; those choices are stored in `web_settings.json`.
-
-```bash
-ZHIPU_API_KEY=xxx             # example model-provider key
-SERPER_API_KEY=xxx            # example search-provider key
-JINA_API_KEY=xxx              # optional: higher Jina fetching quota
-```
-
-All presets (each vendor's endpoints, model IDs, how to get keys, and known quirks) are in [`docs/providers.md`](docs/providers.md). Advanced environment-only configuration through `SF_PROVIDER` and other `SF_*` overrides remains supported and is documented there.
-
-All configuration is centralized in `settings.py`; `SF_`-prefixed environment variables override it, with `__` separating nested fields (partial overrides **deep-merge** with defaults, changing only the fields you set). Models are bound by **role** (11 roles → model profiles), which makes provider mixing, rate control, ablations, and cost reduction straightforward:
-
-| Common settings | Description |
-| --- | --- |
-| `SF_MODEL` / `SF_FAST_MODEL` | Override the preset's main / lightweight-tier model |
-| `SF_API_BASE` | Override the endpoint (e.g. switch to the international domain) |
-| `SF_SEARCH_PROVIDER` | Search backend: `serper` \| `tavily` \| `ragflow` (inferred from available keys if unset) |
-| `SF_BROWSER_BACKEND` | Fetch backend: `jina` \| `aiohttp` \| `crawl4ai` \| `search_engine` |
-| `SF_ROLES__JUDGE=main` | Rebind a single role's model profile (advanced / ablation) |
-| `SF_PROFILES__MAIN__TEMPERATURE=0.3` | Field-level override on one profile (advanced / ablation) |
-| `SF_PROFILES__MAIN__RPM=60` / `...__TPM=100000` | Per-profile sliding-window request/token limits; `0` disables a limit |
-| `SF_MAX_PARALLEL_AGENTS` | Sub-agent concurrency cap (default 8) |
-| `SF_ENABLE_EXPLORE_BATCH` / `SF_EXPLORE_MIN_WAVES` / `SF_EXPLORE_MAX_WAVES` | Parallel Explore mode and adaptive wave bounds (default 2–3) |
-| `SF_ENABLE_EXPLORE` / `SF_ENABLE_SKILLS` | Ablation switches: disable Explore / disable Skills |
-| `SF_SKIP_SYNTHESIS` | Evaluation mode: skip synthesis and export the table straight from the coverage map |
-
-## 🧭 Quick start
-
-| Command | What it does |
-| --- | --- |
-| `python -m searchos "<query>"` | Single query; results land in `searchos_workspace/<timestamp>/output/report.md` |
-| `python -m searchos` | Full-screen Textual TUI: live panels, mid-run steering, multi-turn follow-ups, `/skill` skill management |
-| `python -m eval.run --benchmark widesearch --range 1-50` | Run evaluations (see the next section) |
-
-### Interactive TUI
-
-`python -m searchos` opens the full-screen interface: a live dashboard on top (task dispatch, sub-agent status, coverage map growth) and the tool stream below. One input box routes by timing:
-
-| When | What typing natural language does |
-| --- | --- |
-| Idle | Starts a new search run |
-| **Mid-run** | **Live steering** — your text is injected into the running Orchestrator immediately, without interrupting sub-agents; use it to add constraints ("2024 data only"), correct course, or point at good sources |
-| After a run | **Multi-turn follow-up** — reuses the previous round's coverage map and evidence: if the answer is already in the table it is answered directly (no new search); otherwise the existing table is extended incrementally, never rebuilt from scratch |
-
-Slash commands work at any time (including mid-run):
-
-| Command | Alias / shortcut | What it does |
-| --- | --- | --- |
-| `/new` | `/clear` · `Ctrl-N` | New topic: clears conversation history and the coverage map; the next question starts from a fresh workspace |
-| `/resume [session-id]` | `/load` | Restore a previous session with its conversation, trajectory, coverage, and evidence; omit the id to open the picker |
-| `/effort [low\|medium\|high\|max]` | — | Effort tier: adjusts iteration cap, concurrency, per-agent search budget, wall-clock limit, and skill-routing top-k in one go; with no argument it opens an interactive picker; mid-run changes take effect next round |
-| `/skill` | — | Skill management: no argument opens a grouped multi-select dialog; subcommands `list`, `only <names…>` (whitelist, fuzzy prefix match), `on` / `off <names…>`, `all` (reset to router control) for fine-grained control |
-| `/model` | — | Open shared model settings: provider connections, model cards, role bindings, and per-profile limits |
-| `/search [auto\|serper\|tavily\|ragflow]` | — | Inspect or switch the shared search backend |
-| `/config [key value]` | `/set` | Open the shared settings panel or quickly change supported run defaults |
-| `/verbose` | `/detail` · `Ctrl-T` | Toggle compact / detailed tool stream |
-| `/stop` | `/cancel` · `Esc` | Interrupt the current run (Esc exits the program when idle) |
-| `/help` | `/?` | Command help |
-| `/quit` | `/exit` · `Ctrl-D` | Exit SearchOS |
-
-The four `/effort` budget tiers at a glance (these modify global settings and take effect immediately for the current session; parallel sub-agents stay fixed at 8 across tiers):
-
-| Tier | Orchestrator iterations | Searches per agent | Wall-clock cap | Routing top-k |
-| --- | :---: | :---: | :---: | :---: |
-| `low` | 25 | 10 | 10 min | 20 |
-| `medium` (default) | 50 | 20 | 30 min | 40 |
-| `high` | 100 | 35 | 60 min | 60 |
-| `max` | 150 | 50 | 120 min | 80 |
-
-## 🧰 Skill system
-
-Three categories of skills, all under [`searchos/skills/library/`](searchos/skills/library/):
-
-| Category | Count | Description |
-| --- | --- | --- |
-| **access** | 248 | Site-level data access, named by domain (e.g. `en_wikipedia_org`); auto-routed on URL match, or invoked proactively by sub-agents as typed tools |
-| **strategy** | 40+ | Reasoning methodology: `ranking_top_n`, `entity_disambiguation`, `multi_hop_bridge`…, optionally with anti-pattern checklists |
-| **orchestrator** | a few | Orchestration-level methodology, injected wholesale as a playbook |
-
-At runtime an LLM router pre-filters the access catalog to a query-relevant top-k (fail-open); each dispatched sub-agent carries at most 3 skills; pages that match no access skill fall back to the generic extraction middleware.
-
-```bash
-SEARCHOS_SKILL_ONLY=en_wikipedia_org,ranking_top_n   # whitelist
-SEARCHOS_SKILL_LAYERS_DISABLED=access                # disable by layer
-SEARCHOS_SKILLS_DISABLED=1                           # disable all
-```
-
-After a session, high-frequency domains can optionally be mined and baked into new access skills for later runs. Enable this under **Settings → Skills** or TUI `/config`; generation uses the configured `skill_evolver` role. The legacy `SF_ENABLE_ACCESS_SKILL_GENERATION` variable remains migration-only.
-
-## 📊 Evaluation
-
-On **WideSearch** (wide-table retrieval) and **GISA** (open-domain information seeking), compared against 2 single-agent baselines (ReAct / Plan-and-Solve) and 3 multi-agent systems (Table-as-Search / A-MapReduce / Web2BigTable). All scores are **max@3** (best of three runs per case, ×100); **bold** marks the best in each row. *Item* scores cells independently; *Row* requires a fully correct row.
-
-| Benchmark | Metric | ReAct | Plan-and-Solve | Table-as-Search | A-MapReduce | Web2BigTable | **SearchOS** |
-| --- | --- | :---: | :---: | :---: | :---: | :---: | :---: |
-| WideSearch | Item · Precision | 82.9 | 83.8 | 82.4 | 83.1 | 78.3 | **83.9** |
-| | Item · Recall | 70.2 | 72.9 | 73.5 | 74.2 | 73.4 | **79.7** |
-| | Item · F1 | 72.9 | 75.2 | 75.4 | 76.0 | 73.8 | **80.3** |
-| | Row · Precision | 58.0 | 58.7 | 57.1 | 56.9 | 57.5 | **59.0** |
-| | Row · Recall | 48.8 | 50.2 | 51.6 | 49.8 | 54.0 | **55.8** |
-| | Row · F1 | 50.9 | 52.2 | 52.7 | 51.4 | 54.5 | **56.5** |
-| GISA | Table · Item · F1 | 74.8 | 71.2 | 73.4 | 72.5 | 68.1 | **76.9** |
-| | Table · Row · F1 | 58.1 | 50.7 | 54.1 | 52.1 | 45.3 | **59.7** |
-| | Set · F1 | 61.6 | 63.1 | 60.9 | 62.5 | 56.7 | **76.5** |
-| | List · F1 | 67.1 | 53.8 | 54.2 | 57.4 | 65.5 | **68.1** |
-| | Item · EM | 0.0 | 16.7 | 16.7 | 33.3 | **50.0** | **50.0** |
-
-SearchOS leads on all F1 metrics across both benchmarks, with gains driven primarily by **recall** — coverage-map-driven dispatch keeps filling empty cells until every schema cell has a sourced value; on enumerating complete sets, **Set · F1 beats the next-best baseline by +13.4**.
-
-## 🗺️ Roadmap
-
-SearchOS is under active development. The roadmap below highlights our current priorities and may evolve as the project and research progress.
-
-- [x] **SearchOS-V1 Technical Report** — Released on [arXiv](https://arxiv.org/abs/2607.15257), covering the system design, hierarchical skill architecture, evaluation methodology, and reproducible results.
-- [ ] **Automated Skill Generation Pipeline** — Develop an end-to-end pipeline for discovering, generating, validating, and maintaining reusable search skills. More details will be presented in follow-up research.
-- [ ] **Multimodal Search** — Extend search and evidence grounding beyond text to images, charts, audio, and video.
-- [ ] **Broader Data-Source Support** — Add more integrations for academic, enterprise, and domain-specific information sources.
-
-> This roadmap reflects current priorities rather than fixed release commitments. Suggestions and contributions are welcome through GitHub Issues.
-
-## 🗂️ Project layout
-
-```
-searchos/
-├── agents/        Orchestrator plus Explore, Search, and optional Writer agent definitions
-├── harness/       SearchSession, Context/Sensor/Evidence Intake middleware, repair planning, synthesis, telemetry
-├── socm/          Shared search state: Frontier / Evidence Graph / Coverage Map / Strategy
-├── tools/         Tools grouped by role: schema, tasks, writer, simple_browser …
-├── skills/        Contracts/manifests, routing, isolated runtime, creation/evolution workflows, skill library
-├── tui/           Textual interface: live dashboard, resume, settings, Skills, follow-ups, steering
-├── config/        providers, model cards/roles, rate limits, effort presets, env + shared settings overlay
-└── cli.py         `searchos` / `python -m searchos` entry point
-
-web/api/           FastAPI REST/WS service: runs, history/assets, snapshots/branching, repair, settings, Skill jobs
-web/frontend/      Next.js research workspace: composer, live run, evidence, versions, usage, history library
-
-eval/              Evaluation framework: run.py entry, runner, benchmarks, scorers, reformat
-datasets/          Bundled WideSearch and GISA benchmark data
-eval_results/      Evaluation output (one directory per case, with a fully replayable session)
-searchos_workspace/ Session workspaces for interactive runs (timestamped directories)
-```
 
 ## 👥 Authors
 

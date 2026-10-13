@@ -1,0 +1,48 @@
+{
+  "description": "Fetches mountain range and peak data from Peakbagger.com range pages. Provides detailed range information including peak rankings, elevations, hierarchy, and geographic data. Note: Individual peak and list pages are blocked by Cloudflare, but range pages are fully accessible.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_range: Get detailed information about a mountain range including top peaks, elevations, area, countries, and hierarchy. Requires 'rid' or 'url'.; 参数: rid, url; 必填: url\n  - search_ranges: Search for mountain ranges by exploring the range hierarchy. Optional 'start_rid' to begin from a specific range.; 参数: start_rid, max_depth, rid, url; 必填: url\n  - get_peak_from_range: Get peak information by finding it within its parent range page. Requires 'rid', optionally 'peak_name' or 'peak_id'.; 参数: rid, peak_id, peak_name, url; 必填: rid, url"
+    },
+    "rid": {
+      "type": "string",
+      "required": false,
+      "description": "Range ID number from Peakbagger (e.g., \"100\" for Brooks Range). Used by get_range, search_ranges, and get_peak_from_range."
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "Full Peakbagger URL for a range page (e.g., \"https://peakbagger.com/range.aspx?rid=100\"). Alternative to rid for get_range."
+    },
+    "start_rid": {
+      "type": "string",
+      "required": false,
+      "description": "Starting range ID for hierarchy exploration. Used by search_ranges. Defaults to \"1\" (North America)."
+    },
+    "max_depth": {
+      "type": "integer",
+      "required": false,
+      "description": "Maximum depth for hierarchy traversal. Used by search_ranges. Defaults to 1."
+    },
+    "peak_id": {
+      "type": "string",
+      "required": false,
+      "description": "Peak ID number from Peakbagger. Used by get_peak_from_range for exact match."
+    },
+    "peak_name": {
+      "type": "string",
+      "required": false,
+      "description": "Name of peak to search for (partial match supported). Used by get_peak_from_range."
+    }
+  },
+  "imports": [
+    "bs4",
+    "playwright"
+  ],
+  "requirements": [
+    "beautifulsoup4",
+    "playwright"
+  ]
+}

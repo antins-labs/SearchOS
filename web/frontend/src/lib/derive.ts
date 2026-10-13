@@ -1,77 +1,115 @@
 // Derived views over the raw event stream + search state, shared by the
 // inline orchestration card and the execution drawer. Pure functions only.
 
-import type { SearchState, WSEvent } from "./types";
-import type { WorkerInfo } from "@/hooks/useSearch";
+import type { SearchState, WorkerInfo, WSEvent } from "./types";
 
-/** Rebuild per-sub-agent cards from a full event list (used when replaying a
- *  loaded historical session — mirrors the incremental updater in useSearch).
- *  `final` (session is done) coerces any agent left "running" to completed —
- *  a finished run has nothing still in flight. */
-export function foldWorkers(events: WSEvent[], final = false): WorkerInfo[] {
-  const map = new Map<string, WorkerInfo>();
-  for (const e of events) {
-    const etype = String(e.type || "");
-    if (etype !== "trajectory" && !etype.startsWith("blackboard.")) continue;
-    const data = (e.data ?? {}) as Record<string, unknown>;
-    const agent = String(data.agent || data.worker || data.agent_name || "");
-    if (!agent || agent === "orchestrator") continue;
-    const prev = map.get(agent);
-    const dtype = String(data.type || "");
-    const status = String(data.status || "");
-    let next: WorkerInfo["status"] = prev?.status ?? "running";
-    if (dtype === "agent_complete" || dtype === "agent_final" || status === "completed" || status === "partial") next = "completed";
-    if (dtype === "agent_error" || dtype === "error" || status === "error") next = "error";
-    map.set(agent, {
-      name: agent,
-      intent: prev?.intent ?? ((agent.startsWith("explore") || agent.startsWith("warmup"))
-        ? "explore"
-        : agent.startsWith("writer") ? "write" : "search"),
-      scope: prev?.scope ?? agent,
-      status: next,
-      events: prev ? [...prev.events, e] : [e],
-    });
-  }
-  const out = [...map.values()];
-  if (final) {
-    for (const w of out) {
-      if (w.status === "running" || w.status === "pending") w.status = "completed";
-    }
-  }
-  return out;
+export interface LocalRunProgress {
+  present: boolean;
+  phase: "retrieving" | "answering" | "completed" | "limited" | "error";
+  documentCount: number;
+  evidenceCount: number;
+  readCount: number;
+  citationCount: number;
 }
 
-export const PHASES = [
-  { key: "warmup", label: "warmup" },
-  { key: "schema", label: "schema" },
-  { key: "dispatch", label: "dispatch" },
-  { key: "evaluate", label: "evaluate" },
-  { key: "synthesize", label: "synthesize" },
-] as const;
+export function deriveLocalRunProgress(events: WSEvent[]): LocalRunProgress {
+  let present = false;
+  let phase: LocalRunProgress["phase"] = "retrieving";
+  let documentCount = 0;
+  let evidenceCount = 0;
+  let readCount = 0;
+  let citationCount = 0;
 
-export type PhaseKey = (typeof PHASES)[number]["key"];
-
-/** Furthest phase the orchestrator has reached, inferred from the feed. */
-export function derivePhase(
-  events: WSEvent[],
-  status: "idle" | "running" | "completed" | "error",
-): { reached: number; current: PhaseKey } {
-  let reached = 0; // warmup by default once anything runs
-  for (const e of events) {
-    if (e.type !== "trajectory") continue;
-    const d = (e.data ?? {}) as Record<string, unknown>;
-    const t = String(d.type || "");
-    const tool = String(d.tool || "");
-    const action =
-      typeof d.action === "string" ? d.action.match(/'name':\s*'([^']+)'/)?.[1] : "";
-
-    if (tool === "create_schema" || action === "create_schema") reached = Math.max(reached, 1);
-    if (t === "dispatch" || action === "enqueue_tasks") reached = Math.max(reached, 2);
-    if (tool === "evaluate_progress") reached = Math.max(reached, 3);
-    if (tool === "synthesize_answer") reached = Math.max(reached, 4);
+  for (const event of events) {
+    const data = event.type === "trajectory" && event.data && typeof event.data === "object"
+      ? event.data as Record<string, unknown>
+      : event as unknown as Record<string, unknown>;
+    const sourceMode = String(data.source_mode ?? "");
+    const type = String(data.type ?? event.type ?? "");
+    if (sourceMode === "local") present = true;
+    if (present && typeof data.document_count === "number") documentCount = data.document_count;
+    if (event.type === "evidence_added") evidenceCount += 1;
+    if (present && typeof data.evidence_count === "number") evidenceCount = data.evidence_count;
+    if (present && typeof data.read_count === "number") {
+      readCount = data.read_count;
+      if (readCount > 0) phase = "answering";
+    }
+    if (present && typeof data.citation_count === "number") citationCount = data.citation_count;
+    if (present && type === "task_complete") {
+      phase = data.reading_stop_reason === "budget" || data.reading_stop_reason === "timeout"
+        ? "limited" : "completed";
+    }
+    if (present && (type === "task_error" || event.type === "search_error")) phase = "error";
   }
-  if (status === "completed") reached = 4;
-  return { reached, current: PHASES[Math.min(reached, 4)].key };
+
+  return { present, phase, documentCount, evidenceCount, readCount, citationCount };
+}
+
+/** 实时和历史回放共用同一个不可变事件 reducer。 */
+export function foldWorkers(events: WSEvent[], final = false, terminalStatus: "completed" | "error" = "completed"): WorkerInfo[] {
+  const workers = updateWorkersBatch([], events);
+  return final ? finalizeWorkers(workers, terminalStatus) : workers;
+}
+
+export function finalizeWorkers(workers: WorkerInfo[], terminalStatus: "completed" | "error" = "completed"): WorkerInfo[] {
+  return workers.map((worker) =>
+    worker.status === "running" || worker.status === "pending"
+      ? { ...worker, status: terminalStatus }
+      : worker,
+  );
+}
+
+export function updateWorkers(current: WorkerInfo[], event: WSEvent): WorkerInfo[] {
+  return updateWorkersBatch(current, [event]);
+}
+
+/** Clone each affected worker's history once per burst or replay. */
+export function updateWorkersBatch(current: WorkerInfo[], events: WSEvent[]): WorkerInfo[] {
+  const copy = [...current];
+  const indexes = new Map(current.map((worker, index) => [worker.name, index]));
+  const touched = new Set<string>();
+  for (const event of events) {
+    const etype = String(event.type || "");
+    const isTraj = etype === "trajectory";
+    const isBlackboard = etype.startsWith("blackboard.");
+    if (!isTraj && !isBlackboard) continue;
+
+    const data = (event.data ?? {}) as Record<string, unknown>;
+    const agent = String(data.agent || data.worker || data.agent_name || "");
+    if (!agent || agent === "orchestrator") continue;
+
+    // 保持不可变，避免 React 重复执行 updater 时累加事件。
+    const idx = indexes.get(agent) ?? -1;
+    const prev = idx >= 0 ? copy[idx] : null;
+
+    const dtype = String(data.type || "");
+    const status = String(data.status || "");
+    let nextStatus = prev?.status ?? "running";
+    if (dtype === "agent_complete" || dtype === "agent_final" || dtype === "task_complete" || status === "completed" || status === "partial") {
+      nextStatus = "completed";
+    }
+    if (dtype === "agent_error" || dtype === "error" || status === "error") {
+      nextStatus = "error";
+    }
+
+    const updated: WorkerInfo = {
+      name: agent,
+      intent:
+        prev?.intent ??
+        ((agent.startsWith("explore") || agent.startsWith("warmup"))
+          ? "explore"
+          : agent.startsWith("writer") ? "write" : "search"),
+      scope: prev?.scope ?? agent,
+      status: nextStatus,
+      events: prev ? (touched.has(agent) ? prev.events : [...prev.events]) : [],
+    };
+
+    updated.events.push(event);
+    touched.add(agent);
+    if (idx >= 0) copy[idx] = updated;
+    else { indexes.set(agent, copy.length); copy.push(updated); }
+  }
+  return touched.size ? copy : current;
 }
 
 /** Filled vs total cells across the coverage map (the live progress bar).
@@ -118,4 +156,29 @@ export function deriveAnswer(events: WSEvent[]): string {
     }
   }
   return writerFinal || synth || lastFinal;
+}
+
+/** Fold only committed final-answer events into the visible response. */
+export function deriveLiveAnswer(events: WSEvent[]): string | null {
+  let streamId = "";
+  let answer = "";
+  for (const event of events) {
+    if (event.type !== "trajectory") continue;
+    const data = (event.data ?? {}) as Record<string, unknown>;
+    const type = String(data.type || "");
+    if (String(data.phase || "") !== "final_answer") continue;
+    if (type === "answer_stream_start") {
+      streamId = String(data.stream_id || "");
+      answer = "";
+      continue;
+    }
+    if (
+      type === "answer_stream_delta"
+      && streamId
+      && String(data.stream_id || "") === streamId
+    ) {
+      answer += typeof data.delta === "string" ? data.delta : "";
+    }
+  }
+  return streamId ? answer : null;
 }

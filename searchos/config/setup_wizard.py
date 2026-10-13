@@ -79,8 +79,9 @@ def _env_config_ready() -> bool:
     """env/预设路径是否足以构造模型（不 import settings，不发请求）。"""
     provider = os.environ.get("SF_PROVIDER", "").strip()
     if not provider:
-        # 未选预设 → 走 settings.py 内置网关默认值，主模型依赖 OPENAI_API_KEY。
-        return bool(os.environ.get("OPENAI_API_KEY"))
+        # 裸 API key 不能决定协议、端点或模型。新用户必须显式选择 provider，
+        # 或通过设置页/向导建立 provider 连接、模型卡和角色绑定。
+        return False
     try:
         preset = resolve_preset(provider)
     except ValueError:
@@ -170,7 +171,14 @@ def run_setup_wizard(env_path: Path | None = None) -> bool:
     key_envs: list[str] = []
     default_env = preset.api_key_env
     while True:
-        kenv = Prompt.ask("API key 环境变量", default=default_env or "OPENAI_API_KEY").strip().upper()
+        kenv = (
+            Prompt.ask(
+                "API key 环境变量",
+                default=default_env or "OPENAI_API_KEY",
+            )
+            .strip()
+            .upper()
+        )
         if kenv and kenv not in key_envs:
             key_envs.append(kenv)
         if preset.api_key_fallback:

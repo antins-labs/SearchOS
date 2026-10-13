@@ -36,7 +36,14 @@ export default function AgentCard({
   const { name, status, events } = data;
   const steps = recentSteps(events, 2);
   const goal = agentGoal(events);
-  const stepCount = events.filter((e) => e.type === "trajectory" && (e.data as Record<string, unknown>)?.type === "step").length;
+  const stepCount = events.filter((e) => {
+    if (e.type !== "trajectory") return false;
+    const data = (e.data ?? {}) as Record<string, unknown>;
+    return data.type === "step" || (
+      data.source_mode === "local"
+      && (data.type === "task_start" || data.type === "task_complete")
+    );
+  }).length;
 
   return (
     <button

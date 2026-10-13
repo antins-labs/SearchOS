@@ -1,0 +1,33 @@
+{
+  "description": "Fetches structured marijuana legal status information from Leafwell's \"Is Marijuana Legal in X?\" articles, including medical/recreational/CBD/cultivation status, penalties, and key facts.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_by_country: 根据国家名获取法律状态信息; 需要country参数; 参数: country; 必填: 无\n  - get_by_url: 根据Leafwell文章URL获取法律状态信息; 需要url参数; 参数: url; 必填: 无\n  - search: 搜索国家文章(功能受限); 需要query参数; 参数: query; 必填: 无"
+    },
+    "country": {
+      "type": "string",
+      "required": false,
+      "description": "国家名称(用于get_by_country函数)，如 \"Qatar\", \"Albania\", \"United States\""
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Leafwell文章的完整URL(用于get_by_url函数)，必须是leafwell.com域名下的链接"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索查询(用于search函数，功能受限)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

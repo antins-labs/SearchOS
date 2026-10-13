@@ -1,0 +1,15 @@
+description: Fetches articles and news from the GDC (Game Developers Conference) website at gdconf.com.
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_article: 获取单篇文章内容; 需要 url 参数; 参数: url; 必填: url\n  - get_article_list:\
+      \ 获取最新文章列表; 参数: 无; 必填: 无\n  - search_articles: 搜索文章标题; 需要 query 参数; 参数: query; 必填: query"
+  url:
+    type: string
+    required: false
+    description: 文章的完整URL (用于 get_article)
+  query:
+    type: string
+    required: false
+    description: 搜索关键词，用于匹配文章标题 (用于 search_articles)

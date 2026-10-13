@@ -1,0 +1,33 @@
+{
+  "description": "Fetches and parses CPPCC (中国人民政治协商会议) committee member lists from www.cppcc.gov.cn, extracting structured records of members organized by political party, democratic party, or sector group.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_committee_members: 获取委员会成员名单，可选按党派/界别筛选; 参数: url, party; 必填: 无\n  - get_member_details: 搜索特定成员，返回其所属党派/界别及属性信息; 参数: url, member_name, party; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "要抓取的文章URL。默认为第十四届全国政协委员名单页面。\n示例: http://www.cppcc.gov.cn/zxww/2023/01/18/ARTI1674005617470226.shtml"
+    },
+    "party": {
+      "type": "string",
+      "required": false,
+      "description": "按党派或界别名称筛选成员（仅用于 get_committee_members）。\n支持模糊匹配，如 \"中国共产党\"、\"文化艺术界\"、\"科学技术界\" 等。"
+    },
+    "member_name": {
+      "type": "string",
+      "required": false,
+      "description": "要搜索的成员姓名（仅用于 get_member_details）。\n支持部分匹配，如 \"王沪宁\"、\"张\" 等。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

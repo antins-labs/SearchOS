@@ -1,0 +1,28 @@
+{
+  "description": "Extracts music chart data (US Hot 100 and other charts) from BuzzJack forums (www.buzzjack.com). Parses structured text tables in forum posts to retrieve chart positions, artist/song info, and chart statistics.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_chart_data: 从话题URL提取图表数据，返回结构化的排行榜条目; 参数: url; 必填: url\n  - get_topic_posts: 获取话题的所有帖子内容; 参数: url, page; 必填: url\n  - list_forum_topics: 列出论坛版块中的话题; 参数: url, page; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "BuzzJack话题或论坛URL。\nget_chart_data和get_topic_posts使用话题URL (如 https://www.buzzjack.com/forums/topic/281197-us-hot-100-08022025/)\nlist_forum_topics使用论坛URL (如 https://www.buzzjack.com/forums/forum/8-hot-100/)"
+    },
+    "page": {
+      "type": "integer",
+      "required": false,
+      "description": "分页页码，用于get_topic_posts和list_forum_topics获取指定页面的内容。\n默认为第1页。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

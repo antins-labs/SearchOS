@@ -1,0 +1,38 @@
+{
+  "description": "SearchOS access skill for locations.wendys.com - navigates the directory structure to list US states, cities within states, Wendy's locations within cities, and detailed information for specific store locations including hours, phone, and coordinates.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_states - List all US states where Wendy's locations may exist\n  - list_cities - List cities within a state that have Wendy's locations; requires state parameter\n  - list_locations - List Wendy's locations within a city; requires state and city parameters\n  - get_location - Get detailed information for a specific Wendy's location; requires state, city, and location parameters\n  - search - Basic search functionality (limited)\n"
+    },
+    "state": {
+      "type": "string",
+      "required": false,
+      "description": "Two-letter US state code (e.g., 'NY', 'CA', 'TX'). \nRequired for list_cities, list_locations, and get_location functions.\n"
+    },
+    "city": {
+      "type": "string",
+      "required": false,
+      "description": "City name or slug (e.g., 'new-york', 'los-angeles', 'chicago').\nRequired for list_locations and get_location functions.\nUse lowercase hyphenated form (spaces replaced with hyphens).\n"
+    },
+    "location": {
+      "type": "string",
+      "required": false,
+      "description": "Location slug/identifier (e.g., '111-fulton-street', '112-e-23rd-st').\nRequired for get_location function. \nUse lowercase hyphenated form, matching the URL path on locations.wendys.com.\n"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query string. Used with search function for basic lookup.\nCan be a state code, city name, or zip code."
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "description": "Fetches institutional profiles, exhibition records, and page content from the Alfried Krupp von Bohlen und Halbach Foundation website (www.krupp-stiftung.de).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_institutions: Lists all foundation institutions with names and URLs; 参数: 无; 必填: 无\n  - get_institution: Gets detailed profile of a specific institution; requires slug or url; 参数: slug, url; 必填: 无\n  - get_exhibition: Gets the Krupp Historical Exhibition content with room-by-room details; 参数: 无; 必填: 无\n  - get_page: Gets content from any page on the site; requires url; 参数: url; 必填: url"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "Institution slug (URL path segment) for get_institution. Example: \"thyssenkrupp-ag\" for /en/institutionen/thyssenkrupp-ag/"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full URL for get_institution or get_page functions. Must be from www.krupp-stiftung.de domain."
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

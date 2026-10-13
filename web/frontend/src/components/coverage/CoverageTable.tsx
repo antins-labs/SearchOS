@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import type { CoverageMap, TableSchema, CoverageCell, EvidenceNode, RepairCellTarget } from "@/lib/types";
+import { declaredCoverageTables } from "@/lib/coverageTables";
 import CellEvidencePopover, { type CellRef } from "./CellEvidencePopover";
 
 interface Props {
@@ -28,6 +29,7 @@ interface Props {
   onRepairCells?: (cells: RepairCellTarget[]) => void;
   /** Stable per-turn id: changing it suppresses animations for historical data. */
   animationScope?: string;
+  onOpenLocalSource?: (refId: string) => void;
 }
 
 // Filled cells stay readable (near-normal text) with only a whisper of tint —
@@ -480,7 +482,7 @@ function SortIndicator({ column, sort }: { column: string; sort: SortState }) {
     : <ArrowDown className="shrink-0 text-accent-ink" size={12} />;
 }
 
-export default function CoverageTable({ coverageMap, evidence, onRepairCells, animationScope = "default" }: Props) {
+export default function CoverageTable({ coverageMap, evidence, onRepairCells, animationScope = "default", onOpenLocalSource }: Props) {
   const [selected, setSelected] = useState<CellRef | null>(null);
   const [repairMode, setRepairMode] = useState(false);
   const [repairSelection, setRepairSelection] = useState<Map<string, RepairCellTarget>>(() => new Map());
@@ -553,15 +555,10 @@ export default function CoverageTable({ coverageMap, evidence, onRepairCells, an
     return <div className="p-4 text-sm text-ink-faint">No coverage data yet.</div>;
   }
 
-  const allTables = Object.values(coverageMap.tables);
-  const cellKeys = Object.keys(coverageMap.cells);
-  // Drop the "_default" placeholder table (single meta-entity = the query
-  // subject, never filled) once a real table exists. Then drop tables with no
-  // cells. Fall back so we never render nothing.
-  const nonPlaceholder = allTables.filter((t) => !t.table_id.startsWith("_"));
-  const base = nonPlaceholder.length ? nonPlaceholder : allTables;
-  const withCells = base.filter((t) => cellKeys.some((k) => k.startsWith(`${t.table_id}/`)));
-  const tables = withCells.length ? withCells : base;
+  const tables = declaredCoverageTables(coverageMap);
+  if (tables.length === 0) {
+    return <div className="p-4 text-sm text-ink-faint">No coverage data yet.</div>;
+  }
   const relations = coverageMap.relations || [];
   const repairableTargets = tables.flatMap((schema) => {
     const dataColumns = schema.attributes.filter(
@@ -657,7 +654,9 @@ export default function CoverageTable({ coverageMap, evidence, onRepairCells, an
       ))}
 
       {selected && evidence && (
-        <CellEvidencePopover cellRef={selected} nodes={evidence} onClose={() => setSelected(null)} />
+        <CellEvidencePopover cellRef={selected} nodes={evidence} onClose={() => setSelected(null)}
+          bindings={coverageMap.evidence_bindings?.[`${selected.tableId}/${selected.entity}.${selected.attribute}`]}
+          onOpenLocalSource={onOpenLocalSource} />
       )}
 
       {relations.length > 0 && (

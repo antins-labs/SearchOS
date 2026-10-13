@@ -1,0 +1,17 @@
+{
+  "description": "通过 Reddit 官方 RSS 订阅读取公开板块帖子列表。无需认证，稳定可靠。",
+  "parameters": {
+    "subreddit": {
+      "type": "string",
+      "required": true,
+      "description": "板块名称（2-21 位字母数字下划线），可带或不带 r/ 前缀"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 25,
+      "description": "返回帖子数量，1-100"
+    }
+  },
+  "imports": [],
+  "requirements": []
+}

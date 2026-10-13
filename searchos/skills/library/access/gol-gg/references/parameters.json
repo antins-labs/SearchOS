@@ -1,0 +1,48 @@
+{
+  "description": "Fetches League of Legends esports statistics from gol.gg including tournament stats, player rankings, champion statistics, and team data.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_tournament_stats: 获取赛事统计信息，包括顶尖选手和团队数据；需要 tournament_name 参数; 参数: tournament_name; 必填: tournament_name\n  - get_tournament_ranking: 获取赛事团队排名；需要 tournament_name 参数; 参数: tournament_name; 必填: tournament_name\n  - get_players_list: 获取选手列表及统计数据；可选 season, split, tournament 参数; 参数: season, split, tournament; 必填: 无\n  - get_player_stats: 获取特定选手详细数据；需要 player_id 参数，可选 tournament 参数; 参数: player_id, tournament; 必填: player_id\n  - get_champions_list: 获取英雄列表及使用统计；可选 season, split, tournament 参数; 参数: season, split, tournament; 必填: 无\n  - get_teams_list: 获取团队列表及统计数据；可选 season, split, tournament 参数; 参数: season, split, tournament; 必填: 无\n  - get_team_stats: 获取特定团队详细数据；需要 team_id 参数，可选 tournament 参数; 参数: team_id, tournament; 必填: team_id"
+    },
+    "tournament_name": {
+      "type": "string",
+      "required": false,
+      "description": "赛事名称，如 \"LPL 2025 Split 3\"；用于 get_tournament_stats 和 get_tournament_ranking"
+    },
+    "season": {
+      "type": "string",
+      "required": false,
+      "description": "赛季代码，如 \"S16\"（默认）；用于列表查询"
+    },
+    "split": {
+      "type": "string",
+      "required": false,
+      "description": "赛季阶段，如 \"Summer\"、\"Spring\"、\"Winter\"；用于列表查询，默认 \"Summer\""
+    },
+    "tournament": {
+      "type": "string",
+      "required": false,
+      "description": "赛事筛选，如 \"ALL\"（默认）或具体赛事名称；用于列表查询"
+    },
+    "player_id": {
+      "type": "string",
+      "required": false,
+      "description": "选手ID（数字），如 \"1708\"；用于 get_player_stats"
+    },
+    "team_id": {
+      "type": "string",
+      "required": false,
+      "description": "团队ID（数字），如 \"2519\"；用于 get_team_stats"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

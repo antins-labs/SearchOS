@@ -1,0 +1,33 @@
+{
+  "description": "Fetches ISO 3166-1 country codes, IBAN structure specifications, and validates IBAN numbers from iban.com.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_country_codes: 获取ISO 3166-1国家代码表（支持按国家代码或名称过滤）; 参数: country_code, country_name; 必填: 无\n  - get_iban_structure: 获取各国IBAN结构信息（长度、示例、SEPA支持等）; 参数: country_code, country_name; 必填: 无\n  - validate_iban: 验证IBAN号码有效性（有每日免费次数限制）; 参数: iban; 必填: 无"
+    },
+    "country_code": {
+      "type": "string",
+      "required": false,
+      "description": "国家代码（Alpha-2或Alpha-3格式，如\"US\"、\"USA\"、\"DE\"、\"GB\"）。\n用于get_country_codes和get_iban_structure功能的过滤。"
+    },
+    "country_name": {
+      "type": "string",
+      "required": false,
+      "description": "国家名称（支持部分匹配，如\"United\"、\"Germany\"）。\n用于get_country_codes和get_iban_structure功能的过滤。"
+    },
+    "iban": {
+      "type": "string",
+      "required": false,
+      "description": "待验证的IBAN号码（可包含空格，系统会自动清理）。\n用于validate_iban功能。示例：\"GB82WEST12345698765432\"、\"DE89 3704 0044 0532 0130 00\"。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

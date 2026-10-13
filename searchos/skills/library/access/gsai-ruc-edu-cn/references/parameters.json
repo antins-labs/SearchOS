@@ -1,0 +1,21 @@
+{
+  "description": "Fetches structured faculty profile data from Renmin University of China GSAI (Gaoling School of Artificial Intelligence) website at gsai.ruc.edu.cn, including name, position, bio, education, work experience, research interests, courses, and contact information.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_profile: 获取中文版教师主页信息; 需要 url 参数; 参数: url; 必填: url\n  - get_profile_english: 获取英文版教师主页信息; 需要 url 参数; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "教师主页URL或教师姓名缩写。可以是完整URL (如 'https://gsai.ruc.edu.cn/chenxu')\n或仅教师姓名缩写 (如 'chenxu')。系统会自动补全URL。"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

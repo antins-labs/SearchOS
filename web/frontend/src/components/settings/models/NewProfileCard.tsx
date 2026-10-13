@@ -18,7 +18,8 @@ const NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
  * carries a model id + sampling; the connection supplies protocol/base/key.
  */
 export default function NewProfileCard({ disabled = false }: { disabled?: boolean }) {
-  const { settings, mutate } = useSettings();
+  const { settings, mutate, uiPrefs } = useSettings();
+  const zh = uiPrefs.language === "zh";
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -72,7 +73,7 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
         enable_thinking: thinkingControllable && enableThinking,
       }),
       merge: (s, models: ModelsView) => ({ ...s, models }),
-      errorLabel: "Couldn't create model",
+      errorLabel: zh ? "无法创建模型" : "Couldn't create model",
     });
     setBusy(false);
     if (result) { setOpen(false); reset(); }
@@ -82,38 +83,38 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
     return (
       <button type="button" disabled={disabled} onClick={() => setOpen(true)}
         className="flex min-h-24 items-center justify-center gap-1.5 rounded-xl border border-dashed border-line text-[12.5px] text-ink-faint transition-colors hover:border-line-strong hover:text-ink-dim disabled:opacity-40">
-        <Plus size={14} /> New model
+        <Plus size={14} /> {zh ? "新增模型" : "New model"}
       </button>
     );
   }
 
   return (
     <div className="surface rounded-xl px-3.5 py-3">
-      <div className="text-[12.5px] text-ink">New model</div>
+      <div className="text-[12.5px] text-ink">{zh ? "新增模型" : "New model"}</div>
       <div className="mt-2 space-y-1.5">
         {connNames.length === 0 ? (
           <p className="text-[12px] text-ink-faint">
-            Add a provider connection in Providers above first, then a model can point at it.
+            {zh ? "请先在上方添加模型服务，再创建使用该连接的模型。" : "Add a provider connection above before creating a model."}
           </p>
         ) : (
           <>
             <label className="block">
-              <span className="mb-1 block text-[11px] text-ink-faint">Provider</span>
+              <span className="mb-1 block text-[11px] text-ink-faint">{zh ? "模型服务" : "Provider"}</span>
               <Select
                 value={providerRef}
                 onChange={onProviderRef}
                 disabled={busy}
-                ariaLabel="Provider connection"
+                ariaLabel={zh ? "模型服务" : "Provider connection"}
                 className="w-full"
                 options={[
-                  { value: "", label: "Select a provider...", disabled: true },
+                  { value: "", label: zh ? "选择模型服务…" : "Select a provider…", disabled: true },
                   ...connNames.map((name) => ({ value: name, label: conns[name].label || name })),
                 ]}
               />
             </label>
             {keyChoices.length > 1 && (
               <label className="block">
-                <span className="mb-1 block text-[11px] text-ink-faint">API key</span>
+                <span className="mb-1 block text-[11px] text-ink-faint">{zh ? "密钥" : "API key"}</span>
                 <Select
                   value={keyEnv}
                   onChange={setKeyEnv}
@@ -123,37 +124,37 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
                   monospace
                   options={keyChoices.map((key) => ({
                     value: key.env,
-                    label: `${key.env}${key.env === primaryEnv ? " (default)" : ""}${key.key_set ? "" : " - not set"}`,
+                    label: `${key.env}${key.env === primaryEnv ? (zh ? "（默认）" : " (default)") : ""}${key.key_set ? "" : (zh ? " - 未配置" : " - not set")}`,
                   }))}
                 />
               </label>
             )}
             <input value={name} onChange={(e) => setName(e.target.value)} disabled={busy}
-              placeholder="Name (e.g. antchat-qwen)" aria-label="Model name" spellCheck={false} className={inputCls} />
+              placeholder={zh ? "名称，如 antchat-qwen" : "Name, e.g. antchat-qwen"} aria-label={zh ? "模型名称" : "Model name"} spellCheck={false} className={inputCls} />
             <input value={model} onChange={(e) => setModel(e.target.value)} disabled={busy}
-              placeholder="Model id (e.g. qwen3-max)" aria-label="Model id" spellCheck={false} className={inputCls} />
+              placeholder={zh ? "模型标识，如 qwen3-max" : "Model id, e.g. qwen3-max"} aria-label={zh ? "模型标识" : "Model id"} spellCheck={false} className={inputCls} />
             <input value={temp} onChange={(e) => setTemp(e.target.value)} disabled={busy}
-              placeholder="Temperature (empty = omit)" aria-label="Temperature" inputMode="decimal"
+              placeholder={zh ? "温度（留空不发送）" : "Temperature (empty means omitted)"} aria-label={zh ? "温度" : "Temperature"} inputMode="decimal"
               spellCheck={false} className={`${inputCls} ${tempValid ? "" : "border-err"}`} />
             <div className="grid grid-cols-2 gap-2">
               <label className="block"><span className="mb-1 block text-[11px] text-ink-faint">RPM</span>
                 <input value={rpm} onChange={(e) => setRpm(e.target.value)} disabled={busy}
-                  placeholder="0 = unlimited" aria-label="RPM" inputMode="numeric" spellCheck={false}
+                  placeholder={zh ? "0 = 不限制" : "0 = unlimited"} aria-label="RPM" inputMode="numeric" spellCheck={false}
                   className={`${inputCls} ${quotaValid(rpm) ? "" : "border-err"}`} /></label>
               <label className="block"><span className="mb-1 block text-[11px] text-ink-faint">TPM</span>
                 <input value={tpm} onChange={(e) => setTpm(e.target.value)} disabled={busy}
-                  placeholder="0 = unlimited" aria-label="TPM" inputMode="numeric" spellCheck={false}
+                  placeholder={zh ? "0 = 不限制" : "0 = unlimited"} aria-label="TPM" inputMode="numeric" spellCheck={false}
                   className={`${inputCls} ${quotaValid(tpm) ? "" : "border-err"}`} /></label>
             </div>
             {effProtocol !== "anthropic" && (thinkingControllable ? (
               <div className="flex items-center justify-between py-0.5">
-                <span className="text-[12px] text-ink-dim">Thinking</span>
-                <Toggle checked={enableThinking} disabled={busy} label="Enable thinking"
+                <span className="text-[12px] text-ink-dim">{zh ? "推理" : "Thinking"}</span>
+                <Toggle checked={enableThinking} disabled={busy} label={zh ? "启用推理" : "Enable thinking"}
                   onChange={setEnableThinking} />
               </div>
             ) : providerRef ? (
               <p className="text-[11px] text-ink-faint">
-                该连接 thinking_style=none — 运行时跟随模型默认；到 Providers 设置 thinking 方式后可开关。
+                {zh ? "该连接未定义推理开关格式，运行时跟随模型默认值。" : "This connection has no thinking switch format, so the model default applies."}
               </p>
             ) : null)}
           </>
@@ -161,11 +162,11 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
         <div className="flex justify-end gap-2 pt-0.5">
           <button type="button" onClick={() => { setOpen(false); reset(); }} disabled={busy}
             className="text-[12px] text-ink-faint transition-colors hover:text-ink-dim disabled:opacity-40">
-            Cancel
+            {zh ? "取消" : "Cancel"}
           </button>
           <button type="button" onClick={create} disabled={!canCreate}
             className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1 text-[12px] text-white transition-opacity hover:opacity-90 disabled:opacity-25">
-            {busy && <Loader2 size={11} className="animate-spin" />} Create
+            {busy && <Loader2 size={11} className="animate-spin" />} {zh ? "创建" : "Create"}
           </button>
         </div>
       </div>

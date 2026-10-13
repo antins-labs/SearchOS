@@ -1,0 +1,31 @@
+{
+  "description": "Fetches structured opera data from OperaFolio.com including composer catalogs, opera details with synopses and arias, and searchable opera/aria listings.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_composer_operas: 获取指定作曲家的所有歌剧列表; 需要 composer 参数; 参数: composer; 必填: 无\n  - get_opera_details: 获取歌剧详细信息(剧情简介、咏叹调等); 需要 opera 参数; 参数: opera; 必填: 无\n  - get_composers: 获取所有作曲家列表; 参数: 无; 必填: 无\n  - get_operas: 获取精选歌剧列表; 参数: 无; 必填: 无\n  - search_operas: 按名称搜索歌剧; 需要 query 参数; 参数: query; 必填: 无\n  - get_famous_arias: 获取著名咏叹调列表; 参数: 无; 必填: 无"
+    },
+    "composer": {
+      "type": "string",
+      "required": false,
+      "description": "作曲家名称 (如 \"Giuseppe Verdi\" 或 \"Giuseppe_Verdi\"); 用于 get_composer_operas"
+    },
+    "opera": {
+      "type": "string",
+      "required": false,
+      "description": "歌剧名称 (如 \"Rigoletto\" 或 \"La Traviata\"); 用于 get_opera_details"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词; 用于 search_operas"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

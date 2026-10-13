@@ -10,9 +10,8 @@ the rest stay discoverable at runtime via ``list_skills`` / ``load_skill``.
 Strategy skills are NOT routed here — they are methodology, small in number,
 and kept whole by the catalog. This selector only narrows the access layer.
 
-Fail-open by design: any error (no model, parse failure, empty result) returns
-``None`` so the caller falls back to the full catalog. A broken router must
-never break a run.
+Failures use a bounded deterministic fallback. An explicit empty selection
+remains empty; routing never expands beyond the requested budget.
 """
 
 from __future__ import annotations
@@ -22,8 +21,8 @@ import logging
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from searchos.skills.core.models import Skill, SkillCategory, SkillStatus
 from searchos.skills.catalog.registry import SkillRegistry
+from searchos.skills.core.models import Skill, SkillCategory
 from searchos.util.json_extract import extract_json_object
 
 logger = logging.getLogger(__name__)
@@ -51,12 +50,8 @@ relevant. Never invent names."""
 
 
 def _selectable_access(registry: SkillRegistry) -> list[Skill]:
-    """Access skills the catalog would otherwise surface (non-deprecated)."""
-    return [
-        s
-        for s in registry.list_by_category(SkillCategory.ACCESS)
-        if s.meta.status != SkillStatus.DEPRECATED
-    ]
+    """Runtime-enabled Access Skills surfaced by the registry."""
+    return registry.list_by_category(SkillCategory.ACCESS)
 
 
 def _render_catalog(skills: list[Skill]) -> str:
@@ -77,21 +72,25 @@ async def select_access_skills(
     """Return the names of the top-k query-relevant access skills.
 
     ``None`` means "do not filter" — returned when there is nothing to gain
-    (access count already <= top_k) or on any failure (fail-open).
+    (access count already <= top_k). Failures use a bounded fallback.
     """
+    top_k = max(0, top_k)
+    if top_k == 0:
+        return set()
     candidates = _selectable_access(registry)
     if len(candidates) <= top_k:
         return None  # nothing to trim — keep the whole catalog
 
     valid = {s.meta.name for s in candidates}
+    fallback = set(sorted(valid)[:top_k])
 
     if model is None:
         from searchos.config.models import get_model_for
         try:
             model = get_model_for("skill_router")
         except Exception as exc:  # misconfigured role/key — don't kill the run
-            logger.warning("skill_router model unavailable, keeping full catalog: %s", exc)
-            return None
+            logger.warning("skill_router model unavailable, using bounded fallback: %s", exc)
+            return fallback
 
     messages = [
         SystemMessage(content=_SYSTEM.format(top_k=top_k)),
@@ -102,17 +101,14 @@ async def select_access_skills(
         resp = await model.ainvoke(messages)
         obj = extract_json_object(getattr(resp, "content", "") or "")
     except Exception as exc:
-        logger.warning("skill_router call failed, keeping full catalog: %s", exc)
-        return None
+        logger.warning("skill_router call failed, using bounded fallback: %s", exc)
+        return fallback
 
     if not obj or not isinstance(obj.get("skills"), list):
-        logger.warning("skill_router returned no usable selection, keeping full catalog")
-        return None
+        logger.warning("skill_router returned no usable selection, using bounded fallback")
+        return fallback
 
-    picked = {str(n) for n in obj["skills"] if str(n) in valid}
-    if not picked:
-        logger.warning("skill_router picked no valid names, keeping full catalog")
-        return None
+    picked = set(list(dict.fromkeys(str(n) for n in obj["skills"] if str(n) in valid))[:top_k])
 
     logger.info(
         "skill_router: %d/%d access skills selected for query", len(picked), len(candidates)
@@ -129,7 +125,7 @@ __all__ = ["select_access_skills"]
 # ``# Skills`` catalog (the *sub-agent* skill list).
 
 
-def render_playbook(skills: list["Skill"]) -> str:
+def render_playbook(skills: list[Skill]) -> str:
     """Render the given skill bodies as a single markdown block.
 
     Returns empty string when ``skills`` is empty so the caller can drop the

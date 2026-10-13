@@ -1,0 +1,33 @@
+{
+  "description": "Fetches award winners and technical paper awards from the ACM SIGGRAPH Blog (blog.siggraph.org), including Best Papers, Honorable Mentions, Test-of-Time awards, and conference award winners across categories like Art Gallery, Electronic Theater, Emerging Technologies, and more.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_award_winners: 获取SIGGRAPH会议获奖者列表，包括Art Gallery、Electronic Theater、Emerging Technologies等类别的奖项; 参数: url, year; 必填: 无\n  - get_technical_papers: 获取SIGGRAPH技术论文奖项，包括Best Papers、Honorable Mentions、Test-of-Time Awards; 参数: url, year; 必填: 无\n  - search_posts: 在SIGGRAPH博客中搜索文章; 参数: query; 必填: query"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "指定要获取的博客文章URL。如未提供，将使用默认URL（用于get_award_winners和get_technical_papers）"
+    },
+    "year": {
+      "type": "string",
+      "required": false,
+      "description": "筛选年份（如\"2024\"）。用于构造默认URL"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词（用于search_posts功能）"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

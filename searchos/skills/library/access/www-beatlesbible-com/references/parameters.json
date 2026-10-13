@@ -1,0 +1,28 @@
+{
+  "description": "Fetches Beatles discography data and release information from beatlesbible.com, including UK release listings, individual release details with tracklists, and release search functionality.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_discography: 获取英国发行列表，无需其他参数; 参数: 无; 必填: 无\n  - get_release: 获取特定发行的详细信息，需要url参数; 参数: url; 必填: url\n  - search_releases: 按名称搜索发行，需要query参数; 参数: query; 必填: query"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "get_release功能需要的发行页面URL。可以是完整URL或相对路径。\n示例: \"https://www.beatlesbible.com/1966/08/05/uk-single-eleanor-rigby-yellow-submarine/\"\n      或 \"/1966/08/05/uk-single-eleanor-rigby-yellow-submarine/\""
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "search_releases功能需要的搜索关键词，用于在发行列表中查找匹配项。\n示例: \"Eleanor Rigby\", \"Abbey Road\", \"Sgt Pepper\""
+    }
+  },
+  "imports": [
+    "bs4",
+    "playwright"
+  ],
+  "requirements": [
+    "beautifulsoup4",
+    "playwright"
+  ]
+}

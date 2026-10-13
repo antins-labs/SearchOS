@@ -1,0 +1,58 @@
+{
+  "description": "Extracts hardware technical specifications for all Google Pixel phones from support.google.com, with filtering by device name, year, generation, and comparison capabilities.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_all_specs        获取所有设备的完整规格，支持通过 device_name/year/generation/device_type/variant 过滤\n  - get_device_details   获取特定设备的详细规格，需提供 device_query 参数\n  - compare_devices      比较多个设备的规格，需提供 devices 数组参数\n  - get_spec_summary     获取所有设备的简要规格摘要\n  - list_available_devices  列出所有可用的 Pixel 设备列表\n"
+    },
+    "device_query": {
+      "type": "string",
+      "required": false,
+      "description": "设备查询字符串，用于 get_device_details 功能。\n支持模糊匹配，例如: \"Pixel 9\", \"Pixel 8a\", \"Pixel Fold\"\n"
+    },
+    "device_name": {
+      "type": "string",
+      "required": false,
+      "description": "设备名称过滤，用于 get_all_specs 功能。\n例如: \"Pixel 9\", \"Pixel 8a\", \"Fold\"\n"
+    },
+    "year": {
+      "type": "integer",
+      "required": false,
+      "description": "发布年份过滤，用于 get_all_specs 功能。\n例如: 2024, 2023, 2022\n"
+    },
+    "generation": {
+      "type": "integer",
+      "required": false,
+      "description": "Pixel 代数过滤，用于 get_all_specs 功能。\n例如: 10, 9, 8, 7, 6\n"
+    },
+    "device_type": {
+      "type": "string",
+      "required": false,
+      "description": "设备类型过滤，用于 get_all_specs 功能。\n可选值: phone, foldable, a_series\n"
+    },
+    "variant": {
+      "type": "string",
+      "required": false,
+      "description": "变体类型过滤，用于 get_all_specs 功能。\n可选值: \"Pro XL\", \"Pro\", \"Standard\", \"a\", \"Fold\"\n"
+    },
+    "devices": {
+      "type": "array",
+      "required": false,
+      "description": "要比较的设备列表，用于 compare_devices 功能。\n例如: [\"Pixel 9 phones\", \"Pixel 8 phones\"]\n"
+    },
+    "return_all_matches": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否返回所有匹配的设备，用于 get_device_details 功能。\n默认只返回最佳匹配。"
+    }
+  },
+  "imports": [
+    "bs4",
+    "httpx"
+  ],
+  "requirements": [
+    "beautifulsoup4",
+    "httpx"
+  ]
+}

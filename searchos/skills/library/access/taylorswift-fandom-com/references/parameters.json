@@ -1,0 +1,34 @@
+{
+  "description": "Extracts structured content from taylorswift.fandom.com including infoboxes, tables, tour dates, and page content. Uses Wayback Machine archives when direct access is blocked.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_page        Get complete page data including infobox, content, tables, sections\n  - search          Search for pages in the wiki\n  - get_infobox     Get only infobox data from a page\n  - get_tables      Get only table data from a page\n  - get_tour_dates  Extract tour date information from a tour page\n"
+    },
+    "page_title": {
+      "type": "string",
+      "required": false,
+      "description": "The wiki page title (e.g., \"Reputation_Stadium_Tour\", \"Taylor Swift\"). Required for get_page, get_infobox, get_tables, get_tour_dates."
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query string. Required for search function."
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "default": 10,
+      "description": "Maximum number of search results to return. Used by search function."
+    }
+  },
+  "imports": [
+    "bs4",
+    "httpx"
+  ],
+  "requirements": [
+    "beautifulsoup4",
+    "httpx"
+  ]
+}

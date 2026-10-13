@@ -1,0 +1,23 @@
+{
+  "description": "Extracts structured album discographies, ranked lists, and similar content from Radio Times articles.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_album_list: 从Radio Times文章提取专辑列表、排行榜等内容; 需要url参数; 参数: url; 必填: url\n  - get_page_info: 获取页面基本信息和结构概览; 需要url参数; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "Radio Times文章的完整URL (例如 https://www.radiotimes.com/audio/...)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

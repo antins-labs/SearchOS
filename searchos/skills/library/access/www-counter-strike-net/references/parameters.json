@@ -1,0 +1,36 @@
+{
+  "description": "Fetches Counter-Strike 2 news and updates from the Steam News API, including patch notes, announcements, and game updates.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_updates: 列出最近的CS2新闻/更新; 支持count和offset参数; 参数: offset, count; 必填: 无\n  - get_news_entry: 获取特定新闻条目的完整内容; 需要gid参数; 参数: gid; 必填: gid\n  - search_updates: 按标题关键词搜索更新; 需要query参数; 参数: query, count; 必填: 无"
+    },
+    "offset": {
+      "type": "integer",
+      "required": false,
+      "description": "分页偏移量 (默认0); 用于list_updates"
+    },
+    "count": {
+      "type": "integer",
+      "required": false,
+      "description": "返回的条目数量 (默认20, 最大100); 用于list_updates和search_updates"
+    },
+    "gid": {
+      "type": "string",
+      "required": false,
+      "description": "新闻条目的唯一标识符; 用于get_news_entry"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词 (匹配标题); 用于search_updates"
+    }
+  },
+  "imports": [
+    "httpx"
+  ],
+  "requirements": [
+    "httpx"
+  ]
+}

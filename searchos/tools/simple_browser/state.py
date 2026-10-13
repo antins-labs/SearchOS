@@ -21,7 +21,6 @@ from searchos.tools.simple_browser.render import (
     Extract,
     PageContents,
     _extract_link_text,
-    _truncate,
     _wrap_lines,
 )
 from searchos.tools.simple_browser.search.base import SearchProvider, SearchResult
@@ -58,7 +57,14 @@ def _persist_page(url: str, page: PageContents) -> str:
         return ""
     page_id = _compute_page_id(url)
     try:
-        ws.write_page(page_id, url, page.text or "", title=page.title or "")
+        ws.write_page(
+            page_id,
+            url,
+            page.text or "",
+            title=page.title or "",
+            source_url=page.url,
+            page_metadata=page.metadata,
+        )
     except Exception as exc:
         logger.warning("write_page failed for %s: %s", url, exc)
         return ""
@@ -84,8 +90,15 @@ def _read_page_from_disk(url: str) -> "PageContents | None":
         return None
     if not text:
         return None
-    # Reconstruct a minimal PageContents from persisted markdown
-    return PageContents(url=url, text=text, urls={})
+    # 恢复标题；页面正文与行号使用同一 renderer，跨 agent 阅读保持一致。
+    try:
+        meta = ws.read_page_meta(page_id) or {}
+    except Exception:
+        meta = {}
+    metadata = meta.get("page_metadata") or {}
+    if metadata.get("page_content_hash") and hashlib.sha256(text.encode()).hexdigest() != metadata["page_content_hash"]:
+        return None
+    return PageContents(url=url, title=meta.get("title", ""), text=text, urls={}, metadata=metadata)
 
 
 def _query_from_state() -> str:
@@ -191,6 +204,7 @@ async def _fetch_page(
 class BrowserState:
     pages: dict[str, PageContents] = field(default_factory=dict)
     page_stack: list[str] = field(default_factory=list)
+    page_ids: dict[str, str] = field(default_factory=dict)
     search_content_cache: dict[str, "SearchResult"] = field(default_factory=dict)
     search_history: list[str] = field(default_factory=list)
     opened_urls: list[str] = field(default_factory=list)
@@ -218,7 +232,13 @@ class BrowserState:
     def get_page_by_url(self, url: str) -> PageContents | None:
         return self.pages.get(url)
 
-    def show_page(self, loc: int = 0, view_tokens: int = 2048, wrap_width: int = 80) -> str:
+    def show_page_with_metadata(self, **kwargs) -> tuple[str, dict]:
+        """返回可读视窗与工具生成的来源元数据，不暴露未阅读正文。"""
+        artifact: dict = {}
+        text = self.show_page(**kwargs, artifact=artifact)
+        return text, artifact
+
+    def show_page(self, loc: int = 0, view_tokens: int = settings.browser_view_tokens, wrap_width: int = 80, *, artifact: dict | None = None) -> str:
         """Show page starting at line loc, bounded by token budget."""
         page = self.get_page()
         lines = _wrap_lines(page.text, width=wrap_width)
@@ -258,9 +278,27 @@ class BrowserState:
         # link-id, producing calls like open(id=N, loc=...) that walked back
         # to a stale search-result page. The cursor is internal state.
         header = f"[Now viewing] {page.title}"
+        source_url = page.source_url or page.url
         if page.url:
-            header += f"\nURL: {_truncate(page.url, 100)}"
+            # 展示可复制的完整来源地址；find 的派生地址只放结构化元数据。
+            header += f"\nURL: {source_url}"
+        page_id = self.page_ids.get(page.url, "")
+        if page_id:
+            header += f"\nPage ID: {page_id}"
         header += f"\n**{scrollbar}**\n\n"
+        if artifact is not None:
+            artifact["page_source"] = {
+                **page.metadata,
+                "source_url": source_url,
+                "view_url": page.url,
+                "page_id": page_id or _compute_page_id(source_url),
+                "viewport": {
+                    "start_line": loc,
+                    "end_line_exclusive": end_loc,
+                    "total_lines": total_lines,
+                    "coordinate_space": "view" if page.source_url else "source",
+                },
+            }
 
         result = header + body
 
@@ -395,10 +433,12 @@ def _find_matches(
     pat_key = "+".join(patterns) if len(patterns) > 1 else patterns[0]
     return PageContents(
         url=f"{page.url}/find?pattern={pat_key}",
+        source_url=page.source_url or page.url,
         title=f"Find: `{pat_key}` in `{page.title}`",
         text=display_text,
         urls={str(i): page.url for i in range(len(result_chunks))},
         snippets=snippets,
+        metadata=dict(page.metadata),
     )
 
 
@@ -561,6 +601,6 @@ def _get_source_page(browser: BrowserState) -> PageContents:
     """Most recent non-find page from the stack — find() always searches
     the real page, not a previous find result."""
     for key in reversed(browser.page_stack):
-        if "/find?" not in key:
+        if not browser.pages[key].source_url:
             return browser.pages[key]
     return browser.get_page()

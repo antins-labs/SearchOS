@@ -1,0 +1,31 @@
+{
+  "description": "Extracts biographical and professional information from Cato Institute expert profile pages (www.cato.org/people/).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_person_profile: 获取单个人员档案信息; 需要 url 或 slug 参数; 参数: url, slug; 必填: 无\n  - search_people: 搜索 Cato Institute 人员; 需要 query 参数; 参数: query; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Cato Institute 人员档案页面的完整 URL (例如: https://www.cato.org/people/chelsea-follett)。 用于 get_person_profile 功能。如果不提供 url，则必须提供 slug。"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "人员档案 URL 的路径部分 (例如: chelsea-follett 或 /people/chelsea-follett)。 用于 get_person_profile 功能。如果不提供 slug，则必须提供 url。"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于在 Cato Institute 网站上搜索人员。 用于 search_people 功能。"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "description": "Extracts structured content from the George W. Bush White House archives, including press releases, holiday pages, and White House event menus.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_page: 获取指定URL的页面内容，自动识别页面类型并提取结构化数据; 参数: url; 必填: url\n  - get_menu_archive: 获取完整的白宫活动菜单档案列表; 参数: 无; 必填: 无\n  - search_menus: 按年份或关键词搜索菜单档案; 参数: year, keyword; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "要获取的页面URL（get_page功能使用）。可以是完整URL或相对路径。\n示例: https://georgewbush-whitehouse.archives.gov/news/releases/2007/11/20071121-2.html\n      或 /news/releases/2007/11/20071121-2.html"
+    },
+    "year": {
+      "type": "string",
+      "required": false,
+      "description": "按年份筛选菜单档案（search_menus功能使用）。\n示例: \"2007\", \"2008\""
+    },
+    "keyword": {
+      "type": "string",
+      "required": false,
+      "description": "按关键词搜索菜单档案（search_menus功能使用）。搜索菜单标题中的关键词。\n示例: \"Thanksgiving\", \"State Dinner\", \"Camp David\""
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

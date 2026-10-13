@@ -16,13 +16,6 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-_KIND_TO_AGENT = {
-    "search": "search_agent",
-    "write": "writer_agent",
-    "explore": "explore_agent",
-}
-
-
 def _running_count() -> int:
     """Live (not-done) entries in the session task pool — the number the
     ``max_parallel_agents`` cap is enforced against. Counts every agent
@@ -37,7 +30,7 @@ class Scheduler:
     """
 
     def __init__(self, task_allowlist: set[str] | None = None) -> None:
-        from searchos.harness.middleware.sensor.writer_trigger_sensor import (
+        from searchos.harness.middleware.sensor.core.writer_trigger_sensor import (
             WriterTriggerSensor,
         )
         self._writer_sensor = WriterTriggerSensor()
@@ -151,23 +144,49 @@ class Scheduler:
         return {"unblocked": len(to_unblock)}
 
     async def detect_evidence_conflicts(self) -> dict[str, Any]:
-        """Report conflicting evidence pairs without spawning side agents."""
+        """增量核验待处理证据；只报告当前有效的冲突。"""
         from searchos.agents.orchestrator.lifecycle import _ctx
+        from searchos.harness.middleware.extraction.core.conflicts import ConflictReviewer
+        from searchos.harness.middleware.extraction.core.judge import RowExtractor
+        from searchos.harness.middleware.extraction.core.models import ExtractionConfig
+        from searchos.harness.middleware.extraction.core.store import WorkspaceEvidenceStore
+        from searchos.socm.conflicts import reconcile_conflicts
+        from searchos.socm.coverage import evidence_source_allowed
 
         state = _ctx.workspace.load_state()
+        model = getattr(_ctx, "extraction_model", None) or getattr(_ctx, "judge_model", None)
+        if model is not None:
+            extractor = RowExtractor(model, ExtractionConfig())
+            await ConflictReviewer(
+                WorkspaceEvidenceStore(_ctx.workspace), extractor.invoke,
+            ).review(set(state.coverage_map.cells), max_pairs=12)
+            state = _ctx.workspace.load_state()
+        reconcile_conflicts(state, set(state.coverage_map.cells))
         conflicts: dict[tuple, tuple[str, str]] = {}
 
         for cell_key, cell in state.coverage_map.cells.items():
+            if not cell.has_conflict:
+                continue
             ev_ids = list(cell.conflict_evidence_ids or [])
             if not ev_ids and cell.has_conflict:
                 ev_ids = list(cell.supporting_evidence_ids)
             if len(ev_ids) >= 2:
-                sig = tuple(sorted(ev_ids))
+                sig = (cell_key, *sorted(ev_ids))
                 conflicts.setdefault(
                     sig,
                     (cell_key, f"CoverageCell {cell_key!r} flagged conflicting values"),
                 )
         for a, b in state.evidence_graph.get_conflicts():
+            if not all(evidence_source_allowed(state, node) for node in (a, b)):
+                continue
+            # 表格冲突已按单元格投影计数；独立事实的显式关系单独计数。
+            if a.entity or a.attribute or b.entity or b.attribute:
+                continue
+            if any(
+                a.id in c.supporting_evidence_ids and b.id in c.supporting_evidence_ids
+                for c in state.coverage_map.cells.values()
+            ):
+                continue
             sig = tuple(sorted((a.id, b.id)))
             cell_key = f"{a.entity}.{a.attribute}" if (a.entity and a.attribute) else ""
             conflicts.setdefault(
@@ -193,10 +212,7 @@ class Scheduler:
             return {"action": "disabled"}
         if _find_writer_id() is not None:
             return {"action": "already_spawned"}
-        # Capacity check BEFORE the sensor evaluate — evaluate() consumes
-        # one-shot stage triggers, so a post-evaluate deferral would lose
-        # the spawn signal permanently. The writer counts toward
-        # max_parallel_agents like every other agent.
+        # 先检查容量：evaluate() 会消费一次性触发信号。
         running = _running_count()
         if running >= _settings.max_parallel_agents:
             return {"action": "deferred_pool_full", "running": running}
@@ -209,19 +225,11 @@ class Scheduler:
         intent = state.intent or "Draft an answer to the user's query."
         cov, filled, total = signal.coverage, signal.filled_cells, signal.total_cells
         trigger = signal.trigger
-        if trigger.startswith("coverage_stage_"):
-            task = (
-                f"You are the writer. The original query is:\n\n{intent}\n\n"
-                f"Coverage crossed {trigger.removeprefix('coverage_stage_')}% "
-                f"({filled}/{total} cells). Continue drafting via write_section."
-            )
-        else:
-            task = (
-                f"You are the writer. The original query is:\n\n{intent}\n\n"
-                f"{filled}/{total} cells filled. Draft via write_section with "
-                f"settled material; CAVEAT "
-                f"missing parts, do NOT invent."
-            )
+        task = (
+            f"You are the writer. The original query is:\n\n{intent}\n\n"
+            f"Coverage crossed {trigger.removeprefix('coverage_stage_')}% "
+            f"({filled}/{total} cells). Continue drafting via write_section."
+        )
 
         write_task_id = f"w_{uuid.uuid4().hex[:8]}"
 
@@ -269,9 +277,7 @@ class Scheduler:
             return {"action": "no_writer"}
         if writer_id in _ctx.task_pool and not _ctx.task_pool[writer_id].done():
             return {"action": "writer_busy"}
-        # Re-adding the idle writer occupies a slot — honor the cap.
-        # Deferral is safe: the evidence delta that justifies the continue
-        # is only consumed when the continue actually happens.
+        # 续写也占容量；延后不会消费新证据计数。
         from searchos.config.settings import settings as _settings
         running = _running_count()
         if running >= _settings.max_parallel_agents:
@@ -312,6 +318,7 @@ class Scheduler:
         Writer is singleton and handled separately by maybe_spawn_writer.
         """
         from searchos.agents.orchestrator.lifecycle import (
+            _KIND_TO_AGENT_BY_KIND,
             _ctx,
             _spawn_sub_agent,
         )
@@ -410,9 +417,11 @@ class Scheduler:
             # (provider concurrency 429s killed whole batches on arrival).
             if spawned and settings.spawn_stagger_s > 0:
                 await asyncio.sleep(settings.spawn_stagger_s)
-            agent_type = task.agent_type or _KIND_TO_AGENT.get(task.kind, "search_agent")
+            agent_type = task.agent_type or _KIND_TO_AGENT_BY_KIND.get(task.kind, "search_agent")
             prompt = task.task_prompt or task.question
-            if task.target_cells and agent_type == "search_agent":
+            if task.target_cells and agent_type in {
+                "search_agent", "local_search_agent",
+            }:
                 prompt = f"{prompt}\n\nTarget cells: {', '.join(task.target_cells)}"
             aid = await _spawn_sub_agent(
                 agent_type, prompt, list(task.skills or []),

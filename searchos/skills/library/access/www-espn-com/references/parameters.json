@@ -1,0 +1,46 @@
+{
+  "description": "Fetches athlete profiles and statistics from ESPN for NBA, NFL, and other sports. Supports searching for athletes by name and retrieving detailed bio info and career stats.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - search: 按名称搜索运动员，返回匹配列表; 参数: query, limit, sport; 必填: 无\n  - get_info: 根据运动员ID获取基本信息（姓名、球队、位置等）; 参数: athlete_id, sport; 必填: 无\n  - get_stats: 根据运动员ID获取详细统计数据; 参数: athlete_id, sport, season_type; 必填: 无\n  - get_profile: 获取完整档案（基本信息+统计数据）; 参数: athlete_id, sport; 必填: 无\n  - get_stats_tables: 获取格式化为表格的统计数据; 参数: athlete_id, sport, category; 必填: 无"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索查询词（search功能使用）"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "搜索结果数量限制（search功能使用，默认10）"
+    },
+    "sport": {
+      "type": "string",
+      "required": false,
+      "description": "体育联盟代码，如 nba, nfl, mlb, nhl, ncaam, ncaaf（默认nba）"
+    },
+    "athlete_id": {
+      "type": "string",
+      "required": false,
+      "description": "运动员ID（get_info/get_stats/get_profile/get_stats_tables功能使用）"
+    },
+    "season_type": {
+      "type": "string",
+      "required": false,
+      "description": "赛季类型：2=常规赛，3=季后赛（默认2）"
+    },
+    "category": {
+      "type": "string",
+      "required": false,
+      "description": "统计类别筛选，如 averages, totals, miscellaneous（get_stats_tables功能使用）"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

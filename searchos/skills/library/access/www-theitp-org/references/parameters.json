@@ -1,0 +1,36 @@
+{
+  "description": "Fetches ITP Journal volume/issue data from www.theitp.org, including publication metadata, PDF download links, and page preview images.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_volume: Fetch a specific journal volume by URL or slug; requires url or slug parameter; 参数: url, slug, include_previews; 必填: 无\n  - list_volumes: List all available journal volumes; optionally filter by volume number; 参数: volume, include_previews; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full URL to a journal volume page (e.g., https://www.theitp.org/publications/the-journal/volume-16-part-4)"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "Storyblok slug for a journal volume (e.g., publications/the-journal/volume-16-part-4)"
+    },
+    "include_previews": {
+      "type": "boolean",
+      "required": false,
+      "description": "Whether to include PDF preview image URLs in the response\n各功能默认值：get_volume=true；list_volumes=false"
+    },
+    "volume": {
+      "type": "string",
+      "required": false,
+      "description": "Volume number to filter by when listing volumes (e.g., \"16\" or \"20\")"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

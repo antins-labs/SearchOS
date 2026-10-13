@@ -8,6 +8,7 @@ One module per tool group; each exposes a ``get_*_tools()`` factory:
 - ``writer`` — outline management (Writer)
 - ``socm_read`` — read-only SOCM views (Writer)
 - ``skill_catalog`` — list / load skills (Search, Writer)
+- ``searchos.local.reader.tools`` — catalog / open / find for Local Search Agent
 
 ``search_state`` holds the per-task workspace / agent ContextVars the
 tools read from.

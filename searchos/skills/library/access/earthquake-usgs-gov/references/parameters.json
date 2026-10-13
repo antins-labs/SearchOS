@@ -1,0 +1,126 @@
+{
+  "description": "Fetches earthquake data from USGS FDSN API - query events, count results, and  retrieve event details with parsed GeoJSON responses.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - query: Query earthquake events with filters (time, magnitude, location); 参数: starttime, endtime, orderby, eventtype, alertlevel, minmagnitude, maxmagnitude, mindepth, maxdepth, minlatitude, maxlatitude, minlongitude, maxlongitude, latitude, longitude, maxradiuskm, minradiuskm, limit, offset, minfelt, minsig; 必填: 无\n  - count: Count matching events without returning full data; 参数: starttime, endtime, orderby, eventtype, alertlevel, minmagnitude, maxmagnitude, mindepth, maxdepth, minlatitude, maxlatitude, minlongitude, maxlongitude, latitude, longitude, maxradiuskm, minradiuskm, limit, offset, minfelt, minsig; 必填: 无\n  - detail: Get detailed information for a specific event by ID; 参数: eventid; 必填: eventid"
+    },
+    "starttime": {
+      "type": "string",
+      "required": false,
+      "description": "Start time for search (ISO-8601 format). Used by query and count.\nExample: \"2025-09-01T00:00:00\""
+    },
+    "endtime": {
+      "type": "string",
+      "required": false,
+      "description": "End time for search (ISO-8601 format). Used by query and count.\nExample: \"2025-09-30T23:59:59\""
+    },
+    "orderby": {
+      "type": "string",
+      "required": false,
+      "description": "Sort order for results. Used by query.\nOptions: \"time\" (default), \"time-asc\", \"magnitude\", \"magnitude-asc\""
+    },
+    "eventtype": {
+      "type": "string",
+      "required": false,
+      "description": "Filter by event type. Used by query and count.\nOptions: \"earthquake\", \"quarry blast\", \"explosion\", etc."
+    },
+    "alertlevel": {
+      "type": "string",
+      "required": false,
+      "description": "Filter by PAGER alert level. Used by query and count.\nOptions: \"green\", \"yellow\", \"orange\", \"red\""
+    },
+    "minmagnitude": {
+      "type": "number",
+      "required": false,
+      "description": "Minimum magnitude filter. Used by query and count.\nExample: 5.0"
+    },
+    "maxmagnitude": {
+      "type": "number",
+      "required": false,
+      "description": "Maximum magnitude filter. Used by query and count.\nExample: 9.0"
+    },
+    "mindepth": {
+      "type": "number",
+      "required": false,
+      "description": "Minimum depth in kilometers. Used by query and count."
+    },
+    "maxdepth": {
+      "type": "number",
+      "required": false,
+      "description": "Maximum depth in kilometers. Used by query and count."
+    },
+    "minlatitude": {
+      "type": "number",
+      "required": false,
+      "description": "Minimum latitude for bounding box search (-90 to 90).\nUsed by query and count."
+    },
+    "maxlatitude": {
+      "type": "number",
+      "required": false,
+      "description": "Maximum latitude for bounding box search (-90 to 90).\nUsed by query and count."
+    },
+    "minlongitude": {
+      "type": "number",
+      "required": false,
+      "description": "Minimum longitude for bounding box search (-180 to 180).\nUsed by query and count."
+    },
+    "maxlongitude": {
+      "type": "number",
+      "required": false,
+      "description": "Maximum longitude for bounding box search (-180 to 180).\nUsed by query and count."
+    },
+    "latitude": {
+      "type": "number",
+      "required": false,
+      "description": "Center latitude for circular search. Used by query and count."
+    },
+    "longitude": {
+      "type": "number",
+      "required": false,
+      "description": "Center longitude for circular search. Used by query and count."
+    },
+    "maxradiuskm": {
+      "type": "number",
+      "required": false,
+      "description": "Maximum radius in kilometers from center point.\nUsed by query and count."
+    },
+    "minradiuskm": {
+      "type": "number",
+      "required": false,
+      "description": "Minimum radius in kilometers from center point.\nUsed by query and count."
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "Maximum number of results to return (1-20000). Used by query.\nDefault is unlimited (returns all matching events)."
+    },
+    "offset": {
+      "type": "integer",
+      "required": false,
+      "description": "Number of results to skip for pagination. Used by query."
+    },
+    "minfelt": {
+      "type": "integer",
+      "required": false,
+      "description": "Minimum number of felt reports. Used by query and count."
+    },
+    "minsig": {
+      "type": "integer",
+      "required": false,
+      "description": "Minimum significance (0-1000). Used by query and count."
+    },
+    "eventid": {
+      "type": "string",
+      "required": false,
+      "description": "USGS event ID for retrieving specific event details.\nRequired for detail function. Example: \"us6000rdta\""
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

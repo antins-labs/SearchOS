@@ -1,14 +1,43 @@
-"""Extraction layer（paper §3.3）。
+"""Evidence Extraction：Observation 到 Evidence Graph/Coverage Map 的深模块。"""
 
-``EvidenceExtractionMiddleware`` 是 Agent 生命周期 Adapter；``EvidenceIntake``
-是 Evidence Graph 与 Coverage Map 的唯一写入模块。
-"""
-
-from searchos.harness.middleware.extraction.evidence_extraction import (
-    EvidenceExtractionMiddleware,
+from searchos.harness.middleware.extraction.core.coordinator import ExtractionCoordinator
+from searchos.harness.middleware.extraction.core.models import (
+    DeliveryMode,
+    EvidenceObservation,
+    EvidenceSourceKind,
+    ExtractionConfig,
+    ExtractionProgress,
+    ExtractionReceipt,
+    ExtractionReport,
+    ExtractionSummary,
 )
-from searchos.harness.middleware.extraction.intake import EvidenceIntake
+from searchos.harness.middleware.extraction.core.replay import replay_pending_summaries
+from searchos.harness.middleware.extraction.core.store import (
+    EvidenceStore,
+    InMemoryEvidenceStore,
+    WorkspaceEvidenceStore,
+)
+from searchos.harness.middleware.extraction.local_middleware import LocalEvidenceMiddleware
+from searchos.harness.middleware.extraction.summary_middleware import FinalSummaryEvidenceMiddleware
+from searchos.harness.middleware.extraction.web_middleware import WebEvidenceMiddleware
+from searchos.harness.middleware.models import TaskContext
 
-ExtractionMiddleware = EvidenceExtractionMiddleware  # plan §三 alias
-
-__all__ = ["EvidenceExtractionMiddleware", "EvidenceIntake", "ExtractionMiddleware"]
+__all__ = [
+    "DeliveryMode",
+    "ExtractionCoordinator",
+    "EvidenceObservation",
+    "EvidenceSourceKind",
+    "EvidenceStore",
+    "InMemoryEvidenceStore",
+    "ExtractionConfig",
+    "ExtractionReport",
+    "ExtractionProgress",
+    "ExtractionReceipt",
+    "ExtractionSummary",
+    "WorkspaceEvidenceStore",
+    "replay_pending_summaries",
+    "TaskContext",
+    "WebEvidenceMiddleware",
+    "LocalEvidenceMiddleware",
+    "FinalSummaryEvidenceMiddleware",
+]

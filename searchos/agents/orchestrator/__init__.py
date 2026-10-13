@@ -8,13 +8,34 @@ lifecycle, scheduler, prompt, catalog, and post-mortem live in sibling modules.
 from __future__ import annotations
 
 
-def get_orchestrator_tools() -> list:
+def get_orchestrator_tools(*, source_mode: str = "") -> list:
     """Orchestrator tools: schema editors + Frontier queue + scheduler.
 
     Skill / browser tools belong to sub-agents only — exposing them here lets
     a confused orchestrator hop across them at budget exhaustion.
     """
-    from searchos.tools.schema import get_schema_tools
-    from searchos.tools.tasks import get_task_tools
+    from searchos.tools.schema import (
+        add_columns,
+        add_entities,
+        create_schema,
+        edit_entities,
+        inspect_table,
+        remove_entities,
+    )
+    from searchos.tools.socm_read import list_frontier, read_evidence
+    from searchos.tools.tasks import check_agents, enqueue_tasks, stop_task
 
-    return [*get_schema_tools(), *get_task_tools()]
+    # Extraction owns extraction, evidence binding and cell projection.
+    return [
+        create_schema,
+        add_columns,
+        add_entities,
+        remove_entities,
+        edit_entities,
+        inspect_table,
+        enqueue_tasks,
+        stop_task,
+        check_agents,
+        read_evidence,
+        list_frontier,
+    ]

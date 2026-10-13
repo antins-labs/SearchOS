@@ -1,0 +1,48 @@
+{
+  "description": "Retrieve structured information from the Total War: Warhammer Fandom wiki, including pages with infoboxes, sections, tables, categories, and search functionality.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_page: 获取wiki页面内容，包含infobox数据、章节、表格和wikitext源码; 参数: include_html, page_title, title; 必填: 无\n  - search: 搜索匹配查询的wiki页面; 参数: query, limit; 必填: 无\n  - get_category: 获取指定分类中的所有页面; 参数: category, limit; 必填: 无\n  - get_page_links: 获取页面中的所有链接; 参数: page_title, title; 必填: 无\n  - get_backlinks: 获取链接到此页面的所有页面; 参数: limit, page_title, title; 必填: 无\n  - get_all_pages: 获取所有wiki页面列表; 参数: limit; 必填: 无"
+    },
+    "include_html": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否包含解析后的HTML内容 (用于 get_page，默认为true)"
+    },
+    "page_title": {
+      "type": "string",
+      "required": false,
+      "description": "页面标题 (用于 get_page, get_page_links, get_backlinks)"
+    },
+    "title": {
+      "type": "string",
+      "required": false,
+      "description": "page_title的别名"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索查询字符串 (用于 search)"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果的最大数量 (用于 search, get_category, get_backlinks, get_all_pages)"
+    },
+    "category": {
+      "type": "string",
+      "required": false,
+      "description": "分类名称，可带或不带\"Category:\"前缀 (用于 get_category)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

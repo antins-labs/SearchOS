@@ -9,7 +9,8 @@ from pathlib import Path
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from api.deps import WORKSPACE_ROOT, sessions
+from api.deps import WORKSPACE_ROOT, session_directory, sessions
+from api.state_stream import StateStream
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -28,13 +29,12 @@ async def search_stream(ws: WebSocket, session_id: str):
     await ws.accept()
     logger.info("WebSocket connected: session=%s", session_id)
 
-    ws_path = Path(WORKSPACE_ROOT) / session_id
+    ws_path = session_directory(WORKSPACE_ROOT, session_id)
+    session_id = ws_path.name
 
     # Track file positions for incremental reads
     file_positions: dict[str, int] = {}
-    last_coverage = 0.0
-    last_evidence_count = 0
-    last_cells_fingerprint = ""
+    state_stream = StateStream()
 
     # ?tail=1 — start at the current end of every stream instead of replaying
     # from the top. Used by follow-up runs, which reuse the prior session's
@@ -47,14 +47,6 @@ async def search_stream(ws: WebSocket, session_id: str):
         for f in jsonl_files:
             if f.exists():
                 file_positions[str(f)] = f.stat().st_size
-        state_file = ws_path / "search_state.json"
-        if state_file.exists():
-            try:
-                state = json.loads(state_file.read_text())
-                nodes = state.get("evidence_graph", {}).get("nodes", [])
-                last_evidence_count = len(nodes)
-            except (json.JSONDecodeError, KeyError):
-                pass
 
     try:
         while True:
@@ -68,75 +60,53 @@ async def search_stream(ws: WebSocket, session_id: str):
                 # Stream blackboard
                 for stream_name in ("progress", "announcements", "claims"):
                     await _stream_jsonl(
-                        ws, ws_path / "blackboard" / f"{stream_name}.jsonl",
-                        f"blackboard.{stream_name}", file_positions,
+                        ws,
+                        ws_path / "blackboard" / f"{stream_name}.jsonl",
+                        f"blackboard.{stream_name}",
+                        file_positions,
                     )
 
-                # Check coverage/evidence changes
-                state_file = ws_path / "search_state.json"
-                if state_file.exists():
-                    try:
-                        state = json.loads(state_file.read_text())
-                        cmap = state.get("coverage_map", {})
-                        cells = cmap.get("cells", {})
-                        filled = sum(
-                            1 for c in cells.values()
-                            if c.get("status") in ("filled", "resolved")
-                        )
-                        total = len(cells)
-                        coverage = filled / total if total > 0 else 0.0
-                        cells_fingerprint = json.dumps(
-                            cells, sort_keys=True, ensure_ascii=False,
-                        )
-
-                        evidence_count = len(state.get("evidence_graph", {}).get("nodes", []))
-
-                        if (
-                            coverage != last_coverage
-                            or cells_fingerprint != last_cells_fingerprint
-                        ):
-                            await ws.send_json({
-                                "type": "coverage_updated",
-                                "coverage": coverage,
-                                "filled": filled,
-                                "total": total,
-                                "cells": cells,
-                            })
-                            last_coverage = coverage
-                            last_cells_fingerprint = cells_fingerprint
-
-                        if evidence_count != last_evidence_count:
-                            nodes = state.get("evidence_graph", {}).get("nodes", [])
-                            new_nodes = nodes[last_evidence_count:]
-                            for node in new_nodes:
-                                await ws.send_json({
+                # No parsing or serialization when the durable version has not changed.
+                try:
+                    event = await asyncio.to_thread(
+                        state_stream.event, ws_path / "search_state.json"
+                    )
+                    if event is not None:
+                        await ws.send_json(event)
+                        for node in state_stream.new_evidence:
+                            await ws.send_json(
+                                {
                                     "type": "evidence_added",
                                     "node": node,
-                                })
-                            last_evidence_count = evidence_count
-
-                    except (json.JSONDecodeError, KeyError):
-                        pass
+                                    "event_id": f"evidence:{node['id']}",
+                                }
+                            )
+                except (json.JSONDecodeError, FileNotFoundError):
+                    pass
 
             # Check if search is done
             if is_done:
                 final_status = session["status"]
                 if final_status == "completed" and session.get("result"):
                     r = session["result"]
-                    await ws.send_json({
-                        "type": "search_complete",
-                        "coverage": r.coverage_score,
-                        "evidence_count": r.evidence_count,
-                        "total_queries": r.total_queries,
-                        "total_steps": r.total_steps,
-                        "elapsed_s": r.elapsed_s,
-                        "eval_verdict": r.eval_verdict,
-                    })
+                    await ws.send_json(
+                        {
+                            "type": "search_complete",
+                            "coverage": r.coverage_score,
+                            "evidence_count": r.evidence_count,
+                            "total_queries": r.total_queries,
+                            "total_steps": r.total_steps,
+                            "elapsed_s": r.elapsed_s,
+                            "eval_verdict": r.eval_verdict,
+                        }
+                    )
                 elif final_status == "error":
-                    await ws.send_json({
-                        "type": "search_error",
-                        "error": session.get("error", "unknown"),
-                    })
+                    await ws.send_json(
+                        {
+                            "type": "search_error",
+                            "error": session.get("error", "unknown"),
+                        }
+                    )
                 break
 
             await asyncio.sleep(POLL_INTERVAL)
@@ -160,23 +130,29 @@ async def _stream_jsonl(
 
     pos = positions.get(key, 0)
     try:
-        with open(file_path, encoding="utf-8") as f:
-            f.seek(pos)
-            new_data = f.read()
-            if not new_data:
-                return
-            positions[key] = f.tell()
 
-        for line in new_data.strip().split("\n"):
-            if not line:
-                continue
+        def read_lines():
+            with file_path.open("rb") as stream:
+                if stream.seek(0, 2) < pos:
+                    stream.seek(0)
+                else:
+                    stream.seek(pos)
+                records = []
+                while line := stream.readline():
+                    if not line.endswith(b"\n"):
+                        break
+                    records.append((stream.tell(), line))
+                return records
+
+        for end, line in await asyncio.to_thread(read_lines):
+            positions[key] = end
             try:
                 entry = json.loads(line)
-                await ws.send_json({
-                    "type": event_prefix,
-                    "data": entry,
-                })
             except json.JSONDecodeError:
-                pass
+                continue
+            await ws.send_json(
+                {"type": event_prefix, "data": entry, "event_id": f"{event_prefix}:{end}"}
+            )
+
     except Exception:
         pass

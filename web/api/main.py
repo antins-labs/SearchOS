@@ -14,10 +14,12 @@ sys.path.insert(0, str(_REPO_ROOT / "web"))
 
 from contextlib import asynccontextmanager  # noqa: E402
 
-from api import settings_store  # noqa: E402
+from api import local_index_jobs, network_import_jobs, settings_store, topic_recap_jobs  # noqa: E402
 from api.routes import (  # noqa: E402
+    skills,
     diagnostics,
     history,
+    local_search,
     models,
     search,
     settings,
@@ -35,7 +37,18 @@ logging.basicConfig(
 async def lifespan(_app: FastAPI):
     # Apply the persisted web-settings overlay on top of the env base layer.
     settings_store.load_and_apply()
-    yield
+    from api.skill_creation_jobs import jobs as skill_jobs
+    skill_jobs.recover()
+    local_index_jobs.resume_background_indexes()
+    network_import_jobs.resume_network_imports()
+    topic_recap_jobs.resume_topic_recaps()
+    try:
+        yield
+    finally:
+        await skill_jobs.stop()
+        await local_index_jobs.stop_background_indexes()
+        await network_import_jobs.stop_network_imports()
+        await topic_recap_jobs.stop_topic_recaps()
 
 
 app = FastAPI(
@@ -55,10 +68,13 @@ app.add_middleware(
 )
 
 # Routes
+app.include_router(skills.router)
+app.include_router(skills.library_router)
 app.include_router(search.router)
 app.include_router(workspace.router)
 app.include_router(stream.router)
 app.include_router(history.router)
+app.include_router(local_search.router)
 app.include_router(settings.router)
 app.include_router(models.router)
 app.include_router(diagnostics.router)

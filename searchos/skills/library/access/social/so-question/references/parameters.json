@@ -1,0 +1,27 @@
+{
+  "description": "抽取 so_question：title、url、score、answer_count、tags",
+  "parameters": {
+    "site": {
+      "type": "string",
+      "required": false,
+      "default": "stackoverflow",
+      "description": "The Stack Exchange site to search (e.g., 'stackoverflow', 'serverfault', 'askubuntu')."
+    },
+    "query": {
+      "type": "string",
+      "required": true,
+      "description": "The search query string."
+    },
+    "num_results": {
+      "type": "integer",
+      "default": 5,
+      "description": "Maximum number of results to return."
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

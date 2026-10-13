@@ -48,6 +48,7 @@ dependencies = [
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
     "python-dotenv>=1.0.0",
+    "pillow>=10.1.0",
     "PyYAML>=6.0.0",
     "httpx>=0.28.0",
     "requests>=2.32.0",
@@ -58,6 +59,7 @@ dependencies = [
     "html2text>=2025.4.15",
     "lxml>=5.3",
     "fastapi>=0.115.0",
+    "python-multipart>=0.0.20",
     "uvicorn>=0.30.0",
 ]
 
@@ -88,8 +90,17 @@ access = [
     "PyPDF2>=3.0.0",
     "python-dateutil>=2.9.0",
 ]
-all = ["searchos[access,tavily,crawl4ai,observability,eval]"]
-dev = ["ruff>=0.4.0"]
+local-docs = [
+    "charset-normalizer>=3.3.0",
+    "openpyxl>=3.1.0",
+    "pillow>=10.0.0",
+    "pypdf>=5.0.0",
+    "pypdfium2>=4.30.0",
+    "python-docx>=1.1.0",
+    "python-pptx>=1.0.0",
+]
+all = ["searchos[access,local-docs,tavily,crawl4ai,observability,eval]"]
+dev = ["ruff>=0.4.0", "pytest>=8.0", "pytest-asyncio>=0.24"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["searchos"]

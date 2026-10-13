@@ -1,0 +1,53 @@
+{
+  "description": "Extracts structured character information from SNK Fandom Wiki (snk.fandom.com) including infobox data, sections, and searchable character listings via MediaWiki API.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_character: 获取角色详细信息，包括infobox数据和章节内容；需要 page 参数; 参数: include_sections, page; 必填: 无\n  - search_characters: 按名称搜索角色；需要 query 参数; 参数: query, limit; 必填: 无\n  - list_characters: 列出角色分类中的角色；可选 category、limit、offset 参数; 参数: offset, category, limit; 必填: 无\n  - get_section: 获取角色页面的特定章节；需要 page 和 section 参数; 参数: page, section; 必填: 无"
+    },
+    "include_sections": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否包含完整章节内容，用于 get_character（默认 true）"
+    },
+    "page": {
+      "type": "string",
+      "required": false,
+      "description": "角色页面名称，用于 get_character 和 get_section（如 \"Krizalid\"、\"Omega_Rugal\"）"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于 search_characters"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果的最大数量，用于 search_characters 和 list_characters（默认 10-20）"
+    },
+    "offset": {
+      "type": "string",
+      "required": false,
+      "description": "分页令牌，用于 list_characters 继续上次查询"
+    },
+    "category": {
+      "type": "string",
+      "required": false,
+      "description": "分类名称，用于 list_characters（默认为 \"Characters\"）"
+    },
+    "section": {
+      "type": "string",
+      "required": false,
+      "description": "章节名称或索引号，用于 get_section（如 \"Personality\"、\"2\"）"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

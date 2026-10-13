@@ -1,0 +1,21 @@
+{
+  "description": "Fetches earthquake event data from EMSC-CSEM (European Mediterranean Seismological Centre) record pages.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_earthquake: 获取指定ID的地震事件详情；需要 earthquake_id 参数; 参数: earthquake_id; 必填: earthquake_id"
+    },
+    "earthquake_id": {
+      "type": "string",
+      "required": true,
+      "description": "EMSC地震事件ID（数字字符串或整数）。例如：1867478、2029064。\nget_earthquake 函数使用此参数。"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

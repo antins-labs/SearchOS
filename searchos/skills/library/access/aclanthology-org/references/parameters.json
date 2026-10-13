@@ -1,0 +1,28 @@
+{
+  "description": "Fetches structured paper records (title, authors, abstract, PDF link, BibTeX, venue, DOI, etc.) from the ACL Anthology at aclanthology.org.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_paper: Fetch a single paper by its ACL Anthology ID (e.g., \"2024.acl-long.788\"); requires anthology_id; 参数: anthology_id, include_bibtex; 必填: anthology_id"
+    },
+    "anthology_id": {
+      "type": "string",
+      "required": true,
+      "description": "The ACL Anthology paper ID (e.g., \"2024.acl-long.788\", \"2023.acl-long.41\"). Used by get_paper."
+    },
+    "include_bibtex": {
+      "type": "boolean",
+      "required": false,
+      "description": "Whether to fetch and include the BibTeX citation for the paper. Used by get_paper."
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "description": "Fetches structured UN membership data from un.org: member states with admission dates, Security Council composition, and International Court of Justice judges.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_member_states: 列出所有193个联合国会员国及其入会日期; 参数: 无; 必填: 无\n  - get_security_council: 获取安理会常任理事国和非常任理事国名单; 参数: 无; 必填: 无\n  - get_icj_judges: 获取国际法院现任法官名单; 参数: 无; 必填: 无\n  - get_organ_overview: 获取联合国主要机关组成概览; 参数: 无; 必填: 无"
+    }
+  },
+  "imports": [
+    "bs4",
+    "httpx",
+    "playwright"
+  ],
+  "requirements": [
+    "beautifulsoup4",
+    "httpx",
+    "playwright"
+  ]
+}

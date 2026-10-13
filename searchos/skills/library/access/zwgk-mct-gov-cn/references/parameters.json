@@ -1,0 +1,39 @@
+{
+  "description": "Access skill for the Ministry of Culture and Tourism of the People's Republic of China's ",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - fetch_document   Fetch and parse a single government document by URL\n  - fetch_documents   Fetch and parse multiple government documents by URLs\n  - list_documents   List available government documents from the portal"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "The document URL (full URL or relative path)"
+    },
+    "urls": {
+      "type": "array",
+      "required": false,
+      "description": "List of document URLs to fetch"
+    },
+    "category": {
+      "type": "string",
+      "required": false,
+      "description": "Optional category filter. Common categories include:\n- zykf: 资源开发 (Resource Development)\n- zcfg: 政策法规 (Policies and Regulations)\n- bmgz: 部门规章 (Departmental Rules)\n- scgl: 市场管理 (Market Management)\n- tjxx: 统计信息 (Statistical Information)"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "Maximum number of documents to return",
+      "default": 50
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

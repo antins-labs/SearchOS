@@ -1,0 +1,21 @@
+{
+  "description": "Fetches the official Government of India holiday list from cgca.gov.in for administrative offices in Delhi/New Delhi, including both Gazetted and Restricted holidays.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_holidays: Retrieves the holiday list; use holiday_type to filter.; 参数: holiday_type; 必填: 无"
+    },
+    "holiday_type": {
+      "type": "string",
+      "required": false,
+      "description": "Type of holidays to retrieve (used by get_holidays).\nOptions: \"gazetted\", \"restricted\", or \"all\" (default: \"all\")."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

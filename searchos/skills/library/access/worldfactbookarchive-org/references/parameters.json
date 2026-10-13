@@ -1,0 +1,36 @@
+{
+  "description": "Retrieves historical field data from the CIA World Factbook Archive at worldfactbookarchive.org for any country and field.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_field_history: 获取指定国家字段的历史数据记录;需要 country_code, field_name; 可选 start_year, end_year; 参数: field_name, start_year, end_year, country_code; 必填: field_name\n  - get_field_metadata: 获取字段的元数据信息(版本数、日期范围等);需要 country_code, field_name; 参数: field_name, country_code; 必填: field_name"
+    },
+    "field_name": {
+      "type": "string",
+      "required": true,
+      "description": "字段名称(如 'Land boundaries', 'Coastline', 'Population');由 get_field_history 和 get_field_metadata 使用"
+    },
+    "start_year": {
+      "type": "integer",
+      "required": false,
+      "description": "起始年份过滤;由 get_field_history 使用"
+    },
+    "end_year": {
+      "type": "integer",
+      "required": false,
+      "description": "结束年份过滤;由 get_field_history 使用"
+    },
+    "country_code": {
+      "type": "string",
+      "required": false,
+      "description": "两位国家代码(如 'CN' 代表中国, 'US' 代表美国);由 get_field_history 和 get_field_metadata 使用"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

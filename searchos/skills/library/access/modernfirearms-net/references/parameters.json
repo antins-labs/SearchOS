@@ -1,0 +1,33 @@
+{
+  "description": "Extracts firearm technical specifications (caliber, action, weight, length, rate of fire, etc.) from modernfirearms.net firearm record pages.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_firearm_specifications: 从指定URL提取枪械技术规格; 需要url参数; 参数: url; 必填: url\n  - search_firearms: 搜索枪械 (功能受限); 需要query参数; 参数: query, limit; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "modernfirearms.net上的枪械页面完整URL (用于get_firearm_specifications)"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词 (用于search_firearms)"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果数量限制 (用于search_firearms，默认10)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

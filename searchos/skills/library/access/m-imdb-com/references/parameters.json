@@ -1,0 +1,26 @@
+{
+  "description": "Extracts structured movie/TV show metadata (title, rating, genre, cast, directors, year, duration, description, trailer) from IMDB title pages using JSON-LD structured data.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_movie: Fetch and parse movie/TV show data from an IMDB URL; requires 'url' parameter; 参数: url, timeout_ms; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "IMDB title URL (e.g., https://www.imdb.com/title/tt0133093/ or https://m.imdb.com/title/tt0133093/). Required for get_movie function."
+    },
+    "timeout_ms": {
+      "type": "integer",
+      "required": false,
+      "description": "Navigation timeout in milliseconds. Default is 60000 (60 seconds)."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

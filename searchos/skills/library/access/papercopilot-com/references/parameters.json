@@ -1,0 +1,47 @@
+{
+  "description": "Fetch paper lists from PaperCopilot (papercopilot.com), including accepted papers from SIGGRAPH, CVPR, ICCV, ICLR, NeurIPS, ICML, AAAI, ACL, EMNLP and other conferences.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_papers: 获取指定会议和年份的所有论文列表; 需要 conference, year; 参数: conference, year, track; 必填: 无\n  - search_paper: 按标题搜索论文; 需要 conference, year, title; 参数: conference, year, title, track; 必填: 无\n  - filter_by_session: 按session/area筛选论文; 需要 conference, year, session; 参数: conference, year, session, track; 必填: 无\n  - filter_by_status: 按状态筛选论文(如Technical Paper, Poster等); 需要 conference, year, status; 参数: conference, year, status, track; 必填: 无\n  - list_conferences: 列出支持的会议列表; 参数: 无; 必填: 无"
+    },
+    "conference": {
+      "type": "string",
+      "required": false,
+      "description": "会议ID(小写)，如 siggraph, cvpr, iccv, iclr, neurips, icml, aaai, acl, emnlp。\n用于 list_papers, search_paper, filter_by_session, filter_by_status。"
+    },
+    "year": {
+      "type": "string",
+      "required": false,
+      "description": "年份，如 \"2024\"。用于 list_papers, search_paper, filter_by_session, filter_by_status。"
+    },
+    "track": {
+      "type": "string",
+      "default": "main",
+      "required": false,
+      "description": "会议track，默认为\"main\"。大多数会议只有main track。"
+    },
+    "title": {
+      "type": "string",
+      "required": false,
+      "description": "论文标题搜索关键词。用于 search_paper。"
+    },
+    "session": {
+      "type": "string",
+      "required": false,
+      "description": "Session/Area筛选关键词，如 \"3D Fabrication\", \"VR\"。用于 filter_by_session。"
+    },
+    "status": {
+      "type": "string",
+      "required": false,
+      "description": "状态筛选，如 \"Technical Paper\", \"Poster\", \"TOG Paper\"。用于 filter_by_status。"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

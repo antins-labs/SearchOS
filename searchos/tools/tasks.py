@@ -9,6 +9,7 @@ returns the full set.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
 import uuid
@@ -17,6 +18,7 @@ from typing import Any
 from langchain_core.tools import tool
 
 from searchos.agents.runtime import _ctx, _pop_granularity_hints, _scheduler
+from searchos.harness.steering import wait_for_steering
 from searchos.skills.catalog.registry import SKILL_BLACKLIST
 from searchos.util.coerce import coerce_str_list as _coerce_str_list
 from searchos.agents.orchestrator.lifecycle import (
@@ -31,6 +33,42 @@ from searchos.agents.orchestrator.lifecycle import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _ground_hybrid_report(report: dict, state: Any) -> None:
+    """让已绑定事实进入主 Agent 上下文，执行汇报保留为未核验信息。"""
+    if (state.source_scope or {}).get("mode") != "hybrid":
+        return
+    from searchos.socm.coverage import answer_evidence
+    ids = {binding["evidence_id"] for binding in report.get("evidence_bindings", [])}
+    nodes = [node for node in answer_evidence(state) if node.id in ids]
+    report["agent_report"] = {"verified": False, "text": report.get("last_message", "")}
+    report["grounded_findings"] = [
+        {"id": node.id, "finding": node.finding, "citation": f"evidence:{node.id}",
+         "source": node.source, "source_excerpt": node.source_excerpt}
+        for node in nodes[:24]
+    ]
+    report["grounded_findings_total"] = len(nodes)
+    report["last_message"] = (
+        "已自动绑定的原文事实：\n" + "\n".join(
+            f"- {node.finding} [evidence:{node.id}]" for node in nodes[:24])
+        if nodes else "本任务无已核验并绑定的事实；执行汇报仅供定位缺口，不可作为答案依据。"
+    )
+    if len(nodes) > 24:
+        report["last_message"] += "\n此处仅展示前 24 条；用 read_evidence(task_id=...) 查看其余事实。"
+
+
+def _scope_audit_note(state: Any) -> str:
+    if state.research_mode == "findings":
+        return (
+            "Review the user's requirements against task-bound evidence with read_evidence. "
+            "Check unsupported premises, source requirements and conflicts before answering. "
+            "Finished tasks and evidence counts do not establish sufficient support. "
+            "Continue concrete unresolved tasks within the current source scope and budget, "
+            "or report the supported result and remaining gaps."
+        )
+    return _SCOPE_AUDIT_NOTE
+
 
 def _compact_scheduler_actions(actions: dict[str, Any]) -> dict[str, Any]:
     """Drop no-op scheduler entries (dropped=0, action=disabled, ...) —
@@ -68,6 +106,9 @@ def _empty_table_warning(state: Any) -> str | None:
     worked, so secondary tables can end the session at 0 rows. A directive
     inside the tool result is what the orchestrator reliably acts on."""
     cmap = state.coverage_map
+    if (state.source_scope or {}).get("mode") == "hybrid":
+        # Hybrid Extraction routes source observations through the declared schemas.
+        return None
     if len(cmap.tables) <= 1:
         return None
     empty = cmap.empty_tables
@@ -86,9 +127,29 @@ def _empty_table_warning(state: Any) -> str | None:
         "relation where applicable), or state explicitly why this table "
         "cannot be filled."
     )
+
+
+def _agent_creation_limit_for_frontier_kind(settings: Any, kind: str) -> int:
+    """Search 创建受会话总限约束；Explore 只受通用预算和并发约束。"""
+    if kind == "search":
+        return int(getattr(settings, "max_search_agents_per_session", 0) or 0)
+    return 0
+
+
+def _agent_creation_slots_used_for_frontier_kind(state: Any, kind: str) -> int:
+    """Count Frontier tasks that reserve a creation slot for this agent kind."""
+    from searchos.socm import FrontierTaskStatus
+
+    return sum(
+        1
+        for q in state.frontier.questions
+        if q.kind == kind and q.status != FrontierTaskStatus.CANCELLED
+    )
+
+
 @tool
 async def check_agents(timeout: float = 0.0) -> str:
-    """Block until at least one running sub-agent completes, then return
+    """Block until a sub-agent completes or a user follow-up arrives, then return
     every AgentReport finished so far. Always waits on the whole pool;
     you cannot target a specific id (intentional — it discourages the
     "wait for this one before doing anything" anti-pattern).
@@ -99,12 +160,13 @@ async def check_agents(timeout: float = 0.0) -> str:
     immediately for it. Remaining agents keep running in the background;
     reap them on the next round. SOCM context (Frontier / Evidence /
     Coverage / Strategy) is injected on every orchestrator step by
-    HarnessMiddleware, so check_agents does not duplicate it in its return.
+    SOCMContextMiddleware, so check_agents does not duplicate it in its return.
 
     Args:
         timeout: Optional seconds to cap the wait. 0 (default) means wait
-            forever. Non-zero returns even if no Task completes, with
-            ``reports`` empty and ``remaining`` reflecting still-running.
+            until completion or a user follow-up. Non-zero returns even if no
+            Task completes, with ``reports`` empty and ``remaining`` reflecting
+            still-running agents.
     Returns:
         JSON string: ``{"reports": [...], "remaining": N, "running_ids": [...]}``.
         Each report in ``reports`` is an ``AgentReport.model_dump()`` dict.
@@ -120,6 +182,10 @@ async def check_agents(timeout: float = 0.0) -> str:
         })
 
     pool = _ctx.task_pool
+    steer_queue = _ctx.steer_queue
+
+    def steering_pending() -> bool:
+        return steer_queue is not None and not steer_queue.empty()
     # Entry backfill: fill any free slots (up to max_parallel_agents) with
     # ready Frontier tasks BEFORE blocking on the wait. Previously this tick
     # ran only when the pool was empty, so tasks enqueued while other agents
@@ -128,13 +194,13 @@ async def check_agents(timeout: float = 0.0) -> str:
     # below the cap (e.g. 4 running + 4 queued with max=8). Ticking here
     # launches the queued tasks immediately. tick() is idempotent: when no
     # slot is free it returns "saturated" without spawning.
-    pre_tick = await _scheduler().tick()
+    pre_tick = {} if steering_pending() else await _scheduler().tick()
     if not pool:
         payload: dict[str, Any] = {
             "reports": [], "remaining": 0, "running_ids": [],
             "scheduler_actions": _compact_scheduler_actions(
                 {**pre_tick, "granularity_hints": _pop_granularity_hints()}),
-            "note": f"No sub-agents running. {_SCOPE_AUDIT_NOTE}",
+            "note": f"No sub-agents running. {_scope_audit_note(_ctx.workspace.load_state())}",
         }
         idle_warn = _empty_table_warning(_ctx.workspace.load_state())
         if idle_warn:
@@ -143,15 +209,20 @@ async def check_agents(timeout: float = 0.0) -> str:
 
     tasks_to_wait = list(pool.values())
 
-    # Block until at least one target Task finishes.
+    # Wake on user input without cancelling workers or consuming the message.
+    # The harness injects it after this tool's matching ToolMessage is recorded.
+    wake = asyncio.create_task(wait_for_steering(steer_queue)) if steer_queue is not None else None
     try:
-        done, _pending = await asyncio.wait(
-            tasks_to_wait,
-            timeout=timeout if timeout > 0 else None,
-            return_when=asyncio.FIRST_COMPLETED,
-        )
-    except asyncio.CancelledError:
-        raise
+        if not steering_pending():
+            await asyncio.wait(
+                [*tasks_to_wait, *([wake] if wake is not None else [])],
+                timeout=timeout if timeout > 0 else None,
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+    finally:
+        if wake is not None:
+            wake.cancel()
+            await asyncio.gather(wake, return_exceptions=True)
 
     # Reap: drain ALL tasks that are `.done()` (may include peers we were
     # not waiting on — it's free real estate). Move from pool to completed.
@@ -179,6 +250,31 @@ async def check_agents(timeout: float = 0.0) -> str:
             # counts plus the column set — new rows arrive via
             # ``discovered_entities`` and the full grid stays in the SOCM block.
             rd = report.model_dump()
+            current = _ctx.workspace.load_state()
+            task_ids = set(rd.get("task_ids", []))
+            if not task_ids:
+                # Compatibility for older reports and non-search workers.
+                info = _ctx.agent_graphs.get(aid, {})
+                bound_id = info.get("assigned_task_id") or info.get("write_task_id")
+                task_ids = ({bound_id} if bound_id else {
+                    task.id for task in current.frontier.questions
+                    if task.assigned_agent_id == aid})
+            rd["task_ids"] = sorted(task_ids)
+            if any(task.id in task_ids and task.resolution.startswith(
+                "partial_evidence_review_required:") for task in current.frontier.questions):
+                rd["next_step_hint"] = (
+                    "This attempt stopped with partial evidence; the task was cancelled "
+                    "to prevent an unchanged automatic retry, not marked complete. "
+                    "Read its task-bound evidence, assess remaining requirements, and "
+                    "enqueue only concrete unresolved gaps using the existing findings."
+                )
+            from searchos.socm.coverage import answer_evidence
+            active_ids = {node.id for node in answer_evidence(current)}
+            rd["evidence_bindings"] = [binding.model_dump()
+                for binding in current.evidence_graph.task_bindings
+                if binding.task_id in task_ids and binding.evidence_id in active_ids]
+            if rd.get("kind") == "search":
+                _ground_hybrid_report(rd, current)
             if "cells_filled" in rd:  # SearchReport only — don't inject into explore/writer
                 cf = rd["cells_filled"] or []
                 from searchos.socm import CoverageMap
@@ -199,7 +295,7 @@ async def check_agents(timeout: float = 0.0) -> str:
     # the orchestrator may skip) to guarantee it fires every time reports
     # are returned; dispatch/continue decisions stay with the LLM.
     scheduler_actions = _compact_scheduler_actions(
-        {**(await _scheduler().tick()),
+        {**({} if steering_pending() else await _scheduler().tick()),
          "granularity_hints": _pop_granularity_hints()})
 
     post_state = _ctx.workspace.load_state()
@@ -212,6 +308,14 @@ async def check_agents(timeout: float = 0.0) -> str:
         "scheduler_actions": scheduler_actions,
         "outline_status": outline_state,
     }
+    if steering_pending():
+        response["interrupted_by"] = "user_follow_up"
+        response["note"] = (
+            "A user follow-up interrupted this wait. Running agents are unchanged. "
+            "Read the incoming user message before deciding whether to continue, "
+            "change the plan, or stop tasks with stop_task."
+        )
+        return _serialize(response)
     table_warn = _empty_table_warning(post_state)
     if table_warn:
         response["table_audit_warning"] = table_warn
@@ -219,7 +323,7 @@ async def check_agents(timeout: float = 0.0) -> str:
     # synthesis, exactly where "all rows filled" gets misread as "task
     # complete". Attach the scope audit before it ends the turn.
     if reports_json and not pool:
-        response["note"] = f"All sub-agents have returned. {_SCOPE_AUDIT_NOTE}"
+        response["note"] = f"All sub-agents have returned. {_scope_audit_note(post_state)}"
     # Pipeline nudge: when at least one agent just returned but others are
     # still running, encourage immediate dispatch rather than re-checking.
     if reports_json and len(pool) > 0:
@@ -254,14 +358,17 @@ async def enqueue_tasks(items_json: str) -> str:
 
     Args:
         items_json: JSON array of items. Each item:
-          - ``agent_type``: ``search_agent`` | ``writer_agent`` |
-            ``explore_agent``. If omitted, inferred from ``kind``.
+          - ``agent_type``: an agent from the available agent catalog.
+            If omitted, inferred from
+            ``kind``; ``kind=search`` defaults to web ``search_agent``.
           - ``task``: the full prompt handed to the sub-agent (required).
           - ``kind``: ``search`` | ``write`` | ``explore``.
             Inferred from ``agent_type`` when omitted.
           - ``priority``: 0-1 (default 0.5). Higher dispatches first.
           - ``blocked_by``: list of task ids that must finish first.
-          - ``target_table``: REQUIRED in multi-table schemas.
+          - ``result_mode``: ``findings`` for sourced explanations/facts without a table,
+            or ``table`` for schema-bound extraction. Use target_table to focus extraction.
+          - ``target_table``: REQUIRED for table tasks in multi-table schemas.
           - ``target_cells``: list of ``"entity.attribute"`` keys this task
             must fill (e.g. ``["Apple.CEO", "Apple.Headquarters"]``; the table
             comes from ``target_table``). Set it on targeted fill / backfill
@@ -297,6 +404,8 @@ async def enqueue_tasks(items_json: str) -> str:
     for i, item in enumerate(items):
         if not isinstance(item, dict):
             continue
+        if item.get("result_mode") == "findings":
+            continue
         at = item.get("agent_type", "")
         kn = item.get("kind", "")
         if at and at != "explore_agent":
@@ -316,6 +425,10 @@ async def enqueue_tasks(items_json: str) -> str:
     errors: list[str] = []
 
     def _apply(s: Any) -> Any:
+        agent_creation_slots_used: dict[str, int] = {
+            "search": _agent_creation_slots_used_for_frontier_kind(s, "search"),
+            "explore": _agent_creation_slots_used_for_frontier_kind(s, "explore"),
+        }
         for i, item in enumerate(items):
             if not isinstance(item, dict):
                 errors.append(f"item[{i}]: expected object")
@@ -341,9 +454,49 @@ async def enqueue_tasks(items_json: str) -> str:
             if not task_text:
                 errors.append(f"item[{i}]: 'task' is required")
                 continue
+            agent_creation_limit = _agent_creation_limit_for_frontier_kind(
+                _settings, kind
+            )
+            if agent_creation_limit > 0:
+                slots_used = agent_creation_slots_used.get(kind, 0)
+                if slots_used >= agent_creation_limit:
+                    rejected.append({
+                        "index": i,
+                        "reason": (
+                            f"{kind}_agent creation limit reached "
+                            f"({slots_used}/{agent_creation_limit} for this "
+                            "SearchSession). This is enforced at enqueue_tasks "
+                            "by counting existing non-cancelled Frontier tasks "
+                            f"of kind={kind!r}. Inspect existing Frontier reports "
+                            "and synthesize."
+                        ),
+                    })
+                    continue
             target_table = str(
                 item.get("target_table") or item.get("table_id") or ""
             ).strip()
+            result_mode = item.get("result_mode") or ("table" if target_table else s.research_mode)
+            if result_mode not in {"findings", "table"}:
+                errors.append(f"item[{i}]: invalid result_mode")
+                continue
+            if (result_mode == "findings" and (target_table or item.get("target_cells"))
+                    and (s.source_scope or {}).get("mode") != "hybrid"):
+                errors.append(f"item[{i}]: findings tasks do not bind table cells")
+                continue
+            if target_table and target_table not in s.coverage_map.tables:
+                errors.append(f"item[{i}]: unknown target_table {target_table!r}")
+                continue
+            if kind == "search" and result_mode == "table" and not s.coverage_map.tables:
+                errors.append(f"item[{i}]: table tasks require a declared schema")
+                continue
+            if kind == "search" and result_mode == "table":
+                if target_table and target_table not in s.coverage_map.tables:
+                    errors.append(f"item[{i}]: unknown target_table {target_table!r}")
+                    continue
+                if not target_table and len(s.coverage_map.tables) > 1:
+                    errors.append(f"item[{i}]: multi-table tasks require target_table")
+                    continue
+                target_table = target_table or next(iter(s.coverage_map.tables))
             tcells = _coerce_str_list(item.get("target_cells"))
             bad_cells = [c for c in tcells if "." not in c]
             if bad_cells:
@@ -355,10 +508,15 @@ async def enqueue_tasks(items_json: str) -> str:
 
             repair_scope = _ctx.repair_target_allowlist
             if repair_scope is not None:
-                if kind != "search" or agent_type != "search_agent":
+                if kind != "search" or agent_type not in {
+                    "search_agent", "local_search_agent",
+                }:
                     rejected.append({
                         "index": i,
-                        "reason": "targeted repair only permits search_agent tasks",
+                        "reason": (
+                            "targeted repair only permits search_agent or "
+                            "local_search_agent tasks"
+                        ),
                     })
                     continue
                 if not target_table or not tcells:
@@ -432,6 +590,9 @@ async def enqueue_tasks(items_json: str) -> str:
                     })
                     continue
             new_id = item.get("id") or f"t_{uuid.uuid4().hex[:8]}"
+            if any(task.id == new_id for task in s.frontier.questions):
+                rejected.append({"index": i, "reason": f"task id already exists: {new_id}"})
+                continue
             ft = FrontierTask(
                 id=new_id,
                 question=task_text[:200],
@@ -445,6 +606,10 @@ async def enqueue_tasks(items_json: str) -> str:
                 target_cells=tcells,
                 table_id=target_table,
                 agent_type=agent_type,
+                result_mode=result_mode,
+                source_scope_key=hashlib.sha256(
+                    json.dumps(s.source_scope, sort_keys=True).encode()
+                ).hexdigest() if s.source_scope else "",
                 skills=skills,
                 created_by=str(item.get("created_by", "orchestrator")),
                 planner="orchestrator" if repair_scope is not None else "",
@@ -456,6 +621,9 @@ async def enqueue_tasks(items_json: str) -> str:
                 deduped.append({"index": i, "existing_id": accepted.id})
             else:
                 queued.append(new_id)
+                agent_creation_slots_used[kind] = (
+                    agent_creation_slots_used.get(kind, 0) + 1
+                )
         return s
 
     _ctx.workspace.atomic_update_state(_apply)
@@ -605,6 +773,83 @@ async def stop_task(task_ids_json: str, reason: str = "") -> str:
     }, ensure_ascii=False)
 
 
+@tool
+async def bind_evidence(task_id: str, evidence_ids: list[str], relation: str = "context") -> str:
+    """Associate existing in-scope evidence with a subtask. Does not create facts or
+    complete the task. relation: supports, contradicts, or context. Use read_evidence(task_id=...)
+    to inspect the bindings and their source excerpts before deciding further work.
+    """
+    from searchos.socm.evidence import bind_task_evidence
+
+    if _ctx.workspace is None:
+        return json.dumps({"error": "workspace not initialized"})
+    added = 0
+    def apply(state):
+        nonlocal added
+        added = bind_task_evidence(state, task_id, evidence_ids, relation=relation)
+        return state
+    try:
+        _ctx.workspace.atomic_update_state(apply)
+    except ValueError as exc:
+        return json.dumps({"error": str(exc)})
+    return json.dumps({"task_id": task_id, "bindings_added": added})
+
+
+@tool
+async def extract_observation(
+    task_id: str, observation_id: str, start: int = 0, max_chars: int = 8000
+) -> str:
+    """Extract new task-relevant facts from a saved original-source window.
+
+    Obtain observation_id from read_evidence. Reuses source text already read;
+    does not fetch the source or establish its current freshness. start is a
+    zero-based character offset; max_chars is at most 12000. Returns evidence_ids
+    and next_start for remaining text. Checks excerpts and factual support before
+    binding facts to the task. Does not fill cells or complete the task; use
+    project_evidence for supported cell values, source agents for missing text.
+    """
+    from searchos.config.settings import settings
+    from searchos.harness.middleware.extraction.core.replay import extract_saved_observation
+
+    if _ctx.workspace is None:
+        return json.dumps({"error": "workspace not initialized"})
+    if _ctx.budget_exhausted:
+        return json.dumps({"error": "Research budget exhausted"})
+    model = _ctx.judge_model
+    if model is None:
+        return json.dumps({"error": "Source-support review is unavailable"})
+
+    async def invoke(prompt):
+        if _ctx.budget_exhausted:
+            raise ValueError("Research budget exhausted")
+        if len(prompt) > settings.hybrid_observation_review_max_chars:
+            raise ValueError("Source review exceeds the input budget; request a smaller window")
+        response = await model.ainvoke(prompt)
+        if _ctx.budget_exhausted:
+            raise ValueError("Research budget exhausted during extraction")
+        return response.content
+
+    try:
+        result = await asyncio.wait_for(
+            extract_saved_observation(
+                _ctx.workspace,
+                invoke,
+                task_id=task_id,
+                observation_id=observation_id,
+                start=start,
+                max_chars=max_chars,
+            ),
+            timeout=settings.hybrid_observation_timeout_s,
+        )
+    except asyncio.CancelledError:
+        raise
+    except Exception as exc:
+        return json.dumps(
+            {"error": f"Observation extraction not committed ({type(exc).__name__}: {exc})"}
+        )
+    return json.dumps(result, ensure_ascii=False)
+
+
 def get_task_tools() -> list:
     """Orchestrator task tools (enqueue / check / stop)."""
-    return [enqueue_tasks, stop_task, check_agents]
+    return [enqueue_tasks, stop_task, check_agents, bind_evidence, extract_observation]

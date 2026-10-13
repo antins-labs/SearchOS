@@ -1,0 +1,42 @@
+{
+  "description": "Fetch economic indicators, country profiles, and global rankings from TheGlobalEconomy.com",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_country_profile: 获取指定国家的经济指标概况; 需要 country_code; 参数: categories, country_code; 必填: 无\n  - get_rankings: 获取全球或地区排名数据; 需要 indicator; 参数: region, limit, indicator; 必填: 无\n  - get_indicator_data: 获取指定国家的特定指标详细数据; 需要 country_code 和 indicator; 参数: indicator, country_code; 必填: 无\n  - list_countries: 列出所有可用国家; 参数: 无; 必填: 无\n  - list_indicators: 列出所有可用的排名指标; 参数: 无; 必填: 无"
+    },
+    "categories": {
+      "type": "array",
+      "required": false,
+      "description": "筛选的指标类别列表 (如 [\"Main indicators\", \"GDP and economic growth\"]); 用于 get_country_profile"
+    },
+    "country_code": {
+      "type": "string",
+      "required": false,
+      "description": "ISO 3字母国家代码 (如 USA, CHN, GBR, JPN); 用于 get_country_profile 和 get_indicator_data"
+    },
+    "region": {
+      "type": "string",
+      "required": false,
+      "description": "地区筛选 (如 World, Europe, Asia, Africa); 用于 get_rankings"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 50,
+      "required": false,
+      "description": "返回结果的最大数量; 用于 get_rankings"
+    },
+    "indicator": {
+      "type": "string",
+      "required": false,
+      "description": "指标标识符 (如 gdp_growth, land_area, inflation, GDP_per_capita_PPP); 用于 get_rankings 和 get_indicator_data"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

@@ -7,11 +7,13 @@ import logging
 import uuid
 from typing import Any, Literal
 
+from searchos.socm.workspace import new_session_id
+
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from api import settings_store, skills_catalog
-from api.deps import WORKSPACE_ROOT, init_search_provider, sessions
+from api.deps import session_directory, WORKSPACE_ROOT, init_search_provider, sessions
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
@@ -29,6 +31,26 @@ class HistoryTurn(BaseModel):
     """One prior conversation turn, echoed back by the client for follow-ups."""
     query: str
     answer: str = ""
+
+
+class LocalSourceRequest(BaseModel):
+    library_id: str = Field(min_length=1, max_length=160)
+    selection: Literal["library", "documents"] = "documents"
+    document_ids: list[str] = Field(default_factory=list, max_length=100)
+    model_access: Literal[True]
+
+    @model_validator(mode="after")
+    def validate_selection(self):
+        if self.selection == "documents" and not self.document_ids:
+            raise ValueError("文档范围至少包含一份文档")
+        if self.selection == "library" and self.document_ids:
+            raise ValueError("资料库范围不能同时指定文档")
+        return self
+
+
+class SourcesRequest(BaseModel):
+    mode: Literal["web", "local", "hybrid"] = "web"
+    local: LocalSourceRequest | None = None
 
 
 class SchemaTableRequest(BaseModel):
@@ -63,9 +85,10 @@ class SearchRequest(BaseModel):
     skills: SkillOverrides | None = None
     trusted_domains: list[str] = Field(default_factory=list, max_length=20)
     excluded_domains: list[str] = Field(default_factory=list, max_length=50)
-    # Follow-up (same contract as the TUI): reuse the prior session's
-    # workspace + SearchState so the coverage table carries over, and feed the
-    # orchestrator the conversation history as a context preamble.
+    sources: SourcesRequest | None = None
+    # Follow-up reuses the prior session workspace and conversation identity.
+    # Web carries SearchState forward; Local resets SearchState per turn so
+    # evidence remains constrained to that turn's selected documents.
     follow_up_to: str | None = None
     history: list[HistoryTurn] | None = None
 
@@ -121,7 +144,92 @@ async def create_search(req: SearchRequest):
     from searchos.socm.frontier import FrontierTask
     from searchos.socm.state import SearchState
 
-    init_search_provider(settings_store.store.models.search_provider)
+    if req.follow_up_to:
+        req = req.model_copy(update={"follow_up_to": session_directory(WORKSPACE_ROOT, req.follow_up_to).name})
+    if req.sources is None and req.follow_up_to:
+        previous = _load_prior_state(req.follow_up_to)
+        scope = previous.source_scope if previous else None
+        if scope:
+            ids = scope.get("document_ids") or [record["document_id"]
+                    for record in scope.get("documents", [])]
+            selection = scope.get("selection") or ("documents" if ids else "library")
+            local = LocalSourceRequest(
+                library_id=scope["library_id"], selection=selection,
+                document_ids=ids if selection == "documents" else [], model_access=True,
+            ) if scope.get("library_id") and scope.get("mode") in {"local", "hybrid"} else None
+            req = req.model_copy(update={"sources": SourcesRequest(mode=scope["mode"], local=local)})
+    source_mode = req.sources.mode if req.sources else "web"
+    if source_mode == "local":
+        if req.sources is None or req.sources.local is None:
+            raise HTTPException(422, "Local 模式缺少资料库和文档范围")
+        if req.trusted_domains or req.excluded_domains:
+            raise HTTPException(422, "Local 模式不接受 Web 域名限制")
+        from api.routes.local_search import launch_local_search
+
+        # Local follow-ups share one durable conversation/workspace. The Local
+        # launcher resets SearchState for every turn, so only the current
+        # document selection can contribute evidence while prior turns remain
+        # available as conversational context and history.
+        session_id = req.follow_up_to or new_session_id()
+        prior = sessions.get(session_id)
+        if prior and prior["status"] == "running":
+            raise HTTPException(409, f"Session {session_id} is still running")
+        previous_state = _load_prior_state(session_id) if req.follow_up_to else None
+        previous_scope = previous_state.source_scope if previous_state else None
+        same_local_selection = bool(previous_scope
+            and previous_scope.get("mode") == "local"
+            and previous_scope.get("library_id") == req.sources.local.library_id
+            and (previous_scope.get("selection") or "documents") == req.sources.local.selection
+            and set(previous_scope.get("document_ids", [])) == set(req.sources.local.document_ids))
+        local_history = [turn.model_dump() if same_local_selection
+                         else {"query": turn.query, "answer": ""}
+                         for turn in (req.history or [])]
+        return await launch_local_search(
+            session_id=session_id,
+            query=req.query,
+            library_id=req.sources.local.library_id,
+            document_ids=req.sources.local.document_ids,
+            history=local_history,
+            selection=req.sources.local.selection,
+        )
+    if source_mode == "web" and req.sources and req.sources.local is not None:
+        raise HTTPException(422, "Web 模式不能夹带本地资料范围")
+
+    source_scope: dict[str, Any] = {"mode": source_mode, "documents": []}
+    if source_mode == "hybrid" and req.sources and req.sources.local:
+        from api.routes.local_search import _service, _http_error
+
+        local = req.sources.local
+        try:
+            service = _service()
+            library = service.get_library(local.library_id)
+            document_ids = local.document_ids
+            if local.selection == "library":
+                items = await asyncio.to_thread(service.list_documents, local.library_id)
+                document_ids = [item["document_id"] for item in items if item.get("searchable")]
+            verified = (
+                await asyncio.to_thread(service._verified_blocks, local.library_id, document_ids)
+                if document_ids else []
+            )
+            records = {record.document_id: record for record, _ in verified}
+            if set(records) != set(document_ids):
+                raise ValueError("所选文档没有可读取的解析内容")
+            source_scope.update(
+                library_id=library.library_id, index_root=library.index_root,
+                selection=local.selection, document_ids=sorted(local.document_ids),
+                documents=[records[key].model_dump(mode="json") for key in sorted(records)],
+            )
+        except (ValueError, KeyError, FileNotFoundError) as exc:
+            raise _http_error(exc) from exc
+
+    try:
+        init_search_provider(settings_store.store.models.search_provider)
+    except (ValueError, RuntimeError, OSError) as exc:
+        if source_mode != "hybrid" or not source_scope["documents"]:
+            raise HTTPException(503, "联网来源初始化失败，本轮没有其他可用来源") from exc
+        source_scope["unavailable_sources"] = {
+            "web": "联网来源初始化失败，本轮无法进行外部核实。",
+        }
 
     follow_up = bool(req.follow_up_to)
     context_preamble: str | None = None
@@ -134,11 +242,22 @@ async def create_search(req: SearchRequest):
         if prior and prior["status"] == "running":
             raise HTTPException(409, f"Session {session_id} is still running")
         state = _load_prior_state(session_id) or SearchState(intent=req.query)
-        context_preamble = build_preamble(
-            [t.model_dump() for t in (req.history or [])],
-        ) or None
+        # 选择方式决定下一轮如何取快照；本轮证据可见性由实际文档及版本决定。
+        # 兼容旧记录没有 selection/document_ids 的同范围续问。
+        def evidence_scope(scope):
+            return {key: value for key, value in (scope or {}).items()
+                    if key not in {"selection", "document_ids"}}
+
+        same_scope = evidence_scope(state.source_scope) == evidence_scope(source_scope)
+        # A changed selection/revision is a new evidence scope. Prior questions
+        # remain conversational context; old answers cannot act as source evidence.
+        history = [t.model_dump() if same_scope else {"query": t.query, "answer": ""}
+                   for t in (req.history or [])]
+        if not same_scope:
+            state = SearchState(intent=req.query)
+        context_preamble = build_preamble(history) or None
     else:
-        session_id = uuid.uuid4().hex[:12]
+        session_id = new_session_id()
 
         # Build initial state. Entities/attrs only come from an explicit manual
         # pin (the /schema composer fields) — same autonomy as the CLI/TUI, which
@@ -205,6 +324,10 @@ async def create_search(req: SearchRequest):
                     priority=0.8,
                 ))
 
+    state.source_scope = source_scope
+    state.research_mode = "findings" if source_mode == "hybrid" else "table"
+    state.intent = req.query
+
     return await _launch_search(
         req=req,
         session_id=session_id,
@@ -228,8 +351,8 @@ async def _launch_search(
 ) -> SearchResponse:
     from searchos.config.effort import EFFORT_KEYS, apply_effort
     from searchos.config.settings import settings as sf_settings
-    from searchos.harness.blueprint import BudgetConfig, SearchBlueprint
     from searchos.harness.session import SearchSession
+    from searchos.harness.steering import SteeringQueue
 
     store = settings_store.store
     effort_snapshot: dict[str, int] | None = None
@@ -237,22 +360,22 @@ async def _launch_search(
         effort_snapshot = {key: getattr(sf_settings, key) for key in EFFORT_KEYS}
         apply_effort(req.effort)
 
-    if req.max_time:
+    if req.max_time is not None:
         max_time = req.max_time
     elif req.effort:
         max_time = sf_settings.default_max_time_s
     else:
-        max_time = store.run_defaults.max_time_s or sf_settings.default_max_time_s
+        max_time = (
+            store.run_defaults.max_time_s
+            if store.run_defaults.max_time_s is not None
+            else sf_settings.default_max_time_s
+        )
 
     harness = SearchSession(
-        blueprint=SearchBlueprint(
-            name="web_search",
-            budget=BudgetConfig(max_time_s=max_time),
-            enable_web_search=True,
-        ),
+        max_time_s=max_time,
         workspace_root=WORKSPACE_ROOT,
     )
-    steer_queue: asyncio.Queue[str] = asyncio.Queue()
+    steer_queue = SteeringQueue()
     sessions[session_id] = {
         "status": "running",
         "result": None,
@@ -426,6 +549,7 @@ async def repair_cells(session_id: str, req: RepairRequest):
     """Run a scope-locked search for selected missing or weak coverage cells."""
     from searchos.harness.telemetry.conversation_context import build_preamble
 
+    session_id = session_directory(WORKSPACE_ROOT, session_id).name
     prior = sessions.get(session_id)
     if prior and prior.get("status") == "running":
         raise HTTPException(409, f"Session {session_id} is still running")
@@ -477,10 +601,33 @@ def _resolve_evidence_choice(
     selected = nodes_by_id.get(request.evidence_id)
     if selected is None:
         raise HTTPException(404, f"Evidence {request.evidence_id!r} not found")
+    from searchos.socm.coverage import evidence_source_allowed
+    if not evidence_source_allowed(state, selected):
+        raise HTTPException(422, "Selected evidence is outside the current source scope")
 
     table_id = request.table_id.strip()
     entity = request.entity.strip()
     attribute = request.attribute.strip()
+    cell_key = f"{table_id}/{entity}.{attribute}"
+    bindings = state.coverage_map.evidence_bindings.get(cell_key, [])
+    selected_binding = next((b for b in bindings if b.evidence_id == selected.id), None)
+    if selected_binding is not None:
+        from searchos.socm.coverage import bind_cell_evidence
+        selected_value = selected_binding.value.strip().casefold()
+        supporting = [(cell_key, b.model_copy(update={"status": EvidenceStatus.ACTIVE}))
+                      for b in bindings if b.value.strip().casefold() == selected_value
+                      and (b.status == EvidenceStatus.ACTIVE or b.evidence_id == selected.id)]
+        superseded = [b.evidence_id for b in bindings if b.value.strip().casefold() != selected_value]
+        try:
+            bind_cell_evidence(state, supporting, overwrite=True)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        cell = state.coverage_map.cells[cell_key]
+        cell.primary_evidence_id = selected.id
+        cell.conflict_history_evidence_ids = list(dict.fromkeys([
+            *cell.conflict_history_evidence_ids, *superseded,
+        ]))
+        return state, superseded
     selected_table = selected.table_id or state.coverage_map.primary_table_id
     if (
         selected_table != table_id
@@ -547,10 +694,12 @@ def _resolve_evidence_choice(
     cell.best_confidence = selected.confidence
     cell.best_tier = state.coverage_map._fill_tier(selected)
     cell.has_conflict = False
-    cell.conflict_evidence_ids = list(dict.fromkeys([
-        *cell.conflict_evidence_ids,
+    cell.conflict_status = "clear"
+    cell.conflict_history_evidence_ids = list(dict.fromkeys([
+        *cell.conflict_history_evidence_ids, *cell.conflict_evidence_ids,
         *superseded,
     ]))
+    cell.conflict_evidence_ids = []
     return state, superseded
 
 
@@ -564,11 +713,12 @@ async def resolve_evidence(session_id: str, req: ResolveEvidenceRequest):
 
     from searchos.socm import WorkspaceManager
 
+    session_id = session_directory(WORKSPACE_ROOT, session_id).name
     prior = sessions.get(session_id)
     if prior and prior.get("status") == "running":
         raise HTTPException(409, f"Session {session_id} is still running")
     workspace_root = Path(WORKSPACE_ROOT).resolve()
-    workspace_path = (workspace_root / session_id).resolve()
+    workspace_path = session_directory(workspace_root, session_id)
     if workspace_path.parent != workspace_root:
         raise HTTPException(400, "Invalid session id")
     state_file = workspace_path / "search_state.json"
@@ -609,6 +759,7 @@ async def resolve_evidence(session_id: str, req: ResolveEvidenceRequest):
 async def stop_search(session_id: str):
     """Interrupt a running search (TUI Esc parity) — cancels the engine task;
     the partial workspace/state stays on disk."""
+    session_id = session_directory(WORKSPACE_ROOT, session_id).name
     session = sessions.get(session_id)
     if not session:
         raise HTTPException(404, f"Session {session_id} not found")
@@ -629,12 +780,13 @@ class SteerRequest(BaseModel):
 async def steer_search(session_id: str, req: SteerRequest):
     """Inject a live follow-up into a running search (TUI mid-run parity).
 
-    The orchestrator drains the queue at the next safe step boundary and
-    re-enters its thread with the message; in-flight sub-agents keep running.
+    Enqueueing wakes check_agents. The orchestrator injects the follow-up at
+    the completed tool boundary and invokes its model; sub-agents keep running.
     """
     message = req.message.strip()
     if not message:
         raise HTTPException(422, "Empty steer message")
+    session_id = session_directory(WORKSPACE_ROOT, session_id).name
     session = sessions.get(session_id)
     if not session:
         raise HTTPException(404, f"Session {session_id} not found")
@@ -650,13 +802,14 @@ async def steer_search(session_id: str, req: SteerRequest):
 @router.get("/search/{session_id}")
 async def get_search_result(session_id: str):
     """Get the final search result (or current status if still running)."""
+    session_id = session_directory(WORKSPACE_ROOT, session_id).name
     session = sessions.get(session_id)
     if not session:
         raise HTTPException(404, f"Session {session_id} not found")
 
     if session["status"] == "running":
         # Return intermediate state from workspace
-        return _get_live_state(session_id)
+        return await asyncio.to_thread(_get_live_state, session_id)
 
     if session["status"] == "error":
         return {"status": "error", "error": session["error"]}
@@ -683,9 +836,9 @@ async def get_search_result(session_id: str):
 
 
 @router.get("/search/{session_id}/state")
-async def get_search_state(session_id: str):
+async def get_search_state(session_id: str, revision: str | None = None):
     """Get real-time search state (reads from workspace files)."""
-    return _get_live_state(session_id)
+    return await asyncio.to_thread(_get_live_state, session_id, revision)
 
 
 @router.get("/sessions")
@@ -697,39 +850,18 @@ async def list_sessions():
     ]
 
 
-def _read_answer(session_id: str, result: Any) -> str:
-    """The orchestrator's closing AI message, complete (the event-stream
-    preview is truncated at _RESULT_MAX_LEN). Falls back to the writer's
-    report only when no closing message exists.
-    """
+def _read_answer(session_id: str, _result: Any) -> str:
+    """只返回已提交正文，避免把工具调用前的说明当作最终答案。"""
     import json
-    from pathlib import Path
 
-    from api.routes.history import last_ai_text, orchestrator_final_text
-
-    # 1. In-memory final_messages from the just-finished run.
-    answer = last_ai_text(getattr(result, "final_messages", []) or [])
-    if answer:
-        return answer
-
-    ws = Path(WORKSPACE_ROOT) / session_id
-    # 2. Durable per-agent conversation log.
-    answer = orchestrator_final_text(ws)
-    if answer:
-        return answer
-
-    # 3. Writer's report (result.json answer / report.md).
+    ws = session_directory(WORKSPACE_ROOT, session_id)
     try:
-        r = json.loads(
-            (ws / "output" / "result.json").read_text(
-                encoding="utf-8",
-                errors="replace",
-            ),
-        )
-        if r.get("answer"):
-            return str(r["answer"])
-    except Exception:
+        committed = json.loads((ws / "output" / "result.json").read_text(encoding="utf-8"))
+        if isinstance(committed.get("answer"), str):
+            return committed["answer"]
+    except (OSError, ValueError, AttributeError):
         pass
+
     try:
         report = (ws / "output" / "report.md").read_text(encoding="utf-8", errors="replace")
         if report.strip():
@@ -743,16 +875,16 @@ def _load_prior_state(session_id: str):
     """Prior session's final SearchState — in-memory result if we have it,
     else re-hydrated from the workspace's search_state.json (history reopen)."""
     import json
-    from pathlib import Path
 
     from searchos.socm.state import SearchState
 
+    session_id = session_directory(WORKSPACE_ROOT, session_id).name
     session = sessions.get(session_id)
     result = session.get("result") if session else None
     if result is not None and getattr(result, "search_state", None) is not None:
         return result.search_state
 
-    state_file = Path(WORKSPACE_ROOT) / session_id / "search_state.json"
+    state_file = session_directory(WORKSPACE_ROOT, session_id) / "search_state.json"
     if not state_file.exists():
         return None
     try:
@@ -762,20 +894,25 @@ def _load_prior_state(session_id: str):
         return None
 
 
-def _get_live_state(session_id: str) -> dict[str, Any]:
+def _get_live_state(session_id: str, revision: str | None = None) -> dict[str, Any]:
     """Read current state from workspace files."""
-    from pathlib import Path
 
-    state_file = Path(WORKSPACE_ROOT) / session_id / "search_state.json"
+    state_file = session_directory(WORKSPACE_ROOT, session_id) / "search_state.json"
 
     if not state_file.exists():
         return {"status": "running", "session_id": session_id, "search_state": None}
 
     import json
-    state_data = json.loads(state_file.read_text())
+    from searchos.socm.persistence import read_snapshot
+    snapshot = read_snapshot(state_file)
+    status = sessions.get(state_file.parent.name, {}).get("status", "unknown")
+    if revision == snapshot.revision:
+        return {"status": status, "session_id": session_id, "revision": revision, "not_modified": True}
+    state_data = json.loads(snapshot.content)
 
     return {
-        "status": sessions.get(session_id, {}).get("status", "unknown"),
+        "status": sessions.get(state_file.parent.name, {}).get("status", "unknown"),
         "session_id": session_id,
         "search_state": state_data,
+        "revision": snapshot.revision,
     }

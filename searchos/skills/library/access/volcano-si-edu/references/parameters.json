@@ -1,0 +1,26 @@
+{
+  "description": "Access the Smithsonian Institution Global Volcanism Program database (volcano.si.edu)  to retrieve volcano data by country, individual volcano details, and Ring of Fire  information. Note: This site uses Cloudflare managed challenge protection that may  block automated access.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_country_volcanos: 获取指定国家的火山列表；需要 country 参数; 参数: country; 必填: 无\n  - get_volcano_details: 获取特定火山的详细信息；需要 volcano_number 参数; 参数: volcano_number; 必填: 无\n  - get_ring_of_fire: 获取太平洋火环相关信息; 参数: 无; 必填: 无\n  - check_access: 检查网站访问状态; 参数: 无; 必填: 无"
+    },
+    "country": {
+      "type": "string",
+      "required": false,
+      "description": "国家名称（如 Panama, Taiwan, Japan 等），用于 get_country_volcanos"
+    },
+    "volcano_number": {
+      "type": "string",
+      "required": false,
+      "description": "火山编号（如 344100），用于 get_volcano_details"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

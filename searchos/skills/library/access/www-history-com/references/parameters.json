@@ -1,0 +1,23 @@
+{
+  "description": "Fetches articles, topic listings, and \"This Day in History\" events from www.history.com.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取单篇文章的完整内容，需要url参数; 参数: url; 必填: url\n  - get_topic: 获取主题页面的文章列表，需要url参数; 参数: url; 必填: url\n  - get_this_day: 获取\"历史上的今天\"页面的事件列表，需要url参数; 参数: url; 必填: url\n  - get_topics_list: 获取History.com所有主题分类列表; 参数: 无; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "要抓取的完整URL（get_article、get_topic、get_this_day需要）"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

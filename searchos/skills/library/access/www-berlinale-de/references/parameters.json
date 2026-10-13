@@ -1,0 +1,38 @@
+{
+  "description": "Fetches awards data and jury information from the Berlin International Film Festival (Berlinale) website at www.berlinale.de.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - awards_by_year: 获取指定年份的柏林电影节奖项数据；需要 year 参数，可选 page 和 results_per_page; 参数: year, page, results_per_page; 必填: 无\n  - juries: 获取历届评审团信息; 参数: 无; 必填: 无\n  - biographies: 获取电影节工作人员和评审团成员传记列表; 参数: 无; 必填: 无\n  - biography_detail: 获取单个人员的详细传记；需要 biography_url 参数; 参数: biography_url; 必填: 无"
+    },
+    "year": {
+      "type": "integer",
+      "required": false,
+      "description": "年份，用于 awards_by_year 功能（必需），如 2024、2000、1980 等"
+    },
+    "page": {
+      "type": "integer",
+      "required": false,
+      "description": "页码，用于 awards_by_year 功能（可选，默认为 1）"
+    },
+    "results_per_page": {
+      "type": "integer",
+      "required": false,
+      "description": "每页结果数，用于 awards_by_year 功能（可选，默认为 100）"
+    },
+    "biography_url": {
+      "type": "string",
+      "required": false,
+      "description": "传记页面 URL，用于 biography_detail 功能（必需），可以是相对路径如 /en/festival/biographies/tricia-tuttle.html"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "description": "Extracts structured article content from Business Insider, with specialized handling for slideshow/timeline articles that preserves all slides as structured data.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: Extracts full article content including all slideshow slides (url); 参数: url; 必填: url\n  - get_slideshow: Extracts slideshow/timeline content specifically (url); 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "Business Insider article URL to extract content from"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "description": "Fetches country geography data from theodora.com CIA World Factbook pages, including location, coordinates, area, climate, terrain, and more.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_geography: 获取指定国家的地理数据; 需要 country 参数; 参数: country; 必填: 无\n  - get_geography_by_url: 从指定URL获取地理数据; 需要 url 参数; 参数: url; 必填: 无\n  - list_countries: 列出所有可用国家; 参数: 无; 必填: 无\n  - list_sections: 列出指定国家的可用章节; 需要 country 参数; 参数: country; 必填: 无"
+    },
+    "country": {
+      "type": "string",
+      "required": false,
+      "description": "国家名称或URL slug (如 \"russia\", \"china\", \"united_states\"); 用于 get_geography 和 list_sections"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "theodora.com 上完整的地理页面URL; 用于 get_geography_by_url"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

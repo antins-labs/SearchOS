@@ -1,0 +1,31 @@
+{
+  "description": "Fetches bibliographic metadata for ACM Digital Library publications via Crossref and Semantic Scholar APIs, including titles, authors, abstracts, citations, and references.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_paper: 获取单篇论文的完整元数据；需提供 doi 参数; 参数: doi; 必填: doi\n  - search_papers: 按标题/作者/关键词搜索论文；需提供 query 参数; 参数: query, limit; 必填: query\n  - get_citations: 获取引用指定论文的文献列表；需提供 doi 参数; 参数: doi, limit; 必填: doi\n  - get_references: 获取指定论文的参考文献列表；需提供 doi 参数; 参数: doi, limit; 必填: doi"
+    },
+    "doi": {
+      "type": "string",
+      "required": false,
+      "description": "论文的 DOI 标识符，用于 get_paper、get_citations、get_references 功能。\n支持多种格式：纯 DOI（如 10.1145/3641519.3657495）、DOI URL\n（如 https://doi.org/10.1145/3641519.3657495）、或 ACM DL URL\n（如 https://dl.acm.org/doi/10.1145/3641519.3657495）。"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于 search_papers 功能。可以是论文标题、作者名、\n或任意相关关键词。"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果的最大数量，用于 search_papers、get_citations、get_references\n功能。默认值为 search_papers 10 条，其他 20 条。"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

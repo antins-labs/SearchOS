@@ -1,0 +1,38 @@
+{
+  "description": "Fetches structured historical articles about World War II from thesecondworldwar.org, including detailed content, category listings, and navigation structure.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取单篇文章的完整内容；需要 url 参数; 参数: url; 必填: url\n  - get_category: 获取分类页面及其文章列表；需要 url 参数; 参数: url; 必填: url\n  - search_articles: 在分类页面中按标题关键词搜索文章；需要 query 参数，可选 category 和 max_results; 参数: category, max_results, query; 必填: 无\n  - get_breadcrumbs: 获取页面的导航面包屑路径；需要 url 参数; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章或分类的 URL 路径（如 '/the-axis-powers/state-of-burma' 或 '/the-axis-powers/'）；用于 get_article、get_category、get_breadcrumbs"
+    },
+    "category": {
+      "type": "string",
+      "required": false,
+      "description": "要搜索的分类路径（如 '/the-axis-powers/'）；用于 search_articles，默认为 '/'"
+    },
+    "max_results": {
+      "type": "integer",
+      "required": false,
+      "description": "搜索结果的最大数量；用于 search_articles，默认为 20"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词；用于 search_articles，在文章标题中匹配"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

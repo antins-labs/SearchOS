@@ -1,0 +1,46 @@
+{
+  "description": "Extracts structured country profiles from The World Factbook (theworldfactbook.org),  including geography, population, government, economy, energy, communications,  transportation, military, and transnational issues data.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_profile: 获取完整或部分国家档案;需要country参数，可选section/keys/max_items过滤; 参数: country, section, keys, max_items; 必填: country\n  - search_key: 按关键词搜索国家数据;需要country和search_term参数; 参数: country, search_term; 必填: country, search_term\n  - list_sections: 列出国家的所有数据分类及条目数;需要country参数; 参数: country; 必填: country\n  - get_summary: 获取国家关键事实摘要;需要country参数; 参数: country; 必填: country"
+    },
+    "country": {
+      "type": "string",
+      "required": true,
+      "description": "国家名称或URL slug (如 \"iran\", \"mexico\", \"united-states\", \"united-kingdom\")"
+    },
+    "section": {
+      "type": "string",
+      "required": false,
+      "description": "数据分类过滤，用于get_profile。可用值如 \"geography\", \"economy\", \n\"people and society\", \"government\", \"military and security\" 等"
+    },
+    "keys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "required": false,
+      "description": "关键词过滤列表，用于get_profile。如 [\"population\", \"area\", \"GDP\"] \n将只返回包含这些关键词的数据项"
+    },
+    "max_items": {
+      "type": "integer",
+      "required": false,
+      "description": "每个分类返回的最大数据项数，用于get_profile限制输出大小"
+    },
+    "search_term": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于search_key功能。将搜索所有数据项的键名匹配项"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

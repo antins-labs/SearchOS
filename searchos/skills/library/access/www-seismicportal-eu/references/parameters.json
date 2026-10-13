@@ -1,0 +1,116 @@
+{
+  "description": "Retrieves earthquake event data from the EMSC Seismic Portal FDSNWS API, parsing GeoJSON responses into structured records with time, location, magnitude, and depth information.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - search_events: 搜索地震事件，支持时间、空间、震级等过滤条件; 参数: starttime, endtime, orderby, eventtype, minmagnitude, maxmagnitude, mindepth, maxdepth, minlatitude, maxlatitude, minlongitude, maxlongitude, latitude, longitude, maxradius, minradius, limit, offset; 必填: 无\n  - get_event: 根据事件ID获取单个地震详情; 参数: eventid; 必填: eventid\n  - list_recent: 列出近期显著地震（便捷查询）; 参数: days_back, minmagnitude, limit; 必填: 无"
+    },
+    "starttime": {
+      "type": "string",
+      "required": false,
+      "description": "查询起始时间 (ISO 8601格式，如 2025-09-01T00:00:00)。\n用于 search_events。"
+    },
+    "endtime": {
+      "type": "string",
+      "required": false,
+      "description": "查询结束时间 (ISO 8601格式)。\n用于 search_events。"
+    },
+    "orderby": {
+      "type": "string",
+      "required": false,
+      "description": "排序方式 (time, magnitude, time-asc 等)。\n用于 search_events。"
+    },
+    "eventtype": {
+      "type": "string",
+      "required": false,
+      "description": "事件类型过滤 (如 ke=地震)。\n用于 search_events。"
+    },
+    "minmagnitude": {
+      "type": "number",
+      "required": false,
+      "description": "最小震级阈值。\n用于 search_events 和 list_recent。"
+    },
+    "maxmagnitude": {
+      "type": "number",
+      "required": false,
+      "description": "最大震级阈值。\n用于 search_events。"
+    },
+    "mindepth": {
+      "type": "number",
+      "required": false,
+      "description": "最小震源深度 (公里)。\n用于 search_events。"
+    },
+    "maxdepth": {
+      "type": "number",
+      "required": false,
+      "description": "最大震源深度 (公里)。\n用于 search_events。"
+    },
+    "minlatitude": {
+      "type": "number",
+      "required": false,
+      "description": "纬度范围下限。\n用于 search_events。"
+    },
+    "maxlatitude": {
+      "type": "number",
+      "required": false,
+      "description": "纬度范围上限。\n用于 search_events。"
+    },
+    "minlongitude": {
+      "type": "number",
+      "required": false,
+      "description": "经度范围下限。\n用于 search_events。"
+    },
+    "maxlongitude": {
+      "type": "number",
+      "required": false,
+      "description": "经度范围上限。\n用于 search_events。"
+    },
+    "latitude": {
+      "type": "number",
+      "required": false,
+      "description": "圆形搜索中心纬度。\n用于 search_events。"
+    },
+    "longitude": {
+      "type": "number",
+      "required": false,
+      "description": "圆形搜索中心经度。\n用于 search_events。"
+    },
+    "maxradius": {
+      "type": "number",
+      "required": false,
+      "description": "圆形搜索最大半径 (度)。\n用于 search_events。"
+    },
+    "minradius": {
+      "type": "number",
+      "required": false,
+      "description": "圆形搜索最小半径 (度)。\n用于 search_events。"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果数量上限。\n用于 search_events 和 list_recent。"
+    },
+    "offset": {
+      "type": "integer",
+      "required": false,
+      "description": "分页偏移量。\n用于 search_events。"
+    },
+    "eventid": {
+      "type": "string",
+      "required": false,
+      "description": "地震事件唯一标识符 (如 20250930_0000258)。\n用于 get_event。"
+    },
+    "days_back": {
+      "type": "integer",
+      "required": false,
+      "description": "回溯天数 (默认30天)。\n用于 list_recent。"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

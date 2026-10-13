@@ -1,0 +1,43 @@
+{
+  "description": "Fetches company directory and event listing data from Flanders Investment and Trade  (source.flandersinvestmentandtrade.com), including event details, participating companies, and company profiles.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_event: 获取指定活动的详情和参展公司列表 (需要 event_id 或 event_url); 参数: event_id, event_url; 必填: 无\n  - get_current_events: 获取当前进行中的活动列表; 参数: 无; 必填: 无\n  - get_past_events: 获取历史活动列表 (支持分页，可选 page 和 pagesize); 参数: page, pagesize; 必填: 无\n  - get_sectors: 获取所有行业分类列表; 参数: 无; 必填: 无\n  - search_companies: 在活动中搜索公司 (需要 event_id，可选 company_name 关键词); 参数: event_id, company_name, event_url; 必填: 无"
+    },
+    "event_id": {
+      "type": "string",
+      "required": false,
+      "description": "活动的 UUID，用于 get_event 和 search_companies 功能"
+    },
+    "event_url": {
+      "type": "string",
+      "required": false,
+      "description": "活动的完整 URL，可从中提取 event_id (用于 get_event 功能)"
+    },
+    "page": {
+      "type": "integer",
+      "default": 1,
+      "required": false,
+      "description": "页码，用于 get_past_events 分页"
+    },
+    "pagesize": {
+      "type": "integer",
+      "default": 20,
+      "required": false,
+      "description": "每页数量，用于 get_past_events 分页"
+    },
+    "company_name": {
+      "type": "string",
+      "required": false,
+      "description": "公司名称关键词，用于 search_companies 搜索"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

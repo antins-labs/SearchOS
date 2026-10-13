@@ -1,0 +1,21 @@
+{
+  "description": "Fetches ISO 3166-1 country code data from the ISO Online Browsing Platform (www.iso.org/obp), including alpha-2, alpha-3, numeric codes, and subdivision information.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_country: 检索单个国家的ISO 3166-1代码信息，需要country_code参数; 参数: country_code; 必填: country_code"
+    },
+    "country_code": {
+      "type": "string",
+      "required": true,
+      "description": "Two-letter ISO 3166-1 alpha-2 country code (e.g., US, DE, NL, FR, JP, CN).\nRequired when function is 'get_country'. Case-insensitive."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

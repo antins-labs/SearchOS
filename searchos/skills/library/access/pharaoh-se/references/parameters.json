@@ -1,0 +1,28 @@
+{
+  "description": "Retrieves structured information about Ancient Egyptian pharaohs and dynasties from pharaoh.se encyclopedia.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_pharaoh: 获取特定法老的详细信息，需要 pharaoh_slug 参数; 参数: pharaoh_slug; 必填: pharaoh_slug\n  - get_dynasty: 获取特定王朝的信息及法老列表，需要 dynasty_number 参数; 参数: dynasty_number; 必填: dynasty_number\n  - list_dynasties: 获取所有王朝的概览列表; 参数: 无; 必填: 无\n  - list_pharaohs: 获取所有法老的列表; 参数: 无; 必填: 无"
+    },
+    "pharaoh_slug": {
+      "type": "string",
+      "required": false,
+      "description": "法老的URL标识符（如 Qakara-Ibi, Narmer, Teti），用于 get_pharaoh 功能"
+    },
+    "dynasty_number": {
+      "type": "string",
+      "required": false,
+      "description": "王朝编号（如 1, 8, 9, 18）或特殊标识（如 predynastic），用于 get_dynasty 功能"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "description": "Extracts article content, metadata, and publication information from The Guardian news site (www.theguardian.com).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - extract_article: 从指定的卫报文章URL提取完整内容、作者、日期等元数据; 参数: url; 必填: url\n  - get_sections: 获取卫报所有新闻版块列表; 参数: 无; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "卫报文章的完整URL，用于extract_article功能"
+    }
+  },
+  "imports": [
+    "bs4",
+    "playwright"
+  ],
+  "requirements": [
+    "beautifulsoup4",
+    "playwright"
+  ]
+}

@@ -35,6 +35,9 @@ def init_search_provider(name: str | None = None):
 
 WORKSPACE_ROOT = os.environ.get("SF_WORKSPACE_ROOT", str(_REPO_ROOT / "searchos_workspace"))
 
+
+LOCAL_DATA_ROOT = os.environ.get("SF_LOCAL_DATA_ROOT") or str(_REPO_ROOT / "knowledge_base")
+
 # Web settings overlay — next to .env, NOT inside WORKSPACE_ROOT (whose
 # subdirectories are scanned as sessions by history.py).
 WEB_SETTINGS_PATH = os.environ.get("SF_WEB_SETTINGS_PATH", str(_REPO_ROOT / "web_settings.json"))
@@ -45,3 +48,14 @@ ENV_FILE_PATH = os.environ.get("SF_ENV_FILE", str(_REPO_ROOT / ".env"))
 
 # In-memory session store: session_id → { task, result, status, ... }
 sessions: dict[str, dict] = {}
+
+
+def session_directory(root: str | Path, session_id: str) -> Path:
+    """API 的统一 session 路径解析，保留旧链接并拒绝越界路径。"""
+    from fastapi import HTTPException
+    from searchos.socm.workspace import resolve_session_path
+
+    try:
+        return resolve_session_path(root, session_id)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc

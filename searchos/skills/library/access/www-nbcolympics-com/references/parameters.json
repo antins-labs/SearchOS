@@ -1,0 +1,38 @@
+{
+  "description": "Fetches Olympic mascots gallery and article content from NBC Olympics (nbcolympics.com).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_mascots: 获取所有奥运吉祥物数据，支持按年份、季节或关键词过滤; 参数: year, season, search; 必填: 无\n  - get_mascot_by_year: 获取特定年份的奥运吉祥物，需要year参数; 参数: year, season, search; 必填: year\n  - get_article: 获取指定URL的文章内容，需要url参数; 参数: url; 必填: url"
+    },
+    "year": {
+      "type": "integer",
+      "required": false,
+      "description": "奥运年份，如1968、2024等。用于get_mascots和get_mascot_by_year过滤。"
+    },
+    "season": {
+      "type": "string",
+      "required": false,
+      "description": "奥运季节，可选值为\"Winter\"或\"Summer\"。用于get_mascots和get_mascot_by_year过滤。"
+    },
+    "search": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于在吉祥物名称和描述中搜索。用于get_mascots过滤。"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "NBC Olympics文章的完整URL。用于get_article获取特定文章内容。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

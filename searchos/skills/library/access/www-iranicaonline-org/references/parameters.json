@@ -1,0 +1,33 @@
+{
+  "description": "Fetches scholarly encyclopedia entries from Encyclopaedia Iranica (iranicaonline.org) with structured metadata extraction including author, publication dates, volume/fascicle, bibliography, and article body.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取单篇文章，需要 url 或 article_slug 参数; 参数: url, article_slug; 必填: 无\n  - search_articles: 搜索文章，需要 query 参数; 参数: query; 必填: query"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章完整URL (用于 get_article)。\n例如: https://www.iranicaonline.org/articles/ayyubids/"
+    },
+    "article_slug": {
+      "type": "string",
+      "required": false,
+      "description": "文章URL标识符 (用于 get_article)。\n例如: ayyubids 或 abbasids"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词 (用于 search_articles)。"
+    }
+  },
+  "imports": [
+    "bs4",
+    "playwright"
+  ],
+  "requirements": [
+    "beautifulsoup4",
+    "playwright"
+  ]
+}

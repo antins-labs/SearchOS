@@ -1,0 +1,31 @@
+{
+  "description": "Fetches movie and TV show information from Rotten Tomatoes including Tomatometer, audience scores, cast, directors, seasons, and episodes.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_movie: 获取电影信息，需要vanity参数; 参数: vanity; 必填: 无\n  - get_tv_show: 获取电视剧信息，需要vanity参数，可选season参数; 参数: vanity, season; 必填: 无\n  - get_seasons: 获取电视剧的季列表，需要vanity参数; 参数: vanity; 必填: 无\n  - get_by_url: 通过URL自动识别并获取媒体信息，需要url参数; 参数: url; 必填: 无"
+    },
+    "vanity": {
+      "type": "string",
+      "required": false,
+      "description": "Rotten Tomatoes的vanity名称（URL中的标识符）。\n例如: \"oppenheimer_2023\", \"the_last_of_us\", \"stranger_things\"。\n可直接传入完整URL，系统会自动提取vanity。\n用于get_movie, get_tv_show, get_seasons函数。"
+    },
+    "season": {
+      "type": "string",
+      "required": false,
+      "description": "季标识符（仅用于电视剧），格式为\"s01\", \"s02\"等。\n用于get_tv_show函数。"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Rotten Tomatoes完整URL，系统会自动识别媒体类型。\n例如: \"https://www.rottentomatoes.com/m/oppenheimer_2023\"\n      \"https://www.rottentomatoes.com/tv/the_last_of_us/s01\"\n用于get_by_url函数。"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

@@ -2,7 +2,7 @@
 
 **English** | [简体中文](zh/providers.md)
 
-SearchOS constructs its 11 model roles—such as `orchestrator`, `extraction`,
+SearchOS constructs its 11 model purposes—such as `orchestrator`, `extraction`,
 and `judge`—through `searchos/config/models.py:get_model_for(role)`, backed by
 LangChain's `ChatOpenAI` and `ChatAnthropic` clients.
 
@@ -112,8 +112,8 @@ lighter model to control cost.
 |---|---|---|---|---|
 | `main` | orchestrator / sub_agent / skill_evolver / post_mortem / skill_router | Primary | 0.7 | 16384 |
 | `judge` | judge | Primary | 0.0 | 16384 |
-| `fast` | extraction / alias_resolver / skill_runtime | Light | 0.0 | 32768 |
-| `synthesis` | synthesis | Light | 0.3 | 32768 |
+| `fast` | extraction / local_vision | Light | 0.0 | 32768 |
+| `synthesis` | synthesis / local_recap | Light | 0.3 | 32768 |
 | `reformat` | reformat (evaluation table export) | Primary | 0.0 | 65536 |
 
 Use `SF_MODEL` to override the primary model and `SF_FAST_MODEL` to override the
@@ -156,6 +156,12 @@ SF_PROFILES__MYPROF__API_BASE=https://open.bigmodel.cn/api/paas/v4
 SF_PROFILES__MYPROF__API_KEY_ENV=ZHIPU_API_KEY
 SF_ROLES__SKILL_ROUTER=myprof
 ```
+
+`local_recap` and `local_vision` are ordinary role bindings; SearchOS does not
+hard-code a document model or a dedicated key. When the text model and VLM use
+the same vendor, create two model cards against one provider connection and API
+key, then bind the roles separately. A single image-capable card can also serve
+both roles.
 
 See `searchos/config/settings.py` for all `ModelProfile` fields, including
 provider, thinking style, RPM/TPM limits, and extra request parameters.

@@ -1,0 +1,38 @@
+{
+  "description": "Retrieves structured card statistics (elixir cost, rarity, hitpoints, damage, level stats) from the Clash Royale Fandom wiki at clashroyale.fandom.com.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_card: 获取单张卡牌的详细属性和等级数据; 需要 card_name; 参数: card_name; 必填: 无\n  - search_cards: 按名称搜索卡牌; 需要 query; 参数: query; 必填: 无\n  - list_cards: 列出某分类下的所有卡牌; 可选 category 和 limit; 参数: category, limit; 必填: 无"
+    },
+    "card_name": {
+      "type": "string",
+      "required": false,
+      "description": "卡牌名称，用于 get_card 功能。支持带下划线或空格的名称。\n示例: 'Mega_Knight', 'P.E.K.K.A.', 'Giant', 'Fireball', 'Inferno Tower'"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于 search_cards 功能。\n示例: 'knight', 'goblin', 'legendary spell'"
+    },
+    "category": {
+      "type": "string",
+      "required": false,
+      "description": "卡牌分类，用于 list_cards 功能。默认为 'Troop_Cards'。\n可选值: 'Troop_Cards', 'Spell_Cards', 'Building_Cards', \n       'Legendary_Cards', 'Epic_Cards', 'Rare_Cards', 'Common_Cards', 'Champion_Cards'"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果的最大数量，用于 list_cards 功能。默认 50，最大 500。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

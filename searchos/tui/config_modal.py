@@ -31,6 +31,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Input, OptionList, Static
 from textual.widgets.option_list import Option
 
+from searchos.config.model_purposes import MODEL_PURPOSE_GROUPS
 from searchos.tui.dashboard import ACCENT, C_AGENTS, DANGER, FAINT, MUTED, WARN
 
 # 与 web/api/routes/models.py 的校验保持一致（searchos 不能反向依赖 web 包，
@@ -44,17 +45,8 @@ _THINKING_STYLES = ("none", "chat_template_kwargs", "enable_thinking")
 _BROWSER_BACKENDS = ("jina", "aiohttp", "crawl4ai", "search_engine")
 
 _ROLE_HELP = {
-    "orchestrator": "主编排 ReAct 循环",
-    "sub_agent": "搜索/探索子代理循环",
-    "synthesis": "写作代理 + 最终答案",
-    "skill_evolver": "access 技能生成评审",
-    "post_mortem": "FailureMemory 蒸馏",
-    "judge": "sensor / 分层上下文评审",
-    "extraction": "证据抽取中间件",
-    "alias_resolver": "孤儿证据行列绑定",
-    "skill_runtime": "T2/T3 access 技能执行器",
-    "reformat": "评测答案重排",
-    "skill_router": "技能目录 top-k 预筛",
+    purpose.role: f"{purpose.label.zh}：{purpose.description.zh}"
+    for group in MODEL_PURPOSE_GROUPS for purpose in group.purposes
 }
 
 

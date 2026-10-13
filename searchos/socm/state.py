@@ -8,6 +8,8 @@ writer / explore) consumed by the orchestrator's report collector.
 
 from __future__ import annotations
 
+from typing import Any, Literal
+
 from pydantic import Field
 
 from searchos.socm.coverage import CoverageMap
@@ -128,12 +130,13 @@ class BudgetState(CamelModel):
 # ---------------------------------------------------------------------------
 
 class SearchReport(CamelModel):
-    """Report from a completed search_agent run. All fields except
+    """Report from a completed web or local search-agent run. All fields except
     identity/status/result/duration are populated via state-diff at task
     completion — sub-agents do NOT fill these by hand."""
 
     kind: str = "search"
     agent_id: str
+    task_ids: list[str] = Field(default_factory=list)
     status: str  # completed | looped | error | cancelled
     result: str = ""  # 1-2 sentence summary
     cells_filled: list[str] = Field(default_factory=list)  # entity.attribute
@@ -163,11 +166,7 @@ class WriterReport(CamelModel):
 
 
 class ExploreReport(CamelModel):
-    """Report from a completed explore_agent run — the bootstrap sub-agent.
-    Dispatched first when the schema is empty; probes the problem at the class
-    level and returns a candidate entity list + suggested attributes in its
-    final briefing (``last_message``), which the orchestrator feeds into
-    create_schema. Explore does NOT collect per-entity data."""
+    """首次或后续 Explore 的结果；简报记录已解决的不确定性、来源与剩余缺口。"""
 
     kind: str = "explore"
     agent_id: str
@@ -186,6 +185,9 @@ class SearchState(CamelModel):
     workspace/search_state.json."""
 
     intent: str = ""
+    # None retains CLI compatibility; WebUI always supplies an explicit scope.
+    source_scope: dict[str, Any] | None = None
+    research_mode: Literal["table", "findings"] = "table"
     frontier: FrontierMemory = Field(default_factory=FrontierMemory)
     explored_paths: list[ExploredPath] = Field(default_factory=list)
     evidence_graph: EvidenceGraph = Field(default_factory=EvidenceGraph)

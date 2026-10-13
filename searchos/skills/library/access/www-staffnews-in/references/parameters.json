@@ -1,0 +1,21 @@
+{
+  "description": "Extracts structured holiday tables (Gazetted and Restricted) from staffnews.in Central Government holiday lists with S. No., Holiday name, Date, Saka Date, and Day.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_gazetted_holidays: Fetches the 2025 Gazetted Holidays list; 参数: 无; 必填: 无\n  - get_restricted_holidays: Fetches the 2025 Restricted Holidays list; 参数: 无; 必填: 无\n  - get_holiday_page: Fetches a specific holiday page URL and extracts tables; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "URL of a specific holiday page to fetch. Required when function is 'get_holiday_page'. Used by: get_holiday_page"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

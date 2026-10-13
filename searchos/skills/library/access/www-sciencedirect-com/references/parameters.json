@@ -1,0 +1,51 @@
+{
+  "description": "Fetches ScienceDirect/Elsevier academic article metadata and search results using open APIs (OpenAlex, Semantic Scholar, CrossRef, Elsevier). Retrieves comprehensive article information including title, authors, abstract, citations, and open access status.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取单篇文章的详细元数据; 需要 doi 或 pii 参数; 参数: include_abstract, include_references, doi, pii; 必填: 无\n  - search_articles: 搜索相关文章; 需要 query 参数; 参数: source, query, limit; 必填: 无"
+    },
+    "include_abstract": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否在结果中包含摘要文本，用于 get_article。\n默认: true"
+    },
+    "include_references": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否在结果中包含参考文献列表，用于 get_article。\n默认: false"
+    },
+    "doi": {
+      "type": "string",
+      "required": false,
+      "description": "文章的 Digital Object Identifier，用于 get_article。\n示例: \"10.1016/j.tust.2021.104281\"\n可以包含或不包含 https://doi.org/ 前缀。"
+    },
+    "pii": {
+      "type": "string",
+      "required": false,
+      "description": "Publisher Item Identifier，用于 get_article。\n示例: \"S0886779821004727\"\n如果提供了 doi，则优先使用 doi。"
+    },
+    "source": {
+      "type": "string",
+      "required": false,
+      "description": "搜索使用的 API 数据源，用于 search_articles。\n可选值: \"openalex\" (默认), \"crossref\", \"all\""
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索查询字符串，用于 search_articles。\n示例: \"machine learning climate change\""
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回的最大结果数量，用于 search_articles。\n默认: 10，最大: 50"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

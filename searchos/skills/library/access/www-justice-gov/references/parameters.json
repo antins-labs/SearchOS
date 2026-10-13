@@ -1,0 +1,28 @@
+{
+  "description": "Fetches attorney job vacancy listings from the DOJ USAO Career Center at justice.gov.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "Function to execute. Available values:\n  - list_jobs: Lists attorney job openings with optional state filter\n  - get_job_detail: Retrieves detailed information for a specific job posting\n"
+    },
+    "state": {
+      "type": "string",
+      "required": false,
+      "description": "Two-letter state code to filter job listings (e.g., \"VA\", \"CA\", \"NY\").\nUsed only by list_jobs function. If omitted, returns all listings.\n"
+    },
+    "job_url": {
+      "type": "string",
+      "required": false,
+      "description": "URL or relative path to a specific job posting.\nUsed only by get_job_detail function.\nAccepts full URLs (https://www.justice.gov/legal-careers/job/...),\nrelative paths (/legal-careers/job/...), or job IDs."
+    }
+  },
+  "imports": [
+    "bs4",
+    "httpx"
+  ],
+  "requirements": [
+    "beautifulsoup4",
+    "httpx"
+  ]
+}

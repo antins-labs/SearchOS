@@ -103,7 +103,10 @@ class BrowserService:
         if getattr(settings, "browser_disk_cache_enabled", True):
             try:
                 from searchos.tools.simple_browser.cache import DiskFetchCache
-                self._disk_cache = DiskFetchCache(settings.browser_disk_cache_dir)
+                self._disk_cache = DiskFetchCache(
+                    settings.browser_disk_cache_dir,
+                    namespace=str(getattr(backend, "cache_namespace", "")),
+                )
             except Exception:  # noqa: BLE001
                 logger.debug("disk cache init failed", exc_info=True)
         self._html_upgrade_backend: BrowserBackend | None = None
@@ -139,7 +142,8 @@ class BrowserService:
 
         from searchos.tools.simple_browser.cache import _key
 
-        inflight_key = _key(url)
+        namespace = str(getattr(self._backend, "cache_namespace", ""))
+        inflight_key = _key(url, namespace=namespace)
         pending = self._inflight.get(inflight_key)
         if pending is not None:
             from searchos.tools.simple_browser.usage import record_cache_coalesced

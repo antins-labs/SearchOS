@@ -1,0 +1,43 @@
+{
+  "description": "Fetches Grammy Award winners and nominees data from totalmusicawards.com, a comprehensive database of Grammy winners and nominees organized by category and year.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_category     获取指定格莱美奖项类别的获奖者和提名者; 需要 category 参数\n  - list_categories  列出所有可用的格莱美奖项类别\n"
+    },
+    "category": {
+      "type": "string",
+      "required": false,
+      "description": "格莱美奖项类别名称或slug。例如:\n  - album-of-the-year\n  - best-new-artist  \n  - best-rap-album\n  - best-melodic-rap-performance\n  - best-pop-solo-performance\n  - record-of-the-year\n用于 get_category 功能。\n"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "直接指定奖项页面的完整URL，用于覆盖自动URL生成。\n用于 get_category 功能。\n"
+    },
+    "year": {
+      "type": "integer",
+      "required": false,
+      "description": "筛选特定年份的获奖信息。\n用于 get_category 功能。\n"
+    },
+    "min_year": {
+      "type": "integer",
+      "required": false,
+      "description": "筛选最小年份（包含）。\n用于 get_category 功能。\n"
+    },
+    "max_year": {
+      "type": "integer",
+      "required": false,
+      "description": "筛选最大年份（包含）。\n用于 get_category 功能。"
+    }
+  },
+  "imports": [
+    "bs4",
+    "playwright"
+  ],
+  "requirements": [
+    "beautifulsoup4",
+    "playwright"
+  ]
+}

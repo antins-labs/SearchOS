@@ -71,3 +71,35 @@ python -m eval.aggregate_runs \
 - 因此 `f1_by_row` 远低于 `f1_by_item`(单元格级);row 对「最差的那一列」极敏感。
 - 单题某列系统性崩(如聚合页幻觉、分组维度未回填)会把 row 从接近满分打到 0,而 item 只略降。
 - `score_em`(整题全对率)通常接近 0;重复跑救不了「三轮都崩」的硬列题。
+
+## 6. SOCM 组件消融
+
+`eval.run` 支持三个互相独立的布尔开关。每个条件必须使用单独的
+`--output-dir`，其有效开关会写入逐题 `eval_result.json` 和整轮
+`_summary.json` 的 `ablation` 字段。
+
+```bash
+# 完整系统
+python -m eval.run --benchmark widesearch --ids ws_en_001 \
+  --output-dir eval_results/ablation/full/run_1
+
+# 仅关闭面向角色的 SOCM prompt projection；底层状态、抽取与调度保留
+python -m eval.run --benchmark widesearch --ids ws_en_001 \
+  --no-socm-projection \
+  --output-dir eval_results/ablation/no_socm_projection/run_1
+
+# 仅关闭 Post-mortem FailureMemory 的生成与注入
+python -m eval.run --benchmark widesearch --ids ws_en_001 \
+  --no-failure-memory \
+  --output-dir eval_results/ablation/no_failure_memory/run_1
+
+# 保留完整工具结果历史；SOCM projection 与 FailureMemory 保持开启
+python -m eval.run --benchmark widesearch --ids ws_en_001 \
+  --no-compress-old-tool-results \
+  --output-dir eval_results/ablation/no_tool_result_compression/run_1
+```
+
+三个开关也可组合使用。正向形式分别为 `--socm-projection`、
+`--failure-memory` 和 `--compress-old-tool-results`；未显式传入时沿用
+`SF_ENABLE_SOCM_PROJECTION`、`SF_ENABLE_FAILURE_MEMORY`、
+`SF_COMPRESS_OLD_TOOL_RESULTS` 或代码默认值。

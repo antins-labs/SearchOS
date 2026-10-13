@@ -1,0 +1,21 @@
+{
+  "description": "Retrieve structured metadata, file listings, and URL resolution from DOI.org landing pages. Supports both publication DOIs (via CrossRef) and dataset DOIs (like USGS ScienceBase data releases).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_metadata: 获取DOI的完整元数据，包括标题、作者、日期、关键词等; 参数: doi; 必填: doi\n  - list_files: 列出与DOI关联的可下载文件（适用于数据集）; 参数: doi; 必填: doi\n  - resolve_doi: 解析DOI到最终落地页URL; 参数: doi; 必填: doi"
+    },
+    "doi": {
+      "type": "string",
+      "required": true,
+      "description": "DOI标识符（必需）。支持多种格式：\n  - \"10.5066/P13XCP3R\"\n  - \"doi:10.5066/P13XCP3R\"\n  - \"10.1038/nature12373\""
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

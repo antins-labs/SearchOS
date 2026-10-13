@@ -1,83 +1,52 @@
 "use client";
 
-import { putRoles } from "@/lib/api";
 import { useSettings } from "@/components/settings/SettingsProvider";
-import { Card, OfflineSkeleton, Row, SectionShell, SubSection } from "@/components/settings/primitives";
-import Select from "@/components/settings/controls/Select";
+import { OfflineSkeleton, SectionShell, SubSection } from "@/components/settings/primitives";
 import NewProfileCard from "@/components/settings/models/NewProfileCard";
 import ProfileCard from "@/components/settings/models/ProfileCard";
 import ProviderConnections from "@/components/settings/models/ProviderConnections";
+import ModelPurposeBindings from "@/components/settings/models/ModelPurposeBindings";
 import ProviderDiagnosticPanel from "@/components/settings/diagnostics/ProviderDiagnosticPanel";
 
-const SECTION_DESC =
-  "Providers, model cards, and role bindings. API keys are stored in .env and never shown.";
-
 export default function ModelsSection() {
-  const { settings, status, mutate } = useSettings();
+  const { settings, status, uiPrefs } = useSettings();
+  const zh = uiPrefs.language === "zh";
+  const sectionDescription = zh
+    ? "连接模型服务，添加模型配置，再按用途分配。多个用途可以共用一份模型配置。"
+    : "Connect a provider, add model configurations, then assign them by purpose. Multiple purposes can share a configuration.";
 
   if (!settings) {
     return (
-      <SectionShell id="models" title="Models" description={SECTION_DESC}>
+      <SectionShell id="models" title={zh ? "模型" : "Models"} description={sectionDescription}>
         <OfflineSkeleton />
       </SectionShell>
     );
   }
 
-  const { models } = settings;
   const disabled = status !== "ready";
-  const profileNames = Object.keys(models.profiles);
-
-  const bindRole = (role: string, profile: string) =>
-    mutate({
-      optimistic: (s) => ({
-        ...s,
-        models: { ...s.models, roles: { ...s.models.roles, [role]: profile } },
-      }),
-      call: () => putRoles({ [role]: profile }),
-      merge: (s, res) => ({
-        ...s,
-        models: { ...s.models, roles: res.roles, role_overrides: res.role_overrides },
-      }),
-      errorLabel: "Couldn't bind role",
-    });
 
   return (
-    <SectionShell id="models" title="Models" description={SECTION_DESC}>
+    <SectionShell id="models" title={zh ? "模型" : "Models"} description={sectionDescription}>
       <div className="space-y-8">
-        <SubSection title="Providers"
-          description="Define your provider connections — an endpoint plus one or more API keys. Vendor presets pre-fill a new connection; model cards below point at these by name and inherit protocol / endpoint / key.">
+        <SubSection title={zh ? "1 · 连接模型服务" : "1 · Connect providers"}
+          description={zh ? "配置服务地址和密钥，供模型配置复用。密钥保存在 .env 中，界面只显示配置状态。" : "Configure reusable endpoints and API keys. Keys stay in .env; only their presence is shown."}>
           <ProviderConnections />
-          <ProviderDiagnosticPanel />
         </SubSection>
 
-        <SubSection title="Models"
-          description="Each model card points at a provider connection above and sets a model id + sampling (temperature, thinking). Roles pick from these.">
+        <SubSection title={zh ? "2 · 添加模型配置" : "2 · Add model configurations"}
+          description={zh ? "选择模型服务，填写模型标识与参数。同一个模型可以保存不同参数的配置。" : "Select a provider, model ID, and parameters. The same model can have configurations with different parameters."}>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {Object.entries(models.profiles).map(([name, p]) => (
-              <ProfileCard key={name} name={name} profile={p} disabled={disabled} />
+            {Object.entries(settings.models.profiles).map(([name, profile]) => (
+              <ProfileCard key={name} name={name} profile={profile} disabled={disabled} />
             ))}
             <NewProfileCard disabled={disabled} />
           </div>
         </SubSection>
 
-        <SubSection title="Roles" description="Bind each agent role to a model.">
-          <Card>
-            {Object.entries(models.roles).map(([role, profile]) => {
-              const keyMissing = models.profiles[profile] && !models.profiles[profile].api_key_set;
-              return (
-                <Row key={role} label={role}
-                  hint={keyMissing ? `${models.profiles[profile].api_key_env} not set — runs will fail` : undefined}>
-                  <Select
-                    value={profile}
-                    disabled={disabled}
-                    ariaLabel={`Model profile for ${role}`}
-                    options={profileNames.map((n) => ({ value: n, label: n }))}
-                    onChange={(v) => bindRole(role, v)}
-                  />
-                </Row>
-              );
-            })}
-          </Card>
+        <SubSection title={zh ? "3 · 分配模型用途" : "3 · Assign model purposes"}
+          description={zh ? "为研究、内容处理和技能功能选择模型。先快速分配，再按需要逐项调整。" : "Choose models for research, content processing, and skills. Start with quick assignment and adjust individual purposes as needed."}>
+          <ModelPurposeBindings />
+          <ProviderDiagnosticPanel />
         </SubSection>
       </div>
     </SectionShell>

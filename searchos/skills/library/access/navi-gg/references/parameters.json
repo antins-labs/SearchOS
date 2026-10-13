@@ -1,0 +1,26 @@
+{
+  "description": "Fetches tournament information and match data from navi.gg for NAVI (Natus Vincere) esports tournaments.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_tournament_info: Fetches tournament overview (name, dates, prize pool, location, status); 参数: tournament_slug, limit; 必填: tournament_slug\n  - get_matches: Fetches match list with teams, scores, and stages; 参数: tournament_slug, limit; 必填: tournament_slug"
+    },
+    "tournament_slug": {
+      "type": "string",
+      "required": true,
+      "description": "The tournament slug from navi.gg URL (e.g., 'blasttv-austin-major-2025').\nUsed by both get_tournament_info and get_matches functions."
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "Maximum number of matches to return (default: 50).\nOnly used by get_matches function."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

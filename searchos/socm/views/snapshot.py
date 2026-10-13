@@ -24,6 +24,7 @@ class CellInfo:
     evidence_count: int
     best_alignment: str  # full | partial | loose | ""
     has_conflict: bool
+    conflict_status: str = "clear"
 
 
 @dataclass
@@ -60,6 +61,7 @@ class TableSnapshot:
     data_columns: list[str]
     is_open_set: bool
     rows: list[RowStatus]
+    column_descriptions: dict[str, str] = field(default_factory=dict)
 
     @property
     def is_empty(self) -> bool:
@@ -105,6 +107,8 @@ class SearchStateSnapshot:
     frontier: FrontierSnapshot
     total_rows: int
     rows_with_gaps: int
+    research_mode: str = "table"
+    task_evidence: list[dict] = field(default_factory=list)
 
     @staticmethod
     def from_state(state: "SearchState") -> "SearchStateSnapshot":
@@ -138,6 +142,7 @@ class SearchStateSnapshot:
                             evidence_count=len(cell.supporting_evidence_ids),
                             best_alignment=cell.best_alignment or "",
                             has_conflict=cell.has_conflict,
+                            conflict_status=cell.conflict_status,
                         ))
                 row = RowStatus(entity=ent, cells=cells)
                 rows.append(row)
@@ -152,6 +157,7 @@ class SearchStateSnapshot:
                 data_columns=data_cols,
                 is_open_set=ts.is_column_only,
                 rows=rows,
+                column_descriptions={a: f"{d.type}: {d.desc}" for a, d in ts.column_desc.items()},
             ))
 
         by_status: Counter[str] = Counter()
@@ -170,7 +176,18 @@ class SearchStateSnapshot:
                     text=(q.question or q.task_prompt or "")[:80],
                 ))
 
+        from searchos.socm.coverage import answer_evidence
+        active_ids = {node.id for node in answer_evidence(state)}
+        task_evidence = [{
+            "task_id": task.id, "question": task.question, "status": task.status.value,
+            "agent_type": task.agent_type, "result_mode": task.result_mode,
+            "evidence_count": len({binding.evidence_id
+                for binding in state.evidence_graph.task_bindings
+                if binding.task_id == task.id and binding.evidence_id in active_ids}),
+        } for task in frontier.questions] if state.research_mode == "findings" else []
         return SearchStateSnapshot(
+            research_mode=state.research_mode,
+            task_evidence=task_evidence,
             tables=tables,
             frontier=FrontierSnapshot(
                 by_status=dict(by_status),

@@ -1,0 +1,23 @@
+{
+  "description": "Fetches monthly airport production statistics reports from SWCAAC (西南地区机场生产统计系统) including passenger throughput, cargo volume, and flight operations data for airports in Southwest China (Sichuan, Guizhou, Yunnan, Tibet, Chongqing).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_reports    列出可用的月度统计报告\n  - get_report_data 获取指定报告的详细统计数据\n  - list_options    列出可筛选的年份、地区和机场选项\n"
+    },
+    "report_id": {
+      "type": "string",
+      "required": false,
+      "description": "报告ID，用于get_report_data功能获取指定报告的详细数据"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

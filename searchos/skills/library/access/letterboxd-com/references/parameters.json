@@ -1,0 +1,23 @@
+{
+  "description": "Fetches movie details (cast, directors, studios, ratings) and actor filmographies from letterboxd.com by parsing HTML pages with structured JSON-LD data.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_film              获取电影详情，需要 slug 参数\n  - get_actor_filmography 获取演员作品列表，需要 slug 参数\n"
+    },
+    "slug": {
+      "type": "string",
+      "required": true,
+      "description": "电影或演员的 URL slug（如 'the-turning-2013'、'cate-blanchett'）"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

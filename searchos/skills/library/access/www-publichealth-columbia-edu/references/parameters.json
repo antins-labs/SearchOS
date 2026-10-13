@@ -1,0 +1,34 @@
+{
+  "description": "Fetches faculty profile data from Columbia University Mailman School of Public Health (publichealth.columbia.edu), including credentials, education, research interests, and contact info.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_profile: 获取单个教师档案信息; 需要 profile_slug 参数; 参数: profile_slug; 必填: 无\n  - search_profiles: 按姓名搜索教师档案; 需要 query 参数; 参数: query, limit; 必填: 无"
+    },
+    "profile_slug": {
+      "type": "string",
+      "required": false,
+      "description": "教师档案的 URL slug（用于 get_profile）。 例如: 'hernandez-stroud-jd', 'sandro-galea', 'ryan-demmer-phd'"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索查询字符串，通常为教师姓名（用于 search_profiles）。 例如: 'Hernandez Stroud', 'Sandro Galea'"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 10,
+      "required": false,
+      "description": "搜索结果的最大返回数量（用于 search_profiles）。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

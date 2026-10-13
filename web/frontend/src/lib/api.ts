@@ -7,6 +7,14 @@ import type {
   EffortView,
   FileNode,
   ModelsView,
+  LocalCitation,
+  LocalDocument,
+  LocalDocumentIndex,
+  LocalDocumentSegmentChunk,
+  LocalIndexJob,
+  LocalLibrary,
+  LocalLibraryGraph,
+  NetworkImportJob,
   ProvidersResponse,
   ProviderDiagnostic,
   RepairRequest,
@@ -25,95 +33,76 @@ import type {
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const REQUEST_TIMEOUT_MS = 12000;
 
-function fetchWithTimeout(
-  input: RequestInfo | URL,
+async function request<T>(
+  path: string,
   init: RequestInit = {},
-  timeoutMs = REQUEST_TIMEOUT_MS,
-): Promise<Response> {
+  options: {
+    timeoutMs?: number;
+    errorPrefix?: string;
+    noContent?: boolean;
+    repair?: boolean;
+  } = {},
+): Promise<T> {
   const controller = new AbortController();
-  return new Promise((resolve, reject) => {
-    const timeout = globalThis.setTimeout(() => {
-      controller.abort();
-      reject(new Error("Request timed out"));
-    }, timeoutMs);
-
-    fetch(input, { ...init, signal: init.signal ?? controller.signal }).then(
-      (response) => {
-        globalThis.clearTimeout(timeout);
-        resolve(response);
-      },
-      (error) => {
-        globalThis.clearTimeout(timeout);
-        reject(error);
-      },
-    );
-  });
-}
-
-function readJsonWithTimeout<T>(response: Response): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const timeout = globalThis.setTimeout(() => reject(new Error("Response timed out")), REQUEST_TIMEOUT_MS);
-    response.json().then(
-      (data) => {
-        globalThis.clearTimeout(timeout);
-        resolve(data as T);
-      },
-      (error) => {
-        globalThis.clearTimeout(timeout);
-        reject(error);
-      },
-    );
-  });
+  const timeout = globalThis.setTimeout(() => controller.abort(), options.timeoutMs ?? REQUEST_TIMEOUT_MS);
+  const signal = init.signal
+    ? AbortSignal.any([init.signal, controller.signal])
+    : controller.signal;
+  try {
+    const response = await fetch(`${API_BASE}${path}`, { ...init, signal });
+    if (!response.ok) {
+      let detail = response.statusText;
+      try {
+        const body = await response.json();
+        if (typeof body.detail === "string") detail = body.detail;
+        else if (Array.isArray(body.detail)) detail = body.detail.join("; ");
+        else if (typeof body.detail?.detail === "string") detail = body.detail.detail;
+      } catch { /* 非 JSON 错误保留 HTTP 状态说明。 */ }
+      if (options.repair && response.status === 404 && detail === "Not Found") {
+        throw new Error("Repair API unavailable — restart the SearchOS API to load the current WebUI routes");
+      }
+      throw new Error(options.errorPrefix ? `${options.errorPrefix}: ${detail}` : detail);
+    }
+    return options.noContent ? undefined as T : await response.json() as T;
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error("Request timed out");
+    throw error;
+  } finally {
+    globalThis.clearTimeout(timeout);
+  }
 }
 
 // ---- REST ----
 
 export async function getHealth(): Promise<{ status: string; version?: string } | null> {
   try {
-    const res = await fetchWithTimeout(`${API_BASE}/api/health`, { cache: "no-store" });
-    if (!res.ok) return null;
-    return readJsonWithTimeout(res);
+    return await request("/api/health", { cache: "no-store" });
   } catch {
     return null;
   }
 }
 
 export async function startSearch(req: SearchRequest): Promise<{ session_id: string }> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/search`, {
+  return request("/api/search", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(req),
-  });
-  if (!res.ok) throw new Error(`Search failed: ${res.statusText}`);
-  return readJsonWithTimeout(res);
+  }, { errorPrefix: "Search failed" });
 }
 
 export async function startRepair(
   sessionId: string,
   req: RepairRequest,
 ): Promise<RepairStartResponse> {
-  const res = await fetchWithTimeout(
-    `${API_BASE}/api/search/${sessionId}/repair`,
+  return request(
+    `/api/search/${sessionId}/repair`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(req),
     },
-    35000,
+    { timeoutMs: 35000, errorPrefix: "Repair failed", repair: true },
   );
-  if (!res.ok) {
-    let detail = res.statusText;
-    try {
-      const body = await readJsonWithTimeout<{ detail?: string | string[] }>(res);
-      if (Array.isArray(body.detail)) detail = body.detail.join("; ");
-      else if (body.detail) detail = body.detail;
-    } catch { /* keep statusText */ }
-    if (res.status === 404 && detail === "Not Found") {
-      throw new Error("Repair API unavailable — restart the SearchOS API to load the current WebUI routes");
-    }
-    throw new Error(`Repair failed: ${detail}`);
-  }
-  return readJsonWithTimeout(res);
 }
 
 export interface RepairStartResponse {
@@ -128,46 +117,31 @@ export async function resolveEvidence(
   sessionId: string,
   req: ResolveEvidenceRequest,
 ): Promise<ResolveEvidenceResponse> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/search/${sessionId}/evidence/resolve`, {
+  return request(`/api/search/${sessionId}/evidence/resolve`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(req),
-  });
-  if (!res.ok) {
-    let detail = res.statusText;
-    try {
-      const body = await readJsonWithTimeout<{ detail?: string }>(res);
-      if (body.detail) detail = body.detail;
-    } catch { /* keep statusText */ }
-    throw new Error(`Resolve evidence failed: ${detail}`);
-  }
-  return readJsonWithTimeout(res);
+  }, { errorPrefix: "Resolve evidence failed" });
 }
 
 export async function stopSearch(sessionId: string): Promise<void> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/search/${sessionId}/stop`, { method: "POST" });
-  if (!res.ok) throw new Error(`Stop failed: ${res.statusText}`);
+  return request(`/api/search/${sessionId}/stop`, { method: "POST" }, { noContent: true, errorPrefix: "Stop failed" });
 }
 
 export async function steerSearch(sessionId: string, message: string): Promise<void> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/search/${sessionId}/steer`, {
+  return request(`/api/search/${sessionId}/steer`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message }),
-  });
-  if (!res.ok) throw new Error(`Steer failed: ${res.statusText}`);
+  }, { noContent: true, errorPrefix: "Steer failed" });
 }
 
 export async function getSearchResult(sessionId: string): Promise<SearchResult> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/search/${sessionId}`);
-  if (!res.ok) throw new Error(`Get result failed: ${res.statusText}`);
-  return readJsonWithTimeout(res);
+  return request(`/api/search/${sessionId}`, {}, { errorPrefix: "Get result failed" });
 }
 
-export async function getSearchState(sessionId: string): Promise<SearchResult> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/search/${sessionId}/state`);
-  if (!res.ok) throw new Error(`Get state failed: ${res.statusText}`);
-  return readJsonWithTimeout(res);
+export async function getSearchState(sessionId: string, revision = ""): Promise<SearchResult> {
+  return request(`/api/search/${sessionId}/state${revision ? `?revision=${encodeURIComponent(revision)}` : ""}`, {}, { errorPrefix: "Get state failed" });
 }
 
 export interface HistoryItem {
@@ -226,15 +200,11 @@ export async function listHistory(query = ""): Promise<HistoryItem[]> {
   const params = new URLSearchParams();
   if (query.trim()) params.set("q", query.trim());
   const suffix = params.size ? `?${params.toString()}` : "";
-  const res = await fetchWithTimeout(`${API_BASE}/api/history${suffix}`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`Load history failed: ${res.statusText}`);
-  return readJsonWithTimeout(res);
+  return request(`/api/history${suffix}`, { cache: "no-store" }, { errorPrefix: "Load history failed" });
 }
 
 export async function loadHistory(sessionId: string): Promise<HistoryDetail> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/history/${sessionId}`);
-  if (!res.ok) throw new Error(`Load session failed: ${res.statusText}`);
-  return readJsonWithTimeout(res);
+  return request(`/api/history/${sessionId}`, {}, { errorPrefix: "Load session failed" });
 }
 
 export interface HistoryBranchResponse {
@@ -245,89 +215,300 @@ export interface HistoryBranchResponse {
 }
 
 export async function branchHistoryTurn(sessionId: string, turnIndex: number): Promise<HistoryBranchResponse> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/history/${sessionId}/turns/${turnIndex}/branch`, {
+  return request(`/api/history/${sessionId}/turns/${turnIndex}/branch`, {
     method: "POST",
-  });
-  if (!res.ok) {
-    let detail = res.statusText;
-    try {
-      const body = await readJsonWithTimeout<{ detail?: string }>(res);
-      if (body.detail) detail = body.detail;
-    } catch { /* keep statusText */ }
-    throw new Error(`Create branch failed: ${detail}`);
-  }
-  return readJsonWithTimeout(res);
-}
-
-export async function renameHistory(sessionId: string, title: string): Promise<void> {
-  await updateHistoryAssets(sessionId, { title });
+  }, { errorPrefix: "Create branch failed" });
 }
 
 export async function updateHistoryAssets(
   sessionId: string,
   patch: HistoryAssetPatch,
 ): Promise<HistoryAssetPatch & { session_id: string; title: string }> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/history/${sessionId}`, {
+  return request(`/api/history/${sessionId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(patch),
-  });
-  if (!res.ok) {
-    let detail = res.statusText;
-    try {
-      const body = await readJsonWithTimeout<{ detail?: string }>(res);
-      if (body.detail) detail = body.detail;
-    } catch { /* keep statusText */ }
-    throw new Error(`Update failed: ${detail}`);
-  }
-  return readJsonWithTimeout(res);
+  }, { errorPrefix: "Update failed" });
 }
 
 export async function deleteHistory(sessionId: string): Promise<void> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/history/${sessionId}`, { method: "DELETE" });
-  if (!res.ok) throw new Error(`Delete failed: ${res.statusText}`);
+  return request(`/api/history/${sessionId}`, { method: "DELETE" }, { noContent: true, errorPrefix: "Delete failed" });
 }
 
 export async function getWorkspaceFiles(sessionId: string): Promise<{ tree: FileNode[] }> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/workspace/${sessionId}/files`);
-  if (!res.ok) throw new Error(`Get files failed: ${res.statusText}`);
-  return readJsonWithTimeout(res);
+  return request(`/api/workspace/${sessionId}/files`, {}, { errorPrefix: "Get files failed" });
 }
 
 export async function getFileContent(sessionId: string, path: string): Promise<{ content: string }> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/workspace/${sessionId}/file?path=${encodeURIComponent(path)}`);
-  if (!res.ok) throw new Error(`Get file failed: ${res.statusText}`);
-  return readJsonWithTimeout(res);
+  return request(`/api/workspace/${sessionId}/file?path=${encodeURIComponent(path)}`, {}, { errorPrefix: "Get file failed" });
+}
+
+// ---- Local libraries ----
+
+export async function listLocalLibraries(): Promise<LocalLibrary[]> {
+  return request("/api/local/libraries", { cache: "no-store" }, { errorPrefix: "Load local libraries failed" });
+}
+
+export async function createLocalLibrary(name = "本地资料"): Promise<LocalLibrary> {
+  return request("/api/local/libraries", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  }, { errorPrefix: "Create local library failed" });
+}
+
+export async function renameLocalLibrary(libraryId: string, name: string): Promise<LocalLibrary> {
+  return request(`/api/local/libraries/${encodeURIComponent(libraryId)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  }, { errorPrefix: "Rename local library failed" });
+}
+
+export async function listLocalDocuments(libraryId: string): Promise<LocalDocument[]> {
+  return request(`/api/local/libraries/${encodeURIComponent(libraryId)}/documents`, {
+    cache: "no-store",
+  }, { errorPrefix: "Load local documents failed" });
+}
+
+export async function deleteLocalLibrary(libraryId: string): Promise<{ deleted: string }> {
+  return request(`/api/local/libraries/${encodeURIComponent(libraryId)}`, { method: "DELETE" },
+    { errorPrefix: "删除资料库失败", timeoutMs: 60000 });
+}
+
+export async function editLocalDocument(libraryId: string, documentId: string, name: string): Promise<LocalLibraryGraph> {
+  return request(`/api/local/libraries/${encodeURIComponent(libraryId)}/documents/${encodeURIComponent(documentId)}`, {
+    method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }),
+  }, { errorPrefix: "编辑文档失败" });
+}
+
+export async function deleteLocalDocument(libraryId: string, documentId: string): Promise<LocalLibraryGraph> {
+  return request(`/api/local/libraries/${encodeURIComponent(libraryId)}/documents/${encodeURIComponent(documentId)}`, {
+    method: "DELETE",
+  }, { errorPrefix: "删除文档失败", timeoutMs: 60000 });
+}
+
+export async function saveLocalTopic(libraryId: string, title: string, summary: string, topicId?: string): Promise<LocalLibraryGraph> {
+  const base = `/api/local/libraries/${encodeURIComponent(libraryId)}/topics`;
+  return request(topicId ? `${base}/${encodeURIComponent(topicId)}` : base, {
+    method: topicId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, summary }),
+  }, { errorPrefix: "保存主题失败" });
+}
+
+export async function deleteLocalTopic(libraryId: string, topicId: string): Promise<LocalLibraryGraph> {
+  return request(`/api/local/libraries/${encodeURIComponent(libraryId)}/topics/${encodeURIComponent(topicId)}`, {
+    method: "DELETE",
+  }, { errorPrefix: "删除主题失败" });
+}
+
+export async function importNetworkSource(
+  libraryId: string,
+  sourceUrl: string,
+  options: { title?: string; indexAfterSave?: boolean; sessionId?: string; pageId?: string } = {},
+): Promise<NetworkImportJob> {
+  return request(`/api/local/libraries/${encodeURIComponent(libraryId)}/imports`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      source_url: sourceUrl,
+      title: options.title ?? "",
+      index_after_save: options.indexAfterSave ?? true,
+      session_id: options.sessionId ?? "",
+      page_id: options.pageId ?? "",
+    }),
+  }, { errorPrefix: "Save source failed" });
+}
+
+export async function listNetworkImports(libraryId: string): Promise<NetworkImportJob[]> {
+  return request(`/api/local/libraries/${encodeURIComponent(libraryId)}/imports`, {
+    cache: "no-store",
+  }, { errorPrefix: "Load source imports failed" });
+}
+
+export async function retryNetworkImport(libraryId: string, jobId: string): Promise<NetworkImportJob> {
+  return request(
+    `/api/local/libraries/${encodeURIComponent(libraryId)}/imports/${encodeURIComponent(jobId)}/retry`,
+    { method: "POST" },
+    { errorPrefix: "Retry source import failed" },
+  );
+}
+
+export async function getLocalLibraryGraph(libraryId: string): Promise<LocalLibraryGraph> {
+  return request(`/api/local/libraries/${encodeURIComponent(libraryId)}/graph`, {
+    cache: "no-store",
+  }, { errorPrefix: "Load local library graph failed" });
+}
+
+export async function setLocalDocumentTopics(
+  libraryId: string,
+  documentId: string,
+  subindexIds: string[],
+): Promise<LocalLibraryGraph> {
+  return request(
+    `/api/local/libraries/${encodeURIComponent(libraryId)}/documents/${encodeURIComponent(documentId)}/topics`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subindex_ids: subindexIds }),
+    },
+    { errorPrefix: "Update local document topics failed" },
+  );
+}
+
+export async function retryLocalTopicRecaps(libraryId: string): Promise<LocalLibraryGraph> {
+  return request(`/api/local/libraries/${encodeURIComponent(libraryId)}/topic-recaps/retry`, {
+    method: "POST",
+  }, { errorPrefix: "更新主题摘要失败" });
+}
+
+export async function getLocalDocumentIndex(
+  libraryId: string,
+  documentId: string,
+): Promise<LocalDocumentIndex> {
+  return request(
+    `/api/local/libraries/${encodeURIComponent(libraryId)}/documents/${encodeURIComponent(documentId)}/index`,
+    { cache: "no-store" },
+    { errorPrefix: "Load local document index failed" },
+  );
+}
+
+export async function getLocalDocumentSegment(
+  libraryId: string,
+  documentId: string,
+  segmentId: string,
+  offset = 0,
+): Promise<LocalDocumentSegmentChunk> {
+  const params = new URLSearchParams({ segment_id: segmentId, offset: String(offset) });
+  return request(
+    `/api/local/libraries/${encodeURIComponent(libraryId)}/documents/${encodeURIComponent(documentId)}/segment?${params.toString()}`,
+    { cache: "no-store" },
+    { errorPrefix: "Load local document segment failed" },
+  );
+}
+
+export function localDocumentOriginalUrl(libraryId: string, documentId: string): string {
+  return `${API_BASE}/api/local/libraries/${encodeURIComponent(libraryId)}/documents/${encodeURIComponent(documentId)}/original`;
+}
+
+export function localDocumentPreviewUrl(
+  libraryId: string,
+  documentId: string,
+  documentKind: string,
+): string {
+  const original = localDocumentOriginalUrl(libraryId, documentId);
+  if (!["docx", "pptx", "xlsx"].includes(documentKind.toLowerCase())) return original;
+  return `${API_BASE}/api/local/libraries/${encodeURIComponent(libraryId)}/documents/${encodeURIComponent(documentId)}/preview`;
+}
+
+export async function cancelLocalIndexJob(libraryId: string, jobId: string): Promise<LocalIndexJob> {
+  return request(
+    `/api/local/libraries/${encodeURIComponent(libraryId)}/index-jobs/${encodeURIComponent(jobId)}/cancel`,
+    { method: "POST" },
+    { errorPrefix: "Cancel local index job failed" },
+  );
+}
+
+export async function retryLocalIndexJob(libraryId: string, jobId: string): Promise<LocalIndexJob> {
+  return request(
+    `/api/local/libraries/${encodeURIComponent(libraryId)}/index-jobs/${encodeURIComponent(jobId)}/retry`,
+    { method: "POST" },
+    { errorPrefix: "Retry local index job failed" },
+  );
+}
+
+export interface LocalUploadProgress {
+  loaded: number;
+  total: number;
+  percent: number;
+  phase: "uploading" | "parsing";
+}
+
+export async function uploadLocalDocument(
+  libraryId: string,
+  file: File,
+  onProgress?: (progress: LocalUploadProgress) => void,
+): Promise<LocalDocument> {
+  return new Promise((resolve, reject) => {
+    const body = new FormData();
+    body.append("file", file, file.name);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_BASE}/api/local/libraries/${encodeURIComponent(libraryId)}/uploads`);
+    xhr.timeout = 180000;
+    xhr.upload.onprogress = (event) => {
+      const total = event.lengthComputable ? event.total : file.size;
+      const percent = total > 0 ? Math.min(100, Math.round((event.loaded / total) * 100)) : 0;
+      onProgress?.({
+        loaded: event.loaded,
+        total,
+        percent,
+        phase: percent >= 100 ? "parsing" : "uploading",
+      });
+    };
+    xhr.upload.onload = () => {
+      onProgress?.({ loaded: file.size, total: file.size, percent: 100, phase: "parsing" });
+    };
+    xhr.onload = () => {
+      let payload: unknown = null;
+      try {
+        payload = JSON.parse(xhr.responseText);
+      } catch { /* 非 JSON 错误使用 HTTP 状态。 */ }
+      if (xhr.status >= 200 && xhr.status < 300 && payload) {
+        resolve(payload as LocalDocument);
+        return;
+      }
+      const detail = payload && typeof payload === "object" && "detail" in payload
+        ? String((payload as { detail?: unknown }).detail)
+        : xhr.statusText || `HTTP ${xhr.status}`;
+      reject(new Error(`Upload ${file.name} failed: ${detail}`));
+    };
+    xhr.onerror = () => reject(new Error(`Upload ${file.name} failed: backend unreachable`));
+    xhr.ontimeout = () => reject(new Error(`Upload ${file.name} failed: request timed out`));
+    xhr.send(body);
+  });
+}
+
+export async function resolveLocalCitation(refId: string): Promise<LocalCitation> {
+  return request("/api/local/citations/resolve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ref_id: refId }),
+  }, { errorPrefix: "Open local source failed" });
+}
+
+export function localOriginalUrl(citation: LocalCitation): string {
+  const base = `${API_BASE}/api/local/libraries/${encodeURIComponent(citation.library_id)}/documents/${encodeURIComponent(citation.document_id)}/original`;
+  const pageLocator = citation.locators.find((locator) => (
+    typeof locator.page_start === "number" && locator.page_start > 0
+  ));
+  return pageLocator ? `${base}#page=${pageLocator.page_start}` : base;
+}
+
+export function localPreviewUrl(citation: LocalCitation): string {
+  if (citation.preview_mode !== "office") return localOriginalUrl(citation);
+  const base = `${API_BASE}/api/local/libraries/${encodeURIComponent(citation.library_id)}/documents/${encodeURIComponent(citation.document_id)}/preview`;
+  const slideLocator = citation.locators.find((locator) => (
+    typeof locator.slide_number === "number" && locator.slide_number > 0
+  ));
+  return slideLocator ? `${base}#page=${slideLocator.slide_number}` : base;
 }
 
 // ---- Settings ----
 
 export async function getSettings(): Promise<SettingsData | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/settings`, { cache: "no-store" });
-    if (!res.ok) return null;
-    return res.json();
+    return await request("/api/settings", { cache: "no-store" });
   } catch {
     return null;
   }
 }
 
 async function putJson<T>(path: string, body: unknown, method = "PUT"): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  return request(path, {
     method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  if (!res.ok) {
-    let detail = res.statusText;
-    try {
-      const data = await res.json();
-      if (typeof data.detail === "string") detail = data.detail;
-      else if (data.detail?.detail) detail = data.detail.detail;
-    } catch { /* keep statusText */ }
-    throw new Error(detail);
-  }
-  return res.json();
 }
 
 export const putEffort = (level: EffortLevel, overrides: Record<string, number> = {}) =>
@@ -361,7 +542,13 @@ export const putMisc = (patch: {
   enable_skills?: boolean;
   enable_explore_batch?: boolean;
   browser_backend?: string;
+  enable_web_image_read?: boolean;
+  web_image_read_mode?: "auto" | "native" | "vision";
+  jina_retain_images?: "auto" | "alt" | "all";
 }) => putJson<RunDefaultsView & { browser_backend: string }>("/api/settings/misc", patch);
+
+export const detectWebImageCapability = () =>
+  putJson<RunDefaultsView>("/api/settings/web-image-capability/detect", {}, "POST");
 
 // First-class runtime knobs. Only keys present in the patch are touched; send
 // null to clear a knob back to its env/code default. https_proxy "" forces
@@ -381,9 +568,7 @@ export const resetSettings = () =>
 // Throws on failure (unlike getSettings): the provider switcher shows an
 // inline retry row and needs to distinguish errors from empty data.
 export async function getProviderPresets(): Promise<ProvidersResponse> {
-  const res = await fetch(`${API_BASE}/api/settings/providers`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`Couldn't load presets: ${res.statusText}`);
-  return res.json();
+  return request("/api/settings/providers", { cache: "no-store" }, { errorPrefix: "Couldn't load presets" });
 }
 
 export const putSettingsKey = (env: string, value: string) =>
@@ -436,20 +621,11 @@ export const deleteProfile = (name: string) =>
   putJson<ModelsView>(`/api/settings/profiles/${encodeURIComponent(name)}`, {}, "DELETE");
 
 async function runDiagnostic<T>(path: string, body: unknown): Promise<T> {
-  const controller = new AbortController();
-  const timeout = globalThis.setTimeout(() => controller.abort(), 65000);
-  try {
-    const res = await fetch(`${API_BASE}/api/diagnostics/${path}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-    if (!res.ok) throw new Error(`Diagnostic failed: ${res.statusText}`);
-    return await res.json() as T;
-  } finally {
-    globalThis.clearTimeout(timeout);
-  }
+  return request(`/api/diagnostics/${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }, { timeoutMs: 65000, errorPrefix: "Diagnostic failed" });
 }
 
 export const testProvider = (role: string) =>
@@ -489,3 +665,42 @@ export function connectWebSocket(
 
   return ws;
 }
+
+// ---- Skill creation ----
+export type SkillCreationInput = {
+  kind: "site" | "task" | "trace";
+  site?: string;
+  text: string;
+  categories: string[];
+  max_requests: number;
+};
+export type SkillCreationJob = {
+  id: string;
+  input: SkillCreationInput;
+  status: "queued" | "running" | "completed" | "partial" | "failed" | "interrupted";
+  stage: string;
+  current_index: number | null;
+  requests: { name: string; category: string; description: string; subtask?: string; action?: "create" | "update" }[];
+  results: { name: string; category: string; status: string; error?: string; path?: string; trial_path?: string; action?: "create" | "update" }[];
+  error: string;
+  created_at: string;
+};
+export const createSkills = (input: SkillCreationInput) =>
+  putJson<SkillCreationJob>("/api/skills/creations", input, "POST");
+export const listSkillCreations = () =>
+  request<SkillCreationJob[]>("/api/skills/creations", { cache: "no-store" });
+export const getSkillCreation = (id: string) =>
+  request<SkillCreationJob>(`/api/skills/creations/${encodeURIComponent(id)}`, { cache: "no-store" });
+
+export type SkillLibraryItem = {
+  name: string; category: string; description: string; availability: string;
+  enabled: boolean; package_format: string; entry: string;
+};
+export type SkillLibraryDetail = SkillLibraryItem & { body: string; source: string; files: string[] };
+export const listSkillLibrary = () => request<SkillLibraryItem[]>("/api/skills/library", { cache: "no-store" });
+export const getSkillLibraryDetail = (category: string, name: string) => request<SkillLibraryDetail>(`/api/skills/library/${encodeURIComponent(category)}/${encodeURIComponent(name)}`);
+export const getSkillLibraryFile = (category: string, name: string, path: string) => request<{ path: string; content: string }>(`/api/skills/library/${encodeURIComponent(category)}/${encodeURIComponent(name)}/file?path=${encodeURIComponent(path)}`);
+
+export type SkillLibraryQuery = { q: string; category: string; page: number; page_size: number };
+export type SkillLibraryResults = { items: SkillLibraryItem[]; total: number; page: number; page_size: number; pages: number; counts: Record<string, number> };
+export const querySkillLibrary = (query: SkillLibraryQuery) => request<SkillLibraryResults>(`/api/skills/library/query?${new URLSearchParams({ q: query.q, category: query.category, page: String(query.page), page_size: String(query.page_size) })}`, { cache: "no-store" });

@@ -1,0 +1,26 @@
+{
+  "description": "Fetches structured data about Egyptian pyramids from the Madain Project website (madainproject.com), including the complete list of pyramids with dates, images, and descriptions, as well as detailed pages for individual pyramids.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_egyptian_pyramids: 获取埃及金字塔完整列表，返回每个金字塔的名称、年代、图片、描述和详情页链接; 参数: 无; 必填: 无\n  - get_pyramid_detail: 获取单个金字塔的详细信息，需要提供slug参数; 参数: slug; 必填: slug\n  - search_pyramids: 在金字塔列表中搜索匹配查询词的结果，需要提供query参数; 参数: query; 必填: query"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "金字塔详情页的URL slug（如 'pyramid_of_djoser', 'great_pyramid_of_giza'）。\n仅用于 get_pyramid_detail 功能。"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索查询词，用于在金字塔标题和描述中查找匹配项。\n仅用于 search_pyramids 功能。"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

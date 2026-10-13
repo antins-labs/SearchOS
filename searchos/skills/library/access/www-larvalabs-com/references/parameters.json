@@ -1,0 +1,32 @@
+{
+  "description": "Fetches detailed information about CryptoPunks NFT assets from Larva Labs, including attributes, market status, ownership, and transaction history.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_punk_details: Fetch comprehensive punk details including type, attributes, market status, and image URL; 参数: punk_id, url; 必填: 无\n  - get_punk_transactions: Fetch transaction history with optional limit; 参数: punk_id, url, transaction_limit; 必填: 无"
+    },
+    "punk_id": {
+      "type": "string",
+      "required": false,
+      "description": "CryptoPunk ID number (0-9999). Used if url is not provided."
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full URL to CryptoPunk detail page (e.g., https://www.larvalabs.com/cryptopunks/details/5822). Used if punk_id is not provided."
+    },
+    "transaction_limit": {
+      "type": "integer",
+      "default": 50,
+      "required": false,
+      "description": "Maximum number of transactions to return for get_punk_transactions function. Default 50, max 500."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

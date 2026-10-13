@@ -1,0 +1,43 @@
+{
+  "description": "Extracts structured historical essay content from histclo.com, including titles, sections, paragraphs, images, and navigation links.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_essay: 获取并解析单篇历史文章，提取标题、章节、段落和图片；需要url参数; 参数: include_images, include_full_content, url; 必填: 无\n  - search_essays: 按关键词搜索文章，可选topic_area参数指定搜索范围; 参数: topic_area, keyword; 必填: 无"
+    },
+    "include_images": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否包含图片信息（get_essay功能使用，默认true）"
+    },
+    "include_full_content": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否包含完整段落文本（get_essay功能使用，默认true）"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章页面的完整URL（get_essay功能使用）"
+    },
+    "topic_area": {
+      "type": "string",
+      "required": false,
+      "description": "搜索主题范围（search_essays功能使用），可选值：ww2, children, country, chron"
+    },
+    "keyword": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词（search_essays功能使用）"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

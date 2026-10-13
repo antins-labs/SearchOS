@@ -1,0 +1,19 @@
+description: 'Access skill for www.panamsports.org - Pan American Sports Organization news and articles.
+  Note: This site has comprehensive bot protection (SiteGround sgcaptcha) that blocks automated access.
+  Direct HTTP requests return 403 Forbidden, and Playwright automation triggers captcha challenges. The
+  skill will attempt access and return appropriate error messages when blocked.'
+params_schema:
+  function:
+    type: string
+    required: true
+    description: "要调用的功能名。可用值:\n  - get_article: Fetch a news article by URL; requires 'url' parameter;\
+      \ 参数: url; 必填: 无\n  - search_news: Search for news articles; requires 'query' parameter (currently\
+      \ blocked by site protection); 参数: query; 必填: 无"
+  url:
+    type: string
+    required: false
+    description: Full URL of the article to fetch (used by get_article function)
+  query:
+    type: string
+    required: false
+    description: Search query for news articles (used by search_news function)

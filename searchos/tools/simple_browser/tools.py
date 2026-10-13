@@ -1,10 +1,11 @@
-"""Simple Browser tools (paper §4.2): ``search`` / ``open`` / ``find``.
+"""Simple Browser tools: ``search`` / ``open`` / ``find`` / optional ``read_visual``.
 
 - ``search(query)`` — hit list.
 - ``open(id_or_url, loc=0)`` — render a search-result id or URL as a
   line-numbered page; ``loc`` scrolls the view window.
 - ``find(pattern)`` — grep the current page; matches become a new
   addressable page (so ``open(<id>)`` on a match scrolls to it).
+- ``read_visual(url, question, page)`` — read an image or one physical PDF page.
 
 These are thin shells over ``state`` (browser session) and ``render``
 (HTML→markdown). Page fetching is delegated to ``backend``.
@@ -13,6 +14,7 @@ These are thin shells over ``state`` (browser session) and ``render``
 from __future__ import annotations
 
 import logging
+from functools import wraps
 from typing import Any
 
 from langchain_core.tools import tool
@@ -33,6 +35,15 @@ from searchos.tools.simple_browser.state import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _page_artifact_result(fn):
+    """成功返回视窗 artifact；错误仍展示文本且不携带上一页元数据。"""
+    @wraps(fn)
+    async def wrapped(*args, **kwargs):
+        result = await fn(*args, **kwargs)
+        return result if isinstance(result, tuple) else (result, {})
+    return wrapped
 
 
 @tool
@@ -65,8 +76,9 @@ async def search(query: str) -> str:
     return _get_browser().show_page(loc=0, view_tokens=VIEW_TOKENS)
 
 
-@tool
-async def open(id_or_url: Any, loc: int = 0) -> str:
+@tool(response_format="content_and_artifact")
+@_page_artifact_result
+async def open(id_or_url: Any, loc: int = 0, view_tokens: int | None = None) -> str | tuple[str, dict]:
     """Open a page and render its content with ``L<N>:`` line numbers.
 
     Args:
@@ -78,14 +90,20 @@ async def open(id_or_url: Any, loc: int = 0) -> str:
 
           • **Full URL** (``"https://..."``) — always valid, stateless. Prefer this when iterating across many hits, when ids might collide across multiple search() calls (the id 0 from search #2 isn't the same hit as id 0 from search #1), or when the URL is already in your reasoning trace.
 
-        loc (int): starting line number for the rendered window (0-indexed). The page renders ~80 lines from this point. Ignored when ``id_or_url`` is a find-match id (auto-jumps to the match line). When passing a full URL, set ``loc`` to a line index *within that page* — page header / find output never give you cross-page line numbers.
+          • **Saved skill URL** (``"skill://name/call-id"``) — reads the saved result page without executing the skill again. Use ``loc`` and ``find`` exactly as for a web page.
+
+        loc (int): starting line number for the rendered window (0-indexed). Window length depends on content density and view_tokens. Ignored when ``id_or_url`` is a find-match id (auto-jumps to the match line). When passing a full URL, set ``loc`` to a line index *within that page* — page header / find output never give you cross-page line numbers.
+
+        view_tokens (int | None): window budget, 1–8192; defaults to the configured budget (4096). Estimated as 4 characters per token, not an exact token count. Use 8192 for larger contiguous reads.
     """
+    if view_tokens is not None and not 1 <= view_tokens <= 8192:
+        return "Error: view_tokens must be between 1 and 8192."
     if id_or_url is None or id_or_url == "":
         return "Error: id_or_url required"
 
     browser = _get_browser()
     url = ""
-    if isinstance(id_or_url, str) and (id_or_url.startswith("http://") or id_or_url.startswith("https://")):
+    if isinstance(id_or_url, str) and id_or_url.startswith(("http://", "https://", "skill://")):
         url = id_or_url
     elif isinstance(id_or_url, (int, float)) or (isinstance(id_or_url, str) and str(id_or_url).isdigit()):
         link_id = str(int(id_or_url))
@@ -129,6 +147,8 @@ async def open(id_or_url: Any, loc: int = 0) -> str:
         if disk_cached is not None:
             opened_page = disk_cached
             logger.info("open: disk cache HIT for %s", url)
+        elif url.startswith("skill://"):
+            return f"Error: saved result page not found: {url}. Use a URL returned by a skill call."
         else:
             opened_page = await _fetch_page(url)
             if opened_page.text.startswith("[FETCH_ERROR]") and url in browser.search_content_cache:
@@ -148,13 +168,16 @@ async def open(id_or_url: Any, loc: int = 0) -> str:
                     )
     browser.add_page(opened_page)
     page_id = _persist_page(url, opened_page)
+    if page_id:
+        browser.page_ids[opened_page.url] = page_id
     if page_id and url not in browser.opened_urls:
         browser.opened_urls.append(url)
-    return browser.show_page(loc=loc, view_tokens=VIEW_TOKENS)
+    return browser.show_page_with_metadata(loc=loc, view_tokens=VIEW_TOKENS if view_tokens is None else view_tokens)
 
 
-@tool
-async def find(pattern) -> str:
+@tool(response_format="content_and_artifact")
+@_page_artifact_result
+async def find(pattern) -> str | tuple[str, dict]:
     """Case-insensitive grep on the current page; returns each match as a numbered chunk you can re-open.
 
     **Keep patterns short — 1-2 keywords, ideally a single discriminating word.** ``find`` is exact substring matching, not semantic search: long phrases almost never appear verbatim, even on a page that fully answers the question. Prefer the most discriminating word that's likely to be present literally (a name, a number, a unit, a code) and let the surrounding context window do the rest. If a 1-token find returns no hit, the answer is more likely not on this page than that you need a longer pattern.
@@ -178,8 +201,41 @@ async def find(pattern) -> str:
     current = _get_source_page(browser)
     result_page = _find_matches(pattern, current)
     browser.add_page(result_page)
-    return browser.show_page(loc=0, view_tokens=VIEW_TOKENS)
+    page_id = browser.page_ids.get(current.url, "")
+    if page_id:
+        browser.page_ids[result_page.url] = page_id
+    return browser.show_page_with_metadata(loc=0, view_tokens=VIEW_TOKENS)
 
 
-def get_simple_browser_tools() -> list:
-    return [search, open, find]
+@tool
+async def read_visual(url: str, question: str = "", page: int | None = None) -> Any:
+    """Read one image URL or one physical page of an online PDF.
+
+    Args:
+        url: Complete http/https image or PDF URL, including signed query parameters.
+        question: Optional concise reading goal. It guides interpretation but never filters OCR.
+        page: Physical PDF page number, starting from 1. Omit it for ordinary images.
+    """
+    if not is_url_allowed(url):
+        return f"Error: source domain is excluded for this run: {url}"
+    try:
+        from searchos.tools.simple_browser.image_reading import read_image, read_pdf_page
+
+        if page is not None:
+            return await read_pdf_page(url, page, question)
+        return await read_image(url, question)
+    except BaseException as exc:
+        if isinstance(exc, (KeyboardInterrupt, SystemExit)):
+            raise
+        import asyncio
+
+        if isinstance(exc, asyncio.CancelledError):
+            raise
+        return f"Error: 图片读取失败：{exc}"
+
+
+def get_simple_browser_tools(*, include_read_visual: bool = False) -> list:
+    tools = [search, open, find]
+    if include_read_visual:
+        tools.append(read_visual)
+    return tools

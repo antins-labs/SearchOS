@@ -1,0 +1,16 @@
+{
+  "description": "Fetches China Airlines baggage policy information including carry-on regulations and checked baggage allowances by cabin class and route.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_carry_on_baggage: 获取随身行李规定，包括尺寸、重量限制和存放要求; 参数: 无; 必填: 无\n  - get_checked_baggage: 获取托运行李规定，包括不同舱位和航线的免费行李额; 参数: 无; 必填: 无\n  - get_all_baggage: 获取所有行李政策信息（随身行李和托运行李）; 参数: 无; 必填: 无"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

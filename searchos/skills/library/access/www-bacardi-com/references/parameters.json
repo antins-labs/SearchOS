@@ -1,0 +1,23 @@
+{
+  "description": "读取百加得官网朗姆酒产品名称、酒龄、酒精度与产品描述，适用于官方产品信息核验。",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_products   List known Bacardi rum product URLs\n  - get_product   Get detailed product information from a Bacardi product page"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full URL of the product page (e.g., https://www.bacardi.com/us/en/our-rums/reserva-ocho-rum/)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

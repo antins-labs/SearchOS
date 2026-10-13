@@ -1,0 +1,26 @@
+{
+  "description": "Fetches world and U.S. track & field rankings from Track & Field News articles, including athlete rankings, performance details, and event results.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取特定排名文章的详细数据，需要url参数; 参数: url; 必填: url\n  - get_index: 获取排名索引页面，列出所有项目的排名链接，可选gender参数; 参数: url, gender; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "排名文章的完整URL（用于get_article功能）。 必须是trackandfieldnews.com域名下的URL。 示例: https://trackandfieldnews.com/article/2025-mens-1500-world-rankings/"
+    },
+    "gender": {
+      "type": "string",
+      "required": false,
+      "description": "性别筛选（用于get_index功能）。 可选值: \"men\"（默认）, \"women\""
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

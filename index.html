@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SearchOS</title>
+    <title>SearchOS — Web and Local Research</title>
+    <meta name="description" content="Research the Web and your documents with SearchOS. Build a knowledge library, read multimodal sources, follow original citations, and create portable agent skills.">
     <script>
         // Apply saved theme before first paint (default: light)
         (function () {
@@ -13,7 +14,7 @@
             } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
         })();
     </script>
-    <link rel="icon" type="image/svg+xml" href="assets/images/searchos-favicon.svg">
+    <link rel="icon" type="image/png" href="assets/searchos_logo_icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;0,8..60,800;1,8..60,400&family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -579,6 +580,37 @@
             color: white; background: rgba(3,7,18,.7); border: 1px solid rgba(255,255,255,.22);
             font: 700 11px/1 var(--font-ui); letter-spacing: .02em;
             -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+        }
+
+        /* ===== LOCAL RESEARCH AND FEATURE GUIDES ===== */
+        #overview, #local-search, #features, #quick-start { scroll-margin-top: 96px; }
+        .local-tour h2 { font-size: clamp(32px, 3.8vw, 46px); }
+        .local-video { min-width: 0; }
+        .local-video figcaption { margin-top: 14px; color: var(--muted); font-size: 13px; text-align: center; }
+        .local-video figcaption a, .feature-link { color: var(--blue-glow); text-decoration: underline; text-underline-offset: 4px; }
+        .local-guide { display: inline-block; margin-top: 22px; font-size: 14px; font-weight: 600; }
+        .local-video .tour-poster { background: var(--accent-grad); }
+        .local-video .tour-watch-label { max-width: calc(100% - 32px); }
+        .source-workflow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; margin: 30px 0 0; padding: 0; list-style: none; }
+        .source-workflow li { padding: 0 0 0 18px; border-left: 2px solid var(--hairline-strong); min-width: 0; }
+        .source-workflow strong { display: block; color: var(--ink); font-size: 15px; }
+        .source-workflow span { color: var(--blue-glow); font: 500 12px var(--font-mono); margin-right: 10px; }
+        .source-workflow p { color: var(--muted); font-size: 14px; line-height: 1.65; margin-top: 8px; }
+        .update-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin: 0; padding: 0; list-style: none; }
+        .update-grid > li { display: flex; min-width: 0; }
+        .update-card { display: flex; flex-direction: column; width: 100%; min-width: 0; padding: 26px; border: 1px solid var(--hairline); border-radius: 16px; background: var(--surface); }
+        .update-card time { color: var(--blue-glow); font: 500 12px/1.6 var(--font-mono); }
+        .update-card h3 { margin: 14px 0 10px; font-size: 21px; line-height: 1.3; letter-spacing: -.025em; }
+        .update-card p { color: var(--muted); font-size: 14px; line-height: 1.7; margin-bottom: 24px; }
+        .update-card .feature-link { margin-top: auto; align-self: flex-start; font-size: 13px; font-weight: 600; }
+        .update-card code { overflow-wrap: anywhere; }
+        a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
+        @media (max-width: 980px) {
+            .update-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 640px) {
+            .update-grid, .source-workflow { grid-template-columns: minmax(0, 1fr); }
+            .update-card { padding: 22px; }
         }
 
         /* ===== RESULTS PLACEHOLDER ===== */
@@ -1404,9 +1436,11 @@
 <!-- ===== LEFT TABLE OF CONTENTS (fixed, scroll-spy) ===== -->
 <nav class="side-toc" id="sideToc" aria-label="Section navigation">
     <span class="toc-marker" id="tocMarker"></span>
+    <a href="#overview" data-target="overview"><span class="toc-dot"></span><span class="toc-label">Overview</span></a>
+    <a href="#local-search" data-target="local-search"><span class="toc-dot"></span><span class="toc-label">Local Search</span></a>
+    <a href="#features" data-target="features"><span class="toc-dot"></span><span class="toc-label">Updates</span></a>
     <a href="#demo" data-target="demo"><span class="toc-dot"></span><span class="toc-label">Introduction</span></a>
     <a href="#product-tour" data-target="product-tour"><span class="toc-dot"></span><span class="toc-label">Product Tour</span></a>
-    <a href="#overview" data-target="overview"><span class="toc-dot"></span><span class="toc-label">Overview</span></a>
     <a href="#arch" data-target="arch"><span class="toc-dot"></span><span class="toc-label">Architecture</span></a>
     <a href="#internals" data-target="internals"><span class="toc-dot"></span><span class="toc-label">Design</span></a>
     <a href="#flow" data-target="flow"><span class="toc-dot"></span><span class="toc-label">Case Study</span></a>
@@ -1444,16 +1478,13 @@
     <div class="brand">
         <span class="brand-word">SearchOS</span>
     </div>
-    <nav class="nav" id="mainNav">
-        <a href="#demo">Introduction</a>
-        <a href="#product-tour">Product Tour</a>
-        <a href="#overview" class="active">Overview</a>
+    <nav class="nav" id="mainNav" aria-label="Main navigation">
+        <a href="#overview">Overview</a>
+        <a href="#local-search">Local Search</a>
+        <a href="#features">Updates</a>
         <a href="#arch">Architecture</a>
-        <a href="#internals">Design</a>
-        <a href="#flow">Case Study</a>
         <a href="#results">Results</a>
-        <a href="#gallery">Gallery</a>
-        <a href="#acknowledgements">Authors</a>
+        <a href="#resources">Resources</a>
     </nav>
     <div class="header-right">
         <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle day / night theme" title="Toggle day / night">
@@ -1473,7 +1504,7 @@
     <div class="hero-inner">
         <div class="hero-eyebrow reveal reveal-in"><span class="prompt-symbol">$</span> <span id="typewriter"></span><span class="typing-cursor"></span></div>
         <h1 class="hero-title reveal reveal-in" style="--reveal-delay:100ms"><span class="grad-text">SearchOS</span></h1>
-        <p class="hero-desc reveal reveal-in" style="--reveal-delay:300ms">An <strong>operating system for search agents</strong> — <span class="hl">scheduling</span>, <span class="hl" style="white-space:nowrap">state management</span>, <span class="hl">monitoring</span>, and <span class="hl">skill reuse</span> as system-level infrastructure.</p>
+        <p class="hero-desc reveal reveal-in" style="--reveal-delay:300ms">A research workspace for <span class="hl">the Web and your documents</span>. Coordinate agents, follow original sources, and turn research methods into <strong>reusable skills</strong>.</p>
         <div class="hero-actions reveal reveal-in" style="--reveal-delay:400ms">
             <a href="https://arxiv.org/abs/2607.15257" target="_blank" rel="noopener" class="btn btn-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -1483,133 +1514,17 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
                 GitHub
             </a>
-            <a href="#demo" class="btn">
+            <a href="#local-search" class="btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Introduction
+                Local Search Demo
             </a>
-            <a href="#product-tour" class="btn">
-                <span aria-hidden="true">▶</span>
-                Product Tour
+            <a href="#quick-start" class="btn">
+                <span aria-hidden="true">↗</span>
+                Get Started
             </a>
         </div>
     </div>
 </div>
-
-<!-- ===== DEMO (first section below hero) ===== -->
-<section id="demo" class="section" style="padding-top:clamp(64px,8vh,96px)">
-    <div class="container">
-        <div class="section-head reveal" style="text-align:center; margin-inline:auto; margin-bottom:28px">
-            <div class="kicker" style="justify-content:center">Introduction</div>
-        </div>
-        <div class="reveal" style="--reveal-delay:100ms">
-            <video class="demo-video" src="assets/searchos-demo.mp4" title="SearchOS Demo"
-                   controls playsinline preload="metadata"
-                   style="display:block; width:100%; aspect-ratio:16/9; border:1.5px solid var(--hairline-strong); border-radius:20px; background:var(--card-bg); box-shadow:0 24px 64px rgba(0,0,0,.18)"></video>
-        </div>
-    </div>
-</section>
-
-<!-- ===== WEB UI PRODUCT TOUR ===== -->
-<section id="product-tour" class="section" aria-labelledby="productTourTitle">
-    <div class="container">
-        <div class="tour-shell reveal">
-            <div class="tour-copy">
-                <div class="kicker">Product Tour</div>
-                <h2 id="productTourTitle">See SearchOS in Action</h2>
-                <p>Follow the complete Web UI workflow, from connecting model and search providers to building a schema, tracing live research, verifying evidence, repairing gaps, and exporting the final result.</p>
-                <div class="tour-steps" aria-label="Product tour highlights">
-                    <span class="tour-step">Configure providers and API keys</span>
-                    <span class="tour-step">Build structured, evidence-backed research</span>
-                    <span class="tour-step">Repair gaps and export final reports</span>
-                </div>
-                <div class="tour-tabs" role="tablist" aria-label="Product tour language">
-                    <button class="tour-tab" id="tourTabEn" type="button" role="tab" aria-selected="true" aria-controls="tourPlayer" data-tour-lang="en">English</button>
-                    <button class="tour-tab" id="tourTabZh" type="button" role="tab" aria-selected="false" aria-controls="tourPlayer" data-tour-lang="zh">中文</button>
-                </div>
-            </div>
-            <div class="tour-player" id="tourPlayer" role="tabpanel" aria-labelledby="tourTabEn"></div>
-        </div>
-    </div>
-</section>
-
-<script>
-(function () {
-    const tours = {
-        en: {
-            videoId: 'wxy74AqykwY',
-            poster: 'assets/gallery/product-demo-en.jpg',
-            badge: 'English',
-            title: 'SearchOS product tour in English'
-        },
-        zh: {
-            videoId: 'WsjcDtCN0Cs',
-            poster: 'assets/gallery/product-demo-zh.jpg',
-            badge: '中文',
-            title: 'SearchOS 中文产品演示'
-        }
-    };
-
-    const player = document.getElementById('tourPlayer');
-    const tabs = Array.from(document.querySelectorAll('[data-tour-lang]'));
-    let activeLanguage = 'en';
-
-    function mountPoster(language) {
-        const tour = tours[language];
-        const poster = document.createElement('a');
-        const image = document.createElement('img');
-        const play = document.createElement('span');
-        const badge = document.createElement('span');
-        const watchLabel = document.createElement('span');
-
-        poster.className = 'tour-poster';
-        poster.href = 'https://www.youtube.com/watch?v=' + tour.videoId;
-        poster.target = '_blank';
-        poster.rel = 'noopener noreferrer';
-        poster.setAttribute('aria-label', 'Watch ' + tour.title + ' on YouTube');
-
-        image.src = tour.poster;
-        image.alt = '';
-        image.loading = 'lazy';
-        image.decoding = 'async';
-
-        play.className = 'tour-play';
-        play.setAttribute('aria-hidden', 'true');
-
-        badge.className = 'tour-language-badge';
-        badge.textContent = tour.badge;
-
-        watchLabel.className = 'tour-watch-label';
-        watchLabel.textContent = language === 'zh' ? '在 YouTube 观看' : 'Watch on YouTube';
-
-        poster.append(image, play, badge, watchLabel);
-        player.replaceChildren(poster);
-    }
-
-    function setLanguage(language) {
-        activeLanguage = tours[language] ? language : 'en';
-        tabs.forEach(function (tab) {
-            const isActive = tab.dataset.tourLang === activeLanguage;
-            tab.setAttribute('aria-selected', String(isActive));
-            tab.tabIndex = isActive ? 0 : -1;
-            if (isActive) player.setAttribute('aria-labelledby', tab.id);
-        });
-        mountPoster(activeLanguage);
-    }
-
-    tabs.forEach(function (tab) {
-        tab.addEventListener('click', function () { setLanguage(tab.dataset.tourLang); });
-        tab.addEventListener('keydown', function (event) {
-            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-            event.preventDefault();
-            const nextLanguage = activeLanguage === 'en' ? 'zh' : 'en';
-            setLanguage(nextLanguage);
-            document.querySelector('[data-tour-lang="' + nextLanguage + '"]').focus();
-        });
-    });
-
-    setLanguage((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
-})();
-</script>
 
 <!-- ===== 1. OVERVIEW ===== -->
 <section id="overview" class="section">
@@ -1629,8 +1544,8 @@
         </div>
 
         <div class="card-spotlight tile reveal" style="--reveal-delay: 100ms">
-            <p><strong>SearchOS</strong> is <strong>operating-system-level infrastructure</strong> for search agents. It lifts the recurring problems of deep search — context governance, shared state, anomaly oversight, knowledge reuse, report synthesis — into system-level services, so search agents run like scheduled, supervised processes.</p>
-            <p style="margin-top:18px">Its reference implementation pairs a long-lived <em>Orchestrator</em> — an LLM controller that plans, dispatches, and converges from real-time <strong>SOCM</strong> snapshots — with short-lived sub-agents, all wrapped by middleware that runs like a kernel in the background.</p>
+            <p><strong>SearchOS</strong> maintains tasks, evidence, coverage, and research methods as persistent system state. Agents can continue from known facts, inspect unresolved questions, and reuse source access methods across Web and local research.</p>
+            <p style="margin-top:18px">Web and Hybrid research use an <em>Orchestrator</em> to plan and dispatch work against <strong>SOCM</strong> snapshots. Local questions use a document QA agent directly. Composable middleware manages context, evidence intake, budgets, and progress around agent execution.</p>
         </div>
 
         <!-- Open-Domain Information-Seeking Task — problem formulation SVG -->
@@ -1922,31 +1837,239 @@
                     <li>Automatic schema extraction (entity × attribute)</li>
                     <li>Coverage-driven exploration priority</li>
                     <li>Evidence Graph auto-extraction</li>
-                    <li>Anti-Skill mining from failure trajectories</li>
+                    <li>Trace-driven skill creation and updates</li>
                 </ul>
             </div>
             <div class="card-spotlight tile reveal" style="--reveal-delay: 400ms">
-                <h3 style="margin-top:0"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg> Three Sub Agent Types</h3>
+                <h3 style="margin-top:0"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg> Research Agents</h3>
                 <ul style="color:var(--muted); font-size:15px; line-height:1.6; margin-top:12px">
                     <li><code>explore_agent</code> — Disambiguation / candidate enumeration</li>
-                    <li><code>search_agent</code> — Evidence collection</li>
-                    <li><code>writer_agent</code> — Structured drafting / finalize</li>
+                    <li><code>search_agent</code> — Web or local evidence collection</li>
+                    <li><code>writer_agent</code> — Optional structured drafting</li>
                 </ul>
-                <p style="color:var(--faint); font-size:13px; line-height:1.5; margin-top:12px">Conflict adjudication is handled at the system layer (Scheduler + conflict arbitration), not by a dedicated agent.</p>
+                <p style="color:var(--faint); font-size:13px; line-height:1.5; margin-top:12px">The Orchestrator normally produces the final answer. Local mode uses a dedicated document QA flow.</p>
             </div>
             <div class="card-spotlight tile reveal" style="--reveal-delay: 500ms">
-                <h3 style="margin-top:0"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg> Quick Start</h3>
+                <h3 id="quick-start" style="margin-top:0"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg> Quick Start</h3>
                 <div class="citation" style="margin-top:12px">
                     <pre><code>./install.sh
 source .venv/bin/activate
-searchos "your query"
-searchos   # interactive TUI</code></pre>
+python -m pip install -e ".[local-docs]"
+searchos --setup
+./web/start.sh</code></pre>
                 </div>
             </div>
         </div>
 
     </div>
 </section>
+
+<!-- ===== LOCAL SEARCH INTRODUCTION ===== -->
+<section id="local-search" class="section" aria-labelledby="localSearchTitle">
+    <div class="container">
+        <div class="tour-shell local-tour reveal">
+            <div class="tour-copy">
+                <div class="kicker">Local Search</div>
+                <h2 id="localSearchTitle">Research starts<br>with your files.</h2>
+                <p>Turn papers, reports, spreadsheets, and images into a knowledge library. Ask about selected documents or the whole library, then follow each citation back to the original material.</p>
+                <a class="feature-link local-guide" href="https://github.com/antins-labs/SearchOS/blob/main/docs/local-search-feature-introduction-zh.md">Read the workflow guide <span aria-hidden="true">↗</span></a>
+            </div>
+            <figure class="local-video">
+                <div class="tour-player">
+                    <a class="tour-poster" href="https://youtu.be/l9vEq6SdvZA" target="_blank" rel="noopener noreferrer" aria-label="Watch the SearchOS Local Search introduction on YouTube">
+                        <img src="https://i.ytimg.com/vi/l9vEq6SdvZA/hqdefault.jpg" alt="SearchOS Local Search video preview" loading="lazy" decoding="async" width="480" height="360">
+                        <span class="tour-play" aria-hidden="true"></span>
+                        <span class="tour-language-badge">Local Search</span>
+                        <span class="tour-watch-label">Watch the introduction on YouTube ↗</span>
+                    </a>
+                </div>
+                <figcaption>Local Search introduction · <a href="https://youtu.be/l9vEq6SdvZA" target="_blank" rel="noopener noreferrer">Open video on YouTube</a></figcaption>
+            </figure>
+        </div>
+        <ol class="source-workflow reveal" aria-label="Local research workflow">
+            <li><strong><span>01</span>Build a library</strong><p>Import files, browse topics in a list or graph, and edit document names and topic memberships.</p></li>
+            <li><strong><span>02</span>Choose your sources</strong><p>Use Local for your files. Choose Hybrid when the question also calls for Web research.</p></li>
+            <li><strong><span>03</span>Read the evidence</strong><p>Inspect cited passages, pages, slides, or table regions, and keep useful sources for future questions.</p></li>
+        </ol>
+    </div>
+</section>
+
+<!-- ===== FEATURE UPDATES ===== -->
+<section id="features" class="section" aria-labelledby="updatesTitle">
+    <div class="container">
+        <div class="section-head reveal">
+            <div class="kicker">Updates</div>
+            <h2 id="updatesTitle">Feature updates</h2>
+        </div>
+        <ol class="update-grid" aria-label="Feature updates, newest first">
+            <li>
+                <article class="update-card reveal">
+                    <time datetime="2026-10-13">2026-10-13</time>
+                    <h3>Live Steering &amp; Follow-ups</h3>
+                    <p>Follow-ups now wake a waiting Orchestrator immediately, so it can act on your request while sub-agents are still running.</p>
+                    <a class="feature-link" href="https://github.com/antins-labs/SearchOS#-follow-ups-and-live-steering">How live steering works <span aria-hidden="true">↗</span></a>
+                </article>
+            </li>
+            <li>
+                <article class="update-card reveal">
+                    <time datetime="2026-10-12">2026-10-12</time>
+                    <h3>Portable Skills</h3>
+                    <p>Create and update skills from tasks and traces, then export <code>SKILL.md</code> packages and CLI scripts for reuse in compatible harnesses.</p>
+                    <a class="feature-link" href="https://github.com/antins-labs/SearchOS/blob/main/docs/portable-skills.md">Skill creation and export <span aria-hidden="true">↗</span></a>
+                </article>
+            </li>
+            <li>
+                <article class="update-card reveal">
+                    <time datetime="2026-09-29">2026-09-29</time>
+                    <h3>Composable Middleware</h3>
+                    <p>Context management, evidence extraction, and budget and progress checks can now be assembled as independent components for each agent.</p>
+                    <a class="feature-link" href="https://github.com/antins-labs/SearchOS/blob/main/docs/middleware-composition.md">Component guide <span aria-hidden="true">↗</span></a>
+                </article>
+            </li>
+            <li>
+                <article class="update-card reveal">
+                    <time datetime="2026-09-15">2026-09-15</time>
+                    <h3>Knowledge Library</h3>
+                    <p>Organize documents and saved Web sources by topic, browse them in list or graph views, and choose files or a whole library for research.</p>
+                    <a class="feature-link" href="https://github.com/antins-labs/SearchOS/blob/main/docs/local-search-feature-introduction-zh.md">Knowledge library guide <span aria-hidden="true">↗</span></a>
+                </article>
+            </li>
+            <li>
+                <article class="update-card reveal">
+                    <time datetime="2026-09-14">2026-09-14</time>
+                    <h3>Multimodal Search</h3>
+                    <p>Source reading extends to images and scanned documents, with citations tied to the relevant page or region.</p>
+                    <a class="feature-link" href="https://github.com/antins-labs/SearchOS/blob/main/docs/local-document-recap.md">Document parsing and citations <span aria-hidden="true">↗</span></a>
+                </article>
+            </li>
+            <li>
+                <article class="update-card reveal">
+                    <time datetime="2026-09-13">2026-09-13</time>
+                    <h3>Local &amp; Hybrid Search</h3>
+                    <p>Hybrid builds on Local Search to combine document reading and Web retrieval in one research workflow, with an explicit local source scope.</p>
+                    <a class="feature-link" href="#local-search">Watch Local Search <span aria-hidden="true">↗</span></a>
+                </article>
+            </li>
+        </ol>
+    </div>
+</section>
+
+<!-- ===== WEB / TUI INTRODUCTION ===== -->
+<section id="demo" class="section" style="padding-top:clamp(64px,8vh,96px)">
+    <div class="container">
+        <div class="section-head reveal" style="text-align:center; margin-inline:auto; margin-bottom:28px">
+            <div class="kicker" style="justify-content:center">Web &amp; TUI introduction</div>
+            <p class="lead" style="margin-top:12px">Parallel research, shared evidence, and structured answers.</p>
+        </div>
+        <div class="reveal" style="--reveal-delay:100ms">
+            <video class="demo-video" src="assets/searchos-demo.mp4" title="SearchOS Demo"
+                   controls playsinline preload="metadata"
+                   style="display:block; width:100%; aspect-ratio:16/9; border:1.5px solid var(--hairline-strong); border-radius:20px; background:var(--card-bg); box-shadow:0 24px 64px rgba(0,0,0,.18)"></video>
+        </div>
+    </div>
+</section>
+
+<!-- ===== WEB UI PRODUCT TOUR ===== -->
+<section id="product-tour" class="section" aria-labelledby="productTourTitle">
+    <div class="container">
+        <div class="tour-shell reveal">
+            <div class="tour-copy">
+                <div class="kicker">Product Tour</div>
+                <h2 id="productTourTitle">See SearchOS in Action</h2>
+                <p>Follow the Web research workflow: connect providers, build a schema, inspect evidence, and export results. Available in English and Chinese.</p>
+                <div class="tour-steps" aria-label="Product tour highlights">
+                    <span class="tour-step">Configure providers and API keys</span>
+                    <span class="tour-step">Build structured, evidence-backed research</span>
+                    <span class="tour-step">Repair gaps and export final reports</span>
+                </div>
+                <div class="tour-tabs" role="tablist" aria-label="Product tour language">
+                    <button class="tour-tab" id="tourTabEn" type="button" role="tab" aria-selected="true" aria-controls="tourPlayer" data-tour-lang="en">English</button>
+                    <button class="tour-tab" id="tourTabZh" type="button" role="tab" aria-selected="false" aria-controls="tourPlayer" data-tour-lang="zh">中文</button>
+                </div>
+            </div>
+            <div class="tour-player" id="tourPlayer" role="tabpanel" aria-labelledby="tourTabEn"></div>
+        </div>
+    </div>
+</section>
+
+<script>
+(function () {
+    const tours = {
+        en: {
+            videoId: 'wxy74AqykwY',
+            poster: 'assets/gallery/product-demo-en.jpg',
+            badge: 'English',
+            title: 'SearchOS product tour in English'
+        },
+        zh: {
+            videoId: 'WsjcDtCN0Cs',
+            poster: 'assets/gallery/product-demo-zh.jpg',
+            badge: '中文',
+            title: 'SearchOS 中文产品演示'
+        }
+    };
+
+    const player = document.getElementById('tourPlayer');
+    const tabs = Array.from(document.querySelectorAll('[data-tour-lang]'));
+    let activeLanguage = 'en';
+
+    function mountPoster(language) {
+        const tour = tours[language];
+        const poster = document.createElement('a');
+        const image = document.createElement('img');
+        const play = document.createElement('span');
+        const badge = document.createElement('span');
+        const watchLabel = document.createElement('span');
+
+        poster.className = 'tour-poster';
+        poster.href = 'https://www.youtube.com/watch?v=' + tour.videoId;
+        poster.target = '_blank';
+        poster.rel = 'noopener noreferrer';
+        poster.setAttribute('aria-label', 'Watch ' + tour.title + ' on YouTube');
+
+        image.src = tour.poster;
+        image.alt = '';
+        image.loading = 'lazy';
+        image.decoding = 'async';
+
+        play.className = 'tour-play';
+        play.setAttribute('aria-hidden', 'true');
+
+        badge.className = 'tour-language-badge';
+        badge.textContent = tour.badge;
+
+        watchLabel.className = 'tour-watch-label';
+        watchLabel.textContent = language === 'zh' ? '在 YouTube 观看' : 'Watch on YouTube';
+
+        poster.append(image, play, badge, watchLabel);
+        player.replaceChildren(poster);
+    }
+
+    function setLanguage(language) {
+        activeLanguage = tours[language] ? language : 'en';
+        tabs.forEach(function (tab) {
+            const isActive = tab.dataset.tourLang === activeLanguage;
+            tab.setAttribute('aria-selected', String(isActive));
+            tab.tabIndex = isActive ? 0 : -1;
+            if (isActive) player.setAttribute('aria-labelledby', tab.id);
+        });
+        mountPoster(activeLanguage);
+    }
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () { setLanguage(tab.dataset.tourLang); });
+        tab.addEventListener('keydown', function (event) {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+            event.preventDefault();
+            const nextLanguage = activeLanguage === 'en' ? 'zh' : 'en';
+            setLanguage(nextLanguage);
+            document.querySelector('[data-tour-lang="' + nextLanguage + '"]').focus();
+        });
+    });
+
+    setLanguage((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
+})();
+</script>
 
 <!-- ===== 2. ARCHITECTURE ===== -->
 <section id="arch" class="section">
@@ -2016,13 +2139,13 @@ searchos   # interactive TUI</code></pre>
                     <!-- ===== layer 3 · EXECUTION ===== -->
                     <g class="comp" data-id="sub">
                         <text x="552" y="136" text-anchor="middle" fill="#fbbf24" font-size="12.5" font-weight="800">Agent Teams</text>
-                        <rect x="445" y="146" width="214" height="40" rx="8" fill="#0e1626" stroke="#fbbf24" stroke-width="1.8"/><text x="552" y="164" text-anchor="middle" fill="#eaf1fb" font-size="12" font-weight="700">Explore Agent</text><text x="552" y="178" text-anchor="middle" fill="#6c809d" font-size="8">recon · creates the schema/table</text>
+                        <rect x="445" y="146" width="214" height="40" rx="8" fill="#0e1626" stroke="#fbbf24" stroke-width="1.8"/><text x="552" y="164" text-anchor="middle" fill="#eaf1fb" font-size="12" font-weight="700">Explore Agent</text><text x="552" y="178" text-anchor="middle" fill="#6c809d" font-size="8">scope · disambiguate · discover</text>
                         <rect x="461" y="216" width="206" height="40" rx="8" fill="#0e1626" stroke="#fbbf24" stroke-width="1.4" opacity=".5"/>
                         <rect x="445" y="210" width="214" height="40" rx="8" fill="#0e1626" stroke="#fbbf24" stroke-width="1.8"/><text x="552" y="228" text-anchor="middle" fill="#eaf1fb" font-size="12" font-weight="700">Search Agent</text><text x="552" y="242" text-anchor="middle" fill="#fbbf24" font-size="8.5" font-weight="700">× N running in parallel</text>
                         <rect x="451" y="260" width="62" height="18" rx="9" fill="#0e1626" stroke="#60a5fa"/><text x="482" y="273" text-anchor="middle" fill="#eaf1fb" font-size="9">search</text>
                         <rect x="519" y="260" width="48" height="18" rx="9" fill="#0e1626" stroke="#60a5fa"/><text x="543" y="273" text-anchor="middle" fill="#eaf1fb" font-size="9">open</text>
                         <rect x="573" y="260" width="58" height="18" rx="9" fill="#0e1626" stroke="#60a5fa"/><text x="602" y="273" text-anchor="middle" fill="#eaf1fb" font-size="9">find</text>
-                        <rect x="445" y="296" width="214" height="40" rx="8" fill="#0e1626" stroke="#fbbf24" stroke-width="1.8"/><text x="552" y="320" text-anchor="middle" fill="#eaf1fb" font-size="12" font-weight="700">Writer Agent</text>
+                        <rect x="445" y="296" width="214" height="40" rx="8" fill="#0e1626" stroke="#fbbf24" stroke-width="1.8"/><text x="552" y="320" text-anchor="middle" fill="#eaf1fb" font-size="12" font-weight="700">Writer (optional)</text>
                         <text x="552" y="352" text-anchor="middle" fill="#6c809d" font-size="9.5" font-style="italic">short-horizon · clean local context</text>
                     </g>
 
@@ -2030,8 +2153,8 @@ searchos   # interactive TUI</code></pre>
                     <g class="comp" data-id="mw">
                         <rect x="700" y="150" width="235" height="215" rx="12" fill="#0a0e17" stroke="#a78bfa" stroke-width="2"/>
                         <text x="817" y="170" text-anchor="middle" fill="#a78bfa" font-size="12.5" font-weight="800">Middleware · kernel</text>
-                        <rect x="714" y="180" width="207" height="44" rx="7" fill="#0e1626" stroke="#a78bfa"/><text x="724" y="198" fill="#a78bfa" font-size="11" font-weight="800">Control Layer</text><text x="724" y="214" fill="#eaf1fb" font-size="8.5">LayeredContext · DynamicTrim · Skill Inject</text>
-                        <rect x="714" y="230" width="207" height="44" rx="7" fill="#0e1626" stroke="#ec4899"/><text x="724" y="248" fill="#ec4899" font-size="11" font-weight="800">Sensor Layer</text><text x="724" y="264" fill="#eaf1fb" font-size="8.5">rule-based · LLM-based (budget / sufficiency)</text>
+                        <rect x="714" y="180" width="207" height="44" rx="7" fill="#0e1626" stroke="#a78bfa"/><text x="724" y="198" fill="#a78bfa" font-size="11" font-weight="800">Context Layer</text><text x="724" y="214" fill="#eaf1fb" font-size="8.5">SOCM projection · history · trim</text>
+                        <rect x="714" y="230" width="207" height="44" rx="7" fill="#0e1626" stroke="#ec4899"/><text x="724" y="248" fill="#ec4899" font-size="11" font-weight="800">Sensor Layer</text><text x="724" y="264" fill="#eaf1fb" font-size="8.5">budget · repetition · progress</text>
                         <rect x="714" y="280" width="207" height="44" rx="7" fill="#0e1626" stroke="#4ade80"/><text x="724" y="298" fill="#4ade80" font-size="11" font-weight="800">Extraction Layer</text><text x="724" y="314" fill="#eaf1fb" font-size="8.5">buffer pool · LLM extract · SOCM writer</text>
                     </g>
 
@@ -2075,12 +2198,12 @@ searchos   # interactive TUI</code></pre>
                     <g class="comp" data-id="skill">
                         <rect x="205" y="398" width="200" height="58" rx="10" fill="#0e1626" stroke="#a78bfa" stroke-width="2"/>
                         <text x="305" y="423" text-anchor="middle" fill="#a78bfa" font-size="12.5" font-weight="800">Skill Library</text>
-                        <text x="305" y="443" text-anchor="middle" fill="#eaf1fb" font-size="10">orchestrator playbooks · per query</text>
+                        <text x="305" y="443" text-anchor="middle" fill="#eaf1fb" font-size="10">Access · Strategy · Orchestrator</text>
                     </g>
                     <g class="comp" data-id="tools">
                         <rect x="700" y="398" width="200" height="58" rx="10" fill="#0e1626" stroke="#60a5fa" stroke-width="2"/>
-                        <text x="800" y="423" text-anchor="middle" fill="#60a5fa" font-size="12.5" font-weight="800">Tools / Web Env</text>
-                        <text x="800" y="443" text-anchor="middle" fill="#eaf1fb" font-size="10">search · open · find · browser</text>
+                        <text x="800" y="423" text-anchor="middle" fill="#60a5fa" font-size="12.5" font-weight="800">Tools / Web + Local</text>
+                        <text x="800" y="443" text-anchor="middle" fill="#eaf1fb" font-size="10">browser · local reader · skill CLI</text>
                     </g>
 
                     <!-- ===== forward spine ===== -->
@@ -2099,7 +2222,7 @@ searchos   # interactive TUI</code></pre>
 
                     <!-- ===== skill (purple) ===== -->
                     <g class="edge" data-edge="skill" data-from="orch" data-to="skill"><path d="M 305 320 L 305 394" fill="none" stroke="#a78bfa" stroke-width="1.8" marker-end="url(#ah-sk)"/><text x="276" y="362" text-anchor="middle" fill="#a78bfa" font-size="9">select</text></g>
-                    <g class="edge" data-edge="skill" data-from="skill" data-to="mw"><path d="M 415 398 L 415 380 L 815 380 L 815 367" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ah-sk)"/><text x="600" y="375" text-anchor="middle" fill="#a78bfa" font-size="9">inject playbook into kernel</text></g>
+                    <g class="edge" data-edge="skill" data-from="skill" data-to="mw"><path d="M 415 398 L 415 380 L 815 380 L 815 367" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ah-sk)"/><text x="600" y="375" text-anchor="middle" fill="#a78bfa" font-size="9">task-relevant skill context</text></g>
 
                     <!-- ===== NEW · explore creates the coverage table ===== -->
                     <g class="edge" data-edge="state" data-from="sub" data-to="socm"><path d="M 659 150 L 659 138 L 965 138 L 965 391 L 986 391" fill="none" stroke="#4ade80" stroke-width="1.6" stroke-dasharray="2 4" marker-end="url(#ah-st)"/><text x="812" y="133" text-anchor="middle" fill="#4ade80" font-size="9">explore creates the coverage table</text></g>
@@ -2189,21 +2312,21 @@ searchos   # interactive TUI</code></pre>
                             <rect x="576" y="307" width="48" height="20" rx="10" fill="#0e1626" stroke="#60a5fa"/><text x="600" y="321" text-anchor="middle" fill="#eaf1fb" font-size="8.5">open</text>
                             <rect x="632" y="307" width="48" height="20" rx="10" fill="#0e1626" stroke="#60a5fa"/><text x="656" y="321" text-anchor="middle" fill="#eaf1fb" font-size="8.5">find</text>
                             <rect x="500" y="358" width="210" height="58" rx="9" fill="#0e1626" stroke="#fbbf24"/>
-                            <text x="605" y="382" text-anchor="middle" fill="#eaf1fb" font-size="12" font-weight="700">Writer Agent</text><text x="605" y="401" text-anchor="middle" fill="#6c809d" font-size="9">evidence-grounded report synthesis</text>
+                            <text x="605" y="382" text-anchor="middle" fill="#eaf1fb" font-size="12" font-weight="700">Writer (optional)</text><text x="605" y="401" text-anchor="middle" fill="#6c809d" font-size="9">evidence-grounded report synthesis</text>
                         </g>
 
                         <!-- 4 · middleware and tools -->
                         <g class="comp" data-id="mw">
                             <rect x="775" y="135" width="245" height="250" rx="14" fill="#0a0e17" stroke="#a78bfa" stroke-width="2"/>
                             <text x="898" y="160" text-anchor="middle" fill="#a78bfa" font-size="13" font-weight="800">Search Tool Middleware Harness</text>
-                            <rect x="795" y="180" width="205" height="50" rx="8" fill="#0e1626" stroke="#a78bfa"/><text x="810" y="201" fill="#a78bfa" font-size="11" font-weight="800">Context</text><text x="810" y="218" fill="#eaf1fb" font-size="8.5">SOCM projection · trim · skill injection</text>
+                            <rect x="795" y="180" width="205" height="50" rx="8" fill="#0e1626" stroke="#a78bfa"/><text x="810" y="201" fill="#a78bfa" font-size="11" font-weight="800">Context</text><text x="810" y="218" fill="#eaf1fb" font-size="8.5">SOCM projection · history · trim</text>
                             <rect x="795" y="244" width="205" height="50" rx="8" fill="#0e1626" stroke="#ec4899"/><text x="810" y="265" fill="#ec4899" font-size="11" font-weight="800">Sensor</text><text x="810" y="282" fill="#eaf1fb" font-size="8.5">loop · stall · budget · intervention</text>
                             <rect x="795" y="308" width="205" height="50" rx="8" fill="#0e1626" stroke="#4ade80"/><text x="810" y="329" fill="#4ade80" font-size="11" font-weight="800">Evidence Extraction</text><text x="810" y="346" fill="#eaf1fb" font-size="8.5">extract · anchor citation · write SOCM</text>
                         </g>
                         <g class="comp" data-id="tools">
                             <rect x="775" y="410" width="245" height="75" rx="12" fill="#0e1626" stroke="#60a5fa" stroke-width="2"/>
-                            <text x="898" y="440" text-anchor="middle" fill="#60a5fa" font-size="12.5" font-weight="800">Tools / Web Environment</text>
-                            <text x="898" y="463" text-anchor="middle" fill="#eaf1fb" font-size="10">search · open · find · browser</text>
+                            <text x="898" y="440" text-anchor="middle" fill="#60a5fa" font-size="12.5" font-weight="800">Tools / Web + Local</text>
+                            <text x="898" y="463" text-anchor="middle" fill="#eaf1fb" font-size="10">browser · local reader · skill CLI</text>
                         </g>
 
                         <!-- 5 · SOCM -->
@@ -2219,8 +2342,8 @@ searchos   # interactive TUI</code></pre>
                         <!-- search-agent skill system -->
                         <g class="comp" data-id="skill">
                             <rect x="215" y="410" width="220" height="75" rx="12" fill="#0e1626" stroke="#a78bfa" stroke-width="2"/>
-                            <text x="325" y="438" text-anchor="middle" fill="#a78bfa" font-size="12.5" font-weight="800">Search Agent Skill System</text>
-                            <text x="325" y="461" text-anchor="middle" fill="#eaf1fb" font-size="9.5">strategy · access · route · evolve</text>
+                            <text x="325" y="438" text-anchor="middle" fill="#a78bfa" font-size="12.5" font-weight="800">Portable Skill Library</text>
+                            <text x="325" y="461" text-anchor="middle" fill="#eaf1fb" font-size="9.5">discover · load · execute · export</text>
                         </g>
 
                         <!-- compact iterative loop -->
@@ -2257,7 +2380,7 @@ searchos   # interactive TUI</code></pre>
                 <span class="subsec-num">1</span>
                 <div>
                     <h3 class="subsec-title">Multi-Agent System</h3>
-                    <p class="subsec-tag">One brain, a small crew. A single <strong>Orchestrator</strong> plans and decides; it never searches the web itself — it hands out jobs to short-lived sub-agents and checks their work.</p>
+                    <p class="subsec-tag">For Web and Hybrid research, the <strong>Orchestrator</strong> plans work, dispatches source-specific tasks, and produces the final answer from shared evidence. Local mode uses a document QA agent directly.</p>
                 </div>
             </div>
             <div class="mini-grid mw-grid">
@@ -2265,22 +2388,22 @@ searchos   # interactive TUI</code></pre>
                     <div class="mini-ico" style="color:#fbbf24"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
                     <h4>Explore Agent <span class="mini-sub">the scout</span></h4>
                     <p>When a question is vague, it does a quick reconnaissance pass — what's out there, which entities exist, where the ambiguities are — so the Orchestrator can draft a sensible plan. It writes no answer.</p>
-                    <div class="details">Tools: <code>search</code> / <code>open</code> / <code>find</code> only, no evidence extraction. Optional (<code>enable_explore</code>); spawned via <code>enqueue_tasks(agent_type="explore_agent")</code> only when the schema can't be drafted directly. Persona in <code>explore_agent/agent.md</code>.</div>
+                    <div class="details">Optional reconnaissance uses search and reading tools to establish scope, identify entities, and resolve ambiguity before focused evidence collection.</div>
                 </div>
                 <div class="mini-card" onclick="toggleDetail(this)">
                     <div class="mini-ico" style="color:#60a5fa"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div>
                     <h4>Search Agent <span class="mini-sub">the investigator</span></h4>
-                    <p>The workhorse. Given a few specific cells to fill, it searches, opens authoritative pages, and pulls out facts. Several run in parallel, each on its own slice of the problem.</p>
-                    <div class="details">Tools: browser (<code>search</code>/<code>open</code>/<code>find</code>) + access-skill executors. Findings reach state automatically — middleware extracts evidence from its <code>open</code>/<code>find</code> results; the agent itself never writes SOCM. Batched via <code>enqueue_tasks</code>. Persona in <code>search_agent/agent.md</code>.</div>
+                    <p>Given a research question or missing facts, each agent searches and reads within its assigned source scope. Web and local agents can work in parallel on independent parts of a Hybrid task.</p>
+                    <div class="details">Web tasks use browser tools and loaded Access packages through <code>exec</code>. Local tasks use <code>local_catalog</code>, <code>local_find</code>, and <code>local_open</code>. Source middleware passes actual reading windows to evidence extraction.</div>
                 </div>
                 <div class="mini-card" onclick="toggleDetail(this)">
                     <div class="mini-ico" style="color:#4ade80"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>
                     <h4>Writer Agent <span class="mini-sub">the author</span></h4>
-                    <p>Once enough evidence is in, one long-lived writer reads the collected facts and drafts the report section by section — citing sources, flagging conflicts, and pointing out remaining gaps. It never browses the web.</p>
-                    <div class="details">Tools: outline tools (<code>write_section</code> with cited evidence ids…) + SOCM read tools (<code>read_coverage</code>/<code>read_evidence</code>…); no browser. Singleton per session, gated by <code>enable_writer_agent</code>. Triggered by <code>WriterTriggerSensor</code> at a coverage stage (default ≥ 0.5) or proactively woken via <code>send_followup</code>. Persona in <code>writer_agent/agent.md</code>.</div>
+                    <p>When enabled, the Writer uses collected evidence to draft a report section by section, with source citations. It is an optional delivery path; the Orchestrator normally writes the final answer.</p>
+                    <div class="details">The optional Writer uses outline and SOCM reading tools, including <code>write_section</code>, <code>read_coverage</code>, and <code>read_evidence</code>. Its tool scope is drafting from collected evidence.</div>
                 </div>
             </div>
-            <p class="subsec-foot"><strong>The Orchestrator is the sole decision-maker</strong> — it reads the latest state each step and decides what to dispatch next or when to converge. Each sub-agent runs on a frozen state snapshot, so a dozen work in parallel without their reasoning bleeding together. <span class="hint-toggle">Tap a card for the real tools &amp; triggers.</span></p>
+            <p class="subsec-foot"><strong>The Orchestrator coordinates the research</strong> — it reads current state and decides what to dispatch, continue, or stop. Each sub-agent has its own execution context while committed findings remain available through shared state. <span class="hint-toggle">Tap a card for the real tools &amp; triggers.</span></p>
         </div>
 
         <!-- ===== Subsection ② State Model ===== -->
@@ -2302,13 +2425,13 @@ searchos   # interactive TUI</code></pre>
                 <div class="mini-card" onclick="toggleDetail(this)">
                     <div class="mini-ico"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></div>
                     <h4>Evidence Graph <span class="mini-sub">the facts</span></h4>
-                    <p>Every claim found on the web becomes a node, linked by support / conflict / refine edges — so contradictions surface instead of getting buried.</p>
-                    <div class="details"><code>EvidenceGraph</code>. Written automatically by <code>EvidenceExtractionMiddleware</code> after each tool call.</div>
+                    <p>Committed findings retain their sources and supporting passages. Evidence can come from Web pages, local documents, or saved skill results; competing values are checked before a conflict is confirmed.</p>
+                    <div class="details"><code>EvidenceGraph</code>. Source-specific middleware submits reading windows through <code>ExtractionCoordinator</code>; evidence retains its provenance.</div>
                 </div>
                 <div class="mini-card" onclick="toggleDetail(this)">
                     <div class="mini-ico"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
                     <h4>CoverageMap <span class="mini-sub">the progress sheet</span></h4>
-                    <p>An entity × attribute table that marks each cell missing / filled / uncertain / hard. It's the system's sense of "what do we still not know?"</p>
+                    <p>Entity × attribute tables track which questions have evidence and which need further research. New findings extend the tables without requiring agents to reconstruct them from conversation history.</p>
                     <div class="details"><code>CoverageMap</code> of <code>CoverageCell</code> (<code>CellStatus</code>). Seeded by <code>create_schema()</code>, backfilled as evidence grows; drives gap detection and Writer structure.</div>
                 </div>
                 <div class="mini-card" onclick="toggleDetail(this)">
@@ -2318,7 +2441,7 @@ searchos   # interactive TUI</code></pre>
                     <div class="details"><code>StrategyMemory</code> (state attr <code>strategy_log</code>): <code>StrategyPattern</code> anti-patterns + <code>FailureMemory</code>. Feeds the Sensor layer and post-mortem distillation.</div>
                 </div>
             </div>
-            <p class="subsec-foot">All four are persisted to <code>workspace/&lt;session&gt;/search_state.json</code> with atomic file locking, so multiple sub-agents can update them in parallel without clobbering each other. <span class="hint-toggle">Tap a card for the real class names.</span></p>
+            <p class="subsec-foot">All four are persisted to <code>searchos_workspace/&lt;session&gt;/search_state.json</code> with atomic file locking, so multiple sub-agents can update them in parallel without clobbering each other. <span class="hint-toggle">Tap a card for the real class names.</span></p>
         </div>
 
         <!-- ===== Subsection ③ Middleware ===== -->
@@ -2327,30 +2450,30 @@ searchos   # interactive TUI</code></pre>
                 <span class="subsec-num">3</span>
                 <div>
                     <h3 class="subsec-title">Middleware</h3>
-                    <p class="subsec-tag">The automatic plumbing. Hooks wrap every model call and tool call, so the agents stay focused while context, safety, and bookkeeping happen on their own.</p>
+                    <p class="subsec-tag">Context, Sensor, and Extraction components are selected explicitly for each agent. Default pipelines supply common combinations; callers can assemble their own middleware lists.</p>
                 </div>
             </div>
             <div class="mini-grid mw-grid">
                 <div class="mini-card" onclick="toggleDetail(this)">
                     <div class="mini-ico" style="color:#60a5fa"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
-                    <h4>Control <span class="mini-sub">before the LLM thinks</span></h4>
-                    <p>Keeps the prompt small and cache-friendly: layer the context, trim overflow, and splice in a skill playbook when one applies.</p>
-                    <div class="details"><code>LayeredContextMiddleware</code> · <code>DynamicTrimMiddleware</code> · <code>ControlMiddleware</code> (skill injection). Bound to <code>awrap_model_call</code>.</div>
+                    <h4>Context <span class="mini-sub">prepare the next model call</span></h4>
+                    <p>Projects current research state into the prompt, manages reading history, and trims model input. Optional context compaction saves a continuation summary in checkpointed state.</p>
+                    <div class="details"><code>SOCMContextMiddleware</code> · <code>SearchEpisodeMiddleware</code> · <code>DynamicTrimMiddleware</code> · optional <code>CompactionContextMiddleware</code>.</div>
                 </div>
                 <div class="mini-card" onclick="toggleDetail(this)">
                     <div class="mini-ico" style="color:#ec4899"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h3l2-7 4 14 3-9 2 5h6"/></svg></div>
                     <h4>Sensor <span class="mini-sub">after a tool returns</span></h4>
-                    <p>Watches for trouble — loops, repeated queries, stalls — and either nudges the agent with advice or hard-stops runaway dispatch. Also fires the writer trigger.</p>
-                    <div class="details">Rule-based: <code>LoopSensorImpl</code>, <code>StallEscalationSensor</code>, <code>DispatchRoundSensor</code>, <code>WriterTriggerSensor</code>. LLM-based: <code>StrategySensorImpl</code>, <code>EvaluatorSensorImpl</code> (4-D verdict). Bound to <code>awrap_tool_call</code> / checkpoints.</div>
+                    <p>Tracks tool budgets, repeated queries, reading activity, and research progress. Components issue reminders or stop signals; the agent runtime applies the resulting controls.</p>
+                    <div class="details"><code>BudgetMiddleware</code> · <code>QueryRepetitionMiddleware</code> · <code>ProgressGuardMiddleware</code> · <code>CoverageStallMiddleware</code>. Mutable state is scoped to each agent.</div>
                 </div>
                 <div class="mini-card" onclick="toggleDetail(this)">
                     <div class="mini-ico" style="color:#4ade80"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></div>
                     <h4>Extraction <span class="mini-sub">turning pages into facts</span></h4>
-                    <p>When a page is read, it cleans and de-dupes the text, runs an LLM judge to pull out claims, and writes them straight into the Evidence Graph and CoverageMap.</p>
-                    <div class="details"><code>EvidenceExtractionMiddleware</code>: gating (schema / length / error / dup-hash) → LLM extract & merge-by-URL → persist <code>EvidenceNode</code> + provenance → Coverage backfill. Background flush, synchronous drain on the final round.</div>
+                    <p>Turns actual reading windows into source-backed findings. Web, local, and final-summary intake can be selected separately, sharing an extraction coordinator when needed.</p>
+                    <div class="details"><code>WebEvidenceMiddleware</code> · <code>LocalEvidenceMiddleware</code> · optional <code>FinalSummaryEvidenceMiddleware</code>. Explicit extraction policies select task rows or schema-routed facts.</div>
                 </div>
             </div>
-            <p class="subsec-foot"><strong>Two hook points hold it together.</strong> <code>awrap_model_call</code> shapes context going in and reads reasoning coming out; <code>awrap_tool_call</code> guards budget, runs the sensors, and triggers extraction. Sub-agents only <em>read</em> pages — middleware is the single place that <em>writes</em> state. <span class="hint-toggle">Tap a card for the real class names.</span></p>
+            <p class="subsec-foot"><strong>Components share an explicit lifecycle.</strong> The runtime waits for triggered extraction before the next model step and settles remaining work on completion, failure, or cancellation. Model compatibility, telemetry, and execution control remain runtime responsibilities. <span class="hint-toggle">Tap a card for the real class names.</span></p>
         </div>
 
         <!-- Hook Timing SVG -->
@@ -2359,7 +2482,7 @@ searchos   # interactive TUI</code></pre>
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px">
                     <h3 style="margin:0; color:var(--blue-glow)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg> Hook Timing View · How a Sub Agent Round Is Wrapped</h3>
                 </div>
-                <p style="color:var(--muted); font-size:.9rem; margin:0 0 10px">Middleware is mounted on <code>model_call</code> and <code>tool_call</code> events; EvidenceExtraction writes evidence when tool results or final summaries are extractable.</p>
+                <p style="color:var(--muted); font-size:.9rem; margin:0 0 10px">Model and tool hooks apply the selected components. Source intake sends reading windows to the coordinator; the runtime owns synchronization and finalization.</p>
                 <svg viewBox="0 0 1180 520" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Middleware hook timing diagram" style="width:100%;height:auto;display:block">
                     <defs>
                         <filter id="svgGlow"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#60a5fa" flood-opacity=".4"/></filter>
@@ -2371,7 +2494,7 @@ searchos   # interactive TUI</code></pre>
                     </defs>
                     <text x="70" y="42" fill="#6c809d" font-size="12">Agent Loop — time flows right</text>
                     <path d="M 190 38 L 1080 38" stroke="#6c809d" stroke-width="1.4" marker-end="url(#ah-blue)" opacity=".7"/>
-                    <g filter="url(#svgGlow)"><rect x="50" y="78" width="170" height="60" rx="10" fill="#0e1626" stroke="#60a5fa" stroke-width="1.5"/><text x="135" y="104" text-anchor="middle" fill="#eaf1fb" font-size="13" font-weight="700">Before model_call</text><text x="135" y="124" text-anchor="middle" fill="#6c809d" font-size="10">Control / Harness injection</text></g>
+                    <g filter="url(#svgGlow)"><rect x="50" y="78" width="170" height="60" rx="10" fill="#0e1626" stroke="#60a5fa" stroke-width="1.5"/><text x="135" y="104" text-anchor="middle" fill="#eaf1fb" font-size="13" font-weight="700">Before model_call</text><text x="135" y="124" text-anchor="middle" fill="#6c809d" font-size="10">Context projection / trim</text></g>
                     <path d="M 220 108 L 285 108" stroke="#60a5fa" stroke-width="2" marker-end="url(#ah-blue)"/>
                     <g filter="url(#svgGlow)"><rect x="285" y="78" width="170" height="60" rx="10" fill="#0e1626" stroke="#60a5fa" stroke-width="1.5"/><text x="370" y="104" text-anchor="middle" fill="#eaf1fb" font-size="13" font-weight="700">LLM Decision</text><text x="370" y="124" text-anchor="middle" fill="#6c809d" font-size="10">Produces tool_call or stop message</text></g>
                     <path d="M 455 108 L 520 108" stroke="#fbbf24" stroke-width="2" marker-end="url(#ah-amber)"/>
@@ -2380,11 +2503,11 @@ searchos   # interactive TUI</code></pre>
                     <g filter="url(#svgGlow)"><rect x="755" y="78" width="170" height="60" rx="10" fill="#0e1626" stroke="#fbbf24" stroke-width="1.5"/><text x="840" y="104" text-anchor="middle" fill="#eaf1fb" font-size="13" font-weight="700">Tool Execution</text><text x="840" y="124" text-anchor="middle" fill="#6c809d" font-size="10">search / open / find</text></g>
                     <path d="M 925 108 L 990 108" stroke="#ec4899" stroke-width="2" marker-end="url(#ah-pink)"/>
                     <g filter="url(#svgGlow)"><rect x="990" y="78" width="150" height="60" rx="10" fill="#0e1626" stroke="#ec4899" stroke-width="1.5"/><text x="1065" y="104" text-anchor="middle" fill="#eaf1fb" font-size="13" font-weight="700">After tool_call</text><text x="1065" y="124" text-anchor="middle" fill="#6c809d" font-size="10">Sensor + Extraction</text></g>
-                    <g><rect x="58" y="185" width="320" height="100" rx="10" fill="rgba(14,22,38,.9)" stroke="#a78bfa" stroke-width="1.5"/><text x="218" y="210" text-anchor="middle" fill="#a78bfa" font-size="13" font-weight="700">awrap_model_call</text><text x="78" y="236" fill="#6c809d" font-size="11">1. Wait for pending extraction flush</text><text x="78" y="256" fill="#6c809d" font-size="11">2. Inject SOCM snapshot / sensor / skill</text><text x="78" y="276" fill="#6c809d" font-size="11">3. Detect SEARCH_COMPLETE</text></g>
+                    <g><rect x="58" y="185" width="320" height="100" rx="10" fill="rgba(14,22,38,.9)" stroke="#a78bfa" stroke-width="1.5"/><text x="218" y="210" text-anchor="middle" fill="#a78bfa" font-size="13" font-weight="700">awrap_model_call</text><text x="78" y="236" fill="#6c809d" font-size="11">1. Wait for triggered extraction</text><text x="78" y="256" fill="#6c809d" font-size="11">2. Project SOCM and pending signals</text><text x="78" y="276" fill="#6c809d" font-size="11">3. Prepare the next model request</text></g>
                     <path d="M 380 235 C 470 180, 515 170, 600 145" stroke="#a78bfa" stroke-width="1.8" fill="none" marker-end="url(#ah-purple)" stroke-dasharray="4 3"/>
-                    <g><rect x="430" y="185" width="330" height="120" rx="10" fill="rgba(14,22,38,.9)" stroke="#ec4899" stroke-width="1.5"/><text x="595" y="210" text-anchor="middle" fill="#ec4899" font-size="13" font-weight="700">HarnessMiddleware.awrap_tool_call</text><text x="450" y="236" fill="#6c809d" font-size="11">1. Pre: budget / hard-block / state_before</text><text x="450" y="256" fill="#6c809d" font-size="11">2. Post: sensor.check() / budget consume</text><text x="450" y="276" fill="#6c809d" font-size="11">3. trajectory step / checkpoint evaluator</text><text x="450" y="296" fill="#6c809d" font-size="11">4. Pending signals flow into next model_call</text></g>
+                    <g><rect x="430" y="185" width="330" height="120" rx="10" fill="rgba(14,22,38,.9)" stroke="#ec4899" stroke-width="1.5"/><text x="595" y="210" text-anchor="middle" fill="#ec4899" font-size="13" font-weight="700">Sensor tool wrappers</text><text x="450" y="236" fill="#6c809d" font-size="11">1. Pre: budget / hard-block / state_before</text><text x="450" y="256" fill="#6c809d" font-size="11">2. Post: progress / budget settlement</text><text x="450" y="276" fill="#6c809d" font-size="11">3. Detect repetition and stalled work</text><text x="450" y="296" fill="#6c809d" font-size="11">4. Pending signals flow into next model_call</text></g>
                     <path d="M 760 245 C 850 205, 925 180, 1030 145" stroke="#ec4899" stroke-width="1.8" fill="none" marker-end="url(#ah-pink)" stroke-dasharray="4 3"/>
-                    <g><rect x="810" y="185" width="330" height="160" rx="10" fill="rgba(14,22,38,.9)" stroke="#4ade80" stroke-width="1.5"/><text x="975" y="210" text-anchor="middle" fill="#4ade80" font-size="13" font-weight="700">EvidenceExtraction.awrap_tool_call</text><text x="830" y="236" fill="#6c809d" font-size="11">1. Only processes open / find results</text><text x="830" y="256" fill="#6c809d" font-size="11">2. Schema / error page / hash dedup gate</text><text x="830" y="276" fill="#6c809d" font-size="11">3. LLM judge extracts structured facts from the page</text><text x="830" y="296" fill="#6c809d" font-size="11">4. Background flush on full buffer; sync on final round</text><text x="830" y="316" fill="#6c809d" font-size="11">5. EvidenceGraph + Coverage backfill</text></g>
+                    <g><rect x="810" y="185" width="330" height="160" rx="10" fill="rgba(14,22,38,.9)" stroke="#4ade80" stroke-width="1.5"/><text x="975" y="210" text-anchor="middle" fill="#4ade80" font-size="13" font-weight="700">Source-specific extraction</text><text x="830" y="236" fill="#6c809d" font-size="11">1. Web, local, or skill reading windows</text><text x="830" y="256" fill="#6c809d" font-size="11">2. Check source, scope, and duplication</text><text x="830" y="276" fill="#6c809d" font-size="11">3. Extract facts with source provenance</text><text x="830" y="296" fill="#6c809d" font-size="11">4. Batch extraction; finalize on exit</text><text x="830" y="316" fill="#6c809d" font-size="11">5. EvidenceGraph + Coverage backfill</text></g>
                     <path d="M 975 345 C 940 395, 800 405, 650 405" stroke="#4ade80" stroke-width="2" fill="none" marker-end="url(#ah-green)"/>
                     <g><rect x="440" y="370" width="210" height="70" rx="10" fill="#0e1626" stroke="#4ade80" stroke-width="1.5"/><text x="545" y="398" text-anchor="middle" fill="#eaf1fb" font-size="13" font-weight="700">SOCM State Change</text><text x="545" y="418" text-anchor="middle" fill="#6c809d" font-size="10">EvidenceNode / Coverage fill / alias</text></g>
                 </svg>
@@ -3002,7 +3125,7 @@ searchos   # interactive TUI</code></pre>
         <div class="section-head reveal">
             <div class="kicker">Results</div>
             <h2>Benchmark Results</h2>
-            <p class="lead" style="margin-top:12px">Head-to-head scores across deep-search benchmarks.</p>
+            <p class="lead" style="margin-top:12px">SearchOS-V1 results from the paper, covering Web research benchmarks.</p>
         </div>
 
         <div class="results-stats reveal" style="--reveal-delay:100ms">
@@ -3362,7 +3485,7 @@ searchos   # interactive TUI</code></pre>
             <div class="kicker">Resources</div>
             <h2>Resources <span style="font-family:var(--font-body); font-weight:600">&amp;</span> Citation</h2>
         </div>
-        <div style="display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); gap:clamp(32px,5vw,64px); align-items:start" class="reveal" style="--reveal-delay:100ms">
+        <div style="display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); gap:clamp(32px,5vw,64px); align-items:start; --reveal-delay:100ms" class="reveal">
             <div style="display:flex; flex-direction:column; gap:16px">
                 <a href="https://arxiv.org/abs/2607.15257" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%; justify-content:center; text-decoration:none">
                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -3723,7 +3846,7 @@ searchos   # interactive TUI</code></pre>
         data: 'Data flow: Sub Agent tool calls are intercepted by Middleware → executed by Tools → results return through Middleware back to Agent.',
         state: 'SOCM state: Extraction writes Evidence / Coverage; Orchestrator and Sub Agents both read it through snapshots injected into their prompts.',
         signal: 'Signal intervention: Sensors detect anomalies, inject/block tools on Sub Agents, or report stalls to the Orchestrator.',
-        skill: 'Skill flow: the Orchestrator selects a workflow playbook from the library for the query and renders it into its own system prompt.'
+        skill: 'Skill flow: agents discover and load Access, Strategy, and Orchestrator packages; CLI outputs become saved pages for reading and evidence extraction.'
     };
     let pinned = null;
     legend.querySelectorAll('.legend-btn').forEach(btn => {
@@ -3774,11 +3897,11 @@ function toggleDetail(el) {
     const el = document.getElementById('typewriter');
     if (!el) return;
     const phrases = [
-        'searchos init --mode=autonomous',
-        'socm.snapshot() → coverage 78%',
-        'enqueue_tasks(search_agent, ...)',
-        'extraction.write(evidence)',
-        'middleware.hook(model_call)',
+        'Research the Web and your documents.',
+        'Find the source behind each answer.',
+        'Build a knowledge library.',
+        'Create a skill. Reuse it elsewhere.',
+        'Steer research as it runs.',
     ];
     let phraseIdx = 0, charIdx = 0, isDeleting = false, pauseTime = 0;
     const typeSpeed = 55, deleteSpeed = 30, pauseEnd = 2000, pauseStart = 400;

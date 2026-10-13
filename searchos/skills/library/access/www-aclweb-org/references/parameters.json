@@ -1,0 +1,28 @@
+{
+  "description": "Fetches best paper award data from ACL Wiki (ACL, NAACL, EMNLP, IJCNLP conferences).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_conferences: 列出所有有最佳论文奖的会议及其论文数量; 参数: 无; 必填: 无\n  - list_awards: 列出所有最佳论文奖，可通过conference参数筛选; 参数: conference; 必填: 无\n  - get_awards_by_year: 获取指定年份的最佳论文奖，需要year参数; 参数: year; 必填: year"
+    },
+    "conference": {
+      "type": "string",
+      "required": false,
+      "description": "会议名称筛选（仅list_awards使用）。可选值: ACL, NAACL, EMNLP, IJCNLP。\n不指定则返回所有会议的奖项。"
+    },
+    "year": {
+      "type": "string",
+      "required": false,
+      "description": "年份筛选（仅get_awards_by_year使用）。例如: 2019, 2018。\n数据范围约2001-2019，具体取决于会议。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

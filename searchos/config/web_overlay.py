@@ -21,7 +21,7 @@ import os
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, field_validator
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +32,21 @@ class EffortOverlay(BaseModel, extra="forbid"):
     level: EffortLevel | None = None
     overrides: dict[str, int] = Field(default_factory=dict)
 
+    @field_validator("overrides", mode="before")
+    @classmethod
+    def remove_retired_explore_limit(cls, values):
+        if isinstance(values, dict):
+            return {k: v for k, v in values.items() if k != "max_explore_agents_per_session"}
+        return values
+
 
 class SkillsOverlay(BaseModel, extra="forbid"):
+    @field_validator("access_only", "access_deny", "strategy_deny", "orchestrator_deny", mode="before")
+    @classmethod
+    def migrate_skill_names(cls, values):
+        from searchos.skills.names import canonical_skill_name
+        return [canonical_skill_name(value) for value in values] if values is not None else None
+
     access_only: list[str] | None = None   # None = router decides
     access_deny: list[str] = Field(default_factory=list)
     strategy_deny: list[str] = Field(default_factory=list)
@@ -125,12 +138,24 @@ class ModelsOverlay(BaseModel, extra="forbid"):
     search_provider: str | None = None
     browser_backend: str | None = None
 
+    @field_validator("roles", mode="before")
+    @classmethod
+    def remove_retired_model_roles(cls, values):
+        from searchos.config.model_purposes import RETIRED_MODEL_ROLES
+
+        if isinstance(values, dict):
+            return {k: v for k, v in values.items() if k not in RETIRED_MODEL_ROLES}
+        return values
+
 
 class RunDefaults(BaseModel, extra="forbid"):
     max_time_s: int | None = None
     search_max_results: int | None = None
     enable_skills: bool | None = None
     enable_explore_batch: bool | None = None
+    enable_web_image_read: bool | None = None
+    web_image_read_mode: Literal["auto", "native", "vision"] | None = None
+    jina_retain_images: Literal["auto", "alt", "all"] | None = None
 
 
 class AdvancedOverlay(BaseModel, extra="forbid"):
@@ -409,6 +434,12 @@ def apply_to_runtime() -> None:
         settings.enable_skills = store.run_defaults.enable_skills
     if store.run_defaults.enable_explore_batch is not None:
         settings.enable_explore_batch = store.run_defaults.enable_explore_batch
+    if store.run_defaults.enable_web_image_read is not None:
+        settings.enable_web_image_read = store.run_defaults.enable_web_image_read
+    if store.run_defaults.web_image_read_mode is not None:
+        settings.web_image_read_mode = store.run_defaults.web_image_read_mode
+    if store.run_defaults.jina_retain_images is not None:
+        settings.jina_retain_images = store.run_defaults.jina_retain_images
     if store.skills.enable_access_skill_generation is not None:
         settings.enable_access_skill_generation = (
             store.skills.enable_access_skill_generation

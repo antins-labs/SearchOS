@@ -2,7 +2,7 @@
 
 [English](../providers.md) | **简体中文**
 
-SearchOS 的 11 个模型角色（orchestrator、extraction、judge…）统一经 `searchos/config/models.py:get_model_for(role)` 构造，底层是 LangChain 的 `ChatOpenAI` / `ChatAnthropic`。
+SearchOS 的 11 个模型用途（orchestrator、extraction、local_recap、local_vision、judge…）统一经 `searchos/config/models.py:get_model_for(role)` 构造，底层是 LangChain 的 `ChatOpenAI` / `ChatAnthropic`。用途同时覆盖 Agent、证据处理和摘要等功能。
 
 **最快方式：首次运行 `python -m searchos` 会自动进入命令行配置向导**（选厂商 → 填 key → 写入 `.env`），或随时 `python -m searchos --setup` 重新配置。手动配置只需两行环境变量：
 
@@ -83,8 +83,8 @@ SF_MODEL=Qwen/Qwen3-32B     # 必填；端口非 8000 时用 SF_API_BASE 覆盖
 |---|---|---|---|---|
 | `main` | orchestrator / sub_agent / skill_evolver / post_mortem / skill_router | 主力 | 0.7 | 16384 |
 | `judge` | judge | 主力 | 0.0 | 16384 |
-| `fast` | extraction / alias_resolver / skill_runtime | 轻量 | 0.0 | 32768 |
-| `synthesis` | synthesis | 轻量 | 0.3 | 32768 |
+| `fast` | extraction / local_vision | 轻量 | 0.0 | 32768 |
+| `synthesis` | synthesis / local_recap | 轻量 | 0.3 | 32768 |
 | `reformat` | reformat（评测导表，需最大窗口） | 主力 | 0.0 | 65536 |
 
 主力模型用 `SF_MODEL` 覆盖，轻量档用 `SF_FAST_MODEL` 覆盖（预设未配轻量档时回落主力）。输出上限会被厂商能力钳制（如 DeepSeek 8192、Kimi 订阅 32768）。
@@ -121,6 +121,10 @@ SF_PROFILES__MYPROF__API_BASE=https://open.bigmodel.cn/api/paas/v4
 SF_PROFILES__MYPROF__API_KEY_ENV=ZHIPU_API_KEY
 SF_ROLES__SKILL_ROUTER=myprof
 ```
+
+`local_recap` 和 `local_vision` 也是普通角色绑定，不内置特定模型或专用 key。若文本
+模型与 VLM 来自同一厂商，可让两张模型卡引用同一个 provider 连接和 API key，再分别
+绑定角色；只有一张支持图片输入的模型卡时，也可以让两个角色共用。
 
 `ModelProfile` 的完整字段（provider、thinking_style、rpm/tpm 限速、extra 透传等）见 `searchos/config/settings.py`。
 

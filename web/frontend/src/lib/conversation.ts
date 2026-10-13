@@ -1,5 +1,5 @@
 import type { CoverageCell, ModelDistributionItem, RepairCellTarget, SearchState, TokenPhaseUsage, TokenUsage, WSEvent } from "./types";
-import type { WorkerInfo } from "@/hooks/useSearch";
+import type { WorkerInfo } from "./types";
 
 export interface RepairCellSnapshot extends RepairCellTarget {
   before: Pick<CoverageCell, "status" | "value">;
@@ -14,6 +14,7 @@ export interface Turn {
   workers: WorkerInfo[];
   searchState: SearchState | null;
   stateSource?: "live" | "snapshot" | "latest" | "unavailable";
+  sourceMode?: "web" | "local" | "hybrid";
   answer: string;
   /** Live follow-ups steered into this turn while it was running. */
   followUps?: string[];
@@ -29,6 +30,7 @@ export interface Turn {
     coverageScore?: number;
     evidenceCount?: number;
     elapsed?: number;
+    startedAt?: number;
     verdict?: string | null;
     totalQueries?: number;
     totalSteps?: number;
@@ -38,6 +40,32 @@ export interface Turn {
     modelDistribution?: Record<string, ModelDistributionItem>;
   };
   error?: string | null;
+}
+
+/** Missing terminal output is an interrupted run, not a completed answer. */
+export function restoredRunState(status: "running" | "completed" | "incomplete" | "error"):
+  { status: Turn["status"]; error: string | null } {
+  if (status === "incomplete") return {
+    status: "error",
+    error: "这次运行已中断，尚未生成最终回答。下方保留的是中间输出和运行记录，可重新运行该问题。",
+  };
+  return { status, error: status === "error" ? "这次运行失败，请查看运行记录。" : null };
+}
+
+/** Continue only the immediately preceding, completed conversation of the
+ * conversation. The server resets evidence when the submitted source scope
+ * changes, while preserving the conversation identity. */
+export function continuationSessionId(
+  turns: Turn[],
+  _sourceMode: "web" | "local" | "hybrid",
+  freshRun: boolean,
+): string | undefined {
+  if (freshRun || turns.length === 0) return undefined;
+  const previous = turns[turns.length - 1];
+  return previous.status === "completed"
+    && previous.sessionId
+    ? previous.sessionId
+    : undefined;
 }
 
 /** Align durable trajectory segments with completed dialogue turns.

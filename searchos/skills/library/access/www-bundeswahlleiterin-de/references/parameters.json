@@ -1,0 +1,33 @@
+{
+  "description": "Fetches German federal election results (Bundestag elections) from Bundeswahlleiterin.de, including national and state-level voting data, seat distributions, and press releases.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_national_results: Get national election results for Germany (requires election_year); 参数: election_year; 必填: 无\n  - get_state_results: Get state-level results (requires election_year, state); 参数: election_year, state; 必填: 无\n  - get_press_release: Fetch a specific press release page (requires url); 参数: url; 必填: 无\n  - list_states: List available German states with their codes; 参数: election_year; 必填: 无\n  - list_years: List available election years; 参数: 无; 必填: 无"
+    },
+    "election_year": {
+      "type": "string",
+      "required": false,
+      "description": "Election year (e.g., \"2025\", \"2021\", \"2017\"). Used by get_national_results,\nget_state_results, and list_states. Defaults to \"2025\"."
+    },
+    "state": {
+      "type": "string",
+      "required": false,
+      "description": "German state name or code for state-level results. Used by get_state_results.\nExamples: \"bayern\", \"9\", \"baden-wuerttemberg\", \"berlin\". See list_states for all options."
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full URL or relative path to a press release page. Used by get_press_release.\nExample: \"https://www.bundeswahlleiterin.de/en/info/presse/mitteilungen/bundestagswahl-2025/29_25_endgueltiges-ergebnis.html\""
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

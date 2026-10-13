@@ -1,0 +1,64 @@
+{
+  "description": "Fetches basketball statistics from www.basketball-reference.com including team rosters, player career stats, and game box scores with structured table extraction.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_team_roster: 获取球队阵容和基本信息，需要 url 或 team_abbr+season; 参数: url, season, team_abbr; 必填: url\n  - get_team_stats: 获取球队完整统计数据，需要 url 或 team_abbr+season; 参数: url, season, tables, team_abbr; 必填: url\n  - get_player_stats: 获取球员职业生涯数据，需要 url 或 player_id; 参数: url, player_id, tables; 必填: url\n  - get_boxscore: 获取比赛详细数据，需要 url 或 game_date+home_team; 参数: url, game_date, include_quarters, home_team; 必填: url\n  - get_table: 获取指定表格数据，需要 url 和 table_id; 参数: url, table_id; 必填: table_id, url\n  - list_tables: 列出页面所有表格，需要 url; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "完整页面URL，如 https://www.basketball-reference.com/teams/SAC/2025.html"
+    },
+    "season": {
+      "type": "string",
+      "required": false,
+      "description": "赛季年份（如 2025 表示 2024-25 赛季），与 team_abbr 配合使用"
+    },
+    "team_abbr": {
+      "type": "string",
+      "required": false,
+      "description": "球队缩写（如 SAC、LAL、BOS），与 season 配合使用"
+    },
+    "tables": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "required": false,
+      "description": "要获取的表格ID列表，用于 get_team_stats 和 get_player_stats"
+    },
+    "player_id": {
+      "type": "string",
+      "required": false,
+      "description": "球员ID（如 jamesle01、curryst01）"
+    },
+    "game_date": {
+      "type": "string",
+      "required": false,
+      "description": "比赛日期，YYYYMMDD 格式（如 20241024），与 home_team 配合使用"
+    },
+    "include_quarters": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否包含每节比赛数据，用于 get_boxscore，默认 false"
+    },
+    "home_team": {
+      "type": "string",
+      "required": false,
+      "description": "主场球队缩写，与 game_date 配合使用"
+    },
+    "table_id": {
+      "type": "string",
+      "required": false,
+      "description": "要获取的表格ID，用于 get_table 功能"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

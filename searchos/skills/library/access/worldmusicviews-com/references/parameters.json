@@ -1,0 +1,36 @@
+{
+  "description": "Fetches the complete list of RIAA Diamond certified albums from worldmusicviews.com, including artist names, album titles, certification dates, and record labels.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_riaa_diamond_albums: 获取RIAA钻石认证专辑列表，可按艺术家、年份范围筛选; 参数: min_year, max_year, limit, artist; 必填: 无"
+    },
+    "min_year": {
+      "type": "integer",
+      "required": false,
+      "description": "Minimum certification year filter. Used by get_riaa_diamond_albums."
+    },
+    "max_year": {
+      "type": "integer",
+      "required": false,
+      "description": "Maximum certification year filter. Used by get_riaa_diamond_albums."
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "Maximum number of albums to return. Used by get_riaa_diamond_albums."
+    },
+    "artist": {
+      "type": "string",
+      "required": false,
+      "description": "Filter albums by artist name (case-insensitive partial match). Used by get_riaa_diamond_albums."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

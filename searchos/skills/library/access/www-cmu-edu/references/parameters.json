@@ -1,0 +1,33 @@
+{
+  "description": "Fetches faculty profile data from Carnegie Mellon University Statistics & Data Science department.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_faculty_list: 获取所有教员列表，可按姓氏首字母筛选; 参数: last_initial; 必填: 无\n  - get_faculty_profile: 获取单个教员的详细资料，需要url参数; 参数: url; 必填: 无\n  - search_faculty: 按姓名搜索教员，需要query参数; 参数: query; 必填: 无"
+    },
+    "last_initial": {
+      "type": "string",
+      "required": false,
+      "description": "姓氏首字母筛选（仅get_faculty_list使用），如 'a', 'b', 'l' 等"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "教员个人主页URL或slug（仅get_faculty_profile使用），可以是完整URL或如 'ann-lee' 的slug"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词（仅search_faculty使用），用于按姓名搜索教员"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

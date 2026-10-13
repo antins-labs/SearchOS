@@ -1,0 +1,61 @@
+{
+  "description": "Fetches structured information from the Apple Fandom wiki (apple.fandom.com) including page content, infoboxes, search, and category listings via MediaWiki API.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_page: 获取指定wiki页面详情，需要page_title参数; 参数: page_title, include_content, include_wikitext; 必填: page_title\n  - search: 搜索wiki页面，需要query参数; 参数: query, limit; 必填: query\n  - get_category: 获取分类下的页面列表，需要category_name参数; 参数: category_name, limit, continue_token; 必填: category_name\n  - get_random: 获取随机页面列表; 参数: limit, namespace; 必填: 无"
+    },
+    "page_title": {
+      "type": "string",
+      "required": false,
+      "description": "Wiki页面标题，用于get_page功能"
+    },
+    "include_content": {
+      "type": "boolean",
+      "default": true,
+      "required": false,
+      "description": "是否包含解析后的页面内容，用于get_page功能"
+    },
+    "include_wikitext": {
+      "type": "boolean",
+      "default": false,
+      "required": false,
+      "description": "是否包含原始wikitext源码，用于get_page功能"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于search功能"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果数量上限，用于search/get_category/get_random功能\n各功能默认值：search=10；get_category=20；get_random=5"
+    },
+    "category_name": {
+      "type": "string",
+      "required": false,
+      "description": "分类名称（可省略Category:前缀），用于get_category功能"
+    },
+    "continue_token": {
+      "type": "string",
+      "required": false,
+      "description": "分页继续标记，用于get_category功能翻页"
+    },
+    "namespace": {
+      "type": "integer",
+      "default": 0,
+      "required": false,
+      "description": "命名空间ID（0=文章），用于get_random功能"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

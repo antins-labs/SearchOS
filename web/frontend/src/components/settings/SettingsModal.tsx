@@ -12,9 +12,10 @@ import ModelsSection from "@/components/settings/sections/ModelsSection";
 import SearchSection from "@/components/settings/sections/SearchSection";
 import ExperimentalSection from "@/components/settings/sections/ExperimentalSection";
 import AppearanceSection from "@/components/settings/sections/AppearanceSection";
+import QuickSetupSection from "@/components/settings/sections/QuickSetupSection";
 import useDialogFocus from "@/hooks/useDialogFocus";
 
-const BODIES: Record<SectionId, React.ComponentType> = {
+const BODIES: Partial<Record<SectionId, React.ComponentType>> = {
   models: ModelsSection,
   search: SearchSection,
   skills: SkillsSection,
@@ -24,7 +25,8 @@ const BODIES: Record<SectionId, React.ComponentType> = {
 };
 
 export default function SettingsModal({ onClose }: { onClose: () => void }) {
-  const { status, refresh } = useSettings();
+  const { status, refresh, uiPrefs } = useSettings();
+  const zh = uiPrefs.language === "zh";
   const [active, setActive] = useState<SectionId>(SECTIONS[0].id);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -49,8 +51,8 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
         className="rise-in surface flex h-[100dvh] w-full flex-col overflow-hidden rounded-none shadow-xl sm:h-[min(620px,85vh)] sm:w-[min(860px,92vw)] sm:rounded-2xl"
       >
         <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
-          <h1 id="settings-dialog-title" className="font-serif text-[16px] text-ink">Settings</h1>
-          <button ref={closeRef} type="button" onClick={onClose} aria-label="Close settings"
+          <h1 id="settings-dialog-title" className="font-serif text-[16px] text-ink">{zh ? "设置" : "Settings"}</h1>
+          <button ref={closeRef} type="button" onClick={onClose} aria-label={zh ? "关闭设置" : "Close settings"}
             className="rounded-md p-1.5 text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">
             <X size={16} />
           </button>
@@ -59,7 +61,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
         {status === "offline" && (
           <div className="flex items-center gap-2 border-b border-line bg-warn/10 px-5 py-2 text-[12.5px] text-warn">
             <WifiOff size={13} />
-            Backend offline — settings can&apos;t be loaded. Retrying…
+            {zh ? "后端未连接，暂时无法读取设置，正在重试…" : "Backend offline — settings can't be loaded. Retrying…"}
           </div>
         )}
 
@@ -68,11 +70,11 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
             <SectionNav active={active} onSelect={setActive} mode="tabs" />
             <Link href="/settings" onClick={onClose}
               className="hidden items-center gap-1.5 rounded-lg px-2.5 py-2 text-[12px] text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink sm:flex">
-              <ExternalLink size={13} /> Full settings
+              <ExternalLink size={13} /> {zh ? "完整设置" : "Full settings"}
             </Link>
           </div>
           <div id="settings-panel" role="tabpanel" aria-labelledby={`settings-tab-${active}`} tabIndex={0} key={active} className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-5">
-            <Body />
+            {active === "setup" ? <QuickSetupSection onNavigate={setActive} /> : Body ? <Body /> : null}
           </div>
         </div>
       </div>

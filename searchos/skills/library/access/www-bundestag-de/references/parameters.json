@@ -1,0 +1,23 @@
+{
+  "description": "Fetches structured information from the German Bundestag website (bundestag.de), including seat distribution in parliament and text archive articles.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_seat_distribution: 获取联邦议院当前席位分布（各政党席位数量）; 参数: 无; 必填: 无\n  - get_text_archive_article: 获取文本档案文章内容（包含选举结果等详细信息）; 参数: url; 必填: 无\n  - get_page_content: 获取任意Bundestag页面的通用内容; 参数: url; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "目标页面URL（仅 get_text_archive_article 和 get_page_content 需要）。\n必须是 bundestag.de 域名下的页面。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

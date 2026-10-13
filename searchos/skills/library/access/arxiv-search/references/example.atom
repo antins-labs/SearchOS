@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Synthetic test fixture, not research evidence</title>
+  <entry>
+    <id>https://arxiv.org/abs/0000.00000</id>
+    <title>Synthetic retrieval example</title>
+    <author><name>Fixture Author</name></author>
+    <summary>Artificial record for offline parser validation only.</summary>
+    <published>2000-01-01T00:00:00Z</published>
+  </entry>
+</feed>

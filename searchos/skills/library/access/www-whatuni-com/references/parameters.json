@@ -1,0 +1,60 @@
+{
+  "description": "Access university course listings and details from WhatUni.com UK higher education course database, including search by subject/university, detailed course info, and university profiles.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - search_courses        搜索课程，可按subject、university、level筛选\n  - get_course_detail     获取课程详细信息，需要url或course_slug+university_slug\n  - search_universities   搜索大学，可选query参数\n"
+    },
+    "subject": {
+      "type": "string",
+      "required": false,
+      "description": "Subject slug for course search (e.g., 'communication-studies', 'computer-science').\nUsed by search_courses function.\n"
+    },
+    "university": {
+      "type": "string",
+      "required": false,
+      "description": "University name slug for filtering (e.g., 'goldsmiths-university-of-london').\nUsed by search_courses function.\n"
+    },
+    "level": {
+      "type": "string",
+      "required": false,
+      "description": "Course level - 'undergraduate' or 'postgraduate'. Defaults to 'postgraduate'.\nUsed by search_courses function.\n",
+      "default": "postgraduate"
+    },
+    "page": {
+      "type": "integer",
+      "required": false,
+      "description": "Page number for paginated results. Defaults to 1.\nUsed by search_courses and search_universities functions.\n",
+      "default": 1
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full URL to the course detail page.\nUsed by get_course_detail function as alternative to course_slug+university_slug.\n"
+    },
+    "course_slug": {
+      "type": "string",
+      "required": false,
+      "description": "Course name slug from URL (e.g., 'pgdip-in-digital-media-theory').\nUsed by get_course_detail function (requires university_slug).\n"
+    },
+    "university_slug": {
+      "type": "string",
+      "required": false,
+      "description": "University name slug from URL (e.g., 'goldsmiths-university-of-london').\nUsed by get_course_detail function (requires course_slug).\n"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query for university name.\nUsed by search_universities function."
+    }
+  },
+  "imports": [
+    "bs4",
+    "httpx"
+  ],
+  "requirements": [
+    "beautifulsoup4",
+    "httpx"
+  ]
+}

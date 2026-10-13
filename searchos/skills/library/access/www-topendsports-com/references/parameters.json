@@ -1,0 +1,23 @@
+{
+  "description": "Fetches Olympic sports data from TopEndSports including sports changes history, number of sports by year, and discontinued sports list.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_sports_changes: 获取奥运会体育项目变更历史表（年份、主办城市、体育项目数、变更说明）; 参数: 无; 必填: 无\n  - get_sports_count: 获取各届奥运会体育项目数量表（届次、年份、主办城市、项目数）; 参数: 无; 必填: 无\n  - get_discontinued: 获取已 discontinued 的奥运体育项目列表; 参数: 无; 必填: 无\n  - get_sport_detail: 获取特定体育项目的详细信息（需要 sport_slug 参数）; 参数: sport_slug; 必填: 无"
+    },
+    "sport_slug": {
+      "type": "string",
+      "required": false,
+      "description": "体育项目的 URL slug，用于 get_sport_detail 功能。\n示例: athletics, swimming, fencing, gymnastics, cycling, badminton, basketball"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "playwright"
+  ],
+  "requirements": [
+    "aiohttp",
+    "playwright"
+  ]
+}

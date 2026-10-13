@@ -1,18 +1,4 @@
-"""Per-task workspace/agent/task ContextVar bindings shared by all
-SOCM-aware tools.
-
-Historical note: this module used to expose agent-level write tools
-(``update_frontier``, ``add_evidence``, ``mark_coverage``,
-``log_strategy``, ``batch_record``, ``add_entity``). Per plan §5.7
-权限矩阵, Evidence/Coverage/Frontier writes belong to the Extraction
-middleware and dedicated orchestrator tools — never to a
-general-purpose agent tool. Those tools were removed along with
-``analyst_agent`` in the slim pass.
-
-What remains is the ContextVar plumbing: every tool that needs the
-current WorkspaceManager or the current agent/task label imports from
-here.
-"""
+"""为 SOCM 工具提供当前工作区、Agent、任务与表的上下文绑定。"""
 
 from __future__ import annotations
 
@@ -22,21 +8,16 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from searchos.socm.workspace import WorkspaceManager
 
-# Per-asyncio-task context. Replaces module-level globals so concurrent
-# `harness.run()` calls in the same process (benchmark batches, API
-# handlers, tests) don't overwrite each other's bindings. `ContextVar`
-# values are forked on `asyncio.create_task`, giving each logical run
-# its own isolated view.
+# ContextVar 隔离并发会话；新建 asyncio Task 时继承当前绑定。
 _workspace_var: ContextVar["WorkspaceManager | None"] = ContextVar(
     "sf_workspace", default=None,
 )
 _current_agent_var: ContextVar[str] = ContextVar("sf_current_agent", default="main")
-# Task string of the currently-executing sub-agent, set at dispatch time.
-# EvidenceExtractionMiddleware reads this so the judge prompt can be
-# framed around the specific sub-task ("extract findings relevant to
-# THIS task") instead of a generic global query.
+# 调度时绑定子任务，供 Evidence Extraction 限定 Judge 的抽取范围。
 _current_task_var: ContextVar[str] = ContextVar("sf_current_task", default="")
+_current_task_id_var: ContextVar[str] = ContextVar("sf_current_task_id", default="")
 _current_table_var: ContextVar[str] = ContextVar("sf_current_table", default="")
+_source_scope_var: ContextVar[dict | None] = ContextVar("sf_source_scope", default=None)
 
 
 def set_workspace(ws: "WorkspaceManager") -> None:

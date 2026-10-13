@@ -1,0 +1,73 @@
+{
+  "description": "Access the Web Gallery of Art (www.wga.hu) - a searchable database of European fine arts (200-1900). Search artworks by artist, title, period, and other criteria; retrieve detailed artwork information; browse gallery collections.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - search: 搜索艺术作品，支持按艺术家、标题、时期、流派等条件搜索; 参数: author, title, time, school, form, type, location, comment, from_, max_; 必填: 无\n  - get_artwork: 获取单个艺术作品的详细信息; 参数: url; 必填: url\n  - get_gallery: 获取画廊索引页面的作品列表; 参数: url; 必填: url"
+    },
+    "author": {
+      "type": "string",
+      "required": false,
+      "description": "[search] 艺术家姓名（部分匹配），例如 \"monet\"、\"van gogh\"、\"rembrandt\""
+    },
+    "title": {
+      "type": "string",
+      "required": false,
+      "description": "[search] 作品标题（部分匹配），例如 \"starry night\"、\"portrait\""
+    },
+    "time": {
+      "type": "string",
+      "required": false,
+      "description": "[search] 时间时期，例如 \"1401-1450\"、\"1851-1900\"、\"any\""
+    },
+    "school": {
+      "type": "string",
+      "required": false,
+      "description": "[search] 艺术流派/国家，例如 \"Italian\"、\"French\"、\"Dutch\"、\"German\"、\"Spanish\""
+    },
+    "form": {
+      "type": "string",
+      "required": false,
+      "description": "[search] 艺术形式，例如 \"painting\"、\"sculpture\"、\"drawing\"、\"any\""
+    },
+    "type": {
+      "type": "string",
+      "required": false,
+      "description": "[search] 作品类型，例如 \"religious\"、\"portrait\"、\"landscape\"、\"still life\"、\"any\""
+    },
+    "location": {
+      "type": "string",
+      "required": false,
+      "description": "[search] 博物馆或收藏地点名称，例如 \"Louvre\"、\"Metropolitan\"、\"Uffizi\""
+    },
+    "comment": {
+      "type": "string",
+      "required": false,
+      "description": "[search] 在作品注释中搜索的关键词"
+    },
+    "from_": {
+      "type": "integer",
+      "required": false,
+      "description": "[search] 分页起始索引，从0开始，每次增加20获取下一页结果"
+    },
+    "max_": {
+      "type": "integer",
+      "required": false,
+      "description": "[search] 每页最大结果数，默认为20"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "[get_artwork, get_gallery] 作品详情页或画廊索引页的完整URL\n例如:\n  - https://www.wga.hu/html_m/g/gogh_van/16/selfpo04a.html\n  - https://www.wga.hu/html_m/g/gogh_van/16/index.html"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

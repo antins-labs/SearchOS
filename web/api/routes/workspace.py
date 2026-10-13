@@ -6,7 +6,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Query
 
-from api.deps import WORKSPACE_ROOT
+from api.deps import session_directory, WORKSPACE_ROOT
 
 router = APIRouter(prefix="/api/workspace")
 
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/workspace")
 @router.get("/{session_id}/files")
 async def list_workspace_files(session_id: str):
     """Return workspace file tree."""
-    ws_path = Path(WORKSPACE_ROOT) / session_id
+    ws_path = session_directory(WORKSPACE_ROOT, session_id)
     if not ws_path.exists():
         raise HTTPException(404, f"Workspace {session_id} not found")
 
@@ -25,7 +25,7 @@ async def list_workspace_files(session_id: str):
 @router.get("/{session_id}/file")
 async def get_file_content(session_id: str, path: str = Query(...)):
     """Read a single file from workspace."""
-    ws_path = Path(WORKSPACE_ROOT) / session_id
+    ws_path = session_directory(WORKSPACE_ROOT, session_id)
     file_path = (ws_path / path).resolve()
 
     # Prevent path traversal
@@ -42,7 +42,12 @@ async def get_file_content(session_id: str, path: str = Query(...)):
     if file_path.stat().st_size > 1_000_000:
         return {"path": path, "content": "(file too large, > 1MB)", "truncated": True}
 
-    content = file_path.read_text(encoding="utf-8", errors="replace")
+    if file_path.parent == ws_path / "conversations" / "snapshots" and file_path.suffix == ".json":
+        import json
+        from searchos.harness.telemetry.conversation import read_conversation
+        content = json.dumps(read_conversation(file_path), ensure_ascii=False, indent=2)
+    else:
+        content = file_path.read_text(encoding="utf-8", errors="replace")
     return {"path": path, "content": content, "size": len(content)}
 
 

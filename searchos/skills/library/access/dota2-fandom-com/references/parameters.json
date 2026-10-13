@@ -1,0 +1,33 @@
+{
+  "description": "Fetches tournament data, hero stats, player profiles, and wiki content from dota2.fandom.com  via MediaWiki API, bypassing Cloudflare protection.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - search: 搜索wiki页面; 需要query参数，可选limit参数; 参数: query, limit; 必填: 无\n  - get_tournament: 获取锦标赛页面数据（infobox、奖金分配、战队排名）; 需要page参数; 参数: page; 必填: 无\n  - get_hero: 获取英雄页面数据（属性、技能）; 需要page参数; 参数: page; 必填: 无\n  - get_player: 获取选手页面数据（战队、角色、成就）; 需要page参数; 参数: page; 必填: 无\n  - get_page: 获取任意wiki页面内容; 需要page参数; 参数: page; 必填: 无"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词（function=search时必填）"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "搜索结果数量限制（默认20，最大50）; function=search时使用"
+    },
+    "page": {
+      "type": "string",
+      "required": false,
+      "description": "页面名称（function为get_tournament/get_hero/get_player/get_page时必填），如\"The_International_2014\"、\"Invoker\"、\"N0tail\""
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

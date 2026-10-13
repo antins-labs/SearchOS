@@ -1,0 +1,38 @@
+{
+  "description": "Extracts articles from AS English (en.as.com) sports news with specialized roster list extraction for player lists, and lists NBA articles from the section page.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 提取单篇文章内容，包含标题、作者、发布时间、正文和球员名单列表; 参数: url, include_rosters, include_body; 必填: url\n  - list_articles: 列出NBA版块的最新文章; 参数: limit; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章URL (get_article使用)。必须是 en.as.com 域名下的有效文章链接。\n例如: https://en.as.com/nba/2024-nba-all-star-game-rosters-full-list-of-players-for-both-teams-n/"
+    },
+    "include_rosters": {
+      "type": "string",
+      "required": false,
+      "description": "是否提取球员名单列表 (get_article使用)。默认为 \"true\"。\n适用于包含球员阵容、参赛名单等列表结构的文章。"
+    },
+    "include_body": {
+      "type": "string",
+      "required": false,
+      "description": "是否提取文章正文内容 (get_article使用)。默认为 \"true\"。\n包括段落、标题和列表内容。"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回文章的最大数量 (list_articles使用)。默认20，最大50。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

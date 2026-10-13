@@ -1,14 +1,10 @@
-"""SearchOS CLI — minimal single-query entry point.
-
-``python -m searchos "<query>"`` runs one search session and prints the
-synthesized report. The full interactive prompt_toolkit TUI is a later phase;
-this is the minimal runnable entry so the package can be driven from the shell.
-"""
+"""SearchOS CLI：默认启动交互式 TUI，也支持单次查询输出报告。"""
 
 from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import sys
 from pathlib import Path
 
@@ -44,6 +40,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="searchos",
         description="SearchOS — the agentic search collaboration system",
+        epilog="通用技能管理：searchos skills {validate,install,export} --help",
     )
     p.add_argument("query", nargs="?", default=None,
                    help="Research query for one-shot mode; omit to launch the interactive TUI")
@@ -125,7 +122,44 @@ def _launch_tui(args: argparse.Namespace) -> None:
     run_tui(factory, no_search=args.no_search)
 
 
+def _skills_command(argv: list[str]) -> int:
+    """Manage local packages without loading model or search configuration."""
+    from searchos.skills.packaging import export_package, install_package, validate_package
+
+    parser = argparse.ArgumentParser(prog="searchos skills", description="校验、安装或导出通用技能包")
+    commands = parser.add_subparsers(dest="operation", required=True)
+    validate = commands.add_parser("validate", help="校验本地标准技能包")
+    validate.add_argument("source", type=Path, help="含 SKILL.md 的技能目录")
+    install = commands.add_parser("install", help="安装到指定技能库，不覆盖现有包")
+    install.add_argument("source", type=Path)
+    install.add_argument("--library", type=Path, required=True, help="目标技能库目录")
+    export = commands.add_parser("export", help="导出独立技能包，不覆盖现有包")
+    export.add_argument("source", type=Path)
+    export.add_argument("--output", type=Path, required=True, help="目标包目录，末级目录名须与技能名一致")
+    args = parser.parse_args(argv)
+    try:
+        skill = validate_package(args.source)
+        result = {"name": skill.meta.name, "package_format": skill.package_format,
+                  "package_hash": skill.package_hash, "resources": skill.resources}
+        if args.operation == "install":
+            # Normalize parent aliases such as macOS /tmp, retaining the final
+            # destination component for the package API's no-overwrite checks.
+            result["path"] = str(install_package(args.source, args.library.resolve()))
+        elif args.operation == "export":
+            output = args.output.parent.resolve() / args.output.name
+            result["path"] = str(export_package(args.source, output))
+        else:
+            result["path"] = str(args.source.resolve())
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+    except (ValueError, OSError) as exc:
+        print(f"技能包操作失败：{exc}", file=sys.stderr)
+        return 1
+
+
 def main() -> None:
+    if sys.argv[1:2] == ["skills"]:
+        sys.exit(_skills_command(sys.argv[2:]))
     _load_env()
     args = _build_parser().parse_args()
     # 首次运行（或 --setup）：settings 单例尚未 import，此刻拉起配置向导还来得及

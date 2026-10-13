@@ -7,12 +7,13 @@ import NumberField from "@/components/settings/controls/NumberField";
 import Toggle from "@/components/settings/controls/Toggle";
 
 export default function ExperimentalSection() {
-  const { settings, status, mutate } = useSettings();
+  const { settings, status, mutate, uiPrefs } = useSettings();
+  const zh = uiPrefs.language === "zh";
 
   if (!settings) {
     return (
-      <SectionShell id="experimental" title="Experimental"
-        description="Try evolving research behaviors. These settings apply to new runs.">
+      <SectionShell id="experimental" title={zh ? "研究策略" : "Research behavior"}
+        description={zh ? "调整新任务使用的高级研究行为。" : "Adjust advanced research behavior for new runs."}>
         <OfflineSkeleton />
       </SectionShell>
     );
@@ -61,44 +62,47 @@ export default function ExperimentalSection() {
     });
 
   return (
-    <SectionShell id="experimental" title="Experimental"
-      description="Try evolving research behaviors. These settings apply to new runs.">
-      <Card>
-        <Row
-          label="Parallel Explore waves"
-          hint="On: concurrent broad-recall waves. Off: legacy serial search/open/find."
-        >
-          <Toggle
-            checked={run_defaults.enable_explore_batch}
-            onChange={setExploreBatch}
-            disabled={disabled}
-            label="Enable parallel Explore waves"
-          />
-        </Row>
-        <Row
-          label="Fold completed search episodes"
-          hint="Keep prior tool inputs and SOCM progress, but remove prior tool outputs from model context."
-        >
-          <Toggle
-            checked={advanced.use_layered_context}
-            onChange={setEpisodeFolding}
-            disabled={disabled}
-            label="Fold completed search episodes"
-          />
-        </Row>
-        <Row
-          label="Coverage stall rounds"
-          hint="Stop after this many search-agent result rounds add no rows or filled cells. Set 0 to disable."
-        >
-          <NumberField
-            value={advanced.orch_coverage_stall_rounds}
-            min={0}
-            max={100}
-            onCommit={setCoverageStallRounds}
-            disabled={disabled}
-          />
-        </Row>
-      </Card>
+    <SectionShell id="experimental" title={zh ? "研究策略" : "Research behavior"}
+      description={zh ? "调整新任务使用的高级研究行为。" : "Adjust advanced research behavior for new runs."}>
+      <div>
+        <h3 className="mb-2 text-[14px] font-medium text-ink">{zh ? "高级行为" : "Advanced behavior"}</h3>
+        <Card>
+          <Row
+            label={zh ? "并行探索" : "Parallel exploration"}
+            hint={zh ? "开启后并行执行宽召回探索；关闭后依次执行检索、打开和查找。" : "Run broad-recall exploration concurrently. When off, search, open, and find run serially."}
+          >
+            <Toggle
+              checked={run_defaults.enable_explore_batch}
+              onChange={setExploreBatch}
+              disabled={disabled}
+              label={zh ? "启用并行探索" : "Enable parallel exploration"}
+            />
+          </Row>
+          <Row
+            label={zh ? "折叠已完成的检索过程" : "Fold completed search episodes"}
+            hint={zh ? "保留工具输入和研究进度，移除已完成步骤的原始工具输出，以减少上下文用量。" : "Keep tool inputs and research progress while removing completed raw tool outputs from model context."}
+          >
+            <Toggle
+              checked={advanced.use_layered_context}
+              onChange={setEpisodeFolding}
+              disabled={disabled}
+              label={zh ? "折叠已完成的检索过程" : "Fold completed search episodes"}
+            />
+          </Row>
+          <Row
+            label={zh ? "连续无进展轮数" : "No-progress rounds"}
+            hint={zh ? "连续若干轮没有新阅读、有效事实、任务关联或表格变化时进入收尾。设为 0 可关闭该判断。" : "Finalize after this many rounds add no reading, facts, task bindings, or table changes. Set 0 to disable."}
+          >
+            <NumberField
+              value={advanced.orch_coverage_stall_rounds}
+              min={0}
+              max={100}
+              onCommit={setCoverageStallRounds}
+              disabled={disabled}
+            />
+          </Row>
+        </Card>
+      </div>
     </SectionShell>
   );
 }

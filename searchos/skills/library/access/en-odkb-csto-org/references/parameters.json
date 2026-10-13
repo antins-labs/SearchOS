@@ -1,0 +1,33 @@
+{
+  "description": "Fetches structured information from the CSTO (Collective Security Treaty Organization) website en.odkb-csto.org including organizational history, sessions, news, documents, leadership, and structure.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_history: 获取CSTO 25年历史和组织概述; 参数: 无; 必填: 无\n  - get_sessions: 获取会议列表，可选参数: year(年份), limit(数量限制); 参数: year, limit; 必填: 无\n  - get_session_detail: 获取特定会议详情，必需参数: url(会议页面路径); 参数: url; 必填: url\n  - get_news: 获取最新新闻，可选参数: limit(数量限制); 参数: limit; 必填: 无\n  - get_documents: 获取文档列表，可选参数: limit(数量限制); 参数: limit; 必填: 无\n  - get_leadership: 获取领导层历史信息; 参数: 无; 必填: 无\n  - get_structure: 获取组织结构信息; 参数: 无; 必填: 无"
+    },
+    "year": {
+      "type": "string",
+      "required": false,
+      "description": "按年份过滤会议，用于get_sessions功能"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果的数量限制，用于get_sessions, get_news, get_documents功能"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "会议详情页面的URL路径，用于get_session_detail功能"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

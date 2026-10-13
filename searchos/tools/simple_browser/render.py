@@ -40,6 +40,8 @@ class PageContents:
     text: str = ""
     urls: dict[str, str] = field(default_factory=dict)       # link_id → url
     snippets: dict[str, Extract] | None = None               # for search results
+    source_url: str = ""  # 派生阅读视图的原始来源；普通页面使用 url。
+    metadata: dict = field(default_factory=dict)  # Host-owned page classification/provenance.
 
 
 # ---------------------------------------------------------------------------
@@ -220,7 +222,14 @@ def _wrap_lines(text: str, width: int = 80) -> list[str]:
     for line in lines:
         if line:
             wrapped.extend(
-                textwrap.wrap(line, width=width, replace_whitespace=False, drop_whitespace=False)
+                textwrap.wrap(
+                    line,
+                    width=width,
+                    replace_whitespace=False,
+                    drop_whitespace=False,
+                    break_long_words=False,
+                    break_on_hyphens=False,
+                )
             )
         else:
             wrapped.append("")

@@ -1,0 +1,23 @@
+{
+  "description": "Fetches structured articles and navigation from factsanddetails.com, a comprehensive educational resource with detailed articles on world history, culture, and geography.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 从指定URL获取文章内容，提取标题、章节和段落; 参数: url; 必填: url\n  - get_category: 从分类页面获取文章列表和子分类; 参数: url; 必填: url\n  - get_region: 从区域页面获取国家/地区列表和分类; 参数: url; 必填: url\n  - get_homepage: 获取首页的主要区域链接; 参数: url; 必填: 无\n  - get_page: 自动检测页面类型并提取相应内容; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "要获取的factsanddetails.com页面URL（除get_homepage外都需要）"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

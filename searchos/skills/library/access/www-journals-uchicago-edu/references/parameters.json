@@ -1,0 +1,46 @@
+{
+  "description": "Access University of Chicago Press journal articles and table of contents via Crossref API. Provides article metadata, references, and TOCs for journals like American Journal of Sociology, Journal of Political Economy, and others. Uses Crossref as data source to bypass Cloudflare protection.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_journals        列出所有支持的期刊代码和名称\n  - get_article_metadata 获取单篇文章的完整元数据（标题、作者、期刊、卷期、页码等）\n  - get_toc_current      获取期刊当前期的目录（最新发表的文章列表）\n  - get_toc_issue        获取指定期卷的目录（需要期刊代码、卷号、期号）\n  - get_references       获取文章引用的参考文献列表\n  - search_articles      在期刊中搜索文章（支持标题和作者过滤）\n"
+    },
+    "doi": {
+      "type": "string",
+      "required": false,
+      "description": "文章的DOI（数字对象标识符）。\n用于 get_article_metadata 和 get_references 函数。\n示例: \"10.1086/739568\" 或 \"doi:10.1086/739568\"\n"
+    },
+    "journal_code": {
+      "type": "string",
+      "required": false,
+      "description": "期刊代码（小写字母）。\n用于 get_toc_current, get_toc_issue 和 search_articles 函数。\n常用代码: ajs (American Journal of Sociology), jpe (Journal of Political Economy),\njols (Journal of Law and Economics), jole (Journal of Labor Economics),\nan (American Naturalist), ca (Current Anthropology), ijal (International Journal of American Linguistics),\najsarch (American Journal of Archaeology), jop (Journal of Politics) 等。\n使用 list_journals 函数获取完整列表。\n"
+    },
+    "volume": {
+      "type": "string",
+      "required": false,
+      "description": "卷号（字符串形式）。\n用于 get_toc_issue 函数。\n示例: \"131\"\n"
+    },
+    "issue": {
+      "type": "string",
+      "required": false,
+      "description": "期号（字符串形式）。\n用于 get_toc_issue 函数。\n示例: \"4\"\n"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词（可选）。\n用于 search_articles 函数。\n在文章标题和作者姓名中进行过滤。\n示例: \"immigration\", \"network analysis\", \"inequality\"\n"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果数量限制。\n用于 get_toc_current (默认50), get_references (默认100) 和 search_articles (默认20)。\n最大值取决于具体函数。"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

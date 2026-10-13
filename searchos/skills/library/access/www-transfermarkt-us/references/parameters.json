@@ -1,0 +1,31 @@
+{
+  "description": "Access Transfermarkt fixture, squad, and player market value data for football clubs. Note: Site uses AWS WAF anti-bot protection that blocks automated access.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_fixtures: Retrieve match fixture schedule for a club and season; 参数: club_id, season_id, club_name; 必填: club_id\n  - get_squad: Retrieve squad/player list for a club; 参数: club_id, season_id, club_name; 必填: club_id\n  - get_player_market_values: Retrieve player market values for a club; 参数: club_id, season_id, club_name; 必填: club_id"
+    },
+    "club_id": {
+      "type": "string",
+      "required": true,
+      "description": "Transfermarkt club ID (numeric string).\nExamples: \"583\" for PSG, \"79\" for VfB Stuttgart, \"418\" for Real Madrid.\nUsed by all functions."
+    },
+    "season_id": {
+      "type": "string",
+      "required": false,
+      "description": "Season ID for fixture retrieval (numeric string).\nFormat: Year representing the season start (e.g., \"2024\" for 2024/25 season).\nOnly used by get_fixtures function.\nDefault: \"2024\""
+    },
+    "club_name": {
+      "type": "string",
+      "required": false,
+      "description": "Club name slug for URL construction (lowercase with hyphens).\nExamples: \"fc-paris-saint-germain\", \"vfb-stuttgart\", \"real-madrid\".\nIf not provided, a generic slug will be used.\nUsed by all functions."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

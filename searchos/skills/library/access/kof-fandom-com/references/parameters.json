@@ -1,0 +1,43 @@
+{
+  "description": "Retrieves King of Fighters character, boss, team, and game information from kof.fandom.com wiki.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_bosses: 获取所有Boss列表，可用saga参数筛选; 参数: saga; 必填: 无\n  - get_character: 获取角色详细信息，需要name参数; 参数: name; 必填: 无\n  - get_characters: 获取所有角色列表，可用limit参数限制数量; 参数: limit; 必填: 无\n  - get_teams: 获取所有队伍列表; 参数: 无; 必填: 无\n  - get_team: 获取队伍详细信息，需要name参数; 参数: name; 必填: 无\n  - search: 搜索Wiki页面，需要query参数; 参数: query, limit; 必填: 无\n  - get_page: 获取任意Wiki页面内容，需要title参数; 参数: title; 必填: 无"
+    },
+    "saga": {
+      "type": "string",
+      "required": false,
+      "description": "Boss篇章筛选，用于get_bosses功能。\n可选值: \"Rugal\", \"Orochi\", \"NESTS\", \"Ash\", \"Maximum Impact\"\n例如: saga=\"NESTS\" 将只返回NESTS篇章的Boss"
+    },
+    "name": {
+      "type": "string",
+      "required": false,
+      "description": "角色或队伍名称，用于get_character和get_team功能。\n例如: \"Rugal Bernstein\", \"Fatal Fury Team\", \"Krizalid\""
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果数量限制，用于get_characters和search功能。\n默认值: get_characters为100，search为20\n各功能默认值：get_characters=100；search=20"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于search功能。\n例如: \"Kyo\", \"Orochi\", \"NESTS\""
+    },
+    "title": {
+      "type": "string",
+      "required": false,
+      "description": "Wiki页面标题，用于get_page功能。\n例如: \"The King of Fighters '94\", \"Boss Team\""
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

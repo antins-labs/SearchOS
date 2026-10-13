@@ -1,7 +1,7 @@
 """Provider presets — one-knob open-source model configuration.
 
-Set ``SF_PROVIDER`` (plus the provider's API key) and every one of the 12
-model roles gets a working profile binding, no settings surgery required::
+Set ``SF_PROVIDER`` (plus the provider's API key) and every model role gets a
+working profile binding, no settings surgery required::
 
     SF_PROVIDER=zhipu-coding          # GLM Coding Plan（Anthropic 协议）
     ZHIPU_API_KEY=xxx
@@ -24,8 +24,8 @@ Each preset expands into five tier profiles::
 
     main       orchestrator / sub_agent / skill_evolver / post_mortem / skill_router
     judge      judge                              (temperature 0)
-    fast       extraction / alias_resolver / skill_runtime (temperature 0)
-    synthesis  synthesis                          (temperature 0.3)
+    fast       extraction / local_vision          (temperature 0)
+    synthesis  synthesis / local_recap            (temperature 0.3)
     reformat   reformat                           (temperature 0, large output)
 
 Coding-plan presets speak the Anthropic protocol (the same endpoints the
@@ -180,7 +180,10 @@ PRESETS: dict[str, ProviderPreset] = {
         main_model="deepseek-v4-flash",
         max_output=8192,
         doc_url="https://api-docs.deepseek.com",
-        notes="旧模型名 deepseek-chat/deepseek-reasoner 已映射到 v4-flash；思考档用 deepseek-v4-pro。",
+        notes=(
+            "旧模型名 deepseek-chat/deepseek-reasoner 已映射到 v4-flash；"
+            "思考档用 deepseek-v4-pro。"
+        ),
     ),
     "minimax": ProviderPreset(
         label="MiniMax 按量 API（中国站）",
@@ -343,10 +346,10 @@ _ROLE_TIERS: dict[str, str] = {
     "skill_router":     "main",
     "judge":            "judge",
     "extraction":       "fast",
-    "alias_resolver":   "fast",
-    "skill_runtime":    "fast",
     "synthesis":        "synthesis",
     "reformat":         "reformat",
+    "local_recap":      "synthesis",
+    "local_vision":     "fast",
 }
 
 

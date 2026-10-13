@@ -1,0 +1,26 @@
+{
+  "description": "Fetches character profiles, team information, and story data from the official SNK KOF XIV website (www.snk-corp.co.jp/us/games/kof-xiv/).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_character: 获取角色资料信息; 需要 character 参数; 参数: character; 必填: 无\n  - get_team: 获取队伍信息及成员列表; 需要 team 参数; 参数: team; 必填: 无\n  - list_teams: 列出所有可用队伍; 参数: 无; 必填: 无\n  - get_story: 获取游戏故事信息; 参数: 无; 必填: 无"
+    },
+    "character": {
+      "type": "string",
+      "required": false,
+      "description": "角色名称或ID (如 kusanagi, benimaru, verse, antonov); 用于 get_character"
+    },
+    "team": {
+      "type": "string",
+      "required": false,
+      "description": "队伍名称或ID (如 japan, yagami, kim, villains); 用于 get_team"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

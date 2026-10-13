@@ -11,20 +11,35 @@ the Scheduler / task tools import everything from one place.
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 import logging
 import re
 from typing import Any
 
+from searchos.agents import (
+    explore as _explore,
+)
+from searchos.agents import (
+    local_search as _local_search,
+)
+from searchos.agents import (
+    search as _search,
+)
+from searchos.agents import (
+    writer as _writer,
+)
+from searchos.agents.orchestrator.post_mortem import (
+    build_failure_memory_prompt as _build_failure_memory_prompt,
+)
+from searchos.agents.orchestrator.post_mortem import (
+    run_post_mortem as _run_post_mortem,
+)
 from searchos.agents.runtime import (
     _ctx,  # noqa: F401 — re-exported (scheduler / skill_catalog import _ctx from here)
     _post_mortem_count_var,
     _post_mortem_tasks_var,
     _sub_agent_counter_var,
-)
-from searchos.agents import explore as _explore, search as _search, writer as _writer
-from searchos.agents.orchestrator.post_mortem import (
-    build_failure_memory_prompt as _build_failure_memory_prompt,
-    run_post_mortem as _run_post_mortem,
 )
 
 logger = logging.getLogger(__name__)
@@ -32,13 +47,11 @@ logger = logging.getLogger(__name__)
 # Role packages own their own ``get_tools`` / ``agent.md`` (paper §Agent Roles).
 _ROLE_REGISTRY = {
     _explore.AGENT_TYPE: _explore,
+    _local_search.AGENT_TYPE: _local_search,
     _search.AGENT_TYPE: _search,
     _writer.AGENT_TYPE: _writer,
 }
 
-_MD_TABLE_SEP_RE = re.compile(
-    r"^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$"
-)
 _SCOPE_AUDIT_NOTE = (
     "Before ending, audit the ROW SET against the task's expected scope: "
     "enumerate the dimensions the query implies (years, regions, categories, "
@@ -57,16 +70,17 @@ _ANTIPATTERN_BLOCK_THRESHOLD = 2  # 2+ = "proven invalid, avoid"
 _EXPLORE_PAGE_URL_HDR = re.compile(r"^URL:\s*(\S+)", re.MULTILINE)
 _EXPLORE_PAGE_MIN_CHARS = 300
 _EXPLORE_PAGE_MAX_CHARS = 30_000  # per-page cap fed to extraction
-_KNOWN_AGENT_TYPES = {"search_agent", "writer_agent", "explore_agent"}
+_KNOWN_AGENT_TYPES = set(_ROLE_REGISTRY)
 _KIND_FROM_AGENT = {
-    "search_agent": "search",
-    "writer_agent": "write",
-    "explore_agent": "explore",
+    _search.AGENT_TYPE: "search",
+    _local_search.AGENT_TYPE: "search",
+    _writer.AGENT_TYPE: "write",
+    _explore.AGENT_TYPE: "explore",
 }
 _KIND_TO_AGENT_BY_KIND = {
-    "search": "search_agent",
-    "write": "writer_agent",
-    "explore": "explore_agent",
+    "search": _search.AGENT_TYPE,
+    "write": _writer.AGENT_TYPE,
+    "explore": _explore.AGENT_TYPE,
 }
 
 _LEGACY_EXPLORE_BUDGET = {"max_searches": 8, "max_opens": 8, "max_finds": 8}
@@ -81,31 +95,6 @@ def _agent_budget_override(agent_type: str) -> dict[str, int]:
     return dict(AGENT_BUDGET_OVERRIDES.get(agent_type, {}))
 
 
-def _strip_markdown_tables(text: str) -> str:
-    """Replace markdown pipe-tables in a sub-agent brief with a one-line stub.
-
-    Search agents often re-paste the whole table they just extracted into
-    their final brief. That data is already captured as evidence/cells, so
-    echoing it to the orchestrator is pure context bloat. Prose around the
-    table (the actual conclusions) is kept; each table block collapses to
-    ``[data table omitted — N rows]``.
-    """
-    if not text or "|" not in text:
-        return text
-    lines = text.split("\n")
-    out: list[str] = []
-    i, n = 0, len(lines)
-    while i < n:
-        if i + 1 < n and "|" in lines[i] and _MD_TABLE_SEP_RE.match(lines[i + 1]):
-            j = i + 2
-            while j < n and "|" in lines[j]:
-                j += 1
-            out.append(f"[data table omitted — {j - (i + 2)} rows]")
-            i = j
-        else:
-            out.append(lines[i])
-            i += 1
-    return "\n".join(out)
 def _format_full_list(items: list[Any], *, per_line: int = 20) -> str:
     """Render every item while keeping long prompt blocks scan-friendly."""
     vals = [str(x) for x in items]
@@ -131,7 +120,7 @@ def _check_schema_exists() -> str:
     """
     assert _ctx.workspace is not None
     state = _ctx.workspace.load_state()
-    if not state.coverage_map.tables:
+    if not state.coverage_map.tables and state.research_mode != "findings":
         return (
             "Error: schema is empty. Call ``create_schema(tables_json=..., "
             "relations_json=...)`` BEFORE dispatching any sub-agents. "
@@ -188,7 +177,9 @@ async def _continue_sub_agent_run(
     # per-task and the orchestrator's context may have been overwritten
     # by later spawns before this continue coroutine runs.
     from searchos.tools.search_state import (
-        set_current_agent, set_current_table, set_current_task,
+        set_current_agent,
+        set_current_table,
+        set_current_task,
     )
     set_current_agent(thread_id)
     set_current_table(info.get("target_table", "") or "")
@@ -197,6 +188,8 @@ async def _continue_sub_agent_run(
     # Without this rebind, _continue_sub_agent_run leaves stale task
     # text from a sibling spawn that ran before in this orchestrator turn.
     set_current_task(info.get("task", "") or "")
+    from searchos.tools.search_state import _current_task_id_var
+    _current_task_id_var.set(info.get("assigned_task_id", ""))
 
     try:
         prev_msg_count = 0
@@ -306,18 +299,9 @@ def _set_writer_last_evidence_count(writer_id: str, n: int) -> None:
     if info is not None:
         info["last_evidence_count"] = n
 def _detect_scope_entities(task: str, entities: list[str]) -> set[str]:
-    """Infer this sub-agent's owned entities by matching the task text.
-
-    Dispatches routinely name several rows ("目标院校：A、B、C…"), so the
-    scope is a SET — scoping reports to a single longest match undercounted
-    every multi-row agent's cells/evidence to near zero. Empty set means no
-    schema entity appears in the task (discovery / factoid / free-form
-    exploration) — callers fall back to unscoped accounting.
-    """
-    if not task or not entities:
-        return set()
-    from searchos.harness.middleware.sensor.harness import HarnessMiddleware
-    return HarnessMiddleware._match_entities_in_task(task, entities)
+    """返回任务涉及的所有实体；空集交由调用方按无范围处理。"""
+    from searchos.util.scope import match_entities_in_task
+    return match_entities_in_task(task, entities)
 def _record_skill_failure(skill_name: str, params: dict) -> None:
     """Plan §5.5 写入来源 2 — record a kind=skill StrategyPattern when an
     access skill ran but produced zero new evidence. Scope to the
@@ -330,8 +314,8 @@ def _record_skill_failure(skill_name: str, params: dict) -> None:
     """
     if _ctx.workspace is None:
         return
-    from searchos.socm.strategy import record_strategy_pattern
     from searchos.socm import AntiPatternKind, AntiPatternScope
+    from searchos.socm.strategy import record_strategy_pattern
     entity = str(params.get("entity", "")).strip() if isinstance(params, dict) else ""
     attribute = ""
     if isinstance(params, dict):
@@ -452,10 +436,14 @@ def _build_sub_agent_context(state: Any, *, agent_type: str | None = None) -> st
 
     Sub-agents receive only the task text; this block lists every
     table's schema (and relations) so the agent knows what entities /
-    attributes / relations exist. Cell-level filling is the
-    orchestrator's responsibility — the agent should browse, extract,
-    and let the middleware write evidence.
+    attributes / relations exist. Evidence Extraction commits extracted
+    evidence and updates coverage.
     """
+    from searchos.config.settings import settings
+
+    if not settings.enable_socm_projection:
+        return ""
+
     if agent_type == "writer_agent":
         return _build_writer_socm_block(state)
 
@@ -475,7 +463,7 @@ def _build_sub_agent_context(state: Any, *, agent_type: str | None = None) -> st
         if ts.entities:
             lines.append(
                 f"- Known rows ({len(ts.entities)}): "
-                f"{_format_full_list(ts.entities)}"
+                "(see the current task projection for remaining targets)"
             )
 
     if cmap.relations:
@@ -492,7 +480,7 @@ def _build_sub_agent_context(state: Any, *, agent_type: str | None = None) -> st
     lines.append("")
     lines.append(
         "Note: extract evidence by browsing — the middleware records findings into "
-        "the evidence graph; the orchestrator maps evidence to cells later."
+        "the evidence graph and updates coverage automatically."
     )
     return "\n".join(lines)
 def _build_writer_socm_block(state: Any) -> str:
@@ -657,7 +645,8 @@ def _is_rate_limit_error(result: str) -> bool:
 def _recycle_failed_task(
     task_id: str, agent_id: str, status: str, result: str,
 ) -> None:
-    """失败 agent 的绑定任务回收：翻回 PENDING 允许重派（attempts 已由
+    """失败 agent 的绑定任务回收：循环停止且有有效事实时取消原任务，交回主
+    Agent 核对缺口；其他失败翻回 PENDING 允许重派（attempts 已由
     set_running/next 累加），达到 MAX_TASK_ATTEMPTS 则 CANCELLED。
     429/限流类失败额外记 ``not_before`` 冷却，防止下一个 tick 立刻把
     空槽填回同一个限流里（派发风暴）。"""
@@ -676,7 +665,22 @@ def _recycle_failed_task(
                 continue
             if q.status not in (_Q.RUNNING, _Q.BLOCKED):
                 break
-            if q.attempts >= MAX_TASK_ATTEMPTS:
+            from searchos.socm.coverage import answer_evidence
+            valid_ids = {node.id for node in answer_evidence(s)}
+            has_findings = any(
+                binding.task_id == task_id and binding.evidence_id in valid_ids
+                for binding in s.evidence_graph.task_bindings
+            )
+            if status == "looped" and q.kind == "search" and has_findings:
+                # Stop this attempt without declaring the research complete.
+                # The orchestrator must assess remaining gaps before dispatch.
+                q.status = _Q.CANCELLED
+                q.resolution = (
+                    "partial_evidence_review_required: valid task evidence retained; "
+                    "review with read_evidence and enqueue only concrete unresolved gaps."
+                )
+                outcome["v"] = "review_required"
+            elif q.attempts >= MAX_TASK_ATTEMPTS:
                 q.status = _Q.CANCELLED
                 q.resolution = f"max_attempts ({q.attempts}): {result[:300]}"
                 outcome["v"] = "cancelled"
@@ -688,6 +692,10 @@ def _recycle_failed_task(
                     q.not_before = (
                         _time.time() + _settings.rate_limit_recycle_cooldown_s
                     )
+            q.previous_queries = list(q.attempt_queries or q.previous_queries)
+            q.previous_source_families = list(q.attempt_source_families or q.previous_source_families)
+            q.attempt_queries = []
+            q.attempt_source_families = []
             q.assigned_agent_id = ""
             q.last_agent_report_excerpt = f"[{status}] {agent_id}: {result}"[:200]
             q.updated_at = _time.time()
@@ -738,7 +746,9 @@ def _compute_agent_report(
     import time
 
     from searchos.socm import (
-        SearchReport, ExploreReport, WriterReport,
+        ExploreReport,
+        SearchReport,
+        WriterReport,
     )
 
     duration_s = time.time() - started_at
@@ -908,26 +918,13 @@ def _compute_agent_report(
         # Refresh state for downstream metrics that read frontier.
         state = _ctx.workspace.load_state()
 
-    # Auto-fill CoverageMap from new evidence for existing schema entities.
-    # The extraction middleware only writes EvidenceNodes; we fill cells here.
-    new_nodes = [
-        n for n in state.evidence_graph.nodes
-        if n.id not in pre_snapshot["evidence_ids"]
-    ]
-    if new_nodes:
-        def _fill_from_new_evidence(s: Any) -> Any:
-            s.coverage_map.fill_from_evidence(new_nodes)
-            return s
-        _ctx.workspace.atomic_update_state(_fill_from_new_evidence)
-        state = _ctx.workspace.load_state()
-
     post_filled = {
         k for k, c in state.coverage_map.cells.items()
         if c.status.value == "filled"
     }
     newly_filled = post_filled - pre_snapshot["filled_keys"]
 
-    # Per-agent attribution: each sub-agent's own ExtractionMiddleware records
+    # Per-agent attribution: each sub-agent's ExtractionCoordinator records
     # the node ids it committed. The global pre/post diff (new_nodes) also counts
     # peers' evidence written concurrently, so intersect with that tally; fall
     # back to the scope filter, then the raw diff.
@@ -935,8 +932,12 @@ def _compute_agent_report(
         n for n in state.evidence_graph.nodes
         if n.id not in pre_snapshot["evidence_ids"]
     ]
-    extraction_mw = info.get("extraction_mw") if info else None
-    own_ids = getattr(extraction_mw, "committed_node_ids", None)
+    extraction = info.get("extraction") if info else None
+    extractions = info.get("extractions", ()) if info else ()
+    own_ids = (
+        frozenset(node_id for resource in extractions for node_id in resource.committed_node_ids)
+        if extractions else getattr(extraction, "committed_node_ids", None)
+    )
     if own_ids is not None:
         agent_new_nodes = [n for n in new_nodes if n.id in own_ids]
     elif scope_entities:
@@ -946,22 +947,20 @@ def _compute_agent_report(
 
     # Same attribution for filled cells (newly_filled also holds peer-filled).
     if own_ids is not None:
-        attributing_entities: set[str] | None = {
-            n.entity for n in agent_new_nodes if n.entity
-        }
-    else:
-        attributing_entities = scope_entities
-    if attributing_entities is not None:
-        # Cell keys are "tid/entity.attr" — parse, never prefix-match on
-        # the raw key (the tid prefix made entity prefixes match nothing,
-        # so every scoped agent reported 0 cells filled).
-        from searchos.socm import CoverageMap
         cells_filled = sorted(
-            k for k in newly_filled
-            if CoverageMap.parse_cell_key(k)[1] in attributing_entities
+            key for key in newly_filled
+            if set(state.coverage_map.cells[key].supporting_evidence_ids) & set(own_ids)
         )
     else:
-        cells_filled = sorted(newly_filled)
+        attributing_entities = scope_entities
+        if attributing_entities is not None:
+            from searchos.socm import CoverageMap
+            cells_filled = sorted(
+                k for k in newly_filled
+                if CoverageMap.parse_cell_key(k)[1] in attributing_entities
+            )
+        else:
+            cells_filled = sorted(newly_filled)
 
     schema_entities = set(state.coverage_map.table_schema.entities)
     # Discovered rows = new entities among this agent's own nodes not yet in schema.
@@ -991,6 +990,7 @@ def _compute_agent_report(
 
     return SearchReport(
         agent_id=agent_id,
+        task_ids=[assigned_search_task_id] if assigned_search_task_id else [],
         status=status, result=result,
         cells_filled=cells_filled,
         dead_ends=dead_ends,
@@ -998,9 +998,8 @@ def _compute_agent_report(
         evidence_nodes_added=evidence_nodes_added,
         partial_scope_count=partial_scope_count,
         duration_s=duration_s,
-        # Strip re-pasted data tables — that data is already in evidence/cells;
-        # only the agent's prose conclusions are useful to the orchestrator.
-        last_message=_strip_markdown_tables(last_ai_text),
+        # Preserve tables and scope qualifiers, including data not yet committed.
+        last_message=last_ai_text,
     )
 def _next_agent_label(agent_type: str) -> str:
     """Per-type monotonic label, scoped to the current orchestrator context.
@@ -1027,6 +1026,8 @@ async def _spawn_sub_agent(
     *,
     target_table: str = "",
     search_budget: int | None = None,
+    middleware: list[Any] | None = None,
+    strategy_guidance: str = "",
 ) -> str:
     """Build sub-agent graph, register it, create an asyncio.Task wrapping
     its run — return ``agent_id`` immediately.
@@ -1042,10 +1043,7 @@ async def _spawn_sub_agent(
     import time
 
     from searchos.agents.runtime import create_search_agent_graph
-    from searchos.harness.middleware.sensor.harness import (
-        BudgetState,
-        HarnessMiddleware,
-    )
+    from searchos.harness.middleware.sensor.core.models import BudgetState
 
     assert _ctx.workspace is not None
     assert _ctx.model is not None
@@ -1067,6 +1065,16 @@ async def _spawn_sub_agent(
         )
         agent_type = "search_agent"
 
+    from searchos.agents.orchestrator.catalog import _is_agent_enabled
+    if not _is_agent_enabled(agent_type):
+        raise ValueError(f"Agent is unavailable in this source scope: {agent_type}")
+
+    # Local retrieval is deliberately isolated: Access Skills can include web
+    # executors and their bodies add unrelated routing instructions.
+    if agent_type == _local_search.AGENT_TYPE and skill_names:
+        logger.info("Ignoring skills for isolated local_search_agent")
+        skill_names = []
+
     agent_label = _next_agent_label(agent_type)
     assigned_task_id = ""
     # Bind for every type (scheduler always passes bind_task_id; without
@@ -1087,17 +1095,44 @@ async def _spawn_sub_agent(
 
     # Per-role assembly (paper §Agent Roles): each role package owns its
     # toolset. ``agent_type`` is already normalized to a known role above, so
-    # search injects typed skill_* tools for the dispatched skills, explore
-    # gets browser only, writer gets the drafting tools.
+    # web search injects typed skill_* tools, local search gets local-only
+    # tools, explore gets browser only, writer gets drafting tools.
     role = _ROLE_REGISTRY[agent_type]
-    is_search_type = agent_type == "search_agent"
-    tools = list(role.get_tools(skill_names))
+    from searchos.tools.search_state import _source_scope_var
+    source_scope = _source_scope_var.get()
+    tools = list(role.get_tools(skill_names, model_access=True)) if (
+        agent_type == _local_search.AGENT_TYPE and source_scope is not None
+    ) else list(role.get_tools(skill_names))
 
     # Build system prompt: agent.md first (persona), then SOCM context
     state = _ctx.workspace.load_state()
     prompt_parts: list[str] = []
+    static_assembly_parts: list[str] = []
+    if agent_type == _local_search.AGENT_TYPE and source_scope is not None:
+        paths = "\n".join(
+            f"{r['relative_path']}: documents/{r['document_id']}.md"
+            for r in source_scope.get("documents", [])
+        )
+        if source_scope.get("selection") == "library":
+            prompt_parts.append(
+                "本轮可探索当前知识库的可读文档快照。先按任务使用 local_catalog(query=...) "
+                "检索目录，或读取 local_catalog() 浏览范围；再沿相关文档目录定位并读取原文。"
+                "未匹配文件名不表示库内没有相关材料；可检索摘要和别名。不要遍历无关资料。"
+            )
+        else:
+            prompt_parts.append("本轮只允许读取这些已选文档，直接从对应目录开始：\n" + paths)
+    assigned = next((q for q in state.frontier.questions if q.id == assigned_task_id), None)
+    if assigned and assigned.blocked_by:
+        from searchos.socm.coverage import answer_evidence
+        ids = {b.evidence_id for b in state.evidence_graph.task_bindings
+               if b.task_id in assigned.blocked_by}
+        supporting = [{"id": n.id, "finding": n.finding, "source": n.source}
+                      for n in answer_evidence(state) if n.id in ids]
+        prompt_parts.append("前置任务的已核验发现（按当前问题继续核查）：\n" +
+                            json.dumps(supporting, ensure_ascii=False))
 
     from pathlib import Path
+
     from searchos.config.settings import settings as _prompt_settings
 
     agent_md_name = (
@@ -1112,6 +1147,15 @@ async def _spawn_sub_agent(
         rendered = render_toolset(tools, header="## Available Tools")
         persona = persona.replace("{toolset}", rendered)
         prompt_parts.append(persona)
+        static_assembly_parts.append(persona)
+        if agent_type == _search.AGENT_TYPE and any(
+            getattr(tool, "name", "") == "read_visual" for tool in tools
+        ):
+            image_prompt = agent_md_path.with_name("image_reading.md")
+            if image_prompt.exists():
+                image_instructions = image_prompt.read_text(encoding="utf-8")
+                prompt_parts.append(image_instructions)
+                static_assembly_parts.append(image_instructions)
 
     # After the persona and date-only: dynamic content at the top of the
     # system prompt forks the prompt-cache prefix on every dispatch, so
@@ -1124,48 +1168,12 @@ async def _spawn_sub_agent(
         agent_type,
     ))
 
-    # Explore-specific budget self-awareness. The harness hard-blocks
-    # open() once max_opens is hit, but explore has no extraction
-    # middleware to write coverage/evidence — its only output is the
-    # final assistant briefing. Without an explicit wind-down rule it
-    # spends every open trying to read more pages, then runs out of
-    # budget before emitting the briefing. Pull the cap from
-    # AGENT_BUDGET_OVERRIDES so this stays in sync with settings.
-    if agent_type == "explore_agent":
-        from searchos.config.settings import settings as _s
-
-        _ov = _agent_budget_override("explore_agent")
-        _max_s = _ov.get("max_searches", _s.max_searches_per_sub_agent)
-        _max_o = _ov.get("max_opens", 0)
-        _max_f = _ov.get("max_finds", _s.max_finds_per_sub_agent)
-        if _s.enable_explore_batch:
-            prompt_parts.append(
-                "# Runtime coverage contract\n\n"
-                f"Complete at least **{_s.explore_min_waves}** and at most "
-                f"**{_s.explore_max_waves}** `explore_web` coverage waves. "
-                "A credible hub alone never satisfies the completion rule.\n\n"
-                f"The hard resource caps are **{_max_s} underlying searches** and "
-                f"**{_max_o} underlying page opens**. One batch call is charged "
-                "by the number of queries and `queries × open_top_k`, not as one "
-                "unit. If a proposed batch does not fit, shrink it to the "
-                "remaining capacity.\n\n"
-                "After the minimum waves, stop only when the saturation checklist "
-                "in your role prompt passes or the resource/wave cap is reached. "
-                "Always reserve one final model turn to emit the complete briefing "
-                "as a plain assistant message with no tool call.\n\n"
-                "Coverage and evidence nodes will stay at zero throughout your "
-                "run — that is by design (no extraction middleware is attached "
-                "to explore). Your value is the briefing text, nothing else."
-            )
-        else:
-            prompt_parts.append(
-                "# Legacy budget discipline\n\n"
-                f"You have a hard cap of **{_max_s} `search()` calls**, "
-                f"**{_max_o} `open()` calls**, and **{_max_f} `find()` calls**. "
-                f"After your **{max(1, _max_o - 1)}-th** `open()`, do one final "
-                "`find()` if needed and immediately emit the final briefing as "
-                "a plain assistant message with no tool call."
-            )
+    route_task = next((q for q in state.frontier.questions if q.id == assigned_task_id), None)
+    if route_task:
+        from searchos.socm.retry_routes import retry_route_prompt
+        route_prompt = retry_route_prompt(route_task)
+        if route_prompt:
+            prompt_parts.append(route_prompt)
 
     scope_entities = _detect_scope_entities(
         task, state.coverage_map.table_schema.entities,
@@ -1186,7 +1194,7 @@ async def _spawn_sub_agent(
                 missing_skills.append(sname)
                 continue
             if skill.body:
-                skill_parts.append(f"### {skill.meta.name}\n{skill.body}")
+                skill_parts.append(f"### {skill.meta.name}\n{skill.meta.description}")
                 # Anti-patterns live in a sibling ``anti_patterns.md``
                 # and are loaded separately into the Skill object. Inject
                 # only the one-line index by default; sub-agents pull
@@ -1201,16 +1209,13 @@ async def _spawn_sub_agent(
                         "details if any of these look relevant):\n"
                         + ap_index
                     )
-                if skill.meta.has_executor:
-                    # Access skills are exposed as typed tools named
-                    # ``skill_<name>`` (auto-registered via get_skill_tools
-                    # from manifest.yaml's params_schema).
-                    skill_parts.append(
-                        f"**Note**: call `skill_{sname}(...)` directly — "
-                        "the tool is typed (see its args schema)."
-                    )
+                skill_parts.append(
+                    f"Call `load_skill(\"{sname}\")` to bind the package version, "
+                    "then follow its instructions with `exec`. Read the returned "
+                    "skill:// pages with `open/find`; command logs are diagnostics."
+                )
         if skill_parts:
-            prompt_parts.append("## Loaded Skills\n" + "\n\n".join(skill_parts))
+            prompt_parts.append("## Recommended Skills\n" + "\n\n".join(skill_parts))
 
     # Plan §5.5 消费方 — Control: inject anti-patterns so the agent
     # avoids paths that have already failed in this session. Scoped by
@@ -1226,76 +1231,72 @@ async def _spawn_sub_agent(
     if ap_block:
         prompt_parts.append(ap_block)
 
+    if assigned and assigned.result_mode == "findings":
+        prompt_parts.append(
+            "Read sources to collect supported facts and limitations for the assigned question. "
+            "Evidence Extraction automatically binds verified evidence to this task. "
+            "Evidence Extraction uses the applicable schema and fills supported cells "
+            "automatically; without a schema, Extraction records independent findings. "
+            "Preserve source references and identify unresolved questions."
+        )
+    strategy_guidance_applied = bool(strategy_guidance and agent_type in {"search_agent", "local_search_agent"})
+    if strategy_guidance_applied:
+        prompt_parts.append("## 本次子任务的候选检索方法\n权限、来源范围和预算仍遵守已有规则。\n" + strategy_guidance)
     system_prompt = "\n\n".join(prompt_parts)
 
-    # Create middleware for trajectory logging + loop detection
-    middleware_stack = []
-    if _ctx.trajectory_logger:
-        from searchos.config.settings import settings
-        from searchos.harness.middleware.sensor.loop_sensor import LoopSensorImpl
+    # Enforce budgets independently of optional trajectory logging.
+    from searchos.config.settings import settings
 
-        override = _agent_budget_override(agent_type)
-        # Precedence: per-task > agent-type override > settings default.
-        if search_budget is not None:
-            max_searches = max(
-                1, min(int(search_budget),
-                       settings.max_searches_per_sub_agent_ceiling),
-            )
-        else:
-            max_searches = override.get("max_searches", settings.max_searches_per_sub_agent)
-        max_opens = override.get("max_opens", 0)
-        max_finds = override.get("max_finds", settings.max_finds_per_sub_agent)
-
-        sensors: list[Any] = [LoopSensorImpl(
-            workspace=_ctx.workspace,
-            thread_id=agent_label,
-        )]
-
-        worker_mw = HarnessMiddleware(
-            sensors=sensors,
-            trajectory_logger=_ctx.trajectory_logger,
-            budget=BudgetState(
-                max_queries=max_searches,
-                max_opens=max_opens,
-                max_finds=max_finds,
-            ),
-            workspace=_ctx.workspace,
-            worker_name=agent_label,
+    override = _agent_budget_override(agent_type)
+    # Precedence: per-task > agent-type override > settings default.
+    if search_budget is not None:
+        max_searches = max(
+            1, min(int(search_budget),
+                   settings.max_searches_per_sub_agent_ceiling),
         )
+    else:
+        max_searches = override.get("max_searches", settings.max_searches_per_sub_agent)
+    max_opens = override.get("max_opens", 0)
+    max_finds = override.get("max_finds", settings.max_finds_per_sub_agent)
+    has_access_skill = any(
+        (str(getattr(tool, "name", "")).startswith("skill_") or getattr(tool, "name", "") == "exec")
+        for tool in tools
+    )
+    max_skills = (
+        override.get("max_skills", settings.max_skills_per_sub_agent)
+        if has_access_skill else 0
+    )
 
-        from searchos.harness.middleware import build_layered_stack
-        from searchos.harness.middleware.context import ControlMiddleware
-        from searchos.harness.middleware.extraction import ExtractionMiddleware
+    from searchos.harness.middleware import ControlState, SourceContext, TaskContext
+    from searchos.harness.middleware.pipelines import (
+        explore_pipeline, local_search_pipeline, web_search_pipeline, writer_pipeline,
+    )
 
-        sensor_mw: list = [worker_mw]
-        extraction_mw: list = []
-        _extraction_instance = None
-        if is_search_type and _ctx.extraction_model is not None:
-            _extraction_instance = ExtractionMiddleware(
-                judge_model=_ctx.extraction_model,
-                alias_resolver_model=_ctx.alias_resolver_model,
-                workspace=_ctx.workspace,
-                trajectory_logger=_ctx.trajectory_logger,
+    budget = BudgetState(
+        max_queries=max_searches, max_opens=max_opens,
+        max_finds=max_finds, max_skills=max_skills,
+    )
+    control = ControlState()
+    task_context = TaskContext(agent_label, assigned_task_id, target_table, task)
+
+    if agent_type == _local_search.AGENT_TYPE:
+        from searchos.local.reader.tools import reset_local_browser
+
+        if source_scope is not None:
+            from searchos.local.index.source_registry import SourceRecord
+            records = [SourceRecord.model_validate(r) for r in source_scope.get("documents", [])]
+            browser_state = reset_local_browser(
+                source_scope["index_root"],
+                source_roots=[Path(r.source_path).parent for r in records],
+                selected_documents={r.document_id: (r.source_revision, r.generation) for r in records},
             )
-            extraction_mw.append(_extraction_instance)
-            # Hand the same extraction instance to HarnessMiddleware so it can
-            # ``await_pending_flushes`` before rendering each SOCM update — without
-            # this, the per-turn snapshot may miss evidence that's still in the
-            # background flush queue from the prior tool call.
-            worker_mw._extraction_mw = _extraction_instance
-        control_mw: list = [ControlMiddleware(
-            workspace=_ctx.workspace,
-            layer2_max_tokens=settings.layered_context_layer2_max_tokens,
-            evidence_source=_extraction_instance,
-            trim_max_tokens_fraction=0.85,
-            force_layered=False if not is_search_type else None,
-        )]
-        middleware_stack.extend(build_layered_stack(
-            control=control_mw, sensor=sensor_mw, extraction=extraction_mw,
-        ))
+            browser_state.selected_records = {r.document_id: r for r in records}
+        else:
+            reset_local_browser()
+    elif agent_type in {_search.AGENT_TYPE, _explore.AGENT_TYPE}:
+        from searchos.tools.simple_browser import reset_browser_for_sub_agent
 
-    from searchos.tools.simple_browser import reset_browser_for_sub_agent
-    reset_browser_for_sub_agent()
+        reset_browser_for_sub_agent()
 
     from deepagents.backends import FilesystemBackend
     agent_backend = FilesystemBackend(
@@ -1303,24 +1304,80 @@ async def _spawn_sub_agent(
         virtual_mode=False,
     )
 
-    # Create and run graph — sub-agents use the sub_agent role, separate
-    # from the orchestrator's main loop. Falls back to orchestrator model
-    # if sub_agent role wasn't bound (legacy callers).
+    # Writer 使用 synthesis 角色；未绑定角色时沿用通用子 Agent 模型。
     logger.info("Sub-agent '%s' tools: %s", agent_type, [getattr(t, "name", str(t)) for t in tools])
     sub_agent_model = _ctx.sub_agent_model or _ctx.model
-    graph = create_search_agent_graph(
-        model=sub_agent_model,
-        tools=tools,
-        system_prompt=system_prompt,
-        middleware=middleware_stack,
-        backend=agent_backend,
-        name=agent_type,
+    if agent_type == "writer_agent" and _ctx.synthesis_model is not None:
+        sub_agent_model = _ctx.synthesis_model
+    graph_options = dict(
+        model=sub_agent_model, tools=tools, system_prompt=system_prompt,
+        backend=agent_backend, name=agent_type,
+    )
+    if middleware is not None:
+        from searchos.agents.execution import bind_controls
+        from searchos.harness.middleware.pipelines import WRITER_DRAIN_TOOLS
+
+        runtime_control = bind_controls(middleware)
+        runtime_policy = None
+        if agent_type == "explore_agent" and settings.enable_explore_batch:
+            from searchos.agents.explore.policy import ExplorePolicy
+            from searchos.config.run_config import current_run_config
+
+            config = current_run_config()
+            runtime_policy = ExplorePolicy(
+                max_waves=config.explore_max_waves,
+                control=runtime_control,
+            )
+        graph = create_search_agent_graph(
+            **graph_options, middleware=middleware, workspace=_ctx.workspace,
+            trajectory_logger=_ctx.trajectory_logger, conversation_logger=_ctx.conversation_logger,
+            agent_id=agent_label, control=runtime_control, policy=runtime_policy,
+            drain_tools=WRITER_DRAIN_TOOLS if agent_type == "writer_agent" else frozenset(),
+            finish_without_tools=agent_type != "writer_agent",
+            emit_tool_started=agent_type == "explore_agent",
+        )
+    else:
+        pipeline = {
+            "search_agent": web_search_pipeline,
+            "local_search_agent": local_search_pipeline,
+            "explore_agent": explore_pipeline,
+            "writer_agent": writer_pipeline,
+        }[agent_type]
+        options = dict(
+            workspace=_ctx.workspace, task=task_context, budget=budget, control=control,
+            agent_graphs=_ctx.agent_graphs, trajectory_logger=_ctx.trajectory_logger,
+            conversation_logger=_ctx.conversation_logger,
+        )
+        if agent_type in {"search_agent", "local_search_agent"}:
+            hybrid = (_ctx.workspace.load_state().source_scope or {}).get("mode") == "hybrid"
+            options.update(
+                extraction_model=_ctx.extraction_model,
+                extraction_policy="schema_facts" if hybrid else "task_rows",
+                final_summary=not hybrid,
+                source=SourceContext(workspace=_ctx.workspace, scope=source_scope),
+            )
+        graph = pipeline(**graph_options, **options)
+
+    from searchos.harness.middleware.sensor.progress_middleware import ReadingProgressMiddleware
+    from searchos.agents.execution import loaded_resources
+
+    components = getattr(graph, "middleware", middleware or ())
+    resources = loaded_resources(components)
+    source_progress = next(
+        (component.sources for component in components
+         if isinstance(component, ReadingProgressMiddleware)), set(),
+    )
+    control = next(
+        (component.control for component in components if hasattr(component, "control")),
+        getattr(graph, "control", None),
     )
 
     thread_id = agent_label
 
     from searchos.tools.search_state import (
-        set_current_agent, set_current_task, set_current_table,
+        set_current_agent,
+        set_current_table,
+        set_current_task,
     )
     set_current_agent(thread_id)
     set_current_task(task)
@@ -1336,11 +1393,25 @@ async def _spawn_sub_agent(
         )
 
     if _ctx.trajectory_logger:
+        def _tool_schema(tool: Any) -> dict[str, Any]:
+            args_schema = getattr(tool, "args_schema", None)
+            if hasattr(args_schema, "model_json_schema"):
+                schema = args_schema.model_json_schema()
+            elif isinstance(args_schema, dict):
+                schema = args_schema
+            else:
+                schema = {}
+            return {"name": getattr(tool, "name", str(tool)), "schema": schema}
+
         _ctx.trajectory_logger._append_raw({
             "type": "dispatch",
             "agent": agent_label,
             "task": task,
             "skills": skill_names,
+            "tool_schemas": [_tool_schema(tool) for tool in tools],
+            "static_prompt_sha256": hashlib.sha256(
+                "\n\n".join(static_assembly_parts).encode("utf-8"),
+            ).hexdigest(),
         })
 
     wrapped_task = task
@@ -1355,6 +1426,7 @@ async def _spawn_sub_agent(
         "task": task,
         "wrapped_task": wrapped_task,
         "skill_names": list(skill_names),
+        "strategy_guidance_applied": strategy_guidance_applied,
         "missing_skills": missing_skills,
         "pre_snapshot": pre_snapshot,
         "scope_entities": scope_entities,  # used by _compute_agent_report to
@@ -1363,7 +1435,10 @@ async def _spawn_sub_agent(
         "continue_turn_count": 1,
         "assigned_task_id": assigned_task_id,
         "target_table": target_table,
-        "extraction_mw": _extraction_instance,
+        "extraction": resources[0] if resources else None,
+        "extractions": resources,
+        "control": control,
+        "source_progress": source_progress,
     }
 
     t = asyncio.create_task(
@@ -1401,10 +1476,14 @@ async def _collect_sub_agent_result(agent_id: str) -> Any:
     agent_type = info.get("agent_type", "search_agent")
 
     from searchos.tools.search_state import (
-        set_current_agent, set_current_task, set_current_table,
+        set_current_agent,
+        set_current_table,
+        set_current_task,
     )
     set_current_agent(thread_id)
     set_current_task(task_desc)
+    from searchos.tools.search_state import _current_task_id_var
+    _current_task_id_var.set(info.get("assigned_task_id", ""))
     set_current_table(target_table)
 
 
@@ -1430,18 +1509,6 @@ async def _collect_sub_agent_result(agent_id: str) -> Any:
                         conv_msg.parent_agent = "orchestrator"
                         _ctx.conversation_logger.log(conv_msg)
                 prev_msg_count = len(msgs)
-
-        # Drain extraction before reading state for the report — an agent
-        # interrupted mid-tool-call (recursion/budget) has no final turn, so
-        # its residual buffer / background flushes are otherwise uncounted and
-        # the report undercounts cells → orchestrator re-dispatches filled work.
-        ext = info.get("extraction_mw") if info else None
-        if ext is not None:
-            from searchos.config.settings import settings as _s
-            try:
-                await ext.finalize(timeout=_s.extraction_finalize_timeout_s)
-            except Exception:  # noqa: BLE001
-                logger.warning("extraction finalize failed for %s", agent_id, exc_info=True)
 
         # Human-readable result. Deliberately NO global stats here: global
         # coverage/frontier numbers in a per-agent result read as task
@@ -1586,13 +1653,6 @@ async def _collect_sub_agent_result(agent_id: str) -> Any:
                 "error_type": type(e).__name__,
                 "traceback": tb[-2000:],
             })
-        ext = info.get("extraction_mw") if info else None
-        if ext is not None:
-            from searchos.config.settings import settings as _s
-            try:
-                await ext.finalize(timeout=_s.extraction_finalize_timeout_s)
-            except Exception:  # noqa: BLE001
-                logger.warning("extraction finalize (error path) failed for %s", agent_id, exc_info=True)
         report = _compute_agent_report(
             agent_id=agent_id, thread_id=thread_id,
             pre_snapshot=pre_snapshot, started_at=started_at,

@@ -1,0 +1,21 @@
+{
+  "description": "Fetches TV show information, critic reviews, and details from Metacritic including metascores, user scores, cast, crew, and individual review scores with quotes.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_tv_show_info: 获取电视剧基本信息，包括metascore评分、简介、演员等; 参数: show_slug; 必填: show_slug\n  - get_critic_reviews: 获取电视剧的评论家评论列表，包含每条评论的分数和摘要; 参数: show_slug; 必填: show_slug\n  - get_show_details: 获取电视剧详细信息，包括完整演职人员、制作公司等; 参数: show_slug; 必填: show_slug"
+    },
+    "show_slug": {
+      "type": "string",
+      "required": true,
+      "description": "电视剧在Metacritic URL中的标识符。\n例如: 对于 https://www.metacritic.com/tv/adolescence/，show_slug 为 \"adolescence\""
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

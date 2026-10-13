@@ -1,0 +1,26 @@
+{
+  "description": "Fetches structured country information (capital, currency, ISO codes, location, calling code, area, etc.) from www.lddgo.net country detail pages.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_country: Fetch details for a country by its ISO 3166-1 alpha-3 code (cca3); 参数: cca3, country_name; 必填: cca3\n  - get_country_by_name: Fetch details for a country by name, also requires cca3 code; 参数: country_name, cca3; 必填: cca3, country_name"
+    },
+    "cca3": {
+      "type": "string",
+      "required": true,
+      "description": "ISO 3166-1 alpha-3 country code (3-letter code like 'FRA', 'USA', 'JPN', 'CHN', 'DEU'). Required for both get_country and get_country_by_name functions."
+    },
+    "country_name": {
+      "type": "string",
+      "required": false,
+      "description": "Country name in English (e.g., 'France', 'United States', 'Japan'). Required for get_country_by_name; optional for get_country (improves URL matching if provided)."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "description": "Fetches global mean sea level (GMSL) time-series data and release information from the University of Colorado Sea Level Research Group (sealevel.colorado.edu).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - fetch_gmsl_timeseries: 获取全球平均海平面时间序列数据; 需要 release 参数，可选 start_year, end_year, limit; 参数: release, start_year, end_year, limit; 必填: 无\n  - list_releases: 列出所有可用的数据发布版本; 参数: 无; 必填: 无\n  - get_release_info: 获取指定版本的详细信息; 需要 release 参数; 参数: release; 必填: 无"
+    },
+    "release": {
+      "type": "string",
+      "required": false,
+      "description": "数据发布版本标识符，格式为 YYYY_relN（例如 \"2026_rel1\"）。\n用于 fetch_gmsl_timeseries 和 get_release_info 功能。"
+    },
+    "start_year": {
+      "type": "integer",
+      "required": false,
+      "description": "起始年份过滤，用于 fetch_gmsl_timeseries 功能。\n仅返回该年份及之后的数据点。"
+    },
+    "end_year": {
+      "type": "integer",
+      "required": false,
+      "description": "结束年份过滤，用于 fetch_gmsl_timeseries 功能。\n仅返回该年份及之前的数据点。"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回数据点数量的上限，用于 fetch_gmsl_timeseries 功能。\n默认返回所有数据点。"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

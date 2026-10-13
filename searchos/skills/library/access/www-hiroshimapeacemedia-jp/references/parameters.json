@@ -1,0 +1,43 @@
+{
+  "description": "Fetches the Peace Museums of the World directory from Hiroshima Peace Media, including regional listings, museum details, and search capabilities.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_museums: 列出所有和平博物馆，按地区分组；可选参数: region, country; 参数: region, country; 必填: 无\n  - get_museum: 获取单个博物馆详情；需要参数: slug 或 url; 参数: slug, url; 必填: 无\n  - search_museums: 按名称搜索博物馆；需要参数: query; 参数: query; 必填: 无\n  - get_regions: 获取所有地区列表及博物馆数量; 参数: 无; 必填: 无"
+    },
+    "region": {
+      "type": "string",
+      "required": false,
+      "description": "按地区筛选 (JAPAN, ASIA, AFRICA, EUROPE, AMERICAS, OCEANIA)；list_museums 使用"
+    },
+    "country": {
+      "type": "string",
+      "required": false,
+      "description": "按国家筛选；list_museums 使用"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "博物馆页面标识符 (如 20080526231943237_en)；get_museum 使用"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "博物馆详情页完整 URL；get_museum 使用"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词；search_museums 使用"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

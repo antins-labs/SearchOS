@@ -1,0 +1,49 @@
+{
+  "description": "Retrieves flight route information from www.flightsfrom.com for any airport, including destinations, airlines, schedules, and route details.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_airport_routes: Get all routes from a specific airport (requires airport_code); 参数: include_airlines, airport_code; 必填: 无\n  - get_airport_info: Get basic airport information (requires airport_code); 参数: airport_code; 必填: 无\n  - search_destinations: Search destinations by country or city (requires airport_code + country or city); 参数: airport_code, country, city; 必填: 无\n  - get_route_details: Get details for a specific route (requires from_airport + to_airport); 参数: from_airport, to_airport; 必填: 无"
+    },
+    "include_airlines": {
+      "type": "boolean",
+      "default": true,
+      "required": false,
+      "description": "Include detailed airline information in the response.\nUsed by get_airport_routes."
+    },
+    "airport_code": {
+      "type": "string",
+      "required": false,
+      "description": "IATA airport code (3 letters, e.g., 'JFK', 'LHR', 'HIA').\nRequired for get_airport_routes, get_airport_info, and search_destinations."
+    },
+    "country": {
+      "type": "string",
+      "required": false,
+      "description": "Filter destinations by country name (partial match, case-insensitive).\nUsed by search_destinations."
+    },
+    "city": {
+      "type": "string",
+      "required": false,
+      "description": "Filter destinations by city name (partial match, case-insensitive).\nUsed by search_destinations."
+    },
+    "from_airport": {
+      "type": "string",
+      "required": false,
+      "description": "Origin airport IATA code.\nRequired for get_route_details."
+    },
+    "to_airport": {
+      "type": "string",
+      "required": false,
+      "description": "Destination airport IATA code.\nRequired for get_route_details."
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

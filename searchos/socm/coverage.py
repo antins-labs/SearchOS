@@ -7,13 +7,17 @@ Multi-table: ``tables`` keyed by table_id; cell keys are
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, Literal
 
 from pydantic import Field, computed_field
 
-from searchos.socm.evidence import EvidenceGraph, EvidenceNode, EvidenceStatus
+from searchos.socm.evidence import EvidenceComparison, EvidenceNode, EvidenceStatus
 from searchos.util.base_model import CamelModel
+
+if TYPE_CHECKING:
+    from searchos.socm.state import SearchState
 
 
 class CellStatus(str, Enum):
@@ -81,6 +85,8 @@ class CoverageCell(CamelModel):
     display_hint: str = ""
     primary_evidence_id: str = ""
     conflict_evidence_ids: list[str] = Field(default_factory=list)
+    conflict_history_evidence_ids: list[str] = Field(default_factory=list)
+    conflict_status: Literal["clear", "pending", "uncertain", "confirmed"] = "clear"
 
     @computed_field  # type: ignore[misc]
     @property
@@ -88,10 +94,17 @@ class CoverageCell(CamelModel):
         return self.display_hint
 
 
+class CellEvidenceBinding(CamelModel):
+    """一条事实在一个单元格中的投影；状态仅作用于该用途。"""
+
+    evidence_id: str
+    value: str
+    alignment: str = "full"
+    status: EvidenceStatus = EvidenceStatus.ACTIVE
+
+
 class SchemaMode(str, Enum):
-    # Both modes grow during search (orphan evidence promotes rows). The mode
-    # only signals whether the initial row denominator is seeded — which
-    # drives coverage scoring and writer-trigger gating, not growth.
+    # 初始化模式影响抽取规划；新增行始终先完成身份校验。
     CLOSED = "closed"           # seeded upfront, still grows
     COLUMN_ONLY = "column_only" # unseeded, rows discovered from scratch
 
@@ -156,6 +169,8 @@ class CoverageMap(CamelModel):
     cells: dict[str, CoverageCell] = Field(default_factory=dict)
     # Cells popped by remove_entity; restore_entity puts them back verbatim.
     removed_cells: dict[str, CoverageCell] = Field(default_factory=dict)
+    evidence_bindings: dict[str, list[CellEvidenceBinding]] = Field(default_factory=dict)
+    evidence_comparisons: dict[str, dict[str, EvidenceComparison]] = Field(default_factory=dict)
 
     def initialize(
         self, entities: list[str], attributes: list[str],
@@ -212,11 +227,63 @@ class CoverageMap(CamelModel):
     def get_table(self, table_id: str) -> TableSchema | None:
         return self.tables.get(table_id)
 
+    def add_columns(self, table_id: str, columns: dict[str, ColumnDesc]) -> list[str]:
+        """原子扩展非主键列；不修改原有单元格、证据或已排除行。"""
+        schema = self.tables.get(table_id)
+        if schema is None:
+            raise ValueError(f"Unknown table: {table_id}")
+        if not columns:
+            raise ValueError("At least one column is required")
+        names = list(schema.attributes)
+        added = []
+        for name, description in columns.items():
+            if not isinstance(name, str) or not name.strip() or name != name.strip():
+                raise ValueError("Column names must be non-empty and have no surrounding whitespace")
+            if not isinstance(description, ColumnDesc):
+                raise ValueError("Column descriptions must be validated ColumnDesc values")
+            if name in schema.attributes:
+                if description != schema.column_desc.get(name, ColumnDesc()):
+                    raise ValueError(f"Cannot redefine existing column: {name}")
+                continue
+            collision = self._resolve_name(name, names, schema.attribute_aliases)
+            if collision is not None or name in schema.attribute_aliases:
+                raise ValueError(f"Column {name!r} conflicts with an existing name or alias")
+            names.append(name)
+            added.append(name)
+        # Dots in entity/attribute names are allowed; their composite keys must
+        # still identify one cell, including cells of excluded rows.
+        keys = set()
+        for entity in [*schema.entities, *schema.removed_entities]:
+            for name in names:
+                key = self.cell_key(table_id, entity, name)
+                if key in keys:
+                    raise ValueError(f"Ambiguous cell key: {key}")
+                keys.add(key)
+        new_cells = {self.cell_key(table_id, entity, name): CoverageCell()
+                     for entity in schema.entities for name in added}
+        if any(key in self.cells or key in self.removed_cells for key in new_cells):
+            raise ValueError("New columns conflict with existing cell records")
+        schema.attributes.extend(added)
+        schema.column_desc.update({name: columns[name].model_copy(deep=True) for name in added})
+        self.cells.update(new_cells)
+        return added
+
     def _effective_table_id(self, table_id: str = "") -> str:
         return table_id or self.primary_table_id
 
     def cell_key(self, table_id: str, entity: str, attr: str) -> str:
         return f"{table_id}/{entity}.{attr}"
+
+    def cell_binding(self, key: str) -> tuple[str, str, str] | None:
+        """按 schema 解析归属，允许实体名和列名包含句点。"""
+        tid, separator, rest = key.partition("/")
+        schema = self.tables.get(tid)
+        if not separator or schema is None:
+            return None
+        rows = {*schema.entities, *schema.removed_entities}
+        matches = [(tid, rest[:-(len(attr) + 1)], attr) for attr in schema.attributes
+                   if rest.endswith(f".{attr}") and rest[:-(len(attr) + 1)] in rows]
+        return matches[0] if len(matches) == 1 else None
 
     @staticmethod
     def parse_cell_key(key: str) -> tuple[str, str, str]:
@@ -262,47 +329,57 @@ class CoverageMap(CamelModel):
     # ---- Cell key resolution (multi-table aware) ----
 
     def _resolve_cell_key(self, entity: str, attribute: str, *, table_id: str = "") -> str | None:
+        """只挂载到已确认的行列，不猜测相似实体。"""
         tid = self._effective_table_id(table_id)
-        # Apply alias maps from extraction auto-bind (row "Louise Glück"→"2020",
-        # column "Designed by"→"Primary Creator").
-        ts = self.tables.get(tid)
-        if ts is not None:
-            if entity in ts.entity_aliases:
-                entity = ts.entity_aliases[entity]
-            if attribute in ts.attribute_aliases:
-                attribute = ts.attribute_aliases[attribute]
-        key = self.cell_key(tid, entity, attribute)
-        if key in self.cells:
-            return key
-
-        # Fuzzy match scoped to the table
-        entity_low = entity.lower()
-        attr_low = attribute.lower()
-        prefix = f"{tid}/"
-        scored: list[tuple[int, str]] = []
-        for cell_key in self.cells:
-            if not cell_key.startswith(prefix):
-                continue
-            rest = cell_key[len(prefix):]
-            parts = rest.rsplit(".", 1)
-            if len(parts) != 2:
-                continue
-            cell_ent, cell_attr = parts
-            ent_score = self._fuzzy_name_score(entity_low, cell_ent.lower())
-            attr_score = self._fuzzy_name_score(attr_low, cell_attr.lower())
-            if ent_score > 0 and attr_score > 0:
-                scored.append((ent_score + attr_score, cell_key))
-
-        if not scored:
+        entity = self.resolve_entity(entity, table_id=tid)
+        attribute = self.resolve_attribute(attribute, table_id=tid)
+        if entity is None or attribute is None:
             return None
-        scored.sort(reverse=True)
-        best_score, best_key = scored[0]
-        if len(scored) == 1:
-            return best_key
-        second_score, _ = scored[1]
-        if best_score < second_score * self._FUZZY_AMBIGUITY_MARGIN:
-            return None  # ambiguous
-        return best_key
+        key = self.cell_key(tid, entity, attribute)
+        return key if key in self.cells else None
+
+    @classmethod
+    def _resolve_name(cls, raw: str, names: list[str], aliases: dict[str, str]) -> str | None:
+        """归一化和显式别名共用同一规则，歧义时不匹配。"""
+        seen: set[str] = set()
+        while raw not in seen:
+            seen.add(raw)
+            if raw in names:
+                return raw
+            norm = cls._normalize_for_fuzzy(raw.lower())
+            if not norm:
+                return None
+            target = aliases.get(raw)
+            if target is None and raw not in names:
+                matches = {v for k, v in aliases.items()
+                           if cls._normalize_for_fuzzy(k.lower()) == norm}
+                if len(matches) > 1:
+                    return None
+                target = next(iter(matches), None)
+            if target is not None and target != raw:
+                raw = target
+                continue
+            matches = [n for n in names if cls._normalize_for_fuzzy(n.lower()) == norm]
+            return matches[0] if len(matches) == 1 else None
+        return None
+
+    def resolve_row(self, entity: str, *, table_id: str = "") -> tuple[str | None, str]:
+        """返回规范名称及 active/excluded/missing 状态。"""
+        schema = self.tables.get(self._effective_table_id(table_id))
+        if schema is None:
+            return None, "missing"
+        name = self._resolve_name(
+            entity, [*schema.entities, *schema.removed_entities], schema.entity_aliases,
+        )
+        if name is None:
+            return None, "missing"
+        return name, "excluded" if name in schema.removed_entities else "active"
+
+    def resolve_attribute(self, attribute: str, *, table_id: str = "") -> str | None:
+        schema = self.tables.get(self._effective_table_id(table_id))
+        if schema is None:
+            return None
+        return self._resolve_name(attribute, schema.attributes, schema.attribute_aliases)
 
     def resolve_entity(self, entity: str, *, table_id: str = "") -> str | None:
         """Resolve a raw PK string to an existing canonical row, or None.
@@ -315,21 +392,8 @@ class CoverageMap(CamelModel):
         variance (case, whitespace, unicode quotes/dashes). Reorder /
         abbreviation variants are left to the LLM, where a miss is at worst a
         visible duplicate row, never a wrong merge."""
-        tid = self._effective_table_id(table_id)
-        schema = self.tables.get(tid)
-        if schema is None:
-            return None
-        if entity in schema.entity_aliases:
-            entity = schema.entity_aliases[entity]
-        if entity in schema.entities:
-            return entity
-        norm = self._normalize_for_fuzzy(entity.lower())
-        if not norm:
-            return None
-        for cand in schema.entities:
-            if self._normalize_for_fuzzy(cand.lower()) == norm:
-                return cand
-        return None
+        canonical, status = self.resolve_row(entity, table_id=table_id)
+        return canonical if status == "active" else None
 
     # Unicode punctuation → ASCII fold. Sources serialize the same name with
     # different quote/dash glyphs (nobelprize.org "L’Huillier" U+2019 vs the
@@ -401,7 +465,7 @@ class CoverageMap(CamelModel):
 
         return 0
 
-    _ALIGNMENT_RANK = {"full": 3, "partial": 2, "loose": 1, "": 0}
+    _ALIGNMENT_RANK: ClassVar[dict[str, int]] = {"full": 3, "partial": 2, "loose": 1, "": 0}
 
     def fill(
         self, entity: str, attribute: str, *,
@@ -409,8 +473,7 @@ class CoverageMap(CamelModel):
         confidence: float = 0.5, tier: int = 1,
         display_hint: str = "", table_id: str = "",
     ) -> None:
-        """Record a finding against a cell. Winner is lexicographic max of
-        (tier, alignment, confidence); ANY value disagreement flags conflict."""
+        """挂载证据并选择展示值；文本差异交给独立的语义比较。"""
         key = self._resolve_cell_key(entity, attribute, table_id=table_id)
         if key is None:
             return
@@ -418,12 +481,6 @@ class CoverageMap(CamelModel):
 
         if finding_id and finding_id not in cell.supporting_evidence_ids:
             cell.supporting_evidence_ids.append(finding_id)
-
-        if display_hint and cell.display_hint and display_hint != cell.display_hint:
-            cell.has_conflict = True
-            for fid in (cell.primary_evidence_id, finding_id):
-                if fid and fid not in cell.conflict_evidence_ids:
-                    cell.conflict_evidence_ids.append(fid)
 
         new_key = (tier, self._ALIGNMENT_RANK.get(alignment, 0), confidence)
         old_key = (cell.best_tier, self._ALIGNMENT_RANK.get(cell.best_alignment, 0),
@@ -466,23 +523,15 @@ class CoverageMap(CamelModel):
     def is_removed_entity(self, entity: str, *, table_id: str = "") -> bool:
         """Exact or normalized hit on a soft-deleted entity (stops spelling
         variants from bypassing the soft delete to re-enter the table)."""
-        tid = self._effective_table_id(table_id)
-        schema = self.tables.get(tid)
-        if schema is None or not schema.removed_entities:
-            return False
-        if entity in schema.removed_entities:
-            return True
-        norm = self._normalize_for_fuzzy(entity.lower())
-        return any(
-            self._normalize_for_fuzzy(r.lower()) == norm
-            for r in schema.removed_entities
-        )
+        _, status = self.resolve_row(entity, table_id=table_id)
+        return status == "excluded"
 
     def remove_entity(self, entity: str, *, table_id: str = "", reason: str = "") -> bool:
         """Soft-delete a row: drop from entities, stash its cells. Evidence
         nodes stay in the graph for audit."""
         tid = self._effective_table_id(table_id)
         schema = self.tables.get(tid)
+        entity = self.resolve_entity(entity, table_id=tid)
         if schema is None or entity not in schema.entities:
             return False
         schema.entities.remove(entity)
@@ -498,7 +547,8 @@ class CoverageMap(CamelModel):
         """Reverse a soft-delete: row returns with its original cells."""
         tid = self._effective_table_id(table_id)
         schema = self.tables.get(tid)
-        if schema is None or entity not in schema.removed_entities:
+        entity, status = self.resolve_row(entity, table_id=tid)
+        if schema is None or entity is None or status != "excluded":
             return False
         schema.removed_entities.pop(entity, None)
         if entity not in schema.entities:
@@ -528,17 +578,25 @@ class CoverageMap(CamelModel):
         if not new_name or new_name.strip() == canonical:
             return True, "no rename needed", canonical
         new_name = new_name.strip()
-        if new_name in schema.entities:
+        target, target_status = self.resolve_row(new_name, table_id=tid)
+        if target_status == "active" and target != canonical:
             return False, f"target name {new_name!r} already exists", canonical
-        if self.is_removed_entity(new_name, table_id=tid):
+        if target_status == "excluded":
             return False, f"target name {new_name!r} is in removed_entities", canonical
 
+        aliases = [alias for alias in schema.entity_aliases
+                   if self.resolve_entity(alias, table_id=tid) == canonical]
         idx = schema.entities.index(canonical)
         schema.entities[idx] = new_name
+        for alias in aliases:
+            schema.entity_aliases[alias] = new_name
+        schema.entity_aliases.pop(new_name, None)
         schema.entity_aliases[canonical] = new_name
         for attr in schema.attributes:
             old_key = self.cell_key(tid, canonical, attr)
             new_key = self.cell_key(tid, new_name, attr)
+            if old_key in self.evidence_bindings:
+                self.evidence_bindings[new_key] = self.evidence_bindings.pop(old_key)
             cell = self.cells.pop(old_key, None)
             if cell is not None:
                 if attr in (schema.primary_key or []):
@@ -555,7 +613,8 @@ class CoverageMap(CamelModel):
         schema = self.tables.get(tid)
         if schema is None:
             return False
-        if entity in schema.entities:
+        entity = entity.strip()
+        if not entity or self.resolve_entity(entity, table_id=tid) is not None:
             return False
         # Orchestrator-excluded rows must not auto-revive via extraction/merge;
         # revival only goes through the add_entities tool's restore branch.
@@ -609,14 +668,20 @@ class CoverageMap(CamelModel):
         return conf
 
     def fill_from_evidence(self, nodes: list[EvidenceNode]) -> int:
-        """Fill cells from evidence nodes, routed by EvidenceNode.table_id."""
+        """投影已持久化节点，返回新增挂载数。生产写入统一经过 commit_evidence。"""
         filled = 0
+        from searchos.socm.values import is_missing_value
+
         for node in nodes:
             if node.status != EvidenceStatus.ACTIVE:
                 continue
             if not node.entity or not node.attribute:
                 continue
-            tid = node.table_id or self.primary_table_id
+            if is_missing_value(node.value or node.finding):
+                continue
+            tid = node.table_id or (self.primary_table_id if len(self.tables) == 1 else "")
+            if not tid:
+                continue
             key = self._resolve_cell_key(node.entity, node.attribute, table_id=tid)
             if key is None:
                 continue
@@ -630,23 +695,456 @@ class CoverageMap(CamelModel):
                 filled += 1
         return filled
 
-    def backfill_from_evidence(self, evidence_graph: EvidenceGraph, *, table_id: str = "") -> int:
-        """Replay all active evidence into matching cells after schema expansion."""
-        before_filled = self.filled_cells
-        for node in evidence_graph.nodes:
-            if node.status != EvidenceStatus.ACTIVE:
-                continue
-            if not node.entity or not node.attribute:
-                continue
-            tid = table_id or node.table_id or self.primary_table_id
-            key = self._resolve_cell_key(node.entity, node.attribute, table_id=tid)
-            if key is None:
-                continue
-            if node.id not in self.cells[key].supporting_evidence_ids:
-                self.fill(
-                    node.entity, node.attribute,
-                    finding_id=node.id, alignment=self._fill_alignment(node),
-                    confidence=self._effective_confidence(node), tier=self._fill_tier(node),
-                    display_hint=(node.value or node.finding)[:120], table_id=tid,
-                )
-        return self.filled_cells - before_filled
+
+# 证据提交与单元格投影共用 Coverage Map 的归属规则。
+
+
+def evidence_rank(node: EvidenceNode) -> tuple[int, int, float]:
+    """Coverage 与所有输出共用的证据优先级。"""
+    return (
+        CoverageMap._fill_tier(node),
+        CoverageMap._ALIGNMENT_RANK.get(CoverageMap._fill_alignment(node), 0),
+        CoverageMap._effective_confidence(node),
+    )
+
+
+def evidence_table_id(cmap: CoverageMap, node: EvidenceNode) -> str:
+    # 多表旧证据必须有明确归属，不能默认为第一张表。
+    return node.table_id or (cmap.primary_table_id if len(cmap.tables) == 1 else "")
+
+
+def evidence_scope(state: SearchState, node: EvidenceNode) -> dict[str, Any]:
+    cmap = state.coverage_map
+    tid = evidence_table_id(cmap, node)
+    scope = {"table_id": tid, "row_status": "unbound", "exclusion_reason": ""}
+    if not node.entity and not node.attribute:
+        scope["table_id"] = node.table_id
+        return scope
+    entity, status = cmap.resolve_row(node.entity, table_id=tid) if tid else (None, "missing")
+    scope["row_status"] = status
+    if status == "excluded":
+        scope["exclusion_reason"] = cmap.tables[tid].removed_entities[entity]
+    elif status == "missing":
+        scope["exclusion_reason"] = "unresolved_entity_or_table"
+    elif node.attribute and cmap.resolve_attribute(node.attribute, table_id=tid) is None:
+        scope.update(row_status="missing", exclusion_reason="unresolved_attribute")
+    return scope
+
+
+def answer_evidence(state: SearchState) -> list[EvidenceNode]:
+    visible_bindings = {
+        binding.evidence_id for key, bindings in state.coverage_map.evidence_bindings.items()
+        if key in state.coverage_map.cells
+        for binding in bindings if binding.status == EvidenceStatus.ACTIVE
+    }
+    return [
+        node
+        for node in state.evidence_graph.nodes
+        if node.status == EvidenceStatus.ACTIVE
+        and (evidence_scope(state, node)["row_status"] in {"active", "unbound"} or node.id in visible_bindings)
+        and evidence_source_allowed(state, node)
+    ]
+
+
+def evidence_source_allowed(state: SearchState, node: EvidenceNode) -> bool:
+    scope = state.source_scope
+    if scope is None or node.source.startswith("agent://"):
+        return True
+    is_local = node.source.startswith("local://") or bool(node.local_source_metadata)
+    if not is_local:
+        return scope.get("mode") != "local"
+    if scope.get("mode") == "web":
+        return False
+    from searchos.local.reader.references import parse_ref_id
+
+    try:
+        ref = parse_ref_id(node.source)
+    except ValueError:
+        return False
+    return any(
+        record.get("document_id") == ref.document_id
+        and str(record.get("source_revision", "")).startswith(ref.source_revision)
+        and (not ref.library_id or record.get("library_id") == ref.library_id)
+        for record in scope.get("documents", [])
+    )
+
+
+def evidence_matches_cell(
+    cmap: CoverageMap,
+    node: EvidenceNode,
+    table_id: str,
+    entity: str,
+    attribute: str,
+) -> bool:
+    return project_cell_evidence(cmap, node, table_id, entity, attribute) is not None
+
+
+def project_cell_evidence(cmap: CoverageMap, node: EvidenceNode, table_id: str,
+                          entity: str, attribute: str) -> EvidenceNode | None:
+    """按指定格生成只读投影视图；原始事实不携带新的表格归属。"""
+    key = cmap._resolve_cell_key(entity, attribute, table_id=table_id)
+    if node.status != EvidenceStatus.ACTIVE or key is None:
+        return None
+    bindings = [b for b in cmap.evidence_bindings.get(key, []) if b.evidence_id == node.id]
+    if bindings:
+        binding = next((b for b in bindings if b.status == EvidenceStatus.ACTIVE), None)
+        if binding is None:
+            return None
+        return node.model_copy(update={"table_id": table_id, "entity": entity, "attribute": attribute,
+                                       "value": binding.value, "alignment": binding.alignment})
+    tid = evidence_table_id(cmap, node)
+    if node.status != EvidenceStatus.ACTIVE or not tid or tid != table_id:
+        return None
+    original_key = cmap._resolve_cell_key(node.entity, node.attribute, table_id=tid)
+    return node if original_key == key else None
+
+
+def bind_cell_evidence(state: SearchState, bindings: list[tuple[str, CellEvidenceBinding]],
+                       *, overwrite: bool = False,
+                       validation_values: dict[tuple[str, str], Any] | None = None) -> int:
+    """提交已核验的投影。调用方负责语义支持检查；这里校验身份、范围和列约束。"""
+    from searchos.socm.values import is_missing_value
+
+    cmap = state.coverage_map
+    allowed = {node.id for node in answer_evidence(state)}
+    seen = set()
+    for key, binding in bindings:
+        target = cmap.cell_binding(key)
+        if key not in cmap.cells or target is None:
+            raise ValueError(f"Unknown or excluded cell: {key}")
+        if binding.evidence_id not in allowed or binding.status != EvidenceStatus.ACTIVE:
+            raise ValueError("Cell evidence must be active and in the current source scope")
+        if is_missing_value(binding.value) or binding.alignment not in {"full", "partial", "loose"}:
+            raise ValueError("A non-empty value and valid alignment are required")
+        tid, entity, attr = target
+        if attr in cmap.tables[tid].primary_key:
+            index = cmap.tables[tid].primary_key.index(attr)
+            parts = entity.split("|")
+            expected = parts[index] if index < len(parts) else entity
+            if binding.value != expected:
+                raise ValueError("Cell projection cannot redefine row identity")
+        desc = cmap.tables[tid].column_desc.get(attr)
+        checked_value = (validation_values or {}).get((key, binding.evidence_id), binding.value)
+        if desc and desc.check and (reason := desc.check.violation(checked_value)):
+            raise ValueError(reason)
+        identity = (key, binding.evidence_id)
+        if identity in seen:
+            raise ValueError("Duplicate cell evidence binding in one batch")
+        seen.add(identity)
+        previous = next((b for b in cmap.evidence_bindings.get(key, []) if b.evidence_id == binding.evidence_id), None)
+        if previous is None and binding.evidence_id in cmap.cells[key].supporting_evidence_ids:
+            node = state.evidence_graph.get_node(binding.evidence_id)
+            view = project_cell_evidence(cmap, node, *target)
+            if view is not None:
+                previous = CellEvidenceBinding(evidence_id=node.id, value=view.value or view.finding,
+                                                alignment=view.alignment or "loose")
+        if previous is not None and previous != binding and not overwrite:
+            raise ValueError("Changing or reactivating a projection requires an explicit overwrite")
+    touched = set()
+    added = 0
+    reset_keys = set()
+    # Preserve the original cell use before a legacy node is shared. Later
+    # clearing that cell must change its binding, not the shared source fact.
+    for _, binding in bindings:
+        node = state.evidence_graph.get_node(binding.evidence_id)
+        tid = evidence_table_id(cmap, node)
+        original = cmap._resolve_cell_key(node.entity, node.attribute, table_id=tid) if tid else None
+        if original and node.id in cmap.cells[original].supporting_evidence_ids:
+            records = cmap.evidence_bindings.setdefault(original, [])
+            if not any(b.evidence_id == node.id for b in records):
+                records.append(CellEvidenceBinding(evidence_id=node.id, value=node.value or node.finding,
+                                                   alignment=node.alignment or "loose"))
+    for key, binding in bindings:
+        records = cmap.evidence_bindings.setdefault(key, [])
+        cell = cmap.cells[key]
+        for fid in cell.supporting_evidence_ids:
+            node = state.evidence_graph.get_node(fid)
+            target = cmap.cell_binding(key)
+            view = project_cell_evidence(cmap, node, *target) if node and target else None
+            if view and not any(b.evidence_id == fid for b in records):
+                records.append(CellEvidenceBinding(evidence_id=fid, value=view.value or view.finding,
+                                                   alignment=view.alignment or "loose"))
+        if overwrite and key not in reset_keys:
+            chosen = {item.evidence_id for target, item in bindings if target == key}
+            for record in records:
+                if record.evidence_id not in chosen:
+                    record.status = EvidenceStatus.SUPERSEDED
+            cell.supporting_evidence_ids = [fid for fid in cell.supporting_evidence_ids if fid in chosen]
+            reset_keys.add(key)
+        previous = next((b for b in records if b.evidence_id == binding.evidence_id), None)
+        if previous is None:
+            records.append(binding.model_copy(deep=True))
+            added += 1
+        elif previous != binding:
+            records[records.index(previous)] = binding.model_copy(deep=True)
+        if binding.evidence_id not in cell.supporting_evidence_ids:
+            cell.supporting_evidence_ids.append(binding.evidence_id)
+        touched.add(key)
+    refresh_cells(state, touched)
+    return added
+
+
+@dataclass
+class EvidenceCommit:
+    """分开统计节点、挂载和覆盖率变化。"""
+
+    nodes: list[EvidenceNode] = field(default_factory=list)
+    added_nodes: list[EvidenceNode] = field(default_factory=list)
+    associations_added: int = 0
+    cells_filled: int = 0
+    rejected: list[dict[str, str]] = field(default_factory=list)
+
+
+def commit_table_facts(
+    state: SearchState,
+    candidates: list[EvidenceNode],
+    *,
+    validation_values: dict[str, Any] | None = None,
+) -> EvidenceCommit:
+    """自动表格抽取提交独立事实与投影；候选表字段只用于确定目标格。"""
+    result = EvidenceCommit()
+    cmap = state.coverage_map
+    before = {key for key, cell in cmap.cells.items() if cell.status == CellStatus.FILLED}
+    for candidate in candidates:
+        tid = evidence_table_id(cmap, candidate)
+        key = (
+            cmap._resolve_cell_key(candidate.entity, candidate.attribute, table_id=tid)
+            if tid
+            else None
+        )
+        reason = ""
+        if key is None:
+            reason = "unresolved_cell"
+        elif not evidence_source_allowed(state, candidate):
+            reason = "source_out_of_scope"
+        elif (
+            not candidate.source.startswith(("https://", "http://", "local://", "skill://", "agent://"))
+            or candidate.span is None
+        ):
+            reason = "unanchored_source"
+        if reason:
+            result.rejected.append(
+                {"row": candidate.entity, "column": candidate.attribute, "reason": reason}
+            )
+            continue
+        fact = candidate.model_copy(
+            update={"table_id": "", "entity": "", "attribute": "", "value": ""}
+        )
+        legacy = state.evidence_graph.find_duplicate(candidate)
+        durable, added = (
+            (legacy, False) if legacy is not None else state.evidence_graph.get_or_add(fact)
+        )
+        binding = CellEvidenceBinding(
+            evidence_id=durable.id, value=candidate.value, alignment=candidate.alignment
+        )
+        checked = (validation_values or {}).get(candidate.id, candidate.value)
+        try:
+            links = bind_cell_evidence(
+                state, [(key, binding)], validation_values={(key, durable.id): checked}
+            )
+        except ValueError as exc:
+            # Binding validation precedes its writes. Retract only this new
+            # candidate; a pre-existing shared fact must survive rejection.
+            if added:
+                state.evidence_graph.nodes.remove(durable)
+                state.evidence_graph.invalidate_index()
+            result.rejected.append(
+                {"row": candidate.entity, "column": candidate.attribute, "reason": str(exc)}
+            )
+            continue
+        result.nodes.append(durable)
+        if added:
+            result.added_nodes.append(durable)
+        result.associations_added += links
+    result.cells_filled = sum(
+        cell.status == CellStatus.FILLED and key not in before for key, cell in cmap.cells.items()
+    )
+    return result
+
+
+def validate_row(schema: TableSchema, row: dict[str, Any]) -> list[dict[str, str]]:
+    """手工行与抽取行共用类型化列约束。"""
+    return [
+        {"column": column, "reason": reason}
+        for column, desc in schema.column_desc.items()
+        if desc.check and (reason := desc.check.violation(row.get(column)))
+    ]
+
+
+def refresh_cells(state: SearchState, keys: set[str]) -> None:
+    """只重建指定格的已有挂载，不扫描并补挂历史证据。"""
+    cmap = state.coverage_map
+    for key in keys:
+        old = cmap.cells.get(key)
+        if old is None:
+            continue
+        binding = cmap.cell_binding(key)
+        if binding is None:
+            continue
+        tid, entity, attr = binding
+        schema = cmap.tables[tid]
+        cell = CoverageCell()
+        if attr in schema.primary_key:
+            values = entity.split("|")
+            index = schema.primary_key.index(attr)
+            cell.status = CellStatus.FILLED
+            cell.best_alignment = "full"
+            cell.display_hint = values[index] if index < len(values) else entity
+        nodes = [
+            projected
+            for fid in dict.fromkeys(old.supporting_evidence_ids)
+            if (node := state.evidence_graph.get_node(fid)) is not None
+            and evidence_source_allowed(state, node)
+            and (projected := project_cell_evidence(cmap, node, tid, entity, attr)) is not None
+        ]
+        if not nodes and old.status in {CellStatus.UNCERTAIN, CellStatus.HARD_CELL}:
+            cell.status = old.status
+        cmap.cells[key] = cell
+        cmap.fill_from_evidence(nodes)
+        cell.conflict_history_evidence_ids = list(dict.fromkeys([
+            *old.conflict_history_evidence_ids, *old.conflict_evidence_ids,
+        ]))
+    from searchos.socm.conflicts import reconcile_conflicts
+
+    reconcile_conflicts(state, keys)
+
+
+def commit_evidence(
+    state: SearchState,
+    nodes: list[EvidenceNode],
+    *,
+    overwrite: bool = False,
+    validation_values: dict[str, Any] | None = None,
+) -> EvidenceCommit:
+    """验证、去重、挂载一次完成；只有显式覆盖可重新启用旧证据。"""
+    from searchos.socm.values import is_missing_value
+
+    result = EvidenceCommit()
+    cmap = state.coverage_map
+    touched: set[str] = set()
+    before_filled: set[str] = set()
+    for candidate in nodes:
+        tid = evidence_table_id(cmap, candidate)
+        key = (
+            cmap._resolve_cell_key(candidate.entity, candidate.attribute, table_id=tid)
+            if tid
+            else None
+        )
+        reason = ""
+        if candidate.status != EvidenceStatus.ACTIVE:
+            reason = "inactive_evidence"
+        elif is_missing_value(candidate.value or candidate.finding):
+            reason = "missing_value"
+        elif not evidence_source_allowed(state, candidate):
+            reason = "source_out_of_scope"
+        elif key is None:
+            reason = "unresolved_cell"
+        else:
+            entity = cmap.resolve_entity(candidate.entity, table_id=tid)
+            attr = cmap.resolve_attribute(candidate.attribute, table_id=tid)
+            desc = cmap.tables[tid].column_desc.get(attr)
+            if desc and desc.check:
+                value = (validation_values or {}).get(candidate.id, candidate.value)
+                reason = desc.check.violation(value) or ""
+        if reason:
+            result.rejected.append(
+                {"row": candidate.entity, "column": candidate.attribute, "reason": reason}
+            )
+            continue
+        node, added = state.evidence_graph.get_or_add(
+            candidate.model_copy(
+                update={
+                    "table_id": tid,
+                    "entity": entity,
+                    "attribute": attr,
+                }
+            )
+        )
+        if node.status != EvidenceStatus.ACTIVE and not overwrite:
+            result.rejected.append({"row": entity, "column": attr, "reason": "inactive_duplicate"})
+            continue
+        existing_binding = next(
+            (b for b in cmap.evidence_bindings.get(key, []) if b.evidence_id == node.id), None
+        )
+        if existing_binding is not None and existing_binding.status != EvidenceStatus.ACTIVE and not overwrite:
+            result.rejected.append({"row": entity, "column": attr, "reason": "inactive_binding"})
+            continue
+        cell = cmap.cells[key]
+        if key not in touched and cell.status == CellStatus.FILLED:
+            before_filled.add(key)
+        touched.add(key)
+        if overwrite:
+            prior_ids = set(cell.supporting_evidence_ids)
+            for fid in prior_ids:
+                previous = state.evidence_graph.get_node(fid)
+                if previous is not None and previous.id != node.id:
+                    if evidence_matches_cell(cmap, previous, tid, entity, attr):
+                        records = [b for b in cmap.evidence_bindings.get(key, []) if b.evidence_id == fid]
+                        if records:
+                            for record in records:
+                                record.status = EvidenceStatus.SUPERSEDED
+                        else:
+                            previous.status = EvidenceStatus.SUPERSEDED
+            node.status = EvidenceStatus.ACTIVE
+            if existing_binding is not None:
+                existing_binding.status = EvidenceStatus.ACTIVE
+                existing_binding.value = node.value or node.finding
+                existing_binding.alignment = node.alignment or "loose"
+            cell.supporting_evidence_ids = [
+                fid for fid in cell.supporting_evidence_ids if fid == node.id
+            ]
+        if node.id not in cell.supporting_evidence_ids:
+            cell.supporting_evidence_ids.append(node.id)
+            result.associations_added += 1
+        if added:
+            result.added_nodes.append(node)
+        result.nodes.append(node)
+    refresh_cells(state, touched)
+    result.cells_filled = sum(
+        cmap.cells[key].status == CellStatus.FILLED for key in touched - before_filled
+    )
+    return result
+
+
+def clear_cell_evidence(state: SearchState, table_id: str, entity: str, attribute: str) -> bool:
+    cmap = state.coverage_map
+    key = cmap._resolve_cell_key(entity, attribute, table_id=table_id)
+    if key is None:
+        return False
+    cell = cmap.cells[key]
+    if cell.status == CellStatus.MISSING and not cell.supporting_evidence_ids:
+        return False
+    ids = set(cell.supporting_evidence_ids)
+    for fid in ids:
+        node = state.evidence_graph.get_node(fid)
+        if node is not None and evidence_matches_cell(cmap, node, table_id, entity, attribute):
+            records = [b for b in cmap.evidence_bindings.get(key, []) if b.evidence_id == fid]
+            if records:
+                for record in records:
+                    record.status = EvidenceStatus.REJECTED
+            else:
+                node.status = EvidenceStatus.REJECTED
+    cmap.cells[key] = CoverageCell()
+    return True
+
+
+def audit_evidence_links(state: SearchState) -> list[dict[str, str]]:
+    """历史数据只读检查；不推断或修改挂载。"""
+    issues = []
+    by_id = {node.id: node for node in state.evidence_graph.nodes}
+    attached: set[str] = set()
+    for key, cell in state.coverage_map.cells.items():
+        binding = state.coverage_map.cell_binding(key)
+        for fid in cell.supporting_evidence_ids:
+            if fid not in by_id:
+                issues.append({"cell": key, "evidence_id": fid, "reason": "dangling_id"})
+            elif binding is None or not evidence_matches_cell(
+                state.coverage_map, by_id[fid], *binding
+            ):
+                issues.append({"cell": key, "evidence_id": fid, "reason": "invalid_binding"})
+            else:
+                attached.add(fid)
+    for node in answer_evidence(state):
+        if node.entity and node.attribute and node.id not in attached:
+            issues.append({"cell": "", "evidence_id": node.id, "reason": "unattached_evidence"})
+    return issues

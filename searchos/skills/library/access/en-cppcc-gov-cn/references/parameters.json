@@ -1,0 +1,34 @@
+{
+  "description": "Extracts the complete membership roster of the 14th CPPCC National Committee from en.cppcc.gov.cn, including 2,172 members across 34 categories.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_roster: 获取完整成员名单，包含所有34个界别的成员姓名; 参数: url; 必填: 无\n  - get_categories: 获取所有界别列表及其成员数量（不含姓名）; 参数: url; 必填: 无\n  - get_category: 获取指定界别的成员名单，需要category_name参数; 参数: url, category_name; 必填: category_name\n  - search_members: 按姓名搜索成员，需要query参数; 参数: url, query; 必填: query\n  - get_metadata: 获取页面元数据（标题、描述等）; 参数: url; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "default": "http://en.cppcc.gov.cn/2023-03/08/c_867239.htm",
+      "required": false,
+      "description": "目标页面URL，默认为第14届全国政协委员名单页面"
+    },
+    "category_name": {
+      "type": "string",
+      "required": false,
+      "description": "界别名称（用于get_category功能），支持部分匹配，如\"The Communist Party of China\""
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词（用于search_members功能），在成员姓名中进行不区分大小写的搜索"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

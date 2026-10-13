@@ -43,6 +43,7 @@ interface Props {
   onRepairCells?: (cells: RepairCellTarget[]) => void;
   onResolveEvidence?: (target: RepairCellTarget, evidenceId: string) => Promise<void>;
   onReverifyEvidence?: (target: RepairCellTarget) => void;
+  onOpenLocalSource?: (refId: string) => void;
   onSelectTurn?: (turnId: string) => void;
   onBranchTurn?: (turnId: string, focusComposer: boolean) => Promise<void> | void;
   branchingTurnId?: string | null;
@@ -59,6 +60,7 @@ const TABS: { id: ActivityTab; label: string; icon: ReactNode }[] = [
   { id: "files", label: "Files", icon: <FolderTree size={13} /> },
   { id: "events", label: "Events", icon: <Activity size={13} /> },
 ];
+const LOCAL_TAB_IDS = new Set<ActivityTab>(["evidence", "usage", "files", "events"]);
 
 export default function ExecutionDrawer({
   turn,
@@ -81,6 +83,7 @@ export default function ExecutionDrawer({
   onRepairCells,
   onResolveEvidence,
   onReverifyEvidence,
+  onOpenLocalSource,
   onSelectTurn,
   onBranchTurn,
   branchingTurnId = null,
@@ -89,6 +92,16 @@ export default function ExecutionDrawer({
 }: Props) {
   const [traceAgent, setTraceAgent] = useState<string | null>(null);
   const [max, setMax] = useState(false);
+  const isLocal = turn.sourceMode === "local" || turn.events.some((event) => (
+    event.type === "trajectory"
+    && (event.data as Record<string, unknown> | undefined)?.source_mode === "local"
+  ));
+  const tabs = isLocal ? TABS.filter((item) => LOCAL_TAB_IDS.has(item.id)) : TABS;
+  const effectiveTab = isLocal && !LOCAL_TAB_IDS.has(tab) ? "evidence" : tab;
+
+  useEffect(() => {
+    if (isLocal && tab !== effectiveTab) onTabChange(effectiveTab);
+  }, [effectiveTab, isLocal, onTabChange, tab]);
 
   // Esc restores the maximized drawer; when a trace is open, Esc closes it first.
   useEffect(() => {
@@ -122,13 +135,13 @@ export default function ExecutionDrawer({
 
   const onTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => {
     let nextIndex: number | null = null;
-    if (event.key === "ArrowRight" || event.key === "ArrowDown") nextIndex = (index + 1) % TABS.length;
-    else if (event.key === "ArrowLeft" || event.key === "ArrowUp") nextIndex = (index - 1 + TABS.length) % TABS.length;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") nextIndex = (index + 1) % tabs.length;
+    else if (event.key === "ArrowLeft" || event.key === "ArrowUp") nextIndex = (index - 1 + tabs.length) % tabs.length;
     else if (event.key === "Home") nextIndex = 0;
     else if (event.key === "End") nextIndex = TABS.length - 1;
     if (nextIndex === null) return;
     event.preventDefault();
-    const nextTab = TABS[nextIndex].id;
+    const nextTab = tabs[nextIndex].id;
     onTabChange(nextTab);
     document.getElementById(`activity-tab-${nextTab}`)?.focus();
   };
@@ -137,7 +150,7 @@ export default function ExecutionDrawer({
     <div className="flex h-full min-h-0 flex-col bg-surface">
       {/* header */}
       <div className="flex items-center gap-2 border-b border-line px-4 py-3">
-        <span className="font-serif text-[16px] font-semibold text-ink">Activity</span>
+        <span className="font-serif text-[16px] font-semibold text-ink">{isLocal ? "Local activity" : "Activity"}</span>
         {stateLabel && (
           <span className="flex items-center gap-1 text-[11px] text-ink-faint">
             <Info size={12} />
@@ -167,7 +180,7 @@ export default function ExecutionDrawer({
             onClick={() => onSubagentsCollapsedChange(!subagentsCollapsed)}
             className="flex w-full items-center gap-2 px-4 py-3 text-left text-[11px] uppercase tracking-wider text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink-dim"
           >
-            <span>{turn.workers.length === 1 ? "Subagent" : "Subagents"} · {turn.workers.length}{running > 0 && ` · ${running} active`}</span>
+            <span>{isLocal ? "Local agent" : turn.workers.length === 1 ? "Subagent" : "Subagents"} · {turn.workers.length}{running > 0 && ` · ${running} active`}</span>
             <ChevronDown size={14} className={`ml-auto transition-transform ${subagentsCollapsed ? "-rotate-90" : ""}`} />
           </button>
           {!subagentsCollapsed && (
@@ -179,19 +192,19 @@ export default function ExecutionDrawer({
 
         {/* tabs */}
         <div role="tablist" aria-label="Activity views" className="sticky top-0 z-50 flex gap-1 overflow-x-auto border-b border-line bg-surface px-1 sm:px-3">
-          {TABS.map((t, index) => (
+          {tabs.map((t, index) => (
             <button
               key={t.id}
               id={`activity-tab-${t.id}`}
               type="button"
               role="tab"
-              aria-selected={tab === t.id}
+              aria-selected={effectiveTab === t.id}
               aria-controls="activity-panel"
-              tabIndex={tab === t.id ? 0 : -1}
+              tabIndex={effectiveTab === t.id ? 0 : -1}
               onClick={() => onTabChange(t.id)}
               onKeyDown={(event) => onTabKeyDown(event, index)}
               className={`-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-[13px] transition-colors sm:px-3 ${
-                tab === t.id ? "border-accent font-medium text-ink" : "border-transparent text-ink-dim hover:text-ink"
+                effectiveTab === t.id ? "border-accent font-medium text-ink" : "border-transparent text-ink-dim hover:text-ink"
               }`}
             >
               {t.icon}
@@ -210,8 +223,8 @@ export default function ExecutionDrawer({
           ))}
         </div>
 
-        <div id="activity-panel" role="tabpanel" aria-labelledby={`activity-tab-${tab}`} tabIndex={0} className={tab === "coverage" ? "min-w-0" : "p-1"}>
-          {tab === "coverage" && (
+        <div id="activity-panel" role="tabpanel" aria-labelledby={`activity-tab-${effectiveTab}`} tabIndex={0} className={effectiveTab === "coverage" ? "min-w-0" : "p-1"}>
+          {effectiveTab === "coverage" && (
             historicalStateUnavailable ? (
               <HistoricalStateNotice kind="Coverage" />
             ) : (
@@ -220,22 +233,29 @@ export default function ExecutionDrawer({
                 evidence={state?.evidence_graph?.nodes ?? []}
                 onRepairCells={onRepairCells}
                 animationScope={turn.id}
+                onOpenLocalSource={onOpenLocalSource}
               />
             )
           )}
-          {tab === "evidence" && (
+          {effectiveTab === "evidence" && (
             historicalStateUnavailable
               ? <HistoricalStateNotice kind="Evidence" />
               : <EvidenceList
+                  key={turn.sourceMode ?? "web"}
                   nodes={state?.evidence_graph?.nodes ?? []}
                   edges={state?.evidence_graph?.edges ?? []}
+                  tasks={state?.frontier?.questions}
+                  taskBindings={state?.evidence_graph?.task_bindings}
                   coverageMap={state?.coverage_map}
+                  sessionId={sessionId}
                   onResolve={onResolveEvidence}
                   onReverify={onReverifyEvidence}
+                  onOpenLocalSource={onOpenLocalSource}
+                  defaultView={turn.sourceMode === "hybrid" ? "tasks" : isLocal ? "all" : "conflicts"}
                 />
           )}
-          {tab === "tasks" && <FrontierPanel tasks={state?.frontier?.questions ?? []} />}
-          {tab === "versions" && (
+          {effectiveTab === "tasks" && <FrontierPanel tasks={state?.frontier?.questions ?? []} />}
+          {effectiveTab === "versions" && (
             <VersionsPanel
               key={turn.id}
               turns={turns}
@@ -245,8 +265,8 @@ export default function ExecutionDrawer({
               onBranch={onBranchTurn}
             />
           )}
-          {tab === "usage" && <ResourcePanel turn={turn} />}
-          {tab === "files" &&
+          {effectiveTab === "usage" && <ResourcePanel turn={turn} />}
+          {effectiveTab === "files" &&
             (selectedFile && sessionId ? (
               <FileViewer key={`${sessionId}:${selectedFile}`} sessionId={sessionId} filePath={selectedFile} onClose={() => onSelectFile(null)} />
             ) : fileTree.length > 0 ? (
@@ -258,7 +278,7 @@ export default function ExecutionDrawer({
             ) : (
               <div className="p-4 text-[13px] text-ink-faint">{sessionId ? "No files in this workspace" : "No workspace yet"}</div>
             ))}
-          {tab === "events" && <EventsLog events={turn.events} />}
+          {effectiveTab === "events" && <EventsLog events={turn.events} />}
         </div>
       </div>
 

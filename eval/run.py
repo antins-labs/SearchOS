@@ -49,7 +49,7 @@ def _setup_provider(no_search: bool) -> None:
 
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="eval.run", description="SearchOS benchmark eval")
-    p.add_argument("--benchmark", required=True, choices=["gisa", "widesearch", "xbench"])
+    p.add_argument("--benchmark", required=True, choices=["gisa", "widesearch", "xbench", "gaia"])
     p.add_argument("--data-path", default=None,
                    help="JSONL data path. Default: datasets/<bm>/<bm>_100.jsonl or widesearch.jsonl")
     p.add_argument("--gold-dir", default=None,
@@ -97,9 +97,62 @@ def _build_parser() -> argparse.ArgumentParser:
         "--schema-variant", choices=["single", "multi"], default=None,
         help="Variant selected from --fixed-schema-config.",
     )
+    ablation = p.add_argument_group("component ablations")
+    ablation.add_argument(
+        "--socm-projection",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help=(
+            "Enable role-facing SOCM prompt projections (default: runtime setting). "
+            "Use --no-socm-projection for the projection ablation; SOCM storage, "
+            "extraction, scheduling, and explicit state tools remain enabled."
+        ),
+    )
+    ablation.add_argument(
+        "--failure-memory",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help=(
+            "Enable post-mortem FailureMemory generation and prompt injection "
+            "(default: runtime setting). Use --no-failure-memory for the ablation."
+        ),
+    )
+    ablation.add_argument(
+        "--compress-old-tool-results",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help=(
+            "Compress older tool-result messages before model calls "
+            "(default: runtime setting). Use --no-compress-old-tool-results "
+            "to retain the complete append-only tool history."
+        ),
+    )
     p.add_argument("--no-search", action="store_true")
     p.add_argument("--verbose", "-v", action="store_true")
     return p
+
+
+def _apply_ablation_settings(args: argparse.Namespace) -> dict[str, bool]:
+    """Apply explicit CLI ablation overrides and return recorded settings.
+
+    ``None`` means the corresponding CLI switch was omitted, so environment
+    configuration (for example ``SF_ENABLE_FAILURE_MEMORY=false``) remains
+    authoritative. The returned values are the effective settings persisted
+    with every evaluation result.
+    """
+    from searchos.config.settings import settings
+
+    if args.socm_projection is not None:
+        settings.enable_socm_projection = bool(args.socm_projection)
+    if args.failure_memory is not None:
+        settings.enable_failure_memory = bool(args.failure_memory)
+    if args.compress_old_tool_results is not None:
+        settings.compress_old_tool_results = bool(args.compress_old_tool_results)
+    return {
+        "socm_projection": bool(settings.enable_socm_projection),
+        "failure_memory": bool(settings.enable_failure_memory),
+        "compress_old_tool_results": bool(settings.compress_old_tool_results),
+    }
 
 
 def _resolve_paths(args: argparse.Namespace) -> tuple[Path, Path, Path]:
@@ -107,6 +160,9 @@ def _resolve_paths(args: argparse.Namespace) -> tuple[Path, Path, Path]:
     if args.benchmark == "gisa":
         data = Path(args.data_path or repo / "datasets/GISA/gisa.jsonl")
         gold = Path(args.gold_dir or repo / "datasets/GISA/answer")
+    elif args.benchmark == "gaia":
+        data = Path(args.data_path or repo / "datasets/GAIA/gaia_qa.jsonl")
+        gold = data.parent
     elif args.benchmark == "xbench":
         # Single CSV holds prompts + gold (inline); no separate gold dir.
         data = Path(args.data_path or repo / "datasets/xbench/DeepSearch-2510.csv")
@@ -147,11 +203,14 @@ def _parse_range(spec: str, total: int) -> tuple[int, int]:
 
 async def _amain(args: argparse.Namespace) -> int:
     _setup_env()
+    ablation = _apply_ablation_settings(args)
     _setup_provider(args.no_search)
     data_path, gold_dir, output_dir = _resolve_paths(args)
     ids = [s.strip() for s in args.ids.split(",")] if args.ids else None
 
-    if args.benchmark == "gisa":
+    if args.benchmark == "gaia":
+        from eval.benchmarks.gaia import load_samples, grade
+    elif args.benchmark == "gisa":
         from eval.benchmarks.gisa import load_samples, grade
     elif args.benchmark == "xbench":
         from eval.benchmarks.xbench import load_samples, grade
@@ -202,8 +261,11 @@ async def _amain(args: argparse.Namespace) -> int:
             print(f"[eval] invalid fixed schema config: {exc}", file=sys.stderr)
             return 2
 
-    print(f"[eval] benchmark={args.benchmark} samples={len(samples)} "
-          f"concurrency={args.concurrency} output={output_dir}")
+    print(
+        f"[eval] benchmark={args.benchmark} samples={len(samples)} "
+        f"concurrency={args.concurrency} output={output_dir} "
+        f"ablation={json.dumps(ablation, sort_keys=True)}"
+    )
     if not samples:
         print("[eval] no samples to run", file=sys.stderr)
         return 1
@@ -220,10 +282,13 @@ async def _amain(args: argparse.Namespace) -> int:
         seed_primary_key=args.seed_primary_key,
         preprocess_query=args.preprocess_query,
         fixed_schemas=fixed_schemas,
+        ablation=ablation,
     )
     print("\n[eval] summary:")
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     print(f"\n[eval] per-question results in {output_dir}")
+    if args.benchmark in ("gaia", "xbench") and not summary.get("complete"):
+        return 1
     return 0
 
 

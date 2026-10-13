@@ -9,6 +9,7 @@ an optional `access_only` pin (None = the skill router decides).
 from __future__ import annotations
 
 from pathlib import Path
+from searchos.skills.names import canonical_skill_names, canonical_skill_name
 
 from api.settings_store import store
 
@@ -46,22 +47,23 @@ def skill_pools() -> dict[str, set[str]]:
 
 def skill_enabled(category: str, name: str) -> bool:
     """Enabled state per the TUI semantics (deny sets; access also has `only`)."""
+    name = canonical_skill_name(name)
     s = store.skills
     if category == "access":
-        if name in s.access_deny:
+        if name in canonical_skill_names(s.access_deny):
             return False
-        return s.access_only is None or name in s.access_only
+        return s.access_only is None or name in canonical_skill_names(s.access_only)
     if category == "strategy":
-        return name not in s.strategy_deny
+        return name not in canonical_skill_names(s.strategy_deny)
     if category == "orchestrator":
-        return name not in s.orchestrator_deny
+        return name not in canonical_skill_names(s.orchestrator_deny)
     return True
 
 
 def normalize_access_only(pool: set[str]) -> None:
     """TUI parity: a full (or superset) access pin hands control back to the router."""
     only = store.skills.access_only
-    if only is not None and pool and set(only) >= pool:
+    if only is not None and pool and canonical_skill_names(only) >= pool:
         store.skills.access_only = None
 
 
@@ -86,10 +88,10 @@ def effective_skill_kwargs(overrides=None) -> dict[str, set[str] | None]:
 
     only = pick("access_only")
     kwargs: dict[str, set[str] | None] = {
-        "access_only": (set(only) & pools.get("access", set())) if only is not None else None,
-        "access_deny": set(pick("access_deny") or ()) & pools.get("access", all_names),
-        "strategy_deny": set(pick("strategy_deny") or ()) & pools.get("strategy", all_names),
-        "orchestrator_deny": set(pick("orchestrator_deny") or ()) & pools.get(
+        "access_only": (canonical_skill_names(only) & pools.get("access", set())) if only is not None else None,
+        "access_deny": canonical_skill_names(pick("access_deny") or ()) & pools.get("access", all_names),
+        "strategy_deny": canonical_skill_names(pick("strategy_deny") or ()) & pools.get("strategy", all_names),
+        "orchestrator_deny": canonical_skill_names(pick("orchestrator_deny") or ()) & pools.get(
             "orchestrator", all_names
         ),
     }

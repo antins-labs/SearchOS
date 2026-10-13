@@ -39,6 +39,8 @@ class FrontierTask(CamelModel):
 
     target_cells: list[str] = Field(default_factory=list)
     table_id: str = ""
+    result_mode: Literal["findings", "table"] = "table"
+    source_scope_key: str = ""
 
     # Dispatch hints set at enqueue; Scheduler consumes them when spawning.
     # Empty agent_type → Scheduler infers from `kind`.
@@ -58,6 +60,12 @@ class FrontierTask(CamelModel):
     created_by: str = ""  # explore | orchestrator | search | writer | sensor | scheduler | user
     planner: str = ""  # orchestrator | llm | deterministic
     last_agent_report_excerpt: str = ""
+    attempt_queries: list[str] = Field(default_factory=list)
+    attempt_source_families: list[str] = Field(default_factory=list)
+    previous_queries: list[str] = Field(default_factory=list)
+    previous_source_families: list[str] = Field(default_factory=list)
+    # Fine-grained completed route outcomes survive worker reassignment.
+    route_history: list[dict] = Field(default_factory=list)
 
     created_at: float = 0.0
     updated_at: float = 0.0
@@ -89,11 +97,18 @@ class FrontierMemory(CamelModel):
         return sum(1 for q in self.questions if q.status == FrontierTaskStatus.COMPLETED)
 
     @staticmethod
+    def _dispatch_key(task: FrontierTask) -> tuple:
+        agent = task.agent_type or {"search": "search_agent", "explore": "explore_agent", "write": "writer_agent"}[task.kind]
+        return (task.kind, agent, task.result_mode, task.table_id,
+                task.source_scope_key, tuple(sorted(set(task.blocked_by))))
+
+    @staticmethod
     def _dedup_key(task: FrontierTask) -> tuple:
         # Keys on the FULL task text (task_prompt|question): ``question`` is
         # truncated at enqueue, so backfill tasks sharing a long template
         # prefix would all collide and get silently swallowed.
-        return (task.kind, _normalize_task_text(task.task_prompt or task.question))
+        return (*FrontierMemory._dispatch_key(task),
+                _normalize_task_text(task.task_prompt or task.question))
 
     def _find_duplicate(self, task: FrontierTask) -> FrontierTask | None:
         active = (FrontierTaskStatus.PENDING,
@@ -111,6 +126,8 @@ class FrontierMemory(CamelModel):
                 if q.kind != "search" or q.status not in active:
                     continue
                 if q.table_id != task.table_id:
+                    continue
+                if self._dispatch_key(q) != self._dispatch_key(task):
                     continue
                 if not q.target_cells or not _cellish(q.target_cells):
                     continue

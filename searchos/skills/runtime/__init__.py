@@ -1,10 +1,1 @@
-"""Skill Execution：隔离 worker、权限策略、资源限制与代理适配。"""
-
-from searchos.skills.runtime.executor_runtime import (
-    ExecutionPolicy,
-    NetworkAccess,
-    run_executor,
-    run_python_probe,
-)
-
-__all__ = ["ExecutionPolicy", "NetworkAccess", "run_executor", "run_python_probe"]
+"""技能命令执行与宿主浏览器认证；旧执行器兼容代码位于 legacy。"""

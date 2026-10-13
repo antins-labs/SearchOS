@@ -1,0 +1,29 @@
+{
+  "description": "Fetches weapon specifications (caliber, weight, rate of fire, etc.) from gunrf.ru English pages.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_weapon_specs: Fetch detailed specifications for a weapon from its URL; 参数: url; 必填: 无\n  - search_weapons: Discover weapon pages by crawling category links; 参数: category; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Weapon page URL on gunrf.ru (required for get_weapon_specs). Must be an English page ending in _eng.html."
+    },
+    "category": {
+      "type": "string",
+      "default": "avtomat",
+      "required": false,
+      "description": "Weapon category to search (used by search_weapons). Default is 'avtomat' for assault rifles."
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

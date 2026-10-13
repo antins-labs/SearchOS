@@ -1,0 +1,31 @@
+{
+  "description": "Fetches K-pop listicle articles from Koreaboo.com, extracting structured list items with titles, paragraphs, and images.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - fetch_listicle: 获取单篇榜单文章，提取所有列表项内容；需要 url 参数; 参数: url, include_images; 必填: url\n  - fetch_lists_category: 获取榜单分类页面，发现最新榜单文章；可选 page 参数; 参数: page; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Koreaboo 榜单文章的完整 URL（fetch_listicle 使用）"
+    },
+    "include_images": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否在结果中包含图片 URL（fetch_listicle 使用，默认 true）"
+    },
+    "page": {
+      "type": "integer",
+      "required": false,
+      "description": "分类页页码，从 1 开始（fetch_lists_category 使用，默认 1）"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

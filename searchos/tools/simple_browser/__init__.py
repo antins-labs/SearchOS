@@ -2,7 +2,7 @@
 page model, with swappable search providers and fetch backends.
 
 Layout:
-- ``tools``   — the 3 ``@tool`` shells + ``get_simple_browser_tools``
+- ``tools``   — the ``@tool`` shells + ``get_simple_browser_tools``
 - ``state``   — ``BrowserState``, fetch/persist, find matching, provider binding
 - ``render``  — HTML → line-numbered markdown (pure)
 - ``cache``   — disk fetch cache
@@ -24,6 +24,7 @@ from searchos.tools.simple_browser.tools import (
     find,
     get_simple_browser_tools,
     open,
+    read_visual,
     search,
 )
 
@@ -32,6 +33,7 @@ __all__ = [
     "search",
     "open",
     "find",
+    "read_visual",
     "explore_web",
     "set_browser_provider",
     "reset_browser",

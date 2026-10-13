@@ -10,15 +10,17 @@ import asyncio
 import logging
 import queue as _queue
 import time
+from collections.abc import Callable
+from contextlib import aclosing
 from typing import Any
 
 from langchain_core.language_models import BaseChatModel
 
-from searchos.harness.blueprint import SearchBlueprint
+from searchos.config.run_config import EffectiveRunConfig, activate_run_config
 from searchos.config.settings import settings
+from searchos.harness.answer_stream import AnswerStreamEmitter
 from searchos.skills.catalog.registry import SkillRegistry
-from searchos.socm import SearchState
-from searchos.socm import WorkspaceManager
+from searchos.socm import SearchState, WorkspaceManager
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +45,7 @@ def _frontier_progress(state: SearchState) -> float:
     return state.frontier.resolved_count / total
 
 
-def _premature_end_reason(workspace: WorkspaceManager, harness: Any) -> str | None:
+def _premature_end_reason(workspace: WorkspaceManager, control: Any) -> str | None:
     """Decide whether the orchestrator's no-tool-call exit left work behind.
 
     The ReAct loop ends whenever the model emits a message without tool
@@ -52,7 +54,7 @@ def _premature_end_reason(workspace: WorkspaceManager, harness: Any) -> str | No
     the session isn't done, or None when the end is legitimate (harness
     initiated the stop, or nothing actionable remains).
     """
-    if getattr(harness, "harness_stop_fired", False):
+    if control.stopped:
         return None
     reasons: list[str] = []
     try:
@@ -108,17 +110,28 @@ def _premature_end_nudge(reason: str) -> str:
 def _is_safe_steer_boundary(event: dict) -> bool:
     """Whether a live follow-up can be injected after this astream event.
 
-    Unsafe iff the last message is an AI turn carrying tool calls whose
-    ToolMessages haven't landed yet — injecting a HumanMessage there would
-    leave dangling tool_calls and some providers reject the next request.
+    Context updates may follow an AI tool request before its ToolMessages
+    arrive. Check every outstanding call, not just the last message.
     """
-    msgs = event.get("messages") or []
-    if not msgs:
-        return True
-    last = msgs[-1]
-    if getattr(last, "type", None) == "ai" and (getattr(last, "tool_calls", None) or []):
-        return False
-    return True
+    pending: set[str] = set()
+    for message in event.get("messages") or []:
+        for call in getattr(message, "tool_calls", None) or []:
+            pending.add(call["id"])
+        if getattr(message, "type", None) == "tool":
+            pending.discard(message.tool_call_id)
+    return not pending
+
+
+def _drain_steering(steer_queue) -> str | None:
+    if steer_queue is None:
+        return None
+    drained = []
+    while not steer_queue.empty():
+        try:
+            drained.append(steer_queue.get_nowait())
+        except (asyncio.QueueEmpty, _queue.Empty):
+            break
+    return "\n".join(drained) if drained else None
 
 
 def _steer_nudge(text: str) -> str:
@@ -127,6 +140,7 @@ def _steer_nudge(text: str) -> str:
         f"{text}\n\n"
         "请在当前进展的基础上响应该追问：可以调整计划、补充或重排任务，或直接作答。"
         "此前已分派的子代理仍在后台运行，无需重复分派相同的工作。"
+        "如果用户要求结束研究，请用 stop_task 取消不再需要的任务，再基于已有证据回答。"
     )
 
 
@@ -180,25 +194,28 @@ class SearchSession:
         1. Create workspace + state
         2. Build Orchestrator Agent with orchestrator tools (create_schema,
            spawn/check/continue_agent, plus SOCM read + skill management)
-        3. Orchestrator autonomously: explore → schema → spawn sub-agents →
+        3. Orchestrator autonomously: choose exploration / schema / retrieval →
            poll → continue/spawn as needed
-        4. Harness finalizes: synthesize report, collect results, mine skills
+        4. Harness drains Agent work; Orchestrator finalizes the answer
+           without tools, with Synthesis reserved for failure fallback
     """
 
     def __init__(
         self,
         *,
-        blueprint: SearchBlueprint | None = None,
+        max_time_s: int | None = None,
         skill_registry: SkillRegistry | None = None,
         workspace_root: str = settings.workspace_root,
         skill_library_path: str = "",
         skill_exclude: list[str] | None = None,
         model_overrides: dict[str, BaseChatModel] | None = None,
         skip_synthesis: bool | None = None,
+        run_config: EffectiveRunConfig | None = None,
+        research_mode: str | None = None,
     ) -> None:
-        """Models are pulled from settings.profiles + settings.roles via
-        ``model_factory.get_model_for(role)``. ``model_overrides`` lets
-        tests inject a stub for a specific role without touching settings.
+        """按 settings 中的角色选择模型，允许通过 model_overrides 覆盖。
+
+        max_time_s 为单次会话覆盖；None 在每轮开始读取 settings，0 表示不限时。
         """
         from searchos.config.models import get_model_for
 
@@ -210,26 +227,20 @@ class SearchSession:
         self._model = _resolve("orchestrator")
         self._judge_model = _resolve("judge")
         self._extraction_model = _resolve("extraction")
-        self._alias_resolver_model = _resolve("alias_resolver")
         self._synthesis_model = _resolve("synthesis")
         self._skill_evolver_model = _resolve("skill_evolver")
         self._post_mortem_model = _resolve("post_mortem")
-        # sub_agent / skill_runtime are pulled lazily inside the spawn /
-        # access-skill paths; keep references so token-tracker callbacks
-        # are bound consistently.
+        # Keep the sub-agent model bound to the session's token tracker.
         self._sub_agent_model = _resolve("sub_agent")
-        self._skill_runtime_model = _resolve("skill_runtime")
 
         role_models = {
             "orchestrator": self._model,
             "judge": self._judge_model,
             "extraction": self._extraction_model,
-            "alias_resolver": self._alias_resolver_model,
             "synthesis": self._synthesis_model,
             "skill_evolver": self._skill_evolver_model,
             "post_mortem": self._post_mortem_model,
             "sub_agent": self._sub_agent_model,
-            "skill_runtime": self._skill_runtime_model,
         }
         self._model_distribution: dict[str, dict[str, str]] = {}
         for role, profile_name in settings.roles.items():
@@ -249,12 +260,14 @@ class SearchSession:
                 ),
             }
 
-        self._blueprint = blueprint or SearchBlueprint()
+        self._max_time_s = max_time_s
         self._skill_registry = skill_registry
         self._workspace_root = workspace_root
-        self._skill_library_path = skill_library_path or self._blueprint.skill_library_path
+        self._skill_library_path = skill_library_path or settings.skill_library_path
         self._skill_exclude = list(skill_exclude or [])
         self._skip_synthesis = skip_synthesis if skip_synthesis is not None else settings.skip_synthesis
+        self._run_config = run_config or EffectiveRunConfig.from_settings()
+        self._research_mode = research_mode
 
     def ensure_skill_registry(self) -> SkillRegistry:
         """Build + load the skill registry if not already done (idempotent;
@@ -270,7 +283,17 @@ class SearchSession:
             self._skill_registry.load_directory(lib_path)
         return self._skill_registry
 
-    async def run(
+    async def run(self, *args: Any, **kwargs: Any) -> SearchResult:
+        """Execute with the immutable configuration captured at construction."""
+        self._conversation_logger = None
+        try:
+            with activate_run_config(self._run_config):
+                return await self._run_impl(*args, **kwargs)
+        finally:
+            if self._conversation_logger is not None:
+                self._conversation_logger.flush()
+
+    async def _run_impl(
         self,
         query: str,
         *,
@@ -300,7 +323,8 @@ class SearchSession:
         ``steer_queue`` (optional): a queue the caller pushes live user
         follow-ups onto while the run is in flight. At safe step boundaries the
         orchestrator loop drains it and re-enters its thread with the message
-        injected, steering the run without killing in-flight sub-agents.
+        injected. Pending messages wake check_agents immediately without
+        killing in-flight sub-agents; stop_task remains the model's decision.
 
         ``access_only`` (optional): when set, the orchestrator's access-skill
         catalog is restricted to exactly these skill names, overriding the
@@ -346,12 +370,33 @@ class SearchSession:
 
         # --- State ---
         state = initial_state or SearchState(intent=query)
+        if state.source_scope is None:
+            state.source_scope = {"mode": "web", "documents": []}
+        if state.source_scope.get("mode") == "local":
+            raise ValueError("Local mode uses the direct Local Search Agent")
+        state.research_mode = self._research_mode or (
+            "findings" if state.source_scope.get("mode") == "hybrid" else "table"
+        )
         if not state.intent:
             state.intent = query
 
         workspace.save_state(state)
+        from searchos.tools.search_state import _source_scope_var
+        _source_scope_var.set(state.source_scope)
 
         # --- Skill registry ---
+        from searchos.skills.names import canonical_skill_names
+        access_only = canonical_skill_names(access_only) if access_only is not None else None
+        access_deny = canonical_skill_names(access_deny or ())
+        strategy_deny = canonical_skill_names(strategy_deny or ())
+        orchestrator_deny = canonical_skill_names(orchestrator_deny or ())
+        from searchos.tools.skill_catalog import _skill_access_policy_var
+        _skill_access_policy_var.set({
+            "access_only": None if access_only is None else frozenset(access_only),
+            "access_deny": frozenset(access_deny or ()),
+            "strategy_deny": frozenset(strategy_deny or ()),
+            "orchestrator_deny": frozenset(orchestrator_deny or ()),
+        })
         self.ensure_skill_registry()
 
         # --- Trajectory logger ---
@@ -369,6 +414,7 @@ class SearchSession:
             langchain_msg_to_conversation_msgs,
         )
         conv_logger = ConversationLogger(workspace.conversation_path)
+        self._conversation_logger = conv_logger
         # Follow-up turns reuse the same session workspace; load prior turns
         # from disk so this turn's messages append instead of overwriting.
         conv_logger.hydrate()
@@ -377,6 +423,7 @@ class SearchSession:
         from datetime import datetime, timezone
         traj_logger._append_raw({
             "type": "task_start",
+            "source_mode": (state.source_scope or {}).get("mode", "web"),
             "session_id": workspace.session_id,
             "query": query,
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -394,18 +441,18 @@ class SearchSession:
             "excluded_domains": list(source_controls.excluded_domains),
             "explore": {
                 "batch_enabled": settings.enable_explore_batch,
-                "min_waves": settings.explore_min_waves,
-                "max_waves": settings.explore_max_waves,
+                "max_waves": self._run_config.explore_max_waves,
             },
+            "effective_run_config": self._run_config.snapshot(),
+            "models": self._model_distribution,
             "fixed_schema": fixed_schema,
         })
 
         # --- Set up orchestrator tools context ---
         from searchos.agents.orchestrator import get_orchestrator_tools
         from searchos.agents.runtime import set_orchestrator_context
-        from searchos.tools.simple_browser.state import set_browser_provider
         from searchos.tools.search_state import set_workspace
-        from searchos.tools.simple_browser.state import _provider
+        from searchos.tools.simple_browser.state import _provider, set_browser_provider
 
         set_workspace(workspace)
         set_orchestrator_context(
@@ -416,12 +463,12 @@ class SearchSession:
             conversation_logger=conv_logger,
             judge_model=self._judge_model,
             extraction_model=self._extraction_model,
-            alias_resolver_model=self._alias_resolver_model,
             sub_agent_model=self._sub_agent_model,
-            skill_runtime_model=self._skill_runtime_model,
+            synthesis_model=self._synthesis_model,
             skill_evolver_model=self._skill_evolver_model,
             post_mortem_model=self._post_mortem_model,
             query=query,
+            steer_queue=steer_queue,
             scheduler_task_allowlist=targeted_repair_task_ids,
             repair_target_allowlist=(
                 set(targeted_repair_cells or ()) if targeted_repair_mode else None
@@ -431,16 +478,15 @@ class SearchSession:
             set_browser_provider(_provider)
 
 
-        from searchos.agents.orchestrator.catalog import generate_agent_catalog_text
-        from searchos.agents.orchestrator.prompt import build_orchestrator_prompt
-        from searchos.agents.runtime import create_search_agent_graph
-
         from datetime import datetime as _dt
-        orchestrator_tools = get_orchestrator_tools()
+
+        from searchos.agents.orchestrator.catalog import _is_agent_enabled, generate_agent_catalog_text
+        from searchos.agents.orchestrator.prompt import build_orchestrator_prompt
+        orchestrator_tools = get_orchestrator_tools(source_mode=(state.source_scope or {}).get("mode", ""))
         if fixed_schema:
             orchestrator_tools = [
                 tool for tool in orchestrator_tools
-                if getattr(tool, "name", "") != "create_schema"
+                if getattr(tool, "name", "") not in {"create_schema", "add_columns"}
             ]
         if targeted_repair_mode:
             repair_tool_allowlist = {
@@ -458,9 +504,9 @@ class SearchSession:
         # Inject ALL orchestrator-layer skills into the playbook directly — no
         # router LLM call. Skipped entirely when enable_skills=False so the
         # orchestrator cannot see or use skills.
-        if settings.enable_skills:
-            from searchos.skills.core.models import SkillCategory
+        if settings.enable_skills and "web" not in state.source_scope.get("unavailable_sources", {}):
             from searchos.skills.catalog.router import render_playbook
+            from searchos.skills.core.models import SkillCategory
             orch_candidates = self._skill_registry.list_by_category(SkillCategory.ORCHESTRATOR)
             if orchestrator_deny:
                 orch_candidates = [
@@ -508,31 +554,55 @@ class SearchSession:
             skill_catalog=skill_catalog,
             max_dispatches=settings.orch_max_dispatches,
             max_searches_per_agent=settings.max_searches_per_sub_agent,
+            max_skills_per_agent=settings.max_skills_per_sub_agent,
+            max_search_agents_per_session=settings.max_search_agents_per_session,
             # Date-only: minute precision forks the prompt-cache prefix
             # across sessions started in different minutes.
             current_time=_dt.now().strftime("%Y-%m-%d"),
             orch_toolset=render_toolset(orchestrator_tools, header="## Available Tools"),
-            enable_explore=settings.enable_explore,
+            enable_explore=_is_agent_enabled("explore_agent"),
+            explore_on_start=self._run_config.explore_on_start and not targeted_repair_mode,
             orchestrator_playbook=orchestrator_playbook,
             follow_up=follow_up or bool(context_preamble),
+            research_mode=state.research_mode,
+            source_mode=(state.source_scope or {}).get("mode", ""),
+            local_sources=(
+                "Current library: " + str(state.source_scope.get("library_id", ""))
+                + (
+                    "; scope: readable library snapshot.\n"
+                    if state.source_scope.get("selection") == "library"
+                    else "; scope: selected documents.\n"
+                )
+                + f"Readable documents: {len(state.source_scope.get('documents', []))}.\n"
+                if (state.source_scope or {}).get("library_id") else ""
+            ) + "\n".join(
+                f"- {record['relative_path']} (document_id={record['document_id']})"
+                for record in (state.source_scope or {}).get("documents", [])
+            ),
+            source_limitations="\n".join(state.source_scope.get("unavailable_sources", {}).values()),
         )
         if fixed_schema:
             system_prompt += (
                 "\n\n## Fixed Prebuilt Schema Mode (experimental override)\n"
                 "The SOCM already contains the complete, immutable schema for this run. "
                 "This block overrides any earlier instruction to create or redesign a schema. "
-                "The create_schema tool is intentionally unavailable. Do not add tables or "
+                "The create_schema and add_columns tools are intentionally unavailable. Do not add tables or columns or "
                 "reinterpret the table boundaries. You may discover rows, call add_entities / "
-                "edit_entities, dispatch Explore and search agents, and fill the existing cells. "
-                "After Explore, immediately plan searches against the existing table IDs and "
-                "relations. Every search task in a multi-table run must name target_table."
+                "edit_entities, dispatch agents from the current Agent Catalog, "
+                "and fill the existing cells. "
+                "Follow the configured initial-action policy for Explore, using the existing "
+                "table IDs and relations; Explore must not redesign the schema. "
+                "Every retrieval task in a multi-table "
+                "run must name target_table."
             )
         if targeted_repair_mode:
             system_prompt += (
                 "\n\n## Targeted Repair Mode (overrides the normal workflow)\n"
                 "The selected cells in the user message are an immutable allowlist. "
-                "Plan the work yourself and call `enqueue_tasks` with search_agent "
-                "tasks. Every task MUST provide the exact `target_table` and explicit "
+                "Plan the work yourself and call `enqueue_tasks` with the appropriate "
+                "retrieval agents from the current Agent Catalog. "
+                "Every task MUST provide the exact "
+                "`target_table` and explicit "
                 "`target_cells`, and their cells must be a subset of the allowlist; "
                 "the tool rejects any wider scope. Group and stage tasks as you judge "
                 "best for the available pool. Do not create or edit schemas or entities. "
@@ -548,55 +618,39 @@ class SearchSession:
             agent_type="orchestrator",
         )
 
-        from searchos.harness.middleware.sensor.harness import (
-            BudgetState,
-            HarnessMiddleware,
-        )
         from deepagents.backends import FilesystemBackend
+
+        from searchos.harness.middleware.pipelines import orchestrator_pipeline
+        from searchos.harness.middleware.sensor.core.models import BudgetState, ControlState
 
         # Orchestrator never calls `search` — bound by iterations + sensors.
         orch_budget = BudgetState(
             max_queries=0,
             max_iterations=settings.orch_max_iterations,
-            max_time_s=self._blueprint.budget.max_time_s,
+            max_time_s=(settings.default_max_time_s
+                        if self._max_time_s is None else self._max_time_s),
         )
-        from searchos.harness.middleware.sensor.coverage_stall_sensor import (
-            CoverageStallSensor,
-        )
-        from searchos.harness.middleware.sensor.dispatch_round_sensor import (
-            DispatchRoundSensor,
-        )
-        orch_harness = HarnessMiddleware(
-            sensors=[
-                DispatchRoundSensor(max_rounds=settings.orch_max_dispatches),
-                CoverageStallSensor(
-                    workspace=workspace,
-                    max_stalled_rounds=settings.orch_coverage_stall_rounds,
-                ),
-            ],
-            budget=orch_budget,
-            trajectory_logger=traj_logger,
-            workspace=workspace,
-            worker_name="orchestrator",
-        )
-        from searchos.harness.middleware import build_layered_stack
-        from searchos.harness.middleware.context import ControlMiddleware
-        orch_middleware = build_layered_stack(
-            control=[ControlMiddleware(
-                trim_max_tokens=settings.orch_trim_max_tokens, force_layered=False,
-            )],
-            sensor=[orch_harness],
-        )
+        def stop_dispatch():
+            from searchos.agents.runtime import _ctx
+
+            _ctx.mark_budget_exhausted()
+
+        from searchos.agents.runtime import _ctx
+
+        orch_control = ControlState()
         orch_backend = FilesystemBackend(
             root_dir=str(workspace.path / "orchestrator_logs"),
             virtual_mode=False,
         )
 
-        graph = create_search_agent_graph(
+        graph = orchestrator_pipeline(
             model=self._model,
             tools=orchestrator_tools,
             system_prompt=system_prompt,
-            middleware=orch_middleware,
+            workspace=workspace, budget=orch_budget, control=orch_control,
+            agent_graphs=_ctx.agent_graphs, task_pool=_ctx.task_pool,
+            on_exhausted=stop_dispatch, trajectory_logger=traj_logger,
+            conversation_logger=conv_logger,
             backend=orch_backend,
             name="orchestrator",
         )
@@ -622,16 +676,21 @@ class SearchSession:
             workspace.session_id,
         )
         final_state = None
+        execution_error = ""
+        finalization_reason = ""
         prev_msg_count = 0
 
         pending_tool_calls: dict[str, dict[str, Any]] = {}
         phase_tracker = _PhaseTracker(token_usage)
+        answer_stream = AnswerStreamEmitter(
+            traj_logger._append_raw,
+            stream_prefix=f"web-{workspace.session_id}",
+        )
+        committed_final_answer = ""
         cancelled = False  # set when the user interrupts (Ctrl-C → task.cancel)
         try:
             model_name = getattr(self._model, "model_name", None) or getattr(self._model, "model", "") or ""
-            # SOCM context is injected on every orchestrator step by
-            # HarnessMiddleware._render_socm_via_views, so no need to
-            # bake a snapshot into the initial user message.
+            # SOCMContextMiddleware supplies live state during each model turn.
             astream_config = {
                 "configurable": {"thread_id": workspace.session_id},
                 "run_name": f"orchestrator:{workspace.session_id}",
@@ -655,7 +714,8 @@ class SearchSession:
                     "[TARGETED CELL REPAIR]\n"
                     f"Repair only these coverage cells: {targets}.\n"
                     "You own the repair plan and dispatch. Split these cells into focused "
-                    "search_agent tasks with enqueue_tasks; set target_table and "
+                    "retrieval tasks with enqueue_tasks using the current Agent Catalog; "
+                    "set target_table and "
                     "target_cells on every task (`target_cells` may use Entity.Attribute "
                     "or the full table/Entity.Attribute key). Do not create or change schemas, add "
                     "entities, or expand beyond this allowlist. Keep dispatching and "
@@ -670,107 +730,114 @@ class SearchSession:
             # the checkpointed conversation instead of starting over.
             while True:
                 injected_steer: str | None = None
-                async for event in graph.astream(
+                # Close the previous stream and flush its checkpoint before
+                # re-entering; otherwise the next call can lose ToolMessages.
+                async with aclosing(graph.astream(
                     input_payload,
                     config=astream_config,
-                    stream_mode="values",
-                ):
-                    final_state = event
-                    if "messages" not in event:
-                        continue
-                    msgs = event["messages"]
-                    new_msgs = msgs[prev_msg_count:]
-                    prev_msg_count = len(msgs)
+                    stream_mode=["values"],
+                )) as stream:
+                    async for stream_kind, stream_event in stream:
+                        event = stream_event
+                        if not isinstance(event, dict):
+                            continue
+                        final_state = event
+                        if "messages" not in event:
+                            continue
+                        msgs = event["messages"]
+                        new_msgs = msgs[prev_msg_count:]
+                        prev_msg_count = len(msgs)
 
-                    for msg in new_msgs:
-                        # Record to conversation logger
-                        for conv_msg in langchain_msg_to_conversation_msgs(msg):
-                            conv_logger.log(conv_msg)
+                        for msg in new_msgs:
+                            # Record to conversation logger
+                            for conv_msg in langchain_msg_to_conversation_msgs(msg):
+                                conv_logger.log(conv_msg)
 
-                        # Record Orchestrator tool events to trajectory
-                        _log_orchestrator_tool_events(
-                            msg, traj_logger, pending_tool_calls,
-                        )
+                            # Record Orchestrator tool events to trajectory
+                            _log_orchestrator_tool_events(
+                                msg, traj_logger, pending_tool_calls,
+                            )
 
-                        # Track token phase transitions
-                        phase_tracker.observe(msg)
+                            # Track token phase transitions
+                            phase_tracker.observe(msg)
 
-                        # Stream the orchestrator's own reasoning/content to the
-                        # live UI (Claude-Code-style per-turn output).
-                        if on_event is not None and getattr(msg, "type", None) == "ai":
-                            _c = getattr(msg, "content", "") or ""
-                            if isinstance(_c, list):
-                                _c = " ".join(
-                                    b.get("text", "") for b in _c
-                                    if isinstance(b, dict) and b.get("type") == "text"
-                                )
-                            _ex = getattr(msg, "additional_kwargs", None) or {}
-                            _r = _ex.get("reasoning_content", "") if isinstance(_ex, dict) else ""
-                            if (_c or "").strip() or (_r or "").strip():
-                                try:
-                                    on_event({"type": "assistant", "agent": "orchestrator",
-                                              "content": _c or "", "reasoning": _r or ""})
-                                except Exception:
-                                    pass
-                            # Surface the tool call the instant it's emitted —
-                            # don't wait for the result (which merges in a later
-                            # astream batch, one step behind). The live UI shows
-                            # the call now and back-fills the result by id.
-                            for _tc in (getattr(msg, "tool_calls", None) or []):
-                                _name = (_tc.get("name", "") if isinstance(_tc, dict)
-                                         else getattr(_tc, "name", ""))
-                                if not _name:
-                                    continue
-                                _tcid = (_tc.get("id", "") if isinstance(_tc, dict)
-                                         else getattr(_tc, "id", ""))
-                                _targs = (_tc.get("args", {}) if isinstance(_tc, dict)
-                                          else getattr(_tc, "args", {}))
-                                try:
-                                    on_event({
-                                        "type": "orchestrator_tool_call",
-                                        "tool": _name, "tool_call_id": _tcid,
-                                        "args": _full_args(_targs),
-                                    })
-                                except Exception:
-                                    pass
-                                # Persist too, so file-tailing UIs (the web WS)
-                                # see the call the moment it starts — the full
-                                # `step` record only lands after the tool
-                                # returns, which for check_agents can be
-                                # minutes later.
-                                try:
-                                    traj_logger._append_raw({
-                                        "type": "tool_call_started",
-                                        "agent": "orchestrator",
-                                        "tool": _name, "tool_call_id": _tcid,
-                                        "args": _full_args(_targs),
-                                    })
-                                except Exception:
-                                    pass
+                            # Stream the orchestrator's own reasoning/content to the
+                            # live UI (Claude-Code-style per-turn output).
+                            if on_event is not None and getattr(msg, "type", None) == "ai":
+                                _c = getattr(msg, "content", "") or ""
+                                if isinstance(_c, list):
+                                    _c = " ".join(
+                                        b.get("text", "") for b in _c
+                                        if isinstance(b, dict) and b.get("type") == "text"
+                                    )
+                                _ex = getattr(msg, "additional_kwargs", None) or {}
+                                _r = _ex.get("reasoning_content", "") if isinstance(_ex, dict) else ""
+                                if (_c or "").strip() or (_r or "").strip():
+                                    try:
+                                        on_event({"type": "assistant", "agent": "orchestrator",
+                                                  "content": _c or "", "reasoning": _r or ""})
+                                    except Exception:
+                                        pass
+                                # Surface the tool call the instant it's emitted —
+                                # don't wait for the result (which merges in a later
+                                # astream batch, one step behind). The live UI shows
+                                # the call now and back-fills the result by id.
+                                for _tc in (getattr(msg, "tool_calls", None) or []):
+                                    _name = (_tc.get("name", "") if isinstance(_tc, dict)
+                                             else getattr(_tc, "name", ""))
+                                    if not _name:
+                                        continue
+                                    _tcid = (_tc.get("id", "") if isinstance(_tc, dict)
+                                             else getattr(_tc, "id", ""))
+                                    _targs = (_tc.get("args", {}) if isinstance(_tc, dict)
+                                              else getattr(_tc, "args", {}))
+                                    try:
+                                        on_event({
+                                            "type": "orchestrator_tool_call",
+                                            "tool": _name, "tool_call_id": _tcid,
+                                            "args": _full_args(_targs),
+                                        })
+                                    except Exception:
+                                        pass
+                                    # Persist too, so file-tailing UIs (the web WS)
+                                    # see the call the moment it starts — the full
+                                    # `step` record only lands after the tool
+                                    # returns, which for check_agents can be
+                                    # minutes later.
+                                    try:
+                                        traj_logger._append_raw({
+                                            "type": "tool_call_started",
+                                            "agent": "orchestrator",
+                                            "tool": _name, "tool_call_id": _tcid,
+                                            "args": _full_args(_targs),
+                                        })
+                                    except Exception:
+                                        pass
 
-                    # Live steering: at a safe boundary (the last message is
-                    # not an AI turn with unanswered tool calls), drain any
-                    # queued user follow-up and break to re-enter the thread
-                    # with it. Sub-agents in the task pool keep running.
-                    if (
-                        steer_queue is not None
-                        and not steer_queue.empty()
-                        and _is_safe_steer_boundary(event)
-                    ):
-                        drained: list[str] = []
-                        while not steer_queue.empty():
-                            try:
-                                drained.append(steer_queue.get_nowait())
-                            except (asyncio.QueueEmpty, _queue.Empty):
-                                break
-                        if drained:
-                            injected_steer = "\n".join(drained)
-                            traj_logger._append_raw({
-                                "type": "harness",
-                                "kind": "steer_injected",
-                                "text": injected_steer[:300],
-                            })
+                        # Once research is stopped, leave the graph at a complete
+                        # tool/message boundary. Synthesis runs after task drain.
+                        if (not self._skip_synthesis
+                                and (orch_control.forced or orch_budget.fully_exhausted)
+                                and _is_safe_steer_boundary(event)):
+                            finalization_reason = orch_control.reason or "harness_stopped"
                             break
+
+                        # Live steering: after all tool calls have results, drain any
+                        # queued user follow-up and break to re-enter the thread
+                        # with it. Sub-agents in the task pool keep running.
+                        if (
+                            steer_queue is not None
+                            and not steer_queue.empty()
+                            and _is_safe_steer_boundary(event)
+                        ):
+                            injected_steer = _drain_steering(steer_queue)
+                            if injected_steer is not None:
+                                traj_logger._append_raw({
+                                    "type": "harness",
+                                    "kind": "steer_injected",
+                                    "text": injected_steer[:300],
+                                })
+                                break
 
                 if injected_steer is not None:
                     # Re-enter the same thread_id with the follow-up as a new
@@ -783,12 +850,15 @@ class SearchSession:
                     }
                     continue
 
-                reason = _premature_end_reason(workspace, orch_harness)
+                reason = _premature_end_reason(workspace, orch_control)
+                if orch_control.stopped:
+                    finalization_reason = orch_control.reason or "harness_stopped"
                 if (
                     reason is None
                     or resume_attempts >= settings.orch_premature_end_max_resumes
                 ):
                     if reason is not None:
+                        finalization_reason = "premature_end_resumes_exhausted"
                         logger.warning(
                             "Orchestrator ended without a tool call and work "
                             "remains (%s), but resume budget is spent — "
@@ -820,9 +890,13 @@ class SearchSession:
             cancelled = True
             logger.info("Orchestrator run cancelled by user")
             raise
-        except Exception:
+        except Exception as exc:
+            execution_error = type(exc).__name__
             logger.error("Orchestrator execution failed", exc_info=True)
+            traj_logger._append_raw({"type": "harness", "kind": "execution_failed",
+                                     "error_type": execution_error})
         finally:
+            answer_stream.finish()
             try:
                 from searchos.agents.runtime import _ctx as _orch_ctx
                 pending_pool = _orch_ctx.task_pool
@@ -869,6 +943,12 @@ class SearchSession:
                         pass
                 except Exception:
                     logger.warning("Drain raised", exc_info=True)
+
+            # Collectors have committed their reports and state; remove reaped
+            # entries even when no final check_agents tool call took place.
+            for agent_id, task in list(pending_pool.items()):
+                if task.done():
+                    pending_pool.pop(agent_id, None)
 
             # Drain pending post-mortem coroutines so their
             # atomic_update_state writes land before the workspace
@@ -939,7 +1019,7 @@ class SearchSession:
                 try:
                     traj_logger._append_raw({
                         "type": "harness", "kind": "post_session_phase",
-                        "phase": "synthesis",
+                        "phase": "finalization",
                         "status": "start",
                     })
                     if self._skip_synthesis:
@@ -948,27 +1028,37 @@ class SearchSession:
                             state=final_search_state,
                             query=query,
                         )
-                    else:
-                        await _harness_synthesize(
-                            workspace=workspace,
-                            state=final_search_state,
-                            query=query,
-                            model=self._synthesis_model,
+                    elif finalization_reason or orch_control.stopped:
+                        committed_final_answer = await _finalize_stopped_research(
+                            workspace=workspace, state=final_search_state, query=query,
+                            orchestrator_model=self._model,
+                            fallback_model=self._synthesis_model,
+                            stop_reason=finalization_reason or "harness_stopped",
+                            answer_stream=answer_stream, trajectory_logger=traj_logger,
+                            conversation_logger=conv_logger,
                         )
+                    else:
+                        committed_final_answer = _write_findings_answer(
+                            workspace, final_search_state, query, final_state,
+                            execution_error=execution_error,
+                            stop_reason=finalization_reason,
+                        )
+                        answer_stream.push(committed_final_answer)
+                        answer_stream.finish()
                     traj_logger._append_raw({
                         "type": "harness", "kind": "post_session_phase",
-                        "phase": "synthesis",
+                        "phase": "finalization",
                         "status": "done",
                     })
                 except Exception:
                     logger.error(
-                        "Harness synthesis crashed; writing minimal marker",
+                        "Harness finalization crashed; writing minimal marker",
                         exc_info=True,
                     )
                     try:
                         workspace.write_output(
                             "report.md",
-                            f"# {query}\n\n_Synthesis crashed. See logs._\n",
+                            f"# {query}\n\n_Finalization crashed. See logs._\n",
                         )
                     except Exception:
                         pass
@@ -984,19 +1074,26 @@ class SearchSession:
                         "role": msg.type,
                         "content": msg.content,
                     })
+        if committed_final_answer and not any(
+            message.get("role") in {"ai", "assistant"}
+            and message.get("content") == committed_final_answer
+            for message in final_messages
+        ):
+            final_messages.append({"role": "ai", "content": committed_final_answer})
 
         result = SearchResult(
             query=query,
             session_id=workspace.session_id,
             workspace_path=str(workspace.path),
             search_state=final_search_state,
-            eval_verdict="COMPLETE",
+            eval_verdict="UNASSESSED" if final_search_state.research_mode == "findings" else "COMPLETE",
             coverage_score=final_search_state.coverage_map.coverage_score,
             evidence_count=final_search_state.evidence_graph.node_count,
             total_queries=traj_logger.tool_counts.get("search", 0),
             total_steps=traj_logger.step_count,
             elapsed_s=elapsed,
             final_messages=final_messages,
+            execution_error=execution_error,
         )
 
         # Log task_complete event (with total + per-phase token usage)
@@ -1008,6 +1105,7 @@ class SearchSession:
         token_phases = phase_tracker.finalize()
         traj_logger._append_raw({
             "type": "task_complete",
+            "execution_error": execution_error,
             "session_id": workspace.session_id,
             "coverage": result.coverage_score,
             "evidence_backed_coverage": _evidence_backed_coverage(final_search_state),
@@ -1060,38 +1158,27 @@ class SearchSession:
             token_dict["llm_calls"],
         )
 
-        # --- Reactive access-skill generation (fire-and-forget, opt-in) ---
-        # Independent of skill evolution. Off by default
-        # (settings.enable_access_skill_generation). When on, hosts opened
-        # repeatedly in this run's trajectory are baked into agent_called
-        # skills via the LLM-driven dynamic builder, so later runs can call
-        # them as typed ``skill_<name>`` tools.
+        # 兼容原配置名；统一 trace intent 决定三类技能的新增或更新。
         if settings.enable_access_skill_generation:
-            async def _generate_access_skills() -> None:
+            async def _generate_trace_skills() -> None:
                 from pathlib import Path
-                from searchos.skills.evolution.host_miner import (
-                    generate_access_skills_from_trace,
-                )
+                from searchos.skills import generate_from_trace
+
                 try:
                     lib = self._skill_library_path or "searchos/skills/library"
-                    reports = await generate_access_skills_from_trace(
-                        workspace.trajectory_path,
-                        judge_model=self._skill_evolver_model,
-                        builder_model=self._skill_evolver_model,
-                        library_path=Path(lib) / "access",
-                        max_per_run=settings.access_skill_max_per_run,
-                        min_opens=settings.access_skill_min_opens,
-                        obs_chars=settings.access_skill_obs_chars,
+                    results = await generate_from_trace(
+                        workspace.trajectory_path, library_path=Path(lib),
+                        model=self._skill_evolver_model,
+                        max_requests=settings.access_skill_max_per_run,
                     )
-                    installed = sum(1 for r in reports if r.get("status") == "installed")
-                    if installed:
-                        logger.info("Generated %d access skill(s)", installed)
+                    installed = sum(1 for r in results if r.status == "installed")
+                    logger.info("Trace skill generation finished: %d installed/updated, %d requests",
+                                installed, len(results))
                 except Exception:
-                    logger.warning("Access-skill generation failed", exc_info=True)
+                    logger.warning("Trace skill generation failed", exc_info=True)
 
             access_task = asyncio.create_task(
-                _generate_access_skills(),
-                name=f"access-gen-{workspace.session_id}",
+                _generate_trace_skills(), name=f"skill-gen-{workspace.session_id}",
             )
             _PENDING_EVOLUTIONS.add(access_task)
             access_task.add_done_callback(_PENDING_EVOLUTIONS.discard)
@@ -1142,6 +1229,7 @@ class _PhaseTracker:
         snap_sub = self._snapshots.get("sub_agents", end)
         snap_synth = self._snapshots.get("synthesize", end)
 
+        phases["setup"] = dict(snap_explore)
         phases["explore"] = {k: snap_sub[k] - snap_explore[k] for k in snap_explore}
         phases["sub_agents"] = {k: snap_synth[k] - snap_sub[k] for k in snap_sub}
         phases["synthesize"] = {k: end[k] - snap_synth[k] for k in snap_synth}
@@ -1216,6 +1304,7 @@ def _export_eval_table(
 ) -> None:
     """Deterministic eval-table export: skip LLM synthesis entirely."""
     import json as _json
+
     from searchos.harness.report.eval_table_export import build_eval_table
 
     eval_table = build_eval_table(state)
@@ -1229,15 +1318,140 @@ def _export_eval_table(
     }, ensure_ascii=False, indent=2))
 
 
+async def _finalize_stopped_research(*, workspace, state, query, orchestrator_model,
+                                     fallback_model=None, stop_reason,
+                                     answer_stream=None, trajectory_logger=None,
+                                     conversation_logger=None) -> str:
+    """子任务回收后由 Orchestrator 生成终止轮，Synthesis 仅作降级。"""
+    from langchain_core.messages import AIMessage
+
+    from searchos.harness.report.synthesis import finalize_research
+
+    draft = ""
+    execution_error = ""
+    orchestrator_error = ""
+    finalizer = "orchestrator"
+    try:
+        draft = await finalize_research(
+            state=state, query=query, model=orchestrator_model,
+            stop_reason=stop_reason,
+            max_chars=settings.research_finalize_max_chars,
+            timeout_s=settings.research_finalize_timeout_s,
+        )
+    except asyncio.CancelledError:
+        raise
+    except Exception as exc:
+        orchestrator_error = type(exc).__name__
+        logger.warning(
+            "Orchestrator final turn failed (%s); trying synthesis fallback",
+            orchestrator_error,
+        )
+        if fallback_model is not None:
+            finalizer = "synthesis"
+            try:
+                draft = await finalize_research(
+                    state=state, query=query, model=fallback_model,
+                    stop_reason=stop_reason,
+                    max_chars=settings.research_finalize_max_chars,
+                    timeout_s=settings.research_finalize_timeout_s,
+                )
+            except asyncio.CancelledError:
+                raise
+            except Exception as fallback_exc:
+                execution_error = type(fallback_exc).__name__
+                logger.warning(
+                    "Synthesis fallback failed: %s", execution_error,
+                )
+        else:
+            execution_error = orchestrator_error
+    state = workspace.load_state()
+    answer = _write_findings_answer(
+        workspace, state, query, {"messages": [AIMessage(content=draft)]},
+        execution_error=execution_error, stop_reason=stop_reason,
+    )
+    if conversation_logger is not None:
+        from searchos.harness.telemetry.trajectory import ConversationMessage
+
+        conversation_logger.log(ConversationMessage(
+            role="assistant",
+            content=answer,
+            metadata={
+                "phase": "final_answer",
+                "finalizer": finalizer,
+                "stop_reason": stop_reason,
+            },
+        ))
+    if trajectory_logger is not None:
+        trajectory_logger._append_raw({
+            "type": "harness",
+            "kind": "research_finalized",
+            "stop_reason": stop_reason,
+            "finalizer": finalizer,
+            "orchestrator_error": orchestrator_error,
+            "execution_error": execution_error,
+        })
+    if answer_stream is not None:
+        answer_stream.push(answer)
+        answer_stream.finish()
+    return answer
+
+
+def _write_findings_answer(workspace, state, query, final_state, *, execution_error="",
+                           stop_reason="") -> str:
+    """保存主 Agent 最后一轮正文，仅解析引用，不核验或改写回答。"""
+    import json
+
+    from searchos.local.library import _LOCAL_LINK_RE
+    from searchos.socm.coverage import answer_evidence
+
+    nodes = answer_evidence(state)
+    from searchos.harness.report.grounding import final_answer_text
+    answer = final_answer_text(final_state)
+    canonical = {node.source: node.source for node in nodes if node.source.startswith("local://")}
+    from searchos.local.reader.references import parse_ref_id
+    document_refs: dict[str, set[str]] = {}
+    for node in nodes:
+        alias = (node.local_source_metadata or {}).get("tool_ref_id")
+        if alias:
+            canonical[alias] = node.source
+        if node.source.startswith("local://"):
+            try:
+                ref = parse_ref_id(node.source)
+                document_refs.setdefault(ref.document_id, set()).add(node.source)
+            except ValueError:
+                pass
+    for doc_id, refs in document_refs.items():
+        if len(refs) == 1:
+            canonical[f"local://{doc_id}"] = next(iter(refs))
+    mode = "research_finalized" if stop_reason else "hybrid_orchestrator"
+    if not answer.strip():
+        answer = "研究执行中断，尚未生成回答。" if execution_error else "本次研究尚未生成回答。"
+        mode = "hybrid_partial"
+    import re
+    evidence_refs = {f"evidence:{node.id}": node.source for node in nodes}
+    answer = re.sub(r"evidence:[a-zA-Z0-9_-]+",
+                    lambda match: evidence_refs.get(match.group(0), "invalid-evidence-reference"), answer)
+    answer = _LOCAL_LINK_RE.sub(lambda m: canonical.get(m.group(0), "invalid-local-reference"), answer)
+    workspace.write_output("report.md", answer)
+    workspace.write_output("result.json", json.dumps({
+        "query": query, "answer": answer, "mode": mode,
+        "execution_error": execution_error,
+        "stop_reason": stop_reason,
+        "evidence_count": len(nodes),
+        "coverage": state.coverage_map.coverage_score,
+        "frontier_progress": _frontier_progress(state),
+    }, ensure_ascii=False, indent=2))
+    return answer
+
+
 async def _harness_synthesize(
     *,
     workspace: WorkspaceManager,
     state: SearchState,
     query: str,
-    model: Any,
+    answer_stream: AnswerStreamEmitter | None = None,
 ) -> None:
-    """Harness-owned final report generation.
-    """
+    """续写 writer 正文，拼接覆盖表和来源生成最终报告。"""
     logger.info(
         "_harness_synthesize called: session=%s, evidence=%d, coverage=%.0f%%",
         workspace.session_id, state.evidence_graph.node_count,
@@ -1245,7 +1459,9 @@ async def _harness_synthesize(
     )
     import json as _json
 
-    evidence = state.evidence_graph.nodes
+    from searchos.socm.coverage import answer_evidence
+
+    evidence = answer_evidence(state)
 
     # Nothing collected — write a minimal marker and exit.
     if not evidence:
@@ -1265,9 +1481,7 @@ async def _harness_synthesize(
         logger.warning("Harness synthesis: wrote empty-marker report.md")
         return
 
-    # ---- Common: URL citation map + coverage table + sources ----
-    # These are deterministic / code-built and used by both the
-    # outline-first path and the Phase 2 fallback below.
+    # 正文和降级路径共用确定性的引用编号、覆盖表和来源。
     from searchos.harness.report.synthesis import (
         _detect_language,
         build_coverage_table_with_citations,
@@ -1283,9 +1497,7 @@ async def _harness_synthesize(
     sources_list = build_sources_list(url_map)
     language = "中文" if _detect_language(query) == "zh" else "English"
 
-    # ---- 报告产出:续写 writer 线程拿正文 + 代码拼 coverage table/sources ----
-    # LLM 多阶段兜底已弃用 —— writer 是唯一叙述正文来源;无 writer 时降级为纯
-    # 结构化表(coverage table + sources),不再发起任何 synthesis LLM 调用。
+    # 优先续写 writer；失败时采用已有提纲正文，无正文则仅输出覆盖表和来源。
     sections = list(getattr(state.outline, "sections", []) or [])
     total_sec = len(sections)
     sec_with_content = sum(1 for s in sections if (s.content or "").strip())
@@ -1310,42 +1522,27 @@ async def _harness_synthesize(
         language=language,
         coverage_score=state.coverage_map.coverage_score,
     )
+    writer_metadata = {}
     if finalize_body:
-        writer_body, writer_agent_id = finalize_body
-        report = _assemble(writer_body.strip())
-        workspace.write_output("report.md", report)
-        workspace.write_output("result.json", _json.dumps({
-            "query": query,
-            "answer": report,
-            "mode": "writer_finalize",
-            "writer_agent_id": writer_agent_id,
-            "evidence_count": len(evidence),
-            "coverage": state.coverage_map.coverage_score,
-            "evidence_backed_coverage": _evidence_backed_coverage(state),
-            "frontier_progress": _frontier_progress(state),
-            "outline_sections_total": total_sec,
-            "outline_sections_with_content": sec_with_content,
-            "url_citations": url_map,
-        }, ensure_ascii=False, indent=2))
-        logger.info(
-            "Harness synthesis (writer_finalize): writer=%s, %d evidence, "
-            "%d unique sources, body_len=%d",
-            writer_agent_id, len(evidence), len(url_map), len(writer_body),
-        )
-        return
+        body, writer_agent_id = finalize_body
+        body = body.strip()
+        mode = "writer_finalize"
+        writer_metadata["writer_agent_id"] = writer_agent_id
+    else:
+        # 只渲染引用仍有效的章节，原 outline 留作审计。
+        eligible_ids = set(evidence_by_id)
+        eligible_sections = [section for section in state.outline.sections
+                             if all(eid in eligible_ids for eid in section.cited_evidence_ids)]
+        body = state.outline.model_copy(update={"sections": eligible_sections}).rendered().strip()
+        mode = "outline_writer" if body else "structured_only"
 
-    # 兜底:无 writer / finalize 失败 → 渲染 outline 原文;无 outline 则纯结构化表
-    logger.info(
-        "Harness synthesis: writer_finalize unavailable, "
-        "falling back to outline-verbatim render",
-    )
-    outline_body = state.outline.rendered().strip()
-    report = _assemble(outline_body if outline_body else "")
+    report = _assemble(body)
     workspace.write_output("report.md", report)
     workspace.write_output("result.json", _json.dumps({
         "query": query,
         "answer": report,
-        "mode": "outline_writer" if outline_body else "structured_only",
+        "mode": mode,
+        **writer_metadata,
         "evidence_count": len(evidence),
         "coverage": state.coverage_map.coverage_score,
         "evidence_backed_coverage": _evidence_backed_coverage(state),
@@ -1354,10 +1551,15 @@ async def _harness_synthesize(
         "outline_sections_with_content": sec_with_content,
         "url_citations": url_map,
     }, ensure_ascii=False, indent=2))
+    if answer_stream is not None:
+        # Publish after the writer body, citations, tables, and sources have
+        # been assembled into the exact answer persisted for the user.
+        answer_stream.push(report)
+        answer_stream.finish()
     logger.info(
-        "Harness synthesis (outline_writer): %d/%d sections with content, "
+        "Harness synthesis (%s): %d/%d sections with content, "
         "%d evidence, %d unique sources",
-        sec_with_content, total_sec, len(evidence), len(url_map),
+        mode, sec_with_content, total_sec, len(evidence), len(url_map),
     )
     return
 
@@ -1369,16 +1571,9 @@ async def _run_writer_finalize(
     language: str,
     coverage_score: float,
 ) -> tuple[str, str] | None:
-    """Continue the writer sub-agent's LangGraph thread with a 'finalize'
-    HumanMessage and return ``(body_markdown, writer_agent_id)``.
+    """续写 writer 线程，返回 (正文, Agent ID)，失败时返回 None。
 
-    Bypasses the orchestrator tools layer (no budget gate): the
-    search run may have terminated via ``budget_exhausted`` + hard_block,
-    but synthesis owns the terminal step. We feed HumanMessage directly
-    to ``graph.astream`` on the writer's thread_id.
-
-    Returns None on any failure (no writer registered, astream raised,
-    empty body) — caller should fall back to outline-verbatim render.
+    直接调用图以绕过调度层预算门禁，允许搜索预算耗尽后完成报告收尾。
     """
     from searchos.agents.runtime import _ctx
     from searchos.harness.report.synthesis import build_writer_finalize_message
@@ -1389,8 +1584,7 @@ async def _run_writer_finalize(
         logger.info("writer_finalize: no orchestrator context (agent_graphs)")
         return None
 
-    # Pick the most recently registered writer sub-agent. agent_type is
-    # "writer_agent" per agents/catalog.py:101.
+    # 选择最近启动的 writer。
     writer_entries = [
         (aid, info) for aid, info in graphs.items()
         if info.get("agent_type") == "writer_agent"
@@ -1398,7 +1592,6 @@ async def _run_writer_finalize(
     if not writer_entries:
         logger.info("writer_finalize: no writer_agent in registry")
         return None
-    # "Most recent" — started_at monotonic, highest wins.
     writer_entries.sort(key=lambda p: p[1].get("started_at", 0.0), reverse=True)
     writer_agent_id, info = writer_entries[0]
     graph = info.get("graph")
@@ -1425,11 +1618,12 @@ async def _run_writer_finalize(
 
     try:
         latest_messages: list[Any] = []
-        async for event in graph.astream(
+        async for stream_kind, stream_event in graph.astream(
             {"messages": [{"role": "user", "content": message}]},
             config={"configurable": {"thread_id": thread_id}},
-            stream_mode="values",
+            stream_mode=["values"],
         ):
+            event = stream_event
             if isinstance(event, dict) and "messages" in event:
                 latest_messages = event["messages"]
     except Exception as e:
@@ -1438,7 +1632,6 @@ async def _run_writer_finalize(
             type(e).__name__, str(e).strip(), exc_info=True,
         )
         return None
-
     if not latest_messages:
         logger.warning("writer_finalize: no messages returned")
         return None
@@ -1488,6 +1681,7 @@ class SearchResult:
         total_steps: int,
         elapsed_s: float,
         final_messages: list[dict[str, Any]] | None = None,
+        execution_error: str = "",
     ) -> None:
         self.query = query
         self.session_id = session_id
@@ -1500,6 +1694,7 @@ class SearchResult:
         self.total_steps = total_steps
         self.elapsed_s = elapsed_s
         self.final_messages = final_messages or []
+        self.execution_error = execution_error
         self.access_task: asyncio.Task[None] | None = None
         self.token_usage: dict[str, Any] = {}
         self.token_phases: dict[str, Any] = {}

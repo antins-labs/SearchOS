@@ -1,0 +1,38 @@
+{
+  "description": "Extracts article content, news listings, and searches articles from contest.stickeryou.com news site.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取单篇文章的详细内容; 需要 url 参数; 参数: url; 必填: url\n  - get_news_listing: 获取新闻列表页面; 可选 page 参数指定页码; 参数: page; 必填: 无\n  - search_articles: 按标题关键词搜索文章; 需要 query 参数, 可选 max_pages 参数; 参数: query, max_pages; 必填: query"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章URL (用于 get_article); 可以是完整URL或路径"
+    },
+    "page": {
+      "type": "integer",
+      "required": false,
+      "description": "页码 (用于 get_news_listing); 默认为 1"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词 (用于 search_articles); 在文章标题中搜索"
+    },
+    "max_pages": {
+      "type": "integer",
+      "required": false,
+      "description": "最大扫描页数 (用于 search_articles); 默认为 3"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

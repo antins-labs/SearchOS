@@ -1,0 +1,23 @@
+{
+  "description": "Fetches structured event data and spotlight articles from FISU.net (International University Sports Federation), including Universiades, World University Games, and historical retrospectives.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_event: 获取单个赛事页面的详细信息（Key Facts、运动项目、国家等）；需要url参数; 参数: url; 必填: 无\n  - get_spotlight: 获取spotlight文章内容（历史回顾文章）；需要url参数; 参数: url; 必填: 无\n  - list_events: 列出FISU网站上的赛事列表；可选url参数（默认为https://www.fisu.net/events/）; 参数: url; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "目标页面的完整URL。get_event和get_spotlight功能必需此参数。 对于get_event，URL应为https://www.fisu.net/events/...格式。 对于get_spotlight，URL应为https://www.fisu.net/...格式（通常是/YYYY/MM/DD/spotlight-...）。 对于list_events，此参数可选，默认为https://www.fisu.net/events/。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

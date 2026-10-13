@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 # Agent-loop roles. cache_hit_rate is computed over these only —
-# middleware/auxiliary calls (extraction, alias_resolver, judge, ...) are
+# middleware/auxiliary calls (extraction, judge, ...) are
 # one-shot prompts with unique content, so counting them just dilutes the
 # metric. Their numbers stay available in the per-role breakdown.
 MAIN_LOOP_ROLES = frozenset({"orchestrator", "sub_agent", "synthesis"})
@@ -128,6 +128,7 @@ def _extract_cached_tokens(token_usage: dict) -> int:
     if not isinstance(details, dict):
         details = getattr(details, "__dict__", None) or {}
     cached = (details.get("cached_tokens")
+              or (token_usage.get("input_token_details") or {}).get("cache_read")
               or token_usage.get("prompt_cache_hit_tokens")
               or token_usage.get("cache_read_input_tokens")
               or 0)
@@ -143,27 +144,32 @@ def extract_token_usage(response: LLMResult) -> tuple[int, int, int, int]:
     token_usage may sit in llm_output or generation_info; field names differ
     by provider (prompt/completion vs input/output). None coerces to 0.
     """
-    llm_output = response.llm_output or {}
-    token_usage = llm_output.get("token_usage") or {}
-    if not token_usage:
-        for gen_list in (response.generations or []):
-            for gen in gen_list:
-                info = getattr(gen, "generation_info", None) or {}
-                tu = info.get("token_usage") or {}
-                if tu:
-                    token_usage = tu
-                    break
-            if token_usage:
+    def parse(data: dict) -> tuple[int, int, int, int]:
+        prompt = int(data.get("prompt_tokens") or data.get("input_tokens") or 0)
+        completion = int(data.get("completion_tokens") or data.get("output_tokens") or 0)
+        cached = _extract_cached_tokens(data)
+        return prompt, completion, int(data.get("total_tokens") or prompt + completion), cached
+
+    # Provider aggregates and message metadata describe the same calls: choose
+    # one representation, never add both. Streaming commonly has no llm_output.
+    output = response.llm_output or {}
+    aggregate = output.get("token_usage") or output.get("usage")
+    if aggregate:
+        return parse(aggregate)
+    totals = [0, 0, 0, 0]
+    for generations in response.generations or []:
+        for generation in generations:
+            message = getattr(generation, "message", None)
+            info = getattr(generation, "generation_info", None) or {}
+            metadata = getattr(message, "response_metadata", None) or {}
+            data = (getattr(message, "usage_metadata", None)
+                    or info.get("token_usage") or info.get("usage")
+                    or metadata.get("token_usage") or metadata.get("usage"))
+            if data:
+                totals = [a + b for a, b in zip(totals, parse(data))]
+                # Alternative generations share one input and usage record.
                 break
-    if not token_usage:
-        return 0, 0, 0, 0
-    prompt = (token_usage.get("prompt_tokens")
-              or token_usage.get("input_tokens") or 0)
-    completion = (token_usage.get("completion_tokens")
-                  or token_usage.get("output_tokens") or 0)
-    total = token_usage.get("total_tokens") or (prompt + completion)
-    cached = _extract_cached_tokens(token_usage)
-    return int(prompt), int(completion), int(total), cached
+    return tuple(totals)
 
 
 class TokenTrackingCallback(BaseCallbackHandler):
@@ -184,4 +190,3 @@ class TokenTrackingCallback(BaseCallbackHandler):
         if total or prompt or completion:
             usage.add(prompt=prompt, completion=completion, total=total,
                       cached=cached, role=self.role)
-

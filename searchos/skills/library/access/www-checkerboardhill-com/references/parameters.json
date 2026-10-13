@@ -1,0 +1,33 @@
+{
+  "description": "Fetches structured information about Hong Kong MTR underwater tunnels and related  transport articles from Checkerboard Hill (checkerboardhill.com).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_tunnel_summary: 获取香港MTR海底隧道摘要; 需要参数 url (可选，默认为目标URL); 参数: url; 必填: 无\n  - get_article: 获取指定文章的完整内容; 需要参数 url; 参数: url; 必填: url\n  - search_posts: 搜索相关文章; 需要参数 query; 参数: query; 必填: query\n  - list_mtr_posts: 列出MTR标签下的所有文章; 可选参数 page; 参数: page; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章URL，用于 get_article 和 get_tunnel_summary 功能"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于 search_posts 功能"
+    },
+    "page": {
+      "type": "integer",
+      "required": false,
+      "description": "页码，用于 list_mtr_posts 功能，默认为1"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

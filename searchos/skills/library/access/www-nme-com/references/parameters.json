@@ -1,0 +1,23 @@
+{
+  "description": "Extracts article content (title, author, published time, markdown content) from NME.com news articles.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - fetch_article: Fetches and extracts article content from an NME.com URL; requires 'url' parameter; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "The NME.com article URL to fetch (required for fetch_article function)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

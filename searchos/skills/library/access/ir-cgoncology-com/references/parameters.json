@@ -1,0 +1,34 @@
+{
+  "description": "Access skill for CG Oncology Investor Relations press releases.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_press_releases   List recent press releases from CG Oncology IR site\n  - get_press_release   Get full content of a specific press release"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "Maximum number of press releases to return",
+      "default": 20
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full URL or slug of the press release"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "Alternative parameter for URL slug (e.g., cg-oncology-announces-pricing-upsized-initial-public-offering)"
+    }
+  },
+  "imports": [
+    "bs4",
+    "httpx"
+  ],
+  "requirements": [
+    "beautifulsoup4",
+    "httpx"
+  ]
+}

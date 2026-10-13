@@ -1,0 +1,38 @@
+{
+  "description": "Extract structured film festival data from La Biennale di Venezia (Venice Film Festival) including lineup sections, film listings, and detailed film information.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_lineup   获取指定年份的电影节单元列表（如Venezia 76、Orizzonti等）\n  - get_section  获取单元页面中的所有影片列表\n  - get_film     获取单个影片的详细信息（导演、演员、制作团队等）\n  - search_films 在指定年份的电影节中搜索影片\n"
+    },
+    "year": {
+      "type": "string",
+      "required": false,
+      "description": "电影节年份（如2019、2020等）。用于get_lineup和search_films功能。\n默认值为2019。\n"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "完整的页面URL。用于get_section和get_film功能，直接指定要抓取的页面。\n"
+    },
+    "section_path": {
+      "type": "string",
+      "required": false,
+      "description": "单元路径名称（如venezia-76-competition、out-competition、orizzonti等）。\n与year参数一起使用，用于构建get_section的URL。\n"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词（影片标题或导演名）。用于search_films功能，在指定年份的所有单元中搜索匹配的影片。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

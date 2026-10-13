@@ -1,0 +1,36 @@
+{
+  "description": "Fetches scientific documentation (PDFs) and data files (text tables) from NASA's Physical Oceanography Distributed Active Archive Center (PO.DAAC) archive at archive.podaac.earthdata.nasa.gov. Extracts metadata and content from PDF documents, parses structured data tables from text files.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - fetch_pdf: 从URL获取PDF文档，提取元数据和文本内容；需要url参数; 参数: url, extract_text, max_text_pages; 必填: url\n  - fetch_text_data: 从URL获取文本数据文件，解析为结构化表格；需要url参数; 参数: url, max_rows; 必填: url\n  - check_url: 检查URL是否可访问，返回状态和内容类型；需要url参数; 参数: url; 必填: url\n  - fetch_file: 通用文件获取，自动检测文件类型并提取相应信息；需要url参数; 参数: url, max_rows; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "要获取的文件的完整URL（所有功能都需要此参数）"
+    },
+    "extract_text": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否从PDF中提取文本内容（仅fetch_pdf使用）；默认为true"
+    },
+    "max_text_pages": {
+      "type": "integer",
+      "required": false,
+      "description": "从PDF提取文本时处理的最大页数（仅fetch_pdf使用）；默认为50"
+    },
+    "max_rows": {
+      "type": "integer",
+      "required": false,
+      "description": "返回的最大数据行数（fetch_text_data和fetch_file使用）；默认为10000"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

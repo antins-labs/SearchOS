@@ -514,12 +514,17 @@ html[data-effort="max"]:not(.dark) .max-effort-chip {
   animation: coverage-dot-settle 0.72s cubic-bezier(0.18, 0.78, 0.24, 1) both;
 }
 
-/* Panel resize handles (react-resizable-panels) */
-[data-panel-resize-handle-id] {
-  background: var(--line) !important;
-  transition: background 0.15s;
-}
-[data-panel-resize-handle-id]:hover,
-[data-panel-resize-handle-id][data-resize-handle-active] {
-  background: var(--accent) !important;
+/* 知识库：短暂状态过渡，避免持续动效占用渲染资源。 */
+.knowledge-panel .knowledge-row { transition: background-color 140ms ease, border-color 140ms ease; }
+.knowledge-panel .knowledge-chevron { transition: transform 160ms ease; }
+.knowledge-panel .knowledge-group { content-visibility: auto; contain-intrinsic-size: auto 240px; }
+.knowledge-panel .knowledge-node:focus-visible > rect,
+.knowledge-panel .knowledge-node:hover > rect { stroke: var(--accent); stroke-width: 2; }
+.knowledge-panel .knowledge-node { transition: opacity 150ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .knowledge-panel, .knowledge-panel *, .knowledge-panel *::before, .knowledge-panel *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -1,0 +1,52 @@
+{
+  "description": "Fetch structured entity data from Wikidata including labels, descriptions, claims (properties), and sitelinks for any item by ID or search query.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_item: 获取指定Wikidata实体的详细信息，需要item_id参数; 参数: item_id, language, properties, include_sitelinks; 必填: item_id\n  - search_items: 搜索Wikidata实体，需要query参数; 参数: query, limit; 必填: query"
+    },
+    "item_id": {
+      "type": "string",
+      "required": false,
+      "description": "Wikidata实体ID（如Q926972），用于get_item功能"
+    },
+    "language": {
+      "type": "string",
+      "default": "en",
+      "required": false,
+      "description": "标签和描述的语言代码（默认en）"
+    },
+    "properties": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "required": false,
+      "description": "要获取的特定属性ID列表（如[\"P31\", \"P106\"]），可选，用于get_item功能"
+    },
+    "include_sitelinks": {
+      "type": "boolean",
+      "default": true,
+      "required": false,
+      "description": "是否包含站点链接信息（默认true）"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于search_items功能"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 20,
+      "required": false,
+      "description": "搜索结果的最大数量（默认20），用于search_items功能"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

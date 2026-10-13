@@ -1,0 +1,21 @@
+{
+  "description": "Fetches TikTok creator profile statistics (followers, likes, video count) from www.tiktok.com profile pages.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_creator_profile: 获取 TikTok 创作者档案数据，需要 username 参数; 参数: username; 必填: 无"
+    },
+    "username": {
+      "type": "string",
+      "required": false,
+      "description": "TikTok 用户名（不含 @ 符号），用于 get_creator_profile 功能"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

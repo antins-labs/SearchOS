@@ -1,0 +1,43 @@
+{
+  "description": "Fetches news articles and bilateral relations information from the Azerbaijan Ministry of Foreign Affairs website (www.mfa.gov.az).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_news_article: Extract a specific news article by URL; requires url parameter; 参数: url; 必填: url\n  - list_news: List news articles with pagination; optional page and lang parameters; 参数: page, lang; 必填: 无\n  - get_bilateral_relations: Extract bilateral relations info for a country; requires url or region+country; 参数: url, region, country, lang; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full URL to the page (news article or bilateral relations page)"
+    },
+    "page": {
+      "type": "integer",
+      "required": false,
+      "description": "Page number for news listing (default 1, used by list_news)"
+    },
+    "lang": {
+      "type": "string",
+      "required": false,
+      "description": "Language code - 'en' for English, 'az' for Azerbaijani (default 'en')"
+    },
+    "region": {
+      "type": "string",
+      "required": false,
+      "description": "Region name for bilateral relations (e.g., 'africa', 'asia', 'europe')"
+    },
+    "country": {
+      "type": "string",
+      "required": false,
+      "description": "Country slug for bilateral relations (e.g., 'chad', 'pakistan')"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "description": "Fetches structured paper listings from Ke-Sen Huang's Computer Graphics Paper Collection (kesen.realtimerendering.com), including SIGGRAPH papers from 2005-2026 with titles, authors, and resource links.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_conferences: 列出所有可获取的会议论文集; 参数: 无; 必填: 无\n  - list_papers: 列出指定年份的所有论文; 需要参数 year; 参数: year; 必填: 无\n  - get_paper: 按标题查找特定论文; 需要参数 year 和 title; 参数: year, title; 必填: 无\n  - search_papers: 按关键词搜索论文; 需要参数 year 和 query; 参数: year, query; 必填: 无"
+    },
+    "year": {
+      "type": "integer",
+      "required": false,
+      "description": "SIGGRAPH 会议年份 (2005-2026)。用于 list_papers、get_paper、search_papers。"
+    },
+    "title": {
+      "type": "string",
+      "required": false,
+      "description": "论文标题或标题片段 (支持部分匹配)。用于 get_paper。"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，将在论文标题和作者中匹配。用于 search_papers。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

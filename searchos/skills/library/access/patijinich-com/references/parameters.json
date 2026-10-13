@@ -1,0 +1,60 @@
+{
+  "description": "Extract structured recipe data from Pati Jinich's Mexican recipe website (patijinich.com), including ingredients, instructions, timing, ratings, and filtering by cuisine/course.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_recipe: 从指定URL提取单个菜谱详情; 参数: url; 必填: 无\n  - get_recipe_by_id: 通过WPRM ID获取菜谱; 参数: recipe_id; 必填: recipe_id\n  - search_recipes: 按关键词搜索菜谱; 参数: page, query, per_page; 必填: 无\n  - list_recipes: 列出菜谱，支持分页和筛选; 参数: page, per_page, cuisine, course, keyword; 必填: 无\n  - list_cuisines: 列出所有可用的菜系类型; 参数: 无; 必填: 无\n  - list_courses: 列出所有可用的菜品类型; 参数: 无; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "菜谱页面的完整URL (get_recipe使用)"
+    },
+    "recipe_id": {
+      "type": "integer",
+      "required": false,
+      "description": "WPRM菜谱ID (get_recipe_by_id使用)"
+    },
+    "page": {
+      "type": "integer",
+      "default": 1,
+      "required": false,
+      "description": "页码，从1开始 (search_recipes, list_recipes使用)"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词 (search_recipes使用)"
+    },
+    "per_page": {
+      "type": "integer",
+      "default": 10,
+      "required": false,
+      "description": "每页结果数量，最大50 (search_recipes, list_recipes使用)"
+    },
+    "cuisine": {
+      "type": "string",
+      "required": false,
+      "description": "按菜系筛选，如\"Mexican\" (list_recipes使用)"
+    },
+    "course": {
+      "type": "string",
+      "required": false,
+      "description": "按菜品类型筛选，如\"Dessert\"、\"Breakfast\" (list_recipes使用)"
+    },
+    "keyword": {
+      "type": "string",
+      "required": false,
+      "description": "按关键词筛选 (list_recipes使用)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

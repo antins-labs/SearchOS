@@ -1,0 +1,23 @@
+{
+  "description": "Extracts faculty profiles (name, position, bio, education, work experience, research interests, publications, contact) from ai.ruc.edu.cn.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_profile: Extract a faculty profile from a URL; requires 'url' param; 参数: url; 必填: url\n  - search: Check if faculty directory search is available (returns hint); 参数: 无; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Faculty profile URL to scrape (used by get_profile function)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

@@ -15,15 +15,42 @@ import fcntl
 import json
 import logging
 import os
+import re
+import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
 from searchos.config.settings import settings
+from searchos.socm.persistence import read_snapshot
 from searchos.socm.state import SearchState
 
 logger = logging.getLogger(__name__)
+
+
+def new_session_id() -> str:
+    """按服务器本地时间排序；随机后缀区分同秒创建的会话。"""
+    return f"{datetime.now():%Y%m%d_%H%M%S}_{uuid.uuid4().hex[:12]}"
+
+
+def resolve_session_path(root: str | Path, session_id: str) -> Path:
+    """兼容迁移前的哈希 ID；磁盘只保留带时间戳的真实目录。"""
+    root = Path(root).resolve()
+    if not session_id or session_id in {".", ".."} or "/" in session_id or "\\" in session_id:
+        raise ValueError("Invalid session id")
+    path = (root / session_id).resolve()
+    if path.parent != root:
+        raise ValueError("Invalid session id")
+    if not path.exists() and re.fullmatch(r"[0-9a-f]{12}", session_id):
+        matches = [candidate for candidate in root.glob(f"*_{session_id}")
+                   if re.fullmatch(r"\d{8}_\d{6}_" + session_id, candidate.name)
+                   and candidate.is_dir() and candidate.resolve().parent == root]
+        if len(matches) > 1:
+            raise ValueError("Ambiguous legacy session id")
+        if matches:
+            path = matches[0].resolve()
+    return path
 
 
 class WorkspaceManager:
@@ -31,10 +58,11 @@ class WorkspaceManager:
 
     def __init__(self, root: str | Path, session_id: str | None = None) -> None:
         self._root = Path(root)
-        self._session_id = session_id or datetime.now().strftime("%Y%m%d_%H%M%S")
-        self._path = self._root / self._session_id
+        self._session_id = session_id or new_session_id()
+        self._path = resolve_session_path(self._root, self._session_id)
+        self._session_id = self._path.name
         self._state: SearchState | None = None
-        # In-flight extraction-buffer sizes per EvidenceExtractionMiddleware
+        # In-flight extraction-buffer sizes per ExtractionCoordinator
         # (keyed by id). Read by LoopSensor to avoid declaring a stall while an
         # agent is productively buffering observations it hasn't flushed yet.
         self._extraction_pending: dict[int, int] = {}
@@ -66,11 +94,15 @@ class WorkspaceManager:
 
     def save_state(self, state: SearchState) -> None:
         self._state = state
-        self._write_json_locked("search_state.json", state.model_dump())
+        self._write_content_locked("search_state.json", state.model_dump_json())
 
     def load_state(self) -> SearchState:
-        data = self._read_json("search_state.json")
-        self._state = SearchState() if data is None else SearchState.model_validate(data)
+        try:
+            snapshot = read_snapshot(self._path / "search_state.json")
+        except FileNotFoundError:
+            self._state = SearchState()
+        else:
+            self._state = SearchState.model_validate_json(snapshot.content)
         return self._state
 
     @property
@@ -78,7 +110,7 @@ class WorkspaceManager:
         """Always re-read from disk so parallel sub-agents see each other's writes."""
         return self.load_state()
 
-    def atomic_update_state(self, updater: "callable") -> SearchState:
+    def atomic_update_state(self, updater: callable) -> SearchState:
         """Read-modify-write under a file lock (prevents concurrent overwrites).
 
             def fill_cell(state):
@@ -88,7 +120,7 @@ class WorkspaceManager:
         """
         lock_path = self._path / ".state.lock"
         lock_path.touch(exist_ok=True)
-        with open(lock_path, "r") as lock_fd:
+        with open(lock_path) as lock_fd:
             fcntl.flock(lock_fd, fcntl.LOCK_EX)
             try:
                 state = self.load_state()
@@ -238,7 +270,16 @@ class WorkspaceManager:
         d.mkdir(parents=True, exist_ok=True)
         return d
 
-    def write_page(self, page_id: str, url: str, content: str, title: str = "") -> Path:
+    def write_page(
+        self,
+        page_id: str,
+        url: str,
+        content: str,
+        title: str = "",
+        *,
+        source_url: str = "",
+        page_metadata: dict | None = None,
+    ) -> Path:
         """Persist a page body to ``<page_id>.md`` + metadata to
         ``<page_id>.meta.json``. Extension is ``.md`` (not ``.html``) because
         the browser feeds html2text-rendered markdown."""
@@ -249,8 +290,10 @@ class WorkspaceManager:
         body_path.write_text(content, encoding="utf-8")
         meta = {
             "page_id": page_id, "url": url, "title": title or "",
+            "source_url": source_url or url,
             "fetched_at": ts, "size": len(content),
             "content_type": "markdown", "content_path": body_path.name,
+            "page_metadata": page_metadata or {},
         }
         meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
         self._update_page_index(page_id, url, title, len(content), ts)
@@ -320,13 +363,21 @@ class WorkspaceManager:
     def _write_json_locked(self, name: str, data: dict) -> None:
         """Write JSON under a file lock + atomic replace, so lock-less readers
         (frontend, status scripts) never observe a half-written file."""
-        p = self._path / name
         content = json.dumps(data, ensure_ascii=False, indent=2, default=str)
+        self._write_content_locked(name, content)
+
+    def _write_content_locked(self, name: str, content: str) -> None:
+        p = self._path / name
         lock_path = self._path / f".{name}.lock"
         lock_path.touch(exist_ok=True)
-        with open(lock_path, "r") as lock_fd:
+        with open(lock_path) as lock_fd:
             fcntl.flock(lock_fd, fcntl.LOCK_EX)
             try:
+                try:
+                    if read_snapshot(p).content == content.encode("utf-8"):
+                        return
+                except FileNotFoundError:
+                    pass
                 tmp = self._path / f".{name}.tmp"
                 tmp.write_text(content, encoding="utf-8")
                 os.replace(tmp, p)

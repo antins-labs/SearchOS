@@ -1,0 +1,32 @@
+{
+  "description": "Fetches K-pop news articles from www.allkpop.com, including article content, search functionality, and metadata extraction. Note: Site uses aggressive Cloudflare protection that may block automated access.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - fetch_article: 获取指定URL的文章内容和元数据; 参数: url, max_wait_seconds; 必填: url\n  - search_articles: 搜索文章并返回结果列表; 参数: query, max_wait_seconds; 必填: query"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章的完整URL (fetch_article功能需要)。 例如: https://www.allkpop.com/article/2024/03/article-slug"
+    },
+    "max_wait_seconds": {
+      "type": "integer",
+      "default": 30,
+      "required": false,
+      "description": "等待Cloudflare验证完成的最大秒数。 默认值为30秒。如果经常遇到验证超时，可以增加此值。"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词 (search_articles功能需要)。 例如: BTS, Blackpink, YG Entertainment"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

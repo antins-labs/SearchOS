@@ -1,0 +1,29 @@
+{
+  "description": "Extracts rare earth reserves data by country and rare earth investing articles from investingnews.com",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_reserves: 获取各国稀土储量排名数据（从专门页面提取结构化数据）; 参数: 无; 必填: 无\n  - get_articles: 获取稀土投资相关文章列表；支持limit参数控制返回数量; 参数: limit; 必填: 无\n  - get_article: 获取指定URL文章的详细内容；需要url参数; 参数: url; 必填: 无"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 20,
+      "required": false,
+      "description": "返回文章的最大数量，用于get_articles功能"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章URL，get_article功能必需"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

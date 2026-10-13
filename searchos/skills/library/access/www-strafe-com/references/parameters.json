@@ -1,0 +1,21 @@
+{
+  "description": "Fetches esports news articles from Strafe.com, including news lists, article content, and structured extraction of awards/rosters with player and team data.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_news_list: 获取最新新闻列表，无需额外参数; 参数: 无; 必填: 无\n  - get_article: 获取单篇新闻文章，需要 url 参数; 参数: url; 必填: url\n  - get_awards_article: 获取奖项/阵容公告文章，提取结构化选手和战队数据，需要 url 参数; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章的完整URL或slug（用于 get_article 和 get_awards_article）。\n可以是完整URL如 'https://www.strafe.com/news/read/article-slug/'\n或仅slug如 'article-slug'。"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "description": "Fetches structured metadata (caption, likes, comments, date, author) from Instagram media pages (posts, reels, TV) by parsing Open Graph and Twitter Card meta tags.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_media_info: Fetches metadata from an Instagram media URL; requires 'url' parameter; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "Instagram media URL (post, reel, or TV) to fetch metadata from. Used by get_media_info function."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

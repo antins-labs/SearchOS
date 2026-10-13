@@ -1,0 +1,26 @@
+{
+  "description": "Fetches structured medical lab test reference ranges from MU Health Care Laboratory Test Catalog (muhealth.testcatalog.org), extracting CBC and other test reference values by age and sex.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_test_reference_ranges: 获取指定检验项目的参考范围，需要 test_code 参数; 参数: test_code; 必填: 无\n  - search_test: 按名称搜索检验项目，使用 test_name 或 test_code 参数; 参数: test_name, test_code; 必填: 无"
+    },
+    "test_code": {
+      "type": "string",
+      "required": false,
+      "description": "检验项目代码 (如 'CBCREF' 表示 CBC 参考范围)，用于 get_test_reference_ranges 和 search_test"
+    },
+    "test_name": {
+      "type": "string",
+      "required": false,
+      "description": "检验项目名称 (如 'CBC', 'Complete Blood Count')，用于 search_test 进行模糊搜索"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

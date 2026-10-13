@@ -1,0 +1,39 @@
+{
+  "description": "Fetches information from Hiroshima Peace Memorial Museum (hpmmuseum.jp) including visiting information, virtual museum exhibits, and exhibition details in multiple languages.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_info_page: 获取博物馆信息页面（参观、交通、导览服务等）; 参数: page_id, lang; 必填: page_id\n  - get_exhibit_page: 获取虚拟博物馆展览页面内容; 参数: exhibit_id, page_num, lang; 必填: exhibit_id, page_num\n  - get_exhibit_toc: 获取展览目录/章节列表; 参数: exhibit_id, lang; 必填: exhibit_id\n  - get_permanent_exhibitions: 获取常设展信息; 参数: lang; 必填: 无\n  - get_homepage: 获取主页导航信息; 参数: lang; 必填: 无"
+    },
+    "page_id": {
+      "type": "string",
+      "required": false,
+      "description": "信息页面ID，用于get_info_page。\n常用ID: 42(参观), 154(交通), 52(导览服务), 174(楼层图), \n        155(博物馆商店), 63(图书馆), 177(在线证言), 163(学习和平)"
+    },
+    "lang": {
+      "type": "string",
+      "default": "eng",
+      "required": false,
+      "description": "语言代码。支持: eng(英语), jpn(日语), fre(法语), ger(德语), \nita(意大利语), spa(西班牙语), zho(中文)"
+    },
+    "exhibit_id": {
+      "type": "string",
+      "required": false,
+      "description": "展览ID，用于get_exhibit_page和get_exhibit_toc。\n例如: \"1302\" ( Memories of You展览)"
+    },
+    "page_num": {
+      "type": "string",
+      "required": false,
+      "description": "展览页面编号，用于get_exhibit_page。\n两位数字符串，如 \"00\"(介绍), \"01\", \"06\", \"11\"(结语)"
+    }
+  },
+  "imports": [
+    "bs4",
+    "playwright"
+  ],
+  "requirements": [
+    "beautifulsoup4",
+    "playwright"
+  ]
+}

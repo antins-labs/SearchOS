@@ -1,0 +1,53 @@
+{
+  "description": "Access graduate programs from Harvard Kenneth C. Griffin Graduate School of Arts and Sciences (GSAS),  including program listings, detailed program information, and application guidance.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_programs: 列出研究生项目，支持分页和筛选\n  - get_program: 获取特定项目的详细信息\n  - get_applying_info: 获取学位项目申请信息\n"
+    },
+    "page": {
+      "type": "integer",
+      "required": false,
+      "description": "页码，默认为0。每页显示10个结果。(list_programs使用)\n"
+    },
+    "degrees_offered": {
+      "type": "string",
+      "required": false,
+      "description": "按学位类型筛选。可选值: \"Doctor of Philosophy (PhD)\", \"Master of Arts (AM)\", \n\"Master of Science (SM)\", \"Master of Engineering (ME)\", \"AB/AM, AB/SM\"。\n(list_programs使用)\n"
+    },
+    "areas_of_study": {
+      "type": "string",
+      "required": false,
+      "description": "按研究领域筛选。可选值: \"Arts & Architecture\", \"Biological Sciences\", \n\"Engineering & Applied Sciences\", \"Harvard Integrated Life Sciences\", \"History\", \n\"Humanities\", \"Languages\", \"Mathematics\", \"Medical Sciences\", \"Physical Sciences\", \n\"Social Sciences\"。(list_programs使用)\n"
+    },
+    "gre_requirement": {
+      "type": "string",
+      "required": false,
+      "description": "按GRE要求筛选。可选值: \"Required\", \"Optional\", \"Not Accepted\"。\n(list_programs使用)\n"
+    },
+    "program_type": {
+      "type": "string",
+      "required": false,
+      "description": "按项目类型筛选。可选值: \"Degree Granting\", \"Combined Degree\", \"Summer Programs\", \n\"Visiting Students\"。(list_programs使用)\n"
+    },
+    "search": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于按项目名称筛选。(list_programs使用)\n"
+    },
+    "program_url": {
+      "type": "string",
+      "required": false,
+      "description": "项目的URL slug或完整URL。例如: \"computer-science\" 或 \n\"https://gsas.harvard.edu/program/computer-science\"。(get_program使用)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

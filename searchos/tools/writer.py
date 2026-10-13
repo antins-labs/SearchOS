@@ -1,20 +1,4 @@
-"""Writer tools — plan §4.2 canonical surface.
-
-Writer (`get_writer_tools`):
-  Outline / section (plan §4.2 writer)
-    - read_outline(section_id?, toc_only?)            — TOC by default
-    - update_outline(ops_json)                        — add/remove/reorder
-    - write_section(section_id, content, cited_evidence_ids)
-    - edit_section(section_id, old_string, new_string, cited_evidence_ids?)
-    - annotate_section(section_id, note)
-  SOCM reads + skills
-    - read_coverage / read_evidence / resolve_cell_provenance /
-      list_frontier / read_task_report                 — from socm_read
-    - list_skills / load_skill                         — from skill_tools
-
-No flat-draft tools (``append_draft`` / ``edit_draft`` / ``read_draft``):
-writer exclusively uses the structured outline.
-"""
+"""Writer 的结构化提纲、章节编辑工具及配套 SOCM 读取能力。"""
 
 from __future__ import annotations
 
@@ -25,6 +9,7 @@ from typing import Any
 from langchain_core.tools import tool
 
 from searchos.tools.search_state import _current_agent_var, _ws
+from searchos.socm.coverage import answer_evidence
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +42,7 @@ def _mirror_outline_to_output(ws: Any, rendered: str) -> None:
 
 
 def _ensure_ev_ids(state: Any, ids: list[str]) -> tuple[list[str], list[str]]:
-    known = {n.id for n in state.evidence_graph.nodes}
+    known = {n.id for n in answer_evidence(state)}
     good = [i for i in ids if i in known]
     bad = [i for i in ids if i not in known]
     return good, bad
@@ -179,7 +164,7 @@ async def write_section(
     content: str,
     cited_evidence_ids: str,
 ) -> str:
-    """Write (or overwrite) a section body. ``cited_evidence_ids`` is required and all ids must exist in the evidence graph.
+    """Write (or overwrite) a section body. ``cited_evidence_ids`` must reference active evidence within the current answer scope.
 
     Args:
         section_id (str): section id.
@@ -199,11 +184,17 @@ async def write_section(
     state = ws.load_state()
     good, bad = _ensure_ev_ids(state, ids)
     if bad:
-        return json.dumps({"error": f"unknown evidence ids: {bad}"})
+        return json.dumps({"error": f"unknown or ineligible evidence ids: {bad}"})
 
     from searchos.socm import OutlineSection
 
+    commit_errors: list[str] = []
+
     def _apply(s: Any) -> Any:
+        _, invalid = _ensure_ev_ids(s, good)
+        if invalid:
+            commit_errors.extend(invalid)
+            return s
         sec = s.outline.find(section_id)
         if sec is None:
             sec = OutlineSection(id=section_id, content=content, cited_evidence_ids=good)
@@ -216,6 +207,8 @@ async def write_section(
         return s
 
     ws.atomic_update_state(_apply)
+    if commit_errors:
+        return json.dumps({"error": f"unknown or ineligible evidence ids: {commit_errors}"})
     return json.dumps(
         {"ok": True, "id": section_id, "cited": good, "chars": len(content)},
         ensure_ascii=False,
@@ -235,7 +228,7 @@ async def edit_section(
         section_id (str): section id.
         old_string (str): text to replace; must be unique within the section.
         new_string (str): replacement text.
-        cited_evidence_ids (str): comma-separated ids — if provided, REPLACES the citation list (all must exist); required when the section has no prior citations.
+        cited_evidence_ids (str): comma-separated active, in-scope ids — if provided, REPLACES the citation list; required when the section has no prior citations.
     """
     _require_writer("edit_section")
     ws = _ws()
@@ -254,12 +247,22 @@ async def edit_section(
         ids = [x.strip() for x in cited_evidence_ids.split(",") if x.strip()]
         good, bad = _ensure_ev_ids(state, ids)
         if bad:
-            return json.dumps({"error": f"unknown evidence ids: {bad}"})
+            return json.dumps({"error": f"unknown or ineligible evidence ids: {bad}"})
         ids = good
     elif not sec.cited_evidence_ids:
         return json.dumps({"error": "section has no prior citations; provide cited_evidence_ids (§4.2)"})
+    else:
+        ids, bad = _ensure_ev_ids(state, sec.cited_evidence_ids)
+        if bad:
+            return json.dumps({"error": f"unknown or ineligible evidence ids: {bad}"})
+
+    commit_errors: list[str] = []
 
     def _apply(s: Any) -> Any:
+        _, invalid = _ensure_ev_ids(s, ids)
+        if invalid:
+            commit_errors.extend(invalid)
+            return s
         target = s.outline.find(section_id)
         if target is None:
             return s
@@ -270,6 +273,8 @@ async def edit_section(
         return s
 
     ws.atomic_update_state(_apply)
+    if commit_errors:
+        return json.dumps({"error": f"unknown or ineligible evidence ids: {commit_errors}"})
     return json.dumps({"ok": True, "id": section_id, "chars": len(sec.content)}, ensure_ascii=False)
 
 

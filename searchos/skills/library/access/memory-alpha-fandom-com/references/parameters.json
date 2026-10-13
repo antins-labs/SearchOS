@@ -1,0 +1,49 @@
+{
+  "description": "Fetches structured article data from Memory Alpha (memory-alpha.fandom.com), the Star Trek wiki, via MediaWiki API. Returns infobox data, categories, links, and article content.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取指定标题的文章详情，需要title参数; 参数: include_content, title; 必填: 无\n  - search: 搜索文章，需要query参数; 参数: limit, query; 必填: 无\n  - get_category: 获取分类下的文章列表，需要category参数; 参数: limit, continue, category; 必填: 无\n  - random: 获取随机文章; 参数: limit; 必填: 无"
+    },
+    "include_content": {
+      "type": "boolean",
+      "default": true,
+      "required": false,
+      "description": "是否包含完整文章内容（用于get_article）"
+    },
+    "title": {
+      "type": "string",
+      "required": false,
+      "description": "文章标题（用于get_article），例如 \"Spock\"、\"USS Enterprise\""
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果数量上限（用于search、get_category、random）\n各功能默认值：search=10；get_category=20；random=5"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词（用于search）"
+    },
+    "continue": {
+      "type": "string",
+      "required": false,
+      "description": "分页令牌（用于get_category继续获取更多结果）"
+    },
+    "category": {
+      "type": "string",
+      "required": false,
+      "description": "分类名称（用于get_category），例如 \"Performers\"、\"Starships\""
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

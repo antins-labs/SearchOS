@@ -1,0 +1,27 @@
+{
+  "description": "Fetches structured dataset metadata from the AWS Open Data Registry  (registry.opendata.aws) including descriptions, resources (S3 buckets, ARNs),  and AWS regions.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_dataset: Fetch metadata for a specific dataset by path; 参数: dataset_path; 必填: dataset_path\n  - list_datasets: List available datasets from the RSS feed; 参数: limit; 必填: 无"
+    },
+    "dataset_path": {
+      "type": "string",
+      "required": false,
+      "description": "Dataset path for get_dataset function. Can be provided as:\n  - Short name: 'nasa-nasa-ssh'\n  - Path with slash: '/nasa-nasa-ssh/'\n  - Full URL: 'https://registry.opendata.aws/nasa-nasa-ssh/'"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 50,
+      "required": false,
+      "description": "Maximum number of datasets to return for list_datasets function."
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

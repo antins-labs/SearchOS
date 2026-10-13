@@ -1,0 +1,21 @@
+{
+  "description": "Fetches profile data from Linktree (linktr.ee) including profile info, social links, and all link items.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_profile: Fetch a Linktree profile by username; requires 'username' param; 参数: username; 必填: 无"
+    },
+    "username": {
+      "type": "string",
+      "required": false,
+      "description": "Linktree username to fetch (e.g., 'itsmetinx', '@bretmanrock', or full URL 'https://linktr.ee/paigedesorbo_demo'). Used by get_profile."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

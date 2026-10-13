@@ -1,0 +1,21 @@
+{
+  "description": "Access skill for Ballotpedia political encyclopedia.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - person   Extract person infobox data including name, party, education, offices held, election history\n  - office   Extract office/cabinet page data including lists of officeholders and their details\n  - election   Extract election results tables from a Ballotpedia page\n  - page   Get basic page metadata including title and section structure"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "URL of a Ballotpedia person page"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

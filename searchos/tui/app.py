@@ -13,7 +13,6 @@ prompt_toolkit bridge to drift and corrupt the screen on long runs.
 from __future__ import annotations
 
 import asyncio
-import queue
 import threading
 from collections import deque
 
@@ -27,6 +26,7 @@ from textual.widgets import Input, OptionList, RichLog, Static
 from textual.widgets.option_list import Option
 
 from searchos.config.effort import EFFORT_LEVELS
+from searchos.harness.steering import SteeringQueue
 from searchos.harness.telemetry.conversation_context import build_preamble
 from searchos.tui.config_modal import ConfigModal, build_model_menu, build_root_menu
 from searchos.tui.dashboard import (
@@ -130,7 +130,9 @@ class EffortModal(ModalScreen):
                 mark = "● " if lvl == self._current else "  "
                 desc = (f"迭代 {cfg['orch_max_iterations']} · "
                         f"并行 {cfg['max_parallel_agents']} · "
+                        f"搜代总限 {cfg['max_search_agents_per_session']} · "
                         f"搜索 {cfg['max_searches_per_sub_agent']} · "
+                        f"技能 {cfg['max_skills_per_sub_agent']} · "
                         f"{cfg['default_max_time_s'] // 60}min")
                 opts.append(Option(f"{mark}{lvl:<7}{desc}", id=lvl))
             yield OptionList(*opts, id="effort-list")
@@ -486,7 +488,7 @@ class SearchOSApp(App):
         # coverage table. ``_steer_queue`` injects live follow-ups mid-run.
         self._turns: list[dict] = []
         # Thread-safe (the engine loop drains it; the UI thread fills it).
-        self._steer_queue: queue.Queue[str] | None = None
+        self._steer_queue: SteeringQueue | None = None
         # Transient slash-command hint shown in the status bar while typing.
         self._cmd_hint: str = ""
         # Config state is seeded from the shared web_settings.json overlay (loaded
@@ -876,7 +878,7 @@ class SearchOSApp(App):
         if not root.exists():
             return []
         dirs = [d for d in root.iterdir()
-                if d.is_dir() and (d / "conversations" / "orchestrator.json").exists()]
+                if d.is_dir() and (d / "conversations").is_dir()]
         return sorted(dirs, key=lambda d: d.stat().st_mtime, reverse=True)
 
     @staticmethod
@@ -1095,12 +1097,6 @@ class SearchOSApp(App):
         for key, val in EFFORT_LEVELS[level].items():
             if hasattr(settings, key):
                 setattr(settings, key, val)
-        # max_time_s is captured on the session blueprint at construction —
-        # update it too so the change applies to the current session's runs.
-        if self._session is not None:
-            bp = getattr(self._session, "_blueprint", None)
-            if bp is not None and hasattr(bp, "max_time_s"):
-                bp.max_time_s = EFFORT_LEVELS[level]["default_max_time_s"]
         self._effort = level
         # Persist to the shared overlay (picking a level resets per-knob
         # overrides, same as the web Budget section's level buttons).
@@ -1125,8 +1121,11 @@ class SearchOSApp(App):
         labels = {
             "orch_max_iterations": "编排最大迭代",
             "max_parallel_agents": "最大并行子代理",
+            "max_search_agents_per_session": "每会话搜索代理总限",
             "max_searches_per_sub_agent": "每代理搜索数",
             "max_finds_per_sub_agent": "每代理发现数",
+            "max_skills_per_sub_agent": "每代理技能调用数",
+            "search_agent_no_progress_tool_limit": "搜索代理停滞上限",
             "default_max_time_s": "墙钟上限(秒)",
             "skill_router_top_k": "技能路由 top-k",
         }
@@ -1526,7 +1525,7 @@ class SearchOSApp(App):
         # (set_state_path only happens while _state_path is None). Clear it
         # here, on the UI thread, before the engine future is scheduled.
         self._session._active_workspace = None
-        self._steer_queue = queue.Queue()
+        self._steer_queue = SteeringQueue()
         if follow_up:
             self._write_marker(f"\n──────  追问：{query}  ──────", f"bold {ACCENT}")
         else:

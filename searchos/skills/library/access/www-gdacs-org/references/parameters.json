@@ -1,0 +1,46 @@
+{
+  "description": "Fetches disaster alert information from GDACS (Global Disaster Alert and Coordination System) including earthquake, flood, tropical cyclone, and other hazard reports with CAP alerts, GeoJSON data, and RSS feeds.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_event_report: 获取特定事件的完整报告，需要 event_type 和 event_id; 参数: event_type, event_id; 必填: 无\n  - get_current_alerts: 获取当前活跃警报列表，可选 event_type 过滤; 参数: event_type, limit; 必填: 无\n  - search_events: 搜索事件，支持 query、event_type、alert_level 过滤; 参数: query, event_type, alert_level, limit; 必填: 无\n  - get_cap_alert: 获取事件的 CAP (通用警报协议) XML 数据; 参数: event_type, event_id; 必填: 无\n  - get_geojson: 获取事件的 GeoJSON 地理数据; 参数: event_type, event_id, episode_id; 必填: 无"
+    },
+    "event_type": {
+      "type": "string",
+      "required": false,
+      "description": "事件类型代码。常用值:\n  - EQ: 地震 (Earthquake)\n  - FL: 洪水 (Flood)\n  - TC: 热带气旋 (Tropical Cyclone)\n  - VO: 火山 (Volcano)\n  - DR: 干旱 (Drought)\n  - WF: 野火 (Wildfire)\n用于 get_event_report, get_current_alerts, search_events, get_cap_alert, get_geojson"
+    },
+    "event_id": {
+      "type": "string",
+      "required": false,
+      "description": "GDACS 事件 ID (如 \"1500799\")。\n可从 RSS feed 或搜索结果中获取。\n用于 get_event_report, get_cap_alert, get_geojson"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果的最大数量。\n用于 get_current_alerts 和 search_events\n各功能默认值：get_current_alerts=50；search_events=20"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于在事件标题、描述、国家名中搜索。\n用于 search_events"
+    },
+    "alert_level": {
+      "type": "string",
+      "required": false,
+      "description": "警报级别过滤。可选值:\n  - Green: 绿色 (低影响)\n  - Orange: 橙色 (中等影响)\n  - Red: 红色 (高影响)\n用于 search_events"
+    },
+    "episode_id": {
+      "type": "string",
+      "required": false,
+      "description": "GDACS 事件剧集 ID (如 \"1661013\")。\n某些事件有多个剧集/更新。\n用于 get_geojson"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

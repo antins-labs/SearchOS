@@ -1,0 +1,31 @@
+{
+  "description": "Fetches product data from Kroger.com product pages using browser automation to handle anti-bot protections. Extracts product name, price, UPC, brand, description, images, and availability.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_product: Fetch a single product by URL or UPC; requires url or upc parameter; 参数: url, upc; 必填: 无\n  - search_products: Search for products by query; requires query parameter; 参数: query; 必填: query"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full Kroger product page URL (used by get_product). Example: https://www.kroger.com/p/simple-truth-organic-kombucha-ginger/0001111087699"
+    },
+    "upc": {
+      "type": "string",
+      "required": false,
+      "description": "Product UPC code (used by get_product as alternative to url). Example: 0085707500712"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query string (used by search_products). Example: organic kombucha"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

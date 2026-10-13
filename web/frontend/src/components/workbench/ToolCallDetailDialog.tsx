@@ -35,7 +35,7 @@ function PayloadPane({
   onCopy: () => void;
 }) {
   return (
-    <section className="flex min-h-0 flex-1 flex-col border-b border-line last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col border-b border-line last:border-b-0 md:basis-1/2 md:border-b-0 md:border-r md:last:border-r-0">
       <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
         <h3 className="text-[11px] font-medium uppercase tracking-wider text-ink-faint">{title}</h3>
         <button
@@ -48,7 +48,7 @@ function PayloadPane({
           {copied ? <Check className="text-ok" size={13} /> : <Copy size={13} />}
         </button>
       </div>
-      <pre className="min-h-[180px] flex-1 overflow-auto whitespace-pre-wrap break-words p-4 font-mono text-[11px] leading-5 text-ink-dim">
+      <pre className="min-h-[180px] max-w-full flex-1 overflow-auto whitespace-pre-wrap break-all p-4 font-mono text-[11px] leading-5 text-ink-dim">
         {prettyPayload(value)}
       </pre>
     </section>

@@ -1,0 +1,34 @@
+{
+  "description": "Fetch Beatles UK discography data from www.jpgr.co.uk including release details (label, catalogue number, release date, chart performance) and index listings for Beatles, solo members, and related releases.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_release: 获取单个唱片的详细信息，需要 catalogue_number 参数; 参数: catalogue_number; 必填: catalogue_number\n  - get_index: 获取唱片索引列表，可选 page_type 参数指定类型; 参数: page_type; 必填: 无\n  - search: 搜索唱片，需要 query 参数; 参数: query; 必填: query"
+    },
+    "catalogue_number": {
+      "type": "string",
+      "required": false,
+      "description": "唱片目录号，用于 get_release 功能。\n支持格式: \"R 5389\", \"R5389\", \"LYN 492\", \"NH 66833\", \"DP 562\" 等"
+    },
+    "page_type": {
+      "type": "string",
+      "default": "beatles_singles",
+      "required": false,
+      "description": "索引页面类型，用于 get_index 功能。可用值:\n\nBeatles 乐队:\n  - beatles_singles (默认) - Beatles 单曲列表（按日期排序）\n  - beatles_eps - Beatles EP 列表\n  - beatles_albums - Beatles 专辑列表\n  - beatles_all - Beatles 全部发行\n\nJohn Lennon:\n  - john_singles - John Lennon 单曲\n  - john_eps - John Lennon EP\n  - john_albums - John Lennon 专辑\n  - john_all - John Lennon 全部发行\n\nPaul McCartney:\n  - paul_singles - Paul McCartney 单曲\n  - paul_eps - Paul McCartney EP\n  - paul_albums - Paul McCartney 专辑\n  - paul_all - Paul McCartney 全部发行\n\nGeorge Harrison:\n  - george_singles - George Harrison 单曲\n  - george_eps - George Harrison EP\n  - george_albums - George Harrison 专辑\n  - george_all - George Harrison 全部发行\n\nRingo Starr:\n  - ringo_singles - Ringo Starr 单曲\n  - ringo_eps - Ringo Starr EP\n  - ringo_albums - Ringo Starr 专辑\n  - ringo_all - Ringo Starr 全部发行\n\n所有艺人:\n  - all_singles - 所有艺人单曲\n  - all_eps - 所有艺人 EP\n  - all_albums - 所有艺人专辑\n  - all_all - 所有艺人全部发行\n\n其他:\n  - bootlegs - Bootlegs\n  - imports - 进口唱片\n  - apple_singles - Apple 厂牌单曲\n  - apple_albums - Apple 厂牌专辑\n  - collaborations - 合作项目"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于 search 功能。\n可搜索标题、目录号、唱片公司、B面曲名等。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

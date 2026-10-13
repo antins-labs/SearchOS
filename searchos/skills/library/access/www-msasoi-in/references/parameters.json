@@ -1,0 +1,33 @@
+{
+  "description": "Fetches Central Government holiday lists from msasoi.in (DoPT O.M. documents), including Gazetted and Restricted holidays with Saka Era dates.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_holidays_2025: Fetch all 2025 Central Government holidays with full details; 参数: 无; 必填: 无\n  - search_holidays: Search/filter holidays by name, Saka Era, or holiday type; 参数: query, saka_era, holiday_type; 必填: 无"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search string to match in holiday names (case-insensitive).\nUsed by search_holidays function."
+    },
+    "saka_era": {
+      "type": "string",
+      "required": false,
+      "description": "Filter by Saka Era (e.g., \"1946 SAKA ERA\", \"1947 SAKA ERA\").\nUsed by search_holidays function."
+    },
+    "holiday_type": {
+      "type": "string",
+      "required": false,
+      "description": "Filter by holiday type: \"Gazetted\" or \"Restricted\".\nUsed by search_holidays function."
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

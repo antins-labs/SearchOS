@@ -1,0 +1,37 @@
+{
+  "description": "Fetches arms company data from CAAT (Campaign Against Arms Trade) at caat.org.uk, including activities, aliases, rankings, and destination countries.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_company: 获取指定公司的详细数据，需要 slug 参数（URL中的公司标识）; 参数: slug; 必填: 无\n  - get_company_by_name: 通过公司名称获取数据（自动转换为slug），需要 name 参数; 参数: name; 必填: 无\n  - search_companies: 搜索公司（暂未实现），需要 query 参数; 参数: query, limit; 必填: 无"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "公司的URL标识符（如 'thyssenkrupp', 'bae-systems', 'lockheed-martin'），用于 get_company"
+    },
+    "name": {
+      "type": "string",
+      "required": false,
+      "description": "公司名称（如 'BAE Systems', 'Lockheed Martin'），用于 get_company_by_name"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于 search_companies"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 20,
+      "required": false,
+      "description": "搜索结果数量限制，用于 search_companies"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

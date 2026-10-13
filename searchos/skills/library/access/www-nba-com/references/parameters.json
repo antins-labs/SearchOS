@@ -1,0 +1,26 @@
+{
+  "description": "Fetches news articles, games schedule/scores, and player/team statistics from NBA.com.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - fetch_article: 获取指定URL的NBA新闻文章内容; 参数: url; 必填: url\n  - fetch_games: 获取NBA比赛日程和比分数据; 参数: date; 必填: 无\n  - fetch_stats: 获取NBA球员和球队统计数据排行榜; 参数: 无; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章完整URL，fetch_article时必填 (例如 https://www.nba.com/news/...)"
+    },
+    "date": {
+      "type": "string",
+      "required": false,
+      "description": "指定日期，格式YYYY-MM-DD，fetch_games时可选，默认为当天。当前脚本未读取此参数，暂不支持按指定日期筛选。"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

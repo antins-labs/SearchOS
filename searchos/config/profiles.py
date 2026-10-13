@@ -12,6 +12,7 @@ from typing import Any, Literal
 
 from pydantic import Field
 
+from searchos.config.model_purposes import ROLE_NAMES  # noqa: F401
 from searchos.util.base_model import CamelModel
 
 
@@ -43,21 +44,6 @@ class ModelProfile(CamelModel):
 
 
 # rpm/tpm limiters are shared process-wide per (api_base, model, api_key_env).
-
-
-ROLE_NAMES = (
-    "orchestrator",   # main agent ReAct loop
-    "sub_agent",      # search / explore sub-agent loops
-    "synthesis",      # writer agent + final answer
-    "skill_evolver",  # access-skill generation triage (host_miner judge)
-    "post_mortem",    # FailureMemory distillation
-    "judge",          # sensor / layered-context judging
-    "extraction",     # evidence extraction middleware
-    "alias_resolver", # orphan-evidence row/column bind
-    "skill_runtime",  # T2/T3 access-skill executors
-    "reformat",       # eval: reformat raw answer into benchmark shape
-    "skill_router",   # pre-filter the access-skill catalog down to query-relevant top-k
-)
 
 
 def builtin_profiles() -> dict[str, ModelProfile]:
@@ -118,10 +104,13 @@ def builtin_roles() -> dict[str, str]:
         "post_mortem":    "glm5-strong",
         "judge":          "glm5-judge",
         "extraction":     "qwen3.5-35b",
-        "alias_resolver": "qwen3.5-35b",
-        "skill_runtime":  "qwen3.5-35b",
         "reformat":       "glm5-reformat",
         "skill_router":   "glm5-strong",
+        # Local-document roles reuse the ordinary model tiers by default.
+        # A user who wants a dedicated text model or VLM creates model cards
+        # against an existing provider connection and rebinds these roles.
+        "local_recap":    "qwen3.5-synthesis",
+        "local_vision":   "qwen3.5-35b",
     }
 
 

@@ -1,0 +1,26 @@
+{
+  "description": "Retrieves football/soccer statistics from FBref.com including team squad stats, competition tables, and player statistics. Handles Cloudflare protection with anti-detection measures.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_squad_stats: 获取球队阵容统计数据，需要url参数; 参数: url; 必填: url\n  - get_competition_stats: 获取联赛/杯赛统计数据，需要url参数; 参数: url; 必填: url\n  - get_player_stats: 获取球员统计数据，需要url参数; 参数: url; 必填: url\n  - search_teams: 搜索球队，需要query参数; 参数: query; 必填: query"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "FBref页面URL，用于get_squad_stats、get_competition_stats、get_player_stats功能"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于search_teams功能"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

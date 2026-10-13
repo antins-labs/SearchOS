@@ -1,0 +1,37 @@
+{
+  "description": "Retrieve Sports Illustrated (SI.com) articles - section listings, individual article content, and search by keyword. Covers NBA, MLB, NFL, and other sports sections.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_section_articles: Get article listings from a section (nba, mlb, nfl, etc.); 参数: limit, section; 必填: 无\n  - get_article: Get full content of a single article by URL; 参数: url; 必填: 无\n  - search_articles: Search for articles by keyword within a section; 参数: query, section, limit; 必填: 无"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "Maximum number of articles to return.\n各功能默认值：get_section_articles=20；search_articles=10"
+    },
+    "section": {
+      "type": "string",
+      "default": "nba",
+      "required": false,
+      "description": "Sports section to query (e.g., 'nba', 'mlb', 'nfl', 'college', 'soccer').\nUsed by get_section_articles and search_articles."
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full URL of the SI.com article to fetch.\nRequired for get_article function.\nExample: https://www.si.com/nba/free-agency/lebron-james-decision"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query to filter articles by headline or description.\nUsed by search_articles function."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

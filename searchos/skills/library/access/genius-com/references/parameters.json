@@ -1,0 +1,32 @@
+{
+  "description": "Extracts structured content from Genius.com annotated TV show/movie scripts and transcripts, including dialogue blocks, annotations, and metadata.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_script: 获取指定URL的脚本/转录内容; 需要url参数; 参数: url, include_annotations; 必填: url\n  - search: 搜索Genius上的脚本/转录; 需要query参数; 参数: query; 必填: query\n  - get_metadata: 获取页面元数据而不提取完整内容; 需要url参数; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Genius.com脚本页面的完整URL (用于get_script和get_metadata功能)"
+    },
+    "include_annotations": {
+      "type": "boolean",
+      "default": false,
+      "required": false,
+      "description": "是否获取注释的详细内容 (用于get_script功能)"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词 (用于search功能)"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

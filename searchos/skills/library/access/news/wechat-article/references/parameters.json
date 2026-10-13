@@ -1,0 +1,28 @@
+{
+  "description": "搜索微信公众号文章并提取全文（通过 Sogou 微信搜索），返回标题、真实 URL、发布时间、正文内容",
+  "parameters": {
+    "query": {
+      "type": "string",
+      "required": true,
+      "description": "Search query, Chinese or English."
+    },
+    "num_results": {
+      "type": "integer",
+      "default": 5,
+      "description": "Max articles to return (capped at 10)."
+    },
+    "fetch_content": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to fetch full article text (adds one HTTP round-trip per article)."
+    }
+  },
+  "imports": [
+    "httpx",
+    "lxml"
+  ],
+  "requirements": [
+    "httpx",
+    "lxml"
+  ]
+}

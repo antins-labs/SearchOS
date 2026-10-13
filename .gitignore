@@ -14,11 +14,15 @@ build/
 
 # Workspace (runtime generated)
 searchos_workspace/
+.searchos/
+local-index/
+knowledge_base
 searchos_skill_jobs/
 eval_workspace/
 test_workspace/
 baseline_output/
 eval_results/
+/eval/
 paper/
 
 datasets/
@@ -51,9 +55,8 @@ web/frontend/src/app/demo/
 # Web settings overlay (user-local, written by the web UI)
 web_settings.json
 
-# Local design and iteration plans
-docs/tui-textual-redesign.md
-docs/webui-improvement-plan.md
+# Local design and iteration plans (kept outside release-facing docs)
+development/
 docs/searchanything-technical-design.md
 
 # Local publication assets (not part of the repository)

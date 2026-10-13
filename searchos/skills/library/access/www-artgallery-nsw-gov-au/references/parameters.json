@@ -1,0 +1,35 @@
+{
+  "description": "Fetches artwork and artist data from Art Gallery of NSW prize competitions (Archibald, Wynne, Sulman prizes) including winners, finalists, and artwork details.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_prize_year: 获取指定奖项年份的所有作品列表（需提供prize和year）; 参数: year, prize; 必填: 无\n  - get_artwork: 获取单件作品的详细信息（需提供artwork_id，可选prize和year）; 参数: artwork_id, year, prize; 必填: artwork_id\n  - get_gallery_labels: 获取展厅标签信息（需提供prize和year）; 参数: year, prize; 必填: 无\n  - list_prize_years: 列出奖项的所有可用年份（可选prize）; 参数: prize; 必填: 无"
+    },
+    "year": {
+      "type": "string",
+      "default": "2023",
+      "required": false,
+      "description": "年份，如 2023、2022，默认为 2023"
+    },
+    "prize": {
+      "type": "string",
+      "default": "archibald",
+      "required": false,
+      "description": "奖项名称，可选值为 archibald、wynne、sulman，默认为 archibald"
+    },
+    "artwork_id": {
+      "type": "string",
+      "required": false,
+      "description": "作品ID，用于 get_artwork 功能获取单件作品详情"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

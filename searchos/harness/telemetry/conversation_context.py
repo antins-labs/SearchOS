@@ -8,7 +8,7 @@ closing answer). For a follow-up it reuses the previous ``session_id`` +
 conversational history in plain language.
 
 ``conversation_turns`` is the inverse: it replays a workspace's
-``conversations/orchestrator.json`` into ``[{query, answer, steers}]`` so a
+``conversations/snapshots/orchestrator.json`` into ``[{query, answer, steers}]`` so a
 reloaded session (web history reopen, TUI ``/resume``) shows the full
 multi-turn dialogue instead of just title + last answer.
 """
@@ -91,9 +91,11 @@ def conversation_turns(workspace: str | Path) -> list[dict[str, Any]]:
     """
     import json
 
-    path = Path(workspace) / "conversations" / "orchestrator.json"
+    from searchos.harness.telemetry.conversation import read_conversation
+
+    path = Path(workspace) / "conversations" / "snapshots" / "orchestrator.json"
     try:
-        msgs = json.loads(path.read_text(encoding="utf-8", errors="replace")).get("messages", [])
+        msgs = read_conversation(path).get("messages", [])
     except Exception:
         return []
 
@@ -105,7 +107,7 @@ def conversation_turns(workspace: str | Path) -> list[dict[str, Any]]:
         role = msg.get("role")
         text = _msg_text(msg)
         if role in ("user", "human"):
-            if not text or text.startswith(_HARNESS_PREFIX):
+            if not text or text.startswith((_HARNESS_PREFIX, "[回答来源检查]")):
                 continue
             if text.startswith(_STEER_PREFIX):
                 body = text.split("\n", 1)[1] if "\n" in text else ""
@@ -132,4 +134,12 @@ def conversation_turns(workspace: str | Path) -> list[dict[str, Any]]:
                 if steers:
                     turns[-1]["steers"].extend(steers)
                     steers = []
+    # 收尾阶段可能在检索图结束后生成正文；仅替换同一问题的最后一轮。
+    try:
+        result = json.loads((Path(workspace) / "output" / "result.json").read_text(encoding="utf-8"))
+        if (turns and result.get("query") == turns[-1]["query"]
+                and isinstance(result.get("answer"), str)):
+            turns[-1]["answer"] = result["answer"]
+    except (OSError, ValueError, AttributeError):
+        pass
     return turns

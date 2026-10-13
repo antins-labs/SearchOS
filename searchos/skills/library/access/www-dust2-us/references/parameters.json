@@ -1,0 +1,23 @@
+{
+  "description": "Extracts Counter-Strike news articles and listings from Dust2.us, a North American CS news site.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取单篇新闻文章详情，需要url参数; 参数: url; 必填: url\n  - get_news_listing: 获取新闻列表; 参数: 无; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章URL（相对或绝对路径），get_article功能需要此参数"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

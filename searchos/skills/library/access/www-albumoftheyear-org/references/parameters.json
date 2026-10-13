@@ -1,0 +1,27 @@
+{
+  "description": "Fetches album lists and ratings from Album of the Year (albumoftheyear.org) user list pages. Note: This site uses aggressive Cloudflare bot protection that may block automated access.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_list: Fetches a user's album list page; requires url parameter; 参数: url, wait_time; 必填: url\n  - get_user: Fetches a user's profile page; requires url parameter; 参数: url, wait_time; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "Full URL to the album list or user profile page on albumoftheyear.org"
+    },
+    "wait_time": {
+      "type": "integer",
+      "default": 30,
+      "required": false,
+      "description": "Maximum seconds to wait for Cloudflare challenge to complete (default 30)"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

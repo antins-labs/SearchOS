@@ -1,5 +1,13 @@
 // TypeScript types aligned with backend Pydantic models
 
+export interface WorkerInfo {
+  name: string;
+  intent: string;
+  scope: string;
+  status: "pending" | "running" | "completed" | "error";
+  events: WSEvent[];
+}
+
 export interface SchemaTableRequest {
   table_id: string;
   table_label?: string;
@@ -32,10 +40,168 @@ export interface SearchRequest {
   skills?: SkillOverrides;
   trusted_domains?: string[];
   excluded_domains?: string[];
+  sources?: SourceSelection;
   /** Follow-up: extend this prior session (same workspace + coverage table). */
   follow_up_to?: string;
   /** Prior turns echoed back so the orchestrator sees the conversation. */
   history?: { query: string; answer: string }[];
+}
+
+export interface LocalSourceSelection {
+  library_id: string;
+  selection: "library" | "documents";
+  document_ids: string[];
+  model_access: true;
+}
+
+export interface SourceSelection {
+  mode: "web" | "local" | "hybrid";
+  local?: LocalSourceSelection;
+}
+
+export interface LocalLibrary {
+  library_id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface LocalIndexJob {
+  job_id: string;
+  library_id: string;
+  document_id: string;
+  source_revision: string;
+  file_name: string;
+  status: "queued" | "running" | "completed" | "failed" | "cancelled";
+  stage: string;
+  created_at: string;
+  updated_at: string;
+  error: string;
+  attempt: number;
+  recap_segments_completed: number;
+  recap_segments_total: number;
+}
+
+export interface NetworkImportJob {
+  job_id: string;
+  idempotency_key: string;
+  library_id: string;
+  source_url: string;
+  title: string;
+  index_after_save: boolean;
+  status: "queued" | "running" | "completed" | "failed" | "cancelled";
+  stage: "fetch" | "save" | "saved" | "parse" | "recap_catalog" | "indexed" | "saved_unindexed" | "failed" | "cancelled";
+  document_id: string;
+  created_at: string;
+  updated_at: string;
+  error: string;
+  attempt: number;
+  recap_segments_completed: number;
+  recap_segments_total: number;
+}
+
+export interface LocalDocument {
+  document_id: string;
+  name: string;
+  kind: string;
+  size_bytes: number;
+  status: "saved" | "ready" | "partial" | "failed";
+  parse_status: "pending" | "ready" | "partial" | "failed";
+  recap_status: "pending" | "ready" | "partial" | "failed";
+  catalog_status: "pending" | "ready" | "partial" | "failed";
+  recap_segments_completed: number;
+  recap_segments_total: number;
+  searchable: boolean;
+  source_revision: string;
+  warnings: string[];
+  cached?: boolean;
+  index_job?: LocalIndexJob | null;
+  origin?: Record<string, unknown> | null;
+}
+
+export interface LocalGraphNode {
+  id: string;
+  node_type: "index" | "subindex" | "document";
+  label: string;
+  original_name?: string;
+  summary: string;
+  subindex_id?: string;
+  document_id?: string;
+  document_kind?: string;
+  character_count?: number;
+  document_count?: number;
+  size_bytes?: number;
+  searchable?: boolean;
+  parse_status?: "ready" | "partial" | "failed";
+  recap_status?: "ready" | "partial" | "failed" | "pending";
+  recap_error?: string;
+  catalog_status?: "ready" | "partial" | "failed";
+  source_revision?: string;
+  warnings?: string[];
+}
+
+export interface LocalGraphEdge {
+  source: string;
+  target: string;
+  relation: "contains" | "classifies" | "pending_catalog";
+}
+
+export interface LocalLibraryGraph {
+  library_id: string;
+  name: string;
+  nodes: LocalGraphNode[];
+  edges: LocalGraphEdge[];
+}
+
+export interface LocalDocumentOutlineEntry {
+  entry_id: string;
+  title: string;
+  summary: string;
+  location_label: string;
+  character_count: number;
+  segment_ids: string[];
+}
+
+export interface LocalDocumentSegmentMeta {
+  segment_id: string;
+  title: string;
+  location_label: string;
+  character_count: number;
+  extraction_method: string;
+}
+
+export interface LocalDocumentIndex {
+  library_id: string;
+  document_id: string;
+  name: string;
+  summary: string;
+  outline: LocalDocumentOutlineEntry[];
+  segments: LocalDocumentSegmentMeta[];
+}
+
+export interface LocalDocumentSegmentChunk {
+  segment_id: string;
+  title: string;
+  location_label: string;
+  content: string;
+  offset: number;
+  next_offset: number | null;
+  total_characters: number;
+}
+
+export interface LocalCitation {
+  citation_id: string;
+  ref_id: string;
+  source_kind: "local";
+  library_id: string;
+  document_id: string;
+  file_name: string;
+  source_revision: string;
+  location_label: string;
+  locators: Record<string, unknown>[];
+  representation_id: string;
+  content: string;
+  preview_mode: "pdf" | "image" | "text" | "office" | "unsupported";
+  warnings: string[];
 }
 
 export interface RepairCellTarget {
@@ -58,6 +224,22 @@ export interface RepairRequest {
 
 export type EffortLevel = "low" | "medium" | "high" | "max";
 
+export interface LocalizedCopy { zh: string; en: string }
+
+export interface ModelPurpose {
+  role: string;
+  label: LocalizedCopy;
+  description: LocalizedCopy;
+  guidance: LocalizedCopy;
+  allocation: "main" | "text" | "vision" | null;
+}
+
+export interface ModelPurposeGroup {
+  id: string;
+  label: LocalizedCopy;
+  purposes: ModelPurpose[];
+}
+
 export interface SkillOverrides {
   access_only?: string[] | null;
   access_deny?: string[];
@@ -66,6 +248,8 @@ export interface SkillOverrides {
 }
 
 export interface SkillInfo {
+  package_format?: "portable" | "legacy";
+  package_hash?: string;
   name: string;
   description: string;
   status: string;
@@ -124,6 +308,7 @@ export interface ModelsView {
   profiles: Record<string, ProfileInfo>;
   provider_connections: Record<string, ProviderConnectionInfo>;
   roles: Record<string, string>;
+  purpose_groups?: ModelPurposeGroup[]; // Older running APIs do not provide this catalog.
   role_overrides: Record<string, string>;
   search: {
     resolved: string;
@@ -146,6 +331,17 @@ export interface RunDefaultsView {
   search_max_results: number;
   enable_skills: boolean;
   enable_explore_batch: boolean;
+  enable_web_image_read: boolean;
+  web_image_read_mode: "auto" | "native" | "vision";
+  jina_retain_images: "auto" | "alt" | "all";
+  effective_jina_retain_images: "alt" | "all";
+  web_image_capability: {
+    status: "unknown" | "supported" | "unsupported";
+    checked_at: number | null;
+    reason: string;
+  };
+  web_image_agent_model: string;
+  web_image_vision_model: string;
 }
 
 // First-class runtime knobs not covered by effort. Proxy / cache dir are not
@@ -241,6 +437,14 @@ export interface CoverageMap {
   active_table: string;
   // Cell keys: "{table_id}/{entity}.{attribute}"
   cells: Record<string, CoverageCell>;
+  evidence_bindings?: Record<string, CellEvidenceBinding[]>;
+}
+
+export interface CellEvidenceBinding {
+  evidence_id: string;
+  value: string;
+  alignment: "full" | "partial" | "loose";
+  status: "active" | "rejected" | "superseded";
 }
 
 export interface EvidenceNode {
@@ -259,6 +463,16 @@ export interface EvidenceNode {
   source_authority?: "official" | "industry_pr" | "aggregator" | "news" | "blog" | "unclear" | string;
   status?: "active" | "rejected" | "superseded";
   created_at?: number;
+  page_id?: string;
+  local_source_metadata?: {
+    library_id?: string;
+    document_id?: string;
+    file_name?: string;
+    source_revision?: string;
+    generation?: string;
+    representation_id?: string;
+    locators?: Record<string, unknown>[];
+  };
 }
 
 export interface EvidenceEdge {
@@ -278,12 +492,20 @@ export interface ResolveEvidenceResponse {
   search_state: SearchState;
 }
 
+export interface TaskEvidenceBinding {
+  task_id: string;
+  evidence_id: string;
+  relation: "supports" | "contradicts" | "context";
+}
+
 export interface FrontierTask {
   id: string;
   question: string;
   kind?: "search" | "write" | "explore";
   status: "pending" | "running" | "completed" | "blocked" | "cancelled" | "open" | "exploring" | "resolved";
   priority: number;
+  result_mode?: "findings" | "table";
+  blocked_by?: string[];
   target_cells?: string[];
   table_id?: string;
   agent_type?: string;
@@ -330,7 +552,9 @@ export interface SearchState {
   task_type: "wide" | "deep" | "local" | "hybrid";
   frontier: { questions: FrontierTask[] };
   explored_paths: { query: string; useful: boolean }[];
-  evidence_graph: { nodes: EvidenceNode[]; edges: EvidenceEdge[] };
+  evidence_graph: { nodes: EvidenceNode[]; edges: EvidenceEdge[]; task_bindings?: TaskEvidenceBinding[] };
+  research_mode?: "table" | "findings";
+  source_scope?: { mode: "web" | "local" | "hybrid"; library_id?: string; selection?: "library" | "documents"; document_ids?: string[]; documents: { document_id: string; relative_path?: string }[]; unavailable_sources?: Record<string, string> } | null;
   coverage_map: CoverageMap;
   strategy_log: { patterns: { pattern: string; effective: boolean; context: string }[] };
   budget: BudgetState;
@@ -370,12 +594,14 @@ export interface ModelDistributionItem {
 }
 
 export interface SearchResult {
+  revision?: string;
+  not_modified?: boolean;
   status: "running" | "completed" | "error";
   session_id: string;
   /** Full final answer (event-stream previews are truncated server-side). */
   answer?: string;
   query?: string;
-  coverage_score?: number;
+  coverage_score?: number | null;
   evidence_count?: number;
   total_queries?: number;
   total_steps?: number;

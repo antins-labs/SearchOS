@@ -1,0 +1,66 @@
+{
+  "description": "Fetch company data from the Belgian game industry directory at gameindustry.be, including company listings, details, search, and filtering by region/category.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_companies: 列出公司，支持分页和多种筛选条件; 参数: page, limit, region, category, verified, active_only, defunct, search; 必填: 无\n  - get_company: 获取单个公司的详细信息（通过slug）; 参数: slug; 必填: slug\n  - search_companies: 按名称搜索公司; 参数: query, limit; 必填: query\n  - get_summary: 获取目录统计摘要; 参数: 无; 必填: 无\n  - list_by_region: 按地区列出公司; 参数: region, limit; 必填: region\n  - list_verified: 列出已验证的公司; 参数: limit; 必填: 无\n  - list_defunct: 列出已关闭的公司; 参数: limit; 必填: 无"
+    },
+    "page": {
+      "type": "integer",
+      "required": false,
+      "description": "页码，用于list_companies分页（默认1）"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "每页结果数量，最大100（默认20，部分函数默认50）"
+    },
+    "region": {
+      "type": "string",
+      "required": false,
+      "description": "按地区筛选，可选值：flanders, brussels, wallonia"
+    },
+    "category": {
+      "type": "string",
+      "required": false,
+      "description": "按类别筛选，如Developer, Publisher, Service Provider"
+    },
+    "verified": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否只返回已验证的公司"
+    },
+    "active_only": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否只返回活跃的公司"
+    },
+    "defunct": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否只返回已关闭的公司"
+    },
+    "search": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于list_companies按名称搜索"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "公司slug标识符，用于get_company获取详情（如larian-studios）"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索查询词，用于search_companies"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "description": "Fetches article content from Crystalinks.com pyramid and pharaoh pages, extracting structured content including title, paragraphs, images, and related links.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取单篇文章，需要 url 参数; 参数: url; 必填: url\n  - get_multiple_articles: 批量获取多篇文章，需要 urls 参数; 参数: urls, max_concurrent, url; 必填: url, urls\n  - search_pyramid_pages: 搜索金字塔相关页面，可选 keyword 参数; 参数: keyword; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章URL或slug，用于 get_article 功能。\n可以是完整URL如 'https://www.crystalinks.com/pyrkhendjer.html'\n或简短slug如 'pyrkhendjer' 或 'pyrkhendjer.html'"
+    },
+    "urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "required": false,
+      "description": "URL或slug列表，用于 get_multiple_articles 功能。\n例如: ['pyrkhendjer', 'zawyet', 'pyrmazghuna']"
+    },
+    "max_concurrent": {
+      "type": "integer",
+      "required": false,
+      "description": "并发请求最大数量，用于 get_multiple_articles 功能。\n默认值: 5"
+    },
+    "keyword": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于 search_pyramid_pages 功能。\n例如: 'saqqara', 'giza', 'khendjer'"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

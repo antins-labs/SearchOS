@@ -1,0 +1,27 @@
+{
+  "description": "Fetches author profile data from Google Scholar (scholar.google.com) including citation statistics, publications, and co-authors.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_author_profile: 获取作者完整档案，包括统计信息、发表列表和合作者；需要 user_id; 参数: user_id, max_publications; 必填: user_id\n  - get_publications: 仅获取作者的发表列表；需要 user_id; 参数: user_id, max_publications; 必填: user_id"
+    },
+    "user_id": {
+      "type": "string",
+      "required": true,
+      "description": "Google Scholar 用户 ID，来自 citations?user=XXX 参数"
+    },
+    "max_publications": {
+      "type": "integer",
+      "default": 100,
+      "required": false,
+      "description": "返回的最大发表数量，默认 100"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "description": "Fetches game listings and detailed game information from Indie Arena Booth at Gamescom 2025 (indiearenabooth.de).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_games: 列出所有参展游戏，返回游戏ID、标题、开发商、国家和缩略图; 参数: 无; 必填: 无\n  - get_game: 获取单个游戏的详细信息，需要game_id参数; 参数: game_id; 必填: 无\n  - search_games: 按标题或开发商搜索游戏，需要query参数; 参数: query; 必填: 无"
+    },
+    "game_id": {
+      "type": "string",
+      "required": false,
+      "description": "游戏ID，用于get_game功能获取单个游戏的详细信息"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于search_games功能按标题或开发商名称搜索游戏"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

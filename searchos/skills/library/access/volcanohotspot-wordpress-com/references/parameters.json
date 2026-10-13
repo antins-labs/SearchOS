@@ -1,0 +1,29 @@
+{
+  "description": "Fetches blog posts and listings from volcanohotspot.wordpress.com volcano blog.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_post: 获取单篇博客文章内容; 需要参数 url; 参数: url; 必填: url\n  - get_posts: 获取博客文章列表; 可选参数 page (页码, 默认1); 参数: page; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "博客文章的完整URL (get_post 使用)"
+    },
+    "page": {
+      "type": "integer",
+      "default": 1,
+      "required": false,
+      "description": "页码，用于获取文章列表 (get_posts 使用)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

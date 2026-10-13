@@ -1,20 +1,9 @@
-"""Context layer (paper §3.1) — per-agent context management: prompt assembly,
-SOCM snapshot injection, compression/trim, skill injection. Read-only on SOCM.
+"""可独立装配的上下文管理机制。"""
 
-``ControlMiddleware`` is the single seam; it wraps ``LayeredContextMiddleware``
-or ``DynamicTrimMiddleware`` as its inner compressor.
-"""
-
-from searchos.harness.middleware.context.control_middleware import ControlMiddleware
-from searchos.harness.middleware.context.dynamic_trim import DynamicTrimMiddleware
-from searchos.harness.middleware.context.layered_context import (
-    LayeredContextMiddleware,
-    SearchEpisodeMiddleware,
+from searchos.harness.middleware.context.compaction_context_middleware import (
+    CompactionContextMiddleware,
 )
+from searchos.harness.middleware.context.dynamic_trim_middleware import DynamicTrimMiddleware
+from searchos.harness.middleware.context.search_episode_middleware import SearchEpisodeMiddleware
 
-__all__ = [
-    "ControlMiddleware",
-    "DynamicTrimMiddleware",
-    "LayeredContextMiddleware",
-    "SearchEpisodeMiddleware",
-]
+__all__ = ["CompactionContextMiddleware", "DynamicTrimMiddleware", "SearchEpisodeMiddleware"]

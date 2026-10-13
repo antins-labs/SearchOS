@@ -1,0 +1,64 @@
+{
+  "description": "Search and retrieve exhibitor information from Gamescom's official exhibitor database at exhibitors.gamescom.global",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - search: Search for exhibitors with optional filters (query, country, hall, product_sector, initial, page); 参数: query, country, hall, product_sector, initial, search_type, page, page_size; 必填: 无\n  - get_exhibitor: Get detailed information about a specific exhibitor by slug; 参数: slug; 必填: slug\n  - get_filters: Get available filter options (countries, halls, product sectors, target markets); 参数: 无; 必填: 无"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query for exhibitor name, brand, product, or country (used by 'search' function)"
+    },
+    "country": {
+      "type": "string",
+      "required": false,
+      "description": "Filter by country/region of origin (used by 'search' function)"
+    },
+    "hall": {
+      "type": "string",
+      "required": false,
+      "description": "Filter by hall number (e.g., \"Hall 10.1\", used by 'search' function)"
+    },
+    "product_sector": {
+      "type": "string",
+      "required": false,
+      "description": "Filter by product sector (used by 'search' function)"
+    },
+    "initial": {
+      "type": "string",
+      "required": false,
+      "description": "Filter by first letter of company name (A-Z, used by 'search' function)"
+    },
+    "search_type": {
+      "type": "string",
+      "default": "alle",
+      "required": false,
+      "description": "Search type - \"alle\" (all words), \"any\" (any word), \"exact\" (exact phrase), \"title\" (only in title) (used by 'search' function)"
+    },
+    "page": {
+      "type": "integer",
+      "default": 1,
+      "required": false,
+      "description": "Page number for pagination (used by 'search' function)"
+    },
+    "page_size": {
+      "type": "integer",
+      "default": 20,
+      "required": false,
+      "description": "Number of results per page (used by 'search' function)"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "Exhibitor slug/identifier from search results (used by 'get_exhibitor' function)"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

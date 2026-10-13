@@ -38,6 +38,17 @@ def _pred_for(qdir: Path, sample) -> str:
 async def _grade_one(qdir, sample, grade, sem, loop) -> dict | None:
     """Grade a single dir off-thread (judge calls are sync) and persist."""
     sid = qdir.name
+    if sample.answer_type == "qa":
+        from eval.qa import sample_fingerprint
+        from eval.runner import _save_qa_grade
+        rec = json.loads((qdir / "eval_result.json").read_text(encoding="utf-8"))
+        expected = (rec.get("experiment_config") or {}).get("sample_sha256")
+        if (expected != sample_fingerprint(sample)
+                or rec.get("prediction_source") != "orchestrator_last_turn"
+                or not isinstance(rec.get("pred"), str)):
+            raise ValueError(f"{sid}: 数据或 pred 来源不匹配，拒绝重评")
+        async with sem:
+            return await _save_qa_grade(rec, rec["pred"], sample, grade, qdir / "eval_result.json")
     pred = _pred_for(qdir, sample)
     if not pred:
         print(f"  - {sid}: no prediction text on disk", file=sys.stderr)
@@ -56,7 +67,15 @@ async def _grade_one(qdir, sample, grade, sem, loop) -> dict | None:
 async def _amain(args) -> None:
     _load_env()
     repo = Path(__file__).parent.parent
-    if args.benchmark == "widesearch":
+    if args.benchmark == "gaia":
+        from eval.benchmarks.gaia import load_samples, grade
+        data = args.data_path or repo / "datasets/GAIA/gaia_qa.jsonl"
+        gold = None
+    elif args.benchmark == "xbench":
+        from eval.benchmarks.xbench import load_samples, grade
+        data = args.data_path or repo / "datasets/xbench/DeepSearch-2510.csv"
+        gold = None
+    elif args.benchmark == "widesearch":
         from eval.benchmarks.widesearch import load_samples, grade
         data = args.data_path or repo / "datasets/widesearch/widesearch.jsonl"
         gold = args.gold_dir or repo / "datasets/widesearch/widesearch_gold"
@@ -87,7 +106,10 @@ async def _amain(args) -> None:
 
     # Aggregate: per-type precision / recall / f1 + overall, written to disk
     # and printed. Uses the same aggregators as a live run.
-    if args.benchmark == "gisa":
+    if args.benchmark in ("gaia", "xbench"):
+        from eval.runner import aggregate_xbench
+        summary = aggregate_xbench(records)
+    elif args.benchmark == "gisa":
         from eval.runner import aggregate_gisa
         summary = aggregate_gisa(records)
     else:
@@ -104,7 +126,7 @@ async def _amain(args) -> None:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("run_dir", help="e.g. eval_results/widesearch_20260501_142618")
-    ap.add_argument("--benchmark", choices=["gisa", "widesearch"], required=True)
+    ap.add_argument("--benchmark", choices=["gisa", "widesearch", "gaia", "xbench"], required=True)
     ap.add_argument("--data-path", default=None)
     ap.add_argument("--gold-dir", default=None)
     ap.add_argument("--concurrency", type=int, default=8)

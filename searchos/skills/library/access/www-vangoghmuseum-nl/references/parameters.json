@@ -1,0 +1,31 @@
+{
+  "description": "Fetches artwork details from the Van Gogh Museum online collection at www.vangoghmuseum.nl, including title, description, artist info, creation details, medium, dimensions, and image URLs.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_artwork: 获取单件艺术品的详细信息；需要 object_id 参数; 参数: object_id; 必填: object_id\n  - get_iiif_url: 生成指定宽度的 IIIF 图像 URL；需要 iiif_base_url 参数，可选 width 参数; 参数: iiif_base_url, width; 必填: iiif_base_url"
+    },
+    "object_id": {
+      "type": "string",
+      "required": false,
+      "description": "艺术品编号，用于 get_artwork 功能。\n格式示例: s0160V1962, s0097V1962v, s0022v1962\n可在 Van Gogh Museum 网站的收藏页面 URL 中找到。"
+    },
+    "iiif_base_url": {
+      "type": "string",
+      "required": false,
+      "description": "IIIF 图像基础 URL，用于 get_iiif_url 功能。\n可从 get_artwork 返回结果中的 iiif_base_url 字段获取。"
+    },
+    "width": {
+      "type": "integer",
+      "required": false,
+      "description": "图像宽度（像素），用于 get_iiif_url 功能。\n默认值: 1280"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

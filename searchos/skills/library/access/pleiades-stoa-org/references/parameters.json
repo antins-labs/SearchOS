@@ -1,0 +1,26 @@
+{
+  "description": "Fetches structured ancient place data from the Pleiades gazetteer (pleiades.stoa.org), including coordinates, names, connections, references, and temporal attestations.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_place: 获取古代地点的详细信息 (需要 place_id); 参数: place_id; 必填: place_id\n  - list_place_types: 列出所有地点类型词汇; 参数: include_hidden; 必填: 无\n  - list_time_periods: 列出所有时间段词汇; 参数: 无; 必填: 无\n  - list_relationship_types: 列出所有关系类型词汇; 参数: 无; 必填: 无"
+    },
+    "place_id": {
+      "type": "string",
+      "required": false,
+      "description": "Pleiades地点ID (数字字符串), 用于 get_place 功能。\n例如: \"154462177\" (Sekhemkhet金字塔), \"347826778\" (Headless Pyramid)"
+    },
+    "include_hidden": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否包含隐藏的词汇项, 用于 list_place_types 功能。默认 false。"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

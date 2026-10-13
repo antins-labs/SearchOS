@@ -1,0 +1,111 @@
+{
+  "description": "Fetches structured Federal Register documents (rules, notices, presidential documents,  executive orders) from federalregister.gov API by document number, search, agency, or topic.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_document: 根据文档号获取单个文档详情；需要 document_number; 参数: document_number, include_full_text; 必填: document_number\n  - search_documents: 搜索Federal Register文档；支持关键词、日期、机构、总统等筛选; 参数: query, president, agency_slug, type, topic, publication_date_gte, publication_date_lte, publication_year, cfr_title, cfr_part, significant, page, order, agency_id, per_page; 必填: 无\n  - get_agency: 获取机构详情；需要 agency_id 或 agency_slug; 参数: agency_id, agency_slug; 必填: 无\n  - list_agencies: 列出所有机构; 参数: 无; 必填: 无\n  - list_topics: 列出所有主题分类; 参数: topic_type; 必填: 无\n  - get_public_inspection: 获取公开预检文档; 参数: available_on, order, per_page; 必填: 无"
+    },
+    "document_number": {
+      "type": "string",
+      "required": false,
+      "description": "FR文档号，如 \"2025-02096\"；用于 get_document"
+    },
+    "include_full_text": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否获取文档全文；用于 get_document"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "全文搜索关键词；用于 search_documents"
+    },
+    "president": {
+      "type": "string",
+      "required": false,
+      "description": "总统slug，如 \"donald-trump\"、\"joe-biden\"；用于 search_documents"
+    },
+    "agency_slug": {
+      "type": "string",
+      "required": false,
+      "description": "机构slug，如 \"environmental-protection-agency\"；用于 search_documents 或 get_agency"
+    },
+    "type": {
+      "type": "string",
+      "required": false,
+      "description": "文档类型，如 \"RULE\"、\"PRORULE\"、\"NOTICE\"、\"PRESDOCU\"；用于 search_documents"
+    },
+    "topic": {
+      "type": "string",
+      "required": false,
+      "description": "主题slug；用于 search_documents"
+    },
+    "publication_date_gte": {
+      "type": "string",
+      "required": false,
+      "description": "发布日期起始 (YYYY-MM-DD)；用于 search_documents"
+    },
+    "publication_date_lte": {
+      "type": "string",
+      "required": false,
+      "description": "发布日期截止 (YYYY-MM-DD)；用于 search_documents"
+    },
+    "publication_year": {
+      "type": "integer",
+      "required": false,
+      "description": "发布年份筛选；用于 search_documents"
+    },
+    "cfr_title": {
+      "type": "integer",
+      "required": false,
+      "description": "CFR标题号；用于 search_documents"
+    },
+    "cfr_part": {
+      "type": "integer",
+      "required": false,
+      "description": "CFR部分号；用于 search_documents"
+    },
+    "significant": {
+      "type": "string",
+      "required": false,
+      "description": "是否重要文档，\"true\" 或 \"false\"；用于 search_documents"
+    },
+    "page": {
+      "type": "integer",
+      "required": false,
+      "description": "页码；用于 search_documents"
+    },
+    "order": {
+      "type": "string",
+      "required": false,
+      "description": "排序方式：\"newest\"、\"oldest\"、\"relevance\"；用于 search_documents"
+    },
+    "agency_id": {
+      "type": "integer",
+      "required": false,
+      "description": "机构ID；用于 get_agency 或 search_documents"
+    },
+    "per_page": {
+      "type": "integer",
+      "required": false,
+      "description": "每页结果数 (1-100)；用于 search_documents、get_public_inspection"
+    },
+    "topic_type": {
+      "type": "string",
+      "required": false,
+      "description": "主题类型筛选 \"thesaurus\" 或 \"ad_hoc\"；用于 list_topics"
+    },
+    "available_on": {
+      "type": "string",
+      "required": false,
+      "description": "公开预检日期 (YYYY-MM-DD)；用于 get_public_inspection"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

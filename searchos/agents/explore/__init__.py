@@ -1,9 +1,4 @@
-"""Explore agent (paper §Agent Roles) — pre-search information-landscape scout.
-
-Dispatched before search begins so the orchestrator can map where data lives
-and plan a strategy. No extraction middleware attaches: its only output is the
-final briefing message (see ``agent.md``).
-"""
+"""按需解决首次或后续检索中的不确定性，以简报返回线索与建议。"""
 
 from __future__ import annotations
 

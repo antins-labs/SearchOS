@@ -1,0 +1,37 @@
+{
+  "description": "Fetches structured municipal data from IBGE (Brazilian Institute of Geography and Statistics) official APIs - population, area, GDP, districts, and geographic hierarchy for Brazilian municipalities.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_municipality: 根据州缩写和名称获取市政详情; 需要 state, name; 参数: state, name; 必填: 无\n  - get_by_id: 根据IBGE ID获取市政详情; 需要 municipality_id; 参数: municipality_id; 必填: 无\n  - get_districts: 获取市政区划列表; 需要 municipality_id; 参数: municipality_id; 必填: 无\n  - get_population_area: 获取人口和面积数据(Censo 2022); 需要 municipality_id; 参数: municipality_id; 必填: 无\n  - get_gdp: 获取GDP经济数据; 需要 municipality_id, 可选 periods; 参数: municipality_id, periods; 必填: 无\n  - get_stats: 获取综合统计数据(人口、面积、GDP); 需要 municipality_id 或 (state, name); 参数: state, name, municipality_id; 必填: 无\n  - list_states: 列出所有巴西州; 参数: 无; 必填: 无\n  - list_municipalities: 列出指定州的所有市政; 需要 state; 参数: state; 必填: 无"
+    },
+    "state": {
+      "type": "string",
+      "required": false,
+      "description": "巴西州缩写（如 GO, SP, RJ），用于 get_municipality, get_stats, list_municipalities"
+    },
+    "name": {
+      "type": "string",
+      "required": false,
+      "description": "市政名称（如 Palmelo, São Paulo），用于 get_municipality, get_stats"
+    },
+    "municipality_id": {
+      "type": "integer",
+      "required": false,
+      "description": "IBGE市政ID（7位数字，如 5215801），用于 get_by_id, get_districts, get_population_area, get_gdp, get_stats"
+    },
+    "periods": {
+      "type": "string",
+      "default": "-1",
+      "required": false,
+      "description": "GDP数据周期（如 \"-1\" 最新一年, \"-5\" 最近5年, \"all\" 全部），用于 get_gdp"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

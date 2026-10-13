@@ -1,0 +1,76 @@
+{
+  "description": "Fetches artwork records and search results from the Metropolitan Museum of Art public collection API (collectionapi.metmuseum.org).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_object: 检索单个藏品记录，需要 object_id; 参数: object_id; 必填: object_id\n  - search: 搜索藏品，需要 query，可选 has_images/department/medium 等过滤条件; 参数: query, has_images, is_on_view, department, geo_location, medium, artist_or_culture, title, date_begin, date_end; 必填: query\n  - departments: 获取所有博物馆部门列表; 参数: 无; 必填: 无\n  - get_objects_batch: 批量检索多个藏品记录，需要 object_ids; 参数: object_ids; 必填: object_ids"
+    },
+    "object_id": {
+      "type": "integer",
+      "required": false,
+      "description": "Met 藏品对象 ID（如 922242）。用于 get_object 功能。"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词（如 \"van gogh\"、\"painting\"）。用于 search 功能。"
+    },
+    "has_images": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否只返回有图片的结果。用于 search 功能。"
+    },
+    "is_on_view": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否只返回当前展出的藏品。用于 search 功能。"
+    },
+    "department": {
+      "type": "string",
+      "required": false,
+      "description": "部门 ID 过滤（如 \"11\" 为欧洲绘画）。用于 search 功能。"
+    },
+    "geo_location": {
+      "type": "string",
+      "required": false,
+      "description": "地理位置过滤（如 \"France\"、\"China\"）。用于 search 功能。"
+    },
+    "medium": {
+      "type": "string",
+      "required": false,
+      "description": "材质/媒介过滤（如 \"Oil on canvas\"、\"Bronze\"）。用于 search 功能。"
+    },
+    "artist_or_culture": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否按艺术家姓名或文化搜索。用于 search 功能。"
+    },
+    "title": {
+      "type": "boolean",
+      "required": false,
+      "description": "是否只在标题中搜索。用于 search 功能。"
+    },
+    "date_begin": {
+      "type": "integer",
+      "required": false,
+      "description": "日期范围起始年份（如 1800）。用于 search 功能。"
+    },
+    "date_end": {
+      "type": "integer",
+      "required": false,
+      "description": "日期范围结束年份（如 1900）。用于 search 功能。"
+    },
+    "object_ids": {
+      "type": "array",
+      "required": false,
+      "description": "Met 藏品对象 ID 列表（如 [922242, 922243]），也可传入逗号分隔的字符串。\n用于 get_objects_batch 功能。"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

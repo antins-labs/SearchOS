@@ -1,0 +1,53 @@
+{
+  "description": "Fetches World Athletics rankings data from worldathletics.org including overall rankings, event-specific rankings, and supports filtering by region and age category.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_rankings: 获取指定项目和性别的世界排名; 需要event和gender参数; 参数: event, gender, region_type, region, age_category, page, limit; 必填: 无\n  - get_events: 获取可用的比赛项目列表; 参数: 无; 必填: 无\n  - get_countries: 获取可用于筛选的国家/地区列表; 参数: 无; 必填: 无"
+    },
+    "event": {
+      "type": "string",
+      "required": false,
+      "description": "比赛项目标识符。常用值: overall, 100m, 200m, 400m, 800m, 1500m, 5000m, \n10000m, marathon, half-marathon, high-jump, pole-vault, long-jump, \ntriple-jump, shot-put, discus, hammer, javelin, decathlon, heptathlon 等。\n也可以使用完整URL slug如 100-metres, 1500-metres 等。\nget_rankings函数使用。"
+    },
+    "gender": {
+      "type": "string",
+      "required": false,
+      "description": "性别筛选。可用值: men, women。\nget_rankings函数使用，默认为men。"
+    },
+    "region_type": {
+      "type": "string",
+      "required": false,
+      "description": "地区类型筛选。可用值: world, area, country, country-group。\nget_rankings函数使用。"
+    },
+    "region": {
+      "type": "string",
+      "required": false,
+      "description": "具体地区或国家代码。当region_type为area时可用: africa, asia, europe, \nnorth-america, oceania, south-america。\n当region_type为country时使用国家三字码如 usa, gbr, ken 等。\nget_rankings函数使用。"
+    },
+    "age_category": {
+      "type": "string",
+      "required": false,
+      "description": "年龄组筛选。可用值: senior, u20, u18。\nget_rankings函数使用，默认为senior。"
+    },
+    "page": {
+      "type": "integer",
+      "required": false,
+      "description": "起始页码，默认为1。每页返回100条记录。\nget_rankings函数使用。"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回的最大记录数，默认为100。\nget_rankings函数使用。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

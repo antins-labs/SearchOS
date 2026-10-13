@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Archive,
@@ -7,6 +8,8 @@ import {
   AlertTriangle,
   Check,
   ChevronDown,
+  Database,
+  Blocks,
   FolderKanban,
   Inbox,
   Loader2,
@@ -55,6 +58,7 @@ interface Props {
   onSelect: (id: string) => void;
   onUpdateAssets: (id: string, patch: HistoryAssetPatch) => void;
   onDelete: (id: string) => void;
+  onOpenKnowledgeBase: () => void;
   onOpenSettings: () => void;
   loadingId?: string | null;
   mutation?: { id: string; kind: "delete" | "update" } | null;
@@ -112,6 +116,7 @@ export default function HistoryRail({
   onSelect,
   onUpdateAssets,
   onDelete,
+  onOpenKnowledgeBase,
   onOpenSettings,
   loadingId = null,
   mutation = null,
@@ -136,6 +141,27 @@ export default function HistoryRail({
     const interval = setInterval(check, 15000);
     return () => { alive = false; clearInterval(interval); };
   }, []);
+
+  useEffect(() => {
+    if (!menuId) return;
+    const closeMenu = () => {
+      setMenuId(null);
+      setConfirmId(null);
+    };
+    const onPointerDown = (event: PointerEvent) => {
+      const owner = (event.target as Element).closest("[data-history-menu-owner]");
+      if (owner?.getAttribute("data-history-menu-owner") !== menuId) closeMenu();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeMenu();
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [menuId]);
 
   const setListDensity = (value: Density) => {
     setDensity(value);
@@ -193,6 +219,8 @@ export default function HistoryRail({
       <div className="flex h-full flex-col items-center gap-3 border-r border-line py-4">
         <button onClick={onToggle} title="Expand" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><PanelLeft size={18} /></button>
         <button onClick={onNew} title="New research" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><Plus size={18} /></button>
+        <Link href="/skills" title="技能库" aria-label="技能库" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><Blocks size={18} /></Link>
+        <button onClick={onOpenKnowledgeBase} title="知识库" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><Database size={18} /></button>
         <button onClick={() => { setView("favorites"); onToggle(); }} title="Favorites" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><Star size={18} /></button>
         <span title={health === undefined ? "Connecting" : health ? "Connected" : "Offline"}
           className={`mt-auto h-1.5 w-1.5 rounded-full ${health === undefined ? "bg-warn" : health ? "bg-ok glow-pulse" : "bg-err"}`} />
@@ -214,7 +242,7 @@ export default function HistoryRail({
     const itemMutation = mutation?.id === item.id;
     const coverage = item.coverageScore == null ? null : Math.round(item.coverageScore * 100);
     return (
-      <div key={item.id} className="relative">
+      <div key={item.id} data-history-menu-owner={item.id} className="relative">
         <div className={`group relative flex items-start rounded-lg pr-1 transition-colors ${item.id === activeId ? "bg-clay/60" : "hover:bg-surface-2"}`}>
           <button onClick={() => onSelect(item.id)} disabled={busy} aria-busy={itemLoading}
             className={`flex min-w-0 flex-1 items-start gap-2 pl-2.5 text-left disabled:cursor-wait disabled:opacity-70 ${density === "compact" ? "py-1.5" : "py-2"}`}>
@@ -241,7 +269,8 @@ export default function HistoryRail({
               className={`mt-1.5 rounded p-1 transition-opacity ${item.favorite ? "text-accent-ink" : "text-ink-faint opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"}`}>
               <Star size={13} fill={item.favorite ? "currentColor" : "none"} />
             </button>
-            <button type="button" title="Research actions" onClick={() => setMenuId(menuId === item.id ? null : item.id)}
+            <button type="button" title="Research actions" aria-haspopup="menu" aria-expanded={menuId === item.id}
+              onClick={() => setMenuId(menuId === item.id ? null : item.id)}
               className="mt-1.5 rounded p-1 text-ink-faint opacity-0 transition-opacity hover:bg-surface group-focus-within:opacity-100 group-hover:opacity-100">
               <MoreHorizontal size={14} />
             </button>
@@ -249,7 +278,7 @@ export default function HistoryRail({
         </div>
 
         {menuId === item.id && (
-          <div className="absolute right-1 top-8 z-20 w-36 rounded-lg border border-line bg-surface p-1 shadow-lg">
+          <div role="menu" className="absolute right-1 top-8 z-20 w-36 rounded-lg border border-line bg-surface p-1 shadow-lg">
             <button type="button" onClick={() => startEdit(item)} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[12px] text-ink-dim hover:bg-surface-2"><Pencil size={12} /> Edit details</button>
             <button type="button" onClick={() => { onUpdateAssets(item.id, { archived: !item.archived }); setMenuId(null); }}
               className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[12px] text-ink-dim hover:bg-surface-2">
@@ -295,6 +324,11 @@ export default function HistoryRail({
 
       <div className="px-3 pb-2"><button onClick={onNew}
         className="flex w-full items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-2 text-[14px] font-medium text-ink transition-colors hover:bg-surface-2"><Plus size={16} /> New research</button></div>
+
+      <div className="px-3 pb-2"><Link href="/skills"
+        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink"><Blocks size={15} />技能库</Link></div>
+      <div className="px-3 pb-2"><button onClick={onOpenKnowledgeBase}
+        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink"><Database size={15} />知识库</button></div>
 
       <div className="px-3 pb-2">
         <label className="flex items-center gap-2 rounded-lg border border-transparent bg-surface-2/60 px-2.5 py-1.5 text-[13px] text-ink-faint focus-within:border-line">

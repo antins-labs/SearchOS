@@ -1,0 +1,46 @@
+{
+  "description": "Fetches volleyball competition data (matches, teams, standings, tournament info)  from en.volleyballworld.com for tournaments like the Volleyball Challenger Cup.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_competitions: 列出可用的比赛和年份; 参数: 无; 必填: 无\n  - tournament_info: 获取比赛基本信息; 参数: year, competition, gender, tournament_no, start_date, end_date; 必填: 无\n  - teams: 获取参赛队伍列表; 参数: year, competition, gender, tournament_no, start_date, end_date; 必填: 无\n  - matches: 获取比赛赛程和结果; 参数: year, competition, gender, tournament_no, start_date, end_date; 必填: 无\n  - standings: 获取最终排名; 参数: year, competition, gender, tournament_no, start_date, end_date; 必填: 无"
+    },
+    "year": {
+      "type": "string",
+      "required": false,
+      "description": "比赛年份，如 '2023' 或 '2024'（用于 teams/matches/standings/tournament_info）"
+    },
+    "competition": {
+      "type": "string",
+      "required": false,
+      "description": "比赛名称，如 'challenger-cup'（用于 teams/matches/standings/tournament_info）"
+    },
+    "gender": {
+      "type": "string",
+      "required": false,
+      "description": "性别组别，'men' 或 'women'（用于 teams/matches/standings/tournament_info）"
+    },
+    "tournament_no": {
+      "type": "integer",
+      "required": false,
+      "description": "直接指定比赛编号，覆盖自动检测（用于 teams/matches/standings/tournament_info）"
+    },
+    "start_date": {
+      "type": "string",
+      "required": false,
+      "description": "API查询起始日期，格式 YYYY-MM-DD（与 tournament_no 配合使用）"
+    },
+    "end_date": {
+      "type": "string",
+      "required": false,
+      "description": "API查询结束日期，格式 YYYY-MM-DD（与 tournament_no 配合使用）"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

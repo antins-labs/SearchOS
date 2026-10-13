@@ -1,0 +1,21 @@
+{
+  "description": "Extracts mineral reserves data tables from farmonaut.com mining pages, including USGS Mineral Commodity Summaries with country-level reserves, global share percentages, and supply risk assessments.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_mineral_reserves: Extracts the main mineral reserves table from a farmonaut mining URL (requires url); 参数: url; 必填: url\n  - get_all_tables: Extracts all tables from a farmonaut page (requires url); 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "Full URL to the farmonaut mining page (e.g., https://farmonaut.com/mining/usgs-mineral-commodity-summaries-rare-earths-reserves-by-country)"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

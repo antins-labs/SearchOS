@@ -44,8 +44,19 @@ class JinaReaderBackend:
     No local HTML pipeline / Playwright. Note: ``html`` field is empty, so
     CSS-selector access skills won't work on this backend."""
 
-    def __init__(self, *, api_key: str = "", proxy: str | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        api_key: str = "",
+        proxy: str | None = None,
+        retain_images: str | None = None,
+    ) -> None:
+        from searchos.config.run_config import current_run_config
+
         self._api_key = api_key or os.getenv("JINA_API_KEY", "")
+        self._retain_images = retain_images or current_run_config().jina_retain_images
+        if self._retain_images not in {"alt", "all"}:
+            raise ValueError("retain_images must be 'alt' or 'all'")
         self._proxy = (
             proxy
             or os.getenv("HTTPS_PROXY") or os.getenv("https_proxy")
@@ -55,8 +66,12 @@ class JinaReaderBackend:
         # ``api_calls`` and consumed by eval/runner for per-task delta.
         self.api_calls = 0
 
+    @property
+    def cache_namespace(self) -> str:
+        return f"jina-images-{self._retain_images}-v1"
+
     def _headers(self) -> dict[str, str]:
-        h: dict[str, str] = {"X-Retain-Images": "alt"}
+        h: dict[str, str] = {"X-Retain-Images": self._retain_images}
         if self._api_key:
             h["Authorization"] = f"Bearer {self._api_key}"
         return h

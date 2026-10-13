@@ -1,0 +1,38 @@
+{
+  "description": "Fetches structured historical articles from Alpha History's Vietnam War archive (alphahistory.com/vietnamwar), including topics, documents, timelines, and biographical entries.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取指定文章的完整内容; 需要 url 或 slug 参数; 参数: url, slug; 必填: 无\n  - list_topics: 列出所有可用的主题文章; 参数: 无; 必填: 无\n  - list_documents: 列出所有可用的文档文章; 参数: 无; 必填: 无\n  - list_timeline: 获取指定时期的年表条目; 需要可选的 period 参数; 参数: period; 必填: 无\n  - list_people: 列出人物传记条目 (Who's Who); 参数: 无; 必填: 无\n  - search: 按关键词搜索文章; 需要 keyword 参数; 参数: keyword; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章的完整URL (用于 get_article)"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "文章的URL slug，如 \"japanese-occupation-of-vietnam\" (用于 get_article)"
+    },
+    "period": {
+      "type": "string",
+      "required": false,
+      "description": "年表时期 (用于 list_timeline)。可用值:\n  - to-1945       1945年之前\n  - 1946-1954     1946-1954年\n  - 1955-1959     1955-1959年\n  - 1960-1964     1960-1964年\n  - 1965-1967     1965-1967年\n  - 1968-1970     1968-1970年\n  - 1971-beyond   1971年及以后\n  - cambodia      柬埔寨相关\n  - operations    军事行动"
+    },
+    "keyword": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词 (用于 search)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

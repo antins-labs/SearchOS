@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import json
 from pathlib import Path
 
 import yaml
@@ -11,14 +12,14 @@ from searchos.skills.core.models import Skill, SkillCategory, SkillMeta
 
 # Matches YAML frontmatter between --- delimiters
 _FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
-# Matches ```yaml/```markdown/``` code fence (LLM-generated skills use various fences)
+# Matches ```yaml/```markdown/``` code fence (LLM-authored skills use various fences)
 _CODEFENCE_RE = re.compile(r"^```(?:ya?ml|markdown)?\s*\n(.*?)\n```\s*\n", re.DOTALL)
 
 
 def _normalize_frontmatter(text: str) -> str:
     """Strip a leading code fence line so the standard ``---`` parser can work.
 
-    LLM-generated skills produce various formats:
+    LLM-authored skills produce various formats:
       ```yaml\\n---\\nname: foo\\n---\\n```  (fence wrapping frontmatter)
       ```markdown\\n---\\nname: foo\\n---\\n...body...\\n```  (fence wrapping entire file)
 
@@ -32,7 +33,7 @@ def _normalize_frontmatter(text: str) -> str:
     return stripped
 
 
-def parse_skill_file(path: str | Path) -> Skill:
+def parse_skill_file(path: str | Path, *, expected_name: str | None = None) -> Skill:
     """Read a Markdown skill file and return a ``Skill`` object.
 
     Supports both flat files (skill.md) and folder structure
@@ -46,22 +47,30 @@ def parse_skill_file(path: str | Path) -> Skill:
     """
     path = Path(path)
     if path.is_dir():
-        skill_md = path / "skill.md"
-        if skill_md.exists():
-            path = skill_md
-        else:
-            raise ValueError(f"No skill.md found in directory: {path}")
+        path = find_skill_entry(path)
+    # Actual directory entry spelling matters on case-insensitive filesystems.
+    entries = list(path.parent.iterdir())
+    path = next((p for p in entries if p.name == path.name),
+                next((p for p in entries if p.name.casefold() == path.name.casefold()), path))
+    standard = path.name == "SKILL.md"
     text = path.read_text(encoding="utf-8")
     try:
-        skill = parse_skill_text(text, file_path=str(path))
+        skill = parse_skill_text(text, file_path=str(path), strict=standard, expected_name=expected_name)
     except ValueError:
         # Access skills are defined by a sibling ``manifest.yaml``; their
         # skill.md is human documentation and carries no frontmatter.
         # Synthesize the metadata from the manifest rather than failing.
+        if standard:
+            raise
         manifest = path.parent / "manifest.yaml"
         if not manifest.exists():
             raise
         skill = _skill_from_manifest(manifest, body=text, file_path=str(path))
+    from searchos.skills.packaging import package_files, package_fingerprint
+    skill.package_format = "portable" if standard else "legacy"
+    skill.resources = [p.as_posix() for p in package_files(path.parent)]
+    skill.package_hash = package_fingerprint(path.parent)
+    skill.meta.has_executor = (path.parent / "executor.py").is_file()
     _attach_anti_patterns(skill, path.parent)
     return skill
 
@@ -84,6 +93,7 @@ def _skill_from_manifest(manifest_path: Path, *, body: str, file_path: str) -> S
         name=manifest_path.parent.name,
         description=desc_lines[0] if desc_lines else "",
         category=SkillCategory.ACCESS,
+        availability=data.get("availability", data.get("status", "enabled")),
     )
     return Skill(meta=meta, body=body.strip(), file_path=file_path)
 
@@ -128,12 +138,15 @@ def _attach_anti_patterns(skill: Skill, skill_dir: Path) -> None:
         )
 
 
-def parse_skill_text(text: str, *, file_path: str = "") -> Skill:
+def parse_skill_text(text: str, *, file_path: str = "", strict: bool = False, expected_name: str | None = None) -> Skill:
     """Parse skill from raw Markdown text."""
-    text = _normalize_frontmatter(text)
+    if not strict:
+        text = _normalize_frontmatter(text)
 
     match = _FRONTMATTER_RE.match(text)
     if not match:
+        if strict:
+            raise ValueError("Standard SKILL.md requires YAML frontmatter")
         # Fallback: try treating everything before the first markdown heading
         # as YAML (handles ```yaml ... ``` without --- delimiters inside)
         heading_pos = re.search(r"\n#\s", text)
@@ -155,7 +168,34 @@ def parse_skill_text(text: str, *, file_path: str = "") -> Skill:
     if not isinstance(raw_meta, dict):
         raise ValueError(f"Frontmatter is not a mapping in: {file_path}")
 
+    if strict:
+        name, desc = raw_meta.get("name"), raw_meta.get("description")
+        if not isinstance(name, str) or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name) or len(name) > 64:
+            raise ValueError("Invalid portable skill name")
+        if not isinstance(desc, str) or not desc.strip() or len(desc) > 1024:
+            raise ValueError("Portable skill requires a description of 1–1024 characters")
+        if file_path and (expected_name or Path(file_path).parent.name) != name:
+            raise ValueError("Portable skill name must match its directory")
+    metadata = raw_meta.get("metadata") or {}
+    if standard_config := metadata.get("searchos-config") if isinstance(metadata, dict) else None:
+        config = json.loads(standard_config)
+        if not isinstance(config, dict):
+            raise ValueError("searchos-config must contain a JSON object")
+        for key, value in config.items():
+            if key not in {"name", "description"}:
+                raw_meta.setdefault(key, value)
+    if isinstance(metadata, dict) and "category" not in raw_meta and metadata.get("searchos-category"):
+        raw_meta["category"] = metadata["searchos-category"]
     meta = SkillMeta.model_validate(raw_meta)
     body = text[match.end():].strip()
 
     return Skill(meta=meta, body=body, file_path=file_path)
+
+
+def find_skill_entry(directory: str | Path) -> Path:
+    """Prefer the standard spelling, without relying on filesystem casing."""
+    entries = {p.name: p for p in Path(directory).iterdir()}
+    for name in ("SKILL.md", "skill.md"):
+        if name in entries:
+            return entries[name]
+    raise ValueError(f"No SKILL.md or skill.md found in {directory}")

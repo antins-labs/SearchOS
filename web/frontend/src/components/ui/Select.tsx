@@ -24,6 +24,7 @@ interface Props {
   onChange: (value: string) => void;
   disabled?: boolean;
   ariaLabel?: string;
+  placeholder?: string;
   className?: string;
   size?: "sm" | "md";
   monospace?: boolean;
@@ -47,6 +48,7 @@ export default function Select({
   onChange,
   disabled = false,
   ariaLabel,
+  placeholder = "Select",
   className = "",
   size = "md",
   monospace = false,
@@ -224,7 +226,7 @@ export default function Select({
         className={`surface flex min-w-0 flex-1 items-center text-left text-ink outline-none transition-colors hover:border-line-strong focus-visible:border-accent disabled:cursor-not-allowed disabled:opacity-40 ${sizeClass} ${monospace ? "font-mono" : ""}`}
       >
         <span className={`min-w-0 flex-1 truncate ${selectedOption ? "" : "text-ink-faint"}`} title={selectedOption?.label}>
-          {selectedOption?.label ?? "Select"}
+          {selectedOption?.label ?? placeholder}
         </span>
         <ChevronDown
           size={size === "sm" ? 12 : 14}

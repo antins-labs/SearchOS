@@ -1,0 +1,43 @@
+{
+  "description": "Fetches Hong Kong tunnel and bridge toll information from the Transport Department (td.gov.hk), including time-varying tolls for harbour crossings and details for all tunnels and bridges.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_time_varying_tolls: 获取三大过海隧道(红隧、东隧、西隧)的分时段收费信息; 参数: vehicle_type, time_slot; 必填: 无\n  - get_tunnels_bridges: 获取香港所有隧道和桥梁的详细信息列表; 参数: name, toll_type; 必填: 无\n  - search_tunnels: 按名称搜索隧道或桥梁; 参数: query; 必填: 无"
+    },
+    "vehicle_type": {
+      "type": "string",
+      "required": false,
+      "description": "车辆类型筛选，用于 get_time_varying_tolls。\n可选值: \"Private Car\", \"Motorcycle\", \"Taxi\", \"Other vehicles\" 等"
+    },
+    "time_slot": {
+      "type": "string",
+      "required": false,
+      "description": "时段类型筛选，用于 get_time_varying_tolls。\n可选值: \"peak\", \"off-peak\", \"normal\", \"transition\" 等"
+    },
+    "name": {
+      "type": "string",
+      "required": false,
+      "description": "隧道/桥梁名称筛选，用于 get_tunnels_bridges。\n支持部分匹配，如 \"Cross Harbour\", \"Lion Rock\", \"Tsing Ma\" 等"
+    },
+    "toll_type": {
+      "type": "string",
+      "required": false,
+      "description": "收费类型筛选，用于 get_tunnels_bridges。\n可选值: \"free\" (免费), \"paid\" (收费)"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于 search_tunnels。\n在隧道/桥梁名称和描述中搜索匹配项。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

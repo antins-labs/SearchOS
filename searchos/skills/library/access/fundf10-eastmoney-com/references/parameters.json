@@ -1,0 +1,40 @@
+{
+  "description": "Fetch fund holdings and trading changes data from East Money fundf10.eastmoney.com",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_holdings: 获取基金股票持仓明细，需要参数 code, 可选 year, topline; 参数: code, year, topline; 必填: code\n  - get_changes: 获取基金累计买卖变动，需要参数 code, 可选 change_type, year; 参数: code, change_type, year; 必填: code"
+    },
+    "code": {
+      "type": "string",
+      "required": true,
+      "description": "6位基金代码，如 025925, 010350"
+    },
+    "year": {
+      "type": "string",
+      "required": false,
+      "description": "查询年份，如 2024, 2025。不传则返回最新报告期数据"
+    },
+    "topline": {
+      "type": "integer",
+      "default": 50,
+      "required": false,
+      "description": "持仓明细返回的最大行数，仅 get_holdings 使用。默认50"
+    },
+    "change_type": {
+      "type": "string",
+      "default": "buy",
+      "required": false,
+      "description": "变动类型，仅 get_changes 使用。可用值:\n  - buy   累计买入 (默认)\n  - sell  累计卖出"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

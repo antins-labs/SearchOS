@@ -11,15 +11,16 @@ import json
 import logging
 import re
 import shutil
-import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from searchos.socm.workspace import new_session_id
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from api.deps import WORKSPACE_ROOT, sessions
+from api.deps import session_directory, WORKSPACE_ROOT, sessions
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
@@ -71,12 +72,16 @@ def _read_search_text(path: Path) -> str:
 
 def _history_search_blob(ws: Path, meta: dict[str, Any]) -> str:
     """Build a bounded full-text document from durable user-facing artifacts."""
+    from searchos.harness.telemetry.conversation import organize_conversations
+
+    organize_conversations(ws / "conversations")
     parts = [meta["project"], " ".join(meta["tags"]), _custom_title(ws)]
     for relative in (
         "output/report.md",
         "output/result.json",
         "search_state.json",
-        "conversations/orchestrator.json",
+        "conversations/snapshots/orchestrator.json",
+        "conversations/journals/orchestrator.jsonl",
     ):
         parts.append(_read_search_text(ws / relative))
     return "\n".join(parts).casefold()
@@ -94,7 +99,8 @@ def _read_intent_fast(state_file: Path) -> str:
     """Pull `intent` from the head of search_state.json without loading the
     whole (possibly multi-MB) file."""
     try:
-        head = state_file.read_text(encoding="utf-8", errors="replace")[:4096]
+        with state_file.open(encoding="utf-8", errors="replace") as stream:
+            head = stream.read(4096)
     except Exception:
         return ""
     m = _INTENT_RE.search(head)
@@ -106,39 +112,10 @@ def _read_intent_fast(state_file: Path) -> str:
         return m.group(1)
 
 
-def last_ai_text(messages: list[dict[str, Any]]) -> str:
-    """The last AI/assistant text message — the orchestrator's closing answer
-    (mirrors the TUI's _extract_answer)."""
-    for msg in reversed(messages or []):
-        if msg.get("role") not in ("ai", "assistant"):
-            continue
-        content = msg.get("content", "")
-        if isinstance(content, list):
-            parts = [b.get("text", "") for b in content
-                     if isinstance(b, dict) and b.get("type") == "text"]
-            content = "\n".join(p for p in parts if p)
-        if isinstance(content, str) and content.strip():
-            return content.strip()
-    return ""
-
-
-def orchestrator_final_text(ws: Path) -> str:
-    """The orchestrator's last AI message from the durable per-agent
-    conversation log (conversations/orchestrator.json)."""
-    try:
-        conv = json.loads(
-            (ws / "conversations" / "orchestrator.json")
-            .read_text(encoding="utf-8", errors="replace"),
-        )
-        return last_ai_text(conv.get("messages", []))
-    except Exception:
-        return ""
-
-
 def _safe_ws(session_id: str) -> Path:
     """Resolve a workspace dir for a session id, refusing path traversal."""
     root = Path(WORKSPACE_ROOT).resolve()
-    ws = (root / session_id).resolve()
+    ws = session_directory(root, session_id)
     if ws.parent != root:
         raise HTTPException(400, "Invalid session id")
     return ws
@@ -412,6 +389,7 @@ async def list_history(
 async def load_history(session_id: str):
     """Load a full past session from its workspace: state + answer + trajectory."""
     ws = _safe_ws(session_id)
+    session_id = ws.name
     if not ws.exists():
         raise HTTPException(404, f"Session {session_id} not found")
 
@@ -423,9 +401,9 @@ async def load_history(session_id: str):
         except Exception:
             logger.warning("Failed to parse search_state for %s", session_id)
 
-    # The displayed answer is the orchestrator's closing AI message; the
-    # writer's report / result.json answer are fallbacks only.
-    answer = orchestrator_final_text(ws)
+    # 顶层回答只展示已提交产物；执行日志中的 assistant 文本属于工具时间线。
+    answer = ""
+    has_committed_answer = False
     coverage = None
     evidence_count = None
     title = ""
@@ -433,13 +411,15 @@ async def load_history(session_id: str):
     if result_file.exists():
         try:
             r = json.loads(result_file.read_text(encoding="utf-8", errors="replace"))
-            answer = answer or r.get("answer") or ""
+            if isinstance(r.get("answer"), str):
+                answer = r["answer"]
+                has_committed_answer = True
             coverage = r.get("coverage")
             evidence_count = r.get("evidence_count")
             title = r.get("query") or ""
         except Exception:
             pass
-    if not answer:
+    if not answer and not has_committed_answer:
         report = ws / "output" / "report.md"
         if report.exists():
             answer = report.read_text(encoding="utf-8", errors="replace")
@@ -453,14 +433,15 @@ async def load_history(session_id: str):
     events: list[dict[str, Any]] = []
     traj = ws / "trajectory.jsonl"
     if traj.exists():
-        for line in traj.read_text(encoding="utf-8", errors="replace").splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                events.append({"type": "trajectory", "data": json.loads(line)})
-            except json.JSONDecodeError:
-                pass
+        with traj.open("rb") as stream:
+            while line := stream.readline():
+                if not line.endswith(b"\n"):
+                    break
+                try:
+                    events.append({"type": "trajectory", "data": json.loads(line),
+                                   "event_id": f"trajectory:{stream.tell()}"})
+                except json.JSONDecodeError:
+                    pass
 
     mem = sessions.get(session_id)
     status = "running" if (mem and mem.get("status") == "running") else (
@@ -527,7 +508,7 @@ def _write_branch_conversation(ws: Path, query: str, answer: str) -> None:
             "metadata": {},
         },
     ]
-    conversations = ws / "conversations"
+    conversations = ws / "conversations" / "snapshots"
     conversations.mkdir(parents=True, exist_ok=True)
     (conversations / "orchestrator.json").write_text(
         json.dumps({
@@ -554,17 +535,18 @@ async def branch_history_turn(session_id: str, turn_index: int):
     from searchos.socm.workspace import WorkspaceManager
 
     source_ws = _safe_ws(session_id)
+    session_id = source_ws.name
     if not source_ws.exists():
         raise HTTPException(404, f"Session {session_id} not found")
 
     turns = conversation_turns(source_ws)
     if not turns and turn_index == 0:
-        fallback_answer = orchestrator_final_text(source_ws)
+        fallback_answer = ""
         result_file = source_ws / "output" / "result.json"
         if result_file.exists():
             try:
                 result = json.loads(result_file.read_text(encoding="utf-8"))
-                fallback_answer = fallback_answer or str(result.get("answer") or "")
+                fallback_answer = str(result.get("answer") or "")
             except Exception:
                 pass
         report_file = source_ws / "output" / "report.md"
@@ -602,7 +584,7 @@ async def branch_history_turn(session_id: str, turn_index: int):
 
     root = Path(WORKSPACE_ROOT)
     while True:
-        branch_id = uuid.uuid4().hex[:12]
+        branch_id = new_session_id()
         branch_ws = root / branch_id
         if not branch_ws.exists():
             break
@@ -668,6 +650,7 @@ class HistoryUpdateRequest(BaseModel):
 async def update_history(session_id: str, req: HistoryUpdateRequest):
     """Update display and research-asset metadata for one session."""
     ws = _safe_ws(session_id)
+    session_id = ws.name
     if not ws.exists():
         raise HTTPException(404, f"Session {session_id} not found")
     title: str | None = None
@@ -713,6 +696,7 @@ async def update_history(session_id: str, req: HistoryUpdateRequest):
 async def delete_history(session_id: str):
     """Delete a session's workspace directory (irreversible)."""
     ws = _safe_ws(session_id)
+    session_id = ws.name
     if not ws.exists():
         raise HTTPException(404, f"Session {session_id} not found")
     shutil.rmtree(ws)

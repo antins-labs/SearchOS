@@ -1,0 +1,26 @@
+{
+  "description": "Fetches and parses IMDb content (movies, TV shows, lists, names) through r.jina.ai reader service",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_movie: Extract movie/TV show info from IMDb title page; requires 'url'; 参数: url; 必填: url\n  - get_list: Extract items from IMDb list page; requires 'url'; 参数: url; 必填: url\n  - get_name: Extract person info from IMDb name page; requires 'url'; 参数: url; 必填: url\n  - search: Returns guidance (search not supported via r.jina.ai); 参数: query; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "IMDb URL or ID for get_movie, get_list, or get_name functions. Can be a full URL (http://www.imdb.com/title/tt0185906/) or just the ID (tt0185906). For movies: use /title/ttXXXXXX/ URLs For lists: use /list/lsXXXXXXX/ URLs For names: use /name/nmXXXXXX/ URLs"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query (for search function - returns guidance only)"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

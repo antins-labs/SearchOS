@@ -1,0 +1,32 @@
+{
+  "description": "Fetches NPR articles and section listings from www.npr.org with full content extraction.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: Fetch a single NPR article by URL; requires url; 参数: url; 必填: 无\n  - get_section: List articles from an NPR section page; requires url or section; 参数: limit, url, section; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "NPR article or section URL. Required for get_article. For get_section, can be used instead of section parameter. Example: https://www.npr.org/2020/12/08/944152693/article-slug"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 20,
+      "required": false,
+      "description": "Maximum number of articles to return for get_section."
+    },
+    "section": {
+      "type": "string",
+      "required": false,
+      "description": "NPR section name for get_section (e.g., \"science\", \"politics\", \"health\"). Used to construct section URL if url not provided."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

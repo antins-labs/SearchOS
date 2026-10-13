@@ -1,0 +1,56 @@
+{
+  "description": "Access government budget tables and documents from www.govinfo.gov, including XLSX spreadsheet downloads, MODS metadata, and document listings.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "Function to execute. Available functions:\n  - get_package_metadata: Get MODS metadata for a package\n  - get_granule_xlsx: Download and parse XLSX spreadsheet data\n  - get_granule_pdf_url: Get PDF download URL for a granule\n  - get_premis_metadata: Get PREMIS preservation metadata\n  - list_package_contents: List all granules in a package\n  - search_budget_tables: Search tables by title or section\n"
+    },
+    "package_id": {
+      "type": "string",
+      "required": false,
+      "description": "Package identifier (e.g., 'BUDGET-2025-TAB').\nRequired for all functions except get_granule_pdf_url when granule_id contains full ID.\n"
+    },
+    "granule_id": {
+      "type": "string",
+      "required": false,
+      "description": "Granule/document identifier (e.g., 'BUDGET-2025-TAB-2-1').\nRequired for get_granule_xlsx and get_granule_pdf_url.\n"
+    },
+    "include_granules": {
+      "type": "boolean",
+      "required": false,
+      "description": "Include list of granules in metadata response.\nUsed by get_package_metadata. Default: true.\n"
+    },
+    "max_rows": {
+      "type": "integer",
+      "required": false,
+      "description": "Maximum number of rows to return from XLSX parsing.\nUsed by get_granule_xlsx. Default: 100.\n"
+    },
+    "raw_data": {
+      "type": "boolean",
+      "required": false,
+      "description": "Return raw XLSX bytes as base64 instead of parsed data.\nUsed by get_granule_xlsx. Default: false.\n"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query for table titles (case-insensitive substring match).\nUsed by search_budget_tables.\n"
+    },
+    "section": {
+      "type": "string",
+      "required": false,
+      "description": "Filter by section number (e.g., '1', '2', '3').\nUsed by search_budget_tables.\n"
+    },
+    "max_results": {
+      "type": "integer",
+      "required": false,
+      "description": "Maximum number of search results to return.\nUsed by search_budget_tables. Default: 20."
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

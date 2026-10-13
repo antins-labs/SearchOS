@@ -55,7 +55,7 @@ class ConversationMessage(CamelModel):
     agent_name: str = "orchestrator"  # 产生此消息的 agent
     parent_agent: str = ""  # 父 agent（空表示顶层 orchestrator）
     role: Literal["user", "assistant", "tool_call", "tool_result"] = "assistant"
-    content: str = ""
+    content: str | list[Any] = ""
     reasoning: str = ""  # 分离字段里的思考（qwen3/glm-5/deepseek-r1 的 reasoning_content）
     tool_name: str = ""  # tool_call / tool_result 时填充
     tool_call_id: str = ""  # 关联 tool_call 与 tool_result

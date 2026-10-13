@@ -1,0 +1,21 @@
+{
+  "description": "从 api.crossref.org 抽取学术文献：标题、链接、DOI、摘要片段及引用数",
+  "parameters": {
+    "query": {
+      "type": "string",
+      "required": true,
+      "description": "Search query string (e.g., paper title, author, topic keywords)"
+    },
+    "rows": {
+      "type": "integer",
+      "default": 5,
+      "description": "Maximum number of results to return"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

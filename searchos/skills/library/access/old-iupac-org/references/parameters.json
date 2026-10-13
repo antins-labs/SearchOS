@@ -1,0 +1,23 @@
+{
+  "description": "Fetches news articles and press releases from the IUPAC archive (old.iupac.org), handling legacy table-based HTML layouts.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取并解析单篇新闻文章; 需要参数 url; 参数: url; 必填: url\n  - get_archive_listing: 获取归档索引页面的文章链接列表; 需要参数 url; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "要获取的页面完整URL。例如:\n  - https://old.iupac.org/news/archives/2003/naming110.html\n  - https://old.iupac.org/news/archives.html\n  - https://old.iupac.org/news/archives-notes.html"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

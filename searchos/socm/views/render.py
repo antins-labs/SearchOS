@@ -11,7 +11,61 @@ from searchos.socm.views.snapshot import (
     FrontierSnapshot,
     SearchStateSnapshot,
     TableSnapshot,
+    RowStatus,
 )
+
+
+def _has_unresolved_attributes(row: RowStatus) -> bool:
+    return any(c.has_conflict or c.status != "filled" for c in row.cells)
+
+
+def _render_entity_gaps(
+    lines: list[str], rows: list[RowStatus], *, include_recorded: bool = False,
+) -> None:
+    """逐实体展示缺口；状态与候选值同行，不按属性组合分组。"""
+    import json
+
+    def quote(value: str) -> str:
+        return json.dumps(value, ensure_ascii=False)
+
+    for row in rows:
+        missing = []
+        recorded = []
+        details = []
+        for cell in row.cells:
+            attr = quote(cell.attr)
+            if cell.has_conflict:
+                detail = f"{attr} status=conflict"
+                if cell.display_hint:
+                    detail += f" (current value: {quote(cell.display_hint)})"
+                details.append(detail)
+            elif cell.conflict_status in {"pending", "uncertain"}:
+                details.append(
+                    f"{attr} evidence_comparison={cell.conflict_status} "
+                    "(not a confirmed conflict; retain source qualifications)"
+                )
+            elif cell.status == "filled":
+                if include_recorded:
+                    recorded.append(
+                        f"{attr}={quote(cell.display_hint)}" if cell.display_hint
+                        else f"{attr} (value preview unavailable)"
+                    )
+                continue
+            elif cell.status == "hard_cell":
+                details.append(f"{attr} unavailable")
+            elif cell.status == "uncertain":
+                detail = f"{attr} status=uncertain"
+                if cell.display_hint:
+                    detail += f" (candidate: {quote(cell.display_hint)})"
+                details.append(detail)
+            else:
+                missing.append(attr)
+        if recorded:
+            details.append("recorded " + ", ".join(recorded))
+        if missing:
+            details.insert(0, "missing " + ", ".join(missing))
+        if details:
+            lines.append(f"- {quote(row.entity)}: " + "; ".join(details) + ".")
 
 
 # ---------------------------------------------------------------------------
@@ -19,16 +73,28 @@ from searchos.socm.views.snapshot import (
 # ---------------------------------------------------------------------------
 
 def render_orchestrator_view(snap: SearchStateSnapshot) -> str:
-    lines: list[str] = ["[Table fill state — KNOWN rows only]"]
+    lines: list[str] = []
+    if snap.research_mode == "findings":
+        lines.extend(["[Research tasks and evidence]",
+                      "Task status tracks execution; evidence counts do not measure answer completeness."])
+        for task in snap.task_evidence[-50:]:
+            lines.append(f"- {task['task_id']} ({task['agent_type']}, {task['result_mode']}, "
+                         f"{task['status']}): {task['question']} | "
+                         f"{task['evidence_count']} source-supported findings")
+        lines.append("Inspect details with read_evidence(task_id=...).")
+        if not snap.tables:
+            return "\n".join(lines)
+    lines.append("[Table fill state — KNOWN rows only]")
+    unresolved_rows = sum(bool(_has_unresolved_attributes(r)) for t in snap.tables for r in t.rows)
 
     lines.append(
         f"- Known rows: {snap.total_rows} (seeded/discovered), "
-        f"{snap.rows_with_gaps} with missing/uncertain columns"
+        f"{unresolved_rows} with unresolved columns"
     )
-    if snap.total_rows and not snap.rows_with_gaps:
+    if snap.total_rows and not unresolved_rows:
         lines.append(
-            "- ⚠️ All KNOWN rows are filled — NOT proof the task is "
-            "complete: this view only counts rows already in the schema. "
+            "- All known rows are filled. Coverage describes rows already "
+            "present in the schema; it does not describe undiscovered rows. "
             "Audit the row set against the query's full scope and "
             "add_entities for anything missing BEFORE final synthesis."
         )
@@ -47,10 +113,9 @@ def render_orchestrator_view(snap: SearchStateSnapshot) -> str:
             + " — dispatch search agents or add_entities to fill them."
         )
 
+    _render_frontier(lines, snap.frontier)
     for ts in snap.tables:
         _render_orch_table(lines, ts)
-
-    _render_frontier(lines, snap.frontier)
 
     return "\n".join(lines)
 
@@ -66,54 +131,12 @@ def _render_orch_table(lines: list[str], ts: TableSnapshot) -> None:
             lines.append(f"Data columns: {ts.data_columns}")
         return
 
-    complete = ts.complete_rows
-    partial = ts.partial_rows
-    empty = ts.empty_rows
-
-    lines.append("")
+    incomplete = [r for r in ts.rows if _has_unresolved_attributes(r)]
+    lines.extend(["", f"### `{ts.table_id}` ({ts.label}) — pk={ts.primary_key}",
+                  f"Rows: {len(ts.rows)}; rows with unresolved attributes: {len(incomplete)}; filled rows: {len(ts.rows) - len(incomplete)}."])
     if ts.is_open_set:
-        lines.append(
-            f"### `{ts.table_id}` ({ts.label}) — pk={ts.primary_key or '?'} "
-            f"— OPEN SET: {len(ts.rows)} rows discovered, "
-            f"{len(partial) + len(empty)} with gaps"
-        )
-    else:
-        lines.append(
-            f"### `{ts.table_id}` ({ts.label}) — pk={ts.primary_key or '?'} "
-            f"— {len(ts.rows)} rows, "
-            f"{len(partial) + len(empty)} with gaps"
-        )
-    if ts.data_columns:
-        lines.append(f"Data columns: {ts.data_columns}")
-
-    # Group partial rows by gap signature
-    from collections import OrderedDict
-    partial_groups: OrderedDict[tuple[str, ...], list[str]] = OrderedDict()
-    for r in partial:
-        sig = tuple(r.missing_cols)
-        partial_groups.setdefault(sig, []).append(r.entity)
-
-    for missing_sig, ents in sorted(partial_groups.items(), key=lambda kv: -len(kv[1])):
-        n_data = len(ts.data_columns)
-        n_filled = n_data - len(missing_sig)
-        lines.append(
-            f"- ⚠️ {len(ents)} rows ({n_filled}/{n_data} columns filled) "
-            f"— still missing: [{', '.join(missing_sig)}]"
-        )
-        lines.append("    " + ", ".join(ents))
-
-    if empty:
-        lines.append(f"- ❌ {len(empty)} rows with NO data yet")
-        lines.append("    " + ", ".join(r.entity for r in empty))
-
-    if complete:
-        if ts.is_open_set:
-            lines.append(
-                f"- {len(complete)} discovered rows have all data columns filled "
-                "(open set — row completeness vs task scope NOT verified)"
-            )
-        else:
-            lines.append(f"- {len(complete)} rows have all data columns filled")
+        lines.append("OPEN SET: this view contains discovered rows only; additional rows may exist.")
+    _render_entity_gaps(lines, incomplete)
 
 
 def _render_frontier(lines: list[str], fr: "FrontierSnapshot") -> None:
@@ -137,7 +160,7 @@ def _render_frontier(lines: list[str], fr: "FrontierSnapshot") -> None:
     if fr.running_tasks:
         lines.append(
             f"  in-flight tasks ({len(fr.running_tasks)}) — already being "
-            "worked; do NOT re-enqueue the same target, wait for results:"
+            "worked; do NOT re-enqueue these same targets:"
         )
         for rt in fr.running_tasks[:10]:
             tbl = f"`{rt.table_id}` " if rt.table_id else ""
@@ -145,6 +168,12 @@ def _render_frontier(lines: list[str], fr: "FrontierSnapshot") -> None:
             lines.append(f"  - [{rt.agent_id}] {tbl}{rt.text}{tgt}")
         if len(fr.running_tasks) > 10:
             lines.append(f"  - …+{len(fr.running_tasks) - 10} more running")
+        lines.append(
+            "  Wait only when your next action depends on a running task's result. "
+            "For independent gaps exposed by returned reports, dispatch focused work "
+            "now (including Explore for identity or scope uncertainty); do not wait "
+            "for unrelated tasks to finish."
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -155,73 +184,43 @@ def render_search_agent_view(
     snap: SearchStateSnapshot,
     in_scope_entities: set[str],
     target_table_id: str,
+    target_cells: set[str] | None = None,
 ) -> str:
-    ts = _find_table(snap, target_table_id)
+    """按目标单元格展示实体、缺口及已记录值，供 Agent 核对。"""
+    ts = next((t for t in snap.tables if t.table_id == target_table_id), None)
     if ts is None:
         return ""
-
-    lines: list[str] = ["[Coverage state — your task targets]"]
-    lines.append(
-        f"### Target table: `{ts.table_id}` ({ts.label}) "
-        f"— pk={ts.primary_key or '?'}"
-    )
-
-    in_scope = [r for r in ts.rows if r.entity in in_scope_entities]
-    if not in_scope:
-        lines.append("- (no matching rows found for your task yet)")
-        return "\n".join(lines)
-
-    lines.append("")
-    lines.append("### Your rows")
-
-    empty_ents: list[str] = []
-    for r in in_scope:
-        if r.is_complete:
-            vals = ", ".join(
-                f'{c.attr}="{c.display_hint}"'
-                for c in r.cells if c.display_hint
-            )
-            lines.append(f"- {r.entity}: filled ✓" + (f" ({vals})" if vals else ""))
+    targets = []
+    scoped_rows = []
+    for row in ts.rows:
+        if target_cells is None and row.entity not in in_scope_entities:
             continue
-        if r.is_empty:
-            empty_ents.append(r.entity)
-            continue
-        # Partial: show filled values + missing columns
-        filled_parts: list[str] = []
-        missing_parts: list[str] = []
-        for c in r.cells:
-            if c.status == "filled" and c.display_hint:
-                filled_parts.append(f'{c.attr}="{c.display_hint}"')
-            elif c.status == "hard_cell":
-                continue
-            elif c.status == "uncertain" and c.display_hint:
-                missing_parts.append(f"{c.attr} = 待确认 \"{c.display_hint}\"")
-            else:
-                missing_parts.append(f"{c.attr} = MISSING")
-        identity = "; ".join(filled_parts) if filled_parts else "no data yet"
-        lines.append(f"- {r.entity} ({identity}):")
-        for mp in missing_parts:
-            lines.append(f"    {mp}")
-
-    if empty_ents:
-        lines.append(
-            f"- [{len(empty_ents)} rows with all columns MISSING] "
-            + ", ".join(empty_ents)
-        )
-
-    # Other tables summary
-    other = [t for t in snap.tables if t.table_id != target_table_id]
-    if other:
-        lines.append("")
-        lines.append("### Other tables")
-        for ot in other:
-            filled_count = len(ot.complete_rows)
-            lines.append(
-                f"- `{ot.table_id}` ({ot.label}): "
-                f"{filled_count}/{len(ot.rows)} rows filled"
-            )
-
+        cells = [c for c in row.cells if target_cells is None or
+                 f"{ts.table_id}/{row.entity}.{c.attr}" in target_cells]
+        if cells:
+            scoped_rows.append(RowStatus(row.entity, cells))
+            targets.extend((f"{ts.table_id}/{row.entity}.{c.attr}", c) for c in cells)
+    remaining = [(key, c) for key, c in targets if c.has_conflict or c.status not in ("filled", "hard_cell")]
+    unavailable = sum(c.status == "hard_cell" and not c.has_conflict for _, c in targets)
+    completed = len(targets) - len(remaining) - unavailable
+    lines = ["[Coverage state — your task targets]",
+             f"### Target table: `{ts.table_id}` ({ts.label}) — pk={ts.primary_key}",
+             f"Assigned cells: {len(targets)}; filled: {completed}; actionable gaps: {len(remaining)}; unavailable: {unavailable}."]
+    if not targets:
+        lines.append("No matching assigned cells. Follow the explicit task scope; do not expand to unrelated rows or columns.")
+    elif not remaining:
+        lines.append("No actionable gaps are marked in the matched cells.")
+    if unavailable:
+        lines.append("Unavailable cells are unresolved limitations, not filled answers; do not retry them without new evidence.")
+    lines.append("Target records (recorded values are previews):")
+    _render_entity_gaps(lines, scoped_rows, include_recorded=True)
+    described = {c.attr for row in scoped_rows for c in row.cells}
+    for attr in sorted(described):
+        desc = ts.column_descriptions.get(attr, "")
+        if desc:
+            lines.append(f"Column {attr}: {desc}")
     return "\n".join(lines)
+
 
 
 # ---------------------------------------------------------------------------
@@ -248,6 +247,12 @@ def render_discovery_view(
     )
     if ts.data_columns:
         lines.append(f"- Data columns: {ts.data_columns}")
+
+    _render_entity_gaps(lines, ts.rows)
+    import json
+    complete_entities = [r.entity for r in ts.rows if not _has_unresolved_attributes(r)]
+    lines.append("Collected entities: " + json.dumps(complete_entities, ensure_ascii=False))
+    lines.append("Stay within your discovery assignment; reuse known entity keys and avoid duplicating sibling scopes.")
 
     if sibling_agents:
         lines.append("")
@@ -366,13 +371,9 @@ def render_compact_summary(snap: SearchStateSnapshot) -> str:
     if total_cells:
         pct = filled_cells / total_cells
         lines.append(f"Coverage: {pct:.0%} ({filled_cells}/{total_cells})")
-        gaps = [
-            f"{t.table_id}/{r.entity}.{c.attr}"
-            for t in snap.tables for r in t.rows
-            for c in r.cells if c.status == "missing"
-        ][:10]
-        if gaps:
-            lines.append(f"Gaps: {', '.join(gaps)}")
+    for table in snap.tables:
+        lines.append(f"### `{table.table_id}`")
+        _render_entity_gaps(lines, table.rows)
 
     return "\n".join(lines)
 

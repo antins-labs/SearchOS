@@ -1,0 +1,36 @@
+{
+  "description": "Fetches help articles from Virgin Atlantic's Knowledge Portal (virginatlantic.com), including baggage policies, travel information, and customer service content.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取单篇帮助文章内容; 需要url或article_id参数; 参数: url, article_id, locale; 必填: 无\n  - search_articles: 搜索帮助中心文章列表; 可选query参数过滤结果; 参数: query, locale; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章完整URL (用于get_article)"
+    },
+    "article_id": {
+      "type": "string",
+      "required": false,
+      "description": "文章ID，UUID格式 (用于get_article，可替代url)"
+    },
+    "locale": {
+      "type": "string",
+      "required": false,
+      "description": "语言区域代码，默认en-BB (用于get_article和search_articles)"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词 (用于search_articles过滤结果)"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

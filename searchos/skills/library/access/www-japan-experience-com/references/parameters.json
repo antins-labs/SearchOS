@@ -1,0 +1,28 @@
+{
+  "description": "Fetches museum listing pages from www.japan-experience.com and extracts structured museum information including names, descriptions, links, and images.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_listing: 获取博物馆列表页，提取所有博物馆条目、元数据和目录; 参数: url; 必填: url\n  - get_museum_detail: 获取单个博物馆详情页的完整内容; 参数: url; 必填: url\n  - search_museums: 在列表页中搜索匹配查询的博物馆; 参数: url, query; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "Japan Experience网站的完整URL（必须以https://www.japan-experience.com/开头）。\n对于get_listing和search_museums，使用列表页URL（如博物馆列表页）。\n对于get_museum_detail，使用具体博物馆页面URL。"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索查询字符串，仅用于search_museums功能。\n在博物馆名称和描述中进行不区分大小写的搜索。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

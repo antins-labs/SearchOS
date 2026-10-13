@@ -1,0 +1,37 @@
+{
+  "description": "Parses WorldAtlas.com articles to extract geographical content including country borders, statistics, and educational information with structured data extraction.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - fetch_article: Fetch and parse a specific WorldAtlas article URL; requires url parameter; 参数: url; 必填: url\n  - search_articles: Search for articles on WorldAtlas; requires query parameter; 参数: query, max_results; 必填: query\n  - get_bordering_countries: Get countries bordering a specific country; requires country parameter; 参数: country; 必填: country"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full URL of a WorldAtlas article to fetch and parse (used by fetch_article function)"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query to find WorldAtlas articles (used by search_articles function)"
+    },
+    "max_results": {
+      "type": "integer",
+      "default": 10,
+      "required": false,
+      "description": "Maximum number of search results to return (used by search_articles function)"
+    },
+    "country": {
+      "type": "string",
+      "required": false,
+      "description": "Name of the country to find bordering countries for (used by get_bordering_countries function)"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

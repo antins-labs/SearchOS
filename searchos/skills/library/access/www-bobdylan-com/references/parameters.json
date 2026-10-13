@@ -1,0 +1,32 @@
+{
+  "description": "Fetch Bob Dylan's official discography data from www.bobdylan.com including album listings with filters and detailed album information with tracklists.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_albums: 列出专辑列表，支持按类型过滤（chronological/studio/live/compilations/bootleg/all）; 参数: filter; 必填: 无\n  - get_album: 获取单个专辑详情，包括曲目列表和购买链接; 参数: album_slug, album_url; 必填: 无"
+    },
+    "filter": {
+      "type": "string",
+      "default": "all",
+      "required": false,
+      "description": "list_albums 功能使用的过滤器。可选值:\n  - chronological  按时间顺序排列\n  - studio         录音室专辑\n  - live           现场专辑\n  - compilations   合辑\n  - bootleg        Bootleg系列\n  - all            显示全部（默认）\n  - a-z            按字母顺序排列"
+    },
+    "album_slug": {
+      "type": "string",
+      "required": false,
+      "description": "get_album 功能使用的专辑URL标识符。\n例如: 'fallen-angels', 'blonde-on-blonde', 'rough-and-rowdy-ways'"
+    },
+    "album_url": {
+      "type": "string",
+      "required": false,
+      "description": "get_album 功能使用的完整专辑URL。\n例如: 'https://www.bobdylan.com/albums/fallen-angels/'\n与 album_slug 二选一，如果同时提供则优先使用此参数"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

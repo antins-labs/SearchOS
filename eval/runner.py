@@ -8,8 +8,10 @@ grading → per-question persistence + final aggregation. Skips questions whose
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
+import subprocess
 import time
 import traceback
 from datetime import datetime
@@ -17,6 +19,50 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable, Optional
 
 logger = logging.getLogger(__name__)
+
+
+def _write_qa_record(path, record):
+    temporary = path.with_suffix(".json.tmp")
+    temporary.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+    temporary.replace(path)
+
+
+async def _save_qa_grade(record, prediction, sample, grade_fn, result_path):
+    """Judge 错误持久化为未评分，下次只重评，绝不作为错误答案计分。"""
+    record["pred"] = prediction
+    record["gold"] = sample.answer
+    record["prediction_source"] = "orchestrator_last_turn"
+    record["status"] = "judging"
+    record["metrics"] = {}
+    _write_qa_record(result_path, record)
+    record["metrics"] = await grade_fn(prediction, sample)
+    record["status"] = record["metrics"].get("status", "judge_error")
+    record["finished_at"] = datetime.utcnow().isoformat() + "Z"
+    _write_qa_record(result_path, record)
+    return record
+
+
+def _reproducibility_snapshot() -> dict[str, Any]:
+    root = Path(__file__).resolve().parent.parent
+    prompts = {}
+    for path in sorted((root / "searchos" / "agents").glob("**/*.md")):
+        prompts[str(path.relative_to(root))] = hashlib.sha256(path.read_bytes()).hexdigest()
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=root, check=True,
+            capture_output=True, text=True,
+        ).stdout.strip()
+        status = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=no"], cwd=root,
+            check=True, capture_output=True, text=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        commit, status = "unknown", ""
+    return {
+        "code_commit": commit,
+        "tracked_worktree_dirty": bool(status.strip()),
+        "prompt_sha256": prompts,
+    }
 
 
 def _suspected_infra_abort(workspace_path: str, elapsed: float, record: dict) -> bool:
@@ -56,6 +102,8 @@ async def _run_one(
     column_hints: bool = True,
     seed_primary_key: bool = False,
     fixed_schema: dict[str, Any] | None = None,
+    ablation: dict[str, bool] | None = None,
+    experiment_config: dict[str, Any] | None = None,
 ) -> dict:
     from searchos.socm import SearchState  # local import: heavy
     from eval.reformat import load_session_output
@@ -64,9 +112,36 @@ async def _run_one(
     qdir = output_dir / str(sample.id)
     qdir.mkdir(parents=True, exist_ok=True)
     result_path = qdir / "eval_result.json"
+    resolved_config = {
+        **(experiment_config or {}),
+        "fixed_schema": fixed_schema,
+        "ablation": dict(ablation or {}),
+    }
+    is_qa = benchmark in ("gaia", "xbench")
+    if is_qa:
+        from eval.qa import JUDGE_VERSION, sample_fingerprint
+        resolved_config.update(prediction_source="orchestrator_last_turn",
+                               judge_version=JUDGE_VERSION,
+                               sample_sha256=sample_fingerprint(sample))
+        preprocess_query = False
+    config_fingerprint = hashlib.sha256(json.dumps(
+        resolved_config, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
     if result_path.exists():
         try:
-            return json.loads(result_path.read_text(encoding="utf-8"))
+            existing = json.loads(result_path.read_text(encoding="utf-8"))
+            if existing.get("config_fingerprint") != config_fingerprint:
+                raise RuntimeError(
+                    f"{result_path} 的实验配置与当前运行不同；请使用独立输出目录",
+                )
+            if is_qa and existing.get("status") != "ok":
+                if isinstance(existing.get("pred"), str):
+                    async with sem:
+                        return await _save_qa_grade(existing, existing["pred"], sample, grade_fn, result_path)
+            else:
+                return existing
+        except RuntimeError:
+            raise
         except Exception:
             pass  # corrupt, re-run
 
@@ -77,6 +152,9 @@ async def _run_one(
         "benchmark": benchmark,
         "question": raw_query,
         "started_at": datetime.utcnow().isoformat() + "Z",
+        "ablation": dict(ablation or {}),
+        "experiment_config": resolved_config,
+        "config_fingerprint": config_fingerprint,
     }
 
     async with sem:
@@ -212,7 +290,7 @@ async def _run_one(
             # Judged by DEATH SIGNATURE, not elapsed alone: task recycling
             # stretches a rate-limited death to 35-135s (3 escapes observed
             # on 2026-06-11 with the old `elapsed < 10` check).
-            if _suspected_infra_abort(workspace_path, elapsed, record):
+            if not is_qa and _suspected_infra_abort(workspace_path, elapsed, record):
                 logger.warning(
                     "suspected RPM abort for %s (elapsed=%.1fs, evidence=0); "
                     "skipping write — will retry next run",
@@ -224,11 +302,18 @@ async def _run_one(
 
             raw_text = ""
             eval_table_path = Path(workspace_path) / "output" / "eval_table.md"
-            if eval_table_path.exists():
+            if is_qa:
+                from eval.qa import final_orchestrator_output
+                raw_text = final_orchestrator_output(workspace_path)
+            elif eval_table_path.exists():
                 raw_text = eval_table_path.read_text(encoding="utf-8")
             if not raw_text:
                 raw_text = load_session_output(workspace_path) or ""
             (qdir / "raw_answer.md").write_text(raw_text, encoding="utf-8")
+            if is_qa:
+                (qdir / "pred.md").write_text(raw_text, encoding="utf-8")
+                record["reformat_used_llm"] = False
+                return await _save_qa_grade(record, raw_text, sample, grade_fn, result_path)
 
             # Multi-table join + format-respecting reformat. Reuse the
             # preprocess step's structured output (cleaned query, column
@@ -381,13 +466,15 @@ def aggregate_widesearch(records: list[dict]) -> dict:
 def aggregate_xbench(records: list[dict]) -> dict:
     """Accuracy = mean of per-question score (1 correct / 0 wrong)."""
     scored = [r.get("metrics") or {} for r in records]
-    scored = [m for m in scored if "score" in m]
+    scored = [m for m in scored if m.get("score") in (0, 1) and not m.get("error")]
     n = len(scored)
     correct = sum(int(m.get("score", 0)) for m in scored)
     return {
         "n": n,
         "correct": correct,
         "accuracy": round(correct / max(n, 1), 4),
+        "n_unscored": len(records) - n,
+        "complete": n == len(records),
     }
 
 
@@ -403,11 +490,19 @@ async def run_benchmark(
     seed_primary_key: bool = False,
     preprocess_query: bool = True,
     fixed_schemas: dict[str, dict[str, Any]] | None = None,
+    ablation: dict[str, bool] | None = None,
 ) -> dict:
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     run_tag = datetime.now().strftime("%Y%m%d_%H%M%S")
     sem = asyncio.Semaphore(concurrency)
+    is_qa = benchmark in ("gaia", "xbench")
+    if is_qa:
+        if fixed_schemas is not None:
+            raise ValueError("QA 评测不支持 fixed schema")
+        preprocess_query = False
+        column_hints = False
+        seed_primary_key = False
     if fixed_schemas is not None:
         missing = [
             str(sample.id)
@@ -419,15 +514,19 @@ async def run_benchmark(
                 "fixed schemas missing selected samples: " + ", ".join(missing)
             )
 
-    # Benchmark recall must not depend on interactive saturation heuristics.
-    # Force every Explore Agent through the configured verification wave, then
-    # restore the process-wide setting for callers that reuse this interpreter.
-    from searchos.config.settings import settings as runtime_settings
-
-    previous_min_waves = runtime_settings.explore_min_waves
-    runtime_settings.explore_min_waves = runtime_settings.explore_max_waves
-
+    from searchos.config.run_config import EffectiveRunConfig
     from searchos.harness.session import SearchSession
+
+    # Eval defaults to initial Explore and text-only reading. The task-local
+    # snapshot keeps those defaults from changing concurrent product sessions.
+    eval_run_config = EffectiveRunConfig.from_settings(for_eval=True)
+    reproducibility = _reproducibility_snapshot()
+    qa_config = {}
+    if is_qa:
+        from searchos.config.models import resolve_profile
+        profile = resolve_profile("judge")
+        qa_config = {"research_mode": "findings", "judge_model": profile.model,
+                     "judge_provider": profile.provider, "judge_timeout_s": 120}
 
     def _factory(per_question_root: str) -> SearchSession:
         # If user passed a global override, honor it; otherwise root harness
@@ -438,6 +537,8 @@ async def run_benchmark(
             workspace_root=root,
             skill_library_path="searchos/skills/library",
             skip_synthesis=True,
+            run_config=eval_run_config,
+            research_mode="findings" if is_qa else "table",
         )
 
     tasks = [
@@ -453,13 +554,20 @@ async def run_benchmark(
             column_hints=column_hints,
             seed_primary_key=seed_primary_key,
             fixed_schema=(fixed_schemas or {}).get(str(sample.id)),
+            ablation=ablation,
+            experiment_config={
+                **qa_config,
+                "benchmark": benchmark,
+                "run_config": eval_run_config.snapshot(),
+                "column_hints": column_hints,
+                "seed_primary_key": seed_primary_key,
+                "preprocess_query": preprocess_query,
+                "reproducibility": reproducibility,
+            },
         ))
         for sample in samples
     ]
-    try:
-        records = await asyncio.gather(*tasks, return_exceptions=False)
-    finally:
-        runtime_settings.explore_min_waves = previous_min_waves
+    records = await asyncio.gather(*tasks, return_exceptions=False)
 
     # Drain background skill-evolution / access-skill-generation tasks before
     # the event loop closes. They're fire-and-forget per question (so they
@@ -477,7 +585,7 @@ async def run_benchmark(
         summary = aggregate_gisa(records)
     elif benchmark == "widesearch":
         summary = aggregate_widesearch(records)
-    elif benchmark == "xbench":
+    elif benchmark in ("xbench", "gaia"):
         summary = aggregate_xbench(records)
     else:
         summary = {}
@@ -487,6 +595,7 @@ async def run_benchmark(
         json.dumps({"benchmark": benchmark, "n_samples": len(records),
                     "concurrency": concurrency,
                     "preprocess_query": preprocess_query,
+                    "ablation": dict(ablation or {}),
                     "fixed_schema_variant": next(iter({
                         str(spec.get("variant") or "")
                         for spec in (fixed_schemas or {}).values()

@@ -1,0 +1,42 @@
+{
+  "description": "Fetches structured infobox data and content from the Game of Thrones Fandom wiki (characters, episodes, houses, locations, battles) using the MediaWiki API.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_page: 获取任意页面的完整信息（标题、URL、分类、章节、简介、infobox数据）; 参数: title; 必填: title\n  - search: 搜索wiki页面，返回匹配结果列表; 参数: query, limit; 必填: query\n  - get_character: 获取角色详细信息（姓名、家族、头衔、亲属、演员等）; 参数: name; 必填: name\n  - get_episode: 获取剧集详细信息（季数、集数、播出日期、编剧、导演等）; 参数: title; 必填: title\n  - get_house: 获取家族详细信息（家徽、箴言、领地、领主等）; 参数: name; 必填: name\n  - get_section: 获取页面特定章节的内容; 参数: title, section; 必填: section, title"
+    },
+    "title": {
+      "type": "string",
+      "required": false,
+      "description": "页面标题，用于get_page和get_section功能"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于search功能"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 10,
+      "required": false,
+      "description": "搜索结果数量限制，用于search功能"
+    },
+    "name": {
+      "type": "string",
+      "required": false,
+      "description": "角色名或家族名，用于get_character和get_house功能"
+    },
+    "section": {
+      "type": "string",
+      "required": false,
+      "description": "章节名称，用于get_section功能"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

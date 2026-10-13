@@ -1,0 +1,34 @@
+{
+  "description": "Fetches articles from milmag.pl about defense industry news, including SIPRI Top 100 arms producers reports, with extracted company mentions, revenue data, and regional statistics.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取指定URL的文章内容，提取标题、正文、公司信息、收入数据等; 参数: lang, url; 必填: url\n  - search_articles: 搜索milmag.pl上的文章（通过搜索URL模式）; 参数: lang, search_query; 必填: search_query"
+    },
+    "lang": {
+      "type": "string",
+      "default": "en",
+      "required": false,
+      "description": "语言版本，'en'为英文，'pl'为波兰文"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章的完整URL（用于get_article功能）"
+    },
+    "search_query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词（用于search_articles功能）"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

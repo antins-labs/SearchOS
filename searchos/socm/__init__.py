@@ -7,6 +7,7 @@ the provenance trace.
 
 from searchos.socm.coverage import (
     CellStatus,
+    CellEvidenceBinding,
     ColumnCheck,
     ColumnDesc,
     CoverageCell,
@@ -64,7 +65,7 @@ __all__ = [
     "EvidenceNode", "EvidenceEdge", "EvidenceGraph",
     "EvidenceRelation", "EvidenceStatus",
     # Coverage
-    "CoverageMap", "CoverageCell", "CellStatus", "ColumnCheck", "ColumnDesc",
+    "CoverageMap", "CoverageCell", "CellEvidenceBinding", "CellStatus", "ColumnCheck", "ColumnDesc",
     "TableSchema", "SchemaMode", "ForeignKey", "Relation", "RelationKind",
     # Strategy / failure
     "StrategyMemory", "StrategyPattern", "FailureMemory",

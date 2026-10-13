@@ -7,7 +7,7 @@ Per-field env override via the ``SF_`` prefix and ``__`` delimiter:
     SF_PROFILES__GLM5_STRONG__TEMPERATURE=0.0
 
 Partial overrides deep-merge onto the defaults (a lone ``SF_ROLES__JUDGE``
-keeps the other 11 role bindings). Profile keys in env vars may use ``_``
+keeps all other role bindings). Profile keys in env vars may use ``_``
 in place of ``-`` (env names can't contain hyphens).
 
 ``profiles`` = named model endpoints; ``roles`` = role→profile bindings.
@@ -33,10 +33,12 @@ after changing env vars at runtime call ``reload_settings_in_place()``.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from searchos.config.model_purposes import RETIRED_MODEL_ROLES
 
 # Re-exported for backward compat — many call sites import these from here.
 from searchos.config.profiles import (  # noqa: F401
@@ -86,7 +88,7 @@ class Settings(BaseSettings):
         """Deep-merge partial ``profiles``/``roles`` overrides onto defaults.
 
         pydantic-settings replaces dict fields wholesale when any nested env
-        var targets them (a lone ``SF_ROLES__JUDGE=x`` would drop the other 11
+        var targets them (a lone ``SF_ROLES__JUDGE=x`` would drop the other
         bindings; ``SF_PROFILES__MAIN__TEMPERATURE=0`` would fail validation).
         Merging here restores the documented partial-override semantics. Env
         var names can't contain ``-``, so ``glm5_strong`` matches profile key
@@ -113,7 +115,10 @@ class Settings(BaseSettings):
 
         override_roles = data.get("roles")
         if isinstance(override_roles, dict):
-            data["roles"] = {**_default_roles(), **override_roles}
+            data["roles"] = {
+                **_default_roles(),
+                **{k: v for k, v in override_roles.items() if k not in RETIRED_MODEL_ROLES},
+            }
 
         return data
 
@@ -128,10 +133,17 @@ class Settings(BaseSettings):
     orch_max_iterations: int = 50
     orch_trim_max_tokens: int = 128_000
     orch_max_dispatches: int = 0
-    # Consecutive search-agent result batches with no new rows / filled cells.
+    # Complete search waves with no reading, facts, task bindings or coverage growth.
     # 0 disables coverage-stall early termination.
     orch_coverage_stall_rounds: int = 3
     orch_premature_end_max_resumes: int = 2
+    research_finalize_timeout_s: float = 60.0
+    research_finalize_max_chars: int = 48_000
+    hybrid_projection_max_chars: int = 24_000
+    hybrid_projection_timeout_s: float = 20.0
+    hybrid_observation_max_chars: int = 12_000
+    hybrid_observation_review_max_chars: int = 48_000
+    hybrid_observation_timeout_s: float = 30.0
 
     # --- SOCM injection throttle (sub-agents only) ---
     socm_throttle_enabled: bool = False
@@ -146,6 +158,9 @@ class Settings(BaseSettings):
 
     # --- Scheduler / Frontier dispatch ---
     max_parallel_agents: int = 8
+    # Search 创建总限按未取消的 Frontier Task 计数；0 表示不限。
+    # Explore 可在任意阶段按需创建，仍受并发与会话总预算约束。
+    max_search_agents_per_session: int = 30
     enable_scheduler: bool = True  # False → legacy direct-dispatch (rollback)
     spawn_stagger_s: float = 0.5   # avoids a same-instant spawn burst tripping 429
     rate_limit_recycle_cooldown_s: float = 3  # before re-dispatching a 429-recycled task
@@ -159,6 +174,11 @@ class Settings(BaseSettings):
     max_searches_per_sub_agent: int = 20
     max_searches_per_sub_agent_ceiling: int = 40
     max_finds_per_sub_agent: int = 20
+    max_skills_per_sub_agent: int = 20
+    # Search-agent early stop: consecutive settled extraction batches with
+    # no committed progress. 0 disables. Keep the legacy setting name for
+    # env compatibility; harnesses without Extraction fall back to tool counts.
+    search_agent_no_progress_tool_limit: int = 10
 
     # --- Writer ---
     enable_writer_agent: bool = False
@@ -187,7 +207,7 @@ class Settings(BaseSettings):
     # --- Skill ---
     enable_skills: bool = True
     skill_library_path: str = "searchos/skills/library"
-    skill_max_inject: int = 2
+    browser_auth_dir: str = '.searchos/browser-auth'
     # Access-catalog top-k pre-filter via the ``skill_router`` LLM role; fail-open.
     enable_skill_router: bool = True
     skill_router_top_k: int = 40
@@ -201,15 +221,39 @@ class Settings(BaseSettings):
     serper_api_key: str = ""
 
     # --- Browser ---
-    browser_view_tokens: int = 2048
+    browser_view_tokens: int = Field(default=4096, ge=1, le=8192)
     browser_backend: str = "jina"  # aiohttp | crawl4ai | search_engine | jina
     browser_disk_cache_enabled: bool = True  # per-URL disk cache; only ok results
-    browser_disk_cache_dir: str = str(Path.home() / ".cache" / "searchos" / "page_cache")  # override via SF_BROWSER_DISK_CACHE_DIR
+    # Override via SF_BROWSER_DISK_CACHE_DIR.
+    browser_disk_cache_dir: str = str(
+        Path.home() / ".cache" / "searchos" / "page_cache"
+    )
     jina_api_key: str = ""  # empty → unauthenticated quota (429-prone)
+    # Web image reading is opt-in so existing evaluations keep their text-only
+    # tool surface and Jina response shape. ``auto`` for Jina means all only
+    # when the capability is enabled; otherwise it resolves to alt.
+    enable_web_image_read: bool = False
+    web_image_read_mode: Literal["auto", "native", "vision"] = "auto"
+    jina_retain_images: Literal["auto", "alt", "all"] = "auto"
+    web_image_fetch_timeout_s: float = 20.0
+    web_image_max_bytes: int = 10 * 1024 * 1024
+    web_image_capability_ttl_s: int = 24 * 60 * 60
 
-    # --- Access-skill generation (runtime, opt-in) ---
-    # After each run, an LLM triages the trajectory and bakes skills for the
-    # most-repeated hosts (skills.evolution.host_miner). Expensive per build.
+    def effective_jina_retain_images(self) -> Literal["alt", "all"]:
+        if self.jina_retain_images != "auto":
+            return self.jina_retain_images
+        return "all" if self.enable_web_image_read else "alt"
+
+    # --- Local document search ---
+    enable_local_tools: bool = False
+    local_index_root: str = "./local-index/default"
+    # Tool results become model context. Keep disabled until the user permits
+    # the configured Local Search Agent model to receive catalog/source text.
+    local_allow_model_access: bool = False
+
+    # --- Trace skill generation (runtime, opt-in) ---
+    # Legacy configuration names retained for existing installations.
+    # Trace intent selects create/update requests across all three categories.
     enable_access_skill_generation: bool = False
     access_skill_max_per_run: int = 2
     access_skill_min_opens: int = 3  # fallback threshold when no triage model
@@ -229,8 +273,8 @@ class Settings(BaseSettings):
     layered_context_layer3_max_tokens: int = 2_000
     use_layered_context: bool = False
 
-    # --- Feature flags ---
-    enable_trajectory_logging: bool = True
+    # Independent batches within one local document; provider limits still apply.
+    local_recap_concurrency: int = 3
 
     # --- Extraction ---
     extraction_flush_concurrency: int = 5
@@ -245,10 +289,6 @@ class Settings(BaseSettings):
     # enormous FILL/DISCOVER prompt even when its character count is modest.
     extraction_chunk_max_records: int = 50
     extraction_chunk_overlap_chars: int = 200  # overlap on non-JSON char splits
-    # Skill 原始返回仍完整进入 Intake；这里只限制同步返回给 Agent 的预览，
-    # 防止几千行 JSON 挤占后续规划与推理上下文。
-    extraction_agent_context_max_chars: int = 12_000
-    extraction_agent_context_preview_records: int = 5
     # Cross-table backfill: after extracting a flush's pages for the
     # sub-agent's target_table, re-run extraction on the SAME pages for
     # every relation-linked table. Without it, evidence for a table the
@@ -257,14 +297,17 @@ class Settings(BaseSettings):
     extraction_cross_table_backfill: bool = True
 
     # --- Ablation flags ---
+    # Disable only role-facing SOCM prompt projections. The underlying SOCM
+    # state, extraction writes, scheduler, and explicit state tools remain
+    # available so this isolates the context-projection contribution.
+    enable_socm_projection: bool = True
     enable_explore: bool = True  # False → orchestrator skips explore_agent
-    enable_explore_replay: bool = True  # False → create_schema skips replaying explore summaries into extraction
+    # False → create_schema skips replaying explore summaries into extraction.
+    enable_explore_replay: bool = True
     # True: concurrent coverage waves; False: legacy serial search/open/find.
     enable_explore_batch: bool = True
-    # Explore uses broad concurrent waves. Interactive runs must complete at
-    # least two waves; eval.runner raises this to max_waves for benchmarks.
-    explore_min_waves: int = 2
-    explore_max_waves: int = 3
+    # 单次 Explore 的波次上限；目标解决后可随时结束，产品与评测一致。
+    explore_max_waves: int = Field(default=3, ge=1)
     judge_max_input_chars: int = 128_000
     skip_synthesis: bool = False  # eval: export table directly from CoverageMap
 
@@ -289,11 +332,14 @@ def reload_settings_in_place(fresh: Settings | None = None) -> None:
         setattr(settings, name, getattr(fresh, name))
 
 
-# Per-agent budget overrides (max_searches, max_opens, max_finds).
+# Per-agent budget overrides (max_searches, max_opens, max_finds, max_skills).
 AGENT_BUDGET_OVERRIDES: dict[str, dict[str, int]] = {
     # Fits the maximum documented 12 + 8 + 6 three-wave coverage schedule;
     # opens get extra headroom for small conflict-verification branches.
     # A single explore_web call can consume many units concurrently.
     "explore_agent": {"max_searches": 30, "max_opens": 36, "max_finds": 0},
     "search_agent": {"max_searches": 15, "max_opens": 15, "max_finds": 15},
+    "local_search_agent": {
+        "max_searches": 15, "max_opens": 15, "max_finds": 15,
+    },
 }

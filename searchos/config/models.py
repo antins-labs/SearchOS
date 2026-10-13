@@ -136,6 +136,7 @@ def get_model_for(
             "max_tokens": profile.max_tokens,
             "max_retries": settings.llm_max_retries,
             "callbacks": callbacks,
+            "stream_usage": True,
             **rl_kwargs,
         }
         if profile.temperature is not None:

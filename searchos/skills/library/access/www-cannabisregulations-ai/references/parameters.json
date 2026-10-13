@@ -1,0 +1,26 @@
+{
+  "description": "Extracts structured cannabis legality information from country profile pages on www.cannabisregulations.ai, including legal status, governing bodies, regulations, and import/export rules.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_country_legality: Fetch comprehensive cannabis legality data for a country (requires country or url); 参数: country, url; 必填: 无\n  - extract_legal_status: Get just the legal status and summary for a country (requires country or url); 参数: country, url; 必填: 无"
+    },
+    "country": {
+      "type": "string",
+      "required": false,
+      "description": "Country name to look up (e.g., \"Ecuador\", \"Kazakhstan\", \"Antigua and Barbuda\"). Used by get_country_legality and extract_legal_status."
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full URL to the country legality page on cannabisregulations.ai. Optional; will be constructed from country name if not provided."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

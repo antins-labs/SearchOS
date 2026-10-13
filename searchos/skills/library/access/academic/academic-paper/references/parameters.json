@@ -1,0 +1,31 @@
+{
+  "description": "搜索学术论文（Semantic Scholar + DBLP + arXiv 三源并行），返回标题、作者、摘要、引用数、链接",
+  "parameters": {
+    "query": {
+      "type": "string",
+      "required": true,
+      "description": "Free-text search query, e.g. \"graph neural networks molecular property\"."
+    },
+    "num_results": {
+      "type": "integer",
+      "default": 5,
+      "description": "Max papers per source (capped at 10)."
+    },
+    "year_range": {
+      "type": "string",
+      "default": "",
+      "description": "Year filter, e.g. \"2023-2025\" for 2023 through 2025 inclusive, or \"2024-\" for 2024 onward. Empty = no year filter."
+    },
+    "source": {
+      "type": "string",
+      "default": "all",
+      "description": "One of \"all\" | \"semantic_scholar\" | \"dblp\" | \"arxiv\"."
+    }
+  },
+  "imports": [
+    "httpx"
+  ],
+  "requirements": [
+    "httpx"
+  ]
+}

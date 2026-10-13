@@ -1,0 +1,26 @@
+{
+  "description": "抽取 hn_story：title、url、author、points、created_at",
+  "parameters": {
+    "query": {
+      "type": "string",
+      "required": true,
+      "description": "The search query term."
+    },
+    "tags": {
+      "type": "string",
+      "default": "story",
+      "description": "Filter by tag (e.g., story, comment, poll)."
+    },
+    "num_results": {
+      "type": "integer",
+      "default": 5,
+      "description": "Maximum number of results to return."
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

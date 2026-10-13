@@ -1,0 +1,26 @@
+{
+  "description": "Retrieves carry-on baggage policy information from Aeromexico's website (www.aeromexico.com), supporting both English and Spanish pages with robust SPA content extraction.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_carry_on_english: Fetch carry-on baggage info in English; 参数: 无; 必填: 无\n  - get_carry_on_spanish: Fetch carry-on baggage info in Spanish (equipaje de mano); 参数: 无; 必填: 无\n  - get_by_url: Fetch baggage info from a specific Aeromexico URL; 参数: url, locale; 必填: url\n  - check_status: Check if the Aeromexico website is accessible; 参数: 无; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Target URL for get_by_url function. Must be from aeromexico.com domain.\nExample: https://www.aeromexico.com/en-us/travel-information/baggage/checked-baggage"
+    },
+    "locale": {
+      "type": "string",
+      "required": false,
+      "description": "Locale for content extraction (used with get_by_url function).\nExamples: en-US, es-US, es-MX. Defaults to en-US."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

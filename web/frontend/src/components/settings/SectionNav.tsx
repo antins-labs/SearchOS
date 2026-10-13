@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, type KeyboardEvent } from "react";
-import { Blocks, Cpu, FlaskConical, Gauge, Globe, Palette, type LucideIcon } from "lucide-react";
+import { Blocks, Cpu, Gauge, Globe, Palette, SlidersHorizontal, Sparkles, type LucideIcon } from "lucide-react";
+import { useSettings } from "@/components/settings/SettingsProvider";
 
 export interface SectionDef {
   id: string;
@@ -10,11 +11,12 @@ export interface SectionDef {
 }
 
 export const SECTIONS = [
+  { id: "setup", label: "Quick setup", icon: Sparkles },
   { id: "models", label: "Models", icon: Cpu },
   { id: "search", label: "Search & browse", icon: Globe },
   { id: "skills", label: "Skills", icon: Blocks },
   { id: "budget", label: "Budget & limits", icon: Gauge },
-  { id: "experimental", label: "Experimental", icon: FlaskConical },
+  { id: "experimental", label: "Research behavior", icon: SlidersHorizontal },
   { id: "appearance", label: "Appearance", icon: Palette },
 ] as const satisfies readonly SectionDef[];
 
@@ -27,6 +29,8 @@ interface Props {
 }
 
 export default function SectionNav({ active, onSelect, mode = "navigation" }: Props) {
+  const { uiPrefs } = useSettings();
+  const zh = uiPrefs.language === "zh";
   const buttonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -43,10 +47,16 @@ export default function SectionNav({ active, onSelect, mode = "navigation" }: Pr
   };
 
   return (
-    <nav role={mode === "tabs" ? "tablist" : undefined} aria-label={mode === "tabs" ? "Settings sections" : "Settings navigation"}
+    <nav role={mode === "tabs" ? "tablist" : undefined}
+      aria-label={mode === "tabs" ? (zh ? "设置分区" : "Settings sections") : (zh ? "设置导航" : "Settings navigation")}
       className="flex min-w-0 gap-0.5 overflow-x-auto sm:flex-col sm:overflow-visible">
-      {SECTIONS.map(({ id, label, icon: Icon }, index) => (
-        <button
+      {SECTIONS.map(({ id, label, icon: Icon }, index) => {
+        const displayLabel = zh ? {
+          setup: "快速配置", models: "模型", search: "联网与读取", skills: "技能",
+          budget: "预算与限制", experimental: "研究策略", appearance: "外观",
+        }[id] : label;
+        return (
+          <button
           ref={(element) => { buttonRefs.current[index] = element; }}
           key={id}
           id={mode === "tabs" ? `settings-tab-${id}` : undefined}
@@ -65,9 +75,10 @@ export default function SectionNav({ active, onSelect, mode = "navigation" }: Pr
           }`}
         >
           <Icon size={15} className="shrink-0" />
-          {label}
-        </button>
-      ))}
+          {displayLabel}
+          </button>
+        );
+      })}
     </nav>
   );
 }

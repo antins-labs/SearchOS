@@ -1,0 +1,18 @@
+{
+  "description": "Fetches facility information, visiting details, floor guides, FAQ, and institutional data from the Hiroshima National Peace Memorial Hall for the Atomic Bomb Victims English website (www.hiro-tsuitokinenkan.go.jp/en/).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_homepage: 获取首页信息，包括今日开放时间、公告、主要功能; 参数: 无; 必填: 无\n  - get_visitor_info: 获取参观信息，包括开放时间、门票、交通方式、设施; 参数: 无; 必填: 无\n  - get_floor_guide: 获取楼层导览，包括各楼层的设施和展览详情; 参数: 无; 必填: 无\n  - get_about_info: 获取纪念馆基本信息，包括创立宗旨、建筑信息、历史时间线; 参数: 无; 必填: 无\n  - get_faq: 获取常见问题解答，分类包括设施、无障碍、受害者登记等; 参数: 无; 必填: 无\n  - get_notices: 获取公告和新闻列表; 参数: 无; 必填: 无\n  - get_projects: 获取主要项目和活动列表; 参数: 无; 必填: 无"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

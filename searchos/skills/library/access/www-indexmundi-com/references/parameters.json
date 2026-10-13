@@ -1,0 +1,33 @@
+{
+  "description": "Fetches structured country profile data (geography, demographics, economy, government, etc.) from IndexMundi country pages with reliable key-value field extraction.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_profile: 获取单个国家的指定类型档案; 需要 country, 可选 profile_type; 参数: country, profile_type; 必填: country\n  - get_all_profiles: 获取单个国家的所有可用档案; 需要 country, 可选 profile_types; 参数: country, profile_types; 必填: country\n  - list_profile_types: 返回支持的档案类型列表; 参数: country; 必填: country"
+    },
+    "country": {
+      "type": "string",
+      "required": true,
+      "description": "国家名称，用于 get_profile 和 get_all_profiles。\n支持格式: \"canada\", \"united_states\", \"United States\", \"united-states\"。\n空格和连字符会自动转换为下划线。"
+    },
+    "profile_type": {
+      "type": "string",
+      "required": false,
+      "description": "档案类型，用于 get_profile。默认值: \"geography_profile\"。\n可选值: geography_profile, demographics_profile, government_profile,\neconomy_profile, communications_profile, transportation_profile,\nmilitary_profile, energy_profile, environment_profile, terrorism_profile,\ntransnational_issues_profile"
+    },
+    "profile_types": {
+      "type": "array",
+      "required": false,
+      "description": "档案类型列表，用于 get_all_profiles 限制获取的档案类型。\n如未指定则获取所有可用类型。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

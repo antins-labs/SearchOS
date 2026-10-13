@@ -1,0 +1,40 @@
+{
+  "description": "Fetches structured information about Marian apparitions from Miracle Hunter (miraclehunter.com), including summary, timeline, visionaries, messages, approval status, and shrine details.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_apparition: 获取特定显现事件的详细信息; 需要 url 参数; 参数: url, include_messages; 必填: 无\n  - list_apparitions: 列出显现事件列表; 可选 category 参数 (approved/unapproved/all); 参数: category; 必填: 无\n  - search_apparitions: 按名称搜索显现事件; 需要 query 参数; 参数: query; 必填: 无\n  - get_messages: 获取特定显现事件的信息; 需要 url 参数 (信息页面URL); 参数: url; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "显现事件详情页或信息页的完整URL (用于 get_apparition 和 get_messages 功能)。 例如: https://www.miraclehunter.com/marian_apparitions/approved_apparitions/pontmain/index.html"
+    },
+    "include_messages": {
+      "type": "boolean",
+      "default": false,
+      "required": false,
+      "description": "是否包含完整信息 (用于 get_apparition 功能)。 如果为 true，将尝试获取显现事件的完整信息内容。"
+    },
+    "category": {
+      "type": "string",
+      "default": "approved",
+      "required": false,
+      "description": "显现事件的类别 (用于 list_apparitions 功能)。可选值:\n  - approved: 教会批准的显现事件\n  - unapproved: 未获批准的显现事件\n  - all: 所有显现事件"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词 (用于 search_apparitions 功能)。 例如: \"Fatima\", \"Lourdes\", \"Guadalupe\""
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

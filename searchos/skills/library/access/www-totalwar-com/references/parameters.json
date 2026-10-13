@@ -1,0 +1,21 @@
+{
+  "description": "Extracts patch notes, DLC details, and game information from www.totalwar.com (official Total War site) via direct HTTP access with Next.js content decoding.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_patch_notes: 从URL获取补丁说明/更新文章内容; 参数: url; 必填: url\n  - get_dlc_info: 从URL获取DLC扩展包详细信息; 参数: url; 必填: url\n  - get_game_info: 从URL获取游戏主页信息; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "要抓取的www.totalwar.com页面完整URL。\n示例:\n  - https://www.totalwar.com/news/total-war-warhammer-iii-update-210\n  - https://www.totalwar.com/games/total-war-warhammer-iii/total-war-warhammer-iii-thrones-of-decay\n  - https://www.totalwar.com/games/total-war-warhammer-iii/"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

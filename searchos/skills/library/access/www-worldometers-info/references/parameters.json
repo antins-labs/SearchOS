@@ -1,0 +1,26 @@
+{
+  "description": "Extracts structured country statistics from worldometers.info including largest countries by area, population by country, and detailed population history/projections.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_largest_countries: 获取按面积排名的国家列表，支持limit参数限制数量; 参数: limit; 必填: 无\n  - get_population_by_country: 获取各国人口统计数据，支持limit和country过滤参数; 参数: limit, country; 必填: 无\n  - get_country_population_details: 获取指定国家的详细人口历史和预测数据，需要country参数; 参数: country; 必填: 无"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "限制返回结果数量，用于get_largest_countries和get_population_by_country"
+    },
+    "country": {
+      "type": "string",
+      "required": false,
+      "description": "国家名称或slug，用于get_population_by_country过滤和get_country_population_details必需参数"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

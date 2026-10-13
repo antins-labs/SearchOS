@@ -1,0 +1,32 @@
+{
+  "description": "Fetches structured metadata and download links from PO.DAAC (Physical Oceanography Distributed Active Archive Center) dataset landing pages at podaac.jpl.nasa.gov.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_dataset: 获取指定PO.DAAC数据集的完整元数据、DOI、下载链接等信息; 需要url参数; 参数: url; 必填: url\n  - search_datasets: 按关键词搜索PO.DAAC数据集; 需要query参数，可选limit参数; 参数: query, limit; 必填: query"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "PO.DAAC数据集页面URL (用于get_dataset功能)"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词 (用于search_datasets功能)"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 10,
+      "required": false,
+      "description": "返回结果的最大数量 (用于search_datasets功能)"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

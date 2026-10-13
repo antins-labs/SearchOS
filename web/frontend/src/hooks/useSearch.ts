@@ -1,59 +1,10 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import type { RepairRequest, SearchRequest, SearchResult, SearchState, WSEvent } from "@/lib/types";
+import type { RepairRequest, SearchRequest, SearchResult, SearchState, WorkerInfo, WSEvent } from "@/lib/types";
+import { applyStateChanges, advanceAnswer, olderRevision, type StateChange } from "@/lib/liveUpdates";
+import { finalizeWorkers, foldWorkers, updateWorkersBatch } from "@/lib/derive";
 import { startSearch, startRepair, getSearchResult, getSearchState, connectWebSocket, type RepairStartResponse } from "@/lib/api";
-
-
-/**
- * Optimistic merge: keep the "best" version of each cell.
- * A filled cell never reverts to missing, even if the backend sends an
- * intermediate state snapshot where a parallel agent hasn't written yet.
- */
-function mergeSearchState(
-  prev: SearchState | null | undefined,
-  incoming: SearchState | null | undefined,
-): SearchState | null {
-  if (!incoming) return prev ?? null;
-  if (!prev) return incoming;
-
-  // Merge coverage_map cells: keep filled cells from prev if incoming has them as missing
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const prevCells = (prev.coverage_map?.cells ?? {}) as Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const incomingCells = (incoming.coverage_map?.cells ?? {}) as Record<string, any>;
-  const mergedCells = { ...incomingCells };
-
-  for (const [key, pc] of Object.entries(prevCells)) {
-    const ic = mergedCells[key];
-    if (pc?.status === "filled" && (!ic || ic?.status === "missing")) {
-      mergedCells[key] = pc;
-    }
-  }
-
-  const prevEv = prev.evidence_graph?.nodes ?? [];
-  const incEv = incoming.evidence_graph?.nodes ?? [];
-
-  return {
-    ...incoming,
-    coverage_map: {
-      ...incoming.coverage_map,
-      cells: mergedCells,
-    } as SearchState["coverage_map"],
-    evidence_graph: incEv.length >= prevEv.length
-      ? incoming.evidence_graph
-      : prev.evidence_graph,
-  };
-}
-
-export interface WorkerInfo {
-  name: string;
-  intent: string;
-  scope: string;
-  status: "pending" | "running" | "completed" | "error";
-  events: WSEvent[];
-}
-
 export interface SearchSession {
   sessionId: string | null;
   status: "idle" | "running" | "reconnecting" | "completed" | "error";
@@ -63,20 +14,14 @@ export interface SearchSession {
   workers: WorkerInfo[];
   error: string | null;
   elapsed: number;
+  liveAnswer: string | null;
+  startedAt?: number;
 }
 
 const RECONNECT_DELAYS_MS = [500, 1000, 2000, 4000, 8000, 15000];
 
 function eventSignature(event: WSEvent): string {
-  return JSON.stringify(event);
-}
-
-/** When a search ends, no sub-agent is still in flight: coerce any straggler
- *  left "running"/"pending" (missing a terminal event) to completed. */
-function finalizeWorkers(workers: WorkerInfo[]): WorkerInfo[] {
-  return workers.map((w) =>
-    w.status === "running" || w.status === "pending" ? { ...w, status: "completed" } : w,
-  );
+  return typeof event.event_id === "string" ? event.event_id : JSON.stringify(event);
 }
 
 export function useSearch() {
@@ -89,20 +34,26 @@ export function useSearch() {
     workers: [],
     error: null,
     elapsed: 0,
+    liveAnswer: null,
   });
 
   const wsRef = useRef<WebSocket | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const batchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const eventQueueRef = useRef<WSEvent[]>([]);
+  const flushEventsRef = useRef<() => void>(() => {});
+  const answerRef = useRef({ streamId: "", answer: "" });
+  const revisionRef = useRef("");
+  const socketStateRef = useRef<{ revision: string; state: SearchState } | null>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef<number>(0);
   const generationRef = useRef(0);
   const terminalRef = useRef(false);
+  const snapshotRequestRef = useRef(0);
+  const appliedSnapshotRef = useRef(0);
   const reconnectAttemptRef = useRef(0);
   const statusCheckRef = useRef<Promise<"running" | "terminal" | "unavailable" | "stale"> | null>(null);
-  // Dedupe re-streamed events: a WS reconnect re-reads trajectory.jsonl from
-  // the top, so every prior event arrives again. Each event's full payload
-  // (incl. timestamp/step_index) is a stable signature.
+  // 重连会重放历史；用完整事件去重。
   const seenRef = useRef<Set<string>>(new Set());
 
   const disposeSocket = useCallback(() => {
@@ -118,10 +69,15 @@ export function useSearch() {
 
   const clearRuntime = useCallback(() => {
     disposeSocket();
-    if (timerRef.current) clearInterval(timerRef.current);
+    if (batchTimerRef.current) clearTimeout(batchTimerRef.current);
+    eventQueueRef.current = [];
+    batchTimerRef.current = null;
+    revisionRef.current = "";
+    socketStateRef.current = null;
+    answerRef.current = { streamId: "", answer: "" };
     if (pollRef.current) clearInterval(pollRef.current);
     if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
-    timerRef.current = null;
+
     pollRef.current = null;
     reconnectTimerRef.current = null;
   }, [disposeSocket]);
@@ -134,6 +90,18 @@ export function useSearch() {
     };
   }, [clearRuntime]);
 
+  const applyLiveState = useCallback((sessionId: string, generation: number, request: number, state: SearchState | null | undefined, revision?: string) => {
+    if (state === undefined || generation !== generationRef.current || terminalRef.current || request < appliedSnapshotRef.current) return;
+    if (revision && olderRevision(revision, revisionRef.current)) return;
+    if (revision) revisionRef.current = revision;
+    appliedSnapshotRef.current = request;
+    setSession((current) => {
+      if (generation !== generationRef.current || terminalRef.current || current.sessionId !== sessionId || request !== appliedSnapshotRef.current) return current;
+      // 后端快照允许清空单元格和撤销证据；顺序由请求编号控制。
+      return { ...current, liveState: state };
+    });
+  }, []);
+
   const reconcileStatus = useCallback((sessionId: string, generation: number) => {
     if (generation !== generationRef.current || terminalRef.current) {
       return Promise.resolve("stale" as const);
@@ -142,28 +110,27 @@ export function useSearch() {
 
     const check = (async (): Promise<"running" | "terminal" | "unavailable" | "stale"> => {
       try {
+        const request = ++snapshotRequestRef.current;
         const result = await getSearchResult(sessionId);
         if (generation !== generationRef.current || terminalRef.current) return "stale";
 
         if (result.status === "running") {
-          if (result.search_state) {
-            setSession((current) => current.sessionId === sessionId
-              ? { ...current, liveState: mergeSearchState(current.liveState, result.search_state) }
-              : current);
-          }
+          applyLiveState(sessionId, generation, request, result.search_state, result.revision);
           return "running";
         }
 
+        flushEventsRef.current();
         terminalRef.current = true;
         clearRuntime();
         setSession((current) => {
-          if (current.sessionId !== sessionId) return current;
+          if (generation !== generationRef.current || current.sessionId !== sessionId) return current;
           return {
             ...current,
             status: result.status === "error" ? "error" : "completed",
             result,
-            workers: finalizeWorkers(current.workers),
-            liveState: mergeSearchState(current.liveState, result.search_state),
+            workers: finalizeWorkers(current.workers, result.status === "error" ? "error" : "completed"),
+            liveState: result.search_state ?? null,
+            elapsed: result.elapsed_s ?? (Date.now() - startTimeRef.current) / 1000,
             error: result.error || null,
           };
         });
@@ -178,7 +145,7 @@ export function useSearch() {
       if (statusCheckRef.current === check) statusCheckRef.current = null;
     });
     return check;
-  }, [clearRuntime]);
+  }, [applyLiveState, clearRuntime]);
 
   const openSocketRef = useRef<(sessionId: string, generation: number, tail: boolean) => void>(() => {});
 
@@ -190,9 +157,7 @@ export function useSearch() {
       return { ...current, status: "reconnecting" };
     });
 
-    // Reconnect and terminal reconciliation run in parallel: a slow/unreachable
-    // REST endpoint must not hold the socket retry loop hostage. A confirmed
-    // terminal result calls clearRuntime(), cancelling the pending retry.
+    // 状态查询与重连并行，终态会取消重试。
     void reconcileStatus(sessionId, generation);
 
     const attempt = reconnectAttemptRef.current;
@@ -201,8 +166,7 @@ export function useSearch() {
     reconnectTimerRef.current = setTimeout(() => {
       reconnectTimerRef.current = null;
       if (generation === generationRef.current && !terminalRef.current) {
-        // Replay from the start and dedupe locally so events produced during
-        // the outage are recovered rather than skipped.
+        // 重放并去重，补回断线期间的事件。
         openSocketRef.current(sessionId, generation, false);
       }
     }, delay);
@@ -218,22 +182,51 @@ export function useSearch() {
         (event) => {
           if (generation !== generationRef.current || wsRef.current !== ws || terminalRef.current) return;
           const nextEvent = event as WSEvent;
+          if (event.type === "state_snapshot") {
+            socketStateRef.current = { revision: String(event.revision), state: event.state as SearchState };
+            applyLiveState(sessionId, generation, ++snapshotRequestRef.current, event.state as SearchState, String(event.revision));
+            return;
+          }
+          if (event.type === "state_delta") {
+            const baseline = socketStateRef.current;
+            if (!baseline || baseline.revision !== event.base_revision) {
+              // Reconnect obtains a fresh baseline and replays durable events.
+              ws.close();
+              return;
+            }
+            try {
+              const state = applyStateChanges(baseline.state, event.changes as StateChange[]);
+              socketStateRef.current = { revision: String(event.revision), state };
+              applyLiveState(sessionId, generation, ++snapshotRequestRef.current, state, String(event.revision));
+            } catch { ws.close(); }
+            return;
+          }
           const signature = eventSignature(nextEvent);
           if (seenRef.current.has(signature)) return;
           seenRef.current.add(signature);
 
-          setSession((current) => {
-            if (current.sessionId !== sessionId) return current;
-            return {
-              ...current,
-              events: [...current.events, nextEvent],
-              workers: updateWorkers(current.workers, nextEvent),
-            };
-          });
-
+          eventQueueRef.current.push(nextEvent);
+          const flush = () => {
+            batchTimerRef.current = null;
+            if (generation !== generationRef.current || terminalRef.current) return;
+            const batch = eventQueueRef.current.splice(0);
+            if (!batch.length) return;
+            answerRef.current = advanceAnswer(answerRef.current, batch);
+            const liveAnswer = answerRef.current.streamId ? answerRef.current.answer : null;
+            setSession((current) => {
+              if (current.sessionId !== sessionId) return current;
+              return { ...current, events: [...current.events, ...batch],
+                workers: updateWorkersBatch(current.workers, batch), liveAnswer,
+                elapsed: (Date.now() - startTimeRef.current) / 1000 };
+            });
+          };
+          flushEventsRef.current = flush;
           if (nextEvent.type === "search_complete" || nextEvent.type === "search_error") {
+            if (batchTimerRef.current) clearTimeout(batchTimerRef.current);
+            flush();
             void reconcileStatus(sessionId, generation);
-          }
+          } else if (batchTimerRef.current === null) batchTimerRef.current = setTimeout(flush, 32);
+
         },
         () => {
           if (closeHandled || generation !== generationRef.current || wsRef.current !== ws) return;
@@ -256,33 +249,23 @@ export function useSearch() {
     } catch {
       scheduleReconnect(sessionId, generation);
     }
-  }, [reconcileStatus, scheduleReconnect]);
+  }, [applyLiveState, reconcileStatus, scheduleReconnect]);
   openSocketRef.current = openSocket;
 
-  /** Timer + state poll + WS subscription for a session the backend is
-   *  already running. Shared by run() (fresh POST) and attach() (reopen). */
+  /** 新任务和重新连接共用计时、轮询与订阅。 */
   const startStreams = useCallback((sessionId: string, tail: boolean, generation: number) => {
     startTimeRef.current = Date.now();
+    setSession((current) => ({ ...current, startedAt: startTimeRef.current }));
     let pollInFlight = false;
-
-    timerRef.current = setInterval(() => {
-      setSession((current) => {
-        if (current.sessionId !== sessionId || (current.status !== "running" && current.status !== "reconnecting")) return current;
-        return { ...current, elapsed: (Date.now() - startTimeRef.current) / 1000 };
-      });
-    }, 500);
 
     const poll = async () => {
       if (pollInFlight || generation !== generationRef.current || terminalRef.current) return;
       pollInFlight = true;
       try {
-        const result = await getSearchState(sessionId);
+        const request = ++snapshotRequestRef.current;
+        const result = await getSearchState(sessionId, revisionRef.current);
         if (generation !== generationRef.current || terminalRef.current) return;
-        if (result.search_state) {
-          setSession((current) => current.sessionId === sessionId
-            ? { ...current, liveState: mergeSearchState(current.liveState, result.search_state) }
-            : current);
-        }
+        applyLiveState(sessionId, generation, request, result.search_state, result.revision);
         if (result.status === "completed" || result.status === "error") {
           void reconcileStatus(sessionId, generation);
         }
@@ -296,7 +279,7 @@ export function useSearch() {
     void poll();
     pollRef.current = setInterval(poll, 2000);
     openSocket(sessionId, generation, tail);
-  }, [openSocket, reconcileStatus]);
+  }, [applyLiveState, openSocket, reconcileStatus]);
 
   const beginRun = useCallback(async ({
     start,
@@ -331,6 +314,7 @@ export function useSearch() {
       workers: [],
       error: null,
       elapsed: 0,
+      liveAnswer: null,
     });
 
     try {
@@ -381,12 +365,7 @@ export function useSearch() {
     onStarted: (response) => opts?.onStarted?.(response as unknown as RepairStartResponse),
   }), [beginRun]);
 
-  /** Re-attach to a session the backend is still running — history reopen,
-   *  or switching back to a live run after navigating away. Seeds the
-   *  already-recorded events, then streams live; the WS replay is deduped
-   *  against `seen` (defaults to the seed) so nothing doubles and the
-   *  snapshot gap is closed. Pass the full log as `seen` when seeding only
-   *  the current turn's segment. */
+  /** 恢复运行中的会话；若 events 只含当前轮次，seen 应传完整日志以避免重放重复。 */
   const attach = useCallback(
     (
       session_id: string,
@@ -399,6 +378,7 @@ export function useSearch() {
       statusCheckRef.current = null;
 
       const events = seed?.events ?? [];
+      answerRef.current = advanceAnswer({ streamId: "", answer: "" }, events);
       seenRef.current = new Set((seed?.seen ?? events).map(eventSignature));
       setSession({
         sessionId: session_id,
@@ -406,9 +386,10 @@ export function useSearch() {
         result: null,
         liveState: seed?.searchState ?? null,
         events,
-        workers: events.reduce((w, e) => updateWorkers(w, e), [] as WorkerInfo[]),
+        workers: foldWorkers(events),
         error: null,
         elapsed: 0,
+        liveAnswer: answerRef.current.streamId ? answerRef.current.answer : null,
       });
       startStreams(session_id, false, generation);
     },
@@ -431,63 +412,9 @@ export function useSearch() {
       workers: [],
       error: null,
       elapsed: 0,
+      liveAnswer: null,
     });
   }, [clearRuntime]);
 
   return { session, run, repair, attach, reset };
-}
-
-/**
- * Aggregate per-sub-agent activity from the event stream.
- *
- * Sub-agents are identified by the `agent` field on trajectory events
- * (`explore_agent`, `search_agent_2`, `writer_agent`, …). The orchestrator's
- * own steps (`agent === "orchestrator"`) drive the timeline, not a card,
- * so they are excluded here. Blackboard streams (when present) carry the
- * same `agent` field and are folded in too.
- */
-function updateWorkers(current: WorkerInfo[], event: WSEvent): WorkerInfo[] {
-  const etype = String(event.type || "");
-  const isTraj = etype === "trajectory";
-  const isBlackboard = etype.startsWith("blackboard.");
-  if (!isTraj && !isBlackboard) return current;
-
-  const data = (event.data ?? {}) as Record<string, unknown>;
-  const agent = String(data.agent || data.worker || data.agent_name || "");
-  if (!agent || agent === "orchestrator") return current;
-
-  // Pure update — never mutate the existing worker objects. React (esp. Strict
-  // Mode) may invoke this updater twice with the same prior state; mutating in
-  // place would append the event twice → duplicated trace/card lines.
-  const idx = current.findIndex((w) => w.name === agent);
-  const prev = idx >= 0 ? current[idx] : null;
-
-  const dtype = String(data.type || "");
-  const status = String(data.status || "");
-  let nextStatus = prev?.status ?? "running";
-  if (dtype === "agent_complete" || dtype === "agent_final" || status === "completed" || status === "partial") {
-    nextStatus = "completed";
-  }
-  if (dtype === "agent_error" || dtype === "error" || status === "error") {
-    nextStatus = "error";
-  }
-
-  const updated: WorkerInfo = {
-    name: agent,
-    intent:
-      prev?.intent ??
-      ((agent.startsWith("explore") || agent.startsWith("warmup"))
-        ? "explore"
-        : agent.startsWith("writer") ? "write" : "search"),
-    scope: prev?.scope ?? agent,
-    status: nextStatus,
-    events: prev ? [...prev.events, event] : [event],
-  };
-
-  if (idx >= 0) {
-    const copy = [...current];
-    copy[idx] = updated;
-    return copy;
-  }
-  return [...current, updated];
 }

@@ -13,7 +13,8 @@ import NumberField from "@/components/settings/controls/NumberField";
 const BIG_GROUP = 40; // groups larger than this start collapsed (TUI parity)
 
 export default function SkillsSection() {
-  const { settings, status, mutate } = useSettings();
+  const { settings, status, mutate, uiPrefs } = useSettings();
+  const zh = uiPrefs.language === "zh";
   const [filter, setFilter] = useState("");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
@@ -24,8 +25,8 @@ export default function SkillsSection() {
 
   if (!settings) {
     return (
-      <SectionShell id="skills" title="Skills"
-        description="Enable or disable the skills injected into orchestrator and sub-agents.">
+      <SectionShell id="skills" title={zh ? "技能" : "Skills"}
+        description={zh ? "管理编排器和子智能体可以使用的技能。" : "Manage skills available to the orchestrator and sub-agents."}>
         <OfflineSkeleton />
       </SectionShell>
     );
@@ -105,34 +106,34 @@ export default function SkillsSection() {
     });
 
   return (
-    <SectionShell id="skills" title="Skills"
-      description="Enable or disable the skills injected into orchestrator and sub-agents.">
+    <SectionShell id="skills" title={zh ? "技能" : "Skills"}
+      description={zh ? "管理编排器和子智能体可以使用的技能。" : "Manage skills available to the orchestrator and sub-agents."}>
       <div className="flex items-center justify-between gap-3">
         <label className="surface flex min-w-0 flex-1 items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-ink-faint">
           <Search size={14} />
           <input
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            placeholder="Filter skills…"
+            placeholder={zh ? "筛选技能…" : "Filter skills…"}
             spellCheck={false}
             className="w-full bg-transparent text-ink outline-none placeholder:text-ink-faint"
           />
         </label>
         <span className="flex shrink-0 items-center gap-2 text-[12.5px] text-ink-dim">
-          Enable skills
-          <Toggle checked={settings.skills.enable_skills} disabled={disabled} label="Enable skills"
+          {zh ? "启用技能" : "Enable skills"}
+          <Toggle checked={settings.skills.enable_skills} disabled={disabled} label={zh ? "启用技能" : "Enable skills"}
             onChange={toggleSkillsSystem} />
         </span>
       </div>
 
       <div className="surface flex items-center justify-between gap-4 rounded-xl px-3 py-2.5">
         <div className="min-w-0">
-          <div className="text-[13px] font-medium text-ink">Learn access skills</div>
-          <div className="text-[11.5px] text-ink-faint">Generate after a run; use in later runs.</div>
+          <div className="text-[13px] font-medium text-ink">{zh ? "任务后学习技能" : "Learn skills after tasks"}</div>
+          <div className="text-[11.5px] text-ink-faint">{zh ? "根据轨迹新增或更新访问、检索策略和编排技能，验证后供后续任务使用。" : "Create or update access, strategy and orchestrator skills from traces after validation."}</div>
         </div>
         <div className="flex shrink-0 items-center gap-3">
           <span className="flex items-center gap-1.5 text-[12px] text-ink-dim">
-            Max
+            {zh ? "上限" : "Max"}
             <NumberField
               value={settings.skills.access_skill_max_per_run}
               min={1}
@@ -144,7 +145,7 @@ export default function SkillsSection() {
           <Toggle
             checked={settings.skills.enable_access_skill_generation}
             disabled={disabled}
-            label="Learn access skills"
+            label={zh ? "任务后学习技能" : "Learn skills after tasks"}
             onChange={toggleAccessGeneration}
           />
         </div>
@@ -152,7 +153,7 @@ export default function SkillsSection() {
 
       {categories.every(([, skills]) => skills.length === 0) ? (
         <p className="text-[13px] text-ink-faint">
-          No skills found — the skill library may be disabled or empty.
+          {zh ? "未找到技能；技能库可能已停用或为空。" : "No skills found; the skill library may be disabled or empty."}
         </p>
       ) : (
         <div className="space-y-2">
@@ -184,11 +185,11 @@ export default function SkillsSection() {
                   <span className="flex shrink-0 items-center gap-1 text-[12px]">
                     <button type="button" disabled={disabled} onClick={() => toggleCategory(cat, true)}
                       className="rounded-md px-1.5 py-0.5 text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink disabled:opacity-40">
-                      All on
+                      {zh ? "全部开启" : "All on"}
                     </button>
                     <button type="button" disabled={disabled} onClick={() => toggleCategory(cat, false)}
                       className="rounded-md px-1.5 py-0.5 text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink disabled:opacity-40">
-                      All off
+                      {zh ? "全部关闭" : "All off"}
                     </button>
                   </span>
                 </div>
@@ -199,6 +200,11 @@ export default function SkillsSection() {
                         <div className="min-w-0">
                           <div className={`truncate font-mono text-[12.5px] ${sk.enabled ? "text-ink" : "text-ink-faint"}`}>
                             {sk.name}
+                            <span className="ml-2 font-sans text-[11px] text-ink-faint">
+                              {sk.package_format === "portable"
+                                ? (zh ? "通用技能" : "Portable")
+                                : (zh ? "旧版兼容" : "Legacy")}
+                            </span>
                           </div>
                           {sk.description && (
                             <div className="truncate text-[11.5px] text-ink-faint">{sk.description}</div>
@@ -217,7 +223,7 @@ export default function SkillsSection() {
       )}
       {settings.skills.access_mode === "only" && (
         <p className="text-[12px] text-ink-faint">
-          Access skills are pinned to an explicit set — the query router is bypassed until all are re-enabled.
+          {zh ? "访问技能已固定为显式集合；恢复全部技能后才会重新使用查询路由。" : "Access skills are pinned to an explicit set; query routing resumes after all are re-enabled."}
         </p>
       )}
     </SectionShell>

@@ -1,0 +1,16 @@
+{
+  "description": "Fetches structured history timeline data from thyssenkrupp.com company history page, including historical events from 1811 to present, founding family information, and page content.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_history_timeline: 获取完整的历史时间线，包含从1811年至今的所有历史事件; 参数: 无; 必填: 无\n  - get_founding_families: 获取创始家族成员信息，包括Krupp和Thyssen家族; 参数: 无; 必填: 无\n  - get_page_content: 获取页面内容区块，包括大图展示、文本区块和联系方式; 参数: 无; 必填: 无"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

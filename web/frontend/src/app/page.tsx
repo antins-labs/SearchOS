@@ -4,16 +4,24 @@ import { useState, useEffect, useCallback, useRef, useMemo, type CSSProperties }
 import { Menu } from "lucide-react";
 
 import { useSearch } from "@/hooks/useSearch";
+import { useLocalLibrary } from "@/hooks/useLocalLibrary";
 import { branchHistoryTurn, getWorkspaceFiles, listHistory, loadHistory, updateHistoryAssets, deleteHistory, resolveEvidence, steerSearch, stopSearch, type HistoryAssetPatch, type HistoryItem, type HistoryTurn } from "@/lib/api";
 import { deriveAnswer, foldWorkers } from "@/lib/derive";
 import type { FileNode, RepairCellTarget, SearchState, WSEvent } from "@/lib/types";
-import { historyEventSegments, type Turn } from "@/lib/conversation";
+import {
+  continuationSessionId,
+  historyEventSegments,
+  restoredRunState,
+  type Turn,
+} from "@/lib/conversation";
 import type { SubmitOpts } from "@/components/shell/Composer";
 
 import HistoryRail from "@/components/shell/HistoryRail";
+import KnowledgeBasePanel from "@/components/local/KnowledgeBasePanel";
 import Landing from "@/components/conversation/Landing";
 import Conversation from "@/components/conversation/Conversation";
 import ExecutionDrawer from "@/components/drawer/ExecutionDrawer";
+import SourcePanel from "@/components/sources/SourcePanel";
 import SettingsModal from "@/components/settings/SettingsModal";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import {
@@ -27,6 +35,8 @@ let turnSeq = 0;
 
 export default function Home() {
   const { session, run, repair, attach, reset } = useSearch();
+  const localLibrary = useLocalLibrary();
+  const restoreSourceSelection = localLibrary.restoreSelection;
   const { overrides, notify } = useSettings();
   const [turns, setTurns] = useState<Turn[]>([]);
   const [activeTurnId, setActiveTurnId] = useState<string | null>(null);
@@ -34,6 +44,7 @@ export default function Home() {
   const [railCollapsed, setRailCollapsed] = useState(false);
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [knowledgeBaseOpen, setKnowledgeBaseOpen] = useState(false);
   const [drawerResizing, setDrawerResizing] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [historyQuery, setHistoryQuery] = useState("");
@@ -45,8 +56,10 @@ export default function Home() {
   const [stopPending, setStopPending] = useState(false);
   const [branchingTurnId, setBranchingTurnId] = useState<string | null>(null);
   const [composerFocusRequest, setComposerFocusRequest] = useState(0);
+  const [localSourceRef, setLocalSourceRef] = useState<string | null>(null);
   const historyBusyRef = useRef(false);
   const stopPendingRef = useRef(false);
+  const mobileRailTriggerRef = useRef<HTMLButtonElement>(null);
 
   const [fileTree, setFileTree] = useState<FileNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -55,6 +68,22 @@ export default function Home() {
   const [fileRetrySeq, setFileRetrySeq] = useState(0);
   const sessionActive = session.status === "running" || session.status === "reconnecting";
   const activityPreferences = useActivityPreferences();
+
+  const closeMobileRail = useCallback(() => {
+    setMobileRailOpen(false);
+    window.requestAnimationFrame(() => mobileRailTriggerRef.current?.focus());
+  }, []);
+
+  useEffect(() => {
+    if (!mobileRailOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      event.preventDefault();
+      closeMobileRail();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [closeMobileRail, mobileRailOpen]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -114,6 +143,7 @@ export default function Home() {
     setTurns((prev) =>
       prev.map((t) => {
         if (t.id !== activeTurnId) return t;
+        const liveAnswer = session.liveAnswer;
         return {
           ...t,
           sessionId: session.sessionId,
@@ -121,14 +151,16 @@ export default function Home() {
           events: session.events,
           workers: session.workers,
           searchState,
-          // Prefer the durable full answer from the result fetch; the
-          // event-stream preview (deriveAnswer) is truncated server-side.
-          answer: status === "completed" ? session.result?.answer || deriveAnswer(session.events) : t.answer,
+          // Prefer the durable result, including an intentional empty answer.
+          // Fall back to trajectory-derived text only when no result exists.
+          answer: status === "completed"
+            ? session.result?.answer ?? deriveAnswer(session.events)
+            : liveAnswer ?? t.answer,
           error: session.error,
           meta:
             status === "completed"
               ? {
-                  coverageScore: session.result?.coverage_score,
+                  coverageScore: session.result?.coverage_score ?? undefined,
                   evidenceCount: session.result?.evidence_count,
                   elapsed: session.result?.elapsed_s ?? session.elapsed,
                   verdict: session.result?.eval_verdict ?? null,
@@ -139,7 +171,7 @@ export default function Home() {
                   tokenPhases: session.result?.token_phases,
                   modelDistribution: session.result?.model_distribution,
                 }
-              : { ...t.meta, elapsed: session.elapsed },
+              : { ...t.meta, elapsed: session.elapsed, startedAt: session.startedAt },
         };
       }),
     );
@@ -187,21 +219,25 @@ export default function Home() {
     (q: string, opts: SubmitOpts, freshRun = false) => {
       stopPendingRef.current = false;
       setStopPending(false);
-      // Follow-up (TUI parity): the previous turn finished in this session →
-      // extend its workspace/coverage table and pass the conversation history.
-      const prev = freshRun ? undefined : turns[turns.length - 1];
-      const followUpTo =
-        prev && prev.status === "completed" && prev.sessionId ? prev.sessionId : undefined;
-      const history = followUpTo
+      // Keep the conversation across modes. The server fixes each turn's
+      // source scope and resets prior evidence whenever that scope changes.
+      const localRun = opts.sources?.mode === "local";
+      const sourceMode = opts.sources?.mode ?? "web";
+      const followUpTo = continuationSessionId(turns, sourceMode, freshRun);
+      const sessionTurns = followUpTo
         ? turns
-            .filter((t) => t.status === "completed")
+            .filter((t) => t.status === "completed" && t.sessionId === followUpTo)
+        : [];
+      const history = followUpTo
+        ? sessionTurns
             .map((t) => ({ query: t.query, answer: t.answer }))
         : undefined;
 
       const id = `t${++turnSeq}`;
       const turn: Turn = {
         id, query: q, sessionId: null, status: "running",
-        events: [], workers: [], searchState: null, stateSource: "live", answer: "", meta: {}, error: null,
+        events: [], workers: [], searchState: null, stateSource: "live",
+        sourceMode, answer: "", meta: {}, error: null,
       };
       setTurns((prevTurns) => freshRun ? [turn] : [...prevTurns, turn]);
       setActiveTurnId(id);
@@ -225,12 +261,13 @@ export default function Home() {
           effort: overrides.effort,
           max_time: overrides.max_time,
           skills: overrides.skills,
-          trusted_domains: overrides.trusted_domains,
-          excluded_domains: overrides.excluded_domains,
+          trusted_domains: localRun ? [] : overrides.trusted_domains,
+          excluded_domains: localRun ? [] : overrides.excluded_domains,
+          sources: opts.sources,
           follow_up_to: followUpTo,
           history,
         },
-        { seen: followUpTo ? turns.flatMap((item) => item.events) : undefined },
+        { seen: followUpTo ? sessionTurns.flatMap((item) => item.events) : undefined },
       );
     },
     [run, overrides, turns],
@@ -451,15 +488,23 @@ export default function Home() {
         const restored: Turn[] = hist.map((h, i) => {
           const segEvents = segments[i] ?? [];
           const turnRunning = i === last && isRunning;
+          const runState = restoredRunState(i === last ? data.status : "completed");
           return {
             id: i === last ? data.session_id : `${data.session_id}#${i}`,
             query: h.query || data.query,
             sessionId: data.session_id,
-            status: turnRunning ? "running" as const : "completed" as const,
+            status: runState.status,
             events: segEvents,
-            workers: foldWorkers(segEvents, !turnRunning),
+            workers: foldWorkers(segEvents, !turnRunning, runState.status === "error" ? "error" : "completed"),
             searchState: h.search_state,
             stateSource: turnRunning ? "live" : h.state_source,
+            sourceMode: h.search_state?.source_scope?.mode ?? (segEvents.some((event) => (
+              event.type === "trajectory"
+              && (event.data as Record<string, unknown> | undefined)?.source_mode === "local"
+            )) ? "local" : segEvents.some((event) => (
+              event.type === "trajectory"
+              && (event.data as Record<string, unknown> | undefined)?.source_mode === "hybrid"
+            )) ? "hybrid" : "web"),
             answer: h.answer || (i === last ? data.answer : ""),
             followUps: h.steers?.length ? h.steers : undefined,
             meta: {
@@ -473,10 +518,23 @@ export default function Home() {
               tokenPhases: h.token_phases ?? undefined,
               modelDistribution: h.model_distribution ?? undefined,
             },
-            error: null,
+            error: runState.error,
           };
         });
         const turn = restored[last];
+        const scope = turn.searchState?.source_scope;
+        const restoredMode = scope?.mode ?? turn.sourceMode ?? "web";
+        const documentIds = scope?.document_ids ?? scope?.documents.map((document) => document.document_id) ?? [];
+        const restoredSelection = scope?.selection ?? (documentIds.length > 0 ? "documents" : "library");
+        restoreSourceSelection({
+          mode: restoredMode,
+          ...(restoredMode !== "web" && scope?.library_id
+              && (restoredMode === "local" || documentIds.length > 0) ? {
+            local: { library_id: scope.library_id,
+              document_ids: restoredSelection === "documents" ? documentIds : [],
+              selection: restoredSelection, model_access: true as const },
+          } : {}),
+        });
         setDrawerTurnId(null);
         setSelectedFile(null);
         setTurns(restored);
@@ -503,7 +561,7 @@ export default function Home() {
         setHistoryLoadingId(null);
       }
     },
-    [turns, reset, attach, refreshHistory, history, notify],
+    [turns, reset, attach, refreshHistory, history, notify, restoreSourceSelection],
   );
 
   const handleBranchTurn = useCallback(async (turnId: string, focusComposer: boolean) => {
@@ -603,7 +661,7 @@ export default function Home() {
     const items = source.map((h) => ({
       id: h.session_id,
       title: h.title,
-      status: (h.status === "incomplete" ? "completed" : h.status) as "running" | "completed" | "error",
+      status: restoredRunState(h.status).status,
       coverageScore: h.coverage_score,
       updatedAt: h.updated_at,
       project: h.project,
@@ -651,7 +709,7 @@ export default function Home() {
 
   return (
     <div
-      className={`grid h-[100dvh] grid-cols-[minmax(0,1fr)] min-[1180px]:grid-cols-[var(--rail-width)_minmax(0,1fr)_var(--drawer-width)] ${drawerResizing ? "" : "transition-[grid-template-columns] duration-300 ease-out"}`}
+      className={`grid h-[100dvh] grid-rows-[minmax(0,1fr)] overflow-hidden grid-cols-[minmax(0,1fr)] min-[1180px]:grid-cols-[var(--rail-width)_minmax(0,1fr)_var(--drawer-width)] ${drawerResizing ? "" : "transition-[grid-template-columns] duration-300 ease-out"}`}
       style={{
         "--rail-width": railCollapsed ? "56px" : "264px",
         "--drawer-width": drawerOpen
@@ -663,13 +721,13 @@ export default function Home() {
         <button
           type="button"
           aria-label="Close navigation"
-          onClick={() => setMobileRailOpen(false)}
+          onClick={closeMobileRail}
           className="fade-in fixed inset-0 z-40 bg-ink/20 min-[1180px]:hidden dark:bg-black/50"
         />
       )}
 
       <aside
-        className={`${
+        className={`min-h-0 overflow-hidden ${
           mobileRailOpen
             ? "fixed inset-y-0 left-0 z-50 block w-[min(320px,88vw)] bg-paper shadow-2xl"
             : "hidden"
@@ -684,6 +742,7 @@ export default function Home() {
           onSelect={(id) => { setMobileRailOpen(false); void handleSelect(id); }}
           onUpdateAssets={(id, patch) => { void handleUpdateHistoryAssets(id, patch); }}
           onDelete={(id) => { void handleDelete(id); }}
+          onOpenKnowledgeBase={() => { setMobileRailOpen(false); setKnowledgeBaseOpen(true); }}
           projects={projectFacets}
           tags={tagFacets}
           assetCounts={assetCounts}
@@ -698,9 +757,10 @@ export default function Home() {
         />
       </aside>
 
-      <main className="relative min-w-0 overflow-hidden">
+      <main className="relative min-h-0 min-w-0 overflow-hidden">
         <div className="fixed inset-x-0 top-0 z-30 flex h-12 items-center gap-2 border-b border-line bg-paper/95 px-3 backdrop-blur-sm min-[1180px]:hidden">
           <button
+            ref={mobileRailTriggerRef}
             type="button"
             aria-label="Open navigation"
             onClick={() => setMobileRailOpen(true)}
@@ -711,7 +771,7 @@ export default function Home() {
           <span className="wordmark text-[16px]">SearchOS</span>
         </div>
         {turns.length === 0 ? (
-          <Landing onSubmit={handleSubmit} error={session.error} />
+          <Landing onSubmit={handleSubmit} error={session.error} localLibrary={localLibrary} />
         ) : (
           <Conversation
             turns={turns}
@@ -726,11 +786,13 @@ export default function Home() {
             onOpenDrawer={handleOpenDrawer}
             focusRequest={composerFocusRequest}
             registerTurnRef={(id, el) => { turnRefs.current[id] = el; }}
+            localLibrary={localLibrary}
+            onOpenLocalSource={setLocalSourceRef}
           />
         )}
       </main>
 
-      <div className={`${drawerTurn ? "fixed inset-0 z-40" : "hidden"} min-w-0 overflow-hidden min-[1180px]:static min-[1180px]:z-auto min-[1180px]:block`}>
+      <div className={`${drawerTurn ? "fixed inset-0 z-40" : "hidden"} min-h-0 min-w-0 overflow-hidden min-[1180px]:static min-[1180px]:z-auto min-[1180px]:block`}>
         {drawerTurn && (
           <ExecutionDrawer
             turn={drawerTurn}
@@ -761,6 +823,7 @@ export default function Home() {
             onReverifyEvidence={drawerEditable
               ? (target) => handleRepair(drawerTurn, [target])
               : undefined}
+            onOpenLocalSource={setLocalSourceRef}
             onSelectTurn={handleOpenDrawer}
             onBranchTurn={sessionActive ? undefined : handleBranchTurn}
             branchingTurnId={branchingTurnId}
@@ -771,6 +834,8 @@ export default function Home() {
       </div>
 
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+      {knowledgeBaseOpen && <KnowledgeBasePanel controller={localLibrary} onClose={() => setKnowledgeBaseOpen(false)} />}
+      {localSourceRef && <SourcePanel key={localSourceRef} refId={localSourceRef} onClose={() => setLocalSourceRef(null)} />}
     </div>
   );
 }

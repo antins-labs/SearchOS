@@ -1,0 +1,21 @@
+{
+  "description": "Fetches product information from Instant Gaming product pages including price, discount, availability, platform, and region options.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_product_info: 获取单个产品页面的详细信息，需要提供url参数; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "Instant Gaming产品页面的完整URL (用于get_product_info功能)"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

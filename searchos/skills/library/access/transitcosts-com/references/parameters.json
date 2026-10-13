@@ -1,0 +1,44 @@
+{
+  "description": "Fetches transit infrastructure project data (construction details, costs, references) from the Transit Costs Project database at transitcosts.com.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_project: Get detailed information for a specific transit project by URL; 参数: url; 必填: url\n  - list_projects: List all transit projects with optional city/country filters; 参数: limit, city, country; 必填: 无\n  - search_projects: Search projects by name with optional filters; 参数: limit, query, city, country; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Project page URL from transitcosts.com (required for get_project function)."
+    },
+    "limit": {
+      "type": "integer",
+      "default": 50,
+      "required": false,
+      "description": "Maximum number of results to return (for list_projects and search_projects)."
+    },
+    "city": {
+      "type": "string",
+      "required": false,
+      "description": "Filter results by city name (for list_projects and search_projects)."
+    },
+    "country": {
+      "type": "string",
+      "required": false,
+      "description": "Filter results by country code (e.g., US, CN, UK) for list_projects and search_projects."
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query for project name (required for search_projects)."
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

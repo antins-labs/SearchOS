@@ -10,6 +10,9 @@ import CoverageTable from "@/components/coverage/CoverageTable";
 import ResultExportMenu from "@/components/coverage/ResultExportMenu";
 import type { Turn } from "@/lib/conversation";
 import type { CoverageCell, RepairCellTarget } from "@/lib/types";
+import type { LocalLibraryController } from "@/hooks/useLocalLibrary";
+import { localCitationLabels } from "@/lib/localCitations";
+import { declaredCoverageTables } from "@/lib/coverageTables";
 
 interface Props {
   turns: Turn[];
@@ -24,9 +27,11 @@ interface Props {
   onOpenDrawer: (turnId: string) => void;
   registerTurnRef?: (id: string, el: HTMLDivElement | null) => void;
   focusRequest?: number;
+  localLibrary: LocalLibraryController;
+  onOpenLocalSource?: (refId: string) => void;
 }
 
-export default function Conversation({ turns, running, reconnecting = false, stopping = false, onSubmit, onSteer, onStop, onRerun, onRepair, onOpenDrawer, registerTurnRef, focusRequest = 0 }: Props) {
+export default function Conversation({ turns, running, reconnecting = false, stopping = false, onSubmit, onSteer, onStop, onRerun, onRepair, onOpenDrawer, registerTurnRef, focusRequest = 0, localLibrary, onOpenLocalSource }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const scrollContentRef = useRef<HTMLDivElement>(null);
@@ -86,6 +91,7 @@ export default function Conversation({ turns, running, reconnecting = false, sto
                 ? () => setComposerFocusRequest((value) => value + 1)
                 : undefined}
               runDisabled={running}
+              onOpenLocalSource={onOpenLocalSource}
               registerRef={registerTurnRef ? (el) => registerTurnRef(t.id, el) : undefined}
             />
           ))}
@@ -105,7 +111,7 @@ export default function Conversation({ turns, running, reconnecting = false, sto
 
       <div className="bg-paper">
         <div className="mx-auto max-w-[760px] px-3 py-3 sm:px-5 min-[1180px]:px-6 min-[1180px]:py-4">
-          <Composer onSubmit={onSubmit} onSteer={onSteer} onStop={onStop} running={running} stopping={stopping} focusRequest={composerFocusRequest + focusRequest} variant="bar" />
+          <Composer onSubmit={onSubmit} localLibrary={localLibrary} onSteer={onSteer} onStop={onStop} running={running} stopping={stopping} focusRequest={composerFocusRequest + focusRequest} variant="bar" />
         </div>
       </div>
     </div>
@@ -120,6 +126,7 @@ function TurnView({
   onRepairCells,
   runDisabled,
   registerRef,
+  onOpenLocalSource,
 }: {
   turn: Turn;
   onOpen: () => void;
@@ -128,17 +135,24 @@ function TurnView({
   onRepairCells?: (cells: RepairCellTarget[]) => void;
   runDisabled: boolean;
   registerRef?: (el: HTMLDivElement | null) => void;
+  onOpenLocalSource?: (refId: string) => void;
 }) {
   const [answerCollapsed, setAnswerCollapsed] = useState(false);
   const done = turn.status === "completed";
   const displayAnswer = cleanAnswer(turn.answer);
   const answerCollapsible = displayAnswer.length > 1600 || displayAnswer.split("\n").length > 28;
-  const hasTable = Object.keys(turn.searchState?.coverage_map?.cells ?? {}).some((k) => !k.startsWith("_"));
+  const hasTable = declaredCoverageTables(turn.searchState?.coverage_map).length > 0;
   const tableStateLabel = turn.stateSource === "snapshot"
     ? "Turn snapshot"
     : turn.stateSource === "latest"
       ? "Latest session state"
       : null;
+  const localSources = Array.from(new Set(
+    (turn.searchState?.evidence_graph?.nodes ?? [])
+      .map((node) => node.source)
+      .filter((source) => source.startsWith("local://")),
+  ));
+  const sourceLabels = localCitationLabels(turn.events, turn.searchState?.evidence_graph?.nodes);
 
   return (
     <div ref={registerRef} className="mb-10 scroll-mt-6 last:mb-2">
@@ -148,18 +162,6 @@ function TurnView({
           {turn.query}
         </div>
       </div>
-
-      {/* live follow-ups steered into this turn mid-run */}
-      {(turn.followUps ?? []).map((f, i) => (
-        <div key={i} className="rise-in -mt-3 mb-6 flex justify-end">
-          <div className="max-w-[80%] rounded-2xl rounded-br-md border border-accent/30 bg-clay/40 px-4 py-2.5">
-            <div className="mb-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-accent-ink">
-              Steered mid-run
-            </div>
-            <div className="text-[14px] leading-relaxed text-ink">{f}</div>
-          </div>
-        </div>
-      ))}
 
       {/* assistant turn */}
       <div className="flex gap-2.5 sm:gap-3.5">
@@ -175,34 +177,51 @@ function TurnView({
                 searchState={turn.searchState}
                 status={turn.status}
                 workers={turn.workers}
+                sourceMode={turn.sourceMode}
                 onOpen={onOpen}
               />
             </div>
           )}
 
           {turn.error && (
-            <p className="mb-4 rounded-lg border border-err/30 bg-err/5 px-3 py-2 text-[13px] text-err">{turn.error}</p>
+            <div role="alert" className="mb-4 rounded-lg border border-err/30 bg-err/5 px-3 py-2 text-[13px] text-err">
+              <p>{turn.error}</p>
+              <button type="button" disabled={runDisabled} onClick={onRerun}
+                className="mt-2 rounded border border-err/30 px-2 py-1 disabled:opacity-50">重新运行</button>
+            </div>
           )}
 
           {turn.repair && (
             <RepairSummary turn={turn} />
           )}
 
-          {done && displayAnswer && (
-            <div className="mb-5">
-              <div className={answerCollapsed ? "max-h-[320px] overflow-hidden" : undefined}>
-                <Answer markdown={displayAnswer} />
+          {displayAnswer && (
+            <div className="mb-5" aria-live="polite" aria-busy={turn.status === "running"}>
+              {turn.status === "error" && <p className="mb-2 text-[12px] text-ink-faint">中断前的输出（非最终回答）</p>}
+              <div className={done && answerCollapsed ? "max-h-[320px] overflow-hidden" : undefined}>
+                <Answer markdown={displayAnswer} localSources={localSources} localSourceLabels={sourceLabels}
+                  evidenceSources={Object.fromEntries((turn.searchState?.evidence_graph?.nodes ?? [])
+                    .filter((node) => !node.status || node.status === "active")
+                    .map((node) => [node.id, node.source]))}
+                  onOpenLocalSource={onOpenLocalSource} />
               </div>
-              <AnswerActions
-                query={turn.query}
-                markdown={displayAnswer}
-                collapsible={answerCollapsible}
-                collapsed={answerCollapsed}
-                onToggleCollapse={() => setAnswerCollapsed((value) => !value)}
-                onRerun={onRerun}
-                onContinue={onContinue}
-                runDisabled={runDisabled}
-              />
+              {done ? (
+                <AnswerActions
+                  query={turn.query}
+                  markdown={displayAnswer}
+                  collapsible={answerCollapsible}
+                  collapsed={answerCollapsed}
+                  onToggleCollapse={() => setAnswerCollapsed((value) => !value)}
+                  onRerun={onRerun}
+                  onContinue={onContinue}
+                  runDisabled={runDisabled}
+                />
+              ) : turn.status === "running" ? (
+                <div className="mt-2 flex items-center gap-1.5 text-[11px] text-ink-faint">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+                  正在生成答案
+                </div>
+              ) : null}
             </div>
           )}
 
@@ -221,6 +240,7 @@ function TurnView({
                   evidence={turn.searchState?.evidence_graph?.nodes ?? []}
                   onRepairCells={onRepairCells}
                   animationScope={turn.id}
+                  onOpenLocalSource={onOpenLocalSource}
                 />
               </div>
             </div>
@@ -228,20 +248,36 @@ function TurnView({
 
           {done && (
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-ink-dim">
-              {typeof turn.meta.coverageScore === "number" && (
+              {typeof turn.meta.coverageScore === "number" && turn.sourceMode !== "hybrid" && (
                 <span>Coverage <b className="font-semibold text-ink">{(turn.meta.coverageScore * 100).toFixed(0)}%</b></span>
               )}
-              {typeof turn.meta.evidenceCount === "number" && (
+              {turn.sourceMode !== "local" && typeof turn.meta.evidenceCount === "number" && (
                 <span>Evidence <b className="font-semibold text-ink">{turn.meta.evidenceCount}</b></span>
               )}
               {typeof turn.meta.elapsed === "number" && (
                 <span>Time <b className="font-semibold text-ink">{turn.meta.elapsed.toFixed(1)}s</b></span>
               )}
-              {turn.meta.verdict && <span className="text-ink-faint">{turn.meta.verdict}</span>}
+              {turn.meta.verdict && turn.sourceMode !== "hybrid" && <span className="text-ink-faint">{turn.meta.verdict}</span>}
             </div>
           )}
         </div>
       </div>
+
+      {/* Keep mid-run messages at the end of their conversation turn. */}
+      {!!turn.followUps?.length && (
+        <div className="mt-6 space-y-3">
+          {turn.followUps.map((followUp, index) => (
+            <div key={index} className="rise-in flex justify-end">
+              <div className="max-w-[90%] rounded-2xl rounded-br-md border border-accent/30 bg-clay/40 px-4 py-2.5 sm:max-w-[80%]">
+                <div className="mb-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-accent-ink">
+                  Steered mid-run
+                </div>
+                <div className="text-[14px] leading-relaxed text-ink">{followUp}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

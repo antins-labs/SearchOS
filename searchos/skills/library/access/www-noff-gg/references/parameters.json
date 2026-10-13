@@ -1,0 +1,21 @@
+{
+  "description": "Fetches Clash Royale card statistics from noff.gg including hitpoints, damage, speed, range, win rate, pick rate, and other stats for both single-entity and multi-entity cards.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_card: 获取指定卡牌的详细数据; 需要 card_name 参数; 参数: card_name; 必填: card_name"
+    },
+    "card_name": {
+      "type": "string",
+      "required": true,
+      "description": "卡牌名称(URL格式)。例如: mega-knight, rascals, pekka, goblin-barrel,  skeleton-army。空格会自动转换为连字符。由 get_card 函数使用。"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

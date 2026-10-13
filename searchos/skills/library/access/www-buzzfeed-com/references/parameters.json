@@ -1,0 +1,26 @@
+{
+  "description": "Extracts structured content from BuzzFeed articles, including checklist items (TV shows, movies, etc.), quiz results, and article metadata from buzzfeed.com.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: Fetch article metadata (title, author, publish date, tags); 参数: url; 必填: url\n  - get_checklist: Extract checklist items from quiz/checklist articles (TV shows, movies, etc.); 参数: url, include_metadata; 必填: url\n  - get_quiz_results: Extract quiz result options from personality quizzes; 参数: url, include_metadata; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "The BuzzFeed article URL. Required for all functions. Example: https://www.buzzfeed.com/hattiesoykan/how-many-of-imdbs-top-100-rated-tv-shows-have-you-seen"
+    },
+    "include_metadata": {
+      "type": "boolean",
+      "required": false,
+      "description": "Whether to include article metadata in the response. Used by get_checklist and get_quiz_results. Default: true."
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

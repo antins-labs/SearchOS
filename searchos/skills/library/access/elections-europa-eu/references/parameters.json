@@ -1,0 +1,32 @@
+{
+  "description": "Retrieves country-specific voting guides from elections.europa.eu, including election dates, registration requirements, polling locations, and voting methods for EU member states.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_country_voting_info: 获取指定欧盟国家的投票指南信息，需要country_code参数; 参数: sections, country_code, language; 必填: 无\n  - list_available_countries: 列出所有可用的欧盟国家代码; 参数: 无; 必填: 无"
+    },
+    "sections": {
+      "type": "array",
+      "required": false,
+      "description": "可选的章节过滤器，只返回问题中包含指定关键词的章节。 例如[\"date\", \"register\", \"deadline\"]只返回关于日期、注册和截止日期的章节。 用于get_country_voting_info功能。"
+    },
+    "country_code": {
+      "type": "string",
+      "required": false,
+      "description": "两字母ISO国家代码（如'fr'法国、'de'德国、'it'意大利、'gr'希腊）。 用于get_country_voting_info功能。"
+    },
+    "language": {
+      "type": "string",
+      "default": "en",
+      "required": false,
+      "description": "语言代码，默认为'en'英语。可选值包括'en'、'fr'、'de'等欧盟官方语言。 用于get_country_voting_info功能。"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

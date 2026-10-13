@@ -1,0 +1,26 @@
+{
+  "description": "Extracts detailed electric vehicle specifications from evspecifications.com model pages, including battery, motor, performance, dimensions, range, charging, and all technical specs.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_model: 获取指定URL的完整规格数据; 需要参数 url; 参数: url; 必填: url\n  - get_section: 获取指定URL中特定类别的规格; 需要参数 url 和 section; 参数: url, section; 必填: section, url\n  - get_key_specs: 获取指定URL的关键规格摘要; 需要参数 url; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "EV Specifications模型页面的完整URL (例如 https://www.evspecifications.com/en/model/53a43ea)\n用于 get_model, get_section, get_key_specs 功能"
+    },
+    "section": {
+      "type": "string",
+      "required": false,
+      "description": "要提取的规格类别关键词 (例如 battery, motor, performance, dimensions, charging, brakes, suspension)\n用于 get_section 功能"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

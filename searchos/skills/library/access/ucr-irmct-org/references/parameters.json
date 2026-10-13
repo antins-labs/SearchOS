@@ -1,0 +1,46 @@
+{
+  "description": "Access UN ICTR/MICT case documents database (ucr.irmct.org) - retrieve case details,  judgments, decisions, orders, transcripts, and other legal documents from International  Criminal Tribunal for Rwanda and Mechanism for International Criminal Tribunals cases.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_case_detail: Get case information (defendant name, case ID); 参数: case_number; 必填: case_number\n  - get_documents: Get documents for a case, optionally filtered by language or type; 参数: case_number, language, doc_type; 必填: case_number\n  - get_documents_by_category: Get documents grouped by document type; 参数: case_number; 必填: case_number\n  - search_documents: Search documents with text query and date filters; 参数: case_number, query, date_from, date_to; 必填: case_number"
+    },
+    "case_number": {
+      "type": "string",
+      "required": true,
+      "description": "Case number in format ICTR-XX-XX or MICT-XX-XX (e.g., \"ICTR-97-23\", \"MICT-13-38\").\nRequired for all functions."
+    },
+    "language": {
+      "type": "string",
+      "required": false,
+      "description": "Language filter for documents. Values: ENG (English), FRA (French), \nKIN (Kinyarwanda), HBS (Bosnian/Croatian/Serbian), OTH (Other).\nUsed by get_documents function."
+    },
+    "doc_type": {
+      "type": "string",
+      "required": false,
+      "description": "Document type filter. Common values: Jdg (Judgement), Dec (Decision), \nOrd (Order), TRA (Transcript), IND (Indictment), MOT (Motion), \nAPP (Application), WIT (Witness List). Used by get_documents function."
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Text search query to filter documents by title. Used by search_documents function."
+    },
+    "date_from": {
+      "type": "string",
+      "required": false,
+      "description": "Start date filter in DD/MM/YYYY format. Used by search_documents function."
+    },
+    "date_to": {
+      "type": "string",
+      "required": false,
+      "description": "End date filter in DD/MM/YYYY format. Used by search_documents function."
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "description": "Extracts structured visa exemption agreement data from the Chinese Ministry of  Foreign Affairs (www.mfa.gov.cn), including the complete list of countries with  mutual visa-free agreements, passport types covered, and effective dates.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_visa_agreements: 获取完整的中外互免签证协定一览表; 参数: url; 必填: 无\n  - search_by_country: 按国家名称查询签证协定信息; 参数: country, url; 必填: 无\n  - get_by_passport_type: 按护照类型查询免签国家列表; 参数: passport_type, url; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "可选，指定要抓取的页面URL。默认使用最新的签证协定一览表页面。"
+    },
+    "country": {
+      "type": "string",
+      "required": false,
+      "description": "国家名称（中文），用于 search_by_country 功能。支持部分匹配。\n例如: \"阿尔巴尼亚\", \"美国\", \"日本\""
+    },
+    "passport_type": {
+      "type": "string",
+      "required": false,
+      "description": "护照类型，用于 get_by_passport_type 功能。支持以下值:\n  - 普通护照 / 普通 / ordinary\n  - 外交护照 / 外交 / diplomatic\n  - 公务护照 / 公务 / official\n  - 公务普通护照 / 公务普通"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

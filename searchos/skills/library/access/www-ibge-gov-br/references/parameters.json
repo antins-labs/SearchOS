@@ -1,0 +1,31 @@
+{
+  "description": "Fetches official Brazilian municipality statistics from IBGE (Instituto Brasileiro de Geografia e Estatística) including population, area, demographics, and administrative data using the public API.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - search_municipalities: Search for municipalities by name (requires: query); 参数: query; 必填: 无\n  - get_municipality: Get municipality details by ID (requires: municipality_id); 参数: municipality_id; 必填: 无\n  - get_municipality_statistics: Get statistics for a municipality (requires: municipality_id); 参数: municipality_id; 必填: 无\n  - get_municipality_full: Get complete data including location and statistics (requires: municipality_id); 参数: municipality_id; 必填: 无\n  - get_state_municipalities: Get all municipalities for a state (requires: state); 参数: state; 必填: 无\n  - get_states: Get all Brazilian states (no additional params required); 参数: 无; 必填: 无"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query for municipality name (used by search_municipalities)"
+    },
+    "municipality_id": {
+      "type": "integer",
+      "required": false,
+      "description": "IBGE municipality ID (7-digit code, e.g., 5215801 for Palmelo-GO)"
+    },
+    "state": {
+      "type": "string",
+      "required": false,
+      "description": "Brazilian state abbreviation (e.g., GO, SP, RJ) for get_state_municipalities"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

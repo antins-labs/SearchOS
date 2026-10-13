@@ -1,0 +1,21 @@
+{
+  "description": "Extracts articles, NBA news, and player information from Yahoo Sports (sports.yahoo.com).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 从Yahoo Sports文章URL提取标题、描述、作者、关键词等; 参数: url; 必填: url\n  - get_nba_news: 获取NBA新闻页面文章列表; 参数: 无; 必填: 无\n  - get_nba_players: 获取NBA球员页面列表; 参数: 无; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Yahoo Sports文章URL (get_article使用)"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

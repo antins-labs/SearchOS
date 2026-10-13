@@ -1,0 +1,46 @@
+{
+  "description": "Fetches best paper awards data from jeffhuang.com - a comprehensive database of 1900+ best paper awards from top computer science conferences (1996-2026).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_all_papers: 获取所有最佳论文奖数据，支持分页; 参数: limit, offset; 必填: 无\n  - get_papers_by_conference: 获取指定会议的最佳论文奖; 参数: conference, limit, offset; 必填: conference\n  - get_papers_by_year: 获取指定年份的最佳论文奖; 参数: year, limit, offset; 必填: year\n  - search_papers: 按标题或作者关键词搜索论文; 参数: search_in, limit, offset, query; 必填: 无\n  - get_statistics: 获取数据库统计信息; 参数: 无; 必填: 无\n  - get_conferences: 获取所有会议列表; 参数: 无; 必填: 无"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果数量限制，用于分页。\n默认返回所有匹配结果。"
+    },
+    "offset": {
+      "type": "integer",
+      "required": false,
+      "description": "结果偏移量，用于分页。\n默认为 0。"
+    },
+    "conference": {
+      "type": "string",
+      "required": false,
+      "description": "会议缩写（大写），用于 get_papers_by_conference。\n示例: AAAI, ICML, NeurIPS, CVPR, CHI, ICSE, SIGMOD 等"
+    },
+    "year": {
+      "type": "string",
+      "required": false,
+      "description": "年份，用于 get_papers_by_year。\n范围: 1996-2026"
+    },
+    "search_in": {
+      "type": "string",
+      "required": false,
+      "description": "搜索范围，用于 search_papers。\n可选值: title（仅标题）, authors（仅作者）, all（全部，默认）"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于 search_papers。\n支持标题或作者名搜索。"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

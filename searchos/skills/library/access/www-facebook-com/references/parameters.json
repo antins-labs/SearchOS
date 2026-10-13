@@ -1,0 +1,27 @@
+{
+  "description": "Extracts post content and metadata from Facebook posts (group posts, page posts, user posts) using Open Graph metadata from the mobile endpoint.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_post: 获取Facebook帖子的内容和元数据，需要url参数; 参数: url, timeout; 必填: url\n  - parse_url: 解析Facebook URL提取帖子类型和ID，需要url参数; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "Facebook帖子URL，支持多种格式包括群组帖子、主页帖子、用户帖子等"
+    },
+    "timeout": {
+      "type": "integer",
+      "default": 30000,
+      "required": false,
+      "description": "请求超时时间（毫秒），默认30000"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

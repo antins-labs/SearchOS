@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Bot, Clock3, DatabaseZap, Search, Sparkles, Workflow } from "lucide-react";
 
 import type { Turn } from "@/lib/conversation";
@@ -13,6 +14,17 @@ const compactNumber = (value: number) => new Intl.NumberFormat("en", {
 const durationLabel = (seconds: number) => seconds >= 60
   ? `${Math.floor(seconds / 60)}m ${Math.round(seconds % 60)}s`
   : `${seconds.toFixed(seconds < 10 ? 1 : 0)}s`;
+
+function ElapsedValue({ seconds, startedAt, running }: { seconds: number; startedAt?: number; running: boolean }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!running || !startedAt) return;
+    const timer = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(timer);
+  }, [running, startedAt]);
+  const elapsed = running && startedAt ? Math.max(0, (now - startedAt) / 1000) : seconds;
+  return <>{elapsed ? durationLabel(elapsed) : "--"}</>;
+}
 
 function recordOf(event: WSEvent): Record<string, unknown> {
   return event.type === "trajectory"
@@ -51,6 +63,8 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
   const queryCount = turn.meta.totalQueries ?? tools.search ?? 0;
   const totalTokens = usage?.total_tokens ?? 0;
   const calls = usage?.llm_calls ?? 0;
+  const cacheRate = usage && usage.prompt_tokens > 0
+    ? (usage.cached_prompt_tokens ?? 0) / usage.prompt_tokens : 0;
   const elapsed = turn.meta.elapsed ?? 0;
   const byRole = Object.entries(usage?.by_role ?? {}).sort((a, b) => (
     (b[1].prompt_tokens + b[1].completion_tokens) - (a[1].prompt_tokens + a[1].completion_tokens)
@@ -62,9 +76,9 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
       name: worker.name,
       status: worker.status,
       steps: Object.values(counts).reduce((sum, count) => sum + count, 0),
-      searches: counts.search ?? 0,
-      opens: counts.open ?? 0,
-      finds: counts.find ?? 0,
+      searches: (counts.search ?? 0) + (counts.local_catalog ?? 0),
+      opens: (counts.open ?? 0) + (counts.local_open ?? 0),
+      finds: (counts.find ?? 0) + (counts.local_find ?? 0),
       duration: agentDuration(worker.events),
     };
   });
@@ -73,10 +87,10 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
     <div className="min-w-0">
       <div className="grid grid-cols-2 border-b border-line sm:grid-cols-4">
         {[
-          { label: "Tokens", value: totalTokens ? compactNumber(totalTokens) : "--", icon: Sparkles },
-          { label: "LLM calls", value: calls ? compactNumber(calls) : "--", icon: Bot },
+          { label: "Tokens", value: usage ? compactNumber(totalTokens) : "--", icon: Sparkles },
+          { label: "LLM calls", value: usage ? compactNumber(calls) : "--", icon: Bot },
           { label: "Searches", value: compactNumber(queryCount), icon: Search },
-          { label: "Elapsed", value: elapsed ? durationLabel(elapsed) : "--", icon: Clock3 },
+          { label: "Elapsed", value: <ElapsedValue seconds={elapsed} startedAt={turn.meta.startedAt} running={turn.status === "running"} />, icon: Clock3 },
         ].map(({ label, value, icon: Icon }) => (
           <div key={label} className="border-b border-line px-4 py-3 odd:border-r sm:border-b-0 sm:border-r sm:last:border-r-0">
             <Icon className="mb-2 text-accent-ink" size={15} />
@@ -92,8 +106,8 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
             <span>Prompt <b className="font-medium text-ink">{compactNumber(usage.prompt_tokens)}</b></span>
             <span>Completion <b className="font-medium text-ink">{compactNumber(usage.completion_tokens)}</b></span>
             <span>Cached <b className="font-medium text-ink">{compactNumber(usage.cached_prompt_tokens ?? 0)}</b></span>
-            {typeof usage.cache_hit_rate === "number" && (
-              <span>Cache hit <b className="font-medium text-ink">{Math.round(usage.cache_hit_rate * 100)}%</b></span>
+            {usage.prompt_tokens > 0 && (
+              <span title="Cached input tokens divided by input tokens across all roles">Input cache hit <b className="font-medium text-ink">{Math.round(cacheRate * 100)}%</b></span>
             )}
           </div>
         </div>
@@ -107,7 +121,7 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
           </div>
           <div className="flex items-center gap-2.5 text-[9.5px] text-ink-faint" aria-label="Token bar legend">
             <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-ok" />Cached</span>
-            <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-accent" />Uncached</span>
+            <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-accent" />Other tokens</span>
           </div>
         </div>
         {byRole.length ? (
@@ -117,7 +131,7 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
               const cachedTokens = Math.min(roleUsage.cached_prompt_tokens ?? 0, roleUsage.prompt_tokens, roleTokens);
               const cacheRate = roleUsage.prompt_tokens > 0 ? cachedTokens / roleUsage.prompt_tokens : 0;
               const model = turn.meta.modelDistribution?.[role];
-              const width = totalTokens ? Math.max(3, (roleTokens / totalTokens) * 100) : 0;
+              const width = totalTokens ? Math.min(100, (roleTokens / totalTokens) * 100) : 0;
               const cachedWidth = roleTokens ? (cachedTokens / roleTokens) * 100 : 0;
               return (
                 <div key={role} className="px-4 py-2.5">
@@ -158,6 +172,7 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
             <Workflow className="text-accent-ink" size={14} />
             <h3 id="phase-usage-title" className="text-[12px] font-semibold uppercase tracking-wider text-ink-dim">Phases</h3>
           </div>
+          <p className="mb-2 text-[10px] text-ink-faint">Time windows across all roles; included in the total above.</p>
           <div className="space-y-2">
             {phases.map(([phase, value]) => (
               <div key={phase} className="flex items-center justify-between gap-3 text-[12px]">
@@ -183,7 +198,7 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
                   <div className="mt-0.5 text-ink-faint">{agent.status}{agent.duration != null ? ` · ${durationLabel(agent.duration)}` : ""}</div>
                 </div>
                 <div className="shrink-0 text-right tabular-nums text-ink-dim">
-                  <div>{agent.searches} search · {agent.opens} open · {agent.finds} find</div>
+                  <div>{agent.searches} search/catalog · {agent.opens} open · {agent.finds} find</div>
                   <div className="text-[10px] text-ink-faint">{agent.steps} tool steps</div>
                 </div>
               </div>

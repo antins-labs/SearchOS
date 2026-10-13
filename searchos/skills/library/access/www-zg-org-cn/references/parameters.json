@@ -1,0 +1,38 @@
+{
+  "description": "Fetch leadership information and news from China Zhi Gong Party (致公党) official website (www.zg.org.cn), including current and historical leadership profiles, detailed biographies, and central news articles.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_current_leadership: 获取现任领导列表（第十六届）; 参数: 无; 必填: 无\n  - get_leader_profile: 获取领导人详细简历（需要profile_url参数）; 参数: profile_url; 必填: 无\n  - get_central_news: 获取中央要闻列表（可选limit参数限制数量）; 参数: limit; 必填: 无\n  - get_article: 获取新闻文章详情（需要article_url参数）; 参数: article_url; 必填: 无\n  - get_leadership_history: 获取历届领导列表索引; 参数: 无; 必填: 无\n  - get_term_leadership: 获取指定届别领导列表（需要term_url参数）; 参数: term_url; 必填: 无"
+    },
+    "profile_url": {
+      "type": "string",
+      "required": false,
+      "description": "领导人个人主页URL，用于get_leader_profile功能"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回新闻数量限制，用于get_central_news功能，默认10条"
+    },
+    "article_url": {
+      "type": "string",
+      "required": false,
+      "description": "新闻文章URL，用于get_article功能"
+    },
+    "term_url": {
+      "type": "string",
+      "required": false,
+      "description": "指定届别领导页面URL，用于get_term_leadership功能"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "description": "Fetches dictionary entries from indochine.uqam.ca, a scholarly historical dictionary on the Indochina War (1945-1956) maintained by UQAM.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_entry: Fetches a specific dictionary entry by URL; requires url parameter; 参数: url, article_id, lang; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full URL to the dictionary entry (e.g., https://indochine.uqam.ca/en/historical-dictionary/320-coup-de-force-of-9-march-1945.html). Required for get_entry."
+    },
+    "article_id": {
+      "type": "integer",
+      "required": false,
+      "description": "Numeric article ID from URL path (e.g., 320). Cannot be used alone; full URL required."
+    },
+    "lang": {
+      "type": "string",
+      "required": false,
+      "description": "Language code - \"fr\" for French (le-dictionnaire) or \"en\" for English (historical-dictionary). Auto-detected from URL if not specified."
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

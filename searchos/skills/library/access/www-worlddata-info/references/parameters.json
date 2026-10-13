@@ -1,0 +1,31 @@
+{
+  "description": "Fetches volcanic activity statistics and volcano information from WorldData.info, including country-specific volcano data, global eruption records, and latest activity.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_country_volcanoes: 获取指定国家的火山数据，需提供country参数，可选region参数; 参数: country, region; 必填: 无\n  - get_global_eruptions: 获取全球最强火山喷发记录，可选limit参数限制返回数量; 参数: limit; 必填: 无\n  - get_latest_activity: 获取全球最新火山活动，可选limit参数限制返回数量; 参数: limit; 必填: 无"
+    },
+    "country": {
+      "type": "string",
+      "required": false,
+      "description": "国家名称（如 chile, ecuador, colombia, japan），用于 get_country_volcanoes"
+    },
+    "region": {
+      "type": "string",
+      "required": false,
+      "description": "地区名称（如 america, asia, europe），用于 get_country_volcanoes，不提供时自动尝试常见地区"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "限制返回记录数量，用于 get_global_eruptions 和 get_latest_activity"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

@@ -2,10 +2,9 @@
 
 Two halves, kept together because every spawn touches both:
 
-1. **ReAct factory** (``create_search_agent_graph``) — the one deepagents loop
-   the whole Harness revolves around. ``_neutralize_deepagents_builtins`` strips
-   deepagents' built-in task / filesystem / todo / summarization surfaces so the
-   model only sees SearchOS's purpose-built tools.
+1. **ReAct factory** (``create_search_agent_graph``) — explicit LangChain
+   middleware assembly on the LangGraph ReAct loop. Business mechanisms run
+   only when the caller loads them.
 
 2. **Runtime context** (``_ctx`` / ``set_orchestrator_context``) — the ContextVars
    that bind one session run to its workspace, models, task pool, and scheduler.
@@ -17,13 +16,15 @@ Paper §Agent: "Model 比静态图更善于决定'下一步做什么'——Harne
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
 from contextvars import ContextVar
-from typing import Any, Sequence
+from typing import Any
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.tools import BaseTool
 from langgraph.checkpoint.memory import MemorySaver
 
+from searchos.harness.steering import SteerQueue
 from searchos.socm.workspace import WorkspaceManager
 
 logger = logging.getLogger(__name__)
@@ -32,68 +33,6 @@ logger = logging.getLogger(__name__)
 # ===========================================================================
 # Part 1 — ReAct loop factory
 # ===========================================================================
-
-def _neutralize_deepagents_builtins() -> None:
-    """Strip deepagents' built-in Deep-Agent preamble and `task`-tool framework.
-
-    Our orchestrator already has its own dispatch for worker spawning; the
-    built-in `task` tool let sub-agents spawn their own `general-purpose`
-    sub-sub-agents, which (a) blocked the outer ReAct loop for 2-3 minutes
-    each invocation and (b) broke scope isolation by running with the full
-    tool suite outside our middleware stack. Neutralizing four surfaces:
-
-    1. ``BASE_AGENT_PROMPT`` — the "You are a Deep Agent..." preamble that
-       deepagents appends after every caller-supplied system_prompt.
-    2. ``SubAgentMiddleware.(a)wrap_model_call`` — normally injects
-       ``TASK_SYSTEM_PROMPT`` + the list of available subagents.
-    3. The ``task`` tool itself — stripped per-agent via
-       ``_ToolExclusionMiddleware`` inside ``create_search_agent_graph``.
-    4. ``FilesystemMiddleware`` system prompt — injects a prompt listing
-       ``read_file``, ``write_file``, etc. even though we strip those tools.
-       The prompt-only leak causes the LLM to hallucinate tool calls that
-       don't exist, resulting in 400 errors. We blank the template so the
-       middleware still runs (it handles message eviction), but no filesystem
-       tool descriptions reach the model.
-    """
-    import deepagents.graph as _dgraph
-    import deepagents.middleware.subagents as _dsub
-    import deepagents.middleware.async_subagents as _dasub
-    import deepagents.middleware.filesystem as _dfs
-    import deepagents.middleware.summarization as _dsum
-    from langchain.agents.middleware import todo as _dtodo
-
-    _dgraph.BASE_AGENT_PROMPT = ""
-
-    def _noop_wrap(self, request, handler):
-        return handler(request)
-
-    async def _noop_awrap(self, request, handler):
-        return await handler(request)
-
-    # SubAgentMiddleware: TASK_SYSTEM_PROMPT (`task` tool) — excluded.
-    _dsub.SubAgentMiddleware.wrap_model_call = _noop_wrap
-    _dsub.SubAgentMiddleware.awrap_model_call = _noop_awrap
-
-    # AsyncSubAgentMiddleware: ASYNC_TASK_SYSTEM_PROMPT — same story.
-    _dasub.AsyncSubAgentMiddleware.wrap_model_call = _noop_wrap
-    _dasub.AsyncSubAgentMiddleware.awrap_model_call = _noop_awrap
-
-    # FilesystemMiddleware: ls/read/write/edit/glob/grep/execute — excluded.
-    _dfs._FILESYSTEM_SYSTEM_PROMPT_TEMPLATE = ""
-    _dfs.EXECUTION_SYSTEM_PROMPT = ""
-
-    # TodoListMiddleware: `write_todos` — excluded.
-    _dtodo.WRITE_TODOS_SYSTEM_PROMPT = ""
-    _dtodo.TodoListMiddleware.wrap_model_call = _noop_wrap
-    _dtodo.TodoListMiddleware.awrap_model_call = _noop_awrap
-
-    # SummarizationToolMiddleware: `compact_conversation` — excluded.
-    _dsum.SUMMARIZATION_SYSTEM_PROMPT = ""
-    _dsum.SummarizationToolMiddleware.wrap_model_call = _noop_wrap
-    _dsum.SummarizationToolMiddleware.awrap_model_call = _noop_awrap
-
-
-_neutralize_deepagents_builtins()
 
 
 def create_search_agent_graph(
@@ -108,83 +47,162 @@ def create_search_agent_graph(
     checkpointer: Any = None,
     state_schema: type | None = None,
     name: str = "search_agent",
+    control: Any = None,
+    drain_tools: frozenset[str] = frozenset(),
+    finish_without_tools: bool = True,
+    policy: Any = None,
+    workspace: Any = None,
+    trajectory_logger: Any = None,
+    conversation_logger: Any = None,
+    agent_id: str | None = None,
+    emit_tool_started: bool = False,
+    image_fallback: bool | None = None,
 ) -> Any:
-    """Create a deepagents-powered search agent graph.
+    """Create an explicitly assembled search agent graph.
 
-    This is the single loop the entire Harness revolves around. The Harness
-    middleware (Context → Sensor → Extraction) is composed as the outermost
-    middleware via ``build_layered_stack``.
+    Callers supply concrete middleware instances in execution order.
 
     Args:
         model: LLM (BaseChatModel).
         tools: LangChain tools.
         system_prompt: Backbone system prompt.
-        middleware: AgentMiddleware instances, in layer order.
-        subagents: SubAgent specs (a disabled ``general-purpose`` stub is
-            auto-inserted to suppress deepagents' default).
+        middleware: AgentMiddleware instances, outermost first.
+        subagents: Explicit optional SubAgent specs; no default agent is inserted.
         skills: Paths to skill .md files for SkillsMiddleware.
         backend: Code execution / filesystem sandbox backend.
         checkpointer: LangGraph checkpointer (defaults to in-memory).
         state_schema: Custom state schema.
         name: Agent name for logging.
+        control: Shared control state; inferred from middleware when omitted.
+        drain_tools: Tools allowed while finishing after a stop signal.
+        finish_without_tools: Convert tool requests into a final reply after stop.
+        policy: Optional role policy for model and tool invocation.
+        workspace: Workspace used to record state changes.
+        trajectory_logger: Session trajectory recorder, independent of middleware.
+        conversation_logger: Session recorder for injected context messages.
+        agent_id: Identity for recorded events; defaults to name.
+        emit_tool_started: Record tool start events as well as completed calls.
+        image_fallback: Retry unsupported image inputs as text. None follows
+            the run configuration's automatic image-reading setting.
 
     Returns:
-        Compiled LangGraph StateGraph.
+        Runnable graph with state inspection and automatic cleanup of loaded resources.
     """
-    from deepagents import create_deep_agent
-    from deepagents.middleware._tool_exclusion import _ToolExclusionMiddleware
+    from langchain.agents import create_agent
+
+    from searchos.harness.middleware.context.compaction_context_middleware import (
+        CompactionContextMiddleware,
+    )
+    from searchos.harness.middleware.sensor.budget_middleware import BudgetMiddleware
+
+    compaction_position = next(
+        (i for i, item in enumerate(middleware) if isinstance(item, CompactionContextMiddleware)),
+        len(middleware),
+    )
+    if any(isinstance(item, BudgetMiddleware) for item in middleware[compaction_position + 1 :]):
+        raise ValueError(
+            "Place BudgetMiddleware before CompactionContextMiddleware "
+            "to checkpoint usage before deleting history"
+        )
 
     if checkpointer is None:
         checkpointer = MemorySaver()
-
     prompt = system_prompt or "You are a search agent."
+    optional_middleware: list[Any] = []
+    if skills or subagents:
+        from deepagents.backends import StateBackend
 
-    # Stub `general-purpose` subagent: presence (by name) prevents deepagents
-    # from auto-injecting its default one. `tools=[]` makes the stub a no-op
-    # even if invoked — which can't happen since `task` is stripped below.
-    effective_subagents: list[Any] = list(subagents) if subagents else []
-    if not any(s.get("name") == "general-purpose" for s in effective_subagents):
-        effective_subagents.insert(0, {
-            "name": "general-purpose",
-            "description": "(disabled in SearchOS — use the orchestrator's dispatch instead)",
-            "system_prompt": "",
-            "tools": [],
-        })
+        if backend is None:
 
-    # Strip every tool deepagents auto-injects via its default middleware
-    # stack — SearchOS already has purpose-built replacements and doesn't
-    # want the LLM wandering into deepagents' virtual filesystem, shell
-    # execute, or scratchpad todo list. We keep the middleware installed
-    # (deepagents wires state/backend through it); we just filter the tools
-    # off the model-facing list.
-    _DEEPAGENTS_INJECTED_TOOLS = frozenset({
-        "task",                  # SubAgentMiddleware
-        "write_todos",           # TodoListMiddleware
-        "compact_conversation",  # SummarizationMiddleware
-        "ls", "read_file", "write_file", "edit_file",
-        "glob", "grep", "execute",   # FilesystemMiddleware
-    })
-    effective_middleware: list[Any] = list(middleware) + [
-        _ToolExclusionMiddleware(excluded=_DEEPAGENTS_INJECTED_TOOLS),
-    ]
+            def backend(runtime):
+                return StateBackend(runtime)
 
-    graph = create_deep_agent(
+        if skills:
+            from deepagents.middleware.skills import SkillsMiddleware
+
+            optional_middleware.append(SkillsMiddleware(backend=backend, sources=skills))
+        if subagents:
+            from deepagents.middleware.subagents import SubAgentMiddleware
+
+            specs = [dict(spec) for spec in subagents]
+            for spec in specs:
+                if "runnable" not in spec:
+                    spec.setdefault("model", model)
+                    spec.setdefault("tools", list(tools))
+            optional_middleware.append(
+                SubAgentMiddleware(backend=backend, subagents=specs, state_schema=state_schema)
+            )
+
+    from searchos.agents.execution import (
+        ControlExecutor,
+        _BeforeModel,
+        _ExecutionHooks,
+        _ManagedGraph,
+        _RecordingHooks,
+        bind_controls,
+        loaded_resources,
+    )
+
+    control = bind_controls(middleware, control)
+    if image_fallback is None:
+        from searchos.config.run_config import current_run_config
+
+        config = current_run_config()
+        image_fallback = config.enable_web_image_read and config.web_image_read_mode == "auto"
+    executor = ControlExecutor(
+        control,
+        drain_tools=drain_tools,
+        finish_without_tools=finish_without_tools,
+    )
+    resources = loaded_resources(middleware)
+    recorder = None
+    if trajectory_logger is not None or conversation_logger is not None:
+        from searchos.harness.telemetry.recording import AgentRecorder
+
+        recorder = AgentRecorder(
+            trajectory_logger,
+            agent_id=agent_id or name,
+            workspace=workspace,
+            emit_started=emit_tool_started,
+            conversation_logger=conversation_logger,
+        )
+    effective_middleware: list[Any] = (
+        ([_BeforeModel(resources)] if resources else [])
+        + optional_middleware
+        + list(middleware)
+        + [
+            _ExecutionHooks(
+                executor, policy=policy, image_fallback=image_fallback, recorder=recorder
+            ),
+        ]
+    )
+    if trajectory_logger is not None:
+        effective_middleware.insert(0, _RecordingHooks(recorder))
+
+    graph = create_agent(
         model=model,
         tools=list(tools),
         system_prompt=prompt,
         middleware=effective_middleware,
-        subagents=effective_subagents,
-        skills=skills,
-        backend=backend,
         checkpointer=checkpointer,
-        context_schema=state_schema,
+        state_schema=state_schema,
         name=name,
-    )
+    ).with_config({"recursion_limit": 9999})
 
     logger.info(
         "Created search agent graph '%s' with %d tools, %d middleware, %s skills",
-        name, len(tools), len(middleware), len(skills) if skills else 0,
+        name,
+        len(tools),
+        len(middleware),
+        len(skills) if skills else 0,
     )
+    graph.middleware = list(middleware)
+    graph.control = control
+    graph.policy = policy
+    if resources:
+        from searchos.config.settings import settings
+
+        return _ManagedGraph(graph, resources, settings.extraction_finalize_timeout_s)
     return graph
 
 
@@ -198,39 +216,41 @@ _judge_model_var: ContextVar[BaseChatModel | None] = ContextVar("so_orch_judge",
 _extraction_model_var: ContextVar[BaseChatModel | None] = ContextVar(
     "so_orch_extraction", default=None
 )
-_alias_resolver_model_var: ContextVar[BaseChatModel | None] = ContextVar(
-    "so_orch_alias_resolver", default=None
-)
 _sub_agent_model_var: ContextVar[BaseChatModel | None] = ContextVar(
     "so_orch_sub_agent", default=None
 )
-_skill_runtime_model_var: ContextVar[BaseChatModel | None] = ContextVar(
-    "so_orch_skill_runtime", default=None
+_synthesis_model_var: ContextVar[BaseChatModel | None] = ContextVar(
+    "so_orch_synthesis", default=None
 )
 _skill_evolver_model_var: ContextVar[BaseChatModel | None] = ContextVar(
-    "so_skill_evolver_model", default=None,
+    "so_skill_evolver_model",
+    default=None,
 )
 # "post_mortem" role model — distills FailureMemory records from failed
 # sub-agent traces. When None, post-mortems silently skip.
 _post_mortem_model_var: ContextVar[BaseChatModel | None] = ContextVar(
-    "so_post_mortem_model", default=None,
+    "so_post_mortem_model",
+    default=None,
 )
 # Per-session post-mortem fire counter. ``list[int]`` so the trigger hook
 # can mutate in place across awaits.
 _post_mortem_count_var: ContextVar[list[int] | None] = ContextVar(
-    "so_post_mortem_count", default=None,
+    "so_post_mortem_count",
+    default=None,
 )
 # Live post-mortem coroutine handles. Kept in a list (not task_pool) so they
 # are isolated from the scheduler / check_agents "is the pool empty?" logic,
 # but the harness drain phase can still await them so their
 # atomic_update_state writes land before the workspace closes.
 _post_mortem_tasks_var: ContextVar[list[Any] | None] = ContextVar(
-    "so_post_mortem_tasks", default=None,
+    "so_post_mortem_tasks",
+    default=None,
 )
 _skill_registry_var: ContextVar[Any] = ContextVar("so_orch_skills", default=None)
 _trajectory_logger_var: ContextVar[Any] = ContextVar("so_orch_traj", default=None)
 _conversation_logger_var: ContextVar[Any] = ContextVar("so_orch_conv", default=None)
 _query_var: ContextVar[str] = ContextVar("so_orch_query", default="")
+_steer_queue_var: ContextVar[SteerQueue | None] = ContextVar("so_orch_steer_queue", default=None)
 _repair_target_allowlist_var: ContextVar[set[str] | None] = ContextVar(
     "so_orch_repair_target_allowlist",
     default=None,
@@ -307,16 +327,12 @@ class _Ctx:
         return _extraction_model_var.get()
 
     @property
-    def alias_resolver_model(self) -> BaseChatModel | None:
-        return _alias_resolver_model_var.get()
-
-    @property
     def sub_agent_model(self) -> BaseChatModel | None:
         return _sub_agent_model_var.get()
 
     @property
-    def skill_runtime_model(self) -> BaseChatModel | None:
-        return _skill_runtime_model_var.get()
+    def synthesis_model(self) -> BaseChatModel | None:
+        return _synthesis_model_var.get()
 
     @property
     def skill_evolver_model(self) -> BaseChatModel | None:
@@ -347,8 +363,7 @@ class _Ctx:
         pool = _task_pool_var.get()
         if pool is None:
             raise RuntimeError(
-                "Orchestrator task pool not initialized. "
-                "Call set_orchestrator_context() first."
+                "Orchestrator task pool not initialized. Call set_orchestrator_context() first."
             )
         return pool
 
@@ -369,6 +384,10 @@ class _Ctx:
     @property
     def query(self) -> str:
         return _query_var.get()
+
+    @property
+    def steer_queue(self) -> SteerQueue | None:
+        return _steer_queue_var.get()
 
     @property
     def repair_target_allowlist(self) -> set[str] | None:
@@ -396,30 +415,30 @@ def set_orchestrator_context(
     trajectory_logger: Any = None,
     judge_model: BaseChatModel | None = None,
     extraction_model: BaseChatModel | None = None,
-    alias_resolver_model: BaseChatModel | None = None,
     sub_agent_model: BaseChatModel | None = None,
-    skill_runtime_model: BaseChatModel | None = None,
     skill_evolver_model: BaseChatModel | None = None,
     post_mortem_model: BaseChatModel | None = None,
     conversation_logger: Any = None,
     query: str = "",
     scheduler_task_allowlist: set[str] | None = None,
     repair_target_allowlist: set[str] | None = None,
+    synthesis_model: BaseChatModel | None = None,
+    steer_queue: SteerQueue | None = None,
 ) -> None:
     """Bind runtime context for orchestrator tools in the current task."""
     _workspace_var.set(workspace)
     _model_var.set(model)
     _judge_model_var.set(judge_model)
     _extraction_model_var.set(extraction_model)
-    _alias_resolver_model_var.set(alias_resolver_model)
     _sub_agent_model_var.set(sub_agent_model)
-    _skill_runtime_model_var.set(skill_runtime_model)
+    _synthesis_model_var.set(synthesis_model)
     _skill_evolver_model_var.set(skill_evolver_model)
     _post_mortem_model_var.set(post_mortem_model)
     _skill_registry_var.set(skill_registry)
     _trajectory_logger_var.set(trajectory_logger)
     _conversation_logger_var.set(conversation_logger)
     _query_var.set(query)
+    _steer_queue_var.set(steer_queue)
     _repair_target_allowlist_var.set(
         set(repair_target_allowlist) if repair_target_allowlist is not None else None
     )
@@ -438,6 +457,7 @@ def set_orchestrator_context(
     # Scheduler (own tick lock, own WriterTriggerSensor stages), defeating
     # both the concurrency cap and the writer trigger memory.
     from searchos.agents.orchestrator.scheduler import Scheduler
+
     task_allowlist = scheduler_task_allowlist
     if repair_target_allowlist is not None and task_allowlist is None:
         task_allowlist = set()

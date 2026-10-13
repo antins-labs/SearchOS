@@ -48,7 +48,8 @@ const emptyForm = (): FormState => ({
  * hold several API keys (different quota / team) — the first is the default.
  */
 export default function ProviderConnections() {
-  const { settings, status, mutate } = useSettings();
+  const { settings, status, mutate, uiPrefs } = useSettings();
+  const zh = uiPrefs.language === "zh";
   const [presets, setPresets] = useState<ProvidersResponse | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
   const [busy, setBusy] = useState(false);
@@ -131,7 +132,7 @@ export default function ProviderConnections() {
         return v;
       },
       merge: (s, models: ModelsView) => ({ ...s, models }),
-      errorLabel: "Couldn't save provider connection",
+      errorLabel: zh ? "无法保存模型服务" : "Couldn't save provider connection",
     });
     setBusy(false);
     if (result) closeForm();
@@ -142,7 +143,7 @@ export default function ProviderConnections() {
     const result = await mutate({
       call: () => deleteProviderConnection(n),
       merge: (s, models: ModelsView) => ({ ...s, models }),
-      errorLabel: "Couldn't delete connection",
+      errorLabel: zh ? "无法删除模型服务" : "Couldn't delete connection",
     });
     setBusy(false);
     if (result) setConfirmDelete(null);
@@ -150,26 +151,26 @@ export default function ProviderConnections() {
 
   const renderForm = (f: FormState) => (
     <div className="space-y-1.5">
-      <div className="text-[12.5px] text-ink">{f.target ? `Edit ${f.target}` : "New connection"}</div>
+      <div className="text-[12.5px] text-ink">{f.target ? `${zh ? "编辑" : "Edit"} ${f.target}` : (zh ? "新增模型服务" : "New connection")}</div>
       {f.target === "" && (
         <>
           <label className="block">
-            <span className="mb-1 block text-[11px] text-ink-faint">Start from a preset (optional)</span>
+            <span className="mb-1 block text-[11px] text-ink-faint">{zh ? "从预设开始（可选）" : "Start from a preset (optional)"}</span>
             <Select
               value={f.template}
               onChange={onTemplate}
               disabled={busy}
-              ariaLabel="Preset template"
+              ariaLabel={zh ? "预设模板" : "Preset template"}
               className="w-full"
               monospace
               options={[
-                { value: "custom", label: "Custom (manual)" },
+                { value: "custom", label: zh ? "自定义" : "Custom" },
                 ...allPresets.map((p) => ({ value: p.name, label: `${p.label} (${p.name})` })),
               ]}
             />
           </label>
           <input value={f.name} onChange={(e) => patch({ name: e.target.value })} disabled={busy}
-            placeholder="Connection name (e.g. my-antchat)" aria-label="Connection name"
+            placeholder={zh ? "连接名称，如 my-antchat" : "Connection name, e.g. my-antchat"} aria-label={zh ? "连接名称" : "Connection name"}
             spellCheck={false} className={inputCls} />
         </>
       )}
@@ -177,26 +178,26 @@ export default function ProviderConnections() {
         value={f.protocol}
         onChange={(value) => patch({ protocol: value })}
         disabled={busy}
-        ariaLabel="Protocol"
+        ariaLabel={zh ? "接口协议" : "Protocol"}
         className="w-full"
         monospace
         options={PROTOCOLS.map((value) => ({ value, label: value }))}
       />
       <input value={f.apiBase} onChange={(e) => patch({ apiBase: e.target.value })} disabled={busy}
-        placeholder="API base (empty = SDK default)" aria-label="API base"
+        placeholder={zh ? "接口地址（留空使用 SDK 默认值）" : "API base (empty uses SDK default)"} aria-label={zh ? "接口地址" : "API base"}
         spellCheck={false} className={inputCls} />
 
       <div className="space-y-1">
-        <span className="block text-[11px] text-ink-faint">API key env vars (first = default)</span>
+        <span className="block text-[11px] text-ink-faint">{zh ? "密钥环境变量（第一个为默认值）" : "API key environment variables (first is default)"}</span>
         {f.keyEnvs.map((e, i) => (
           <div key={i} className="flex items-center gap-1.5">
             <input value={e} disabled={busy} spellCheck={false} className={inputCls}
-              aria-label={`API key env var ${i + 1}`} placeholder="e.g. ANTCHAT_API_KEY"
+              aria-label={zh ? `密钥环境变量 ${i + 1}` : `API key environment variable ${i + 1}`} placeholder={zh ? "如 ANTCHAT_API_KEY" : "e.g. ANTCHAT_API_KEY"}
               onChange={(ev) => patch({
                 keyEnvs: f.keyEnvs.map((x, j) => (j === i ? ev.target.value.toUpperCase() : x)),
               })} />
             {f.keyEnvs.length > 1 && (
-              <button type="button" aria-label={`Remove key env ${i + 1}`} disabled={busy}
+              <button type="button" aria-label={zh ? `移除密钥环境变量 ${i + 1}` : `Remove key environment variable ${i + 1}`} disabled={busy}
                 onClick={() => patch({ keyEnvs: f.keyEnvs.filter((_, j) => j !== i) })}
                 className="shrink-0 rounded-md p-1 text-ink-faint transition-colors hover:text-err disabled:opacity-40">
                 <X size={13} />
@@ -206,7 +207,7 @@ export default function ProviderConnections() {
         ))}
         <button type="button" disabled={busy} onClick={() => patch({ keyEnvs: [...f.keyEnvs, ""] })}
           className="flex items-center gap-1 text-[11.5px] text-ink-faint transition-colors hover:text-ink-dim disabled:opacity-40">
-          <Plus size={11} /> Add another key
+          <Plus size={11} /> {zh ? "添加另一个密钥" : "Add another key"}
         </button>
       </div>
 
@@ -215,7 +216,7 @@ export default function ProviderConnections() {
           value={f.thinkingStyle}
           onChange={(value) => patch({ thinkingStyle: value })}
           disabled={busy}
-          ariaLabel="Thinking style"
+          ariaLabel={zh ? "推理参数格式" : "Thinking style"}
           className="w-full"
           monospace
           options={THINKING_STYLES.map((value) => ({ value, label: `thinking: ${value}` }))}
@@ -223,16 +224,16 @@ export default function ProviderConnections() {
       )}
       {f.target === "" && (
         <SecretField value={f.apiKey} onChange={(v) => patch({ apiKey: v })} disabled={busy}
-          placeholder="Default key value (optional — can add later)" ariaLabel="API key value" />
+          placeholder={zh ? "默认密钥值（可稍后添加）" : "Default key value (optional)"} ariaLabel={zh ? "密钥值" : "API key value"} />
       )}
       <div className="flex justify-end gap-2 pt-0.5">
         <button type="button" onClick={closeForm} disabled={busy}
           className="text-[12px] text-ink-faint transition-colors hover:text-ink-dim disabled:opacity-40">
-          Cancel
+          {zh ? "取消" : "Cancel"}
         </button>
         <button type="button" onClick={save} disabled={busy || !formValid(f)}
           className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1 text-[12px] text-white transition-opacity hover:opacity-90 disabled:opacity-25">
-          {busy && <Loader2 size={11} className="animate-spin" />} {f.target ? "Save" : "Add"}
+          {busy && <Loader2 size={11} className="animate-spin" />} {f.target ? (zh ? "保存" : "Save") : (zh ? "添加" : "Add")}
         </button>
       </div>
     </div>
@@ -242,7 +243,7 @@ export default function ProviderConnections() {
     <div className="space-y-2">
       {names.length === 0 && !form && (
         <p className="text-[12px] text-ink-faint">
-          No provider connections yet. Add one, then point model cards at it.
+          {zh ? "尚未配置模型服务。请先添加服务，再让模型卡片使用该连接。" : "No provider connections yet. Add one, then point model cards at it."}
         </p>
       )}
 
@@ -266,20 +267,20 @@ export default function ProviderConnections() {
                   </span>
                   {confirmDelete === n ? (
                     <span className="flex shrink-0 items-center gap-2 text-[11.5px]">
-                      <span className="text-err">Delete?</span>
+                      <span className="text-err">{zh ? "确认删除？" : "Delete?"}</span>
                       <button type="button" onClick={() => remove(n)} disabled={busy}
-                        className="text-err transition-opacity hover:opacity-80 disabled:opacity-40">Yes</button>
+                        className="text-err transition-opacity hover:opacity-80 disabled:opacity-40">{zh ? "是" : "Yes"}</button>
                       <button type="button" onClick={() => setConfirmDelete(null)}
-                        className="text-ink-faint transition-colors hover:text-ink-dim">No</button>
+                        className="text-ink-faint transition-colors hover:text-ink-dim">{zh ? "否" : "No"}</button>
                     </span>
                   ) : (
                     <span className="flex shrink-0 items-center gap-1.5">
                       <button type="button" onClick={() => openEdit(n)} disabled={disabled}
                         className="flex items-center gap-1 rounded-lg border border-line px-3 py-1.5 text-[12.5px] text-ink-dim transition-colors hover:border-line-strong disabled:opacity-40">
-                        <Pencil size={12} /> Edit
+                        <Pencil size={12} /> {zh ? "编辑" : "Edit"}
                       </button>
                       <button type="button" onClick={() => setConfirmDelete(n)} disabled={disabled}
-                        aria-label={`Delete ${n}`}
+                        aria-label={zh ? `删除 ${n}` : `Delete ${n}`}
                         className="rounded-lg p-1.5 text-ink-faint transition-colors hover:text-err disabled:opacity-40">
                         <Trash2 size={13} />
                       </button>
@@ -287,7 +288,7 @@ export default function ProviderConnections() {
                   )}
                 </div>
                 <div className="mt-1 truncate text-[12px] text-ink-faint">
-                  base: <span className="font-mono text-ink-dim">{c.api_base || "SDK default"}</span>
+                  {zh ? "接口地址" : "Base"}: <span className="font-mono text-ink-dim">{c.api_base || (zh ? "SDK 默认值" : "SDK default")}</span>
                 </div>
                 <div className="mt-2 space-y-1">
                   {c.api_key_envs.map((k, i) => (
@@ -296,7 +297,7 @@ export default function ProviderConnections() {
                         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${k.key_set ? "bg-ok" : "bg-warn"}`} />
                         <span className="truncate font-mono text-ink-dim">{k.env}</span>
                         {i === 0 && c.api_key_envs.length > 1 && (
-                          <span className="shrink-0 rounded bg-clay px-1 py-0.5 text-[9.5px] text-accent-ink">default</span>
+                          <span className="shrink-0 rounded bg-clay px-1 py-0.5 text-[9.5px] text-accent-ink">{zh ? "默认" : "default"}</span>
                         )}
                       </span>
                       <KeyEditor envName={k.env} keySet={k.key_set} disabled={disabled} />
@@ -314,7 +315,7 @@ export default function ProviderConnections() {
       ) : !form && (
         <button type="button" disabled={disabled} onClick={openNew}
           className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-line py-2.5 text-[12.5px] text-ink-faint transition-colors hover:border-line-strong hover:text-ink-dim disabled:opacity-40">
-          <Plus size={14} /> Add provider connection
+          <Plus size={14} /> {zh ? "添加模型服务" : "Add provider connection"}
         </button>
       )}
     </div>

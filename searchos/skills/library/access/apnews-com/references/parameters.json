@@ -1,0 +1,34 @@
+{
+  "description": "Fetches AP News articles and extracts structured content (title, byline, body, metadata) from apnews.com article URLs.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取单篇文章内容; 需要 url 参数; 参数: url; 必填: 无\n  - search: 搜索文章; 需要 query 参数; 参数: query, max_results; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "AP News article URL (used by get_article function)"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query for finding articles (used by search function)"
+    },
+    "max_results": {
+      "type": "integer",
+      "default": 10,
+      "required": false,
+      "description": "Maximum number of search results to return (used by search function)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

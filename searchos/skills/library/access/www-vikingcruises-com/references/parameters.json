@@ -1,0 +1,53 @@
+{
+  "description": "Fetches cruise itinerary details, pricing, and sailing dates from Viking Cruises (vikingcruises.com) for ocean, river, and expedition cruises.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_cruise_details: 获取邮轮行程详情，包括停靠港口、天数、包含项目等; 参数: cruise_name, region, start_location, end_location, year, product_line, url; 必填: 无\n  - get_pricing: 获取邮轮价格和出发日期信息; 参数: cruise_name, region, start_location, end_location, year, product_line, url; 必填: 无\n  - search_cruises: 搜索邮轮（返回已知邮轮信息）; 参数: region, product_line; 必填: 无"
+    },
+    "cruise_name": {
+      "type": "string",
+      "required": false,
+      "description": "邮轮名称的URL slug。\n示例: alaska-inside-passage"
+    },
+    "region": {
+      "type": "string",
+      "required": false,
+      "description": "邮轮所在地区的URL slug。\n示例: caribbean-americas, mediterranean, scandinavia"
+    },
+    "start_location": {
+      "type": "string",
+      "required": false,
+      "description": "出发港口的URL slug。\n示例: vancouver-british-columbia, barcelona"
+    },
+    "end_location": {
+      "type": "string",
+      "required": false,
+      "description": "结束港口的URL slug。\n示例: seward, rome"
+    },
+    "year": {
+      "type": "string",
+      "default": "2028",
+      "required": false,
+      "description": "查询价格的年份。\n示例: \"2025\", \"2026\", \"2027\", \"2028\""
+    },
+    "product_line": {
+      "type": "string",
+      "default": "oceans",
+      "required": false,
+      "description": "Viking产品线类型。\n可用值: oceans, rivers, expeditions"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "邮轮页面的完整URL。可以代替单独的参数使用。\n示例: https://www.vikingcruises.com/oceans/cruise-destinations/caribbean-americas/alaska-inside-passage/index.html?startLocation=vancouver-british-columbia&endLocation=seward&year=2028"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

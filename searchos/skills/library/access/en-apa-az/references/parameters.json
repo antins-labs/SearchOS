@@ -1,0 +1,39 @@
+{
+  "description": "Fetches news articles from APA News Agency English edition (en.apa.az), including article content, latest news by category, and search functionality.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取指定URL的新闻文章详细内容; 需要参数 url; 参数: url; 必填: url\n  - get_latest_news: 获取最新新闻列表; 可选参数 category, page; 参数: category, page; 必填: 无\n  - search_news: 搜索新闻文章; 需要参数 query; 参数: query; 必填: query"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章完整URL，用于 get_article 功能 (例如 https://en.apa.az/foreign-policy/article-title-123456)"
+    },
+    "category": {
+      "type": "string",
+      "required": false,
+      "description": "新闻分类，用于 get_latest_news 功能。可用值包括:\nforeign-policy, political, official-news, media, america, europe, asia,\ncis-countries, economy, energy-and-industry, finance, sport, culture, social 等"
+    },
+    "page": {
+      "type": "integer",
+      "default": 1,
+      "required": false,
+      "description": "页码，用于 get_latest_news 功能的分页"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于 search_news 功能"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

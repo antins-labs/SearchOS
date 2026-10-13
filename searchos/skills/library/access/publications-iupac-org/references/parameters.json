@@ -1,0 +1,38 @@
+{
+  "description": "Fetches articles and table of contents from IUPAC's Chemistry International newsmagazine at publications.iupac.org, including news about IUPAC activities, nomenclature recommendations, and chemistry community updates.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取单篇文章内容；需要 url 参数; 参数: url; 必填: url\n  - get_issue_toc: 获取期刊目录；需要 url 或 volume+number 参数; 参数: url, volume, number; 必填: 无\n  - search_articles: 在特定期刊中搜索文章标题；需要 query+volume+number 参数; 参数: query, volume, number; 必填: query"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "文章或期刊目录的完整URL（用于 get_article 和 get_issue_toc）"
+    },
+    "volume": {
+      "type": "string",
+      "required": false,
+      "description": "期刊卷号，如 \"34\"（用于 get_issue_toc 和 search_articles）"
+    },
+    "number": {
+      "type": "string",
+      "required": false,
+      "description": "期刊期号，如 \"4\"（用于 get_issue_toc 和 search_articles）"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于匹配文章标题（用于 search_articles）"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

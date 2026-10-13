@@ -1,0 +1,38 @@
+{
+  "description": "Retrieve structured case records from the International Crimes Database (ICD), including case metadata, parties, categories, keywords, and detailed legal content.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_case: Retrieve a single case record by ID or URL; 参数: case_id, url; 必填: 无\n  - list_cases: List all cases or filter by category; 参数: category; 必填: 无\n  - list_categories: List available crime categories; 参数: 无; 必填: 无\n  - search_cases: Search cases by name/keyword; 参数: query; 必填: 无"
+    },
+    "case_id": {
+      "type": "string",
+      "required": false,
+      "description": "Numeric case ID for get_case (e.g., \"147\", \"139\")"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full or relative case URL for get_case (e.g., \"/Case/147/Kambanda/\")"
+    },
+    "category": {
+      "type": "string",
+      "required": false,
+      "description": "Category filter for list_cases (e.g., \"Genocide\", \"WarCrimes\", \"CrimesAgainstHumanity\", \"Torture\", \"Terrorism\", \"Piracy\", \"CrimeOfAggression\")"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query for search_cases (matches against case names)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

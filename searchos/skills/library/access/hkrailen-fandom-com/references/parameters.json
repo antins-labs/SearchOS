@@ -1,0 +1,45 @@
+{
+  "description": "Retrieve structured railway line information (infobox data, station lists, descriptions)  from hkrailen.fandom.com Hong Kong Railway Encyclopedia wiki via MediaWiki API.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_page_info: 获取页面完整信息，包括infobox数据、站点列表、描述和章节目录; 参数: page_title, include_sections; 必填: page_title\n  - get_infobox: 仅获取页面infobox结构化数据（线路代码、长度、车站数、运营信息等）; 参数: page_title; 必填: page_title\n  - get_station_list: 获取线路页面中的站点列表; 参数: page_title; 必填: page_title\n  - search_pages: 搜索wiki页面; 参数: query, limit; 必填: query\n  - get_section_content: 获取特定章节的内容; 参数: page_title, section; 必填: page_title, section"
+    },
+    "page_title": {
+      "type": "string",
+      "required": false,
+      "description": "Wiki页面标题（URL格式，如 \"Tseung_Kwan_O_Line\"、\"Island_Line\"）。\n用于 get_page_info、get_infobox、get_station_list、get_section_content。"
+    },
+    "include_sections": {
+      "type": "boolean",
+      "default": true,
+      "required": false,
+      "description": "是否在结果中包含章节目录。用于 get_page_info。"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词。用于 search_pages。"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 10,
+      "required": false,
+      "description": "搜索结果最大数量。用于 search_pages。"
+    },
+    "section": {
+      "type": "string",
+      "required": false,
+      "description": "章节编号或名称。用于 get_section_content 获取特定章节内容。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

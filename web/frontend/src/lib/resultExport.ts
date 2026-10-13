@@ -1,5 +1,6 @@
 import type { Turn } from "@/lib/conversation";
 import type { CoverageCell, CoverageMap, Relation, TableSchema } from "@/lib/types";
+import { declaredCoverageTables } from "@/lib/coverageTables";
 
 type ExportValue = string | string[];
 
@@ -37,11 +38,7 @@ function primaryKeyValues(schema: TableSchema, entity: string): string[] {
 }
 
 export function buildExportTables(coverageMap: CoverageMap): ExportTable[] {
-  const allTables = Object.values(coverageMap.tables ?? {});
-  const nonPlaceholder = allTables.filter((table) => !table.table_id.startsWith("_"));
-  const base = nonPlaceholder.length ? nonPlaceholder : allTables;
-  const withCells = base.filter((table) => Object.keys(coverageMap.cells).some((key) => key.startsWith(`${table.table_id}/`)));
-  const tables = withCells.length ? withCells : base;
+  const tables = declaredCoverageTables(coverageMap);
 
   return tables.map((schema) => {
     const primaryKeys = schema.primary_key?.length

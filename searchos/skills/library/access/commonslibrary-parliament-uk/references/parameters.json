@@ -1,0 +1,32 @@
+{
+  "description": "Fetches UK Parliament House of Commons Library research briefings from commonslibrary.parliament.uk, including full content, metadata, and PDF downloads.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_briefing: 获取特定研究简报的完整内容; 需要参数 briefing_id; 参数: briefing_id; 必填: 无\n  - list_briefings: 列出最新的研究简报列表; 可选参数 page; 参数: page; 必填: 无\n  - search: 搜索研究简报; 需要参数 query; 参数: query; 必填: 无"
+    },
+    "briefing_id": {
+      "type": "string",
+      "required": false,
+      "description": "研究简报ID (例如 \"SN04678\", \"CBP-9384\"); get_briefing 功能使用"
+    },
+    "page": {
+      "type": "integer",
+      "default": 1,
+      "required": false,
+      "description": "页码，用于分页浏览; list_briefings 功能使用"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词; search 功能使用"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "description": "Fetches encyclopedia articles about Ancient Egyptian pharaohs, monuments, gods, and historical topics from ancientegyptonline.co.uk",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取单篇文章，需要 slug 参数; 参数: slug; 必填: 无\n  - get_articles: 批量获取多篇文章，需要 slugs 数组参数; 参数: slugs; 必填: 无\n  - get_navigation: 获取网站主导航菜单; 参数: 无; 必填: 无\n  - search: 按名称搜索文章，需要 query 参数; 参数: query; 必填: 无"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "文章的 URL slug（如 'menkauhor', 'black-pyramid-dashur'），用于 get_article"
+    },
+    "slugs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "required": false,
+      "description": "文章 slug 数组，用于 get_articles 批量获取多篇文章"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于 search 功能"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

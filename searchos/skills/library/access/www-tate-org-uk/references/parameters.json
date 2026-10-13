@@ -1,0 +1,31 @@
+{
+  "description": "Extracts Turner Prize winners, nominees, and bursary recipients from Tate's official website (tate.org.uk). Provides comprehensive data about the Turner Prize from 1984 to present, including shortlisted artists, winners, and the 2020 bursary recipients.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_turner_prize_years: 获取所有Turner Prize年份及其提名者和获奖者; 参数: start_year, end_year; 必填: 无\n  - get_winners_grid: 获取获奖者网格，包含艺术家详情和链接; 参数: 无; 必填: 无\n  - get_bursary_recipients: 获取2020年Turner Bursary获奖者名单; 参数: 无; 必填: 无\n  - get_year_details: 获取特定年份的详细信息; 参数: year, start_year, end_year; 必填: year"
+    },
+    "start_year": {
+      "type": "integer",
+      "required": false,
+      "description": "筛选起始年份（用于get_turner_prize_years，默认1984）"
+    },
+    "end_year": {
+      "type": "integer",
+      "required": false,
+      "description": "筛选结束年份（用于get_turner_prize_years，默认当前年份）"
+    },
+    "year": {
+      "type": "integer",
+      "required": false,
+      "description": "要查询的特定年份（用于get_year_details，如2022）"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

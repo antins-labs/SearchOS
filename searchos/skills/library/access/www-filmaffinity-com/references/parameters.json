@@ -1,0 +1,27 @@
+{
+  "description": "Fetches award history from FilmAffinity (www.filmaffinity.com), including winners by year with movie details, nomination counts, and available award categories.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_award_history: 获取指定奖项类别的历年获奖者列表 (需要 category_id); 参数: category_id, include_empty; 必填: category_id\n  - get_categories: 列出电影节的所有奖项类别 (可选 category_id 作为参考); 参数: category_id; 必填: 无"
+    },
+    "category_id": {
+      "type": "string",
+      "required": false,
+      "description": "奖项类别ID，如 'berlin_best_actor' (柏林银熊最佳男主角)、\n'berlin_golden_bear' (柏林金熊最佳影片)、'oscars_best_picture' 等。\nget_award_history 必需；get_categories 可选，用于发现类别。"
+    },
+    "include_empty": {
+      "type": "boolean",
+      "default": false,
+      "required": false,
+      "description": "是否包含没有获奖者的年份 (如未来年份)。用于 get_award_history。"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

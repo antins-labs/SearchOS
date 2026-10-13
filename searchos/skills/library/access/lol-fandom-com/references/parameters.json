@@ -1,0 +1,38 @@
+{
+  "description": "Fetch League of Legends esports tournament data, player statistics, standings, team rosters, match schedules, and awards from lol.fandom.com wiki.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_player_statistics: 获取锦标赛选手统计数据，需要 tournament 参数; 参数: tournament, role, limit; 必填: 无\n  - get_tournament_info: 获取锦标赛基本信息和章节目录，需要 tournament 参数; 参数: tournament; 必填: 无\n  - get_standings: 获取锦标赛积分排名，需要 tournament 参数; 参数: tournament; 必填: 无\n  - get_team_rosters: 获取锦标赛参赛队伍阵容，需要 tournament 参数; 参数: tournament; 必填: 无\n  - get_match_schedule: 获取锦标赛比赛日程和结果，需要 tournament 参数; 参数: tournament, limit; 必填: 无\n  - get_awards: 获取锦标赛奖项（MVP、最佳新秀等），需要 tournament 参数; 参数: tournament; 必填: 无\n  - search_pages: 搜索锦标赛页面，需要 prefix 参数; 参数: prefix, limit; 必填: 无"
+    },
+    "tournament": {
+      "type": "string",
+      "required": false,
+      "description": "锦标赛页面路径，如 \"LPL/2025_Season/Split_3\"。\n用于 get_player_statistics、get_tournament_info、get_standings、\nget_team_rosters、get_match_schedule、get_awards。"
+    },
+    "role": {
+      "type": "string",
+      "required": false,
+      "description": "位置筛选（Top、Jungle、Mid、Bot、Support），用于 get_player_statistics。"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果数量限制。用于 get_player_statistics、get_match_schedule、search_pages。"
+    },
+    "prefix": {
+      "type": "string",
+      "required": false,
+      "description": "页面前缀搜索条件，如 \"LPL/2025\"。用于 search_pages。"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

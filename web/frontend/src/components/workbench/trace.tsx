@@ -16,6 +16,7 @@ export function agentNum(name: string): string {
 }
 
 export function agentLabel(name: string): string {
+  if (name === "local_qa") return "Local search";
   if (name.startsWith("explore") || name.startsWith("warmup")) return "Explore";
   if (name.startsWith("writer")) return "Writer";
   if (name.startsWith("search_agent")) {
@@ -34,11 +35,15 @@ export function actionInfo(e: WSEvent): { name: string; arg: string } {
   const raw = d.action;
   let s = "";
   let name = "";
+  let argsObject: Record<string, unknown> | null = null;
   if (typeof raw === "string") {
     s = raw;
   } else if (raw && typeof raw === "object") {
     name = String((raw as Record<string, unknown>).name || "");
     const a = (raw as Record<string, unknown>).args;
+    if (a && typeof a === "object" && !Array.isArray(a)) {
+      argsObject = a as Record<string, unknown>;
+    }
     s = typeof a === "string" ? a : JSON.stringify(a ?? "");
   }
   if (!name) {
@@ -58,8 +63,14 @@ export function actionInfo(e: WSEvent): { name: string; arg: string } {
       if (count) batchArg = `${count} query paths`;
     }
   }
-  const arg = batchArg ||
+  const localArg = name === "local_retrieve"
+    ? `${Array.isArray(argsObject?.document_ids) ? argsObject.document_ids.length : 0} documents · ${String(argsObject?.query || "")}`
+    : name === "local_read"
+      ? `${Array.isArray(argsObject?.ref_ids) ? argsObject.ref_ids.length : 0} source passages`
+      : "";
+  const arg = localArg || batchArg ||
     s.match(/'query':\s*'([^']*)'/)?.[1] ||
+    s.match(/"query":\s*"([^"]*)"/)?.[1] ||
     s.match(/'pattern':\s*'([^']*)'/)?.[1] ||
     s.match(/'id_or_url':\s*'([^']*)'/)?.[1] ||
     "";
@@ -94,6 +105,8 @@ const VERB: Record<string, string> = {
   enqueue_tasks: "Queueing tasks",
   check_agents: "Checking agents",
   create_schema: "Building schema",
+  local_retrieve: "Searching local scope",
+  local_read: "Reading source passages",
 };
 
 /** Tidy an arg for display: find patterns arrive as `["a","b"]` — strip the
@@ -161,7 +174,18 @@ export function recentSteps(events: WSEvent[], n: number): Step[] {
   const all: Step[] = [];
   for (const e of events) {
     if (e.type !== "trajectory") continue;
-    const t = String((e.data as Record<string, unknown>)?.type || "");
+    const data = (e.data ?? {}) as Record<string, unknown>;
+    const t = String(data.type || "");
+    if (data.source_mode === "local" && t === "task_start") {
+      const count = Number(data.document_count || 0);
+      all.push({ verb: "Reading", detail: count > 0 ? `${count} local documents` : "local documents" });
+      continue;
+    }
+    if (data.source_mode === "local" && t === "task_complete") {
+      const count = typeof data.evidence_count === "number" ? data.evidence_count : null;
+      all.push({ verb: "Grounded", detail: count == null ? "answer complete" : `${count} evidence excerpts` });
+      continue;
+    }
     if (t !== "step" && t !== "dispatch") continue;
     const s = stepText(e);
     if (!s) continue;
@@ -178,6 +202,7 @@ export function agentGoal(events: WSEvent[]): string {
     if (e.type !== "trajectory") continue;
     const d = (e.data ?? {}) as Record<string, unknown>;
     if (d.type === "dispatch" && d.task) return String(d.task);
+    if (d.type === "task_start" && d.source_mode === "local" && d.query) return String(d.query);
   }
   return "";
 }
@@ -198,6 +223,12 @@ export function TraceLine({
       return (
         <div className="text-accent-ink dark:text-accent-ink">→ dispatch {String(d.agent || "")}</div>
       );
+    }
+    if (d.source_mode === "local" && t === "task_start") {
+      return <div className="text-accent-ink">→ reading {Number(d.document_count || 0)} local documents</div>;
+    }
+    if (d.source_mode === "local" && t === "task_complete") {
+      return <div className="text-ok">✓ {typeof d.evidence_count === "number" ? `grounded ${d.evidence_count} evidence excerpts` : "answer complete"}</div>;
     }
     // agent_complete is redundant with agent_final — render only the latter,
     // including its closing summary (the agent's answer).

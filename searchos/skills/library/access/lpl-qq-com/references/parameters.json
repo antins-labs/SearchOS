@@ -1,0 +1,38 @@
+{
+  "description": "Fetches LPL (League of Legends Pro League) data from lpl.qq.com including seasons/tournaments, team information, and rank statistics.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_seasons: 获取所有赛季和赛事列表; 参数: 无; 必填: 无\n  - get_teams: 获取所有战队列表; 参数: 无; 必填: 无\n  - get_team_detail: 获取指定战队的详细信息; 参数: team_id; 必填: team_id\n  - get_rank_data: 获取指定赛季的排名数据（可能受API限制）; 参数: season_id, data_type, stage_ids; 必填: 无\n  - get_rank_page_content: 获取排名页面的渲染内容; 参数: season_id, stage_ids; 必填: 无"
+    },
+    "team_id": {
+      "type": "string",
+      "required": false,
+      "description": "战队ID，用于get_team_detail功能"
+    },
+    "season_id": {
+      "type": "string",
+      "required": false,
+      "description": "赛季ID，用于get_rank_data和get_rank_page_content功能。默认为\"237\"（2026赛季）"
+    },
+    "data_type": {
+      "type": "string",
+      "required": false,
+      "description": "数据类型，用于get_rank_data功能。可选值：team（战队）、player（选手）、hero（英雄）。默认为player"
+    },
+    "stage_ids": {
+      "type": "string",
+      "required": false,
+      "description": "赛事阶段ID，用于get_rank_data和get_rank_page_content功能，多个ID用逗号分隔"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "playwright"
+  ],
+  "requirements": [
+    "aiohttp",
+    "playwright"
+  ]
+}

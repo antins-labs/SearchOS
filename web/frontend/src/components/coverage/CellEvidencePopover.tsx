@@ -3,7 +3,8 @@
 import { useRef } from "react";
 import { createPortal } from "react-dom";
 import { ExternalLink, X, Quote } from "lucide-react";
-import type { CoverageCell, EvidenceNode } from "@/lib/types";
+import type { CoverageCell, EvidenceNode, CellEvidenceBinding } from "@/lib/types";
+import { localCitationLabels } from "@/lib/localCitations";
 import useDialogFocus from "@/hooks/useDialogFocus";
 
 export interface CellRef {
@@ -38,14 +39,22 @@ function cleanExcerpt(raw: string): string {
 
 /** Evidence nodes bound to one cell — matched on (table_id, entity, attribute),
  *  falling back to source-URL overlap for older states without table ids. */
-export function evidenceForCell(nodes: EvidenceNode[], ref: CellRef): EvidenceNode[] {
+export function evidenceForCell(nodes: EvidenceNode[], ref: CellRef, bindings: CellEvidenceBinding[] = []): EvidenceNode[] {
+  const explicitIds = new Set(bindings.map((binding) => binding.evidence_id));
+  const projected = bindings.flatMap((binding) => {
+    const node = nodes.find((item) => item.id === binding.evidence_id);
+    return node ? [{ ...node, table_id: ref.tableId, entity: ref.entity, attribute: ref.attribute,
+      value: binding.value, alignment: binding.alignment,
+      status: node.status && node.status !== "active" ? node.status : binding.status }] : [];
+  });
   const exact = nodes.filter(
     (n) =>
+      !explicitIds.has(n.id) &&
       (!n.table_id || !ref.tableId || n.table_id === ref.tableId) &&
       norm(n.entity || "") === norm(ref.entity) &&
       norm(n.attribute || "") === norm(ref.attribute),
   );
-  if (exact.length) return exact;
+  if (projected.length || exact.length) return [...projected, ...exact];
   const cellUrls = new Set(extractUrls(ref.cell.source));
   if (!cellUrls.size) return [];
   return nodes.filter(
@@ -80,16 +89,20 @@ export default function CellEvidencePopover({
   cellRef,
   nodes,
   onClose,
+  bindings = [],
+  onOpenLocalSource,
 }: {
   cellRef: CellRef;
   nodes: EvidenceNode[];
   onClose: () => void;
+  bindings?: CellEvidenceBinding[];
+  onOpenLocalSource?: (refId: string) => void;
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   useDialogFocus({ containerRef: dialogRef, initialFocusRef: closeRef, onClose });
 
-  const matched = [...evidenceForCell(nodes, cellRef)].sort((a, b) => {
+  const matched = [...evidenceForCell(nodes, cellRef, bindings)].sort((a, b) => {
     if (a.id === cellRef.cell.primary_evidence_id) return -1;
     if (b.id === cellRef.cell.primary_evidence_id) return 1;
     return (a.status ?? "active") === "active" ? -1 : 1;
@@ -176,7 +189,12 @@ export default function CellEvidencePopover({
                       </span>
                     )}
                     <span>confidence {(n.confidence * 100).toFixed(0)}%</span>
-                    {urls.length > 0 ? (
+                    {n.source.startsWith("local://") && onOpenLocalSource ? (
+                      <button type="button" className="ml-auto text-accent-ink hover:underline"
+                        onClick={() => onOpenLocalSource(n.source)}>
+                        {localCitationLabels([], [n])[n.source] || "本地原文"}
+                      </button>
+                    ) : urls.length > 0 ? (
                       <span className="ml-auto flex flex-wrap items-center gap-x-2.5 gap-y-1">
                         {urls.map((u, i) => (
                           <a

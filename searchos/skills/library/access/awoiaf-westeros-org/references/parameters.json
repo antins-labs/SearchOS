@@ -1,0 +1,28 @@
+{
+  "description": "Extracts structured character and entity data from A Wiki of Ice and Fire (awoiaf.westeros.org),  including infobox attributes, biographical info, family relationships, and book appearances.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_character: 获取单个角色的详细信息，需要 name 参数; 参数: name; 必填: 无\n  - search_characters: 搜索角色，需要 query 参数; 如果找到匹配页面则返回完整数据; 参数: query; 必填: 无"
+    },
+    "name": {
+      "type": "string",
+      "required": false,
+      "description": "角色名称 (用于 get_character)，如 \"Eddard Stark\"、\"Daenerys Targaryen\""
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词 (用于 search_characters)，可以是角色名的任意部分"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

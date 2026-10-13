@@ -1,0 +1,33 @@
+{
+  "description": "Fetches Wikipedia articles from a Kiwix offline mirror at library.eshikshya.org, extracting infoboxes, sections, and internal links from structured article content.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取并解析维基百科文章，需要 article_path 参数; 参数: article_path; 必填: article_path\n  - search: 搜索文章（如果镜像支持），需要 query 参数; 参数: query, limit; 必填: query\n  - status: 检查 Kiwix 服务是否可用; 参数: 无; 必填: 无"
+    },
+    "article_path": {
+      "type": "string",
+      "required": false,
+      "description": "文章路径，如 \"A/Al-Mansur_Muhammad\"（get_article 使用）"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词（search 使用）"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "搜索结果最大数量，默认为 10（search 使用）"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

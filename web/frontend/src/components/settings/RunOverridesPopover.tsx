@@ -27,7 +27,6 @@ import { useSettings } from "@/components/settings/SettingsProvider";
 import NumberField from "@/components/settings/controls/NumberField";
 import PillGroup from "@/components/settings/controls/PillGroup";
 import { estimateRunBudget } from "@/lib/budgetEstimate";
-import { EFFORT_GUIDANCE } from "@/lib/effortGuidance";
 
 interface Props {
   /** "down" opens below the trigger (hero composer), "up" above (bottom bar). */
@@ -38,7 +37,7 @@ interface Props {
 const EFFORT_OPTIONS = [
   { value: "default", label: "Default" },
   { value: "low", label: "Low" },
-  { value: "medium", label: "Med" },
+  { value: "medium", label: "Medium" },
   { value: "high", label: "High" },
   { value: "max", label: "Max" },
 ];
@@ -48,6 +47,13 @@ const ACCESS_MODE_OPTIONS = [
   { value: "router", label: "Router" },
   { value: "only", label: "Only" },
 ];
+
+const EFFORT_SUMMARIES: Record<EffortLevel, { zh: string; en: string }> = {
+  low: { zh: "适合事实查证、短文档和简单列表。", en: "For facts, short documents, and small lists." },
+  medium: { zh: "适合比较、资料整理和普通问答。", en: "For comparisons, synthesis, and everyday research." },
+  high: { zh: "适合多步问题、较多来源和较长文档。", en: "For multi-step questions, more sources, and longer documents." },
+  max: { zh: "适合大型表格、困难来源和高召回任务。", en: "For large tables, difficult sources, and maximum recall." },
+};
 
 type SkillCategory = "access" | "strategy" | "orchestrator";
 
@@ -71,12 +77,14 @@ function DomainInput({
   icon,
   values,
   placeholder,
+  addPlaceholder,
   onChange,
 }: {
   label: string;
   icon: ReactNode;
   values: string[];
   placeholder: string;
+  addPlaceholder: string;
   onChange: (values: string[]) => void;
 }) {
   const [draft, setDraft] = useState("");
@@ -122,7 +130,7 @@ function DomainInput({
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={onKeyDown}
           onBlur={commit}
-          placeholder={values.length ? "Add domain" : placeholder}
+          placeholder={values.length ? addPlaceholder : placeholder}
           spellCheck={false}
           className="min-w-28 flex-1 bg-transparent py-0.5 text-[12px] text-ink outline-none placeholder:text-ink-faint"
         />
@@ -132,7 +140,20 @@ function DomainInput({
 }
 
 export default function RunOverridesPopover({ direction, onClose }: Props) {
-  const { settings, overrides, setOverrides, clearOverrides } = useSettings();
+  const { settings, overrides, setOverrides, clearOverrides, uiPrefs } = useSettings();
+  const zh = uiPrefs.language === "zh";
+  const effortOptions = zh
+    ? [
+        { value: "default", label: "默认" },
+        { value: "low", label: "轻度" },
+        { value: "medium", label: "中度" },
+        { value: "high", label: "高度" },
+        { value: "max", label: "极高" },
+      ]
+    : EFFORT_OPTIONS;
+  const accessModeOptions = zh
+    ? [{ value: "default", label: "默认" }, { value: "router", label: "路由" }, { value: "only", label: "仅选中" }]
+    : ACCESS_MODE_OPTIONS;
   const ref = useRef<HTMLDivElement>(null);
   const [popoverMaxHeight, setPopoverMaxHeight] = useState<number>();
   const [skillsOpen, setSkillsOpen] = useState(false);
@@ -160,6 +181,7 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
+      if ((e.target as Element).closest("[data-run-overrides-toggle]")) return;
       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
     };
     const onKey = (e: globalThis.KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -272,7 +294,7 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
     >
       <div className="mb-2.5 flex items-center justify-between">
         <span className="text-[12px] font-medium uppercase tracking-wider text-ink-faint">
-          This run only
+          {zh ? "仅本次任务" : "This run only"}
         </span>
         {hasOverrides && (
           <button
@@ -280,18 +302,18 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
             onClick={clearOverrides}
             className="flex items-center gap-1 text-[12px] text-ink-dim transition-colors hover:text-ink"
           >
-            <RotateCcw size={11} /> Reset
+            <RotateCcw size={11} /> {zh ? "重置" : "Reset"}
           </button>
         )}
       </div>
 
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <span className="text-[13px] text-ink">Effort</span>
+          <span className="text-[13px] text-ink">{zh ? "研究档位" : "Effort level"}</span>
           <PillGroup
-            ariaLabel="Run effort"
+            ariaLabel={zh ? "本次研究档位" : "Run effort level"}
             value={overrides.effort ?? "default"}
-            options={EFFORT_OPTIONS}
+            options={effortOptions}
             onChange={(v) =>
               setOverrides({
                 ...overrides,
@@ -301,12 +323,11 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
           />
         </div>
         <p className="-mt-1 text-[10.5px] leading-relaxed text-ink-faint">
-          <span className="font-medium text-ink-dim">{EFFORT_GUIDANCE[selectedLevel].title}:</span>{" "}
-          {EFFORT_GUIDANCE[selectedLevel].summary}
+          {EFFORT_SUMMARIES[selectedLevel][zh ? "zh" : "en"]}
         </p>
 
         <div className="flex items-center justify-between gap-3">
-          <span className="text-[13px] text-ink">Time limit</span>
+          <span className="text-[13px] text-ink">{zh ? "时间限制" : "Time limit"}</span>
           <NumberField
             value={overrides.max_time ?? impliedTime}
             placeholder={String(impliedTime)}
@@ -321,23 +342,23 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
         </div>
 
         {estimate && (
-          <div className="border-t border-line pt-3" aria-label="Estimated run budget">
-            <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-ink-faint">Budget estimate</div>
+          <div className="border-t border-line pt-3" aria-label={zh ? "预计运行预算" : "Estimated run budget"}>
+            <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-ink-faint">{zh ? "预算估算" : "Budget estimate"}</div>
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <Clock3 className="mb-1 text-accent-ink" size={12} />
                 <div className="text-[12px] font-medium tabular-nums text-ink">{Math.round(estimate.maxTimeSeconds / 60)}m</div>
-                <div className="text-[9.5px] text-ink-faint">time cap</div>
+                <div className="text-[9.5px] text-ink-faint">{zh ? "时间上限" : "time cap"}</div>
               </div>
               <div>
                 <Users className="mb-1 text-accent-ink" size={12} />
                 <div className="text-[12px] font-medium tabular-nums text-ink">{estimate.parallelAgents}</div>
-                <div className="text-[9.5px] text-ink-faint">parallel agents</div>
+                <div className="text-[9.5px] text-ink-faint">{zh ? "并发智能体" : "parallel agents"}</div>
               </div>
               <div>
                 <Search className="mb-1 text-accent-ink" size={12} />
                 <div className="text-[12px] font-medium tabular-nums text-ink">~{estimate.searchesPerWave}</div>
-                <div className="text-[9.5px] text-ink-faint">search() calls / wave</div>
+                <div className="text-[9.5px] text-ink-faint">{zh ? "每轮检索次数" : "search calls per wave"}</div>
               </div>
             </div>
           </div>
@@ -351,9 +372,9 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
             className="flex w-full items-center gap-2 py-1 text-left"
           >
             <Sparkles size={13} className="text-accent-ink" />
-            <span className="text-[13px] text-ink">Skills &amp; sources</span>
+            <span className="text-[13px] text-ink">{zh ? "技能与来源" : "Skills & sources"}</span>
             <span className="ml-auto text-[11px] text-ink-faint">
-              {hasSkillOrSourceOverrides ? "Custom" : "Defaults"}
+              {hasSkillOrSourceOverrides ? (zh ? "自定义" : "Custom") : (zh ? "默认" : "Defaults")}
             </span>
             <ChevronDown size={14} className={`text-ink-faint transition-transform ${skillsOpen ? "rotate-180" : ""}`} />
           </button>
@@ -361,21 +382,21 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
           {skillsOpen && (
             <div className="mt-2.5 space-y-3">
               {!settings?.skills.enable_skills ? (
-                <p className="text-[12px] text-ink-faint">Skills are disabled in Settings.</p>
+                <p className="text-[12px] text-ink-faint">{zh ? "技能已在设置中关闭。" : "Skills are disabled in Settings."}</p>
               ) : (
                 <>
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-[12px] text-ink-dim">Access policy</span>
+                    <span className="text-[12px] text-ink-dim">{zh ? "访问策略" : "Access policy"}</span>
                     <PillGroup
-                      ariaLabel="Access skill policy"
+                      ariaLabel={zh ? "访问技能策略" : "Access skill policy"}
                       value={accessMode}
-                      options={ACCESS_MODE_OPTIONS}
+                      options={accessModeOptions}
                       onChange={setAccessMode}
                     />
                   </div>
 
                   <div>
-                    <div role="tablist" aria-label="Skill categories" className="mb-2 flex items-center gap-1 border-b border-line">
+                    <div role="tablist" aria-label={zh ? "技能分类" : "Skill categories"} className="mb-2 flex items-center gap-1 border-b border-line">
                       {(["access", "strategy", "orchestrator"] as SkillCategory[]).map((category) => {
                         const pool = categories[category] ?? [];
                         const count = pool.filter((skill) => skillEnabled(category, skill)).length;
@@ -392,7 +413,8 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
                                 : "border-transparent text-ink-faint hover:text-ink"
                             }`}
                           >
-                            {category} <span className="tabular-nums">{count}/{pool.length}</span>
+                            {zh ? { access: "访问", strategy: "策略", orchestrator: "编排" }[category] : category}{" "}
+                            <span className="tabular-nums">{count}/{pool.length}</span>
                           </button>
                         );
                       })}
@@ -402,7 +424,7 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
                       <input
                         value={skillFilter}
                         onChange={(event) => setSkillFilter(event.target.value)}
-                        placeholder={`Filter ${skillCategory} skills`}
+                        placeholder={zh ? "筛选技能" : `Filter ${skillCategory} skills`}
                         className="min-w-0 flex-1 bg-transparent text-[12px] text-ink outline-none placeholder:text-ink-faint"
                       />
                     </label>
@@ -421,11 +443,11 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
                           </span>
                         </label>
                       )) : (
-                        <p className="px-2 py-4 text-center text-[11.5px] text-ink-faint">No matching skills</p>
+                        <p className="px-2 py-4 text-center text-[11.5px] text-ink-faint">{zh ? "没有匹配的技能" : "No matching skills"}</p>
                       )}
                     </div>
                     {skillCategory === "access" && accessMode === "default" && (
-                      <p className="mt-1.5 text-[10.5px] text-ink-faint">Changing a skill switches this run to Router mode.</p>
+                      <p className="mt-1.5 text-[10.5px] text-ink-faint">{zh ? "修改技能会将本次任务切换为路由模式。" : "Changing a skill switches this run to Router mode."}</p>
                     )}
                   </div>
                 </>
@@ -433,23 +455,25 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
 
               <div className="grid gap-2.5 sm:grid-cols-2">
                 <DomainInput
-                  label="Trusted domains"
+                  label={zh ? "可信域名" : "Trusted domains"}
                   icon={<ShieldCheck size={12} className="text-ok" />}
                   values={overrides.trusted_domains ?? []}
                   placeholder="example.org"
+                  addPlaceholder={zh ? "添加域名" : "Add domain"}
                   onChange={(values) => setOverrides({ ...overrides, trusted_domains: values.length ? values : undefined })}
                 />
                 <DomainInput
-                  label="Excluded domains"
+                  label={zh ? "排除域名" : "Excluded domains"}
                   icon={<Ban size={12} className="text-err" />}
                   values={overrides.excluded_domains ?? []}
                   placeholder="spam.example"
+                  addPlaceholder={zh ? "添加域名" : "Add domain"}
                   onChange={(values) => setOverrides({ ...overrides, excluded_domains: values.length ? values : undefined })}
                 />
               </div>
               <p className="flex items-start gap-1.5 text-[10.5px] leading-4 text-ink-faint">
                 <Globe2 size={11} className="mt-0.5 shrink-0" />
-                Trusted sources rank first. Excluded domains are removed from search results and cannot be opened.
+                {zh ? "可信来源优先排序；排除域名会从检索结果中移除，也不能被打开。" : "Trusted sources rank first. Excluded domains are removed from search results and cannot be opened."}
               </p>
             </div>
           )}

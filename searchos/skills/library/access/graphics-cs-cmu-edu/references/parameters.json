@@ -1,0 +1,46 @@
+{
+  "description": "Fetches publications from CMU Graphics Lab (graphics.cs.cmu.edu) including paper titles, authors, venues, years, abstracts, and project links.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_publications: 列出所有出版物，可按年份筛选，支持分页 (params: year, limit, offset); 参数: year, limit, offset; 必填: 无\n  - get_publication: 获取单篇出版物的详细信息 (params: page_id 或 url); 参数: page_id, url; 必填: 无\n  - search_publications: 按标题或作者搜索出版物 (params: query, limit); 参数: query, limit; 必填: 无\n  - get_years: 获取所有年份列表及各年出版物数量; 参数: 无; 必填: 无"
+    },
+    "year": {
+      "type": "string",
+      "required": false,
+      "description": "筛选的年份 (用于 list_publications)"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回结果的最大数量 (用于 list_publications 和 search_publications)"
+    },
+    "offset": {
+      "type": "integer",
+      "required": false,
+      "description": "分页偏移量 (用于 list_publications)"
+    },
+    "page_id": {
+      "type": "string",
+      "required": false,
+      "description": "出版物的 WordPress page_id (用于 get_publication)"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "出版物的完整 URL (用于 get_publication)"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，匹配标题或作者 (用于 search_publications)"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

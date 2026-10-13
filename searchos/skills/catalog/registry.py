@@ -1,21 +1,26 @@
-"""SkillRegistry: load, index, and manage skill lifecycle."""
+"""SkillRegistry: load and index runtime-enabled Skills."""
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import os
 from pathlib import Path
 
-from searchos.skills.core.models import Skill, SkillCategory, SkillStatus
+from searchos.skills.core.models import (
+    Skill,
+    SkillAvailability,
+    SkillCategory,
+)
 from searchos.skills.core.schema import parse_skill_file
-
+from searchos.skills.names import canonical_skill_name, canonical_skill_names
 
 # Skills disabled everywhere: hidden from the catalog here and rejected at
 # dispatch time in orchestrator_tools.py. Re-enable by removing from this set.
 SKILL_BLACKLIST: frozenset[str] = frozenset({
     # Triggers redundant "verify via another source" loops whose search-budget
     # cost consistently outweighs the catch rate.
-    "multi_source_verification",
+    "multi_source_verification", "multi-source-verification",
 })
 
 logger = logging.getLogger(__name__)
@@ -42,7 +47,10 @@ def _env_only() -> set[str] | None:
 
 def _env_all_disabled() -> bool:
     """``SEARCHOS_SKILLS_DISABLED=1`` one-shot kill switch."""
-    return os.environ.get("SEARCHOS_SKILLS_DISABLED", "").strip().lower() in {"1", "true", "yes", "on"}
+    return os.environ.get(
+        "SEARCHOS_SKILLS_DISABLED",
+        "",
+    ).strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _env_disabled_layers() -> set[str]:
@@ -54,15 +62,14 @@ def _env_disabled_layers() -> set[str]:
 
 
 class SkillRegistry:
-    """In-memory registry of all known skills.
+    """In-memory registry of runtime-enabled Skills.
 
     Responsibilities:
     - Load skills from a directory of Markdown files
-    - Index by category, type, status
-    - Lifecycle transitions (seed → trial → active → optimized → deprecated)
+    - Apply global, layer, name, and Skill Availability filters
+    - Index enabled Skills by name and category
 
-    v1 is load-only: the Beta(alpha, beta) frontmatter write-back lives in the
-    offline evolver, not here.
+    Disabled Skills remain on disk but never enter the runtime registry.
     """
 
     def __init__(
@@ -73,13 +80,14 @@ class SkillRegistry:
         all_disabled: bool | None = None,
         disabled_layers: list[str] | set[str] | None = None,
     ) -> None:
+        self.diagnostics: list[str] = []
         self._skills: dict[str, Skill] = {}  # name → Skill
-        self._dir_mtime_cache: dict[str, tuple[float, int]] = {}
-        self._excluded: set[str] = set(excluded or set()) | _env_excluded()
+        self._dir_mtime_cache: dict[str, tuple[str, int]] = {}
+        self._excluded: set[str] = canonical_skill_names(set(excluded or set()) | _env_excluded())
         # Whitelist — arg wins, else env var, else None (no filter).
         env_only = _env_only()
         self._only: set[str] | None = (
-            set(only) if only is not None else env_only
+            canonical_skill_names(only) if only is not None else (canonical_skill_names(env_only) if env_only is not None else None)
         )
         # All-disabled kill switch. Arg wins over env.
         self._all_disabled: bool = (
@@ -95,26 +103,27 @@ class SkillRegistry:
 
     def set_excluded(self, names: list[str] | set[str]) -> None:
         """Replace the exclude list. Use to hot-disable misbehaving skills."""
-        self._excluded = set(names)
+        self._excluded = canonical_skill_names(names)
         for n in list(self._skills.keys()):
-            if n in self._excluded:
+            if canonical_skill_name(n) in self._excluded:
                 del self._skills[n]
         self._dir_mtime_cache.clear()
 
     def add_excluded(self, name: str) -> None:
-        self._excluded.add(name)
+        self._excluded.add(canonical_skill_name(name))
         self._skills.pop(name, None)
+        self._skills.pop(canonical_skill_name(name), None)
         self._dir_mtime_cache.clear()
 
     def set_only(self, names: list[str] | set[str] | None) -> None:
         """Replace the whitelist. ``None`` clears it (all skills allowed).
         Drops already-loaded skills not in the new whitelist."""
-        self._only = set(names) if names is not None else None
+        self._only = canonical_skill_names(names) if names is not None else None
         if self._only is not None:
             for n in list(self._skills.keys()):
-                if n not in self._only:
+                if canonical_skill_name(n) not in self._only:
                     del self._skills[n]
-            self._dir_mtime_cache.clear()
+        self._dir_mtime_cache.clear()
 
     def set_disabled_layers(self, layers: list[str] | set[str] | None) -> None:
         """Replace the disabled-layer set. Drops already-loaded skills whose
@@ -138,6 +147,7 @@ class SkillRegistry:
 
         Priority: all_disabled > not-in-only > in-excluded.
         """
+        name = canonical_skill_name(name)
         if self._all_disabled:
             return True
         if self._only is not None and name not in self._only:
@@ -165,22 +175,19 @@ class SkillRegistry:
     # --- Loading ---
 
     @staticmethod
-    def _directory_signature(directory: Path) -> float:
-        """Walk directory once and return max(mtime) over all skill.md files.
-
-        Cheaper than hashing; detects add / edit / rename (but not pure delete
-        of a single file — delete is rare enough that force=True callers cover
-        it). Returns 0 for a missing dir.
-        """
-        if not directory.exists():
-            return 0.0
-        latest = 0.0
-        for p in directory.rglob("skill.md"):
-            try:
-                latest = max(latest, p.stat().st_mtime)
-            except OSError:
-                continue
-        return latest
+    def _directory_signature(directory: Path) -> str:
+        """Include file identity and content, detecting edits and removals."""
+        digest = hashlib.sha256()
+        if directory.exists():
+            for p in sorted(directory.rglob("*")):
+                if any(part.startswith('.') or part == '__pycache__' for part in p.relative_to(directory).parts):
+                    continue
+                digest.update(str(p.relative_to(directory)).encode())
+                if p.is_symlink():
+                    digest.update(b"symlink")
+                elif p.is_file():
+                    digest.update(p.read_bytes())
+        return digest.hexdigest()
 
     def load_directory(
         self,
@@ -193,9 +200,8 @@ class SkillRegistry:
         1. Folder-per-skill (v2): ``skill_name/skill.md``
         2. Flat files (v1): ``category/skill_name.md``
 
-        When the directory's latest skill.md mtime is unchanged since the last
-        call, the cached load count is returned without re-parsing (big win
-        for benchmark loops that re-instantiate the harness per query).
+        When package contents are unchanged, the cached load count is returned
+        without re-parsing. Resource changes and deletions invalidate it.
 
         Pass ``force=True`` to bypass the cache (e.g. after Evolver writes a
         new skill and the caller wants the registry to immediately see it).
@@ -212,16 +218,27 @@ class SkillRegistry:
             )
             return cached[1]
 
+        # Drop previous entries originating in this root, including deleted packages.
+        for name, skill in list(self._skills.items()):
+            if skill.file_path and Path(skill.file_path).resolve().is_relative_to(directory.resolve()):
+                del self._skills[name]
         count = 0
-        for sub in sorted(directory.rglob("skill.md")):
-            # Skip hidden staging/backup dirs (e.g. an access-skill build in
-            # progress) — they are not installed skills.
+        entries: dict[Path, Path] = {}
+        for sub in sorted(directory.rglob("*")):
+            if sub.name not in {"skill.md", "SKILL.md"}:
+                continue
             if any(p.startswith(".") for p in sub.relative_to(directory).parts[:-1]):
                 continue
+            if sub.parent not in entries or sub.name == "SKILL.md":
+                entries[sub.parent] = sub
+        for sub in entries.values():
             try:
                 skill = parse_skill_file(sub)
                 if self._is_blocked(skill.meta.name):
                     logger.info("Skipping blocked skill: %s", skill.meta.name)
+                    continue
+                if skill.meta.availability is SkillAvailability.DISABLED:
+                    logger.info("Skipping disabled skill: %s", skill.meta.name)
                     continue
                 # Auto-detect layer from directory path
                 rel = sub.relative_to(directory)
@@ -231,7 +248,7 @@ class SkillRegistry:
                 # Access-skill identity is its directory name — it matches the
                 # ``skill_<name>`` typed tool and the baker's layout. Override
                 # any stray skill.md frontmatter name so the two never diverge.
-                if skill.meta.category == SkillCategory.ACCESS:
+                if skill.package_format == "legacy" and skill.meta.category == SkillCategory.ACCESS:
                     skill.meta.name = sub.parent.name
                 if (
                     skill.meta.category is not None
@@ -245,6 +262,14 @@ class SkillRegistry:
                 executor_path = sub.parent / "executor.py"
                 if executor_path.exists():
                     skill.meta.has_executor = True
+                if self._is_blocked(skill.meta.name):
+                    continue
+                existing = self._skills.get(skill.meta.name)
+                if existing is not None and existing.file_path != skill.file_path:
+                    message = f"Skill name conflict: {skill.meta.name}: {existing.file_path} vs {skill.file_path}"
+                    self.diagnostics.append(message)
+                    logger.error(message)
+                    continue
                 self._skills[skill.meta.name] = skill
                 count += 1
             except Exception:
@@ -257,7 +282,7 @@ class SkillRegistry:
     # --- Query ---
 
     def get(self, name: str) -> Skill | None:
-        return self._skills.get(name)
+        return self._skills.get(name) or self._skills.get(canonical_skill_name(name))
 
     def list_all(self) -> list[Skill]:
         return list(self._skills.values())
@@ -265,20 +290,24 @@ class SkillRegistry:
     def list_by_category(self, category: SkillCategory) -> list[Skill]:
         return [s for s in self._skills.values() if s.meta.category == category]
 
-    def list_active(self) -> list[Skill]:
-        """Return skills with status active or optimized."""
-        active_statuses = {SkillStatus.ACTIVE, SkillStatus.OPTIMIZED}
-        return [s for s in self._skills.values() if s.meta.status in active_statuses]
-
     # --- Registration ---
 
     def register(self, skill: Skill) -> None:
         """Add or replace a skill in the registry."""
+        if skill.meta.availability is SkillAvailability.DISABLED:
+            logger.info("Refusing to register disabled skill: %s", skill.meta.name)
+            return
         if self._is_blocked(skill.meta.name):
             logger.info("Refusing to register blocked skill: %s", skill.meta.name)
             return
+        existing = self._skills.get(skill.meta.name)
+        if existing and existing.file_path != skill.file_path:
+            raise ValueError(f"Skill name conflict: {skill.meta.name}")
+        if skill.meta.category.value in self._disabled_layers:
+            return
         self._skills[skill.meta.name] = skill
-        logger.info("Registered skill: %s (status=%s)", skill.meta.name, skill.meta.status.value)
+        self._dir_mtime_cache.clear()
+        logger.info("Registered skill: %s", skill.meta.name)
 
     def generate_catalog(
         self,
@@ -294,15 +323,16 @@ class SkillRegistry:
 
         Lists **selectable** skills the orchestrator may pass in
         ``skills=[...]`` when dispatching a sub-agent — strategy skills
-        (methodology folded into the agent's prompt) and access skills
-        (turned into typed ``skill_<name>`` tools by ``render_skill_sets``
-        for that dispatch). Only the dispatched names are injected; the
-        rest stay discoverable via ``list_skills`` / ``load_skill``.
+        and access skills. Dispatch names are recommendations; agents load
+        instructions and run bundled scripts through the fixed exec tool.
+        Other permitted skills remain discoverable at runtime.
 
         Orchestrator-layer skills are excluded — they go into the
         orchestrator's own prompt via the playbook router, never into a
         sub-agent's ``skills=[...]``.
         """
+        access_allow = canonical_skill_names(access_allow) if access_allow is not None else None
+        strategy_allow = canonical_skill_names(strategy_allow) if strategy_allow is not None else None
         selectable: list[Skill] = []
 
         for skill in sorted(self._skills.values(), key=lambda s: s.meta.name):
@@ -313,8 +343,6 @@ class SkillRegistry:
             # passed in `skills=[...]` to a sub-agent. Hide from this catalog
             # so the orchestrator doesn't accidentally forward the name.
             if skill.meta.category == SkillCategory.ORCHESTRATOR:
-                continue
-            if skill.meta.status == SkillStatus.DEPRECATED:
                 continue
             if (
                 access_allow is not None
@@ -335,7 +363,7 @@ class SkillRegistry:
         ]
         for skill in selectable:
             desc = skill.meta.description or skill.meta.trigger or "(no description)"
-            desc_short = desc.replace("\n", " ")[:100]
+            desc_short = desc.replace("\n", " ")
             lines.append(f"- **{skill.meta.name}**: {desc_short}")
 
         return "\n".join(lines)

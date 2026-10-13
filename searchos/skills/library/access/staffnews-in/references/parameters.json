@@ -1,0 +1,16 @@
+{
+  "description": "Extracts structured Central Government holiday tables (gazetted and restricted) from staffnews.in for year 2025.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_gazetted_holidays: 获取2025年法定节假日列表; 参数: 无; 必填: 无\n  - get_restricted_holidays: 获取2025年限制节假日列表; 参数: 无; 必填: 无\n  - get_all_holidays: 获取法定节假日和限制节假日的完整列表; 参数: 无; 必填: 无"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

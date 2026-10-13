@@ -1,0 +1,36 @@
+{
+  "description": "Fetches product listings and details from GT's Living Foods e-commerce catalog (gtslivingfoods.com, redirects from gtskombucha.com). Supports browsing collections, viewing product details, and searching products.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_collections: 列出所有产品分类集合; 参数: 无; 必填: 无\n  - get_collection: 获取指定分类中的产品列表，需要 collection_handle 参数; 参数: collection_handle, page; 必填: 无\n  - get_product: 获取单个产品的详细信息，需要 product_handle 参数; 参数: product_handle; 必填: 无\n  - search_products: 搜索产品，需要 query 参数; 参数: query; 必填: 无"
+    },
+    "collection_handle": {
+      "type": "string",
+      "required": false,
+      "description": "分类句柄，用于 get_collection 功能。\n示例: 'synergy-raw-kombucha', 'classic-raw-kombucha', 'coconut-yogurt'"
+    },
+    "page": {
+      "type": "integer",
+      "required": false,
+      "description": "页码，用于 get_collection 分页，默认为 1。"
+    },
+    "product_handle": {
+      "type": "string",
+      "required": false,
+      "description": "产品句柄，用于 get_product 功能。\n示例: 'gts-kombucha-gingerade', 'gts-kombucha-trilogy'"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于 search_products 功能。\n示例: 'ginger', 'kombucha', 'yogurt'"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

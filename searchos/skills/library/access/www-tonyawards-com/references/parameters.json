@@ -1,0 +1,33 @@
+{
+  "description": "Extracts structured Tony Awards data from www.tonyawards.com including winners, nominees with winner status, press releases, and nominating committee members.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - winners: 获取获奖者列表; 可选参数: year, category; 参数: year, category; 必填: 无\n  - nominees: 获取提名者列表(含获奖标记); 可选参数: year, category; 参数: year, category; 必填: 无\n  - press_releases: 获取新闻稿列表; 参数: 无; 必填: 无\n  - press_release: 获取单篇新闻稿详情; 需要参数: url; 参数: url; 必填: 无"
+    },
+    "year": {
+      "type": "string",
+      "required": false,
+      "description": "年份筛选 (如 \"2026\"); 用于 winners 和 nominees 功能"
+    },
+    "category": {
+      "type": "string",
+      "required": false,
+      "description": "类别筛选关键词 (如 \"Best Play\", \"Actor\"); 用于 winners 和 nominees 功能"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "新闻稿URL (相对或绝对路径); 用于 press_release 功能"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

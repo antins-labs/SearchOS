@@ -1,0 +1,51 @@
+{
+  "description": "从 api.openalex.org 抽取学术作品：标题、URL、出版年份、DOI、类型",
+  "parameters": {
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索查询字符串（如 'graph neural networks'）；与 openalex_id 二选一"
+    },
+    "openalex_id": {
+      "type": "string",
+      "required": false,
+      "description": "OpenAlex 作品 ID（如 'W2626778328' 或完整 URL）；用于直接获取单个作品详情"
+    },
+    "per_page": {
+      "type": "integer",
+      "default": 10,
+      "description": "每页返回结果数量（1-200）"
+    },
+    "page": {
+      "type": "integer",
+      "default": 1,
+      "description": "页码，从 1 开始"
+    },
+    "filter": {
+      "type": "string",
+      "required": false,
+      "description": "过滤条件，如 'publication_year:2024' 或 'type:article'；多个条件用逗号分隔"
+    },
+    "sort": {
+      "type": "string",
+      "required": false,
+      "description": "排序方式，如 'cited_by_count:desc' 或 'publication_year:desc'"
+    },
+    "cursor": {
+      "type": "string",
+      "required": false,
+      "description": "游标分页令牌，用于获取下一页（由上一页响应返回）"
+    },
+    "num_results": {
+      "type": "integer",
+      "required": false,
+      "description": "限制返回结果数量（用于截断，不影响 per_page）"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

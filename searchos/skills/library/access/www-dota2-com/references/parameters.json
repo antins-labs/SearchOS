@@ -1,0 +1,21 @@
+{
+  "description": "Fetches structured content from www.dota2.com including news entries and tournament bracket records (International 2012).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_news_entry: 获取新闻文章详情，需要url参数; 参数: url; 必填: url\n  - get_tournament_bracket: 获取锦标赛对阵表数据，需要url参数; 参数: url; 必填: url\n  - get_tournament_game: 获取单场比赛详情，需要url参数; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "description": "要抓取的完整URL地址。\n- get_news_entry: 新闻文章URL (如 https://www.dota2.com/newsentry/3398555399437783294)\n- get_tournament_bracket: 对阵表URL (如 http://www.dota2.com/tournaments/international2012/mainevent/results/grandfinal/)\n- get_tournament_game: 比赛详情URL (如 http://www.dota2.com/tournaments/international2012/game/40/)"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

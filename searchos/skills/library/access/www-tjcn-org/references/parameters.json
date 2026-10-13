@@ -1,0 +1,33 @@
+{
+  "description": "Fetches and parses Chinese provincial statistical bulletins (统计公报) from www.tjcn.org, extracting full text, metadata, data tables, and sectional content with proper GBK encoding support.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_report   获取单篇统计公报完整内容; 需要url参数\n  - get_list     获取公报列表; 需要url参数\n  - search       搜索统计公报; 需要query参数, 可选year参数\n"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "统计公报URL地址 (用于get_report和get_list功能)。 示例: http://www.tjcn.org/tjgb/11zj/37664.html\n"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词 (用于search功能)。 可包含省份名称如\"浙江\"、\"江苏\"等。\n"
+    },
+    "year": {
+      "type": "integer",
+      "required": false,
+      "description": "年份过滤 (用于search功能)。 示例: 2023, 2022"
+    }
+  },
+  "imports": [
+    "bs4",
+    "httpx"
+  ],
+  "requirements": [
+    "beautifulsoup4",
+    "httpx"
+  ]
+}

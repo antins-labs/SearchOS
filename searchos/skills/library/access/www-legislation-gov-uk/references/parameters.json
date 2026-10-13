@@ -1,0 +1,57 @@
+{
+  "description": "Fetch UK legislation data from legislation.gov.uk including act details,  index listings by type/year, Atom feeds, and XML data exports.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_legislation: Get details of a specific legislation item (act, regulation, etc.); 参数: url, legislation_type, year, chapter; 必填: url\n  - get_index: Get list of legislation for a type and year/range; 参数: legislation_type, year; 必填: year\n  - get_feed: Get Atom feed for legislation list (structured XML data); 参数: url, legislation_type, year, page; 必填: url\n  - get_xml: Get XML data for a specific legislation item; 参数: url, legislation_type, year, chapter; 必填: url\n  - search: Search legislation by query, title, year, type; 参数: query, title, year, type, page; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full URL or path to legislation. Used by get_legislation, get_feed, get_xml.\nExamples: /ukpga/Geo6/14-15/27, /ukla/1951/data.feed"
+    },
+    "legislation_type": {
+      "type": "string",
+      "required": false,
+      "description": "Legislation type code. Used by get_legislation, get_index, get_feed, get_xml, search.\nCommon values: ukpga (UK Public General Acts), ukla (UK Local Acts), \nasp (Acts of Scottish Parliament), mwa (Acts of Senedd Cymru),\nuksi (UK Statutory Instruments), nisr (Northern Ireland Statutory Rules)"
+    },
+    "year": {
+      "type": "string",
+      "required": false,
+      "description": "Year or year range. Used by get_legislation, get_index, get_feed, get_xml, search.\nExamples: 2023, 1950-1959, Geo6 (regnal year)"
+    },
+    "chapter": {
+      "type": "string",
+      "required": false,
+      "description": "Chapter or number. Used by get_legislation, get_xml.\nExamples: 27, 1, c.1"
+    },
+    "page": {
+      "type": "integer",
+      "default": 1,
+      "required": false,
+      "description": "Page number for paginated results. Used by get_feed, search."
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query text. Used by search."
+    },
+    "title": {
+      "type": "string",
+      "required": false,
+      "description": "Filter by title. Used by search."
+    },
+    "type": {
+      "type": "string",
+      "required": false,
+      "description": "Filter by legislation type. Used by search."
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

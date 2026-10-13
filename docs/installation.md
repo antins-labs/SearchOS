@@ -4,7 +4,7 @@
 
 For macOS and Linux, the recommended path is the one-command installer in the
 repository root. It creates an isolated `.venv`, installs SearchOS and the
-bundled Access Skill dependencies, downloads Playwright Chromium, and installs
+Access Skill dependencies, downloads Playwright Chromium, and installs
 the locked Web frontend dependencies with `npm ci`.
 
 ## Requirements
@@ -62,7 +62,7 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e .             # CLI/TUI and Web API
-python -m pip install -e ".[access]"  # Bundled Access Skills
+python -m pip install -e ".[access]"  # Access Skills
 python -m pip install -e ".[dev]"     # Tests and linting
 python -m pip install -e ".[all]"     # All optional runtime dependencies
 ```

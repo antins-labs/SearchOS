@@ -1,0 +1,23 @@
+{
+  "description": "Extracts structured mineral commodity statistics and tables from USGS Mineral Commodity Summaries 2025 PDFs on pubs.usgs.gov.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_commodity: 获取指定矿产品的详细统计数据;需要commodity参数; 参数: commodity; 必填: commodity\n  - list_commodities: 列出MCS 2025中所有可用的矿产品; 参数: 无; 必填: 无\n  - get_rare_earths: 获取稀土元素的详细数据和表格; 参数: 无; 必填: 无\n  - get_full_info: 获取完整MCS PDF的基本信息; 参数: 无; 必填: 无"
+    },
+    "commodity": {
+      "type": "string",
+      "required": false,
+      "description": "矿产品名称，如\"Copper\"、\"Rare Earths\"、\"Lithium\"等;用于get_commodity函数"
+    }
+  },
+  "imports": [
+    "PyPDF2",
+    "aiohttp"
+  ],
+  "requirements": [
+    "PyPDF2",
+    "aiohttp"
+  ]
+}

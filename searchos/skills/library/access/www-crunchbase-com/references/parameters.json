@@ -1,0 +1,26 @@
+{
+  "description": "Fetches company and person profile data from Crunchbase (www.crunchbase.com). Note: Crunchbase employs aggressive Cloudflare anti-bot protection that may block automated access requiring CAPTCHA solving.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_person: 获取人物档案信息; 需要 url 或 slug 参数; 参数: url, slug; 必填: 无\n  - get_organization: 获取公司/组织档案信息; 需要 url 或 slug 参数; 参数: url, slug; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Crunchbase 完整 URL (例如 https://www.crunchbase.com/person/georges-clement)。\n可替代 slug 参数使用。"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "人物或组织的 URL slug (例如 'georges-clement' 或 'justfix-nyc')。\n可替代 url 参数使用。会自动构建完整 URL。"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

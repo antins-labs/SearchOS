@@ -1,0 +1,31 @@
+{
+  "description": "Fetches K-pop company information from kpopping.com database, including company profiles (founder, CEO, website, socials, groups, artists) and company listings.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_company_profile: Get detailed profile for a specific company (requires slug); 参数: slug; 必填: slug\n  - list_companies: List all companies, optionally filtered by first letter; 参数: letter; 必填: 无\n  - search_companies: Search for companies by name (requires query); 参数: query; 必填: query"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "Company slug/identifier (e.g., 'eden-entertainment', 'bighit-music'). Required for get_company_profile."
+    },
+    "letter": {
+      "type": "string",
+      "required": false,
+      "description": "Single letter (A-Z) to filter companies by. Optional for list_companies."
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query for company name. Required for search_companies."
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

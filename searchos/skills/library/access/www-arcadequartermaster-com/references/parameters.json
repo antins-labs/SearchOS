@@ -1,0 +1,23 @@
+{
+  "description": "Fetches King of Fighters boss character profiles and move lists from arcadequartermaster.com, including character stats, special moves, and striker data.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - fetch_boss_page: 从指定URL获取单个KOF游戏的角色数据; 参数: url; 必填: url\n  - fetch_all_pages: 获取所有已知KOF boss页面的数据; 参数: 无; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "要获取的页面URL (fetch_boss_page需要，必须是arcadequartermaster.com域名)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

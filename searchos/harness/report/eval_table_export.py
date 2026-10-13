@@ -10,22 +10,14 @@ import logging
 from typing import Any
 
 from searchos.socm import SearchState
+from searchos.socm.coverage import answer_evidence, project_cell_evidence, evidence_rank
 
 
 logger = logging.getLogger(__name__)
 
 
-_ALIGN_RANK = {"full": 3, "partial": 2, "loose": 1, "": 0}
-_AUTH_RANK = {"official": 5, "aggregator": 4, "industry_pr": 3,
-              "news": 2, "blog": 1, "unclear": 0, "": 0}
-
-
 def _rank_f(f: Any) -> tuple:
-    return (
-        _ALIGN_RANK.get(getattr(f, "alignment", "") or "", 0),
-        _AUTH_RANK.get(getattr(f, "source_authority", "") or "", 0),
-        float(getattr(f, "confidence", 0.0) or 0.0),
-    )
+    return evidence_rank(f)
 
 
 def _active_only(findings: list) -> list:
@@ -53,13 +45,16 @@ def _schema_table_id(cmap: Any, schema: Any) -> str:
     return getattr(schema, "table_id", "") or "_default"
 
 
-def _cell_findings(cell: Any, evidence_by_id: dict) -> list[Any]:
+def _cell_findings(
+    cell: Any, evidence_by_id: dict,
+    binding: tuple[Any, str, str, str] | None = None,
+) -> list[Any]:
     if cell is None or not getattr(cell, "supporting_evidence_ids", None):
         return []
-    return _active_only([
-        f for f in (evidence_by_id.get(fid) for fid in cell.supporting_evidence_ids)
-        if f is not None
-    ])
+    nodes = [evidence_by_id[fid] for fid in cell.supporting_evidence_ids if fid in evidence_by_id]
+    if binding is not None:
+        nodes = [view for node in nodes if (view := project_cell_evidence(binding[0], node, *binding[1:])) is not None]
+    return _active_only(nodes)
 
 
 def _raw_scalar_value(findings: list[Any]) -> str:
@@ -94,9 +89,10 @@ def _raw_list_value(findings: list[Any]) -> str:
 
 def _render_cell_raw(
     cell: Any, evidence_by_id: dict, is_list: bool,
+    binding: tuple[Any, str, str, str] | None = None,
 ) -> str:
     """Render a single cell as plain text (no hedge, no citation)."""
-    findings = _cell_findings(cell, evidence_by_id)
+    findings = _cell_findings(cell, evidence_by_id, binding)
     if not findings:
         return ""
     if is_list:
@@ -116,7 +112,9 @@ def _render_row(
             cells.append(pk_vals[attr])
             continue
         cell = cmap.cells.get(cmap.cell_key(tid, entity, attr))
-        cells.append(_render_cell_raw(cell, evidence_by_id, _is_list_attr(schema, attr)))
+        cells.append(_render_cell_raw(
+            cell, evidence_by_id, _is_list_attr(schema, attr), (cmap, tid, entity, attr),
+        ))
     return cells
 
 
@@ -204,7 +202,7 @@ def _build_joined_table(
         cell = cm.cells.get(cm.cell_key(tid, ent, attr))
         if cell is None:
             return ""
-        findings = _cell_findings(cell, evi)
+        findings = _cell_findings(cell, evi, (cm, tid, ent, attr))
         if not findings:
             return ""
         best = max(findings, key=_rank_f)
@@ -304,7 +302,10 @@ def _build_joined_table(
                 else:
                     cell = cmap.cells.get(cmap.cell_key(tid, entity, attr))
                     rendered_cells.append(
-                        _render_cell_raw(cell, evidence_by_id, _is_list_attr(schema, attr))
+                        _render_cell_raw(
+                            cell, evidence_by_id, _is_list_attr(schema, attr),
+                            (cmap, tid, entity, attr),
+                        )
                     )
         rows.append("| " + " | ".join(rendered_cells) + " |")
 
@@ -381,7 +382,7 @@ def build_eval_table(state: SearchState) -> str:
     if not cmap.cells:
         return ""
 
-    evidence_by_id = {n.id: n for n in state.evidence_graph.nodes}
+    evidence_by_id = {n.id: n for n in answer_evidence(state)}
     tables = getattr(cmap, "tables", {}) or {}
     if not tables:
         return ""

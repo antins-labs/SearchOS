@@ -27,6 +27,7 @@ export interface RunOverrides {
 
 export interface UiPrefs {
   verboseCards: boolean;
+  language: "zh" | "en";
 }
 
 type Status = "loading" | "ready" | "offline";
@@ -66,7 +67,7 @@ const Ctx = createContext<SettingsCtx | null>(null);
 // uiPrefs live in localStorage, read via useSyncExternalStore so SSR renders
 // the default and the client snapshot takes over without a setState-in-effect.
 const PREFS_KEY = "searchos.uiPrefs";
-const DEFAULT_PREFS: UiPrefs = { verboseCards: false };
+const DEFAULT_PREFS: UiPrefs = { verboseCards: false, language: "zh" };
 
 function subscribePrefs(cb: () => void) {
   window.addEventListener("storage", cb);
@@ -112,6 +113,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     if (!prefsRaw) return DEFAULT_PREFS;
     try { return { ...DEFAULT_PREFS, ...JSON.parse(prefsRaw) }; } catch { return DEFAULT_PREFS; }
   }, [prefsRaw]);
+
+  useEffect(() => {
+    document.documentElement.lang = uiPrefs.language === "zh" ? "zh-CN" : "en";
+  }, [uiPrefs.language]);
 
   const setUiPrefs = useCallback((patch: Partial<UiPrefs>) => {
     try {

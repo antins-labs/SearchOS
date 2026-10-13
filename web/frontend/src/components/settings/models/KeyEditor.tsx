@@ -20,7 +20,8 @@ interface Props {
  * is cleared on save, cancel, and unmount — it never enters settings state.
  */
 export default function KeyEditor({ envName, keySet, disabled = false, compact = false }: Props) {
-  const { mutate } = useSettings();
+  const { mutate, uiPrefs } = useSettings();
+  const zh = uiPrefs.language === "zh";
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [saving, setSaving] = useState(false);
@@ -36,7 +37,7 @@ export default function KeyEditor({ envName, keySet, disabled = false, compact =
     const result = await mutate({
       call: () => putSettingsKey(envName, value),
       merge: (s, models) => ({ ...s, models }),
-      errorLabel: "Couldn't save key",
+      errorLabel: zh ? "无法保存密钥" : "Couldn't save key",
     });
     setSaving(false);
     if (result) {
@@ -50,7 +51,7 @@ export default function KeyEditor({ envName, keySet, disabled = false, compact =
   if (saved) {
     return (
       <span className="flex items-center gap-1 text-[12px] text-ok">
-        <Check size={12} /> Key saved
+        <Check size={12} /> {zh ? "密钥已保存" : "Key saved"}
       </span>
     );
   }
@@ -65,7 +66,7 @@ export default function KeyEditor({ envName, keySet, disabled = false, compact =
           keySet ? "text-ink-faint hover:text-ink-dim" : "text-accent-ink hover:opacity-80"
         }`}
       >
-        {keySet ? "Edit" : "Add key"}
+        {keySet ? (zh ? "编辑" : "Edit") : (zh ? "添加密钥" : "Add key")}
       </button>
     );
   }
@@ -77,7 +78,7 @@ export default function KeyEditor({ envName, keySet, disabled = false, compact =
         onChange={setDraft}
         onCommit={save}
         disabled={saving}
-        placeholder={keySet ? "New value for " + envName : envName}
+        placeholder={keySet ? (zh ? `${envName} 的新值` : `New value for ${envName}`) : envName}
         ariaLabel={`API key for ${envName}`}
       />
       <button
@@ -86,7 +87,7 @@ export default function KeyEditor({ envName, keySet, disabled = false, compact =
         disabled={saving || !draft.trim()}
         className="flex shrink-0 items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-[12px] text-white transition-opacity hover:opacity-90 disabled:opacity-25"
       >
-        {saving && <Loader2 size={12} className="animate-spin" />} Save
+        {saving && <Loader2 size={12} className="animate-spin" />} {zh ? "保存" : "Save"}
       </button>
       <button
         type="button"
@@ -94,7 +95,7 @@ export default function KeyEditor({ envName, keySet, disabled = false, compact =
         disabled={saving}
         className="shrink-0 text-[12px] text-ink-faint transition-colors hover:text-ink-dim disabled:opacity-40"
       >
-        Cancel
+        {zh ? "取消" : "Cancel"}
       </button>
     </div>
   );

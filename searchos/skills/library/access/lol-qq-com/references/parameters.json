@@ -1,0 +1,21 @@
+{
+  "description": "Fetches League of Legends China (lol.qq.com) news/article content by document ID, including title, author, publication date, view count, and full article content with images.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: 获取文章详情，需要 docid 参数; 参数: docid; 必填: docid"
+    },
+    "docid": {
+      "type": "string",
+      "required": true,
+      "description": "文章文档ID（数字字符串），或包含 docid 参数的完整URL。\n例如: \"10255542153636928057\" 或 \"https://lol.qq.com/news/detail_m.html?docid=10255542153636928057\"\nget_article 函数使用此参数。"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

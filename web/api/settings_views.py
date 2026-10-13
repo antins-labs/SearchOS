@@ -43,7 +43,9 @@ def skills_view() -> dict:
                 {
                     "name": s.meta.name,
                     "description": (s.meta.description or s.meta.trigger or "").strip(),
-                    "status": s.meta.status.value,
+                    "status": s.meta.availability.value,
+                    "package_format": s.package_format,
+                    "package_hash": s.package_hash,
                     "enabled": skills_catalog.skill_enabled(cat, s.meta.name),
                 }
                 for s in skills
@@ -54,6 +56,7 @@ def skills_view() -> dict:
 
 
 def models_view() -> dict:
+    from searchos.config.model_purposes import purpose_groups_view
     from searchos.config.providers import active_provider
     from searchos.config.settings import settings
     from searchos.tools.simple_browser.search import (
@@ -126,6 +129,7 @@ def models_view() -> dict:
         "profiles": profiles,
         "provider_connections": provider_connections,
         "roles": dict(settings.roles),
+        "purpose_groups": purpose_groups_view(),
         "role_overrides": dict(store.models.roles),
         "search": {
             "resolved": resolve_search_provider_name(store.models.search_provider or ""),
@@ -141,11 +145,23 @@ def run_defaults_view() -> dict:
     from searchos.config.settings import settings
 
     rd = store.run_defaults
+    from searchos.config.models import resolve_profile
+    from searchos.tools.simple_browser.image_reading import capability_status
+
+    agent_profile = resolve_profile("sub_agent")
+    vision_profile = resolve_profile("local_vision")
     return {
         "max_time_s": rd.max_time_s if rd.max_time_s is not None else settings.default_max_time_s,
         "search_max_results": settings.search_max_results,
         "enable_skills": settings.enable_skills,
         "enable_explore_batch": settings.enable_explore_batch,
+        "enable_web_image_read": settings.enable_web_image_read,
+        "web_image_read_mode": settings.web_image_read_mode,
+        "jina_retain_images": settings.jina_retain_images,
+        "effective_jina_retain_images": settings.effective_jina_retain_images(),
+        "web_image_capability": capability_status(),
+        "web_image_agent_model": agent_profile.model,
+        "web_image_vision_model": vision_profile.model,
     }
 
 

@@ -1,0 +1,55 @@
+{
+  "description": "Fetches structured monument data from the Egyptian Ministry of Tourism and  Antiquities official website (egymonuments.gov.eg), including title, location,  description, images, and metadata for ancient Egyptian monuments, pyramids,  temples, and archaeological sites.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_monument: Fetch a single monument by slug or URL; 参数: slug, url, lang; 必填: 无\n  - get_multiple_monuments: Fetch multiple monuments by slugs or URLs; 参数: slugs, urls, lang; 必填: 无\n  - search_monuments: Search for monuments by keyword; 参数: query, lang; 必填: query"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "Monument URL slug (e.g., 'the-step-pyramid-complex-of-djoser', \n'pyramid-complex-of-teti'). Used with get_monument function."
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full monument URL (e.g., 'https://egymonuments.gov.eg/en/monuments/the-step-pyramid-complex-of-djoser').\nUsed with get_monument function as alternative to slug."
+    },
+    "lang": {
+      "type": "string",
+      "default": "en",
+      "required": false,
+      "description": "Language code for the content. Default is 'en' (English). Arabic is 'ar'."
+    },
+    "slugs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "required": false,
+      "description": "Array of monument URL slugs to fetch. Used with get_multiple_monuments function."
+    },
+    "urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "required": false,
+      "description": "Array of full monument URLs to fetch. Used with get_multiple_monuments function."
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query string. Used with search_monuments function."
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

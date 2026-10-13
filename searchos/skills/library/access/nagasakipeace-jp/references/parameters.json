@@ -1,0 +1,33 @@
+{
+  "description": "Retrieves structured information from nagasakipeace.jp about the Nagasaki Atomic Bomb Museum, historical records, survivor testimonies, photo galleries, and peace education resources.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_home_page: 获取首页导航结构和概览信息; 参数: 无; 必填: 无\n  - get_museum_info: 获取原子弹爆炸资料馆详细信息（位置、开放时间、设施等）; 参数: 无; 必填: 无\n  - get_records_page: 获取原子弹爆炸记录页面概览; 参数: 无; 必填: 无\n  - get_photo_gallery: 获取照片资料库；可选参数 gallery_id 指定具体相册; 参数: gallery_id; 必填: 无\n  - get_survivors_page: 获取原子弹幸存者证言列表; 参数: 无; 必填: 无\n  - get_survivor_story: 获取特定幸存者证言详情；需要 story_id 参数; 参数: story_id; 必填: story_id\n  - get_reference_page: 获取参考资料页面; 参数: 无; 必填: 无\n  - get_about_atomic_bomb: 获取关于原子弹的背景信息; 参数: 无; 必填: 无\n  - get_page: 获取任意页面内容；需要 path 参数; 参数: path; 必填: path"
+    },
+    "gallery_id": {
+      "type": "string",
+      "required": false,
+      "description": "照片资料库ID，用于 get_photo_gallery 函数获取特定相册内容（如 part_1.html）"
+    },
+    "story_id": {
+      "type": "string",
+      "required": false,
+      "description": "幸存者故事ID，用于 get_survivor_story 函数（如 sakue_shimohira.html）"
+    },
+    "path": {
+      "type": "string",
+      "required": false,
+      "description": "页面路径，用于 get_page 函数获取任意页面（如 /en/visit/abm/）"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

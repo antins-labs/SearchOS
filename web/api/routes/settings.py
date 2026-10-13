@@ -58,6 +58,9 @@ class MiscUpdate(BaseModel, extra="forbid"):
     enable_skills: bool | None = None
     enable_explore_batch: bool | None = None
     browser_backend: Literal["aiohttp", "crawl4ai", "search_engine", "jina"] | None = None
+    enable_web_image_read: bool | None = None
+    web_image_read_mode: Literal["auto", "native", "vision"] | None = None
+    jina_retain_images: Literal["auto", "alt", "all"] | None = None
 
 
 class AdvancedUpdate(BaseModel, extra="forbid"):
@@ -148,6 +151,8 @@ async def put_skills(req: SkillsUpdate):
 
 @router.patch("/skills/{name}")
 async def patch_skill(name: str, req: SkillToggle):
+    from searchos.skills.names import canonical_skill_name
+    name = canonical_skill_name(name)
     pools = skills_catalog.skill_pools()
     category = next((cat for cat, names in pools.items() if name in names), None)
     if category is None:
@@ -212,11 +217,29 @@ async def put_misc(req: MiscUpdate):
             s.run_defaults.enable_explore_batch = req.enable_explore_batch
         if req.browser_backend is not None:
             s.models.browser_backend = req.browser_backend
+        if req.enable_web_image_read is not None:
+            s.run_defaults.enable_web_image_read = req.enable_web_image_read
+        if req.web_image_read_mode is not None:
+            s.run_defaults.web_image_read_mode = req.web_image_read_mode
+        if req.jina_retain_images is not None:
+            s.run_defaults.jina_retain_images = req.jina_retain_images
 
     await settings_store.update(patch)
     view = run_defaults_view()
     view["browser_backend"] = models_view()["browser_backend"]
     return view
+
+
+@router.post("/web-image-capability/detect")
+async def detect_web_image_capability():
+    """Run the same image-message probe used by auto mode, bypassing its TTL."""
+    from searchos.tools.simple_browser.image_reading import detect_native_image_support
+
+    try:
+        await detect_native_image_support(force=True)
+    except Exception as exc:  # configuration/auth failures remain unknown
+        raise HTTPException(503, f"图片输入检测暂时失败：{exc}") from exc
+    return run_defaults_view()
 
 
 @router.put("/advanced")

@@ -1,0 +1,36 @@
+{
+  "description": "Fetches the structured list of 84 Japanese peace museums from nomorewar-ishikawa.com, with search by name/address, lookup by ID, and filtering by prefecture.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_all: 获取全部84个平和博物馆列表; 参数: 无; 必填: 无\n  - search: 按关键词搜索博物馆（在名称或地址中搜索）; 参数: query, field; 必填: query\n  - get_by_id: 按ID获取特定博物馆（ID范围1-84）; 参数: id; 必填: 无\n  - list_by_prefecture: 按都道府县筛选博物馆; 参数: prefecture; 必填: prefecture"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于search功能，在博物馆名称和地址中匹配"
+    },
+    "field": {
+      "type": "string",
+      "required": false,
+      "description": "搜索字段范围，用于search功能。可选值:\n  - all (默认) 在名称和地址中搜索\n  - name 仅在名称中搜索\n  - address 仅在地址中搜索"
+    },
+    "id": {
+      "type": "integer",
+      "required": false,
+      "description": "博物馆编号，用于get_by_id功能，有效范围1-84"
+    },
+    "prefecture": {
+      "type": "string",
+      "required": false,
+      "description": "都道府县名称，用于list_by_prefecture功能，如\"東京都\"、\"広島県\"、\"沖縄県\""
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

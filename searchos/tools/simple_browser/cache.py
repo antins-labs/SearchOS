@@ -83,16 +83,19 @@ def _normalize_url(url: str) -> str:
     return urlunsplit((scheme, netloc, path, query, ""))
 
 
-def _key(url: str) -> str:
-    return hashlib.sha256(_normalize_url(url).encode("utf-8")).hexdigest()
+def _key(url: str, *, namespace: str = "") -> str:
+    normalized = _normalize_url(url)
+    material = f"{namespace.strip()}\n{normalized}" if namespace.strip() else normalized
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()
 
 
 class DiskFetchCache:
     """Lock-free, append-only on-disk cache. Safe for concurrent reads;
     concurrent writes for the same URL race-resolve via os.replace."""
 
-    def __init__(self, root: str | Path) -> None:
+    def __init__(self, root: str | Path, *, namespace: str = "") -> None:
         self._root = Path(root).expanduser()
+        self._namespace = namespace.strip()
         self._root.mkdir(parents=True, exist_ok=True)
         # served = served from cache (no network)
         # fetched = had to go to network (cache lookup failed)
@@ -117,11 +120,11 @@ class DiskFetchCache:
             }
 
     def _path_for(self, url: str) -> Path:
-        h = _key(url)
+        h = _key(url, namespace=self._namespace)
         return self._root / h[:2] / f"{h}.json"
 
     def _lock_path_for(self, url: str) -> Path:
-        h = _key(url)
+        h = _key(url, namespace=self._namespace)
         return self._root / ".fetch_locks" / h[:2] / f"{h}.lock"
 
     def peek(self, url: str) -> FetchResult | None:

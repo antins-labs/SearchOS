@@ -1,0 +1,53 @@
+{
+  "description": "Fetches structured app data (title, price, release date, reviews, DLC info, system requirements) from Steam Store pages.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_app_details: 获取单个 Steam 应用的详细信息，需要 appid 或 url 参数; 参数: appid, url; 必填: 无\n  - get_multiple_apps: 批量获取多个应用信息，需要 appids 或 urls 参数; 参数: appids, urls; 必填: 无\n  - search_apps: 按关键词搜索 Steam 应用，需要 query 参数; 参数: query, count; 必填: 无"
+    },
+    "appid": {
+      "type": "string",
+      "required": false,
+      "description": "Steam 应用 ID (如 '1670540')，用于 get_app_details"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Steam 商店页面完整 URL，用于 get_app_details (可替代 appid)"
+    },
+    "appids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "required": false,
+      "description": "Steam 应用 ID 列表，用于 get_multiple_apps"
+    },
+    "urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "required": false,
+      "description": "Steam 商店页面 URL 列表，用于 get_multiple_apps"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于 search_apps"
+    },
+    "count": {
+      "type": "integer",
+      "default": 10,
+      "required": false,
+      "description": "搜索结果数量限制 (默认 10，最大 50)，用于 search_apps"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

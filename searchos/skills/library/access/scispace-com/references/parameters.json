@@ -1,0 +1,26 @@
+{
+  "description": "Access SciSpace journal pages (scispace.com). Handles AWS WAF CAPTCHA gracefully and provides journal metadata when accessible.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_journal_info: 访问期刊页面并提取信息；需要 url 或 journal_slug; 参数: url, journal_slug; 必填: 无\n  - check_captcha_status: 检查指定URL是否需要CAPTCHA验证；需要 url; 参数: url; 必填: url\n  - extract_journal_slug: 从URL中提取期刊slug标识符；需要 url; 参数: url; 必填: url"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "SciSpace期刊的完整URL。\n例如: https://scispace.com/journals/journal-of-the-institute-of-telecommunications-professionals-3jwh2biv\n用于 get_journal_info 和 check_captcha_status 功能。"
+    },
+    "journal_slug": {
+      "type": "string",
+      "required": false,
+      "description": "期刊的slug标识符（URL中的最后部分）。\n例如: journal-of-the-institute-of-telecommunications-professionals-3jwh2biv\n用于 get_journal_info 功能（当未提供url时）。"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

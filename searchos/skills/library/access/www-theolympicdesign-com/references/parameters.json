@@ -1,0 +1,55 @@
+{
+  "description": "Fetches Olympic design records (mascots and emblems) from theolympicdesign.com with structured data extraction including titles, designers, images, and sports.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_record: 获取单条记录，需要 url 或 slug 参数; 参数: url, slug, category; 必填: url\n  - list_records: 列出某分类下所有记录，需要 category 参数; 参数: category; 必填: 无\n  - search_records: 按城市或年份搜索记录，需要 query 参数; 参数: category, query; 必填: 无\n  - get_multiple_records: 批量获取多条记录，需要 slugs 或 urls 参数; 参数: slugs, urls, category; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "记录页面的完整URL (用于 get_record)"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "记录的URL标识符，如 atlanta-1996 (用于 get_record, get_multiple_records)"
+    },
+    "category": {
+      "type": "string",
+      "default": "mascots",
+      "required": false,
+      "description": "分类名称，可选值 mascots 或 emblems (用于 list_records, get_record, get_multiple_records)"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，如城市名或年份 (用于 search_records)"
+    },
+    "slugs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "required": false,
+      "description": "记录标识符数组 (用于 get_multiple_records)"
+    },
+    "urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "required": false,
+      "description": "记录URL数组 (用于 get_multiple_records)"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

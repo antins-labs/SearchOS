@@ -1,0 +1,76 @@
+{
+  "description": "Fetch artwork details from The Metropolitan Museum of Art collection using the public API. Supports retrieving object details by ID, searching the collection with filters, and listing departments.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_object: 获取单个藏品的详细信息; 需要 object_id; 参数: object_id; 必填: 无\n  - search: 搜索藏品; 可选 query, department_id, has_images, is_highlight, is_on_view, artist_or_culture, title, geo_location, medium, date_begin, date_end; 参数: query, department_id, has_images, is_highlight, is_on_view, artist_or_culture, title, geo_location, medium, date_begin, date_end; 必填: 无\n  - departments: 获取所有部门列表; 无需其他参数; 参数: 无; 必填: 无"
+    },
+    "object_id": {
+      "type": "integer",
+      "required": false,
+      "description": "藏品ID，用于 get_object 功能"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词，用于 search 功能"
+    },
+    "department_id": {
+      "type": "integer",
+      "required": false,
+      "description": "部门ID筛选，用于 search 功能"
+    },
+    "has_images": {
+      "type": "boolean",
+      "required": false,
+      "description": "仅返回有图片的藏品，用于 search 功能"
+    },
+    "is_highlight": {
+      "type": "boolean",
+      "required": false,
+      "description": "仅返回精选藏品，用于 search 功能"
+    },
+    "is_on_view": {
+      "type": "boolean",
+      "required": false,
+      "description": "仅返回当前展出的藏品，用于 search 功能"
+    },
+    "artist_or_culture": {
+      "type": "boolean",
+      "required": false,
+      "description": "在艺术家或文化字段中搜索，用于 search 功能"
+    },
+    "title": {
+      "type": "boolean",
+      "required": false,
+      "description": "仅在标题中搜索，用于 search 功能"
+    },
+    "geo_location": {
+      "type": "string",
+      "required": false,
+      "description": "地理位置筛选，用于 search 功能"
+    },
+    "medium": {
+      "type": "string",
+      "required": false,
+      "description": "材质/媒介筛选，用于 search 功能"
+    },
+    "date_begin": {
+      "type": "integer",
+      "required": false,
+      "description": "起始年份，用于 search 功能"
+    },
+    "date_end": {
+      "type": "integer",
+      "required": false,
+      "description": "结束年份，用于 search 功能"
+    }
+  },
+  "imports": [
+    "aiohttp"
+  ],
+  "requirements": [
+    "aiohttp"
+  ]
+}

@@ -13,9 +13,11 @@ import SkillsSection from "@/components/settings/sections/SkillsSection";
 import ModelsSection from "@/components/settings/sections/ModelsSection";
 import SearchSection from "@/components/settings/sections/SearchSection";
 import AppearanceSection from "@/components/settings/sections/AppearanceSection";
+import QuickSetupSection from "@/components/settings/sections/QuickSetupSection";
 
 export default function SettingsPage() {
-  const { status, refresh, mutate } = useSettings();
+  const { status, refresh, mutate, uiPrefs } = useSettings();
+  const zh = uiPrefs.language === "zh";
   const [active, setActive] = useState<SectionId>(SECTIONS[0].id);
   const [confirmReset, setConfirmReset] = useState(false);
 
@@ -38,7 +40,7 @@ export default function SettingsPage() {
       <aside className="sticky top-8 hidden h-fit w-44 shrink-0 lg:block">
         <Link href="/"
           className="mb-4 flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-[13px] text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">
-          <ArrowLeft size={14} /> Back
+          <ArrowLeft size={14} /> {zh ? "返回" : "Back"}
         </Link>
         <SectionNav active={active} onSelect={scrollTo} />
       </aside>
@@ -46,19 +48,20 @@ export default function SettingsPage() {
       <main className="min-w-0 flex-1">
         <div className="mb-6 flex items-center justify-between lg:hidden">
           <Link href="/" className="flex items-center gap-1.5 text-[13px] text-ink-dim hover:text-ink">
-            <ArrowLeft size={14} /> Back
+            <ArrowLeft size={14} /> {zh ? "返回" : "Back"}
           </Link>
         </div>
-        <h1 className="font-serif text-[24px] text-ink">Settings</h1>
+        <h1 className="font-serif text-[24px] text-ink">{zh ? "设置" : "Settings"}</h1>
 
         {status === "offline" && (
           <div className="mt-4 flex items-center gap-2 rounded-xl bg-warn/10 px-4 py-2.5 text-[13px] text-warn">
             <WifiOff size={14} />
-            Backend offline — settings can&apos;t be loaded. Retrying…
+            {zh ? "后端未连接，暂时无法读取设置，正在重试…" : "Backend offline — settings can't be loaded. Retrying…"}
           </div>
         )}
 
         <div className="mt-8 space-y-10 pb-16">
+          <QuickSetupSection onNavigate={scrollTo} />
           <ModelsSection />
           <SearchSection />
           <SkillsSection />
@@ -69,20 +72,20 @@ export default function SettingsPage() {
           <section className="border-t border-line pt-6">
             {confirmReset ? (
               <span className="flex items-center gap-3 text-[13px]">
-                <span className="text-ink-dim">Reset all web settings to env defaults?</span>
+                <span className="text-ink-dim">{zh ? "将全部网页设置恢复为环境变量默认值？" : "Reset all web settings to environment defaults?"}</span>
                 <button type="button" onClick={doReset}
                   className="rounded-lg bg-err px-3 py-1.5 text-white transition-opacity hover:opacity-90">
-                  Reset
+                  {zh ? "重置" : "Reset"}
                 </button>
                 <button type="button" onClick={() => setConfirmReset(false)}
                   className="rounded-lg px-3 py-1.5 text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink">
-                  Cancel
+                  {zh ? "取消" : "Cancel"}
                 </button>
               </span>
             ) : (
               <button type="button" onClick={() => setConfirmReset(true)} disabled={status !== "ready"}
                 className="flex items-center gap-1.5 text-[13px] text-ink-faint transition-colors hover:text-err disabled:opacity-40">
-                <RotateCcw size={13} /> Reset all settings
+                <RotateCcw size={13} /> {zh ? "重置全部设置" : "Reset all settings"}
               </button>
             )}
           </section>

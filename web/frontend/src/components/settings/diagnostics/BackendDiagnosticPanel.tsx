@@ -5,17 +5,18 @@ import { CheckCircle2, CircleAlert, Globe2, Loader2, Play, Search } from "lucide
 
 import { testBrowserBackend, testSearchBackend } from "@/lib/api";
 import type { BrowserDiagnostic, SearchDiagnostic } from "@/lib/types";
+import { useSettings } from "@/components/settings/SettingsProvider";
 
 const inputClass = "min-w-0 flex-1 rounded-lg border border-line bg-paper px-2.5 py-1.5 text-[12px] text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-accent disabled:opacity-40";
 
-function Result({ result }: { result: SearchDiagnostic | BrowserDiagnostic }) {
+function Result({ result, zh }: { result: SearchDiagnostic | BrowserDiagnostic; zh: boolean }) {
   return (
     <div role={result.ok ? "status" : "alert"} className={`mt-2 flex items-start gap-2 text-[11.5px] ${result.ok ? "text-ink-dim" : "text-err"}`}>
       {result.ok ? <CheckCircle2 className="mt-0.5 shrink-0 text-ok" size={14} /> : <CircleAlert className="mt-0.5 shrink-0" size={14} />}
       <div className="min-w-0 flex-1">
         {result.ok && result.kind === "search" && (
           <>
-            <div className="font-medium text-ink">{result.provider} · {result.result_count} results · {result.latency_ms} ms</div>
+            <div className="font-medium text-ink">{result.provider} · {result.result_count} {zh ? "条结果" : "results"} · {result.latency_ms} ms</div>
             <div className="mt-0.5 truncate text-ink-faint">{result.results?.map((item) => item.domain || item.title).join(" · ")}</div>
           </>
         )}
@@ -23,7 +24,7 @@ function Result({ result }: { result: SearchDiagnostic | BrowserDiagnostic }) {
           <>
             <div className="font-medium text-ink">{result.backend} · HTTP {result.status_code} · {result.latency_ms} ms</div>
             <div className="mt-0.5 truncate text-ink-faint">
-              {result.title || `${result.content_chars ?? 0} content chars`} · {result.proxy.endpoint}
+              {result.title || `${result.content_chars ?? 0} ${zh ? "字符" : "content chars"}`} · {result.proxy.endpoint}
             </div>
           </>
         )}
@@ -34,6 +35,8 @@ function Result({ result }: { result: SearchDiagnostic | BrowserDiagnostic }) {
 }
 
 export default function BackendDiagnosticPanel({ disabled = false }: { disabled?: boolean }) {
+  const { uiPrefs } = useSettings();
+  const zh = uiPrefs.language === "zh";
   const [searchQuery, setSearchQuery] = useState("SearchOS agentic research");
   const [browserUrl, setBrowserUrl] = useState("https://example.com");
   const [busy, setBusy] = useState<"search" | "browser" | null>(null);
@@ -69,25 +72,25 @@ export default function BackendDiagnosticPanel({ disabled = false }: { disabled?
   return (
     <div className="surface divide-y divide-line rounded-lg border border-line">
       <div className="px-4 py-3">
-        <div className="mb-2 flex items-center gap-2 text-[13px] font-medium text-ink"><Search className="text-accent-ink" size={14} /> Search query test</div>
+        <div className="mb-2 flex items-center gap-2 text-[13px] font-medium text-ink"><Search className="text-accent-ink" size={14} /> {zh ? "检索测试" : "Search test"}</div>
         <div className="flex gap-2">
-          <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} disabled={disabled || !!busy} aria-label="Search test query" className={inputClass} />
-          <button type="button" onClick={runSearch} disabled={disabled || !!busy || !searchQuery.trim()} aria-label="Run search backend test" className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-ink text-paper disabled:opacity-40">
+          <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} disabled={disabled || !!busy} aria-label={zh ? "检索测试关键词" : "Search test query"} className={inputClass} />
+          <button type="button" onClick={runSearch} disabled={disabled || !!busy || !searchQuery.trim()} aria-label={zh ? "运行检索测试" : "Run search test"} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-ink text-paper disabled:opacity-40">
             {busy === "search" ? <Loader2 className="animate-spin" size={13} /> : <Play size={13} />}
           </button>
         </div>
-        {searchResult && <Result result={searchResult} />}
+        {searchResult && <Result result={searchResult} zh={zh} />}
       </div>
 
       <div className="px-4 py-3">
-        <div className="mb-2 flex items-center gap-2 text-[13px] font-medium text-ink"><Globe2 className="text-accent-ink" size={14} /> Browser fetch test</div>
+        <div className="mb-2 flex items-center gap-2 text-[13px] font-medium text-ink"><Globe2 className="text-accent-ink" size={14} /> {zh ? "网页读取测试" : "Page reader test"}</div>
         <div className="flex gap-2">
-          <input value={browserUrl} onChange={(event) => setBrowserUrl(event.target.value)} disabled={disabled || !!busy} aria-label="Browser test URL" className={inputClass} spellCheck={false} />
-          <button type="button" onClick={runBrowser} disabled={disabled || !!busy || !browserUrl.trim()} aria-label="Run browser backend test" className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-ink text-paper disabled:opacity-40">
+          <input value={browserUrl} onChange={(event) => setBrowserUrl(event.target.value)} disabled={disabled || !!busy} aria-label={zh ? "网页读取测试地址" : "Page reader test URL"} className={inputClass} spellCheck={false} />
+          <button type="button" onClick={runBrowser} disabled={disabled || !!busy || !browserUrl.trim()} aria-label={zh ? "运行网页读取测试" : "Run page reader test"} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-ink text-paper disabled:opacity-40">
             {busy === "browser" ? <Loader2 className="animate-spin" size={13} /> : <Play size={13} />}
           </button>
         </div>
-        {browserResult && <Result result={browserResult} />}
+        {browserResult && <Result result={browserResult} zh={zh} />}
       </div>
     </div>
   );

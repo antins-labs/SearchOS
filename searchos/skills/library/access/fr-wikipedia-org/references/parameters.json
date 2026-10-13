@@ -1,0 +1,42 @@
+{
+  "description": "Extract structured information from French Wikipedia (fr.wikipedia.org) pages including biographical infoboxes, tables, sections, and article content.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_page_info: 获取页面完整信息（标题、简介、信息框、表格、章节、分类等）；需要 url 或 title 参数; 参数: url, title; 必填: 无\n  - get_infobox: 提取人物信息框数据（职位、任期、生平信息等）；需要 url 或 title 参数; 参数: url, title; 必填: 无\n  - get_tables: 提取页面中的所有维基表格（选举结果、职务列表等）；需要 url 或 title 参数; 参数: url, title; 必填: 无\n  - get_section: 获取指定章节的内容；需要 url 或 title 参数，以及 section 参数; 参数: url, title, section; 必填: 无\n  - search: 搜索维基百科页面；需要 query 参数，可选 limit 参数; 参数: query, limit; 必填: query"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "维基百科页面的完整URL（如 https://fr.wikipedia.org/wiki/Jacques_Chaban-Delmas）。用于 get_page_info、get_infobox、get_tables、get_section 功能。"
+    },
+    "title": {
+      "type": "string",
+      "required": false,
+      "description": "维基百科页面标题（如 \"Jacques Chaban-Delmas\"），将自动构建URL。用于 get_page_info、get_infobox、get_tables、get_section 功能。如果同时提供 url 和 title，优先使用 url。"
+    },
+    "section": {
+      "type": "string",
+      "required": false,
+      "description": "要获取的章节名称（如 \"Biographie\"、\"Premier ministre\"），支持模糊匹配。用于 get_section 功能。"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "搜索关键词。用于 search 功能。"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 10,
+      "required": false,
+      "description": "搜索结果的最大返回数量。用于 search 功能，默认为 10。"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

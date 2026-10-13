@@ -1,0 +1,28 @@
+{
+  "description": "Fetches volcano data from volcanosatlas.com including country volcano listings, individual volcano details, and list of countries with volcanoes.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_countries: 获取所有有火山的国家列表; 参数: 无; 必填: 无\n  - get_country_volcanoes: 获取指定国家的火山列表和统计信息，需要 country 参数; 参数: country; 必填: 无\n  - get_volcano_detail: 获取特定火山的详细信息，需要 slug 参数; 参数: slug; 必填: 无"
+    },
+    "country": {
+      "type": "string",
+      "required": false,
+      "description": "国家名称（如 Chile, Argentina, Japan），用于 get_country_volcanoes 功能"
+    },
+    "slug": {
+      "type": "string",
+      "required": false,
+      "description": "火山的 URL slug（如 villarrica, copahue），用于 get_volcano_detail 功能"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

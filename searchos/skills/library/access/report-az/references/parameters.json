@@ -1,0 +1,31 @@
+{
+  "description": "Retrieves articles from report.az (Azerbaijani news site) with Cloudflare bypass handling. Supports article retrieval and search functionality.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: Retrieve an article by URL; requires url parameter; 参数: url, max_wait; 必填: url\n  - search_articles: Search for articles; requires query parameter; 参数: query, max_wait; 必填: query"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Article URL from report.az (required for get_article function)"
+    },
+    "max_wait": {
+      "type": "integer",
+      "required": false,
+      "description": "Maximum seconds to wait for Cloudflare challenge resolution (default 120)\n各功能默认值：get_article=180；search_articles=120"
+    },
+    "query": {
+      "type": "string",
+      "required": false,
+      "description": "Search query string (required for search_articles function)"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

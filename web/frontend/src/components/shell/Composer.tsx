@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useReducer, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useReducer, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import {
   AlertCircle,
   ArrowUp,
@@ -21,7 +21,10 @@ import {
 
 import { useSettings } from "@/components/settings/SettingsProvider";
 import RunOverridesPopover from "@/components/settings/RunOverridesPopover";
+import LocalSourceControl from "@/components/local/LocalSourceControl";
 import Select from "@/components/ui/Select";
+import type { LocalLibraryController } from "@/hooks/useLocalLibrary";
+import type { SourceSelection } from "@/lib/types";
 import {
   parseDelimitedTable,
   validateSchemaDrafts,
@@ -31,6 +34,7 @@ import {
 } from "@/lib/schemaDraft";
 
 export interface SubmitOpts {
+  sources?: SourceSelection;
   entities?: string[];
   attrs?: string[];
   tableLabel?: string;
@@ -67,6 +71,7 @@ interface Props {
   placeholder?: string;
   autoFocus?: boolean;
   focusRequest?: number;
+  localLibrary: LocalLibraryController;
 }
 
 const COMMANDS = [
@@ -195,9 +200,11 @@ export default function Composer({
   placeholder,
   autoFocus = false,
   focusRequest = 0,
+  localLibrary,
 }: Props) {
   const [text, setText] = useState("");
   const [focused, setFocused] = useState(false);
+  const [sourceOpen, setSourceOpen] = useState(false);
   const [showSchema, setShowSchema] = useState(false);
   const [showOverrides, setShowOverrides] = useState(false);
   const [entities, setEntities] = useState("");
@@ -290,11 +297,28 @@ export default function Composer({
     overrides.effort,
     overrides.max_time != null ? `${overrides.max_time}s` : null,
   ].filter(Boolean).join(" · ");
+  const sourcePlaceholder = localLibrary.mode === "local"
+    ? localLibrary.selectedDocumentIds.length > 0
+      ? `询问所选的 ${localLibrary.selectedDocumentIds.length} 份资料…`
+      : "检索当前知识库并回答…"
+    : localLibrary.mode === "hybrid"
+      ? localLibrary.selectedDocumentIds.length > 0
+        ? `结合网络与 ${localLibrary.selectedDocumentIds.length} 份资料提问…`
+        : localLibrary.libraryId ? "结合当前知识库与网络，自主检索…" : "联网研究；添加资料可结合分析…"
+      : "搜索网络并回答…";
 
   const hero = variant === "hero";
   const slashTyping = /^\/[a-z]*$/i.test(text);
   const matches = slashTyping ? COMMANDS.filter((c) => c.cmd.startsWith(text.toLowerCase())) : [];
   const menuOpen = matches.length > 0 && focused && !menuDismissed;
+
+  const changeSourceOpen = useCallback((next: boolean) => {
+    setSourceOpen(next);
+    if (next) {
+      setShowSchema(false);
+      setShowOverrides(false);
+    }
+  }, []);
 
   const commitSchema = (update: (snapshot: SchemaSnapshot) => SchemaSnapshot, mergeKey?: string) => {
     dispatchSchema({ type: "commit", update, mergeKey });
@@ -323,6 +347,8 @@ export default function Composer({
 
   const choose = (cmd: string) => {
     if (cmd === "/schema") {
+      setSourceOpen(false);
+      setShowOverrides(false);
       setShowSchema((v) => !v);
       setText("");
     }
@@ -336,14 +362,21 @@ export default function Composer({
       // Mid-run: steer the live orchestrator rather than queue a new search.
       if (!onSteer) return;
       onSteer(body);
+      setSourceOpen(false);
+      setShowSchema(false);
+      setShowOverrides(false);
       setText("");
       return;
     }
     if (hasDraftTables && !schemaValidation.valid) {
+      setSourceOpen(false);
+      setShowOverrides(false);
       setShowSchema(true);
       return;
     }
+    if (localLibrary.mode === "local" && !localLibrary.selection) return;
     onSubmit(body, {
+      sources: localLibrary.selection,
       entities: pinnedRows,
       attrs: pinnedCols,
       tableLabel: hasDraftTables ? resolvedEntityName || undefined : undefined,
@@ -352,6 +385,9 @@ export default function Composer({
       tables: schemaTables,
       relations: schemaRelations,
     });
+    setSourceOpen(false);
+    setShowSchema(false);
+    setShowOverrides(false);
     setText("");
   };
 
@@ -589,6 +625,7 @@ export default function Composer({
 
   return (
     <div className="relative w-full">
+      <LocalSourceControl controller={localLibrary} open={sourceOpen} onOpenChange={changeSourceOpen} />
       <form
         onSubmit={(e) => { e.preventDefault(); submit(); }}
         className={`surface flex items-end gap-2 transition-shadow focus-within:border-line-strong ${
@@ -597,7 +634,12 @@ export default function Composer({
       >
         <button
           type="button"
-          onClick={() => setShowSchema((v) => !v)}
+          onClick={() => {
+            setSourceOpen(false);
+            setShowOverrides(false);
+            setShowSchema((value) => !value);
+          }}
+          aria-expanded={showSchema}
           title="Pin table rows & columns (optional)"
           aria-label="Edit table schema"
           className={`mb-0.5 shrink-0 rounded-lg p-1.5 transition-colors ${
@@ -610,7 +652,13 @@ export default function Composer({
         </button>
         <button
           type="button"
-          onClick={() => setShowOverrides((v) => !v)}
+          data-run-overrides-toggle
+          onClick={() => {
+            setSourceOpen(false);
+            setShowSchema(false);
+            setShowOverrides((value) => !value);
+          }}
+          aria-expanded={showOverrides}
           title="Run overrides"
           aria-label="Run overrides"
           className={`mb-0.5 shrink-0 rounded-lg p-1.5 transition-colors ${overrides.effort === "max" ? "max-effort-control" : ""} ${
@@ -654,7 +702,7 @@ export default function Composer({
               ? onSteer
                 ? "Searching… press Enter to steer the live run"
                 : "Searching… type your next question"
-              : placeholder ?? "Ask anything…"
+              : placeholder ?? sourcePlaceholder
           }
           className={`min-w-0 flex-1 resize-none bg-transparent leading-relaxed text-ink caret-accent outline-none placeholder:text-ink-faint disabled:opacity-50 ${
             hero ? "py-1 text-[16px]" : "py-0.5 text-[15px]"
@@ -680,7 +728,7 @@ export default function Composer({
         )}
         <button
           type="submit"
-          disabled={!text.trim() || (running && !onSteer)}
+          disabled={!text.trim() || (running && !onSteer) || (localLibrary.mode === "local" && !localLibrary.selection)}
           aria-label={running && onSteer ? "Steer the live run" : "Send"}
           title={running && onSteer ? "Steer the live run" : undefined}
           className={`mb-0.5 shrink-0 rounded-xl bg-accent text-white transition-opacity hover:opacity-90 disabled:opacity-25 ${

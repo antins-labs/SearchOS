@@ -1,0 +1,18 @@
+{
+  "description": "Fetches the list of Victoria and Albert Museum directors from the V&A website (www.vam.ac.uk).",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_directors: 获取V&A博物馆历任馆长列表，返回姓名、任期、简介链接等结构化信息; 参数: 无; 必填: 无"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

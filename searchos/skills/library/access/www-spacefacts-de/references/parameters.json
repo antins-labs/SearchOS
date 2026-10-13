@@ -1,0 +1,23 @@
+{
+  "description": "Extract structured tabular data from www.spacefacts.de including ISS commanders, astronauts/cosmonauts by time in space, active astronauts, first mission dates, deceased astronauts, international travelers, taikonauts, and spacecraft relocations.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - list_available_pages: 列出所有可用的数据页面; 参数: limit; 必填: 无\n  - get_iss_commanders: 获取所有ISS指挥官及其任务详情; 参数: limit; 必填: 无\n  - get_time_in_space: 获取按太空时间排序的宇航员列表; 参数: limit; 必填: 无\n  - get_active_astronauts: 获取现役宇航员和航天员列表; 参数: limit; 必填: 无\n  - get_by_first_mission: 获取按首次任务日期排序的宇航员列表; 参数: limit; 必填: 无\n  - get_deceased: 获取已故宇航员和航天员列表; 参数: limit; 必填: 无\n  - get_international: 获取国际太空旅行者列表; 参数: limit; 必填: 无\n  - get_taikonauts: 获取中国航天员(宇航员)列表; 参数: limit; 必填: 无\n  - get_relocations: 获取载人飞船重定位记录; 参数: limit; 必填: 无\n  - get_all_alphabetical: 获取按字母顺序排列的所有宇航员列表; 参数: limit; 必填: 无"
+    },
+    "limit": {
+      "type": "integer",
+      "required": false,
+      "description": "返回记录的最大数量(可选)。用于限制返回结果数量。\n适用于: get_time_in_space, get_active_astronauts, get_by_first_mission,\nget_deceased, get_international, get_taikonauts, get_relocations,\nget_all_alphabetical"
+    }
+  },
+  "imports": [
+    "aiohttp",
+    "bs4"
+  ],
+  "requirements": [
+    "aiohttp",
+    "beautifulsoup4"
+  ]
+}

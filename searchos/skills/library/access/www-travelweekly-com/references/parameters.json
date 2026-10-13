@@ -1,0 +1,38 @@
+{
+  "description": "Fetches cruise schedule and itinerary details from Travel Weekly's cruise database (www.travelweekly.com/Cruise/...). Target pages contain structured cruise records including departure dates, itinerary ports, duration, and pricing.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_cruise: Fetch cruise details from a Travel Weekly cruise page; 参数: url, cruise_id, cruise_line, ship_name; 必填: 无"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full Travel Weekly cruise URL (e.g., https://www.travelweekly.com/Cruise/Viking-Ocean/Viking-Venus/Cruise-p60587758). Used by get_cruise."
+    },
+    "cruise_id": {
+      "type": "string",
+      "required": false,
+      "description": "Cruise ID from the URL (numeric portion after 'Cruise-p'). Used by get_cruise when url is not provided."
+    },
+    "cruise_line": {
+      "type": "string",
+      "required": false,
+      "description": "Cruise line name for URL construction (e.g., 'Viking Ocean'). Required with cruise_id if url not provided."
+    },
+    "ship_name": {
+      "type": "string",
+      "required": false,
+      "description": "Ship name for URL construction (e.g., 'Viking Venus'). Required with cruise_id if url not provided."
+    }
+  },
+  "imports": [
+    "bs4",
+    "playwright"
+  ],
+  "requirements": [
+    "beautifulsoup4",
+    "playwright"
+  ]
+}

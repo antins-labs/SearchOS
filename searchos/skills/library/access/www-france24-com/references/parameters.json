@@ -1,0 +1,26 @@
+{
+  "description": "Fetches article content, section listings, and metadata from France24.com English edition.",
+  "parameters": {
+    "function": {
+      "type": "string",
+      "required": true,
+      "description": "要调用的功能名。可用值:\n  - get_article: Fetch full article content, title, date, and metadata from a France24 article URL; 参数: url; 必填: url\n  - get_section: Fetch latest articles from a section page (e.g., /en/france/, /en/europe/); 参数: section; 必填: section"
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "description": "Full URL to a France24 article page (used by get_article)"
+    },
+    "section": {
+      "type": "string",
+      "required": false,
+      "description": "Section path for get_section (e.g., 'france', 'europe', 'africa', 'middle-east', 'americas', 'asia-pacific')"
+    }
+  },
+  "imports": [
+    "playwright"
+  ],
+  "requirements": [
+    "playwright"
+  ]
+}

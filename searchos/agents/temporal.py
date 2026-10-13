@@ -4,7 +4,13 @@ from __future__ import annotations
 
 from typing import Literal
 
-AgentRole = Literal["orchestrator", "explore_agent", "search_agent", "writer_agent"]
+AgentRole = Literal[
+    "orchestrator",
+    "explore_agent",
+    "search_agent",
+    "local_search_agent",
+    "writer_agent",
+]
 
 _ROLE_RULES: dict[AgentRole, str] = {
     "orchestrator": (
@@ -20,6 +26,11 @@ _ROLE_RULES: dict[AgentRole, str] = {
         "Make the target period explicit in queries. In your final report, state the "
         "value's effective period/as-of date and the page publication/update date when "
         "visible; a recent article can still report an old fact."
+    ),
+    "local_search_agent": (
+        "Preserve the source document's stated period, version, and scope. A local "
+        "file is not automatically current; report missing or ambiguous dates rather "
+        "than inferring freshness from its presence in the library."
     ),
     "writer_agent": (
         "Keep every claim attached to its evidence period. Never merge mismatched periods "
