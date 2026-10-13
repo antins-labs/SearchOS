@@ -103,7 +103,7 @@ Pipeline 返回可运行的 graph，和手写列表使用同一个 `create_searc
 
 预算、自动检测和历史压缩是可装配组件；停止执行、图片兼容和 session 日志由运行层管理。比如 `QueryRepetitionMiddleware(control, workspace=workspace, task=task_context)` 自己完成查询归一化、检测、警告和状态记录；不需要调用方再包装 detector 或编写记录回调。抽取组件不会自动安装这些功能。
 
-[目录导航](../searchos/harness/middleware/README.md) · [实施与验收](middleware-components-plan.md)
+[目录导航](../searchos/harness/middleware/README.md) · [用途与用法](../searchos/harness/middleware/USAGE.md)
 
 ## 运行职责边界
 

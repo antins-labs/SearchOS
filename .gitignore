@@ -58,6 +58,17 @@ web_settings.json
 # Local design and iteration plans (kept outside release-facing docs)
 development/
 docs/searchanything-technical-design.md
+docs/development/
+docs/diagnostics/
+docs/validation/
+docs/adaptive-explore.md
+docs/browser-source-metadata.md
+docs/extraction-architecture.md
+docs/extraction-prompts.md
+docs/knowledge-management.md
+docs/middleware-components-plan.md
+docs/middleware-refactor.md
+docs/skill_design.md
 
 # Local publication assets (not part of the repository)
 doc/pub/assets/

@@ -117,7 +117,7 @@ Local parsing supports visual reading for scanned documents and images. For onli
 
 Web/Hybrid runs in the browser and research sessions in the TUI accept input during execution. If the Orchestrator is waiting for sub-agents, your follow-up wakes it and triggers a model call with the new request. Active sub-agents keep running until the Orchestrator decides whether to continue or stop them. If a model call or another tool is already executing, the input is applied at the next complete tool boundary.
 
-After a run, follow-ups reuse the session's evidence and tables. The Orchestrator can answer from existing findings or schedule work for remaining gaps. Pure Local questions use their own document QA flow. See [runtime behavior](docs/development/runtime_performance.md) for steering and persistence details.
+After a run, follow-ups reuse the session's evidence and tables. The Orchestrator can answer from existing findings or schedule work for remaining gaps. Pure Local questions use their own document QA flow.
 
 ### Interactive TUI
 
@@ -258,7 +258,7 @@ flowchart TD
     L --> A
 ```
 
-The Orchestrator selects the next action from the question and current evidence. In ordinary runs, **Explore is optional**: it resolves uncertainties about identity, scope, candidate sets, or sources, and can be dispatched again during research. The evaluation runner defaults to an initial Explore step; see [adaptive exploration](docs/adaptive-explore.md).
+The Orchestrator selects the next action from the question and current evidence. In ordinary runs, **Explore is optional**: it resolves uncertainties about identity, scope, candidate sets, or sources, and can be dispatched again during research. The evaluation runner defaults to an initial Explore step.
 
 **Source selection and result structure are separate decisions.** Hybrid research can collect findings before creating a table. Tables organize comparisons and expose missing cells when useful; table-bound Web search still requires a schema. Existing evidence can support additional tasks or cells without replacing the original facts.
 
