@@ -84,11 +84,12 @@ export function updateWorkersBatch(current: WorkerInfo[], events: WSEvent[]): Wo
 
     const dtype = String(data.type || "");
     const status = String(data.status || "");
+    const toolEvent = ["step", "tool_call_started", "tool_call_failed"].includes(dtype);
     let nextStatus = prev?.status ?? "running";
-    if (dtype === "agent_complete" || dtype === "agent_final" || dtype === "task_complete" || status === "completed" || status === "partial") {
+    if (dtype === "agent_complete" || dtype === "task_complete" || (!toolEvent && (status === "completed" || status === "partial"))) {
       nextStatus = "completed";
     }
-    if (dtype === "agent_error" || dtype === "error" || status === "error") {
+    if (dtype === "agent_error" || dtype === "error" || (!toolEvent && status === "error")) {
       nextStatus = "error";
     }
 

@@ -2,7 +2,7 @@
 
 import type { WSEvent } from "@/lib/types";
 import { Loader2, CheckCircle2, XCircle, Circle, ChevronRight } from "lucide-react";
-import { agentLabel, recentSteps, agentGoal } from "./trace";
+import { agentLabel, recentSteps, agentGoal, agentIssue } from "./trace";
 
 export interface AgentCardData {
   name: string;
@@ -36,6 +36,7 @@ export default function AgentCard({
   const { name, status, events } = data;
   const steps = recentSteps(events, 2);
   const goal = agentGoal(events);
+  const issue = agentIssue(events);
   const stepCount = events.filter((e) => {
     if (e.type !== "trajectory") return false;
     const data = (e.data ?? {}) as Record<string, unknown>;
@@ -67,6 +68,14 @@ export default function AgentCard({
           <p className="line-clamp-2 text-[11px] leading-relaxed text-ink-dim">
             {goal}
           </p>
+        )}
+        {issue && (
+          <div className="space-y-0.5 text-[11px]" title={issue.detail}>
+            <p className={`line-clamp-2 ${status === "error" ? "text-err" : "text-ink-dim"}`}>
+              {issue.summary}
+            </p>
+            {issue.retry && <p className="text-ink-dim">{issue.retry}</p>}
+          </div>
         )}
         {steps.length > 0 && (
           <div className="space-y-0.5">

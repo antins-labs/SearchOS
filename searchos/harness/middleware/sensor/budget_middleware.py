@@ -250,9 +250,11 @@ class BudgetMiddleware(AgentMiddleware):
                     "Batch calls consume their underlying action counts. " + self.wrap_up
                 )
         self._settle_exhaustion()
-        # 工具额度耗尽只隐藏该工具，不把仍可阅读或执行技能的任务全局停止。
+        # 保持模型目录稳定：部分网关会直接拒绝模型生成已移除工具的调用，
+        # 使 awrap_tool_call 的预算回执和拒绝轮次计数无法执行。
+        # 额度只影响执行权限；仍有额度的工具继续可用。
         if hasattr(request, "tools"):
-            available = []
+            exhausted_tools = []
             for item in request.tools:
                 name = (
                     item.get("name") or item.get("function", {}).get("name", "")
@@ -260,14 +262,20 @@ class BudgetMiddleware(AgentMiddleware):
                     else item.name
                 )
                 costs = tool_costs(name, {})
-                if name in self.drain_tools or all(
+                if name not in self.drain_tools and not all(
                     getattr(self.budget, f"max_{self._fields[dim]}") <= 0
                     or getattr(self.budget, f"consumed_{self._fields[dim]}") + cost
                     <= getattr(self.budget, f"max_{self._fields[dim]}")
                     for dim, cost in costs.items()
                 ):
-                    available.append(item)
-            request = replace(request, tools=available)
+                    exhausted_tools.append(name)
+            if exhausted_tools:
+                self.control.messages.append(
+                    "[Harness BUDGET] Exhausted tools (calls will be rejected): "
+                    + ", ".join(exhausted_tools)
+                    + ". Their schemas remain for conversation compatibility, not permission. "
+                    "Use remaining tools or summarize supported findings and gaps."
+                )
         if self._notified and not self.control.forced:
             remaining_actions = []
             for dimension, field in self._fields.items():

@@ -69,7 +69,7 @@ async def test_agent19_budget_rejection_pattern_terminates_with_partial_summary(
 
 
 @pytest.mark.asyncio
-async def test_exhausted_tool_is_hidden_but_other_budgeted_tools_remain():
+async def test_exhausted_tool_keeps_its_schema_and_other_budgeted_tools_remain():
     from langchain.agents.middleware.types import AgentMiddleware
 
     seen = []
@@ -87,7 +87,7 @@ async def test_exhausted_tool_is_hidden_but_other_budgeted_tools_remain():
         image_fallback=False,
     )
     await graph.ainvoke({"messages": [("user", "Read")]}, {"configurable": {"thread_id": "filter"}})
-    assert seen == [["search", "open"], ["open"], ["open"]]
+    assert seen == [["search", "open"]] * 3
     assert not control.forced
 
 

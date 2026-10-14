@@ -66,9 +66,14 @@ class ExtractionCoordinator:
         self._preparer = preparer or preparer_type(self._config, trajectory_logger)
         self._extractor = RowExtractor(judge_model, self._config, trajectory_logger)
         self._conflicts = (
-            ConflictReviewer(self._store, self._extractor.invoke, trajectory_logger=trajectory_logger)
+            ConflictReviewer(
+                self._store, self._extractor.invoke, trajectory_logger=trajectory_logger
+            )
             if judge_model is not None else None
         )
+        self._finalizing = False
+        self._comparison_tasks: set[asyncio.Task] = set()
+        self._deferred_comparison_keys: set[str] = set()
 
         # Node ids this instance committed. One instance per sub-agent, so it's
         # the authoritative per-agent extraction tally the completion report
@@ -278,18 +283,60 @@ class ExtractionCoordinator:
         return self.summary()
 
     async def finalize(self, *, timeout: float = 30.0) -> ExtractionSummary:
-        """等待已触发批次并提交剩余缓冲；失败和超时交给运行方处理。"""
+        """先提交观测，再用剩余时间核验；待核验证据无需重新检索。"""
+        deadline = asyncio.get_running_loop().time() + timeout
+        self._finalizing = True
+        # 核验不占用证据提交的收尾时间；已启动的抽取仍须结算。
+        for task in tuple(self._comparison_tasks):
+            task.cancel()
         try:
-            async with asyncio.timeout(timeout):
-                await self.drain_before_model()
-                await self.flush(reason="finalize")
-        except TimeoutError:
-            pending = tuple(self._flush_tasks)
-            for task in pending:
-                task.cancel()
-            await asyncio.gather(*pending, return_exceptions=True)
-            raise
-        return self.summary()
+            try:
+                async with asyncio.timeout_at(deadline):
+                    await self.drain_before_model()
+                    await self.flush(reason="finalize")
+            except TimeoutError:
+                pending = tuple(self._flush_tasks)
+                for task in pending:
+                    task.cancel()
+                await asyncio.gather(*pending, return_exceptions=True)
+                raise
+            keys = set(self._deferred_comparison_keys)
+            if self._conflicts is not None and keys:
+                try:
+                    async with asyncio.timeout_at(deadline):
+                        await self._conflicts.review(keys)
+                except TimeoutError:
+                    # SOCM 保留 conflict_status=pending；后续调度核验可恢复。
+                    # 这里只容忍核验超时，抽取失败和外部取消仍向上传播。
+                    if self._trajectory_logger:
+                        self._trajectory_logger._append_raw({
+                            "type": "harness", "kind": "evidence_comparison_deferred",
+                            "agent": self.task.agent_id, "reason": "finalize_timeout",
+                            "cell_keys": sorted(keys),
+                        })
+                else:
+                    self._deferred_comparison_keys.difference_update(keys)
+            return self.summary()
+        finally:
+            self._finalizing = False
+
+    async def _review_conflicts(self, keys: set[str]) -> None:
+        if self._conflicts is None or not keys:
+            return
+        if self._finalizing:
+            self._deferred_comparison_keys.update(keys)
+            return
+        task = asyncio.create_task(self._conflicts.review(keys))
+        self._comparison_tasks.add(task)
+        try:
+            await task
+        except asyncio.CancelledError:
+            current = asyncio.current_task()
+            if not self._finalizing or (current is not None and current.cancelling()):
+                raise
+            self._deferred_comparison_keys.update(keys)
+        finally:
+            self._comparison_tasks.discard(task)
 
     def _spawn_background_flush(
         self,
@@ -745,7 +792,7 @@ class ExtractionCoordinator:
                         key for key, cell in current.coverage_map.cells.items()
                         if accepted.intersection(cell.supporting_evidence_ids)
                     }
-                    await self._conflicts.review(touched)
+                    await self._review_conflicts(touched)
                 self._added_node_ids.update(accepted_ids)
                 written_node_ids.update(accepted_ids)
                 total_written += int(phase_written["count"])

@@ -213,12 +213,13 @@ test("worker replay and live updates agree without mutating prior workers", () =
   assert.deepEqual(Array.from(replay, ({ name, intent, status }) => ({ name, intent, status })), [
     { name: "warmup_1", intent: "explore", status: "running" },
     { name: "search_1", intent: "search", status: "error" },
-    { name: "writer_1", intent: "write", status: "completed" },
+    { name: "writer_1", intent: "write", status: "running" },
   ]);
   const before = JSON.stringify(live);
   const final = derive.finalizeWorkers(live);
   assert.equal(final[0].status, "completed");
   assert.equal(final[1].status, "error");
+  assert.equal(final[2].status, "completed");
   assert.equal(JSON.stringify(live), before);
   Object.freeze(live[0].events);
   Object.freeze(live[0]);

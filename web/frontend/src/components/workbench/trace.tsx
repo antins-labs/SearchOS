@@ -26,6 +26,35 @@ export function agentLabel(name: string): string {
   return name;
 }
 
+/** 只解释代理终止事件；一次工具失败不等于代理失败。 */
+export function agentIssue(events: WSEvent[]): { summary: string; detail: string; retry: string } | null {
+  let failure: Record<string, unknown> | null = null;
+  let deferredReview = false;
+  let retry = "";
+  for (const event of events) {
+    if (event.type !== "trajectory") continue;
+    const data = (event.data ?? {}) as Record<string, unknown>;
+    if (data.type === "agent_error") failure = data;
+    if (data.kind === "evidence_comparison_deferred") deferredReview = true;
+    if (data.kind === "task_recycled") {
+      retry = data.outcome === "requeued" ? "该任务已重新排队"
+        : data.outcome === "review_required" ? "已保留证据，等待核对缺口"
+        : data.outcome === "cancelled" ? "该任务已停止重试" : "";
+    }
+  }
+  if (failure) {
+    const detail = String(failure.error || failure.error_type || "未知错误");
+    const missingTool = detail.match(/non-exist tool:\s*["']([^"']+)["']/)?.[1];
+    const timeout = /timeout/i.test(String(failure.error_type) + detail);
+    const finalization = /finalize|_run_resources/.test(String(failure.traceback || ""));
+    const summary = missingTool ? `模型调用了未注册的工具：${missingTool}`
+      : timeout ? (finalization ? "证据收尾超时" : "请求超时")
+      : detail;
+    return { summary, detail, retry };
+  }
+  return deferredReview ? { summary: "证据已保存，核验已延后", detail: "核验超过收尾时限，后续可继续核验已有证据。", retry: "" } : null;
+}
+
 /* ── action parsing ────────────────────────────────────────────
    `data.action` arrives as a Python-repr string, e.g.
    "{'name': 'search', 'args': \"{'query': 'gpu pricing'}\"}".
