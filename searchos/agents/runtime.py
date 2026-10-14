@@ -55,7 +55,7 @@ def create_search_agent_graph(
     trajectory_logger: Any = None,
     conversation_logger: Any = None,
     agent_id: str | None = None,
-    emit_tool_started: bool = False,
+    emit_tool_started: bool = True,
     image_fallback: bool | None = None,
 ) -> Any:
     """Create an explicitly assembled search agent graph.

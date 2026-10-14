@@ -292,6 +292,13 @@ class _RecordingHooks(AgentMiddleware):
 
     async def awrap_tool_call(self, request, handler):
         started = self.recorder.tool_started(request)
-        result = await handler(request)
+        try:
+            result = await handler(request)
+        except asyncio.CancelledError as error:
+            self.recorder.tool_failed(request, error, started, cancelled=True)
+            raise
+        except Exception as error:
+            self.recorder.tool_failed(request, error, started)
+            raise
         self.recorder.tool_completed(request, result, started)
         return result

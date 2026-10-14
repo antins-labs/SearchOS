@@ -285,5 +285,7 @@ async def test_subagent_tool_started_event_is_emitted_before_batch_finishes():
         "agent": "explore_agent",
         "tool": "explore_web",
         "tool_call_id": "wave-1",
+        "step_index": 0,
+        "reasoning": "",
         "args": {"queries": ["official list", "regional list"], "open_top_k": 1},
     }

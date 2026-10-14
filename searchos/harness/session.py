@@ -780,20 +780,6 @@ class SearchSession:
                                         })
                                     except Exception:
                                         pass
-                                    # Persist too, so file-tailing UIs (the web WS)
-                                    # see the call the moment it starts — the full
-                                    # `step` record only lands after the tool
-                                    # returns, which for check_agents can be
-                                    # minutes later.
-                                    try:
-                                        traj_logger._append_raw({
-                                            "type": "tool_call_started",
-                                            "agent": "orchestrator",
-                                            "tool": _name, "tool_call_id": _tcid,
-                                            "args": _full_args(_targs),
-                                        })
-                                    except Exception:
-                                        pass
 
                         # Once research is stopped, leave the graph at a complete
                         # tool/message boundary. Synthesis runs after task drain.

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, ChevronDown, Layers3, Loader2, Search, Wrench, WifiOff } from "lucide-react";
 import Composer, { type SubmitOpts } from "@/components/shell/Composer";
-import OrchestrationCard from "./OrchestrationCard";
+import TurnActivity from "./TurnActivity";
 import Answer, { cleanAnswer } from "./Answer";
 import AnswerActions from "./AnswerActions";
 import CoverageTable from "@/components/coverage/CoverageTable";
@@ -164,121 +164,85 @@ function TurnView({
         </div>
       </div>
 
-      {/* assistant turn */}
-      <div className="flex gap-2.5 sm:gap-3.5">
-        <div className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent font-serif text-[12px] font-semibold text-white sm:h-7 sm:w-7 sm:text-[14px]">
-          S
-        </div>
-        <div className="min-w-0 flex-1">
-          {/* Restored earlier turns carry no per-turn trajectory — plain Q&A. */}
-          {(turn.events.length > 0 || turn.status === "running") && (
-            <div className="mb-4">
-              <OrchestrationCard
-                events={turn.events}
-                searchState={turn.searchState}
-                status={turn.status}
-                workers={turn.workers}
-                sourceMode={turn.sourceMode}
-                onOpen={onOpen}
+      <TurnActivity turn={turn} onOpen={onOpen}>
+        {turn.error && (
+          <div role="alert" className="mb-4 rounded-lg border border-err/30 bg-err/5 px-3 py-2 text-[13px] text-err">
+            <p>{turn.error}</p>
+            <button type="button" disabled={runDisabled} onClick={onRerun}
+              className="mt-2 rounded border border-err/30 px-2 py-1 disabled:opacity-50">重新运行</button>
+          </div>
+        )}
+
+        {turn.repair && (
+          <RepairSummary turn={turn} />
+        )}
+
+        {displayAnswer && (
+          <div className="mb-5" aria-live="polite" aria-busy={turn.status === "running"}>
+            {turn.status === "error" && <p className="mb-2 text-[12px] text-ink-faint">中断前的输出（非最终回答）</p>}
+            <div className={done && answerCollapsed ? "max-h-[320px] overflow-hidden" : undefined}>
+              <Answer markdown={displayAnswer} localSources={localSources} localSourceLabels={sourceLabels}
+                evidenceSources={Object.fromEntries((turn.searchState?.evidence_graph?.nodes ?? [])
+                  .filter((node) => !node.status || node.status === "active")
+                  .map((node) => [node.id, node.source]))}
+                onOpenLocalSource={onOpenLocalSource} />
+            </div>
+            {done ? (
+              <AnswerActions
+                query={turn.query}
+                markdown={displayAnswer}
+                collapsible={answerCollapsible}
+                collapsed={answerCollapsed}
+                onToggleCollapse={() => setAnswerCollapsed((value) => !value)}
+                onRerun={onRerun}
+                onContinue={onContinue}
+                runDisabled={runDisabled}
+              />
+            ) : turn.status === "running" ? (
+              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-ink-faint">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+                正在生成答案
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        {done && hasTable && (
+          <div className="mb-4 overflow-hidden rounded-xl border border-line">
+            <div className="flex items-center justify-between gap-3 border-b border-line bg-surface-2 px-3.5 py-2">
+              <span className="font-serif text-[14px] font-semibold text-ink">Final table</span>
+              <div className="flex items-center gap-2">
+                {tableStateLabel && <span className="hidden text-[11px] text-ink-faint sm:inline">{tableStateLabel}</span>}
+                <ResultExportMenu turn={turn} answer={displayAnswer} />
+              </div>
+            </div>
+            <div>
+              <CoverageTable
+                coverageMap={turn.searchState?.coverage_map ?? null}
+                evidence={turn.searchState?.evidence_graph?.nodes ?? []}
+                onRepairCells={onRepairCells}
+                animationScope={turn.id}
+                onOpenLocalSource={onOpenLocalSource}
               />
             </div>
-          )}
+          </div>
+        )}
 
-          {turn.error && (
-            <div role="alert" className="mb-4 rounded-lg border border-err/30 bg-err/5 px-3 py-2 text-[13px] text-err">
-              <p>{turn.error}</p>
-              <button type="button" disabled={runDisabled} onClick={onRerun}
-                className="mt-2 rounded border border-err/30 px-2 py-1 disabled:opacity-50">重新运行</button>
-            </div>
-          )}
-
-          {turn.repair && (
-            <RepairSummary turn={turn} />
-          )}
-
-          {displayAnswer && (
-            <div className="mb-5" aria-live="polite" aria-busy={turn.status === "running"}>
-              {turn.status === "error" && <p className="mb-2 text-[12px] text-ink-faint">中断前的输出（非最终回答）</p>}
-              <div className={done && answerCollapsed ? "max-h-[320px] overflow-hidden" : undefined}>
-                <Answer markdown={displayAnswer} localSources={localSources} localSourceLabels={sourceLabels}
-                  evidenceSources={Object.fromEntries((turn.searchState?.evidence_graph?.nodes ?? [])
-                    .filter((node) => !node.status || node.status === "active")
-                    .map((node) => [node.id, node.source]))}
-                  onOpenLocalSource={onOpenLocalSource} />
-              </div>
-              {done ? (
-                <AnswerActions
-                  query={turn.query}
-                  markdown={displayAnswer}
-                  collapsible={answerCollapsible}
-                  collapsed={answerCollapsed}
-                  onToggleCollapse={() => setAnswerCollapsed((value) => !value)}
-                  onRerun={onRerun}
-                  onContinue={onContinue}
-                  runDisabled={runDisabled}
-                />
-              ) : turn.status === "running" ? (
-                <div className="mt-2 flex items-center gap-1.5 text-[11px] text-ink-faint">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
-                  正在生成答案
-                </div>
-              ) : null}
-            </div>
-          )}
-
-          {done && hasTable && (
-            <div className="mb-4 overflow-hidden rounded-xl border border-line">
-              <div className="flex items-center justify-between gap-3 border-b border-line bg-surface-2 px-3.5 py-2">
-                <span className="font-serif text-[14px] font-semibold text-ink">Final table</span>
-                <div className="flex items-center gap-2">
-                  {tableStateLabel && <span className="hidden text-[11px] text-ink-faint sm:inline">{tableStateLabel}</span>}
-                  <ResultExportMenu turn={turn} answer={displayAnswer} />
-                </div>
-              </div>
-              <div>
-                <CoverageTable
-                  coverageMap={turn.searchState?.coverage_map ?? null}
-                  evidence={turn.searchState?.evidence_graph?.nodes ?? []}
-                  onRepairCells={onRepairCells}
-                  animationScope={turn.id}
-                  onOpenLocalSource={onOpenLocalSource}
-                />
-              </div>
-            </div>
-          )}
-
-          {done && (
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-ink-dim">
-              {typeof turn.meta.coverageScore === "number" && turn.sourceMode !== "hybrid" && (
-                <span>Coverage <b className="font-semibold text-ink">{(turn.meta.coverageScore * 100).toFixed(0)}%</b></span>
-              )}
-              {turn.sourceMode !== "local" && typeof turn.meta.evidenceCount === "number" && (
-                <span>Evidence <b className="font-semibold text-ink">{turn.meta.evidenceCount}</b></span>
-              )}
-              {typeof turn.meta.elapsed === "number" && (
-                <span>Time <b className="font-semibold text-ink">{turn.meta.elapsed.toFixed(1)}s</b></span>
-              )}
-              {turn.meta.verdict && turn.sourceMode !== "hybrid" && <span className="text-ink-faint">{turn.meta.verdict}</span>}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Keep mid-run messages at the end of their conversation turn. */}
-      {!!turn.followUps?.length && (
-        <div className="mt-6 space-y-3">
-          {turn.followUps.map((followUp, index) => (
-            <div key={index} className="rise-in flex justify-end">
-              <div className="max-w-[90%] rounded-2xl rounded-br-md border border-accent/30 bg-clay/40 px-4 py-2.5 sm:max-w-[80%]">
-                <div className="mb-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-accent-ink">
-                  Steered mid-run
-                </div>
-                <div className="text-[14px] leading-relaxed text-ink">{followUp}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+        {done && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-ink-dim">
+            {typeof turn.meta.coverageScore === "number" && turn.sourceMode !== "hybrid" && (
+              <span>Coverage <b className="font-semibold text-ink">{(turn.meta.coverageScore * 100).toFixed(0)}%</b></span>
+            )}
+            {turn.sourceMode !== "local" && typeof turn.meta.evidenceCount === "number" && (
+              <span>Evidence <b className="font-semibold text-ink">{turn.meta.evidenceCount}</b></span>
+            )}
+            {typeof turn.meta.elapsed === "number" && (
+              <span>Time <b className="font-semibold text-ink">{turn.meta.elapsed.toFixed(1)}s</b></span>
+            )}
+            {turn.meta.verdict && turn.sourceMode !== "hybrid" && <span className="text-ink-faint">{turn.meta.verdict}</span>}
+          </div>
+        )}
+      </TurnActivity>
     </div>
   );
 }

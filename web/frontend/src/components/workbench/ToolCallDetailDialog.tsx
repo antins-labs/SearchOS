@@ -12,6 +12,7 @@ export interface ToolCallDetail {
   output: string;
   agent?: string;
   timestamp?: string;
+  status?: "running" | "completed" | "error" | "cancelled";
 }
 
 function prettyPayload(value: string): string {
@@ -28,11 +29,13 @@ function PayloadPane({
   value,
   copied,
   onCopy,
+  pending = false,
 }: {
   title: string;
   value: string;
   copied: boolean;
   onCopy: () => void;
+  pending?: boolean;
 }) {
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col border-b border-line last:border-b-0 md:basis-1/2 md:border-b-0 md:border-r md:last:border-r-0">
@@ -49,7 +52,7 @@ function PayloadPane({
         </button>
       </div>
       <pre className="min-h-[180px] max-w-full flex-1 overflow-auto whitespace-pre-wrap break-all p-4 font-mono text-[11px] leading-5 text-ink-dim">
-        {prettyPayload(value)}
+        {pending && !value ? "工具执行中，结果尚未返回…" : prettyPayload(value)}
       </pre>
     </section>
   );
@@ -126,6 +129,7 @@ export default function ToolCallDetailDialog({
           <PayloadPane
             title="Output"
             value={detail.output}
+            pending={detail.status === "running"}
             copied={copied === "output"}
             onCopy={() => void copy("output", detail.output)}
           />

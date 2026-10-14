@@ -14,6 +14,8 @@ export interface WorkerLite {
 
 interface Props {
   events: WSEvent[];
+  priorEvents?: WSEvent[];
+  continued?: boolean;
   searchState: SearchState | null;
   status: "idle" | "running" | "completed" | "error";
   workers: WorkerLite[];
@@ -55,7 +57,7 @@ function deriveRunDetails(events: WSEvent[]) {
 /** The orchestrator's run, as one collapsible card in the conversation: its
  *  think→action trajectory inside, auto-collapsing on completion so the final
  *  answer is what you see. "View agents & evidence" opens the detail drawer. */
-export default function OrchestrationCard({ events, searchState, status, workers, sourceMode, onOpen }: Props) {
+export default function OrchestrationCard({ events, priorEvents = [], continued = false, searchState, status, workers, sourceMode, onOpen }: Props) {
   const running = status === "running";
   const { filled, total } = deriveCoverage(searchState);
   const steps = deriveStepCount(events);
@@ -101,7 +103,9 @@ export default function OrchestrationCard({ events, searchState, status, workers
     <div className="surface overflow-hidden rounded-xl">
       {/* header — click to collapse/expand */}
       <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="flex w-full items-center gap-2.5 px-4 py-3 text-left">
-        {running ? (
+        {continued ? (
+          <MessageSquareText size={15} className="text-ink-faint" />
+        ) : running ? (
           <span className="spin-ring h-[13px] w-[13px]" />
         ) : status === "error" ? (
           <span className="grid h-[15px] w-[15px] place-items-center rounded-full bg-err text-white">
@@ -113,7 +117,7 @@ export default function OrchestrationCard({ events, searchState, status, workers
           </span>
         )}
         <span className="text-[13px] font-medium text-ink">
-          {sourceMode === "hybrid" ? (running ? "Hybrid · 正在检索与核实" : status === "error" ? "Hybrid · 运行未完成" : "Hybrid · 运行记录") : status === "error" ? "Research incomplete" : running && explore.present && explore.phase !== "completed"
+          {continued ? "追问前的运行记录" : sourceMode === "hybrid" ? (running ? "Hybrid · 正在检索与核实" : status === "error" ? "Hybrid · 运行未完成" : "Hybrid · 运行记录") : status === "error" ? "Research incomplete" : running && explore.present && explore.phase !== "completed"
             ? "Exploring information landscape"
             : running ? "Orchestrating search" : "Orchestration trace"}
         </span>
@@ -170,7 +174,7 @@ export default function OrchestrationCard({ events, searchState, status, workers
       {open && (
         <div className="border-t border-line bg-paper/40">
           {explore.present && <ExploreProgressPanel progress={explore} />}
-          <OrchestratorTimeline events={events} />
+          <OrchestratorTimeline events={events} status={status} priorEvents={priorEvents} />
         </div>
       )}
 

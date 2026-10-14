@@ -51,6 +51,8 @@ class AgentRecorder:
                     "agent": self.agent_id,
                     "tool": name,
                     "tool_call_id": call.get("id", ""),
+                    "step_index": index,
+                    "reasoning": reasoning,
                     "args": args,
                 }
             )
@@ -65,6 +67,8 @@ class AgentRecorder:
                 "type": "step",
                 "agent": self.agent_id,
                 "step_index": index,
+                "tool_call_id": request.tool_call.get("id", ""),
+                "status": getattr(result, "status", "success"),
                 "timestamp": datetime.now(UTC).isoformat(),
                 "reasoning": reasoning,
                 "action": {
@@ -78,6 +82,18 @@ class AgentRecorder:
             }
         )
         self.logger._step_count += 1
+
+    def tool_failed(self, request, error, started, *, cancelled=False):
+        self.logger._append_raw({
+            "type": "tool_call_failed",
+            "agent": self.agent_id,
+            "tool": extract_tool_name(request),
+            "tool_call_id": request.tool_call.get("id", ""),
+            "step_index": started[0],
+            "args": request.tool_call.get("args", {}),
+            "status": "cancelled" if cancelled else "error",
+            "error": "工具调用已取消" if cancelled else str(error),
+        })
 
 
 def reasoning_text(response: Any) -> str:

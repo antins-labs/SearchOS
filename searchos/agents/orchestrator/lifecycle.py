@@ -1334,7 +1334,6 @@ async def _spawn_sub_agent(
             agent_id=agent_label, control=runtime_control, policy=runtime_policy,
             drain_tools=WRITER_DRAIN_TOOLS if agent_type == "writer_agent" else frozenset(),
             finish_without_tools=agent_type != "writer_agent",
-            emit_tool_started=agent_type == "explore_agent",
         )
     else:
         pipeline = {

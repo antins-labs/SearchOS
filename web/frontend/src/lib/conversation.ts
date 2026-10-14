@@ -92,3 +92,35 @@ export function historyEventSegments(events: WSEvent[], turnCount: number): WSEv
     (_, index) => aligned[index - leadingEmpty] ?? [],
   );
 }
+
+export interface ActivitySegment {
+  key: string;
+  events: WSEvent[];
+  priorEvents: WSEvent[];
+  followUp?: { text: string; mode?: string };
+}
+
+/** 以真正注入模型的事件为界；队列回执比轨迹先到时只追加临时分界。 */
+export function turnActivitySegments(events: WSEvent[], followUps: string[] = []): ActivitySegment[] {
+  const segments: ActivitySegment[] = [{ key: "initial", events: [], priorEvents: [] }];
+  const prior: WSEvent[] = [];
+  let injected = 0;
+  for (const event of events) {
+    const data = (event.data ?? {}) as Record<string, unknown>;
+    if (event.type === "trajectory" && data.type === "harness" && data.kind === "steer_injected") {
+      segments.push({
+        key: `follow-up-${injected++}`,
+        events: [], priorEvents: [...prior],
+        followUp: { text: String(data.text ?? ""), mode: String(data.mode ?? "") },
+      });
+    } else {
+      segments[segments.length - 1].events.push(event);
+    }
+    prior.push(event);
+  }
+  for (let index = injected; index < followUps.length; index++) {
+    segments.push({ key: `follow-up-${index}`, events: [], priorEvents: [...prior],
+      followUp: { text: followUps[index] } });
+  }
+  return segments;
+}

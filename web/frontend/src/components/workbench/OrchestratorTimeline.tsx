@@ -3,7 +3,7 @@
 import { useState, type ComponentType, type ReactNode } from "react";
 import {
   Users, LayoutGrid, BarChart3, FileCheck, Eye, Compass, Search, BookOpen, CheckCircle2,
-  Loader2, Maximize2, MessageSquarePlus,
+  Loader2, Maximize2, MessageSquarePlus, TriangleAlert,
 } from "lucide-react";
 import type { WSEvent } from "@/lib/types";
 import { agentLabel } from "./trace";
@@ -50,6 +50,7 @@ const CHIP = {
   accent: "bg-accent/12 text-accent-ink",
   clay: "bg-clay/70 text-accent-ink",
   ok: "bg-ok/15 text-ok",
+  error: "bg-err/10 text-err",
   neutral: "bg-surface-2 text-ink-dim",
 } as const;
 
@@ -89,143 +90,143 @@ const RUNNING_LABEL: Record<string, string> = {
   enqueue_tasks: "Queueing tasks",
 };
 
-function buildCards(events: WSEvent[]): Card[] {
+function buildCards(
+  events: WSEvent[],
+  status: "idle" | "running" | "completed" | "error",
+  priorEvents: WSEvent[],
+): Card[] {
   const out: Card[] = [];
-  let wave: DispatchAgent[] = [];
-  let waveKey = -1;
-  let pendingReasoning = "";
-  let pendingWaveTool: ToolCallDetail | null = null;
-  // Latest tool call that has started but whose `step` (result) hasn't
-  // landed yet — check_agents can block for minutes while agents work.
-  let inFlight: { k: number; tool: string } | null = null;
-  const live = new Map<string, string>(); // sub-agent → current status
-
-  const flush = () => {
-    if (!wave.length) return;
-    out.push({
-      k: waveKey,
-      reasoning: pendingReasoning,
-      action: {
-        icon: Users, tone: CHIP.accent,
-        label: wave.length > 1 ? `Dispatched ${wave.length} agents (concurrent)` : "Dispatched 1 agent",
-        agents: wave,
-        toolCall: pendingWaveTool ?? undefined,
-      },
-    });
-    wave = [];
-    pendingReasoning = "";
-    pendingWaveTool = null;
+  const pending: { id: string; index: unknown; tool: string; card: Card }[] = [];
+  const live = new Map<string, string>();
+  let legacyWave: Card | null = null;
+  const trackWorker = (event: WSEvent) => {
+    if (event.type !== "trajectory") return;
+    const d = (event.data ?? {}) as Record<string, unknown>;
+    const agent = STR(d.agent), type = STR(d.type);
+    if (!agent || agent === "orchestrator") return;
+    if (type === "dispatch") live.set(agent, "running");
+    if (type === "agent_final" || type === "agent_complete") live.set(agent, "completed");
+    if (type === "agent_error" || type === "error") live.set(agent, "error");
+  };
+  priorEvents.forEach(trackWorker);
+  const runningAgents = () => [...live].filter(([, s]) => s === "running")
+    .map(([name, workerStatus]) => ({ name, status: workerStatus }));
+  const finishPending = () => {
+    for (const call of pending.splice(0)) {
+      if (!call.card.action) continue;
+      call.card.action = { ...call.card.action, icon: Compass, spin: false,
+        label: `${call.tool} · 已结束，未收到结果`,
+        toolCall: call.card.action.toolCall && { ...call.card.action.toolCall, status: undefined },
+      };
+    }
   };
 
   events.forEach((e, i) => {
     if (e.type !== "trajectory") return;
     const d = (e.data ?? {}) as Record<string, unknown>;
-    const t = STR(d.type);
-    const agent = STR(d.agent);
+    const t = STR(d.type), agent = STR(d.agent);
+    trackWorker(e);
 
+    if (t === "task_complete" || t === "task_error") {
+      finishPending();
+      out.push({ k: i, reasoning: "", action: {
+        icon: t === "task_complete" ? CheckCircle2 : TriangleAlert,
+        tone: t === "task_complete" ? CHIP.ok : CHIP.error,
+        label: t === "task_complete" ? "Finished & synthesized" : "运行未完成",
+      } });
+      return;
+    }
     if (t === "dispatch" && agent) {
-      if (!wave.length) waveKey = i;
-      wave.push({ name: agent, task: trim(STR(d.task)) });
-      live.set(agent, "running");
+      const owner = [...pending].reverse().find((p) => p.tool === "enqueue_tasks")?.card;
+      const card = owner ?? legacyWave ?? { k: i, reasoning: "", action: {
+        icon: Users, tone: CHIP.accent, label: "", agents: [],
+      } };
+      if (!owner && !legacyWave) { out.push(card); legacyWave = card; }
+      if (card.action) {
+        const agents = [...(card.action.agents ?? []), { name: agent, task: trim(STR(d.task)) }];
+        card.action = { ...card.action, agents,
+          label: owner ? `正在派发 ${agents.length} 个代理…`
+            : agents.length > 1 ? `Dispatched ${agents.length} agents (concurrent)` : "Dispatched 1 agent",
+        };
+      }
       return;
     }
-
-    // A live follow-up injected into the run — show it in the trace.
     if (t === "harness" && STR(d.kind) === "steer_injected") {
-      flush();
-      out.push({
-        k: i, reasoning: "",
-        action: {
-          icon: MessageSquarePlus, tone: CHIP.accent,
-          label: "Follow-up steered into the run",
-          detail: trim(STR(d.text), 140),
-        },
-      });
+      legacyWave = null;
+      out.push({ k: i, reasoning: "", action: {
+        icon: MessageSquarePlus, tone: CHIP.accent,
+        label: STR(d.mode) === "after_tool" ? "工具返回后已加入追问" : "已加入立即引导",
+        detail: trim(STR(d.text), 140),
+      } });
       return;
     }
-
-    if (t === "tool_call_started" && agent === "orchestrator") {
-      inFlight = { k: i, tool: STR(d.tool) };
-      return;
-    }
-
-    // track sub-agent lifecycle so "check" cards can show who's in flight
-    if (agent && agent !== "orchestrator") {
-      if (t === "agent_final" || t === "agent_complete") live.set(agent, "completed");
-      else if (t === "agent_error" || t === "error") live.set(agent, "error");
-      return;
-    }
-
     if (agent !== "orchestrator") return;
-
-    if (t === "step") {
-      inFlight = null; // the step record carries this call's result
-      const name = actionName(d.action);
-      const args = actionArgs(d.action);
-      const fullResult = STR(d.observation || d.observation_summary).trim();
-      const result = trim(fullResult, 220);
-      const toolCall: ToolCallDetail = {
-        tool: name,
-        arguments: args,
-        output: fullResult,
-        agent: agent || "orchestrator",
-        timestamp: STR(d.timestamp),
-      };
-      if (name === "enqueue_tasks") {
-        pendingReasoning = STR(d.reasoning).trim() || pendingReasoning;
-        pendingWaveTool = toolCall;
-        return;
-      }
-      flush();
-      if (name === "check_agents") {
-        const running = [...live].filter(([, s]) => s === "running").map(([name, status]) => ({ name, status }));
-        out.push({
-          k: i, reasoning: STR(d.reasoning).trim(),
-          action: {
-            icon: Eye, tone: CHIP.neutral,
-            label: running.length ? `Checked ${running.length} in-flight agents` : "Checked on sub-agents",
-            checks: running,
-            result,
-            toolCall,
-          },
-        });
-        return;
-      }
-      const view = stepView(name, args);
-      if (view && result) view.result = result;
-      if (view) view.toolCall = toolCall;
-      out.push({ k: i, reasoning: STR(d.reasoning).trim(), action: view });
-    } else if (t === "agent_final") {
-      inFlight = null;
-      flush();
-      // The final answer is rendered below the trajectory with full Markdown
-      // support. Repeating its truncated trace copy here exposes raw Markdown.
-      out.push({ k: i, reasoning: "", action: { icon: CheckCircle2, tone: CHIP.ok, label: "Finished & synthesized" } });
-    }
-  });
-  flush();
-
-  // Still waiting on a tool result — show the call as in-flight instead of
-  // going silent until it returns (check_agents blocks on running agents).
-  // (TS can't see the forEach-callback assignments, hence the assertion.)
-  const pending = inFlight as { k: number; tool: string } | null;
-  if (pending) {
-    const running = [...live].filter(([, s]) => s === "running").map(([name, status]) => ({ name, status }));
-    out.push({
-      k: pending.k, reasoning: "",
-      action: {
+    if (t === "tool_call_started") {
+      if (d.tool_call_id && pending.some((call) => call.id === d.tool_call_id)) return;
+      legacyWave = null;
+      const tool = STR(d.tool);
+      const card: Card = { k: i, reasoning: STR(d.reasoning).trim(), action: {
         icon: Loader2, spin: true, tone: CHIP.neutral,
-        label: `${RUNNING_LABEL[pending.tool] ?? pending.tool}…`,
-        checks: pending.tool === "check_agents" && running.length ? running : undefined,
-      },
-    });
+        label: `${RUNNING_LABEL[tool] ?? tool}…`,
+        toolCall: { tool, arguments: actionArgs({ args: d.args }), output: "", agent,
+          timestamp: STR(d.timestamp), status: "running" },
+      } };
+      out.push(card);
+      pending.push({ id: STR(d.tool_call_id), index: d.step_index, tool, card });
+      return;
+    }
+    if (t !== "step" && t !== "tool_call_failed") return;
+    const failed = t === "tool_call_failed" || d.status === "error";
+    const name = t === "step" ? actionName(d.action) : STR(d.tool);
+    const args = t === "step" ? actionArgs(d.action) : actionArgs({ args: d.args });
+    const id = STR(d.tool_call_id);
+    const match = pending.findIndex((call) => id ? call.id === id
+      : d.step_index != null && call.index != null ? call.index === d.step_index : call.tool === name);
+    const started = match >= 0 ? pending.splice(match, 1)[0].card : null;
+    const card = started ?? (name === "enqueue_tasks" ? legacyWave : null)
+      ?? { k: i, reasoning: "", action: null };
+    if (!started && card !== legacyWave) out.push(card);
+    const agents = card.action?.agents;
+    const fullResult = STR(d.observation || d.observation_summary || d.error).trim();
+    let action: ActionView | null;
+    if (failed) {
+      action = { icon: TriangleAlert, tone: CHIP.error,
+        label: `${name} · ${d.status === "cancelled" ? "已取消" : "调用失败"}` };
+    } else if (name === "enqueue_tasks") {
+      action = { icon: Users, tone: CHIP.accent, agents,
+        label: agents?.length ? agents.length > 1 ? `Dispatched ${agents.length} agents (concurrent)`
+          : "Dispatched 1 agent" : "Tasks queued" };
+    } else if (name === "check_agents") {
+      const checks = runningAgents();
+      action = { icon: Eye, tone: CHIP.neutral, checks,
+        label: checks.length ? `Checked ${checks.length} in-flight agents` : "Checked on sub-agents" };
+    } else action = stepView(name, args);
+    if (action) {
+      action.result = name === "enqueue_tasks" && agents?.length && !failed
+        ? undefined : trim(fullResult, 220);
+      action.toolCall = { tool: name, arguments: args, output: fullResult, agent,
+        timestamp: card.action?.toolCall?.timestamp || STR(d.timestamp),
+        status: failed ? d.status === "cancelled" ? "cancelled" : "error" : "completed" };
+    }
+    card.reasoning = STR(d.reasoning).trim() || card.reasoning;
+    card.action = action;
+    legacyWave = null;
+  });
+  if (status === "completed" || status === "error") finishPending();
+  else for (const call of pending) {
+    if (call.tool === "check_agents" && call.card.action) call.card.action.checks = runningAgents();
   }
   return out;
 }
 
-export default function OrchestratorTimeline({ events }: { events: WSEvent[] }) {
-  const cards = buildCards(events);
-  const [selectedTool, setSelectedTool] = useState<ToolCallDetail | null>(null);
+export default function OrchestratorTimeline({ events, status = "running", priorEvents = [] }: {
+  events: WSEvent[];
+  status?: "idle" | "running" | "completed" | "error";
+  priorEvents?: WSEvent[];
+}) {
+  const cards = buildCards(events, status, priorEvents);
+  const [selectedKey, setSelectedKey] = useState<number | null>(null);
+  const selectedTool = cards.find((card) => card.k === selectedKey)?.action?.toolCall ?? null;
   if (cards.length === 0) {
     return <div className="px-4 py-3 text-[12.5px] text-ink-faint">Orchestrator is starting…</div>;
   }
@@ -235,7 +236,7 @@ export default function OrchestratorTimeline({ events }: { events: WSEvent[] }) 
         <div key={c.k} className="rise-in surface rounded-xl px-3.5 py-3">
           {c.reasoning && <p className="mb-2.5 line-clamp-4 text-[13px] leading-relaxed text-ink">{c.reasoning}</p>}
           {c.action && (
-              <ActionBlock action={c.action} onOpenTool={setSelectedTool}>
+              <ActionBlock action={c.action} onOpenTool={() => setSelectedKey(c.k)}>
                 <div className="flex items-center gap-1.5 text-[12.5px] font-medium">
                   <c.action.icon size={13} className={c.action.spin ? "animate-spin" : undefined} />
                   {c.action.label}
@@ -277,7 +278,7 @@ export default function OrchestratorTimeline({ events }: { events: WSEvent[] }) 
           )}
         </div>
       ))}
-      <ToolCallDetailDialog detail={selectedTool} onClose={() => setSelectedTool(null)} />
+      <ToolCallDetailDialog detail={selectedTool} onClose={() => setSelectedKey(null)} />
     </div>
   );
 }
