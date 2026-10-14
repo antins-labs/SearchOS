@@ -26,32 +26,32 @@ async def test_model_failure_retains_cause_and_attempt_count(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_reserve_phase_rejects_new_research_and_records_exhaustion(tmp_path):
+async def test_reserve_phase_allows_focused_research_and_records_exhaustion(tmp_path):
     class Model:
         def __init__(self): self.prompts = []
         def bind_tools(self, tools): return self
         async def ainvoke(self, messages):
             self.prompts.append(messages[-1].content)
-            return AIMessage(content='', tool_calls=[dict(id=str(len(self.prompts)), name='web_search', args={'query':'extra features'})])
+            return AIMessage(content='', tool_calls=[dict(id=str(len(self.prompts)), name='web_search', args={'query':'example.com code 37 proxy'})])
     from searchos.skills.pipeline.access import run
     calls = []
     async def tool(workspace, call):
         calls.append(call['name'])
         from langchain_core.messages import ToolMessage
         return ToolMessage(content='research', tool_call_id=call['id'])
-    # 两轮：一轮探索，一轮只允许补齐验证。
+    # 两轮均可查证具体错误，收尾阶段仍受总轮数限制。
     from unittest.mock import patch
     model = Model(); diagnostics = {}
     with patch.object(run, 'run_tool', tool):
         assert await build_skill('example.com', [], output_dir=tmp_path/'skill', builder_model=model,
             max_turns=2, record_dir=tmp_path/'record', diagnostics=diagnostics) is None
-    assert calls == ['web_search']
+    assert calls == ['web_search', 'web_search']
     assert any('收尾' in str(prompt) for prompt in model.prompts)
     assert diagnostics['exit_reason'] == 'max_turns'
     assert diagnostics['turns_completed'] == 2
     events = [json.loads(line) for line in (tmp_path/'record/events.jsonl').read_text().splitlines()]
     assert any(event['event'] == 'repair_phase' for event in events)
-    assert any(event['event'] == 'tool_result' and event.get('blocked') for event in events)
+    assert not any(event.get('blocked') for event in events)
 
 
 def test_record_redacts_env_credentials_and_private_fields(tmp_path, monkeypatch):

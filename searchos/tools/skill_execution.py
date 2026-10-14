@@ -9,7 +9,7 @@ import fcntl
 import json
 import re
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from uuid import uuid4
 
 from langchain_core.tools import InjectedToolCallId, tool
@@ -189,7 +189,7 @@ async def read_skill_file(
         return _json({"error": str(exc)})
 
 
-async def _legacy(directory: Path, argv: list[str], executions: Path, timeout: float, execution_id: str) -> dict:
+async def _legacy(directory: Path, argv: list[str], executions: Path, timeout: float, execution_id: str, proxy_mode: str = 'inherit') -> dict:
     from searchos.skills.runtime.legacy.executor_runtime import ExecutionPolicy, run_executor
 
     if len(argv) != 3 or argv[1] != "--params":
@@ -212,7 +212,7 @@ async def _legacy(directory: Path, argv: list[str], executions: Path, timeout: f
             pass
     try:
         result = await run_executor(directory, params, query=query,
-                                    policy=ExecutionPolicy.access(timeout_s=timeout))
+                                    policy=ExecutionPolicy.access(timeout_s=timeout, proxy_mode=proxy_mode))
     except asyncio.CancelledError:
         _write_json(saved / "record.json", {"execution_id": execution_id,
                     "status": "cancelled", "started": False, "legacy": True, "artifacts": []})
@@ -241,16 +241,20 @@ def _execution_response(result: dict) -> tuple[str, dict]:
 @tool("exec", response_format="content_and_artifact")
 async def exec_skill(
     skill: str, argv: list[str], tool_call_id: Annotated[str, InjectedToolCallId],
-    stdin: str = "", timeout_s: float = 60,
+    stdin: str = "", timeout_s: float = 60, proxy_mode: Literal['inherit', 'direct', 'proxy'] = 'inherit',
 ) -> tuple[str, dict]:
     """Run a bundled Python, Shell or Node script from a loaded skill.
 
     argv starts with python/python3, bash/sh or node and a package-relative
     script path. No shell strings or inline code. cwd is the task work directory.
     Returns execution status and saved page URLs; read results with open/find.
+    proxy_mode is inherit (environment), direct (no application proxy), or proxy
+    (require a configured proxy). Browser scripts must honor these environment defaults.
     Legacy skills accept ["legacy-executor", "--params", "<JSON object>"].
     """
     try:
+        from searchos.skills.runtime.network import validate_proxy_mode
+        validate_proxy_mode(proxy_mode)
         if (_source_scope_var.get() or {}).get("mode") == "local":
             raise ValueError("Access Skill execution is unavailable in Local source mode")
         binding = _loaded(skill)
@@ -264,7 +268,7 @@ async def exec_skill(
             raise ValueError("command input exceeds 128000 characters")
         receipt = skill_workspace_dir(root, "calls") / key / (hashlib.sha256(tool_call_id.encode()).hexdigest() + ".json")
         request_hash = hashlib.sha256(_json({"skill": skill, "package_hash": binding["package_hash"],
-                    "argv": argv, "stdin": stdin, "timeout": timeout}).encode()).hexdigest()
+                    "argv": argv, "stdin": stdin, "timeout": timeout, "proxy_mode": proxy_mode}).encode()).hexdigest()
         work = skill_workspace_dir(root, "work") / key
         work.mkdir(parents=True, exist_ok=True)
         # Lock before reading/writing receipts: concurrent processes cannot both
@@ -294,13 +298,13 @@ async def exec_skill(
             if argv[0] == "legacy-executor":
                 if stdin:
                     raise ValueError("legacy executor does not accept stdin")
-                result = await _legacy(Path(binding["directory"]), argv, skill_workspace_dir(root, "executions"), timeout, execution_id)
+                result = await _legacy(Path(binding["directory"]), argv, skill_workspace_dir(root, "executions"), timeout, execution_id, proxy_mode)
             else:
                 from searchos.skills.runtime.command_runtime import run_command
                 result = await run_command(
                     Path(binding["directory"]), argv, work_dir=work,
                     execution_dir=skill_workspace_dir(root, "executions"), stdin=stdin, timeout_s=timeout, network=True,
-                    execution_id=execution_id,
+                    execution_id=execution_id, proxy_mode=proxy_mode,
                 )
             if result.get("execution_id"):
                 _write_json(skill_workspace_dir(root, "executions") / result["execution_id"] / "binding.json",

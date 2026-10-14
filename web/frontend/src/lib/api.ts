@@ -719,10 +719,11 @@ export type SkillCreationJob = {
   status: "queued" | "running" | "completed" | "partial" | "failed" | "interrupted";
   stage: string;
   current_index: number | null;
-  requests: { name: string; category: string; description: string; subtask?: string; action?: "create" | "update" }[];
+  requests: { name: string; category: string; description: string; subtask?: string; action?: "create" | "update"; has_draft?: boolean }[];
   results: { name: string; category: string; status: string; error?: string; path?: string; trial_path?: string; action?: "create" | "update" }[];
   error: string;
   created_at: string;
+  resume_of?: { job_id: string; index: number };
 };
 export const createSkills = (input: SkillCreationInput) =>
   putJson<SkillCreationJob>("/api/skills/creations", input, "POST");
@@ -730,6 +731,20 @@ export const listSkillCreations = () =>
   request<SkillCreationJob[]>("/api/skills/creations", { cache: "no-store" });
 export const getSkillCreation = (id: string) =>
   request<SkillCreationJob>(`/api/skills/creations/${encodeURIComponent(id)}`, { cache: "no-store" });
+export const deleteSkillCreations = (ids: string[]) =>
+  putJson<{ deleted: string[] }>("/api/skills/creations/delete", { ids }, "POST");
+export const cancelSkillCreation = (id: string) =>
+  putJson<SkillCreationJob>(`/api/skills/creations/${encodeURIComponent(id)}/cancel`, {}, "POST");
+
+const draftUrl = (id: string, index: number) => `/api/skills/creations/${encodeURIComponent(id)}/requests/${index}/draft`;
+export type SkillDraft = { name: string; revision: string; files: string[]; examples: unknown[]; validation: Record<string, unknown>; diagnostics: Record<string, unknown>; events: Record<string, unknown>[] };
+export const getSkillDraft = (id: string, index: number) => request<SkillDraft>(draftUrl(id, index), { cache: "no-store" });
+export const getSkillDraftFile = (id: string, index: number, path: string) =>
+  request<{ path: string; content: string; revision: string }>(`${draftUrl(id, index)}/file?path=${encodeURIComponent(path)}`, { cache: "no-store" });
+export const saveSkillDraftFile = (id: string, index: number, edit: { path: string; content: string; revision: string }) =>
+  putJson<SkillDraft>(`${draftUrl(id, index)}/file`, edit);
+export const resumeSkillCreation = (id: string, index: number) =>
+  putJson<SkillCreationJob>(`/api/skills/creations/${encodeURIComponent(id)}/requests/${index}/resume`, {}, "POST");
 
 export type SkillLibraryItem = {
   name: string; category: string; description: string; availability: string;

@@ -53,7 +53,7 @@ def _browser_cache() -> Path | None:
     return None
 
 
-def _environment(work: Path, *, network: bool = False) -> dict[str, str]:
+def _environment(work: Path, *, network: bool = False, proxy_mode: str = 'inherit') -> dict[str, str]:
     env = {"PATH": "/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin",
             "HOME": str(work), "TMPDIR": str(work), "LANG": "en_US.UTF-8",
             "PYTHONIOENCODING": "utf-8", "PYTHONDONTWRITEBYTECODE": "1",
@@ -61,12 +61,8 @@ def _environment(work: Path, *, network: bool = False) -> dict[str, str]:
     if cache := _browser_cache():
         env["PLAYWRIGHT_BROWSERS_PATH"] = str(cache)
     if network:
-        # Match builder probes without exposing proxy credentials or host secrets.
-        from searchos.skills.runtime.legacy.executor_runtime import _PROXY_ENV_KEYS, _sanitized_proxy_value
-        for key in _PROXY_ENV_KEYS:
-            if value := os.environ.get(key):
-                if sanitized := _sanitized_proxy_value(key, value):
-                    env[key] = sanitized
+        from searchos.skills.runtime.network import proxy_environment
+        env.update(proxy_environment(proxy_mode))
     return env
 
 
@@ -163,13 +159,18 @@ async def _kill(proc):
 
 async def run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
                       execution_dir: Path, stdin: str = '', timeout_s: float = 60,
-                      network: bool = True, execution_id: str | None = None) -> dict:
+                      network: bool = True, execution_id: str | None = None,
+                      proxy_mode: str = 'inherit') -> dict:
     """认证浏览器由宿主提供有限能力；命令始终在原沙箱内执行。"""
     from searchos.skills.runtime.browser_auth import command_profile, AuthRequired
     kwargs = dict(work_dir=work_dir, execution_dir=execution_dir, stdin=stdin,
-                  timeout_s=timeout_s, network=network, execution_id=execution_id)
+                  timeout_s=timeout_s, network=network, execution_id=execution_id, proxy_mode=proxy_mode)
     # Invalid commands must not open a login window or launch a browser.
     try:
+        from searchos.skills.runtime.network import validate_proxy_mode, proxy_environment
+        validate_proxy_mode(proxy_mode)
+        if network:
+            proxy_environment(proxy_mode)  # Fail before opening a browser if no proxy exists.
         _entry(Path(skill_dir).resolve(), argv)
         profile = command_profile(Path(skill_dir), argv) if network else None
     except (ValueError, OSError, TypeError) as exc:
@@ -179,7 +180,7 @@ async def run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
         return await _run_command(skill_dir, argv, **kwargs)
     try:
         from searchos.skills.runtime.browser_broker import browser_bridge
-        async with browser_bridge(profile) as env:
+        async with browser_bridge(profile, proxy_mode=proxy_mode) as env:
             return await _run_command(skill_dir, argv, **kwargs, browser_env=env)
     except AuthRequired as exc:
         return {'status': 'blocked', 'error': str(exc), 'auth_required': True,
@@ -192,7 +193,7 @@ async def run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
 async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
                       execution_dir: Path, stdin: str = '', timeout_s: float = 60,
                       network: bool = True, execution_id: str | None = None,
-                      browser_env: dict | None = None) -> dict:
+                      browser_env: dict | None = None, proxy_mode: str = 'inherit') -> dict:
     """返回一次命令记录；取消时保存 cancelled 记录并重新抛出 CancelledError。
 
     execution_dir/<execution_id>/record.json、非空日志及 artifacts/。
@@ -214,7 +215,7 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
         if not isinstance(stdin, str) or len(stdin.encode()) > LOG_LIMIT:
             raise ValueError('stdin exceeds limit or is not text')
         command = _entry(skill, argv)
-        env = _environment(work, network=network)
+        env = _environment(work, network=network, proxy_mode=proxy_mode)
         if browser_env:
             if set(browser_env) != {'SEARCHOS_BROWSER_URL', 'SEARCHOS_BROWSER_TOKEN'}:
                 raise ValueError('unexpected browser capability environment')
@@ -228,10 +229,10 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
         result['error'] = str(exc)
         return result
     result['backend'] = backend
-    result['capabilities'] = {'disk_quota': 'polled', 'process_cleanup': 'pid-namespace' if backend == 'bubblewrap' else 'process-group', 'memory_limit': False, 'process_count_limit': False, 'network': network}
+    result['capabilities'] = {'disk_quota': 'polled', 'process_cleanup': 'pid-namespace' if backend == 'bubblewrap' else 'process-group', 'memory_limit': False, 'process_count_limit': False, 'network': network, 'proxy_mode': proxy_mode}
     # Arguments/stdin may contain secrets: save only entry, counts and policy.
     (record / 'request.json').write_text(json.dumps({'entry': argv[:2], 'argument_count': len(argv)-2,
-        'stdin_bytes': len(stdin.encode()), 'timeout_s': timeout_s, 'network': network}))
+        'stdin_bytes': len(stdin.encode()), 'timeout_s': timeout_s, 'network': network, 'proxy_mode': proxy_mode}))
     proc = None
     tasks = []
     cancelled = False

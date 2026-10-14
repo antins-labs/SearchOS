@@ -42,7 +42,7 @@ def test_state_rejects_symlink(auth_root, tmp_path):
 
 def test_missing_session_requests_login_once_per_attempt(auth_root, monkeypatch):
     opened = []
-    monkeypatch.setattr(auth, 'start_login', lambda profile='x': opened.append(profile))
+    monkeypatch.setattr(auth, 'start_login', lambda profile='x', **kwargs: opened.append(profile))
     with pytest.raises(auth.AuthRequired, match='auth_required'):
         auth.require_state()
     assert opened == ['x']
@@ -79,7 +79,7 @@ async def test_expired_session_is_blocked_without_leaking_exception(auth_root, m
     class Adapter:
         async def search(self,*args): raise auth.AuthRequired('secret-cookie-value')
     opened=[]
-    monkeypatch.setattr('searchos.skills.runtime.browser_broker.start_login',lambda:opened.append(True))
+    monkeypatch.setattr('searchos.skills.runtime.browser_broker.start_login',lambda **kwargs:opened.append(True))
     async with serve_search(Adapter()) as env, httpx.AsyncClient(trust_env=False) as client:
         response=await client.post(env['SEARCHOS_BROWSER_URL'],headers={'Authorization':'Bearer '+env['SEARCHOS_BROWSER_TOKEN']},json={'query':'NASA'})
         assert response.status_code==401 and response.json()['error']=='auth_required'
@@ -94,7 +94,7 @@ async def test_runtime_blocks_before_script_when_auth_required(tmp_path, auth_ro
     (package/'SKILL.md').write_text('---\nname: x-com\ndescription: 搜索\nmetadata:\n  host: x.com\n  searchos-category: access\n  searchos-browser-profile: x\n  searchos-browser-entries: scripts/search.py\n---\n搜索')
     (package/'scripts/search.py').write_text('raise RuntimeError("must not start")')
     opened=[]
-    monkeypatch.setattr(auth,'start_login',lambda profile='x':opened.append(profile))
+    monkeypatch.setattr(auth,'start_login',lambda profile='x', **kwargs:opened.append(profile))
     result=await run_command(package,['python','scripts/search.py'],work_dir=tmp_path/'work',execution_dir=tmp_path/'runs')
     assert result['auth_required'] and not result['started']
     assert not (tmp_path/'work').exists()
@@ -111,7 +111,7 @@ async def test_sandbox_can_search_but_cannot_read_vault(tmp_path, auth_root, mon
         async def search(self,*args):
             return {'records':[{'id':'20','url':'https://x.com/jack/status/20','text':'public'}]}
     @asynccontextmanager
-    async def bridge(profile):
+    async def bridge(profile, *, proxy_mode='inherit'):
         async with serve_search(Adapter()) as env:
             yield env
     monkeypatch.setattr('searchos.skills.runtime.browser_broker.browser_bridge',bridge)

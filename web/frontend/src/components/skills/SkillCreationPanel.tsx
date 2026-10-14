@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Check, ChevronDown, Globe2, ListTree, Loader2, Route, SlidersHorizontal } from "lucide-react";
 import SkillCreationHistory from "./SkillCreationHistory";
-import { createSkills, listSkillCreations, type SkillCreationInput, type SkillCreationJob } from "@/lib/api";
+import { createSkills, listSkillCreations, resumeSkillCreation, deleteSkillCreations, cancelSkillCreation, type SkillCreationInput, type SkillCreationJob } from "@/lib/api";
 import { useSettings } from "@/components/settings/SettingsProvider";
 
 const active = (job: SkillCreationJob) => ["queued", "running"].includes(job.status);
@@ -22,14 +22,17 @@ export default function SkillCreationPanel({ disabled, zh }: { disabled: boolean
   const [pollError, setPollError] = useState("");
   const completed = useRef(new Set<string>());
   const submitting = useRef(false);
+  const revision = useRef(0);
 
   useEffect(() => {
     let stopped = false;
     let timer: ReturnType<typeof setTimeout>;
     async function poll() {
       try {
+        const version = revision.current;
         const items = await listSkillCreations();
         if (stopped) return;
+        if (version !== revision.current) return;
         setJobs(items);
         setPollError("");
         for (const job of items) {
@@ -55,9 +58,31 @@ export default function SkillCreationPanel({ disabled, zh }: { disabled: boolean
     setError("");
     try {
       const job = await createSkills(input);
+      revision.current += 1;
       setJobs((previous) => [job, ...previous.filter((j) => j.id !== job.id)]);
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
     finally { submitting.current = false; setBusy(false); }
+  }
+  async function resume(id: string, index: number) {
+    if (submitting.current) return;
+    submitting.current = true;
+    setBusy(true); setError("");
+    try {
+      const job = await resumeSkillCreation(id, index);
+      revision.current += 1;
+      setJobs((previous) => [job, ...previous.filter((j) => j.id !== job.id)]);
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+    finally { submitting.current = false; setBusy(false); }
+  }
+  async function remove(ids: string[]) {
+    const result = await deleteSkillCreations(ids);
+    revision.current += 1;
+    setJobs((previous) => previous.filter((job) => !result.deleted.includes(job.id)));
+  }
+  async function cancel(id: string) {
+    const job = await cancelSkillCreation(id);
+    revision.current += 1;
+    setJobs((previous) => previous.map((item) => item.id === id ? job : item));
   }
   const modes = [
     { id: "site" as const, icon: Globe2, title: zh ? "从站点" : "Website", description: zh ? "获取来源数据" : "Access source data" },
@@ -104,6 +129,6 @@ export default function SkillCreationPanel({ disabled, zh }: { disabled: boolean
         </div>
       </form>
     </section>
-    <SkillCreationHistory jobs={jobs} zh={zh} loading={loading} error={pollError} disabled={disabled || busy} onRetry={(input) => void submit(input)} />
+    <SkillCreationHistory jobs={jobs} zh={zh} loading={loading} error={pollError} disabled={disabled || busy} onRetry={(input) => void submit(input)} onResume={(id, index) => void resume(id, index)} onDelete={remove} onCancel={cancel} />
   </div>;
 }

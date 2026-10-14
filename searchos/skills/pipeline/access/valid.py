@@ -85,10 +85,12 @@ async def validate_examples(output_dir: Path, examples: list[dict[str, Any]]) ->
                         raise ValueError("CLI --help failed: " + str(help_result.get("error") or help_result.get("stderr", "")))
                     checked_entries.add(entry)
                 result = await run_command(output_dir, example["argv"], work_dir=work,
-                    execution_dir=root / "executions", timeout_s=60, network=True)
+                    execution_dir=root / "executions", timeout_s=60, network=True,
+                    proxy_mode=example.get('proxy_mode', 'inherit'))
                 if result.get('auth_required'):
                     return {'valid': False, 'stage': 'authentication', 'auth_required': True,
-                            'example': index, 'argv': example['argv'], 'error': result.get('error', 'auth_required')}
+                            'example': index, 'argv': example['argv'], 'proxy_mode': example.get('proxy_mode', 'inherit'),
+                            'error': result.get('error', 'auth_required')}
                 if result.get("exit_code") != 0 or result.get("error") or result.get("timed_out") or result.get("status", "completed") != "completed":
                     raise ValueError(f"command failed: {result.get('error') or result.get('stderr') or result.get('status')}")
                 output = example.get("output", "")
@@ -101,7 +103,11 @@ async def validate_examples(output_dir: Path, examples: list[dict[str, Any]]) ->
                 else:
                     saved = root / "executions" / result.get("execution_id", "") / "stdout.log"
                     payload = saved.read_text(encoding="utf-8") if saved.is_file() else result.get("stdout", "")
-                data = json.loads(payload)
+                try:
+                    data = json.loads(payload)
+                except json.JSONDecodeError as exc:
+                    raise ValueError(f'CLI output is not valid JSON (line {exc.lineno}, column {exc.colno}); '
+                                     'keep logs on stderr, select the correct JSON output file, and check for HTML/login/error responses') from exc
                 if _invalid_payload(data):
                     raise ValueError("example contains fixture data or a failure result")
                 records = data[example["records_key"]] if example.get("records_key") else data
@@ -114,5 +120,6 @@ async def validate_examples(output_dir: Path, examples: list[dict[str, Any]]) ->
                     if url.scheme not in {"http", "https"} or not url.hostname:
                         raise ValueError("each record must retain a valid HTTP source URL")
             except Exception as exc:
-                return {"valid": False, "stage": "examples", "example": index, "argv": example.get("argv"), "error": str(exc)[:4000]}
+                return {"valid": False, "stage": "examples", "example": index, "argv": example.get("argv"),
+                        "proxy_mode": example.get('proxy_mode', 'inherit'), "error": str(exc)[:4000]}
     return {"valid": True, "stage": "complete", "examples": len(examples)}

@@ -8,6 +8,7 @@ from typing import Any
 
 from searchos.skills.pipeline.access.valid import validate_access_package
 from searchos.skills.pipeline.access.browser import ResearchBrowser, TOOL_DEFINITIONS as BROWSER_TOOLS
+from searchos.skills.runtime.network import PROXY_SCHEMA, validate_proxy_mode
 
 class BuilderWorkspace:
     """受 Skill Execution 策略约束的构建工作区。"""
@@ -30,6 +31,7 @@ class BuilderWorkspace:
                     "properties": {
                         "code": {"type": "string"},
                         "timeout": {"type": "number", "default": 120},
+                        "proxy_mode": PROXY_SCHEMA,
                     },
                     "required": ["code"],
                 },
@@ -57,7 +59,7 @@ class BuilderWorkspace:
             "type": "function",
             "function": {
                 "name": "read_file",
-                "description": "Read a UTF-8 text file under the skill directory.",
+                "description": "Read a UTF-8 text file under the skill directory. offset and limit count characters, not lines. Follow next_offset to read the remaining content.",
                 "parameters": {
                     "type": "object",
                     "properties": {"path": {"type": "string"}, "offset": {"type": "integer", "default": 0}, "limit": {"type": "integer", "default": 7000}},
@@ -78,6 +80,7 @@ class BuilderWorkspace:
                     "argv": {"type": "array", "items": {"type": "string"}},
                     "output": {"type": "string"},
                     "records_key": {"type": "string"},
+                    "proxy_mode": PROXY_SCHEMA,
                     "replace_index": {"type": "integer", "description": "Replace a previously registered example when repairing its arguments."},
                 },
                 "required": ["argv", "output", "records_key"],
@@ -95,7 +98,8 @@ class BuilderWorkspace:
          "description": "Run a package CLI script in an isolated persistent work directory; use argv, not shell strings.",
          "parameters": {"type": "object", "properties": {
              "argv": {"type": "array", "items": {"type": "string"}},
-             "stdin": {"type": "string"}, "timeout_s": {"type": "number"}}, "required": ["argv"]}}},
+             "stdin": {"type": "string"}, "timeout_s": {"type": "number"},
+             "proxy_mode": PROXY_SCHEMA}, "required": ["argv"]}}},
         {"type": "function", "function": {"name": "validate_skill",
          "description": "Validate the distributable SKILL.md + scripts package and execute registered real-data examples.",
          "parameters": {"type": "object", "properties": {}}}},
@@ -106,6 +110,9 @@ class BuilderWorkspace:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.expected_name = expected_name or output_dir.name
         self.require_host = True
+        self.last_validation: dict = {}
+        self.resuming = False
+        self.checkpoint = lambda: None
         self.examples: list[dict[str, Any]] = []
         self.files: set[str] = set()
         self._runtime = tempfile.TemporaryDirectory(prefix="searchos-builder-runtime-")
@@ -114,12 +121,12 @@ class BuilderWorkspace:
     def close(self) -> None:
         self._runtime.cleanup()
 
-    async def exec(self, argv: list[str], stdin: str = "", timeout_s: float = 60) -> dict:
+    async def exec(self, argv: list[str], stdin: str = "", timeout_s: float = 60, proxy_mode: str = 'inherit') -> dict:
         from searchos.skills.runtime.command_runtime import run_command
         root = Path(self._runtime.name)
         return await run_command(self.output_dir, argv, work_dir=root / "work",
                                  execution_dir=root / "executions", stdin=stdin,
-                                 timeout_s=min(120, max(.1, timeout_s)), network=True)
+                                 timeout_s=min(120, max(.1, timeout_s)), network=True, proxy_mode=proxy_mode)
 
     async def validate(self) -> dict:
         with tempfile.TemporaryDirectory(prefix=".builder-package-", dir=self.output_dir.parent) as tmp:
@@ -131,18 +138,21 @@ class BuilderWorkspace:
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, target)
             report = await validate_access_package(candidate, self.expected_name, self.examples, require_host=self.require_host)
+            self.last_validation = report
+            self.checkpoint()
             return report
 
-    async def run_python(self, code: str, timeout: float = 120.0) -> dict[str, Any]:
+    async def run_python(self, code: str, timeout: float = 120.0, proxy_mode: str = 'inherit') -> dict[str, Any]:
         from searchos.skills.runtime.legacy.executor_runtime import (
             ExecutionPolicy,
             run_python_probe,
         )
 
-        selected_timeout = max(1.0, float(timeout or 120.0))
+        selected_timeout = min(120.0, max(1.0, float(timeout or 120.0)))
         policy = ExecutionPolicy.access(
             timeout_s=selected_timeout,
             cpu_time_s=max(2, int(selected_timeout) + 1),
+            proxy_mode=proxy_mode,
         )
         return await run_python_probe(code, self.output_dir, policy=policy)
 
@@ -156,6 +166,7 @@ class BuilderWorkspace:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding="utf-8")
         self.files.add(relative.as_posix())
+        self.checkpoint()
         return {"path": str(target), "size": len(content)}
 
     async def read_file(self, path: str, offset: int = 0, limit: int = 7000) -> dict[str, Any]:
@@ -189,6 +200,8 @@ class BuilderWorkspace:
             if Path(argv[1]).parts[0] != "scripts":
                 raise ValueError("example entry must be under scripts/")
             example = {"argv": argv, "output": output, "records_key": str(tool_input.get("records_key", ""))}
+            if 'proxy_mode' in tool_input:
+                example['proxy_mode'] = validate_proxy_mode(tool_input['proxy_mode'])
             replacement = tool_input.get("replace_index")
             if replacement is not None:
                 if not isinstance(replacement, int) or not 0 <= replacement < len(self.examples):
@@ -196,15 +209,17 @@ class BuilderWorkspace:
                 self.examples[replacement] = example
             elif example not in self.examples:
                 self.examples.append(example)
+            self.checkpoint()
             return {"registered": len(self.examples)}
         if tool_name == "exec":
-            return await self.exec(tool_input["argv"], str(tool_input.get("stdin", "")), float(tool_input.get("timeout_s", 60)))
+            return await self.exec(tool_input["argv"], str(tool_input.get("stdin", "")), float(tool_input.get("timeout_s", 60)), tool_input.get('proxy_mode', 'inherit'))
         if tool_name == "validate_skill":
             return await self.validate()
         if tool_name == "run_python":
             return await self.run_python(
                 str(tool_input["code"]),
                 timeout=float(tool_input.get("timeout") or 120.0),
+                proxy_mode=tool_input.get('proxy_mode', 'inherit'),
             )
         if tool_name == "write_file":
             return await self.write_file(str(tool_input["path"]), str(tool_input["content"]))

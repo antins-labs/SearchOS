@@ -23,20 +23,12 @@ from dataclasses import asdict, dataclass, replace
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit, urlunsplit
+from searchos.skills.runtime.network import proxy_environment, validate_proxy_mode
 
 logger = logging.getLogger(__name__)
 
 EXECUTOR_TIMEOUT = 60.0
 _WORKER = Path(__file__).with_name("_executor_worker.py")
-_PROXY_ENV_KEYS = (
-    "HTTP_PROXY",
-    "HTTPS_PROXY",
-    "NO_PROXY",
-    "http_proxy",
-    "https_proxy",
-    "no_proxy",
-)
 
 
 class NetworkAccess(StrEnum):
@@ -54,6 +46,7 @@ class ExecutionPolicy:
     network_access: NetworkAccess = NetworkAccess.NONE
     allow_skill_write: bool = False
     inherit_proxy: bool = False
+    proxy_mode: str = 'inherit'
     allow_native_escape_modules: bool = False
     allow_browser_automation: bool = False
     max_result_bytes: int = 2_000_000
@@ -63,6 +56,7 @@ class ExecutionPolicy:
     max_open_files: int = 128
 
     def __post_init__(self) -> None:
+        validate_proxy_mode(self.proxy_mode)
         if self.timeout_s <= 0:
             raise ValueError("timeout_s must be positive")
         if self.max_result_bytes <= 0 or self.max_output_bytes <= 0:
@@ -245,10 +239,7 @@ def _worker_environment(policy: ExecutionPolicy, sandbox_dir: Path) -> dict[str,
     for key in ("LANG", "LC_ALL", "TZ", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE"):
         if value := os.environ.get(key):
             env[key] = value
-    if policy.inherit_proxy:
-        for key in _PROXY_ENV_KEYS:
-            if value := os.environ.get(key):
-                env[key] = _sanitized_proxy_value(key, value)
+    env.update(proxy_environment(policy.proxy_mode if policy.inherit_proxy else 'direct'))
     if policy.allow_browser_automation:
         if browser_path := _playwright_browsers_path():
             # Keep HOME isolated while letting Browser Automation locate the
@@ -268,22 +259,6 @@ def _playwright_browsers_path() -> str:
     if local_app_data := os.environ.get("LOCALAPPDATA"):
         candidates.append(Path(local_app_data) / "ms-playwright")
     return next((str(path) for path in candidates if path.is_dir()), "")
-
-
-def _sanitized_proxy_value(key: str, value: str) -> str:
-    if key.lower() == "no_proxy":
-        return value
-    try:
-        parsed = urlsplit(value)
-        if not parsed.hostname:
-            return value.rsplit("@", 1)[-1]
-        host = parsed.hostname
-        if ":" in host and not host.startswith("["):
-            host = f"[{host}]"
-        netloc = f"{host}:{parsed.port}" if parsed.port else host
-        return urlunsplit((parsed.scheme, netloc, "", "", ""))
-    except (TypeError, ValueError):
-        return ""
 
 
 def _error(error_type: str, message: str) -> dict[str, Any]:

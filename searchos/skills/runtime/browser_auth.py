@@ -67,20 +67,15 @@ def save_state(data: dict, profile: str = 'x') -> None:
     temporary.replace(path)
 
 
-def browser_options(*, headless: bool) -> dict:
-    from urllib.parse import urlsplit
-    options = {'headless': headless}
-    proxy = os.environ.get('https_proxy') or os.environ.get('HTTPS_PROXY')
-    if proxy:
-        parsed = urlsplit(proxy)
-        if parsed.hostname:
-            options['proxy'] = {'server': f'{parsed.scheme}://{parsed.hostname}:{parsed.port or 80}'}
-    return options
+def browser_options(*, headless: bool, proxy_mode: str = 'inherit') -> dict:
+    from searchos.skills.runtime.network import browser_proxy_options
+    return {'headless': headless, **browser_proxy_options(proxy_mode)}
 
 
-def start_login(profile: str = 'x') -> None:
+def start_login(profile: str = 'x', *, proxy_mode: str = 'inherit') -> None:
     """固定宿主进程打开官方登录页；锁文件避免重复弹窗。"""
     folder = profile_dir(profile)
+    browser_options(headless=False, proxy_mode=proxy_mode)
     if sys.platform != 'darwin' and not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
         raise AuthRequired('auth_unavailable: 当前宿主没有图形桌面，请在本机桌面运行登录流程。')
     from importlib.util import find_spec
@@ -88,15 +83,15 @@ def start_login(profile: str = 'x') -> None:
         raise AuthRequired('auth_unavailable: 请安装 playwright 和 Chromium 后重试。')
     (folder / 'revoked').unlink(missing_ok=True)
     subprocess.Popen([sys.executable, '-m', 'searchos.skills.runtime.browser_login',
-                      '--root', str(storage_root().resolve()), '--profile', profile],
+                      '--root', str(storage_root().resolve()), '--profile', profile, '--proxy-mode', proxy_mode],
                      cwd=Path(__file__).resolve().parents[3], stdin=subprocess.DEVNULL,
                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
 
 
-def require_state(profile: str = 'x') -> dict:
+def require_state(profile: str = 'x', *, proxy_mode: str = 'inherit') -> dict:
     if state := read_state(profile):
         return state
-    start_login(profile)
+    start_login(profile, proxy_mode=proxy_mode)
     raise AuthRequired('auth_required: 已请求打开本机 X 登录窗口，请用户手动登录后以新的调用重试；不要自动循环重试。')
 
 

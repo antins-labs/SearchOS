@@ -267,17 +267,6 @@ async def _call_executor(request: dict[str, Any]) -> dict[str, Any]:
     executor_path = Path(request["executor_path"])
     skill_dir = Path(request["skill_dir"])
     sys.path.insert(0, str(skill_dir))
-    # Proxy defaults are process-local now; installing them here cannot mutate
-    # the SearchOS host process. The execution policy decides whether proxy
-    # environment variables are inherited by this worker.
-    try:
-        from searchos.skills.runtime.legacy.executor_proxy import install_executor_proxy_shims
-
-        install_executor_proxy_shims()
-    except PolicyViolation:
-        raise
-    except Exception:
-        pass
     spec = importlib.util.spec_from_file_location(
         f"searchos_skill_{os.getpid()}",
         str(executor_path),
@@ -334,6 +323,9 @@ def main() -> int:
         captured_stdout = _CappedText(limit)
         captured_stderr = _CappedText(limit)
         with redirect_stdout(captured_stdout), redirect_stderr(captured_stderr):
+            # 探测和旧 executor 共用进程内代理默认值；不修改宿主进程。
+            from searchos.skills.runtime.legacy.executor_proxy import install_executor_proxy_shims
+            install_executor_proxy_shims()
             if request.get("mode") == "executor":
                 result = asyncio.run(_call_executor(request))
             elif request.get("mode") == "probe":

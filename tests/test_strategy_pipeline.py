@@ -198,3 +198,28 @@ async def test_candidate_changed_during_trial_cannot_be_published(tmp_path):
     result=await execute(tmp_path,runner,Judge())
     assert result.status=='validation_failed' and 'changed during validation' in result.error
     assert not (tmp_path/'library/strategy/official-revenue').exists()
+
+
+@pytest.mark.asyncio
+async def test_strategy_resume_receives_failed_trial_and_revalidates(tmp_path):
+    from searchos.skills.pipeline.drafts import load_draft
+    async def incomplete(**kwargs): return outcome(evidence=[])
+    first = await execute(tmp_path, incomplete, Judge())
+    assert first.status == 'validation_failed'
+    package, saved = load_draft(first.draft_path)
+    assert saved['validation']['stage'] == 'strategy_trial'
+    original = (package / 'SKILL.md').read_text()
+    class Repair:
+        async def ainvoke(self, messages):
+            assert json.loads(messages[1].content)['existing_skill'] == original
+            assert first.error in messages[-1].content
+            return AIMessage(content=original + '\n必须核对来源原文，返回引文及链接。')
+    calls = []
+    async def successful(**kwargs):
+        calls.append(kwargs)
+        return outcome()
+    second = await run_pipeline(first.request, library_path=tmp_path / 'library', model=Repair(),
+        resume_draft=first.draft_path, subtask_runner=successful, judge_model=Judge(), trial_root=tmp_path / 'repair')
+    assert second.status == 'installed' and len(calls) == 1
+    assert '核对来源原文' in calls[0]['strategy']
+    assert (package / 'SKILL.md').read_text() == original

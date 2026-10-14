@@ -30,6 +30,7 @@ async def build_skill(
     existing_package: Path | None = None,
     diagnostics: dict | None = None,
     record_dir: Path | None = None,
+    resume_draft: Path | None = None,
 ) -> Path | None:
     """Build one access skill and return its directory on success.
 
@@ -79,8 +80,38 @@ async def build_skill(
     final_dir.parent.mkdir(parents=True, exist_ok=True)
     staging = Path(tempfile.mkdtemp(prefix=f".staging_{final_dir.name}_", dir=final_dir.parent))
     workspace = BuilderWorkspace(staging, expected_name=final_dir.name)
+    def checkpoint():
+        from searchos.skills.pipeline.drafts import save_draft
+        pointer = save_draft(record.root, staging, workspace.files, name=final_dir.name,
+                             examples=workspace.examples, require_host=workspace.require_host,
+                             validation=workspace.last_validation)
+        if pointer:
+            diagnostics['draft_path'] = str(pointer)
+    workspace.checkpoint = checkpoint
     try:
-        if existing_package is not None:
+        if resume_draft is not None:
+            from searchos.skills.pipeline.drafts import load_draft
+            source, saved = load_draft(resume_draft)
+            if saved['name'] != final_dir.name:
+                raise ValueError('draft name does not match request')
+            for relative in saved['files']:
+                target = staging / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source / relative, target)
+                workspace.files.add(relative)
+            workspace.examples = saved['examples']
+            workspace.require_host = saved['require_host']
+            workspace.last_validation = saved['validation']
+            workspace.resuming = True
+            notes += '\n继续修复已保存草稿，不重新探索或重写已验证能力。文件：' + ', '.join(sorted(workspace.files))
+            notes += '\n上一轮验证结果：' + json.dumps(saved['validation'], ensure_ascii=False)
+            notes += '\n已恢复的完整验证样例（索引从 0 开始）：' + json.dumps(
+                [{'index': index, **example} for index, example in enumerate(workspace.examples)], ensure_ascii=False)
+            notes += '\n修正已有样例时必须使用 register_example 的 replace_index；追加新样例不会移除旧的失败样例。'
+            notes += '\n修复输出格式、参数或依赖问题后重新验证。不得移除用户要求的核心能力来制造成功；遇到登录/访问阻碍请如实说明。'
+            record.event('resumed', draft=str(resume_draft), files=saved['files'], examples=workspace.examples)
+            checkpoint()
+        elif existing_package is not None:
             from searchos.skills.packaging import package_files, validate_package
             existing = validate_package(existing_package, expected_name=final_dir.name)
             workspace.require_host = bool(host or existing.meta.metadata.get('host'))
@@ -93,6 +124,7 @@ async def build_skill(
             notes += "\nRead and extend this package. Preserve existing capabilities and register their regression examples as well as examples of new commands."
             if not workspace.require_host:
                 notes += "\nThis existing package has no single host. Preserve its multi-source scope; discover endpoints from existing scripts/references. metadata.host is optional for this update; do not invent a host."
+            checkpoint()
         return await _build_episode(workspace, final_dir, host, probe_urls, notes, tool_model, max_turns, diagnostics, record)
     except asyncio.CancelledError:
         diagnostics.update(exit_reason='cancelled')
@@ -103,9 +135,12 @@ async def build_skill(
         record.event('execution_error', error_type=type(exc).__name__)
         raise
     finally:
-        record.summary(diagnostics)
-        workspace.close()
-        shutil.rmtree(staging, ignore_errors=True)
+        try:
+            checkpoint()
+            record.summary(diagnostics)
+        finally:
+            workspace.close()
+            shutil.rmtree(staging, ignore_errors=True)
 
 
 async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_model, max_turns, diagnostics=None, record=None):
@@ -119,7 +154,7 @@ async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_mod
 
     repair_start = max_turns - diagnostics['repair_turns']
     for turn in range(max_turns):
-        if turn == repair_start:
+        if turn == repair_start or (turn == 0 and workspace.resuming):
             report = await workspace.validate()
             record.event('repair_phase', turn=turn + 1, validation=report)
             if report['valid']:
@@ -128,12 +163,17 @@ async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_mod
             if report.get('auth_required'):
                 diagnostics['exit_reason'] = 'auth_required'
                 break
-            messages.append(HumanMessage(content=(
+            guidance = (
                 f"进入收尾阶段，剩余 {max_turns - turn} 轮。停止探索新功能。"
                 "只保留用户需求所必需的命令，补齐每个已声明命令的 register_example，"
                 "运行 validate_skill 并修复失败。使用 read_file/edit_file/write_file/exec 修复现有包。"
-                "本阶段不再允许 web_search/web_open/web_find/run_python。当前验证结果：\n"
-                + json.dumps(report, ensure_ascii=False))))
+                "仍可针对当前错误查询相关资料或做最小对照探测；不要扩展功能或重复失败请求。"
+                "遇到外部依赖阻塞时保存诊断，如实说明限制。当前验证结果：\n")
+            if workspace.resuming and turn < repair_start:
+                guidance = ("从草稿的验证失败处继续。先读取现有文件和样例，修复具体错误，补齐缺失文件，"
+                            "保留已工作的功能。先核对核心取数路径是否真的实现；不要在辅助命令的格式问题上耗尽预算。"
+                            "需要时可针对失败点查询资料，不要重新全量探索站点。当前验证结果：\n")
+            messages.append(HumanMessage(content=guidance + json.dumps(report, ensure_ascii=False)))
         diagnostics['turns_attempted'] = turn + 1
         record.event('model_started', turn=turn + 1, phase='repair' if turn >= repair_start else 'build')
         record.summary(diagnostics)
@@ -168,15 +208,10 @@ async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_mod
             continue
 
         for tc in tool_calls:
-            blocked = turn >= repair_start and tc.get('name') in {'web_search', 'web_open', 'web_find', 'run_python'}
             record.event('tool_started', turn=turn + 1, name=tc.get('name'), call_id=tc.get('id'))
-            if blocked:
-                from langchain_core.messages import ToolMessage
-                result = ToolMessage(content='收尾阶段禁止继续探索；请补齐 register_example、执行 validate_skill 并修复现有命令。', tool_call_id=tc['id'])
-            else:
-                result = await run_tool(workspace, tc)
+            result = await run_tool(workspace, tc)
             messages.append(result)
-            record.event('tool_result', turn=turn + 1, name=tc.get('name'), call_id=tc.get('id'), blocked=blocked, content=result.content)
+            record.event('tool_result', turn=turn + 1, name=tc.get('name'), call_id=tc.get('id'), content=result.content)
     else:
         diagnostics['exit_reason'] = 'max_turns'
         logger.warning("dynamic builder reached max turns for %s", host)
@@ -193,6 +228,7 @@ async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_mod
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
         report = await validate_access_package(candidate, final_dir.name, workspace.examples, require_host=workspace.require_host)
+        workspace.last_validation = report
         if diagnostics is not None:
             diagnostics.update(report)
         record.event('final_validation', report=report)

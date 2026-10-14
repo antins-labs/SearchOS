@@ -15,6 +15,8 @@ async def build_text_skill(request: SkillRequest, *, output_dir: Path,
                            model: Any = None, model_name: str | None = None,
                            existing_package: Path | None = None,
                            subtask: str | None = None,
+                           checkpoint: Any = None,
+                           repair_feedback: dict | None = None,
                            max_attempts: int = 3) -> Path | None:
     if request.category.value not in {'strategy', 'orchestrator'}:
         raise ValueError('text pipeline only accepts strategy/orchestrator requests')
@@ -40,6 +42,8 @@ async def build_text_skill(request: SkillRequest, *, output_dir: Path,
                                                  'subtask': subtask if subtask is not None else _current_task_var.get() or request.subtask}, ensure_ascii=False))]
     if previous:
         messages.append(HumanMessage(content='根据能力缺口更新已有 SKILL.md，保留原有有效能力、约束及资源引用；返回完整新版本。'))
+    if repair_feedback is not None:
+        messages.append(HumanMessage(content='继续修复保存的候选草稿，针对上次失败原因修改：\n' + json.dumps(repair_feedback, ensure_ascii=False)))
     for _ in range(max_attempts):
         response = await model.ainvoke(messages)
         content = response.content if hasattr(response, 'content') else str(response)
@@ -49,9 +53,13 @@ async def build_text_skill(request: SkillRequest, *, output_dir: Path,
         if content.startswith('```'):
             content = content.split('\n', 1)[1].rsplit('```', 1)[0].strip()
         (output_dir / 'SKILL.md').write_text(content + '\n', encoding='utf-8')
+        if checkpoint:
+            checkpoint({'valid': False, 'stage': 'pending_validation'})
         try:
             validate_text_package(output_dir, request)
             return output_dir
         except (ValueError, OSError, yaml.YAMLError) as exc:
+            if checkpoint:
+                checkpoint({'valid': False, 'stage': 'package', 'error': str(exc)})
             messages.extend([response, HumanMessage(content=f'校验失败，请修正完整 SKILL.md：{exc}')])
     return None

@@ -22,6 +22,8 @@ from __future__ import annotations
 
 import logging
 import os
+import functools
+import inspect
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +57,7 @@ def _env_proxy() -> str | None:
     return (
         os.getenv("HTTPS_PROXY") or os.getenv("https_proxy")
         or os.getenv("HTTP_PROXY") or os.getenv("http_proxy")
+        or os.getenv("ALL_PROXY") or os.getenv("all_proxy")
     )
 
 
@@ -65,10 +68,12 @@ def install_executor_proxy_shims() -> None:
     if _installed:
         return
     proxy = _env_proxy()
-    if proxy:
-        _install_split_tunnel_bypass()   # CN 站点直连,境外走代理
+    mode = os.environ.get('SEARCHOS_PROXY_MODE', 'inherit')
+    if proxy or mode == 'direct':
+        if mode == 'inherit' and proxy:
+            _install_split_tunnel_bypass()
         _patch_aiohttp()
-        _patch_playwright(proxy)
+        _patch_playwright(proxy, mode)
     _installed = True
 
 
@@ -102,28 +107,40 @@ def _patch_aiohttp() -> None:
     logger.info("executor proxy: aiohttp ClientSession now defaults to trust_env=True")
 
 
-def _patch_playwright(proxy: str) -> None:
-    """Inject ``proxy={"server": ...}`` into Playwright launches that don't
-    already specify one."""
+def _patch_playwright(proxy: str | None, mode: str = 'inherit') -> None:
+    """仅修改隔离探测 worker；同步/异步 Playwright 使用同一代理选择。"""
     try:
-        from playwright.async_api import BrowserType
+        from playwright.async_api import BrowserType as AsyncBrowserType
+        from playwright.sync_api import BrowserType as SyncBrowserType
     except Exception:
         return
 
     def _wrap(orig):
-        async def wrapper(self, *args, **kwargs):
-            if not kwargs.get("proxy"):
-                kwargs["proxy"] = {"server": proxy, "bypass": playwright_bypass_value()}
+        def options(kwargs):
+            if mode == 'direct':
+                kwargs.pop('proxy', None)
+                kwargs['args'] = [arg for arg in (kwargs.get('args') or []) if not arg.startswith(('--proxy-server', '--proxy-pac-url'))] + ['--no-proxy-server']
+            elif mode == 'proxy' or not kwargs.get('proxy'):
+                kwargs['proxy'] = {'server': proxy, 'bypass': playwright_bypass_value() if mode == 'inherit' else 'localhost,127.0.0.1,::1'}
+            return kwargs
+        @functools.wraps(orig)
+        async def async_wrapper(self, *args, **kwargs):
+            kwargs = options(kwargs)
             return await orig(self, *args, **kwargs)
+        @functools.wraps(orig)
+        def sync_wrapper(self, *args, **kwargs):
+            return orig(self, *args, **options(kwargs))
+        wrapper = async_wrapper if inspect.iscoroutinefunction(orig) else sync_wrapper
         wrapper._sf_proxy_patched = True
         return wrapper
 
     patched = False
-    for meth in ("launch", "launch_persistent_context"):
-        orig = getattr(BrowserType, meth, None)
-        if orig is None or getattr(orig, "_sf_proxy_patched", False):
-            continue
-        setattr(BrowserType, meth, _wrap(orig))
-        patched = True
+    for browser_type in (AsyncBrowserType, SyncBrowserType):
+        for meth in ("launch", "launch_persistent_context"):
+            orig = getattr(browser_type, meth, None)
+            if orig is None or getattr(orig, "_sf_proxy_patched", False):
+                continue
+            setattr(browser_type, meth, _wrap(orig))
+            patched = True
     if patched:
         logger.info("executor proxy: Playwright launches now default to the env proxy")

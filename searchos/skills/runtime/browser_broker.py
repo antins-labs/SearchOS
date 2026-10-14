@@ -75,7 +75,7 @@ class XSearchBrowser:
 
 
 @asynccontextmanager
-async def serve_search(adapter):
+async def serve_search(adapter, *, proxy_mode: str = 'inherit'):
     """令牌仅对本次命令有效；不开放 CDP、任意导航、代码执行或凭据读取。"""
     from aiohttp import web
     token = secrets.token_urlsafe(32)
@@ -102,7 +102,7 @@ async def serve_search(adapter):
                 result = await asyncio.wait_for(adapter.search(query.strip(), limit, mode), timeout=55)
                 return web.json_response(result)
             except AuthRequired:
-                revoke(); start_login()
+                revoke(); start_login(proxy_mode=proxy_mode)
                 return web.json_response({'error': 'auth_required', 'records': [],
                     'message': '请在本机 X 登录窗口完成登录后重试。'}, status=401)
             except Exception:
@@ -122,11 +122,11 @@ async def serve_search(adapter):
 
 
 @asynccontextmanager
-async def browser_bridge(profile: str):
-    state = require_state(profile)
+async def browser_bridge(profile: str, *, proxy_mode: str = 'inherit'):
+    state = require_state(profile, proxy_mode=proxy_mode)
     from playwright.async_api import async_playwright
     async with async_playwright() as p:
-        browser = await p.chromium.launch(**browser_options(headless=True))
+        browser = await p.chromium.launch(**browser_options(headless=True, proxy_mode=proxy_mode))
         try:
             context = await browser.new_context(storage_state=state, service_workers='block')
             async def route(request_route):
@@ -136,7 +136,7 @@ async def browser_bridge(profile: str):
                 else:
                     await request_route.abort()
             await context.route('**/*', route)
-            async with serve_search(XSearchBrowser(context)) as env:
+            async with serve_search(XSearchBrowser(context), proxy_mode=proxy_mode) as env:
                 yield env
         finally:
             await browser.close()

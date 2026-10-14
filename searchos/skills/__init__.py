@@ -32,10 +32,12 @@ async def generate_skills(signal: SkillSignal, *, library_path: str | Path | Non
     results = []
     for index, request in enumerate(requests):
         await emit({'stage': 'pipeline', 'index': index})
+        async def on_draft(path):
+            await emit({'stage': 'pipeline', 'index': index, 'draft_path': str(path)})
         result = await run_pipeline(request, library_path=library_path, model=builder_model,
                                     model_name=model_name, subtask_runner=subtask_runner,
                                     subtask=request.subtask if signal.kind == 'trace' else None,
-                                    judge_model=judge_model, trial_root=trial_root)
+                                    judge_model=judge_model, trial_root=trial_root, on_draft=on_draft)
         results.append(result)
         await emit({'stage': 'result', 'index': index, 'result': result.to_report()})
     return results

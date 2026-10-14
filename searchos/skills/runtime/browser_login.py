@@ -45,6 +45,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', required=True)
     parser.add_argument('--profile', choices=['x'], required=True)
+    parser.add_argument('--proxy-mode', choices=['inherit', 'direct', 'proxy'], default='inherit')
     args = parser.parse_args()
     from searchos.config.settings import settings
     settings.browser_auth_dir = args.root
@@ -59,7 +60,7 @@ def main():
         try:
             from playwright.sync_api import sync_playwright
             with sync_playwright() as p:
-                browser = p.chromium.launch(**browser_options(headless=False))
+                browser = p.chromium.launch(**browser_options(headless=False, proxy_mode=args.proxy_mode))
                 try:
                     context = browser.new_context()
                     page = context.new_page()
