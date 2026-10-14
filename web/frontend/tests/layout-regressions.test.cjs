@@ -43,3 +43,18 @@ test("tool detail keeps parameters and output as equal shrinkable columns", () =
   assert.equal((html.match(/min-w-0/g) || []).length >= 3, true);
   assert.equal((html.match(/break-all/g) || []).length, 2);
 });
+
+test("待处理追问显示引导和删除操作，空队列不占空间", () => {
+  const React = require("react");
+  const { renderToStaticMarkup } = require("react-dom/server");
+  const component = transpile("../src/components/shell/PendingFollowUps.tsx", { require }).default;
+  const queue = { pending: [], working: new Set(), guide() {}, remove() {} };
+  assert.equal(renderToStaticMarkup(React.createElement(component, { queue, running: true })), "");
+  queue.pending = [{ id: "m1", text: "查询相关论文", mode: "after_tool", status: "queued" }];
+  const html = renderToStaticMarkup(React.createElement(component, { queue, running: true }));
+  assert.match(html, /查询相关论文/);
+  assert.match(html, /立即引导当前运行/);
+  assert.match(html, /删除待处理追问/);
+  assert.equal((html.match(/<button/g) || []).length, 2);
+  assert.doesNotMatch(html, /<select/);
+});

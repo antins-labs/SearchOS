@@ -18,7 +18,7 @@ from typing import Any
 from langchain_core.tools import tool
 
 from searchos.agents.runtime import _ctx, _pop_granularity_hints, _scheduler
-from searchos.harness.steering import wait_for_steering
+from searchos.harness.steering import steering_pending as has_steering, wait_for_steering
 from searchos.skills.catalog.registry import SKILL_BLACKLIST
 from searchos.util.coerce import coerce_str_list as _coerce_str_list
 from searchos.agents.orchestrator.lifecycle import (
@@ -185,7 +185,7 @@ async def check_agents(timeout: float = 0.0) -> str:
     steer_queue = _ctx.steer_queue
 
     def steering_pending() -> bool:
-        return steer_queue is not None and not steer_queue.empty()
+        return has_steering(steer_queue, immediate_only=True)
     # Entry backfill: fill any free slots (up to max_parallel_agents) with
     # ready Frontier tasks BEFORE blocking on the wait. Previously this tick
     # ran only when the pool was empty, so tasks enqueued while other agents
@@ -211,7 +211,8 @@ async def check_agents(timeout: float = 0.0) -> str:
 
     # Wake on user input without cancelling workers or consuming the message.
     # The harness injects it after this tool's matching ToolMessage is recorded.
-    wake = asyncio.create_task(wait_for_steering(steer_queue)) if steer_queue is not None else None
+    wake = (asyncio.create_task(wait_for_steering(steer_queue, immediate_only=True))
+            if steer_queue is not None else None)
     try:
         if not steering_pending():
             await asyncio.wait(

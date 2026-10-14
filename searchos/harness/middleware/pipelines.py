@@ -381,6 +381,7 @@ def orchestrator_pipeline(
     on_exhausted=None,
     trajectory_logger=None,
     conversation_logger=None,
+    steer_queue=None,
     **graph_options,
 ):
     budget = budget or BudgetState(max_queries=0, max_iterations=settings.orch_max_iterations)
@@ -404,6 +405,10 @@ def orchestrator_pipeline(
         ),
         ToolResultLimitMiddleware(SEARCH_RESULT_LIMITS),
     ]
+    if steer_queue is not None:
+        from searchos.harness.middleware.context.steering_middleware import SteeringMiddleware
+
+        middleware.insert(0, SteeringMiddleware(steer_queue, trajectory_logger=trajectory_logger))
     if settings.enable_socm_projection:
         middleware.append(
             SOCMContextMiddleware(

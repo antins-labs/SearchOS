@@ -24,6 +24,8 @@ import RunOverridesPopover from "@/components/settings/RunOverridesPopover";
 import LocalSourceControl from "@/components/local/LocalSourceControl";
 import Select from "@/components/ui/Select";
 import type { LocalLibraryController } from "@/hooks/useLocalLibrary";
+import type { LiveFollowUpController } from "@/hooks/useLiveFollowUps";
+import PendingFollowUps from "./PendingFollowUps";
 import type { SourceSelection } from "@/lib/types";
 import {
   parseDelimitedTable,
@@ -60,8 +62,7 @@ export interface SubmitOpts {
 
 interface Props {
   onSubmit: (query: string, opts: SubmitOpts) => void;
-  /** When set, submitting while `running` steers the live run instead of being ignored. */
-  onSteer?: (text: string) => void;
+  liveFollowUps?: LiveFollowUpController;
   /** When set, a stop button interrupts the live run while `running`. */
   onStop?: () => void;
   stopping?: boolean;
@@ -192,7 +193,7 @@ const draftAttrs = (draft: TableDraft, index: number) => [
 
 export default function Composer({
   onSubmit,
-  onSteer,
+  liveFollowUps,
   onStop,
   stopping = false,
   running = false,
@@ -355,17 +356,16 @@ export default function Composer({
     ref.current?.focus();
   };
 
-  const submit = () => {
+  const submit = async () => {
     const body = text.trim();
     if (!body || body.startsWith("/")) return;
     if (running) {
-      // Mid-run: steer the live orchestrator rather than queue a new search.
-      if (!onSteer) return;
-      onSteer(body);
+      if (!liveFollowUps || liveFollowUps.working.has("send")) return;
+      if (!await liveFollowUps.enqueue(body)) return;
       setSourceOpen(false);
       setShowSchema(false);
       setShowOverrides(false);
-      setText("");
+      setText((current) => current.trim() === body ? "" : current);
       return;
     }
     if (hasDraftTables && !schemaValidation.valid) {
@@ -626,6 +626,7 @@ export default function Composer({
   return (
     <div className="relative w-full">
       <LocalSourceControl controller={localLibrary} open={sourceOpen} onOpenChange={changeSourceOpen} />
+      {liveFollowUps && <PendingFollowUps queue={liveFollowUps} running={running} />}
       <form
         onSubmit={(e) => { e.preventDefault(); submit(); }}
         className={`surface flex items-end gap-2 transition-shadow focus-within:border-line-strong ${
@@ -699,8 +700,8 @@ export default function Composer({
           spellCheck={false}
           placeholder={
             running
-              ? onSteer
-                ? "Searching… press Enter to steer the live run"
+              ? liveFollowUps
+                ? "输入追问，回车排队"
                 : "Searching… type your next question"
               : placeholder ?? sourcePlaceholder
           }
@@ -728,14 +729,16 @@ export default function Composer({
         )}
         <button
           type="submit"
-          disabled={!text.trim() || (running && !onSteer) || (localLibrary.mode === "local" && !localLibrary.selection)}
-          aria-label={running && onSteer ? "Steer the live run" : "Send"}
-          title={running && onSteer ? "Steer the live run" : undefined}
+          disabled={!text.trim() || (running && (!liveFollowUps || liveFollowUps.working.has("send"))) || (localLibrary.mode === "local" && !localLibrary.selection)}
+          aria-label={running && liveFollowUps ? "提交，但不中断模型运行" : "Send"}
+          title={running && liveFollowUps ? "提交，但不中断模型运行" : undefined}
           className={`mb-0.5 shrink-0 rounded-xl bg-accent text-white transition-opacity hover:opacity-90 disabled:opacity-25 ${
             hero ? "p-2.5" : "p-2"
           }`}
         >
-          <ArrowUp size={hero ? 18 : 16} />
+          {running && liveFollowUps?.working.has("send")
+            ? <Loader2 className="animate-spin" size={hero ? 18 : 16} />
+            : <ArrowUp size={hero ? 18 : 16} />}
         </button>
       </form>
 

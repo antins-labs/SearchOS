@@ -26,7 +26,7 @@ from textual.widgets import Input, OptionList, RichLog, Static
 from textual.widgets.option_list import Option
 
 from searchos.config.effort import EFFORT_LEVELS
-from searchos.harness.steering import SteeringQueue
+from searchos.harness.steering import SteeringMessage, SteeringQueue
 from searchos.harness.telemetry.conversation_context import build_preamble
 from searchos.tui.config_modal import ConfigModal, build_model_menu, build_root_menu
 from searchos.tui.dashboard import (
@@ -83,6 +83,7 @@ _COMMAND_SPECS = (
     ("model",   (),          "_cmd_model",   "模型设置：角色绑定 / 模型卡 / Provider 连接", ""),
     ("search",  (),          "_cmd_search",  "搜索后端 serper/tavily/ragflow/auto", ""),
     ("config",  ("set",),    "_cmd_config",  "设置面板；/config <项> <值> 可快改", ""),
+    ("after",   (),          "_cmd_after",   "当前工具返回后加入追问：/after <内容>", ""),
     ("stop",    ("cancel",), "_cmd_stop",    "中断当前运行",                     "Esc"),
     ("help",    ("?",),      "_cmd_help",    "显示本帮助",                       ""),
     ("quit",    ("exit",),   "_cmd_quit",    "退出 SearchOS",                    "Ctrl-D"),
@@ -758,7 +759,7 @@ class SearchOSApp(App):
             if self._steer_queue is not None:
                 self._steer_queue.put_nowait(text)
             self._write_marker(f"❯ {text}", f"bold {ACCENT}")
-            self._note = "已插入追问"
+            self._note = "已发送立即引导"
             self._update_statusbar()
         else:
             self._start_run(text)
@@ -860,6 +861,18 @@ class SearchOSApp(App):
                 f"未知指令 /{name}（输入 /help 查看全部）", DANGER)
             return
         getattr(self, handler)(arg.strip())
+
+    def _cmd_after(self, arg: str) -> None:
+        if self._mode != "running" or self._steer_queue is None:
+            self._write_marker("没有正在运行的研究", DANGER)
+            return
+        if not arg:
+            self._write_marker("用法：/after <追问内容>", DANGER)
+            return
+        self._steer_queue.put_nowait(SteeringMessage(arg, mode="after_tool"))
+        self._write_marker(f"❯ {arg}", f"bold {ACCENT}")
+        self._note = "追问已排队，等待当前工具返回"
+        self._update_statusbar()
 
     def _cmd_new(self, arg: str) -> None:
         self.action_new_topic()

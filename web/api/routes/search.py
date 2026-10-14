@@ -774,29 +774,62 @@ async def stop_search(session_id: str):
 
 class SteerRequest(BaseModel):
     message: str
+    mode: Literal["immediate", "after_tool"] = "immediate"
 
 
 @router.post("/search/{session_id}/steer")
 async def steer_search(session_id: str, req: SteerRequest):
     """Inject a live follow-up into a running search (TUI mid-run parity).
 
-    Enqueueing wakes check_agents. The orchestrator injects the follow-up at
-    the completed tool boundary and invokes its model; sub-agents keep running.
+    Immediate input wakes check_agents or replaces unfinished generation.
+    Deferred input waits for the current tools; sub-agents keep running.
     """
     message = req.message.strip()
     if not message:
         raise HTTPException(422, "Empty steer message")
+    queue = _live_steering_queue(session_id, require_running=True)
+    from searchos.harness.steering import SteeringMessage
+
+    item = SteeringMessage(message, mode=req.mode)
+    queue.put_nowait(item)
+    return {"status": "queued", "message_id": item.id, "mode": item.mode,
+            "queue": queue.snapshot()}
+
+
+def _live_steering_queue(session_id: str, *, require_running: bool = False):
+    from searchos.harness.steering import SteeringQueue
+
     session_id = session_directory(WORKSPACE_ROOT, session_id).name
     session = sessions.get(session_id)
-    if not session:
+    if session is None:
         raise HTTPException(404, f"Session {session_id} not found")
-    if session["status"] != "running":
-        raise HTTPException(409, f"Session {session_id} is not running")
+    if require_running and session["status"] != "running":
+        raise HTTPException(409, "研究已结束，无法修改待处理追问")
     queue = session.get("steer_queue")
-    if queue is None:
+    if not isinstance(queue, SteeringQueue):
         raise HTTPException(409, "Session does not accept live follow-ups")
-    queue.put_nowait(message)
-    return {"status": "queued"}
+    return queue
+
+
+@router.get("/search/{session_id}/steer")
+async def get_steering_queue(session_id: str):
+    return _live_steering_queue(session_id).snapshot()
+
+
+@router.post("/search/{session_id}/steer/{message_id}/promote")
+async def promote_steering_message(session_id: str, message_id: str):
+    queue = _live_steering_queue(session_id, require_running=True)
+    if not queue.promote(message_id):
+        raise HTTPException(409, "追问已加入运行或已删除")
+    return queue.snapshot()
+
+
+@router.delete("/search/{session_id}/steer/{message_id}")
+async def remove_steering_message(session_id: str, message_id: str):
+    queue = _live_steering_queue(session_id, require_running=True)
+    if not queue.remove(message_id):
+        raise HTTPException(409, "追问已加入运行或已删除")
+    return queue.snapshot()
 
 
 @router.get("/search/{session_id}")

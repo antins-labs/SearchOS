@@ -146,6 +146,18 @@ async def test_follow_up_triggers_llm_before_subagent_returns(tmp_path, monkeypa
         assert len(injected) == 1
         tool_result = next(msg for msg in calls[1] if isinstance(msg, ToolMessage))
         assert json.loads(str(tool_result.content))["remaining"] == 1
+        from searchos.harness.telemetry.conversation import read_conversation
+        from searchos.harness.telemetry.conversation_context import conversation_turns
+
+        path = Path(result.workspace_path)
+        saved = read_conversation(path / "conversations/snapshots/orchestrator.json")["messages"]
+        steers = [m for m in saved if m.get("metadata", {}).get("steer_id")]
+        assert [m["metadata"]["steer_text"] for m in steers] == (
+            [message, next_message] if delivery == "repeated" else [message]
+        )
+        assert conversation_turns(path)[0]["steers"] == [
+            m["metadata"]["steer_text"] for m in steers
+        ]
     finally:
         if not run.done():
             run.cancel()
@@ -237,3 +249,56 @@ async def test_timed_out_or_cancelled_wait_keeps_workers_and_next_wake_usable(
         await asyncio.gather(
             worker, *([check] if check is not None else []), return_exceptions=True,
         )
+
+
+@pytest.mark.asyncio
+async def test_immediate_follow_up_replaces_inflight_generation(tmp_path, monkeypatch):
+    """追问在模型等待期间到达，旧计划不能先执行一轮。"""
+    entered, cancelled = asyncio.Event(), asyncio.Event()
+    calls = []
+    inbox = SteeringQueue()
+
+    class Model(BaseChatModel):
+        @property
+        def _llm_type(self):
+            return "steering-generation"
+
+        def bind_tools(self, tools, **kwargs):
+            return self
+
+        def _generate(self, messages, **kwargs):
+            raise AssertionError("Expected async model invocation")
+
+        async def _agenerate(self, messages, **kwargs):
+            calls.append(messages)
+            if len(calls) == 1:
+                entered.set()
+                try:
+                    await asyncio.Event().wait()
+                except asyncio.CancelledError:
+                    cancelled.set()
+                    raise
+            assert sum("改用中文回答" in str(m.content) for m in messages) == 1
+            assert any(m.content == "解释 RSI" for m in messages)
+            return ChatResult(generations=[ChatGeneration(message=AIMessage(content="中文回答"))])
+
+    for name in ("enable_skills", "enable_writer_agent", "enable_failure_memory"):
+        monkeypatch.setattr(settings, name, False)
+    model = Model()
+    monkeypatch.setattr("searchos.config.models.get_model_for", lambda role: model)
+    session = SearchSession(workspace_root=str(tmp_path), max_time_s=0,
+                            skill_library_path=str(tmp_path / "skills"), skip_synthesis=True)
+    state = SearchState(intent="解释 RSI", research_mode="findings")
+    state.frontier.add(FrontierTask(id="prior", kind="search", question="Prior research",
+                                 status=FrontierTaskStatus.COMPLETED))
+    run = asyncio.create_task(session.run("解释 RSI", initial_state=state, steer_queue=inbox))
+    try:
+        await asyncio.wait_for(entered.wait(), 3)
+        inbox.put_nowait("改用中文回答")
+        await asyncio.wait_for(cancelled.wait(), 1)
+        result = await asyncio.wait_for(asyncio.shield(run), 3)
+        assert not result.execution_error
+        assert len(calls) == 2
+    finally:
+        run.cancel()
+        await asyncio.gather(run, return_exceptions=True)

@@ -11,6 +11,7 @@ import ResultExportMenu from "@/components/coverage/ResultExportMenu";
 import type { Turn } from "@/lib/conversation";
 import type { CoverageCell, RepairCellTarget } from "@/lib/types";
 import type { LocalLibraryController } from "@/hooks/useLocalLibrary";
+import type { LiveFollowUpController } from "@/hooks/useLiveFollowUps";
 import { localCitationLabels } from "@/lib/localCitations";
 import { declaredCoverageTables } from "@/lib/coverageTables";
 
@@ -20,7 +21,7 @@ interface Props {
   reconnecting?: boolean;
   stopping?: boolean;
   onSubmit: (q: string, opts: SubmitOpts) => void;
-  onSteer?: (text: string) => void;
+  liveFollowUps?: LiveFollowUpController;
   onStop?: () => void;
   onRerun: (query: string) => void;
   onRepair: (turn: Turn, cells: RepairCellTarget[]) => void;
@@ -31,7 +32,7 @@ interface Props {
   onOpenLocalSource?: (refId: string) => void;
 }
 
-export default function Conversation({ turns, running, reconnecting = false, stopping = false, onSubmit, onSteer, onStop, onRerun, onRepair, onOpenDrawer, registerTurnRef, focusRequest = 0, localLibrary, onOpenLocalSource }: Props) {
+export default function Conversation({ turns, running, reconnecting = false, stopping = false, onSubmit, liveFollowUps, onStop, onRerun, onRepair, onOpenDrawer, registerTurnRef, focusRequest = 0, localLibrary, onOpenLocalSource }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const scrollContentRef = useRef<HTMLDivElement>(null);
@@ -111,7 +112,7 @@ export default function Conversation({ turns, running, reconnecting = false, sto
 
       <div className="bg-paper">
         <div className="mx-auto max-w-[760px] px-3 py-3 sm:px-5 min-[1180px]:px-6 min-[1180px]:py-4">
-          <Composer onSubmit={onSubmit} localLibrary={localLibrary} onSteer={onSteer} onStop={onStop} running={running} stopping={stopping} focusRequest={composerFocusRequest + focusRequest} variant="bar" />
+          <Composer onSubmit={onSubmit} localLibrary={localLibrary} liveFollowUps={liveFollowUps} onStop={onStop} running={running} stopping={stopping} focusRequest={composerFocusRequest + focusRequest} variant="bar" />
         </div>
       </div>
     </div>

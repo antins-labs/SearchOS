@@ -288,7 +288,12 @@ def langchain_msg_to_conversation_msgs(msg: Any) -> list[ConversationMessage]:
     content = getattr(msg, "content", "")
 
     if msg_type == "human":
-        results.append(ConversationMessage(role="user", content=content))
+        extras = getattr(msg, "additional_kwargs", {}) or {}
+        metadata = {
+            key: extras[f"sf_{key}"]
+            for key in ("steer_id", "steer_mode", "steer_text") if f"sf_{key}" in extras
+        }
+        results.append(ConversationMessage(role="user", content=content, metadata=metadata))
     elif msg_type == "ai":
         reasoning = ""
         extras = getattr(msg, "additional_kwargs", None) or {}

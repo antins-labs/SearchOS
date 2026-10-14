@@ -48,3 +48,11 @@ def test_disabled_explore_reuses_existing_schema_without_fixed_first_call():
     assert "Explore is disabled" in prompt
     assert "Reuse and\nextend existing tables" in prompt
     assert "very first tool call must be" not in prompt
+
+
+def test_live_follow_ups_avoid_repeated_acknowledgments():
+    for mode in ("web", "hybrid"):
+        prompt = build_orchestrator_prompt("agents", "skills", source_mode=mode)
+        assert "Acknowledge a changed requirement at most once" in prompt
+        assert "Tool calls may have empty text content" in prompt
+        assert "default wait" in prompt

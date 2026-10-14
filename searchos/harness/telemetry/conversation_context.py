@@ -110,8 +110,10 @@ def conversation_turns(workspace: str | Path) -> list[dict[str, Any]]:
             if not text or text.startswith((_HARNESS_PREFIX, "[回答来源检查]")):
                 continue
             if text.startswith(_STEER_PREFIX):
-                body = text.split("\n", 1)[1] if "\n" in text else ""
-                body = body.split("\n\n请在当前进展", 1)[0].strip()
+                body = (msg.get("metadata") or {}).get("steer_text")
+                if body is None:
+                    body = text.split("\n", 1)[1] if "\n" in text else ""
+                    body = body.split("\n\n请在当前进展", 1)[0].strip()
                 if body:
                     steers.append(body)
                 continue

@@ -665,3 +665,25 @@ export interface WSEvent {
   type: string;
   [key: string]: unknown;
 }
+
+export type SteeringMode = "immediate" | "after_tool";
+
+export interface LiveFollowUp {
+  id: string;
+  text: string;
+  mode: SteeringMode;
+  status: "queued" | "delivered" | "cancelled";
+}
+
+export interface SteeringSnapshot {
+  revision: number;
+  messages: LiveFollowUp[];
+}
+
+export interface SteeringSubmission {
+  status: "queued";
+  // Older running API processes acknowledge submission without queue metadata.
+  message_id?: string;
+  mode?: SteeringMode;
+  queue?: SteeringSnapshot;
+}

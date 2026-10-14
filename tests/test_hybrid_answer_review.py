@@ -393,3 +393,31 @@ def test_legacy_review_nudge_does_not_create_an_extra_history_turn(tmp_path):
         {"role": "assistant", "content": "最终回答"},
     ]}), encoding="utf-8")
     assert conversation_turns(tmp_path) == [{"query": "调研论文", "answer": "最终回答", "steers": []}]
+
+
+@pytest.mark.asyncio
+async def test_forced_finalization_preserves_follow_ups_through_fallback():
+    from searchos.harness.session import _finalize_stopped_research
+
+    state = SearchState(intent="解释概念", research_mode="findings")
+    outputs, received = {}, []
+    workspace = SimpleNamespace(load_state=lambda: state,
+                                write_output=lambda name, text: outputs.update({name: text}))
+
+    class Model:
+        async def ainvoke(self, messages):
+            payload = json.loads(messages[-1].content)
+            received.append(payload)
+            assert payload["question"] == "解释概念"
+            assert payload["user_follow_ups"] == ["补充论文", "用中文列出来源"]
+            if len(received) == 1:
+                raise RuntimeError("primary unavailable")
+            return AIMessage(content="尚无已核实的论文来源。")
+
+    await _finalize_stopped_research(
+        workspace=workspace, state=state, query=state.intent, orchestrator_model=Model(),
+        fallback_model=Model(), stop_reason="budget_exhausted",
+        follow_ups=["补充论文", "用中文列出来源"],
+    )
+    assert len(received) == 2
+    assert json.loads(outputs["result.json"])["query"] == state.intent

@@ -288,3 +288,47 @@ test('技能查询携带关键词、分类和分页参数', async () => {
   });
   assert.equal((await api.querySkillLibrary({ q: 'RSS 搜索', category: 'access', page: 2, page_size: 12 })).total, 0);
 });
+
+test('运行中追问保留投递时机，默认立即引导', async () => {
+  const calls = [];
+  const { api } = loadApi(async (url, init) => {
+    assert.equal(url, 'http://localhost:8000/api/search/active/steer');
+    calls.push(JSON.parse(init.body));
+    return new Response('{"status":"queued"}');
+  });
+  await api.steerSearch('active', '查询论文');
+  await api.steerSearch('active', '补充来源', 'after_tool');
+  assert.deepEqual(calls, [
+    { message: '查询论文', mode: 'immediate' },
+    { message: '补充来源', mode: 'after_tool' },
+  ]);
+});
+
+test('待处理追问按消息 ID 提升和删除，返回队列回执', async () => {
+  const calls = [];
+  const snapshot = { revision: 3, messages: [{ id: 'message/id', text: '论文', mode: 'immediate', status: 'queued' }] };
+  const { api } = loadApi(async (url, init) => {
+    calls.push({ url, method: init.method || 'GET' });
+    return new Response(JSON.stringify(snapshot));
+  });
+  assert.equal((await api.getSteeringQueue('active')).revision, 3);
+  assert.equal((await api.promoteSteeringMessage('active', 'message/id')).messages[0].id, 'message/id');
+  assert.equal((await api.removeSteeringMessage('active', 'message/id')).revision, 3);
+  assert.deepEqual(calls, [
+    { url: 'http://localhost:8000/api/search/active/steer', method: 'GET' },
+    { url: 'http://localhost:8000/api/search/active/steer/message%2Fid/promote', method: 'POST' },
+    { url: 'http://localhost:8000/api/search/active/steer/message%2Fid', method: 'DELETE' },
+  ]);
+});
+
+test('队列查询与变更拒绝不完整回执，避免错误数据进入 React 状态', async () => {
+  const malformed = [null, {}, { revision: 0 }, { revision: 1, messages: null },
+    { revision: 1, messages: [null] }, { revision: -1, messages: [] },
+    { revision: 2, messages: [{ id: 'm', text: '论文', mode: 'unknown', status: 'queued' }] }];
+  for (const payload of malformed) {
+    const { api } = loadApi(async () => new Response(JSON.stringify(payload)));
+    await assert.rejects(api.getSteeringQueue('active'), /响应不兼容/);
+    await assert.rejects(api.promoteSteeringMessage('active', 'm'), /响应不兼容/);
+    await assert.rejects(api.removeSteeringMessage('active', 'm'), /响应不兼容/);
+  }
+});

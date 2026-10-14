@@ -2,6 +2,9 @@
 
 import type {
   AdvancedView,
+  SteeringMode,
+  SteeringSnapshot,
+  SteeringSubmission,
   BrowserDiagnostic,
   EffortLevel,
   EffortView,
@@ -128,12 +131,48 @@ export async function stopSearch(sessionId: string): Promise<void> {
   return request(`/api/search/${sessionId}/stop`, { method: "POST" }, { noContent: true, errorPrefix: "Stop failed" });
 }
 
-export async function steerSearch(sessionId: string, message: string): Promise<void> {
+export async function steerSearch(sessionId: string, message: string, mode: SteeringMode = "immediate"): Promise<SteeringSubmission> {
   return request(`/api/search/${sessionId}/steer`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message }),
-  }, { noContent: true, errorPrefix: "Steer failed" });
+    body: JSON.stringify({ message, mode }),
+  }, { errorPrefix: "追问发送失败" });
+}
+
+export function isSteeringSnapshot(value: unknown): value is SteeringSnapshot {
+  if (!value || typeof value !== "object") return false;
+  const snapshot = value as Partial<SteeringSnapshot>;
+  return Number.isSafeInteger(snapshot.revision) && (snapshot.revision ?? -1) >= 0
+    && Array.isArray(snapshot.messages) && snapshot.messages.every((message) => (
+      message && typeof message.id === "string" && typeof message.text === "string"
+      && ["immediate", "after_tool"].includes(message.mode)
+      && ["queued", "delivered", "cancelled"].includes(message.status)
+    ));
+}
+
+function requireSteeringSnapshot(value: unknown): SteeringSnapshot {
+  if (!isSteeringSnapshot(value)) {
+    throw new Error("追问队列响应不兼容，请重启 SearchOS API 后重试");
+  }
+  return value;
+}
+
+export async function getSteeringQueue(sessionId: string): Promise<SteeringSnapshot> {
+  return requireSteeringSnapshot(await request(`/api/search/${sessionId}/steer`, { cache: "no-store" }, {
+    errorPrefix: "无法读取追问队列（旧版后端需重启 SearchOS API）",
+  }));
+}
+
+export async function promoteSteeringMessage(sessionId: string, messageId: string): Promise<SteeringSnapshot> {
+  return requireSteeringSnapshot(await request(`/api/search/${sessionId}/steer/${encodeURIComponent(messageId)}/promote`, {
+    method: "POST",
+  }));
+}
+
+export async function removeSteeringMessage(sessionId: string, messageId: string): Promise<SteeringSnapshot> {
+  return requireSteeringSnapshot(await request(`/api/search/${sessionId}/steer/${encodeURIComponent(messageId)}`, {
+    method: "DELETE",
+  }));
 }
 
 export async function getSearchResult(sessionId: string): Promise<SearchResult> {

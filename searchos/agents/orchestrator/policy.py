@@ -55,10 +55,12 @@ class DispatchPolicy:
         self._count += 1
         content = (
             "[AUTOMATED HARNESS — Frontier queue empty]\n"
-            f"Only {size} sub-agent(s) running ({', '.join(agents[:6])}); "
+            f"{size} sub-agent(s) running ({', '.join(agents[:6])}); "
             f"max_parallel_agents={self.capacity} and the Frontier OPEN queue is empty. "
-            "Inspect the SOCM gaps and enqueue independent follow-up work in the same turn "
-            "as check_agents. Skip gaps that depend on running tasks."
+            "Enqueue work only for a concrete user requirement not already covered by "
+            "evidence or running tasks. Free capacity is not a reason to expand scope. "
+            "If all useful work is in flight, wait with check_agents; do not reread "
+            "unchanged tables or repeat the user's request."
         )
         request = inject_context(request, content, "pool_nudge")
         return await handler(request)

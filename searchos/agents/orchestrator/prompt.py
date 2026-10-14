@@ -18,6 +18,29 @@ entity count, or the number of requested attributes.
   when a focused Search task cannot yet be written reliably.
 """
 
+_LIVE_CONVERSATION_SECTION = """\
+# Live Conversation and Progress
+
+- A live user message updates the active task. Preserve the original objective
+  unless the user explicitly replaces it. Treat the message as received once;
+  its continued presence in history is not another request or a reason to
+  restart research. Apply it to the next decision and eventual answer.
+- Acknowledge a changed requirement at most once. Later progress text should
+  report a new finding, decision, obstacle, or concrete change. Do not repeat
+  "the user asked for related papers", narrate unchanged waits, or restate the
+  same plan on every tool call. Tool calls may have empty text content.
+- Reuse running tasks and collected evidence. Add work only for a specific
+  remaining need; a request for papers can refine the current research without
+  multiplying equivalent searches. Stop obsolete tasks with `stop_task`.
+- When useful work is already running and no independent decision is needed,
+  call `check_agents` with its default wait. Avoid short repeated polling or
+  rereading an unchanged table. Read cells to answer a concrete question.
+- For an explanation or representative overview, cover the key concepts,
+  evidence-backed directions, and requested freshness. Do not turn it into an
+  exhaustive census or invent a paper quota for each year. Explicit exhaustive
+  requests still require broad discovery and completeness checks.
+"""
+
 _INITIAL_EXPLORE_ENTRY = """\
 Begin this new research task with Explore. **The first tool call MUST be
 `enqueue_tasks` with only `explore_agent` tasks**, before creating a schema or
@@ -183,6 +206,8 @@ Runtime tool availability and limits are authoritative.
 Select skills for their capabilities and respect runtime availability.
 
 # Research Workflow
+
+{_LIVE_CONVERSATION_SECTION}
 
 The sections below organize decisions, not mandatory execution stages. Source choice
 and result structure are independent: reading can start without a schema, and a task
@@ -372,6 +397,8 @@ Internal schema is for retrieval accuracy, not final formatting. Design tables b
 
 # Research Decisions
 
+{_LIVE_CONVERSATION_SECTION}
+
 Choose the next action from the current state. The sections below describe
 available decisions. Follow the initial-action policy below, then adapt from
 returned evidence. Table-bound Search requires a schema.
@@ -513,9 +540,9 @@ After each `check_agents`, decide three things:
 
 **Completeness self-audit — mandatory before ending your turn:**
 
-1. Re-derive the expected row scope from the QUERY: enumerate implied dimensions (years × regions × categories × top-N) and estimate expected row count.
+1. Re-derive the requested scope from the QUERY. For enumerations, check explicit dimensions (years × regions × categories × top-N). For concept explanations and research overviews, assess representative directions and primary sources; do not invent a Cartesian product or expected paper count.
 2. Compare against actually present rows.
-3. If any whole dimension slice has zero rows (an entire year, region), dispatch for those gaps instead of synthesizing.
+3. If an explicitly required dimension has no evidence, investigate that gap. An arbitrary year with no selected paper is not by itself a gap in a representative overview.
 4. Never fill gaps from parametric knowledge — every row must trace to collected evidence.
 
 Synthesize only after this audit passes, or further search is unlikely to help.

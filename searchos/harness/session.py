@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import queue as _queue
 import time
 from collections.abc import Callable
 from contextlib import aclosing
@@ -19,6 +18,7 @@ from langchain_core.language_models import BaseChatModel
 from searchos.config.run_config import EffectiveRunConfig, activate_run_config
 from searchos.config.settings import settings
 from searchos.harness.answer_stream import AnswerStreamEmitter
+from searchos.harness.steering import SteerQueue
 from searchos.skills.catalog.registry import SkillRegistry
 from searchos.socm import SearchState, WorkspaceManager
 
@@ -120,28 +120,6 @@ def _is_safe_steer_boundary(event: dict) -> bool:
         if getattr(message, "type", None) == "tool":
             pending.discard(message.tool_call_id)
     return not pending
-
-
-def _drain_steering(steer_queue) -> str | None:
-    if steer_queue is None:
-        return None
-    drained = []
-    while not steer_queue.empty():
-        try:
-            drained.append(steer_queue.get_nowait())
-        except (asyncio.QueueEmpty, _queue.Empty):
-            break
-    return "\n".join(drained) if drained else None
-
-
-def _steer_nudge(text: str) -> str:
-    return (
-        "[用户追问 — 实时插入]\n"
-        f"{text}\n\n"
-        "请在当前进展的基础上响应该追问：可以调整计划、补充或重排任务，或直接作答。"
-        "此前已分派的子代理仍在后台运行，无需重复分派相同的工作。"
-        "如果用户要求结束研究，请用 stop_task 取消不再需要的任务，再基于已有证据回答。"
-    )
 
 
 async def wait_for_all_evolutions(timeout: float | None = None) -> None:
@@ -301,7 +279,7 @@ class SearchSession:
         initial_state: SearchState | None = None,
         context_preamble: str | None = None,
         on_event: "Callable[[dict], None] | None" = None,
-        steer_queue: "asyncio.Queue[str] | _queue.Queue[str] | None" = None,
+        steer_queue: SteerQueue | None = None,
         access_only: "set[str] | None" = None,
         access_deny: "set[str] | None" = None,
         strategy_deny: "set[str] | None" = None,
@@ -321,10 +299,10 @@ class SearchSession:
         logging/metadata.
 
         ``steer_queue`` (optional): a queue the caller pushes live user
-        follow-ups onto while the run is in flight. At safe step boundaries the
-        orchestrator loop drains it and re-enters its thread with the message
-        injected. Pending messages wake check_agents immediately without
-        killing in-flight sub-agents; stop_task remains the model's decision.
+        follow-ups onto while the run is in flight. Immediate input replaces
+        unfinished model generation or wakes check_agents; after_tool input
+        waits for the current tool batch. Middleware commits each message once
+        within the same graph. Neither mode cancels running sub-agents.
 
         ``access_only`` (optional): when set, the orchestrator's access-skill
         catalog is restricted to exactly these skill names, overriding the
@@ -653,7 +631,11 @@ class SearchSession:
             conversation_logger=conv_logger,
             backend=orch_backend,
             name="orchestrator",
+            steer_queue=steer_queue,
         )
+        from searchos.harness.middleware.context.steering_middleware import SteeringMiddleware
+
+        steering = next((m for m in graph.middleware if isinstance(m, SteeringMiddleware)), None)
 
         if targeted_repair_mode:
             from searchos.agents.runtime import _scheduler
@@ -729,7 +711,6 @@ class SearchSession:
             # Same thread_id on every astream call → each resume continues
             # the checkpointed conversation instead of starting over.
             while True:
-                injected_steer: str | None = None
                 # Close the previous stream and flush its checkpoint before
                 # re-entering; otherwise the next call can lose ToolMessages.
                 async with aclosing(graph.astream(
@@ -821,34 +802,6 @@ class SearchSession:
                                 and _is_safe_steer_boundary(event)):
                             finalization_reason = orch_control.reason or "harness_stopped"
                             break
-
-                        # Live steering: after all tool calls have results, drain any
-                        # queued user follow-up and break to re-enter the thread
-                        # with it. Sub-agents in the task pool keep running.
-                        if (
-                            steer_queue is not None
-                            and not steer_queue.empty()
-                            and _is_safe_steer_boundary(event)
-                        ):
-                            injected_steer = _drain_steering(steer_queue)
-                            if injected_steer is not None:
-                                traj_logger._append_raw({
-                                    "type": "harness",
-                                    "kind": "steer_injected",
-                                    "text": injected_steer[:300],
-                                })
-                                break
-
-                if injected_steer is not None:
-                    # Re-enter the same thread_id with the follow-up as a new
-                    # user message; the checkpoint from the broken step carries
-                    # the full prior context.
-                    input_payload = {
-                        "messages": [
-                            {"role": "user", "content": _steer_nudge(injected_steer)},
-                        ],
-                    }
-                    continue
 
                 reason = _premature_end_reason(workspace, orch_control)
                 if orch_control.stopped:
@@ -1036,6 +989,8 @@ class SearchSession:
                             stop_reason=finalization_reason or "harness_stopped",
                             answer_stream=answer_stream, trajectory_logger=traj_logger,
                             conversation_logger=conv_logger,
+                            follow_ups=steering.delivered if steering else (),
+                            steering=steering,
                         )
                     else:
                         committed_final_answer = _write_findings_answer(
@@ -1321,11 +1276,22 @@ def _export_eval_table(
 async def _finalize_stopped_research(*, workspace, state, query, orchestrator_model,
                                      fallback_model=None, stop_reason,
                                      answer_stream=None, trajectory_logger=None,
-                                     conversation_logger=None) -> str:
+                                     conversation_logger=None, follow_ups=(), steering=None) -> str:
     """子任务回收后由 Orchestrator 生成终止轮，Synthesis 仅作降级。"""
     from langchain_core.messages import AIMessage
 
     from searchos.harness.report.synthesis import finalize_research
+
+    if steering is not None and conversation_logger is not None:
+        from searchos.harness.telemetry.conversation import langchain_msg_to_conversation_msgs
+
+        # The research stream is closed. Record late input here while the
+        # tool-free finalization graph owns the same inbox.
+        def record_follow_up(message):
+            for entry in langchain_msg_to_conversation_msgs(message):
+                conversation_logger.log(entry)
+
+        steering.on_delivery = record_follow_up
 
     draft = ""
     execution_error = ""
@@ -1335,6 +1301,8 @@ async def _finalize_stopped_research(*, workspace, state, query, orchestrator_mo
         draft = await finalize_research(
             state=state, query=query, model=orchestrator_model,
             stop_reason=stop_reason,
+            follow_ups=follow_ups,
+            steering=steering,
             max_chars=settings.research_finalize_max_chars,
             timeout_s=settings.research_finalize_timeout_s,
         )
@@ -1352,6 +1320,8 @@ async def _finalize_stopped_research(*, workspace, state, query, orchestrator_mo
                 draft = await finalize_research(
                     state=state, query=query, model=fallback_model,
                     stop_reason=stop_reason,
+                    follow_ups=follow_ups,
+                    steering=steering,
                     max_chars=settings.research_finalize_max_chars,
                     timeout_s=settings.research_finalize_timeout_s,
                 )

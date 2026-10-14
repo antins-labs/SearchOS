@@ -5,7 +5,8 @@ import { Menu } from "lucide-react";
 
 import { useSearch } from "@/hooks/useSearch";
 import { useLocalLibrary } from "@/hooks/useLocalLibrary";
-import { branchHistoryTurn, getWorkspaceFiles, listHistory, loadHistory, updateHistoryAssets, deleteHistory, resolveEvidence, steerSearch, stopSearch, type HistoryAssetPatch, type HistoryItem, type HistoryTurn } from "@/lib/api";
+import { useLiveFollowUps } from "@/hooks/useLiveFollowUps";
+import { branchHistoryTurn, getWorkspaceFiles, listHistory, loadHistory, updateHistoryAssets, deleteHistory, resolveEvidence, stopSearch, type HistoryAssetPatch, type HistoryItem, type HistoryTurn } from "@/lib/api";
 import { deriveAnswer, foldWorkers } from "@/lib/derive";
 import type { FileNode, RepairCellTarget, SearchState, WSEvent } from "@/lib/types";
 import {
@@ -68,6 +69,8 @@ export default function Home() {
   const [fileRetrySeq, setFileRetrySeq] = useState(0);
   const sessionActive = session.status === "running" || session.status === "reconnecting";
   const activityPreferences = useActivityPreferences();
+  const liveFollowUps = useLiveFollowUps(session.sessionId, activeTurnId, sessionActive, notify);
+  const { delivered: deliveredFollowUps, hasSnapshot: hasFollowUpSnapshot } = liveFollowUps;
 
   const closeMobileRail = useCallback(() => {
     setMobileRailOpen(false);
@@ -150,6 +153,7 @@ export default function Home() {
           status,
           events: session.events,
           workers: session.workers,
+          followUps: hasFollowUpSnapshot ? deliveredFollowUps.map((m) => m.text) : t.followUps,
           searchState,
           // Prefer the durable result, including an intentional empty answer.
           // Fall back to trajectory-derived text only when no result exists.
@@ -175,7 +179,7 @@ export default function Home() {
         };
       }),
     );
-  }, [session, activeTurnId]);
+  }, [session, activeTurnId, deliveredFollowUps, hasFollowUpSnapshot]);
 
   // When a run finishes, the new workspace appears on disk — refresh history.
   useEffect(() => {
@@ -384,37 +388,6 @@ export default function Home() {
       throw error;
     }
   }, [notify, sessionActive]);
-
-  // Live follow-up: inject into the running orchestrator (sub-agents keep
-  // running) instead of queueing a new search — same as the TUI mid-run path.
-  const handleSteer = useCallback(
-    (text: string) => {
-      const sid = session.sessionId;
-      if (!sid || (session.status !== "running" && session.status !== "reconnecting")) {
-        notify("Run not ready yet — try again in a moment");
-        return;
-      }
-      const turnId = activeTurnId;
-      setTurns((prev) =>
-        prev.map((t) =>
-          t.id === turnId ? { ...t, followUps: [...(t.followUps ?? []), text] } : t,
-        ),
-      );
-      steerSearch(sid, text).catch((e) => {
-        // Roll the echo back and say why — a silent disappearance reads as
-        // "steering doesn't work".
-        notify(`Steer failed: ${e instanceof Error ? e.message : String(e)}`);
-        setTurns((prev) =>
-          prev.map((t) =>
-            t.id === turnId
-              ? { ...t, followUps: (t.followUps ?? []).filter((f) => f !== text) }
-              : t,
-          ),
-        );
-      });
-    },
-    [session.sessionId, session.status, activeTurnId, notify],
-  );
 
   // Interrupt the live run (TUI Esc parity). The backend cancels the engine
   // task; the WS then delivers the terminal event and the turn settles.
@@ -779,7 +752,7 @@ export default function Home() {
             reconnecting={session.status === "reconnecting"}
             stopping={stopPending}
             onSubmit={handleSubmit}
-            onSteer={handleSteer}
+            liveFollowUps={liveFollowUps}
             onStop={handleStop}
             onRerun={handleRerun}
             onRepair={handleRepair}
