@@ -20,6 +20,7 @@ knowledge_base
 searchos_skill_jobs/
 eval_workspace/
 test_workspace/
+/tmp/workspace_checks/
 baseline_output/
 eval_results/
 /eval/

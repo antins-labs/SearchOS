@@ -104,6 +104,9 @@ def test_real_execution_and_snapshot(dirs):
     record = dirs[2] / result['execution_id']
     assert (record / 'artifacts/result.txt').read_text() == 'saved'
     assert json.loads((record / 'record.json').read_text()) == result
+    assert not (record / 'result.json').exists()
+    assert (record / 'stdout.log').read_text().strip() == 'ok'
+    assert not (record / 'stderr.log').exists()
 
 
 def test_real_timeout(dirs):

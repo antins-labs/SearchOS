@@ -80,6 +80,37 @@ def test_replay_and_conflicting_call_id(context, monkeypatch):
     assert len(calls) == 1
 
 
+@pytest.mark.parametrize('legacy_component', [None, 'packages', 'bindings', 'calls', 'executions', 'work'])
+def test_workspace_layout_preserves_loaded_packages_and_receipts(context, monkeypatch, legacy_component):
+    root, package = context
+    # Older workspaces precreated an empty skills/ as well as skill_* folders.
+    (root / 'skills').mkdir()
+    if legacy_component:
+        (root / f'skill_{legacy_component}').mkdir()
+    calls = install_runner(monkeypatch)
+    loaded = se.load_package('sample-skill')
+    response, _ = asyncio.run(execute())
+    result = json.loads(response)
+    expected = lambda name: root / f'skill_{name}' if legacy_component else root / 'skills' / name
+    assert Path(loaded['directory']).parent == expected('packages')
+    assert Path(loaded['work_directory']).parent == expected('work')
+    assert (expected('executions') / result['execution_id'] / 'record.json').is_file()
+    assert list(expected('bindings').glob('*/*.json'))
+    assert list(expected('calls').glob('*/*.json'))
+    assert se.execution_started('call-1')
+    # Reopening uses the frozen package, existing work directory and saved receipt.
+    (package / 'run.py').write_text('raise RuntimeError("must not rerun")')
+    state._browser_var.set(state.BrowserState())
+    assert se.load_package('sample-skill')['directory'] == loaded['directory']
+    assert json.loads(asyncio.run(execute())[0])['replayed']
+    assert len(calls) == 1
+    assert 'diagnostic' in asyncio.run(tools.open.ainvoke({'id_or_url': result['page_url']}))
+    if legacy_component:
+        assert not list((root / 'skills').iterdir())
+    else:
+        assert not list(root.glob('skill_*'))
+
+
 def test_task_isolation_and_shared_saved_pages(context, monkeypatch):
     calls = install_runner(monkeypatch)
     se.load_package('sample-skill')
@@ -204,7 +235,7 @@ def test_registration_rejects_tampered_snapshot(context, monkeypatch):
     install_runner(monkeypatch)
     binding = se.load_package('sample-skill')
     result = json.loads(asyncio.run(execute())[0])
-    saved = context[0] / 'skill_executions' / result['execution_id']
+    saved = context[0] / 'skills/executions' / result['execution_id']
     record = json.loads((saved / 'record.json').read_text())
     (saved / 'artifacts/result.json').write_text('tampered')
     pages = register_execution_pages(record, binding, saved, 'task-a')
@@ -276,7 +307,7 @@ def test_stdout_page_classification(context, stdout, kind):
     from searchos.tools.simple_browser.execution_pages import register_execution_pages
     binding = se.load_package('sample-skill')
     result = {'execution_id': 'stdout-run', 'status': 'completed', 'stdout': stdout, 'stderr': 'warning', 'artifacts': []}
-    pages = register_execution_pages(result, binding, context[0] / 'skill_executions/stdout-run', 'task-a')
+    pages = register_execution_pages(result, binding, context[0] / 'skills/executions/stdout-run', 'task-a')
     assert pages['pages'][0]['kind'] == kind
     assert pages['pages'][1]['kind'] == 'diagnostic'
 
@@ -284,7 +315,7 @@ def test_stdout_page_classification(context, stdout, kind):
 def test_binary_output_is_reported_without_reader(context):
     from searchos.tools.simple_browser.execution_pages import register_execution_pages
     binding = se.load_package('sample-skill')
-    saved = context[0] / 'skill_executions/binary-run'
+    saved = context[0] / 'skills/executions/binary-run'
     (saved / 'artifacts').mkdir(parents=True)
     raw = b'\x00\xff'
     (saved / 'artifacts/result.bin').write_bytes(raw)

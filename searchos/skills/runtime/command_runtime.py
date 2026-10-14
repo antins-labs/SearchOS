@@ -195,7 +195,7 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
                       browser_env: dict | None = None) -> dict:
     """返回一次命令记录；取消时保存 cancelled 记录并重新抛出 CancelledError。
 
-    execution_dir/<execution_id>/result.json、stdout.log、stderr.log、artifacts/。
+    execution_dir/<execution_id>/record.json、非空日志及 artifacts/。
     任务调用方须串行使用同一 work_dir；运行目录与技能目录不得互相包含。
     工作目录配额采用轮询限制，不能替代文件系统硬配额。
     """
@@ -337,8 +337,11 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
             result['artifact_error'] = str(exc)
             if result['status'] == 'completed':
                 result['status'] = 'failed'
-        (record / 'result.json').write_text(json.dumps(result, ensure_ascii=False, indent=2))
         (record / 'record.json').write_text(json.dumps(result, ensure_ascii=False, indent=2))
+        for name in ('stdout', 'stderr'):
+            log = record / f'{name}.log'
+            if log.is_file() and log.stat().st_size == 0:
+                log.unlink()
     if cancelled:
         raise asyncio.CancelledError
     return result

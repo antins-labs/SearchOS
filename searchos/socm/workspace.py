@@ -2,9 +2,13 @@
 
 The file system is the persistent medium for all search state. Layout:
   workspace/<session_id>/
-    search_state.json   coverage_map.json   plan.md
-    evidence/  blackboard/  intermediate/  skills/  agent_logs/  output/
-    pages/<page_id>.md + <page_id>.meta.json   trajectory.jsonl
+    search_state.json   plan.md   trajectory.jsonl
+    output/   pages/   conversations/   turn_snapshots/
+    skills/{packages,bindings,calls,executions,work}/
+    extraction_pending/<owner>/completed.json + pending/failed records
+
+Directories are created on first write. Optional evidence, intermediate and
+agent log files remain available when their corresponding features write them.
 
 ``atomic_update_state`` is the single SOCM write entry point (file lock).
 """
@@ -77,16 +81,8 @@ class WorkspaceManager:
     # ---- Lifecycle ----
 
     def create(self) -> Path:
-        """Create the workspace directory tree. Idempotent. ``evidence/`` is
-        created lazily (findings go straight into search_state.json)."""
-        for sub in [
-            settings.blackboard_dir,
-            settings.intermediate_dir,
-            settings.agent_logs_dir,
-            settings.output_dir,
-            "skills",
-        ]:
-            (self._path / sub).mkdir(parents=True, exist_ok=True)
+        """创建会话根目录；各功能首次写入时再创建自己的目录。"""
+        self._path.mkdir(parents=True, exist_ok=True)
         logger.info("Workspace created: %s", self._path)
         return self._path
 
@@ -266,9 +262,7 @@ class WorkspaceManager:
 
     @property
     def pages_dir(self) -> Path:
-        d = self._path / "pages"
-        d.mkdir(parents=True, exist_ok=True)
-        return d
+        return self._path / "pages"
 
     def write_page(
         self,
@@ -285,6 +279,7 @@ class WorkspaceManager:
         the browser feeds html2text-rendered markdown."""
         body_path = self.pages_dir / f"{page_id}.md"
         meta_path = self.pages_dir / f"{page_id}.meta.json"
+        body_path.parent.mkdir(parents=True, exist_ok=True)
         ts = datetime.now().isoformat()
 
         body_path.write_text(content, encoding="utf-8")
@@ -350,11 +345,13 @@ class WorkspaceManager:
 
     def write_intermediate(self, filename: str, content: str) -> Path:
         p = self._path / settings.intermediate_dir / filename
+        p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(content, encoding="utf-8")
         return p
 
     def write_output(self, filename: str, content: str) -> Path:
         p = self._path / settings.output_dir / filename
+        p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(content, encoding="utf-8")
         return p
 

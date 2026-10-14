@@ -14,6 +14,7 @@ from uuid import uuid4
 
 from langchain_core.tools import InjectedToolCallId, tool
 
+from searchos.skills.runtime.paths import skill_workspace_dir
 from searchos.tools.search_state import (
     _current_agent_var, _current_task_id_var, _source_scope_var, _workspace_var,
 )
@@ -77,10 +78,10 @@ def _binding_path(root: Path, key: str, name: str) -> Path:
     canonical = canonical_skill_name(name)
     names = dict.fromkeys([name, canonical, *[old for old, new in legacy_names().items() if new == canonical]])
     for candidate in names:
-        path = root / "skill_bindings" / key / f"{hashlib.sha256(candidate.encode()).hexdigest()}.json"
+        path = skill_workspace_dir(root, "bindings") / key / f"{hashlib.sha256(candidate.encode()).hexdigest()}.json"
         if path.is_file():
             return path
-    return root / "skill_bindings" / key / f"{hashlib.sha256(canonical.encode()).hexdigest()}.json"
+    return skill_workspace_dir(root, "bindings") / key / f"{hashlib.sha256(canonical.encode()).hexdigest()}.json"
 
 
 def load_package(name: str) -> dict[str, Any]:
@@ -97,7 +98,7 @@ def load_package(name: str) -> dict[str, Any]:
     else:
         source = Path(skill.file_path).resolve().parent
         fingerprint = package_fingerprint(source)
-        destination = root / "skill_packages" / fingerprint
+        destination = skill_workspace_dir(root, "packages") / fingerprint
         if not destination.exists():
             try:
                 snapshot_package(source, destination)
@@ -120,7 +121,7 @@ def load_package(name: str) -> dict[str, Any]:
         "description": frozen.meta.description, "compatibility": frozen.meta.compatibility,
         "availability": skill.meta.availability.value,
         "resources": resources[:200], "resources_truncated": len(resources) > 200,
-        "work_directory": str(root / "skill_work" / key),
+        "work_directory": str(skill_workspace_dir(root, "work") / key),
         "execution": "legacy-executor" if legacy else "cli",
     }
     if legacy:
@@ -151,14 +152,14 @@ def execution_started(tool_call_id: str) -> bool:
     """供取消预算结算读取宿主保存的实际启动信号；不可读时保守返回 False。"""
     try:
         root, key = _context()
-        receipt = root / "skill_calls" / key / (hashlib.sha256(tool_call_id.encode()).hexdigest() + ".json")
+        receipt = skill_workspace_dir(root, "calls") / key / (hashlib.sha256(tool_call_id.encode()).hexdigest() + ".json")
         call = json.loads(receipt.read_text())
         if isinstance(call.get("result"), dict):
             return call["result"].get("started") is True
         identifier = call.get("execution_id", "")
         if not re.fullmatch(r"[a-zA-Z0-9_-]{1,100}", identifier):
             return False
-        record = json.loads((root / "skill_executions" / identifier / "record.json").read_text())
+        record = json.loads((skill_workspace_dir(root, "executions") / identifier / "record.json").read_text())
         return record.get("started") is True
     except (ValueError, OSError, TypeError, AttributeError):
         return False
@@ -261,14 +262,14 @@ async def exec_skill(
             raise ValueError("argv must contain nonempty command arguments without NUL")
         if len(_json(argv)) + len(stdin) > 128_000:
             raise ValueError("command input exceeds 128000 characters")
-        receipt = root / "skill_calls" / key / (hashlib.sha256(tool_call_id.encode()).hexdigest() + ".json")
+        receipt = skill_workspace_dir(root, "calls") / key / (hashlib.sha256(tool_call_id.encode()).hexdigest() + ".json")
         request_hash = hashlib.sha256(_json({"skill": skill, "package_hash": binding["package_hash"],
                     "argv": argv, "stdin": stdin, "timeout": timeout}).encode()).hexdigest()
-        work = root / "skill_work" / key
+        work = skill_workspace_dir(root, "work") / key
         work.mkdir(parents=True, exist_ok=True)
         # Lock before reading/writing receipts: concurrent processes cannot both
         # accept the same call or overwrite each other's pending receipt.
-        lock = (root / "skill_work" / f".{key}.lock").open("a")
+        lock = (skill_workspace_dir(root, "work") / f".{key}.lock").open("a")
         try:
             fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
@@ -293,22 +294,22 @@ async def exec_skill(
             if argv[0] == "legacy-executor":
                 if stdin:
                     raise ValueError("legacy executor does not accept stdin")
-                result = await _legacy(Path(binding["directory"]), argv, root / "skill_executions", timeout, execution_id)
+                result = await _legacy(Path(binding["directory"]), argv, skill_workspace_dir(root, "executions"), timeout, execution_id)
             else:
                 from searchos.skills.runtime.command_runtime import run_command
                 result = await run_command(
                     Path(binding["directory"]), argv, work_dir=work,
-                    execution_dir=root / "skill_executions", stdin=stdin, timeout_s=timeout, network=True,
+                    execution_dir=skill_workspace_dir(root, "executions"), stdin=stdin, timeout_s=timeout, network=True,
                     execution_id=execution_id,
                 )
             if result.get("execution_id"):
-                _write_json(root / "skill_executions" / result["execution_id"] / "binding.json",
+                _write_json(skill_workspace_dir(root, "executions") / result["execution_id"] / "binding.json",
                             {**binding, "task_key": key})
             if result.get("execution_id"):
                 from searchos.tools.simple_browser.execution_pages import register_execution_pages
                 try:
                     result.update(register_execution_pages(result, binding,
-                        root / "skill_executions" / result["execution_id"], key))
+                        skill_workspace_dir(root, "executions") / result["execution_id"], key))
                 except (ValueError, OSError, TypeError) as exc:
                     # Execution already happened: preserve its status and budget.
                     result["page_error"] = str(exc)
@@ -320,7 +321,7 @@ async def exec_skill(
                 return _json(failure), {"execution": failure, "outcome": {"status": "blocked"}}
             raise
         except asyncio.CancelledError:
-            _write_json(root / "skill_executions" / execution_id / "binding.json",
+            _write_json(skill_workspace_dir(root, "executions") / execution_id / "binding.json",
                         {**binding, "task_key": key})
             _write_json(receipt, {"state": "cancelled", "request_hash": request_hash, "execution_id": execution_id,
                        "result": {"status": "cancelled", "execution_id": execution_id,
