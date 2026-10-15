@@ -20,7 +20,7 @@ from searchos.local.models import (
 _ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 _REVISION_RE = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_PREFIX_RE = re.compile(r"^[0-9a-f]{24}$")
-_REFERENCE_KEY_RE = re.compile(r"^s[1-9][0-9]*$")
+_REFERENCE_KEY_RE = re.compile(r"^(?:s[1-9][0-9]*|all)$")
 _LOCATORS = TypeAdapter(list[SourceLocator])
 
 
@@ -48,7 +48,7 @@ def normalize_locators(locators: list[SourceLocator]) -> list[SourceLocator]:
     for locator in locators:
         previous = output[-1] if output else None
         if isinstance(previous, LineRangeLocator) and isinstance(locator, LineRangeLocator):
-            if locator.start_line <= previous.end_line + 1:
+            if previous.start_line <= locator.start_line <= previous.end_line + 1:
                 output[-1] = LineRangeLocator(
                     start_line=previous.start_line,
                     end_line=max(previous.end_line, locator.end_line),
@@ -58,7 +58,7 @@ def normalize_locators(locators: list[SourceLocator]) -> list[SourceLocator]:
             if (
                 previous.bbox is None
                 and locator.bbox is None
-                and locator.page_start <= previous.page_end + 1
+                and previous.page_start <= locator.page_start <= previous.page_end + 1
             ):
                 output[-1] = PdfRegionLocator(
                     page_start=previous.page_start,
@@ -68,7 +68,7 @@ def normalize_locators(locators: list[SourceLocator]) -> list[SourceLocator]:
         if isinstance(previous, RecordRangeLocator) and isinstance(locator, RecordRangeLocator):
             if (
                 previous.columns == locator.columns
-                and locator.record_start <= previous.record_end + 1
+                and previous.record_start <= locator.record_start <= previous.record_end + 1
             ):
                 output[-1] = RecordRangeLocator(
                     record_start=previous.record_start,
@@ -115,7 +115,7 @@ def build_ref_id(
         raise ValueError("source_revision 必须是 SHA-256")
     if reference_key:
         if not _REFERENCE_KEY_RE.fullmatch(reference_key):
-            raise ValueError("reference_key 必须是 s 加正整数")
+            raise ValueError("reference_key 必须是 s 加正整数或 all")
         if locators:
             raise ValueError("短引用不能同时内嵌 locator")
         token = reference_key
@@ -196,7 +196,21 @@ def resolve_reference(
         return reference
     if not source_revision.startswith(reference.source_revision):
         raise ValueError("VERSION_MISMATCH：该短引用绑定的原文版本当前不可用")
-    locators = references.get(reference.reference_key)
+    if reference.reference_key == "all":
+        # Expand only declared sections. Gaps in the index stay gaps; this
+        # handle does not grant access to additional files or representations.
+        locators = normalize_locators([
+            locator
+            for key in sorted(
+                (key for key in references if re.fullmatch(r"s[1-9][0-9]*", key)),
+                key=lambda key: int(key[1:]),
+            )
+            for locator in references[key]
+        ])
+        if locators and len(encode_locator_token(locators)) > 16_384:
+            raise ValueError("整份文档的位置过多，请使用目录中的章节引用")
+    else:
+        locators = references.get(reference.reference_key)
     if not locators:
         raise ValueError("短引用在来源记录中不存在，请重新建立索引")
     return replace(

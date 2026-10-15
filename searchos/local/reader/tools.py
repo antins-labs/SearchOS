@@ -15,15 +15,6 @@ from urllib.parse import quote, unquote, urlsplit
 
 from langchain_core.tools import tool
 
-from searchos.local.models import (
-    ImageRegionLocator,
-    PdfRegionLocator,
-    SourceLocator,
-    compact_locator_labels,
-    locator_group_label,
-)
-from searchos.local.reader.references import LocalReference, parse_ref_id, resolve_reference
-from searchos.local.index.source_registry import SourceRecord, SourceRegistry
 from searchos.local.index.document_store import (
     DocumentMarkdownStore,
     StoredBlock,
@@ -33,7 +24,21 @@ from searchos.local.index.document_store import (
     slice_source_block,
     slice_source_lines,
 )
+from searchos.local.index.source_registry import SourceRecord, SourceRegistry
+from searchos.local.models import (
+    ImageRegionLocator,
+    PdfRegionLocator,
+    SourceLocator,
+    compact_locator_labels,
+    locator_group_label,
+)
 from searchos.local.parsers.vision import PdfiumPageRenderer
+from searchos.local.reader.references import (
+    LocalReference,
+    build_ref_id,
+    parse_ref_id,
+    resolve_reference,
+)
 
 _MARKDOWN_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 _SEGMENT_RE = re.compile(
@@ -250,6 +255,35 @@ def _read_catalog(path: Path, state: LocalBrowserState) -> str:
     raw = path.read_text(encoding="utf-8")
     rendered = _render_catalog_text(path, raw, state.root)
     relative = path.relative_to(state.root).as_posix()
+    if relative.startswith("documents/"):
+        registry = SourceRegistry(state.root)
+        if (registry.sources_dir / f"{path.stem}.md").is_file():
+            record = (state.selected_records or {}).get(path.stem) or registry.read(path.stem)
+            if record.references:
+                ref_id = build_ref_id(
+                    library_id=record.library_id,
+                    document_id=record.document_id,
+                    source_revision=record.source_revision,
+                    reference_key="all",
+                )
+                try:
+                    resolve_reference(
+                        parse_ref_id(ref_id), record.references,
+                        library_id=record.library_id, source_revision=record.source_revision,
+                    )
+                except ValueError:
+                    # Large locator sets must remain addressable by section;
+                    # do not advertise a handle whose canonical citation cannot round-trip.
+                    pass
+                else:
+                    rendered = (
+                        f'Indexed document text: ref_id="{ref_id}"\n'
+                        "Read short documents in one local_open(max_chars=20000) call. "
+                        "Longer documents return a Next offset; "
+                        "use section refs for focused questions. "
+                        "This covers indexed locations only; retain source coverage warnings.\n\n"
+                        + rendered
+                    )
     body = "\n".join(f"L{index}: {line}" for index, line in enumerate(rendered.splitlines()))
     return f"[LOCAL_CATALOG]\nCatalog: {relative}\n\n{body}".rstrip()
 
@@ -805,13 +839,14 @@ async def local_open(
     view: str = "text",
     representation_id: str | None = None,
 ) -> tuple[str | list[dict[str, str]], dict[str, object]]:
-    """Open a bounded character window from one local source segment.
+    """Open a bounded text window from a local section or indexed document.
 
     Args:
         ref_id: Compact versioned ``local://<document>/<source-ref>?v=...`` reference
-            returned by ``local_catalog`` or ``local_find``. Compatible legacy
+            returned by ``local_catalog`` or ``local_find``. The ``all`` source-ref
+            reads indexed sections together, useful for short documents. Compatible legacy
             references remain readable. Use ``local_catalog`` for index paths.
-        loc: Zero-based character offset within the referenced source segment.
+        loc: Zero-based character offset within the referenced section or document text.
         max_chars: Maximum characters to return, from 1 to 20,000.
         view: ``text`` returns a bounded transcript; ``original`` returns an
             inline source image when the locator is a PDF page or image frame.
