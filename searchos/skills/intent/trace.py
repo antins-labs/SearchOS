@@ -25,22 +25,15 @@ class _HostOpens:
 
 
 _TRIAGE_PROMPT = """\
-You triage a web-search run to decide which websites deserve a dedicated \
-"access skill" — a small extractor that pulls structured data from that \
-site's pages far more reliably than the generic page reader used here.
+You triage a web-search run to identify reusable source-access gaps that a dedicated access skill could address. Treat improved retrieval as a hypothesis to validate, not an established result.
 
-Below is every page the agent OPENED this run, grouped by host. For each \
-open you see the URL, a slice of what the generic reader extracted, and \
-how much evidence it produced ("evidence=0" means the reader got nothing \
-useful).
+Below is every page the agent OPENED this run, grouped by host. For each open you see the URL, a slice of what the generic reader extracted, and how much evidence was recorded. Zero evidence does not by itself establish that the source lacks useful content or that access failed; inspect the observed content and task requirements.
 
 Pick the hosts (at most {max_n}) that BOTH:
   1. were opened repeatedly OR extracted poorly (low/zero evidence), AND
-  2. clearly host structured, repeatable data (an API, infobox, table, \
-record page) where a purpose-built extractor would pay off.
+  2. clearly host structured, repeatable data (an API, infobox, table, record page) where a purpose-built extractor would pay off.
 
-Skip one-off pages, search-result/listing pages, and hosts where the \
-generic reader already worked well. If nothing qualifies, return [].
+Skip one-off pages and hosts without a reusable capability gap. A search or listing page can qualify when it exposes a repeatable retrieval operation needed by the task. If nothing qualifies, return [].
 
 ## Opens
 {opens_block}

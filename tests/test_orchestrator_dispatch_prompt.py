@@ -1,4 +1,7 @@
-from searchos.agents.orchestrator.prompt import build_orchestrator_prompt
+from searchos.agents.orchestrator.prompt import (
+    _ADAPTIVE_EXPLORE_ENTRY,
+    build_orchestrator_prompt,
+)
 
 
 def test_orchestrator_prompt_balances_recall_and_dispatch_granularity() -> None:
@@ -33,11 +36,11 @@ def test_orchestrator_prompt_uses_open_world_framing_without_eval_internals() ->
 
 def test_web_explore_is_optional_and_available_after_search():
     prompt = build_orchestrator_prompt("agents", "skills", source_mode="web")
+    prompt = " ".join(prompt.split())
     assert "Explore is optional" in prompt
-    assert "multi-attribute lookups" in prompt
     assert "New uncertainty during Search" in prompt
-    assert "enqueue Explore before\n  calling `check_agents` again" in prompt
-    assert "Keep\n  independent Search tasks running" in prompt
+    assert "enqueue Explore before calling `check_agents` again" in prompt
+    assert "Keep independent Search tasks running" in prompt
     assert "entities explicitly named by the user" in prompt
     assert "very first tool call must be" not in prompt
     assert "re-enqueue once" not in prompt
@@ -45,9 +48,20 @@ def test_web_explore_is_optional_and_available_after_search():
 
 def test_disabled_explore_reuses_existing_schema_without_fixed_first_call():
     prompt = build_orchestrator_prompt("agents", "skills", enable_explore=False)
+    prompt = " ".join(prompt.split())
     assert "Explore is disabled" in prompt
-    assert "Reuse and\nextend existing tables" in prompt
+    assert "Reuse and extend existing tables" in prompt
     assert "very first tool call must be" not in prompt
+
+
+def test_web_and_hybrid_share_adaptive_explore_policy():
+    for mode in ("web", "hybrid"):
+        prompt = build_orchestrator_prompt("agents", "skills", source_mode=mode)
+        assert _ADAPTIVE_EXPLORE_ENTRY in prompt
+        disabled = build_orchestrator_prompt(
+            "agents", "skills", source_mode=mode, enable_explore=False
+        )
+        assert _ADAPTIVE_EXPLORE_ENTRY not in disabled
 
 
 def test_live_follow_ups_avoid_repeated_acknowledgments():

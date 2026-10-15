@@ -163,11 +163,7 @@ class ModelCatalogClient:
         )
         prompt = f"""把文件归入一至三个语义明确的 subindex。
 
-优先复用已有 subindex；复用时原样返回其 subindex_id 和 title。确实没有合适分类时，
-返回空 subindex_id 和简短的新分类名称。分类依据只能使用文件名和文件 Recap。
-一个文件可同时属于多个主题；逐一检查已有主题，只选择 Recap 有实质内容支撑的关联，
-不要因已选一个主题就停止判断，也不要为凑数增加弱关联。
-即使信息不足或无法判断，也必须返回一个分类；此时使用空 subindex_id 和“未分类”。
+优先复用已有 subindex；复用时原样返回其 subindex_id 和 title。确实没有合适分类时，返回空 subindex_id 和简短的新分类名称。分类依据只能使用文件名和文件 Recap。一个文件可同时属于多个主题；逐一检查已有主题，只选择 Recap 有实质内容支撑的关联，不要因已选一个主题就停止判断，也不要为凑数增加弱关联。即使信息不足或无法判断，也必须返回一个分类；此时使用空 subindex_id 和“未分类”。
 
 已有 subindex：
 {existing_payload}
@@ -175,9 +171,7 @@ class ModelCatalogClient:
 文件：
 {document_payload}
 
-同时生成简短、可辨识的文件引用名 display_name，用于目录链接文字；可省略扩展名、
-编号等噪声，保留核心标题或机构和年份，不编造作者、版本或出处。
-返回格式：{{"display_name":"简短引用名","subindexes":[{{"subindex_id":"...","title":"..."}}]}}"""
+同时生成简短、可辨识的文件引用名 display_name，用于目录链接文字；可省略扩展名、编号等噪声，保留核心标题或机构和年份，不编造作者、版本或出处。返回格式：{{"display_name":"简短引用名","subindexes":[{{"subindex_id":"...","title":"..."}}]}}"""
         return await self._invoke_json(prompt)
 
     async def revise_subindex(
@@ -195,10 +189,7 @@ class ModelCatalogClient:
 当前名称：{json.dumps(title, ensure_ascii=False)}
 当前 Recap：{json.dumps(summary, ensure_ascii=False)}
 
-保持当前主题名称，不因同一文件属于其他主题而混合主题边界。
-Recap 只概括各文件与当前主题相关的内容，不逐项罗列，
-不补充文件 Recap 之外的事实。“未分类”是临时名称，只要文件 Recap 足以判断主题，
-就必须替换为语义名称。返回：{{"title":"...","summary":"..."}}
+保持当前主题名称，不因同一文件属于其他主题而混合主题边界。 Recap 只概括各文件与当前主题相关的内容，不逐项罗列，不补充文件 Recap 之外的事实。“未分类”是临时名称，只要文件 Recap 足以判断主题，就必须替换为语义名称。返回：{{"title":"...","summary":"..."}}
 
 {documents_payload}"""
         return await self._invoke_json(prompt)

@@ -19,9 +19,7 @@ End by emitting a natural-language assistant message with no tool call. The Orch
 
 # Skill
 
-You may call `list_skills(layer="strategy")` and `load_skill(name)` to read methodology for structured writing (section composition, comparison tables, citation style, etc.) and apply it.
-
-You do **not** invoke access skills — those belong to search agents. You do not search the web.
+When a writing method would help, call `list_skills(category="strategy", query="the current writing need")` and read a suitable candidate with `load_skill(skill_name=...)`. Apply its method using the available writing tools. Retrieval belongs to search agents; request missing evidence through the available feedback tools instead of searching the web or executing access skills.
 
 # Context discipline
 

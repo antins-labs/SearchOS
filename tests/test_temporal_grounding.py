@@ -46,6 +46,9 @@ def test_extractor_rejects_temporally_misaligned_values():
     )
 
     assert "Runtime as-of date" in prompt
+    assert "authoritative current date" in prompt
+    assert "unless the task specifies another reference date" in prompt
+    assert "A date later than your training cutoff does not by itself" in prompt
     assert "TEMPORAL FIT IS REQUIRED" in prompt
     assert "publication date is metadata" in prompt
     assert "future target, forecast, schedule" in prompt

@@ -75,6 +75,8 @@ _PROMPT_HEADER = """\
 You are a structured data extractor.
 ## Runtime as-of date
     {current_date}
+
+This date is supplied by the host runtime and is the authoritative current date. Resolve relative dates against it unless the task specifies another reference date. Assess temporal fit using the requested period and the source content; do not substitute a remembered current date or a model training cutoff. A date later than your training cutoff does not by itself make a source record a forecast, simulation, or invalid evidence.
 ## Overall research goal (defines what is IN SCOPE for the table)
     {global_task}
 ## Current sub-agent assignment (the slice being worked right now)
@@ -95,15 +97,9 @@ Each row is an object with ALL column names as keys:
       "_alignment_note": "<one sentence>",
       "_confidence": "high" | "medium" | "low",
       "_source_authority": "official" | "aggregator" | "news" | "blog" | "unclear"}}
-- ONE ROW = ONE PAGE. `_source_page` is the number in that page's "### Page N"
-  header, and `_source_excerpt` quotes THAT page only. When several pages state
-  values for the same primary key, emit one row object per page (same PK,
-  different `_source_page`) — never merge values from different pages into one row.
-- `_source_excerpt` is the factual warrant for the row: quote the page passage(s)
-  that state the non-null data values (join distant fragments with " … ", keep it
-  under ~400 chars). Copy characters exactly — no paraphrase, no reflow.
-- A data value you cannot point to inside `_source_excerpt` (or another verbatim
-  quote of this page) does not exist for this extraction → that cell is null.
+- ONE ROW = ONE PAGE. `_source_page` is the number in that page's "### Page N" header, and `_source_excerpt` quotes THAT page only. When several pages state values for the same primary key, emit one row object per page (same PK, different `_source_page`) — never merge values from different pages into one row.
+- `_source_excerpt` is the factual warrant for the row: quote the page passage(s) that state the non-null data values (join distant fragments with " … ", keep it under ~400 chars). Copy characters exactly — no paraphrase, no reflow.
+- A data value you cannot point to inside `_source_excerpt` (or another verbatim quote of this page) does not exist for this extraction → that cell is null.
 """
 
 _VALUE_RULES = """\
@@ -114,8 +110,8 @@ You are an extractor, not an analyst: a cell holds what a page STATES, or null.
 - TEMPORAL FIT IS REQUIRED: match the value's event/effective date or reporting period to the task and column description. The page publication date is metadata, not automatically the date of the fact.
 - For "current/latest/as of" columns, reject a value when the page does not establish that it applies at the requested cutoff. When several periods appear, extract only the matching one; never choose by visual order alone.
 - A future target, forecast, schedule, or announcement is not a completed current value. Extract it only when the requested column explicitly asks for plans/forecasts, preserving its future date and status.
-- THE PAGE IS THE ONLY SOURCE. A value you know from memory, world knowledge, a typical/likely figure, or another entity's row is FABRICATION even if it happens to be correct. A page that merely LISTS entities (an announcement, a ranking, an index) states NO attribute values — extracting prices/dates/figures from such a page is fabrication. Null is a correct, expected answer; a guessed value is a defect.
-- UNIFORMITY RED FLAG: if you notice the same value landing in the same column for many different entities (e.g. dozens of rows all "100元/人"), stop — real-world values are not that uniform. Re-check the page; keep the value ONLY for rows where the page states it.
+- THE PAGE IS THE ONLY SOURCE. A value you know from memory, world knowledge, a typical/likely figure, or another entity's row is FABRICATION even if it happens to be correct. An entity's presence in a list supports only the facts explicitly stated about it; extract attribute values only when the page actually provides them. Null is a correct, expected answer; a guessed value is a defect.
+- CHECK REPEATED VALUES: when the same value appears in several output rows, verify that the page supports it for each entity. A shared value can be valid, but repetition never justifies copying it into an unsupported cell.
 - NO ARITHMETIC, NO CONVERSION: copy numbers exactly as printed, original unit and wording included — the harness converts units deterministically after ingest. Never produce a value by combining or transforming others — no sums, differences, averages, rate math, unit rescaling, and no completing an identity (total = sum of parts) however certain it seems. Sources need not share scope, period, or rounding basis, so a derived number is fabricated evidence even when the arithmetic is right.
     ✗ a page states a TOTAL and one COMPONENT; the column asks for the other component → null, do not subtract.
     ✗ a page lists per-period figures; the column asks for the whole period → null unless the page itself prints that total.
@@ -141,9 +137,9 @@ Site boilerplate (copyright lines, registration/filing numbers, contact blocks) 
 - _alignment: "full" when the page directly states the values you emit; "partial" ONLY per B5. Null columns do not downgrade alignment.
 - _alignment_note: quote or paraphrase what the PAGE says — never assert provenance the page does not show (e.g. never write "based on the official listing" when the quoted page shows no such value).
 - _confidence: "high" ONLY when every non-null value appears verbatim inside `_source_excerpt`; "medium" when the page states it but you had to read it off a table/chart context; anything weaker → "low".
-- Do NOT return [] unless the pages genuinely contain nothing on-task.
+- Return [] when no row satisfies the current extraction mode and evidence rules. Never create a row or fill a cell merely to avoid an empty output.
 
-Return ONLY the JSON array, no prose, no markdown fences.\
+Return ONLY the JSON array, no prose, no markdown fences.
 """
 
 FILL_ROW_PROMPT = _PROMPT_HEADER + """\
