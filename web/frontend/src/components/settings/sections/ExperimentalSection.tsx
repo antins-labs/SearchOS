@@ -7,7 +7,7 @@ import NumberField from "@/components/settings/controls/NumberField";
 import Toggle from "@/components/settings/controls/Toggle";
 
 export default function ExperimentalSection() {
-  const { settings, status, mutate, uiPrefs } = useSettings();
+  const { settings, status, mutate, refresh, uiPrefs } = useSettings();
   const zh = uiPrefs.language === "zh";
 
   if (!settings) {
@@ -48,7 +48,7 @@ export default function ExperimentalSection() {
       call: () => putAdvanced({ use_layered_context: enabled }),
       merge: (s, view) => ({ ...s, advanced: view }),
       errorLabel: "Couldn't switch episode folding",
-    });
+    }).then((view) => { if (view) refresh(); });
 
   const setCoverageStallRounds = (rounds: number) =>
     mutate({
@@ -80,7 +80,7 @@ export default function ExperimentalSection() {
           </Row>
           <Row
             label={zh ? "折叠已完成的检索过程" : "Fold completed search episodes"}
-            hint={zh ? "保留工具输入和研究进度，移除已完成步骤的原始工具输出，以减少上下文用量。" : "Keep tool inputs and research progress while removing completed raw tool outputs from model context."}
+            hint={zh ? "控制默认网页检索组合的历史折叠；自定义 Middleware 组合以装配页的选择为准。" : "Control history folding in the default web search pipeline; custom middleware selections take precedence."}
           >
             <Toggle
               checked={advanced.use_layered_context}

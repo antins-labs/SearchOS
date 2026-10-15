@@ -23,6 +23,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator, field_validator
 
+from searchos.config.middleware import MiddlewareOverlay
+
 logger = logging.getLogger(__name__)
 
 EffortLevel = Literal["low", "medium", "high", "max"]
@@ -183,6 +185,7 @@ class WebSettings(BaseModel, extra="forbid"):
     models: ModelsOverlay = Field(default_factory=ModelsOverlay)
     run_defaults: RunDefaults = Field(default_factory=RunDefaults)
     advanced: AdvancedOverlay = Field(default_factory=AdvancedOverlay)
+    middleware: MiddlewareOverlay = Field(default_factory=MiddlewareOverlay)
 
 
 # Shipped out of the box so the Providers section is never empty: a Theta
@@ -459,6 +462,10 @@ def apply_to_runtime() -> None:
         settings.browser_disk_cache_dir = adv.browser_disk_cache_dir
     if adv.use_layered_context is not None:
         settings.use_layered_context = adv.use_layered_context
+    settings.middleware_pipelines = {
+        **settings.middleware_pipelines,
+        **{key: list(value) for key, value in store.middleware.pipelines.items()},
+    }
     if adv.https_proxy is not None:
         for var in ("HTTP_PROXY", "HTTPS_PROXY"):
             if adv.https_proxy:

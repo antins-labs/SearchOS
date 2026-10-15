@@ -362,6 +362,30 @@ export interface SettingsData {
   models: ModelsView;
   run_defaults: RunDefaultsView;
   advanced: AdvancedView;
+  middleware?: MiddlewareView;
+}
+
+export interface MiddlewareComponent {
+  id: string;
+  category: "context" | "extraction" | "sensor";
+  label: LocalizedCopy;
+  description: LocalizedCopy;
+  hooks: string[];
+  condition: LocalizedCopy | null;
+}
+
+export interface MiddlewarePipeline {
+  id: string;
+  label: LocalizedCopy;
+  available: string[];
+  selected: string[];
+  defaults: string[];
+  customized: boolean;
+}
+
+export interface MiddlewareView {
+  catalog: MiddlewareComponent[];
+  pipelines: MiddlewarePipeline[];
 }
 
 export interface ProviderPresetInfo {

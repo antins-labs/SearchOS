@@ -35,10 +35,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from searchos.config.model_purposes import RETIRED_MODEL_ROLES
+from searchos.config.middleware import validate_pipelines
 
 # Re-exported for backward compat — many call sites import these from here.
 from searchos.config.profiles import (  # noqa: F401
@@ -301,6 +302,8 @@ class Settings(BaseSettings):
     # state, extraction writes, scheduler, and explicit state tools remain
     # available so this isolates the context-projection contribution.
     enable_socm_projection: bool = True
+    middleware_pipelines: dict[str, list[str]] = Field(default_factory=dict)
+    _validate_middleware = field_validator("middleware_pipelines")(validate_pipelines)
     enable_explore: bool = True  # False → orchestrator skips explore_agent
     # False → create_schema skips replaying explore summaries into extraction.
     enable_explore_replay: bool = True

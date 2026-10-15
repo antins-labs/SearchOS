@@ -8,6 +8,7 @@ import { useSettings } from "@/components/settings/SettingsProvider";
 import SectionNav, { SECTIONS, type SectionId } from "@/components/settings/SectionNav";
 import BudgetSection from "@/components/settings/sections/BudgetSection";
 import SkillsSection from "@/components/settings/sections/SkillsSection";
+import MiddlewareSection from "@/components/settings/sections/MiddlewareSection";
 import ModelsSection from "@/components/settings/sections/ModelsSection";
 import SearchSection from "@/components/settings/sections/SearchSection";
 import ExperimentalSection from "@/components/settings/sections/ExperimentalSection";
@@ -19,6 +20,7 @@ const BODIES: Partial<Record<SectionId, React.ComponentType>> = {
   models: ModelsSection,
   search: SearchSection,
   skills: SkillsSection,
+  middleware: MiddlewareSection,
   budget: BudgetSection,
   experimental: ExperimentalSection,
   appearance: AppearanceSection,

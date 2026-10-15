@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, type KeyboardEvent } from "react";
-import { Blocks, Cpu, Gauge, Globe, Palette, SlidersHorizontal, Sparkles, type LucideIcon } from "lucide-react";
+import { Blocks, Cpu, Gauge, Globe, Layers, Palette, SlidersHorizontal, Sparkles, type LucideIcon } from "lucide-react";
 import { useSettings } from "@/components/settings/SettingsProvider";
 
 export interface SectionDef {
@@ -15,6 +15,7 @@ export const SECTIONS = [
   { id: "models", label: "Models", icon: Cpu },
   { id: "search", label: "Search & browse", icon: Globe },
   { id: "skills", label: "Skills", icon: Blocks },
+  { id: "middleware", label: "Middleware", icon: Layers },
   { id: "budget", label: "Budget & limits", icon: Gauge },
   { id: "experimental", label: "Research behavior", icon: SlidersHorizontal },
   { id: "appearance", label: "Appearance", icon: Palette },
@@ -53,7 +54,7 @@ export default function SectionNav({ active, onSelect, mode = "navigation" }: Pr
       {SECTIONS.map(({ id, label, icon: Icon }, index) => {
         const displayLabel = zh ? {
           setup: "快速配置", models: "模型", search: "联网与读取", skills: "技能",
-          budget: "预算与限制", experimental: "研究策略", appearance: "外观",
+          middleware: "Middleware 装配", budget: "预算与限制", experimental: "研究策略", appearance: "外观",
         }[id] : label;
         return (
           <button

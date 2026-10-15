@@ -193,10 +193,14 @@ def advanced_view() -> dict:
 
 
 def aggregate_view() -> dict:
+    from searchos.config.middleware import middleware_view
+    from searchos.config.settings import settings
+
     return {
         "effort": effort_view(),
         "skills": skills_view(),
         "models": models_view(),
         "run_defaults": run_defaults_view(),
         "advanced": advanced_view(),
+        "middleware": middleware_view(settings),
     }

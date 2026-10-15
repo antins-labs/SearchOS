@@ -10,6 +10,7 @@ import type {
   EffortView,
   FileNode,
   ModelsView,
+  MiddlewareView,
   LocalCitation,
   LocalDocument,
   LocalDocumentIndex,
@@ -603,6 +604,9 @@ export const putAdvanced = (patch: {
 
 export const resetSettings = () =>
   putJson<SettingsData>("/api/settings/reset", {}, "POST");
+
+export const putMiddleware = (pipeline: string, selected: string[] | null) =>
+  putJson<MiddlewareView>(`/api/settings/middleware/${encodeURIComponent(pipeline)}`, { selected });
 
 // Throws on failure (unlike getSettings): the provider switcher shows an
 // inline retry row and needs to distinguish errors from empty data.

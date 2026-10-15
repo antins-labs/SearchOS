@@ -210,7 +210,7 @@ def test_put_key_clear(client):
 def test_aggregate_shape_unchanged(client):
     c, _ = client
     d = c.get("/api/settings").json()
-    assert set(d) == {"effort", "skills", "models", "run_defaults", "advanced"}
+    assert set(d) == {"effort", "skills", "models", "run_defaults", "advanced", "middleware"}
     assert set(d["effort"]) == {"level", "knobs", "overrides", "levels"}
     assert set(d["models"]) >= {"active_provider_preset", "profiles", "roles",
                                 "role_overrides", "search", "browser_backend"}
@@ -501,3 +501,70 @@ def test_skill_toggle_accepts_pre_migration_name(client, monkeypatch):
     assert response.status_code == 200
     assert 'data-worldbank-org' in store.skills.access_deny
     assert 'data_worldbank_org' not in store.skills.access_deny
+
+
+def test_middleware_selection_persists_and_controls_pipeline(client, monkeypatch):
+    import json
+    from api import settings_store
+    from searchos.config.settings import reload_settings_in_place, settings
+    from searchos.harness.middleware import TaskContext, web_search_pipeline
+    from tests.middleware_utils import capture_pipeline
+
+    c, tmp_path = client
+    selected = ["DynamicTrimMiddleware", "BudgetMiddleware"]
+    response = c.put("/api/settings/middleware/web_search", json={"selected": selected})
+    assert response.status_code == 200, response.text
+    assert settings.middleware_pipelines["web_search"] == selected
+    saved = json.loads((tmp_path / "web_settings.json").read_text())
+    assert saved["middleware"]["pipelines"]["web_search"] == selected
+    graph = capture_pipeline(monkeypatch, web_search_pipeline, workspace=None, task=TaskContext("test"))
+    assert [type(item).__name__ for item in graph.middleware] == selected
+    reload_settings_in_place()
+    settings_store.load_and_apply()
+    assert settings.middleware_pipelines["web_search"] == selected
+
+
+def test_middleware_empty_and_reset_are_distinct(client):
+    from searchos.config.settings import settings
+
+    c, _ = client
+    response = c.put("/api/settings/middleware/writer", json={"selected": []})
+    assert response.status_code == 200
+    writer = next(item for item in response.json()["pipelines"] if item["id"] == "writer")
+    assert writer["customized"] and writer["selected"] == []
+    response = c.put("/api/settings/middleware/writer", json={"selected": None})
+    assert response.status_code == 200
+    assert "writer" not in settings.middleware_pipelines
+    writer = next(item for item in response.json()["pipelines"] if item["id"] == "writer")
+    assert not writer["customized"] and writer["selected"] == writer["defaults"]
+    assert writer["selected"]
+
+
+@pytest.mark.parametrize("pipeline,payload,status", [
+    ("unknown", {"selected": []}, 404),
+    ("writer", {"selected": ["WebEvidenceMiddleware"]}, 422),
+    ("web_search", {"selected": ["BudgetMiddleware", "BudgetMiddleware"]}, 422),
+    ("web_search", {"selected": ["unknown"]}, 422),
+    ("web_search", {}, 422),
+])
+def test_middleware_rejects_invalid_configuration_without_mutation(client, pipeline, payload, status):
+    c, tmp_path = client
+    before = c.get("/api/settings").json()["middleware"]
+    path = tmp_path / "web_settings.json"
+    disk_before = path.read_bytes() if path.exists() else None
+    response = c.put(f"/api/settings/middleware/{pipeline}", json=payload)
+    assert response.status_code == status
+    assert c.get("/api/settings").json()["middleware"] == before
+    assert (path.read_bytes() if path.exists() else None) == disk_before
+
+
+def test_middleware_override_survives_default_change_and_other_pipeline_reset(client):
+    c, _ = client
+    selected = ["SearchEpisodeMiddleware"]
+    c.put("/api/settings/middleware/web_search", json={"selected": selected})
+    c.put("/api/settings/middleware/writer", json={"selected": []})
+    c.put("/api/settings/advanced", json={"use_layered_context": False})
+    c.put("/api/settings/middleware/writer", json={"selected": None})
+    web = next(item for item in c.get("/api/settings").json()["middleware"]["pipelines"] if item["id"] == "web_search")
+    assert web["selected"] == selected
+    assert "SearchEpisodeMiddleware" not in web["defaults"]

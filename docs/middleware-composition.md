@@ -2,6 +2,16 @@
 
 Middleware 以完整功能为单位装载。图入口接收实例列表；默认 pipeline 提供常用组合。组件内部封装投影、抽取输入转换和状态记录等实现步骤，调用方只传业务对象和必要参数。
 
+## 网页装配
+
+在「设置 → Middleware 装配」中选择调度、网页检索、本地检索、探索或写作用途，勾选组件并用上下箭头调整顺序，然后保存。列表默认只显示名称、开关和顺序；点击名称后展开说明、类名、生命周期钩子和挂载条件。支持按名称或类别筛选。编号表示 wrapper 从外到内的顺序；before / after 钩子仍按各自生命周期执行。
+
+页面展示后续创建的 agent 的配置预览，已创建的 graph 保留原有实例。证据抽取依赖抽取模型，最终摘要还受任务的 `final_summary` 参数约束；实时追问依赖队列，上下文压缩依赖模型声明的上下文窗口。条件不满足的组件不会挂载。`graph.middleware` 仍是实际实例列表。
+
+自定义组合保存到 `web_settings.json` 的 `middleware.pipelines`，Web 与 CLI/TUI 共享读取路径。未自定义的用途跟随原有设置，包括 SOCM 投影、工具历史压缩和网页检索过程折叠；自定义列表优先于这些默认开关。空列表表示不装载业务 middleware；「恢复默认」移除该用途的网页覆盖，重新采用环境配置与默认组合。手工传入 `middleware=[...]` 的代码入口不受网页组合影响。
+
+`PUT /api/settings/middleware/{pipeline}` 接收 `{"selected": ["BudgetMiddleware", "DynamicTrimMiddleware"]}`；`selected: null` 恢复默认。接口拒绝未知组件、重复组件和不适用于该用途的组件，读取目录与组合使用 `GET /api/settings` 的 `middleware` 字段。
+
 ## 直接组合
 
 ```python

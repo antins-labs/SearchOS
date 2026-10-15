@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from searchos.config.run_config import current_run_config
+from searchos.config.middleware import selection
 from searchos.config.settings import settings
 from searchos.harness.middleware.context.dynamic_trim_middleware import DynamicTrimMiddleware
 from searchos.harness.middleware.context.search_episode_middleware import SearchEpisodeMiddleware
@@ -74,8 +75,17 @@ SEARCH_RESULT_LIMITS = dict.fromkeys(
 ) | {"explore_web": 48000}
 
 
-def _graph(model, tools, system_prompt, middleware, **graph_options):
+def _graph(model, tools, system_prompt, middleware, *, pipeline, **graph_options):
     from searchos.agents.runtime import create_search_agent_graph
+    from searchos.harness.middleware.context.compaction_context_middleware import CompactionContextMiddleware
+    from searchos.harness.middleware.context.utils.messages import model_input_limit
+
+    selected = selection(pipeline, settings)
+    if pipeline in settings.middleware_pipelines:
+        instances = {type(item).__name__: item for item in middleware}
+        if "CompactionContextMiddleware" in selected and model_input_limit(model):
+            instances["CompactionContextMiddleware"] = CompactionContextMiddleware(model)
+        middleware = [instances[name] for name in selected if name in instances]
 
     return create_search_agent_graph(
         model=model,
@@ -92,10 +102,10 @@ def _worker_defaults(
     budget,
     control,
     *,
+    pipeline,
     history,
     view="task",
     drain_tools=frozenset(),
-    compress_history=True,
     agent_graphs=None,
 ):
     middleware = [
@@ -110,7 +120,8 @@ def _worker_defaults(
     ]
     if not isinstance(history, DynamicTrimMiddleware):
         middleware.insert(0, history)
-    if settings.enable_socm_projection:
+    selected = selection(pipeline, settings)
+    if "SOCMContextMiddleware" in selected:
         middleware.append(
             SOCMContextMiddleware(
                 workspace,
@@ -121,7 +132,7 @@ def _worker_defaults(
                 heartbeat_turns=settings.socm_heartbeat_turns,
             )
         )
-    if compress_history and settings.compress_old_tool_results:
+    if "ToolHistoryMiddleware" in selected:
         middleware.append(ToolHistoryMiddleware())
     middleware.append(
         history
@@ -192,7 +203,7 @@ def web_search_pipeline(
             evidence_source=extraction,
             history_max_tokens=settings.layered_context_layer2_max_tokens,
         )
-        if settings.use_layered_context
+        if "SearchEpisodeMiddleware" in selection("web_search", settings)
         else DynamicTrimMiddleware(max_tokens_fraction=settings.dynamic_trim_fraction)
     )
     middleware = [
@@ -202,8 +213,8 @@ def web_search_pipeline(
             task,
             budget,
             control,
+            pipeline="web_search",
             history=history,
-            compress_history=True,
             agent_graphs=agent_graphs,
         ),
     ]
@@ -218,6 +229,7 @@ def web_search_pipeline(
         tools,
         system_prompt,
         middleware,
+        pipeline="web_search",
         control=control,
         workspace=workspace,
         trajectory_logger=trajectory_logger,
@@ -257,8 +269,8 @@ def local_search_pipeline(
             task,
             budget,
             control,
+            pipeline="local_search",
             history=DynamicTrimMiddleware(max_tokens_fraction=settings.dynamic_trim_fraction),
-            compress_history=False,
             agent_graphs=agent_graphs,
         ),
     ]
@@ -271,6 +283,7 @@ def local_search_pipeline(
         tools,
         system_prompt,
         middleware,
+        pipeline="local_search",
         control=control,
         workspace=workspace,
         trajectory_logger=trajectory_logger,
@@ -300,6 +313,7 @@ def explore_pipeline(
         task,
         budget,
         control,
+        pipeline="explore",
         history=DynamicTrimMiddleware(max_tokens_fraction=settings.dynamic_trim_fraction),
         agent_graphs=agent_graphs,
     )
@@ -317,6 +331,7 @@ def explore_pipeline(
         tools,
         system_prompt,
         middleware,
+        pipeline="explore",
         control=control,
         workspace=workspace,
         trajectory_logger=trajectory_logger,
@@ -348,6 +363,7 @@ def writer_pipeline(
         task,
         budget,
         control,
+        pipeline="writer",
         history=DynamicTrimMiddleware(max_tokens_fraction=settings.dynamic_trim_fraction),
         view="writing",
         drain_tools=WRITER_DRAIN_TOOLS,
@@ -358,6 +374,7 @@ def writer_pipeline(
         tools,
         system_prompt,
         middleware,
+        pipeline="writer",
         control=control,
         workspace=workspace,
         trajectory_logger=trajectory_logger,
@@ -410,7 +427,8 @@ def orchestrator_pipeline(
         from searchos.harness.middleware.context.steering_middleware import SteeringMiddleware
 
         middleware.insert(0, SteeringMiddleware(steer_queue, trajectory_logger=trajectory_logger))
-    if settings.enable_socm_projection:
+    selected = selection("orchestrator", settings)
+    if "SOCMContextMiddleware" in selected:
         middleware.append(
             SOCMContextMiddleware(
                 workspace,
@@ -432,7 +450,7 @@ def orchestrator_pipeline(
             cooldown_s=settings.pool_nudge_cooldown_s,
             max_reminders=settings.pool_nudge_max_count,
         )
-    if settings.compress_old_tool_results:
+    if "ToolHistoryMiddleware" in selected:
         middleware.append(ToolHistoryMiddleware())
     middleware.append(DynamicTrimMiddleware(max_tokens=settings.orch_trim_max_tokens))
     return _graph(
@@ -440,6 +458,7 @@ def orchestrator_pipeline(
         tools,
         system_prompt,
         middleware,
+        pipeline="orchestrator",
         control=control,
         workspace=workspace,
         trajectory_logger=trajectory_logger,

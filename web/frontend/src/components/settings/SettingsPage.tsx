@@ -10,6 +10,7 @@ import SectionNav, { SECTIONS, type SectionId } from "@/components/settings/Sect
 import BudgetSection from "@/components/settings/sections/BudgetSection";
 import ExperimentalSection from "@/components/settings/sections/ExperimentalSection";
 import SkillsSection from "@/components/settings/sections/SkillsSection";
+import MiddlewareSection from "@/components/settings/sections/MiddlewareSection";
 import ModelsSection from "@/components/settings/sections/ModelsSection";
 import SearchSection from "@/components/settings/sections/SearchSection";
 import AppearanceSection from "@/components/settings/sections/AppearanceSection";
@@ -65,6 +66,7 @@ export default function SettingsPage() {
           <ModelsSection />
           <SearchSection />
           <SkillsSection />
+          <MiddlewareSection />
           <BudgetSection />
           <ExperimentalSection />
           <AppearanceSection />

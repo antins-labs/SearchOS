@@ -76,11 +76,38 @@ class AdvancedUpdate(BaseModel, extra="forbid"):
     use_layered_context: bool | None = None
 
 
+class MiddlewareUpdate(BaseModel, extra="forbid"):
+    selected: list[str] | None
+
+
 # --- endpoints ---
 
 @router.get("")
 async def get_settings():
     return aggregate_view()
+
+
+@router.put("/middleware/{pipeline}")
+async def put_middleware(pipeline: str, req: MiddlewareUpdate):
+    from searchos.config.middleware import PIPELINES, middleware_view, validate_pipelines
+    from searchos.config.settings import settings
+
+    if pipeline not in PIPELINES:
+        raise HTTPException(404, f"Unknown pipeline: {pipeline}")
+    if req.selected is not None:
+        try:
+            validate_pipelines({pipeline: req.selected})
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+
+    def patch(s):
+        if req.selected is None:
+            s.middleware.pipelines.pop(pipeline, None)
+        else:
+            s.middleware.pipelines[pipeline] = list(req.selected)
+
+    await settings_store.update(patch, reload=req.selected is None)
+    return middleware_view(settings)
 
 
 @router.put("/effort")
