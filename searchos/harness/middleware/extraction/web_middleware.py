@@ -90,7 +90,7 @@ class WebEvidenceMiddleware(ObservationMiddleware):
                 content=content,
                 source_url=source_url,
                 page_id=page_source.get("page_id") or self._extract_page_id(content),
-                source_kind=EvidenceSourceKind.PAGE,
+                source_kind=(EvidenceSourceKind.SKILL if page_source.get("kind") == "skill_result" else EvidenceSourceKind.PAGE),
                 target_table=self.context.target_table,
                 task_id=self.context.task_id,
                 task_text=self.context.task_text,
@@ -133,7 +133,7 @@ class WebEvidenceMiddleware(ObservationMiddleware):
         if not isinstance(url, str) or not url.startswith(("http://", "https://", "skill://")):
             return {}
         page_id = payload.get("page_id")
-        return {"source_url": url, "page_id": page_id if isinstance(page_id, str) else ""}
+        return {"source_url": url, "page_id": page_id if isinstance(page_id, str) else "", "kind": payload.get("kind", "")}
 
     @staticmethod
     def _extract_source_url(content: str) -> str:

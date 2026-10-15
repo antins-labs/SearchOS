@@ -90,7 +90,7 @@ async def open(id_or_url: Any, loc: int = 0, view_tokens: int | None = None) -> 
 
           • **Full URL** (``"https://..."``) — always valid, stateless. Prefer this when iterating across many hits, when ids might collide across multiple search() calls (the id 0 from search #2 isn't the same hit as id 0 from search #1), or when the URL is already in your reasoning trace.
 
-          • **Saved skill URL** (``"skill://name/call-id"``) — reads the saved result page without executing the skill again. Use ``loc`` and ``find`` exactly as for a web page.
+          • **Saved skill URL** — copy the complete ``page_url`` returned by ``exec``, including its final result path (such as ``/stdout``). Reads saved content without executing the skill again. An execution root opens its primary result, or the index for older records. Use ``loc`` and ``find`` exactly as for a web page.
 
         loc (int): starting line number for the rendered window (0-indexed). Window length depends on content density and view_tokens. Ignored when ``id_or_url`` is a find-match id (auto-jumps to the match line). When passing a full URL, set ``loc`` to a line index *within that page* — page header / find output never give you cross-page line numbers.
 
@@ -144,6 +144,12 @@ async def open(id_or_url: Any, loc: int = 0, view_tokens: int | None = None) -> 
         opened_page = cached
     else:
         disk_cached = _read_page_from_disk(url)
+        if disk_cached is None and url.startswith("skill://"):
+            from searchos.tools.simple_browser.execution_pages import resolve_execution_root
+
+            disk_cached = resolve_execution_root(url)
+            if disk_cached is not None:
+                url = disk_cached.url
         if disk_cached is not None:
             opened_page = disk_cached
             logger.info("open: disk cache HIT for %s", url)

@@ -302,6 +302,116 @@ def test_large_result_read_with_open_find_after_reset(context, monkeypatch):
     assert len(calls) == 1
 
 
+@pytest.mark.asyncio
+async def test_stdout_receipt_guides_reading_and_execution_root_keeps_evidence_identity(context, monkeypatch):
+    """真实调用形态：JSON stdout → exec 回执 → 根地址 open → find → 抽取。"""
+    from searchos.harness.middleware.extraction.web_middleware import WebEvidenceMiddleware
+
+    payload = {'records': [{'name': f'Entity {i}', 'value': i, 'source_url': 'https://example.org/data'} for i in range(200)]}
+    raw = json.dumps(payload)
+    calls = []
+
+    async def runtime(skill_dir, argv, *, execution_dir, **kwargs):
+        calls.append(kwargs['execution_id'])
+        saved = execution_dir / kwargs['execution_id']
+        saved.mkdir(parents=True)
+        (saved / 'stdout.log').write_text(raw)
+        return {'execution_id': kwargs['execution_id'], 'status': 'completed', 'started': True,
+                'exit_code': 0, 'stdout': raw, 'stderr': '', 'artifacts': []}
+
+    monkeypatch.setattr('searchos.skills.runtime.command_runtime.run_command', runtime)
+    se.load_package('sample-skill')
+    executed = await se.exec_skill.ainvoke({'name': 'exec', 'args': {'skill': 'sample-skill', 'argv': ['python', 'run.py']}, 'id': 'run', 'type': 'tool_call'})
+    receipt = json.loads(executed.content)
+    assert receipt['read_result'] == {'tool': 'open', 'arguments': {'id_or_url': receipt['page_url']}}
+    assert 'stdout' not in receipt  # 完整数据留在保存页与 artifact，不在回执重复展示。
+    assert executed.artifact['execution']['stdout'] == raw
+    assert len(executed.content) < 2500
+
+    middleware = WebEvidenceMiddleware(SimpleNamespace(workspace=None))
+    observations = []
+
+    async def submit(observation, response):
+        observations.append(observation)
+        return response
+
+    middleware._submit = submit
+    async def execute_response(_):
+        return executed
+    await middleware.awrap_tool_call(SimpleNamespace(tool_call={'name': 'exec'}), execute_response)
+    assert not observations
+
+    # 同一 agent 可以直接 find；重置浏览器后，另一个 agent 可从磁盘打开执行根地址。
+    found = await tools.find.ainvoke({'pattern': 'Entity 199'})
+    assert 'Entity 199' in found
+    state._browser_var.set(state.BrowserState())
+    root_url = receipt['page_url'].rsplit('/', 1)[0]
+    for name, args in [('open', {'id_or_url': root_url}), ('find', {'pattern': 'Entity 199'}), ('open', {'id_or_url': 0})]:
+        async def read(_, name=name, args=args):
+            return await getattr(tools, name).ainvoke({'name': name, 'args': args, 'id': name, 'type': 'tool_call'})
+        result = await middleware.awrap_tool_call(SimpleNamespace(tool_call={'name': name}), read)
+        assert not result.content.startswith('Error:')
+        assert result.artifact['page_source']['source_url'] == receipt['page_url']
+        assert result.artifact['page_source']['evidence_eligible'] is True
+    assert len(observations) == 3
+    assert 'Entity 199' in observations[-1].content
+    assert len(calls) == 1
+
+
+@pytest.mark.parametrize('payload', [{'records': [{'value': 42}]}, {'fixture': True}, {'success': False, 'error': 'failed'}])
+def test_execution_root_resolves_artifact_page_without_changing_eligibility(context, monkeypatch, payload):
+    install_runner(monkeypatch, payload)
+    se.load_package('sample-skill')
+    result = json.loads(asyncio.run(execute())[0])
+    state._browser_var.set(state.BrowserState())
+    root = result['page_url'].rsplit('/', 1)[0]
+    opened = asyncio.run(tools.open.ainvoke({'name': 'open', 'args': {'id_or_url': root}, 'id': 'root', 'type': 'tool_call'}))
+    assert opened.artifact['page_source']['source_url'] == result['page_url']
+    assert opened.artifact['page_source']['evidence_eligible'] is ('records' in payload)
+
+
+def test_old_execution_root_opens_its_index_and_unknown_root_remains_missing(context):
+    from searchos.tools.simple_browser.render import PageContents
+    root = 'skill://sample-skill/old-execution'
+    page = PageContents(url=root + '/index', title='Saved execution', text=f'Results: {root}/stdout',
+                        metadata={'kind': 'execution_index', 'evidence_eligible': False})
+    state._persist_page(page.url, page)
+    opened = asyncio.run(tools.open.ainvoke({'name': 'open', 'args': {'id_or_url': root}, 'id': 'old', 'type': 'tool_call'}))
+    assert root + '/stdout' in opened.content
+    assert opened.artifact['page_source']['evidence_eligible'] is False
+    assert 'not found' in asyncio.run(tools.open.ainvoke({'id_or_url': 'skill://sample-skill/unknown'}))
+
+
+@pytest.mark.asyncio
+async def test_structured_result_windows_keep_json_records_during_extraction(context, monkeypatch):
+    from searchos.harness.middleware.extraction import ExtractionConfig
+    from searchos.harness.middleware.extraction.core.preparation import ObservationPreparer
+    from searchos.harness.middleware.extraction.core.models import EvidenceSourceKind
+    from searchos.harness.middleware.extraction.web_middleware import WebEvidenceMiddleware
+
+    payload = {'records': [{'name': f'Entity {i}', 'value': i} for i in range(21)]}
+    install_runner(monkeypatch, payload)
+    se.load_package('sample-skill')
+    receipt = json.loads((await execute())[0])
+    observations = []
+    middleware = WebEvidenceMiddleware(SimpleNamespace(workspace=None))
+    async def submit(observation, response):
+        observations.append(observation)
+        return response
+    middleware._submit = submit
+    for name, args in [('open', {'id_or_url': receipt['page_url']}), ('find', {'pattern': 'Entity 20'})]:
+        async def read(_, name=name, args=args):
+            return await getattr(tools, name).ainvoke({'name': name, 'args': args, 'id': name, 'type': 'tool_call'})
+        await middleware.awrap_tool_call(SimpleNamespace(tool_call={'name': name}), read)
+    assert all(o.source_kind == EvidenceSourceKind.SKILL for o in observations)
+    preparer = ObservationPreparer(ExtractionConfig())
+    prepared = preparer.prepare_pages([{'content': o.content, 'source_url': o.source_url, 'source_kind': o.source_kind} for o in observations])
+    assert len(prepared) == 2
+    assert json.loads(prepared[0]['content']) == payload
+    assert preparer.count_records_in_items(prepared[:1]) == 21
+    assert preparer.chunk_items(prepared) == [[prepared[0]], [prepared[1]]]
+
+
 @pytest.mark.parametrize('stdout,kind', [('help text', 'diagnostic'), ('{"records": [1]}', 'skill_result'), ('{"fixture": true}', 'fixture')])
 def test_stdout_page_classification(context, stdout, kind):
     from searchos.tools.simple_browser.execution_pages import register_execution_pages
@@ -332,6 +442,18 @@ def test_page_save_failure_does_not_change_execution_status(context, monkeypatch
     result = json.loads(asyncio.run(execute())[0])
     assert result['status'] == 'completed'
     assert 'persist' in result['page_error']
+
+
+def test_execution_receipt_preserves_failure_diagnostics_and_full_artifact():
+    result = {'status': 'failed', 'exit_code': 1, 'stdout': 'progress', 'stderr': 'connection failed\n' + 'x' * 5000}
+    content, artifact = se._execution_response(result)
+    receipt = json.loads(content)
+    assert receipt['exit_code'] == 1
+    assert receipt['stdout'] == 'progress'
+    assert receipt['stderr'].startswith('connection failed')
+    assert 'preview truncated' in receipt['stderr']
+    assert 'read_result' not in receipt
+    assert artifact['execution'] == result
 
 
 @pytest.mark.asyncio

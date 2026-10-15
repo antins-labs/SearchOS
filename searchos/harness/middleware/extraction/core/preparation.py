@@ -25,6 +25,10 @@ class ObservationPreparer:
 
         if text.startswith("[Now viewing local source]") and "\n\n" in text:
             return text.split("\n\n", 1)[1]
+        if text.startswith("[Now viewing]") and "\n\n" in text:
+            # URL / Page ID / 视窗范围是宿主标题；保留它们会使完整 JSON
+            # 无法解析，进而失去记录计数与结构化切片。
+            text = text.split("\n\n", 1)[1]
 
         out: list[str] = []
         for line in text.split("\n"):
@@ -203,9 +207,17 @@ class ObservationPreparer:
         """Group flush items into judge-call chunks, splitting any item whose
         content exceeds the char budget (skill JSON payloads can be huge).
 
-        Short items stay together as a single chunk, so when nothing is
-        oversized this returns ``[items]`` — byte-for-byte the pre-split
-        behavior. Each returned chunk is fed to one extract_rows call."""
+        Ordinary short pages share a chunk; saved skill windows are processed
+        independently. Each returned chunk feeds one extract_rows call."""
+        # 保存的技能结果按阅读窗口独立抽取。完整 JSON 与 find 的局部片段
+        # 混入一次调用会破坏记录边界；重复事实仍由提交层幂等去重。
+        if len(items) > 1:
+            skill_items = [it for it in items if str(it.get("source_kind", "")) == "skill"]
+            if skill_items:
+                other_items = [it for it in items if str(it.get("source_kind", "")) != "skill"]
+                return [chunk for it in skill_items for chunk in self.chunk_items([it])] + (
+                    self.chunk_items(other_items) if other_items else []
+                )
         budget = self._config.chunk_char_budget
         max_records = self._config.chunk_max_records
         if all(

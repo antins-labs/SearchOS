@@ -3,13 +3,32 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 from searchos.tools.simple_browser.render import PageContents
 from searchos.tools.simple_browser.skill_pages import format_skill_result
-from searchos.tools.simple_browser.state import _get_browser, _persist_page
+from searchos.tools.simple_browser.state import _get_browser, _persist_page, _read_page_from_disk
 
 MAX_TEXT_BYTES = 10_000_000
+
+
+def resolve_execution_root(url: str) -> PageContents | None:
+    """执行根地址只解析宿主保存的索引，保留结果页的规范来源身份。"""
+    if not re.fullmatch(r"skill://[^/?#]+/[^/?#]+/?", url):
+        return None
+    prefix = url.rstrip('/') + '/'
+    browser = _get_browser()
+    index = browser.get_page_by_url(prefix + 'index') or _read_page_from_disk(prefix + 'index')
+    if index is None or index.metadata.get('kind') != 'execution_index':
+        return None
+    target = index.metadata.get('primary_page_url', '')
+    if isinstance(target, str) and target.startswith(prefix):
+        primary = browser.get_page_by_url(target) or _read_page_from_disk(target)
+        if primary is not None:
+            return primary
+    # 旧记录没有主页面指针；索引仍给出完整结果地址，不猜测文件名。
+    return index
 
 
 def _fixture(value):
@@ -28,12 +47,14 @@ def register_execution_pages(result: dict, binding: dict, saved: Path, task_key:
     prefix = f"skill://{binding['name']}/{result['execution_id']}"
     pages, skipped = [], []
 
-    def publish(key, title, content, kind, digest=''):
+    def publish(key, title, content, kind, digest='', *, primary_page_url=''):
         url = prefix + '/' + key
         metadata = {'kind': kind, 'evidence_eligible': kind == 'skill_result',
                     'execution_id': result['execution_id'], 'package_hash': binding['package_hash'],
                     'producer_task': task_key, 'artifact_hash': digest,
                     'page_content_hash': hashlib.sha256(content.encode()).hexdigest()}
+        if primary_page_url:
+            metadata['primary_page_url'] = primary_page_url
         page = PageContents(url=url, title=title, text=content, metadata=metadata)
         page_id = _persist_page(url, page)
         if not page_id:
@@ -94,7 +115,11 @@ def register_execution_pages(result: dict, binding: dict, saved: Path, task_key:
     index_text = '\n'.join([f"Execution: {result['execution_id']}", f"Status: {result['status']}", '',
                             *[f"{p['title']} ({p['kind']}): {p['url']}" for p in pages],
                             *[f"Not rendered: {p['path']} — {p['reason']}" for p in skipped]])
-    index = publish('index', 'Skill execution: ' + binding['name'], index_text, 'execution_index')
-    primary = next((p for p in pages if p['kind'] == 'skill_result'), pages[0] if pages else index)
+    primary = next((p for p in pages if p['kind'] == 'skill_result'), pages[0] if pages else None)
+    index = publish('index', 'Skill execution: ' + binding['name'], index_text, 'execution_index',
+                    primary_page_url=primary['url'] if primary else '')
+    primary = primary or index
+    # find() 使用当前页；注册索引不能把阅读光标留在不参与抽取的目录页。
+    browser.add_page(browser.pages[primary['url']])
     return {'page_url': primary['url'], 'index_page_url': index['url'],
             'pages': pages[:20], 'pages_total': len(pages), 'unrendered': skipped[:20]}

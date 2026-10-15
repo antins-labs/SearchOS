@@ -193,9 +193,10 @@ def _render_pages_block(pages: list[dict[str, str]]) -> str:
     # format refers to these "### Page N" headers.
     parts = []
     for i, p in enumerate(pages):
+        identity = f"\nPage ID: {p['page_id']}\n" if p.get("page_id") else ""
         parts.append(
             f"### Page {i + 1}\n"
-            f"Source: {p.get('source_url', '')}\n"
+            f"Source: {p.get('source_url', '')}\n{identity}\n"
             f"{p.get('content', '')}"
         )
     return "\n\n".join(parts)

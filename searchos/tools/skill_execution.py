@@ -234,7 +234,22 @@ async def _legacy(directory: Path, argv: list[str], executions: Path, timeout: f
 
 
 def _execution_response(result: dict) -> tuple[str, dict]:
-    visible = {key: value for key, value in result.items() if key != "artifacts"}
+    # 回执负责引导阅读；原始输出保存在页面与 artifact，避免模型把执行成功
+    # 误当成已阅读、已抽取。错误诊断仍保留有界预览。
+    visible = {key: result[key] for key in ("execution_id", "status", "exit_code", "page_url", "index_page_url") if key in result}
+    if result.get("page_url"):
+        visible["read_result"] = {"tool": "open", "arguments": {"id_or_url": result["page_url"]}}
+        visible["reading_note"] = "Open the saved result before continuing retrieval. exec does not extract evidence; open/find submit eligible reading windows for extraction."
+    for key, value in result.items():
+        if key in visible or key == "artifacts":
+            continue
+        if key in {"stdout", "stderr"}:
+            if key == "stdout" and result.get("page_url") and not result.get("page_error"):
+                continue
+            value = str(value or "")
+            if len(value) > 2000:
+                value = value[:2000] + "\n[preview truncated; full output saved in execution logs]"
+        visible[key] = value
     return _json(visible), {"execution": result, "outcome": {"status": result["status"]}}
 
 
@@ -245,11 +260,9 @@ async def exec_skill(
 ) -> tuple[str, dict]:
     """Run a bundled Python, Shell or Node script from a loaded skill.
 
-    argv starts with python/python3, bash/sh or node and a package-relative
-    script path. No shell strings or inline code. cwd is the task work directory.
-    Returns execution status and saved page URLs; read results with open/find.
-    proxy_mode is inherit (environment), direct (no application proxy), or proxy
-    (require a configured proxy). Browser scripts must honor these environment defaults.
+    argv starts with python/python3, bash/sh or node and a package-relative script path. No shell strings or inline code. cwd is the task work directory.
+    Returns an execution receipt with read_result and saved page URLs. Follow read_result with open, then use find or open(loc=...) to inspect relevant windows before further retrieval. exec itself does not extract evidence.
+    proxy_mode is inherit (environment), direct (no application proxy), or proxy (require a configured proxy). Browser scripts must honor these environment defaults.
     Legacy skills accept ["legacy-executor", "--params", "<JSON object>"].
     """
     try:
