@@ -635,7 +635,7 @@ async def test_hybrid_edit_cannot_manufacture_evidence_or_replace_supported_cell
             "edits_json": json.dumps([{"entity": "Alpha", "set": {"Residents": "7200000"}}]),
         }
     )
-    assert "Evidence Extraction" in result
+    assert "provide the original evidence source" in result
     assert workspace.load_state().model_dump_json() == before
 
 

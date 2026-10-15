@@ -152,6 +152,7 @@ def _assert_cell_value(
     alignment_note: str,
     overwrite: bool = False,
     raw_value: Any = None,
+    source_excerpt: str = "",
 ) -> bool:
     """Commit synthetic Evidence and project it into the Coverage Cell.
 
@@ -161,7 +162,7 @@ def _assert_cell_value(
     """
     from searchos.socm import EvidenceNode
 
-    if (state.source_scope or {}).get("mode") == "hybrid":
+    if (state.source_scope or {}).get("mode") == "hybrid" and source.startswith("agent://"):
         return False
 
     cell_key = state.coverage_map.cell_key(table_id, entity, attribute)
@@ -170,14 +171,17 @@ def _assert_cell_value(
         return False
 
     seed = f"{evidence_prefix}_{table_id}_{entity}_{attribute}_{value}"
+    if not source.startswith("agent://"):
+        seed += f"_{source}"
     evidence_id = f"f_{evidence_prefix}_{hashlib.md5(seed.encode()).hexdigest()[:10]}"
 
     node = EvidenceNode(
         id=evidence_id,
         finding=f"{entity} {attribute}: {value}",
-        value=value, source=source, confidence=0.7,
+        value=value, source=source, source_excerpt=source_excerpt, confidence=0.7,
         entity=entity, attribute=attribute, alignment="full",
-        alignment_note=alignment_note, source_authority="aggregator",
+        alignment_note=alignment_note,
+        source_authority="aggregator" if source.startswith("agent://") else "unclear",
         table_id=table_id, created_at=time.time(),
     )
     values = {node.id: raw_value} if raw_value is not None else None
@@ -996,7 +1000,7 @@ async def edit_entities(
     edits_json: str,
     table_id: str = "",
 ) -> str:
-    """Edit existing entity rows: rename PK and/or overwrite cell values.
+    """Edit existing entity rows: rename PK and/or overwrite cell values. For calculated values, include the original source and source_excerpt in each edit object alongside entity and set.
 
     Args:
         edits_json: JSON array of edit operations. Each element is an object:
@@ -1008,6 +1012,13 @@ async def edit_entities(
               (confidence=0.7, alignment="full"). An empty value
               ("", null, or []) CLEARS the cell instead: it resets to
               missing and its old evidence is rejected (kept for audit).
+            - ``source`` (optional): original evidence URL (http/https, local or
+              skill URL) supporting the set values. Required for values in hybrid
+              mode; use the original data source when writing Python calculations.
+            - ``source_excerpt`` (optional): original source text supporting the
+              inputs. Do not present calculated values as verbatim source quotes.
+              Source fields apply to all set values in this item; use separate
+              items when sources differ.
             Example: '[{"entity": "Apolo 11", "rename": "Apollo 11",
                         "set": {"Launch_Date": "1969-07-16"}}]'
         table_id: Target table id. Required in multi-table schemas.
@@ -1046,6 +1057,22 @@ async def edit_entities(
             raw_name = str(item["entity"]).strip()
             new_name = str(item.get("rename", "")).strip() or None
             set_vals = item.get("set")
+            source = item.get("source", "")
+            excerpt = item.get("source_excerpt", "")
+            if not isinstance(source, str) or not isinstance(excerpt, str):
+                errors.append(f"set {raw_name!r}: source and source_excerpt must be strings")
+                continue
+            source = source.strip()
+            if source:
+                from urllib.parse import urlsplit
+                try:
+                    parsed = urlsplit(source)
+                    valid_source = parsed.scheme in {"http", "https", "local", "skill"} and bool(parsed.netloc)
+                except ValueError:
+                    valid_source = False
+                if not valid_source:
+                    errors.append(f"set {raw_name!r}: source must be an original http/https, local or skill URL")
+                    continue
 
             # Rename
             if new_name:
@@ -1097,17 +1124,18 @@ async def edit_entities(
                         entity=canonical,
                         attribute=col,
                         value=val,
-                        source="agent://orchestrator/edit",
+                        source=source or "agent://orchestrator/edit",
                         evidence_prefix="edit",
                         alignment_note="edited by orchestrator",
                         overwrite=True,
                         raw_value=raw_val,
+                        source_excerpt=excerpt,
                     ):
                         set_cells["v"] += 1
                     else:
                         reason = (
-                            "dispatch a source-reading task for Evidence Extraction; unit conversions require "
-                            "the target column to specify units and conditions"
+                            "provide the original evidence source for calculated values, or dispatch "
+                            "a source-reading task for missing inputs; check source scope and column constraints"
                             if (s.source_scope or {}).get("mode") == "hybrid"
                             else "rejected invalid assertion"
                         )

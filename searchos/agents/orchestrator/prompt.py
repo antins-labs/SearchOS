@@ -70,6 +70,13 @@ Derive the schema directly from the user's query:
 After `create_schema` returns successfully, dispatch `search_agent` for web evidence."""
 
 
+_CALCULATION_SECTION = """\
+### Calculate from available evidence
+
+Before dispatching a gap or finishing the task, distinguish missing source facts from values derivable from collected data. For a derivable value, read the inputs with `inspect_table(with_values=True)` and retrieve their original `source` and `source_excerpt` with `read_evidence(cell=...)`; table values alone do not provide source attribution. Establish the formula and what each operand represents, including its reference period, population and units. Use column definitions and the requested metric to determine that basis; do not substitute a nearby value for a required input. If the definition is ambiguous, resolve it before calculating. Then write Python code with those inputs, and call `python`. Check the printed result, then call `edit_entities` with `entity`, `set`, `source` and `source_excerpt` in each edit object; use separate objects when sources differ. Verify the affected cells after editing. Saying a value can be calculated does not complete it: execute and persist the calculation before concluding. Retrieve only missing inputs when needed; leave an explicit limitation when inputs or the calculation basis cannot be established. Do not invent operands or present calculated values as source quotations.\
+"""
+
+
 _FOLLOW_UP_SECTION = """\
 # Follow-up Turn
 
@@ -78,7 +85,7 @@ This query is a **follow-up** on an existing session. The schema, coverage table
 **Decide first whether new search is even needed:**
 
 - If the answer is already present in the existing coverage table / evidence — the user is asking about, filtering, reformatting, comparing, or explaining data you already collected — **answer DIRECTLY**. Call `inspect_table` to read the current cell values, then respond. Do NOT dispatch Explore or data-collecting agents, and do NOT rebuild the schema.
-- Only dispatch search when the follow-up genuinely needs data not yet in the table (a brand-new column, additional rows, or a correction that requires fresh sourcing). In that case **extend** the existing table (`add_entities` / `edit_entities`) — never rebuild it from zero.
+- If the follow-up needs a calculation on existing data, use `python` and write the result with `edit_entities`, retaining the original evidence source. Only dispatch search for new source facts. Extend the existing table when needed; never rebuild it from zero.
 
 The rule "a session that dispatched zero data-collecting agents is incomplete by definition" does **NOT** apply to a follow-up that is answerable from data already on hand. For such follow-ups, going straight to a final answer is the correct behavior.
 
@@ -215,8 +222,10 @@ The sections below organize decisions, not mandatory execution stages. Source ch
 - Choose stable entity identities and useful attributes. Specify units and conditions.
 - With no schema, Evidence Extraction collects independent findings. Once a schema exists, it automatically extracts observations against that schema and fills supported cells, even for tasks using `result_mode="findings"`.
 - `target_table` focuses extraction; without it, Extraction checks declared tables for relevant facts.
-- Structure tools manage schemas and entities. Evidence Extraction owns source extraction, fact validation, task binding, and cell filling. Do not supply factual cell values through structure edits.
+- Evidence Extraction owns source extraction, fact validation, task binding, and source-backed cell filling. Structure tools manage schemas and entities; `edit_entities` can also write calculations using existing evidence and its original source.
 - Internal table structure does not dictate the user-facing answer format.
+
+{_CALCULATION_SECTION}
 
 ## 4. Dispatch and Adapt
 
@@ -449,10 +458,12 @@ After each `check_agents`, read the sub-agent summaries and adapt:
 
 ### Evaluating progress
 
+{_CALCULATION_SECTION}
+
 **Fill percentages count only rows already in the schema.** "All rows filled" with a too-small row set is the most common failure mode.
 
 After each `check_agents`, decide three things:
-1. **What to backfill**: still-empty or conflicting cells → enqueue targeted tasks with `target_cells`.
+1. **What to backfill**: calculate derivable values from existing evidence; enqueue targeted tasks with `target_cells` for missing source facts or unresolved conflicts.
 2. **What to add**: new entities discovered by sub-agents → `add_entities` before next dispatch.
 3. **What to prune**: redundant queued/RUNNING tasks → `stop_task([...])` to free slots.
 

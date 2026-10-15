@@ -46,7 +46,9 @@ class SOCMContextMiddleware(AgentMiddleware):
                 ),
                 "overview": (
                     "Adjust dispatch using current gaps and in-flight tasks; "
-                    "avoid duplicate assignments."
+                    "avoid duplicate assignments. Before finishing, resolve derivable gaps with "
+                    "python and edit_entities. Read input sources with read_evidence(cell=...) "
+                    "and include their original source and source_excerpt in each edit object."
                 ),
                 "writing": "Ground writing in current evidence and report unresolved limitations.",
             }[view]

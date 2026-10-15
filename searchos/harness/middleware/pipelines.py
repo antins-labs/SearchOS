@@ -43,6 +43,7 @@ ORCHESTRATOR_DRAIN_TOOLS = frozenset(
         "edit_entities",
         "remove_entities",
         "inspect_table",
+        "python",
         "stop_task",
     }
 )

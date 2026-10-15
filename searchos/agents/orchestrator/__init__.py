@@ -24,6 +24,7 @@ def get_orchestrator_tools(*, source_mode: str = "") -> list:
     )
     from searchos.tools.socm_read import list_frontier, read_evidence
     from searchos.tools.tasks import check_agents, enqueue_tasks, stop_task
+    from searchos.tools.python_execution import python
 
     # Extraction owns extraction, evidence binding and cell projection.
     return [
@@ -33,6 +34,7 @@ def get_orchestrator_tools(*, source_mode: str = "") -> list:
         remove_entities,
         edit_entities,
         inspect_table,
+        python,
         enqueue_tasks,
         stop_task,
         check_agents,
