@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSteeringQueue, isSteeringSnapshot, promoteSteeringMessage, removeSteeringMessage, steerSearch } from "@/lib/api";
-import type { SteeringSnapshot } from "@/lib/types";
+import type { SteeringMode, SteeringSnapshot } from "@/lib/types";
 
 export function useLiveFollowUps(
   sessionId: string | null,
@@ -82,12 +82,12 @@ export function useLiveFollowUps(
     delivered,
     working,
     hasSnapshot: currentSnapshot !== null,
-    enqueue: (text: string) => {
+    enqueue: (text: string, mode: SteeringMode = "after_tool") => {
       if (!sessionId || !running) return Promise.resolve(false);
       return perform("send", async () => {
         // Verify support before posting: older APIs submit immediately and have no queue UI.
         await getSteeringQueue(sessionId);
-        const result = await steerSearch(sessionId, text, "after_tool");
+        const result = await steerSearch(sessionId, text, mode);
         if (result?.status !== "queued") throw new Error("后端未确认追问已提交，请检查运行记录");
         if (isSteeringSnapshot(result.queue)) return result.queue;
         if (scopeRef.current === scope) {

@@ -34,10 +34,10 @@ import type {
   WSEvent,
 } from "./types";
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || (typeof window === "undefined" ? "http://localhost:8000" : "");
 const REQUEST_TIMEOUT_MS = 12000;
 
-async function request<T>(
+export async function request<T>(
   path: string,
   init: RequestInit = {},
   options: {
@@ -53,13 +53,16 @@ async function request<T>(
     ? AbortSignal.any([init.signal, controller.signal])
     : controller.signal;
   try {
-    const response = await fetch(`${API_BASE}${path}`, { ...init, signal });
+    const headers = new Headers(init.headers);
+    if (init.method && !["GET", "HEAD"].includes(init.method)) headers.set("X-SearchOS-Request", "1");
+    const response = await fetch(`${API_BASE}${path}`, { ...init, credentials: "include", headers, signal });
     if (!response.ok) {
+      if (response.status === 401 && typeof window !== "undefined") window.dispatchEvent(new Event("searchos:unauthorized"));
       let detail = response.statusText;
       try {
         const body = await response.json();
         if (typeof body.detail === "string") detail = body.detail;
-        else if (Array.isArray(body.detail)) detail = body.detail.join("; ");
+        else if (Array.isArray(body.detail)) detail = body.detail.map((item: unknown) => typeof item === "object" && item && "msg" in item ? String(item.msg) : String(item)).join("; ");
         else if (typeof body.detail?.detail === "string") detail = body.detail.detail;
       } catch { /* 非 JSON 错误保留 HTTP 状态说明。 */ }
       if (options.repair && response.status === 404 && detail === "Not Found") {
@@ -474,6 +477,8 @@ export async function uploadLocalDocument(
     body.append("file", file, file.name);
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${API_BASE}/api/local/libraries/${encodeURIComponent(libraryId)}/uploads`);
+    xhr.withCredentials = true;
+    xhr.setRequestHeader("X-SearchOS-Request", "1");
     xhr.timeout = 180000;
     xhr.upload.onprogress = (event) => {
       const total = event.lengthComputable ? event.total : file.size;
@@ -688,7 +693,7 @@ export function connectWebSocket(
   onClose?: () => void,
   opts?: { tail?: boolean; onOpen?: () => void },
 ): WebSocket {
-  const wsBase = API_BASE.replace(/^http/, "ws");
+  const wsBase = (API_BASE || window.location.origin).replace(/^http/, "ws");
   const ws = new WebSocket(`${wsBase}/api/ws/${sessionId}${opts?.tail ? "?tail=1" : ""}`);
 
   ws.onmessage = (e) => {

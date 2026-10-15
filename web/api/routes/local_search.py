@@ -588,10 +588,13 @@ async def launch_local_search(
     document_ids: list[str],
     history: list[dict[str, str]] | None,
     selection: Literal["library", "documents"] = "documents",
+    max_time: float | None = None,
 ) -> dict[str, str]:
     """Launch a source-locked Local-only answer without creating a web provider."""
     from searchos.socm import SearchState, WorkspaceManager
 
+    from api.assistant.runtime import get_runtime
+    await get_runtime().before_replace(session_id)
     workspace = WorkspaceManager(WORKSPACE_ROOT, session_id)
     workspace.create()
     state = SearchState(intent=query, source_scope={
@@ -657,16 +660,17 @@ async def launch_local_search(
                 stream_prefix=f"local-{session_id}",
             )
             try:
-                local_answer = await service.answer(
-                    library_id,
-                    document_ids,
-                    query,
-                    history=history,
-                    on_read=record_read,
-                    on_tool=record_tool,
-                    on_round_end=answer_stream.finish,
-                    on_delta=answer_stream.push,
-                )
+                async with asyncio.timeout(max_time):
+                    local_answer = await service.answer(
+                        library_id,
+                        document_ids,
+                        query,
+                        history=history,
+                        on_read=record_read,
+                        on_tool=record_tool,
+                        on_round_end=answer_stream.finish,
+                        on_delta=answer_stream.push,
+                    )
             finally:
                 answer_stream.finish()
             # Reading observations and bound citations are not grounded findings.
@@ -767,7 +771,7 @@ async def launch_local_search(
             raise
         except Exception as exc:  # noqa: BLE001
             logger.error("Local search failed: %s", exc, exc_info=True)
-            sessions[session_id]["error"] = str(exc)
+            sessions[session_id]["error"] = "资料研究超过本次时间上限" if isinstance(exc, TimeoutError) else str(exc)
             sessions[session_id]["status"] = "error"
 
     sessions[session_id]["task"] = asyncio.create_task(_run())

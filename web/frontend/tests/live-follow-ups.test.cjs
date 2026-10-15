@@ -35,7 +35,7 @@ function harness(fetch) {
     useMemo: (fn) => fn(),
     useEffect() {},
   };
-  const globals = { setTimeout, clearTimeout, AbortController, AbortSignal, URLSearchParams, process: { env: {} }, fetch };
+  const globals = { setTimeout, clearTimeout, AbortController, AbortSignal, Headers, URLSearchParams, process: { env: {} }, fetch };
   const api = load('lib/api.ts', {}, globals);
   const { useLiveFollowUps } = load('hooks/useLiveFollowUps.ts', { react, '@/lib/api': api }, globals);
   const render = () => {
@@ -51,6 +51,21 @@ const snapshot = (status = 'queued', revision = 1) => ({ revision, messages: [
   { id: 'm1', text: '查询论文', mode: 'after_tool', status },
 ] });
 const ok = (body) => new Response(JSON.stringify(body));
+
+test('移动端立即引导使用同一追问队列并保留服务端回执', async () => {
+  const calls = [];
+  const h = harness(async (_url, init) => {
+    if (init.method === 'POST') {
+      calls.push(JSON.parse(init.body));
+      return ok({ status: 'queued', queue: snapshot('delivered', 2) });
+    }
+    return ok(empty);
+  });
+  assert.equal(await h.render().enqueue('查询论文', 'immediate'), true);
+  assert.deepEqual(calls, [{ message: '查询论文', mode: 'immediate' }]);
+  assert.equal(h.render().delivered[0].id, 'm1');
+  assert.equal(h.render().pending.length, 0);
+});
 
 test('旧 API 成功回执缺少 queue 时，状态提交不能使页面崩溃或诱导重发', async () => {
   let posts = 0;

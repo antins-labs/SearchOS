@@ -27,6 +27,9 @@ from api.routes import (  # noqa: E402
     workspace,
 )
 
+from api.assistant.auth import AccessMiddleware  # noqa: E402
+from api.assistant.routes import router as assistant_router  # noqa: E402
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
@@ -42,9 +45,13 @@ async def lifespan(_app: FastAPI):
     local_index_jobs.resume_background_indexes()
     network_import_jobs.resume_network_imports()
     topic_recap_jobs.resume_topic_recaps()
+    from api.assistant.runtime import get_runtime
+    assistant = get_runtime()
+    await assistant.start()
     try:
         yield
     finally:
+        await assistant.stop()
         await skill_jobs.stop()
         await local_index_jobs.stop_background_indexes()
         await network_import_jobs.stop_network_imports()
@@ -57,6 +64,9 @@ app = FastAPI(
     description="SearchOS — agentic search harness, REST + WebSocket API",
     lifespan=lifespan,
 )
+
+app.add_middleware(AccessMiddleware)
+app.include_router(assistant_router)
 
 # CORS for the frontend dev server (any localhost port — 3000, 3001, …)
 app.add_middleware(

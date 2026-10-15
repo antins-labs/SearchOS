@@ -1,5 +1,7 @@
 "use client";
 
+import { useWorkspaceBase } from "@/hooks/useWorkspaceBase";
+
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
@@ -123,6 +125,7 @@ export default function HistoryRail({
   historyStatus = "ready",
   onRetryHistory,
 }: Props) {
+  const base = useWorkspaceBase();
   const [health, setHealth] = useState<{ status: string } | null | undefined>(undefined);
   const [view, setView] = useState<View>("all");
   const [sort, setSort] = useState<SortOrder>("recent");
@@ -219,7 +222,7 @@ export default function HistoryRail({
       <div className="flex h-full flex-col items-center gap-3 border-r border-line py-4">
         <button onClick={onToggle} title="Expand" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><PanelLeft size={18} /></button>
         <button onClick={onNew} title="New research" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><Plus size={18} /></button>
-        <Link href="/skills" title="技能库" aria-label="技能库" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><Blocks size={18} /></Link>
+        <Link href={`${base}/skills`} title="技能库" aria-label="技能库" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><Blocks size={18} /></Link>
         <button onClick={onOpenKnowledgeBase} title="知识库" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><Database size={18} /></button>
         <button onClick={() => { setView("favorites"); onToggle(); }} title="Favorites" className="rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink"><Star size={18} /></button>
         <span title={health === undefined ? "Connecting" : health ? "Connected" : "Offline"}
@@ -325,7 +328,7 @@ export default function HistoryRail({
       <div className="px-3 pb-2"><button onClick={onNew}
         className="flex w-full items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-2 text-[14px] font-medium text-ink transition-colors hover:bg-surface-2"><Plus size={16} /> New research</button></div>
 
-      <div className="px-3 pb-2"><Link href="/skills"
+      <div className="px-3 pb-2"><Link href={`${base}/skills`}
         className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink"><Blocks size={15} />技能库</Link></div>
       <div className="px-3 pb-2"><button onClick={onOpenKnowledgeBase}
         className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink"><Database size={15} />知识库</button></div>

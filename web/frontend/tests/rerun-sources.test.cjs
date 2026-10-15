@@ -60,10 +60,11 @@ function harness() {
       run: (request) => requests.push(plain(request)), reset() {},
     }) },
     "@/hooks/useLocalLibrary": { useLocalLibrary: () => localLibrary },
+    "@/hooks/useDialogFocus": { default: () => {} },
     "@/hooks/useLiveFollowUps": { useLiveFollowUps: () => ({ delivered: [], hasSnapshot: false }) },
     "@/lib/api": { loadHistory: async () => history, listHistory: async () => [] },
     "@/lib/activityPreferences": { useActivityPreferences: () => ({ width: 360, tab: "activity" }) },
-    "@/components/settings/SettingsProvider": { useSettings: () => ({ overrides: {}, notify() {} }) },
+    "@/components/settings/SettingsProvider": { useSettings: () => ({ overrides: {}, uiPrefs: { language: 'zh' }, notify() {} }) },
     "./Answer": { default: "Answer", cleanAnswer: (answer) => answer },
   };
   function load(file) {
@@ -81,12 +82,17 @@ function harness() {
     });
     return output;
   }
-  const Home = load("app/page.tsx").default;
+  const Home = load("components/research/ResearchWorkspace.tsx").default;
   const Conversation = load("components/conversation/Conversation.tsx").default;
   const page = () => render(Home);
   const conversation = () => find(page(), (node) => node.type === "Conversation").props;
   return {
     requests, localLibrary, conversation,
+    retryMobile(index = 0) {
+      const props = render(Home, { mobile: true }).props;
+      props.onRerun(props.turns[index]);
+      return requests.at(-1);
+    },
     submit(selection) {
       find(page(), (node) => node.type === "Landing").props.onSubmit("总结所选文献", { sources: selection });
     },
@@ -122,6 +128,14 @@ test("提交后立即失败的重试保留文档快照，不使用后来更改�
   assert.deepEqual(request.sources, sources());
   assert.equal(request.follow_up_to, undefined);
   assert.equal(request.history, undefined);
+  assert.deepEqual(plain(h.localLibrary.selection), sources());
+});
+
+test("移动工作区重试与桌面共用原轮次资料范围", () => {
+  const h = harness();
+  h.submit(sources());
+  h.localLibrary.selection = sources("local", "documents", ["other-doc"]);
+  assert.deepEqual(h.retryMobile().sources, sources());
   assert.deepEqual(plain(h.localLibrary.selection), sources());
 });
 

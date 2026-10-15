@@ -288,7 +288,7 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
     <div
       ref={ref}
       style={popoverMaxHeight == null ? undefined : { maxHeight: popoverMaxHeight }}
-      className={`rise-in surface absolute left-0 z-30 max-h-[min(78vh,720px)] w-[min(440px,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-xl p-3.5 shadow-xl [scrollbar-gutter:stable] ${overrides.effort === "max" ? "max-effort-popover" : ""} ${
+      className={`run-overrides rise-in surface absolute left-0 z-30 max-h-[min(78vh,720px)] w-[min(440px,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-xl p-3.5 shadow-xl [scrollbar-gutter:stable] ${overrides.effort === "max" ? "max-effort-popover" : ""} ${
         direction === "down" ? "top-full mt-2" : "bottom-full mb-2"
       }`}
     >
@@ -308,7 +308,7 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
+        <div className="effort-option-row flex items-center justify-between gap-3">
           <span className="text-[13px] text-ink">{zh ? "研究档位" : "Effort level"}</span>
           <PillGroup
             ariaLabel={zh ? "本次研究档位" : "Run effort level"}
@@ -326,7 +326,7 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
           {EFFORT_SUMMARIES[selectedLevel][zh ? "zh" : "en"]}
         </p>
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="effort-option-row flex items-center justify-between gap-3">
           <span className="text-[13px] text-ink">{zh ? "时间限制" : "Time limit"}</span>
           <NumberField
             value={overrides.max_time ?? impliedTime}
@@ -385,7 +385,7 @@ export default function RunOverridesPopover({ direction, onClose }: Props) {
                 <p className="text-[12px] text-ink-faint">{zh ? "技能已在设置中关闭。" : "Skills are disabled in Settings."}</p>
               ) : (
                 <>
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="effort-option-row flex items-center justify-between gap-3">
                     <span className="text-[12px] text-ink-dim">{zh ? "访问策略" : "Access policy"}</span>
                     <PillGroup
                       ariaLabel={zh ? "访问技能策略" : "Access skill policy"}

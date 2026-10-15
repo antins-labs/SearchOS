@@ -1,17 +1,20 @@
 "use client";
 
+import { useWorkspaceBase } from "@/hooks/useWorkspaceBase";
+
 import Link from "next/link";
 import { ArrowLeft, Blocks, WifiOff } from "lucide-react";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import SkillCreationPanel from "./SkillCreationPanel";
 
 export default function SkillCreationPage() {
+  const base = useWorkspaceBase();
   const { status, uiPrefs } = useSettings();
   const zh = uiPrefs.language === "zh";
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-[1120px] px-5 py-6 sm:px-8 sm:py-8">
-      <Link href="/skills" className="mb-10 inline-flex items-center gap-1.5 rounded-lg py-2 text-[13px] text-ink-dim hover:text-ink">
+      <Link href={`${base}/skills`} className="mb-10 inline-flex items-center gap-1.5 rounded-lg py-2 text-[13px] text-ink-dim hover:text-ink">
         <ArrowLeft size={14} />{zh ? "返回技能库" : "Back to skills"}
       </Link>
       <header className="mb-9">

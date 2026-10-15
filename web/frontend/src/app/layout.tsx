@@ -3,6 +3,7 @@ import { Fraunces, Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import "./globals.css";
+import "@/components/research/mobile-workspace.css";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",

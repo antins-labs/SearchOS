@@ -1,5 +1,7 @@
 "use client";
 
+import { useWorkspaceBase } from "@/hooks/useWorkspaceBase";
+
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
@@ -55,6 +57,7 @@ function SkillReader({ item, zh, onClose }: { item: SkillLibraryItem; zh: boolea
 }
 
 export default function SkillLibraryPage() {
+  const base = useWorkspaceBase();
   const { uiPrefs } = useSettings();
   const zh = uiPrefs.language === "zh";
   const [results, setResults] = useState<SkillLibraryResults>({ items: [], total: 0, page: 1, pages: 0, page_size: 24, counts: {} });
@@ -98,10 +101,10 @@ export default function SkillLibraryPage() {
   const pageNumbers = Array.from(new Set([1, results.pages, results.page - 1, results.page, results.page + 1]))
     .filter((page) => page >= 1 && page <= results.pages).sort((a, b) => a - b);
   return <main className="mx-auto min-h-screen max-w-[1440px] px-5 py-7 sm:px-10">
-    <Link href="/" className="mb-9 inline-flex items-center gap-1.5 text-[12px] text-ink-dim hover:text-ink"><ArrowLeft size={14} />{zh ? "返回搜索" : "Back to search"}</Link>
+    <Link href={base || "/"} className="mb-9 inline-flex items-center gap-1.5 text-[12px] text-ink-dim hover:text-ink"><ArrowLeft size={14} />{zh ? "返回搜索" : "Back to search"}</Link>
     <header className="mb-8 flex flex-wrap items-end justify-between gap-5">
       <div><div className="mb-3 flex items-center gap-2 text-[11px] font-semibold tracking-[0.16em] text-accent-ink"><Blocks size={14} /> SEARCHOS SKILLS</div><h1 className="text-[30px] font-semibold tracking-tight text-ink">{zh ? "技能库" : "Skill library"}</h1><p className="mt-2 text-[13px] text-ink-dim">{zh ? "浏览可复用能力，查看使用说明与实现文件。" : "Explore reusable capabilities, instructions, and implementation files."}</p></div>
-      <Link href="/skills/new" className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-3 text-[13px] font-medium text-white shadow-sm hover:brightness-110"><Plus size={16} />{zh ? "创建技能" : "Create skill"}</Link>
+      <Link href={`${base}/skills/new`} className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-3 text-[13px] font-medium text-white shadow-sm hover:brightness-110"><Plus size={16} />{zh ? "创建技能" : "Create skill"}</Link>
     </header>
     <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
       <div className="flex flex-wrap gap-1 rounded-xl bg-surface-2 p-1" aria-label={zh ? "技能分类" : "Categories"}>{["all", "access", "strategy", "orchestrator"].map((value) => <button key={value} type="button" aria-pressed={request.category === value} onClick={() => updateQuery({ category: value })} className={`rounded-lg px-3 py-2 text-[12px] transition ${request.category === value ? "bg-surface font-medium text-ink shadow-sm" : "text-ink-dim hover:text-ink"}`}>{value === "all" ? (zh ? "全部" : "All") : value}<span className="ml-2 text-[10px] tabular-nums text-ink-faint">{results.counts[value] ?? 0}</span></button>)}</div>

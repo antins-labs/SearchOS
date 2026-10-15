@@ -29,6 +29,14 @@ from searchos.local.library import LocalLibraryService
 from searchos.local.pipeline import DocumentRecapPipeline
 
 
+@pytest.fixture(autouse=True)
+def isolate_assistant_storage(tmp_path, monkeypatch):
+    from api.assistant import runtime
+
+    monkeypatch.setenv("SF_ASSISTANT_ROOT", str(tmp_path / "assistant"))
+    monkeypatch.setattr(runtime, "_runtime", None)
+
+
 class _FakeModel(BaseChatModel):
     response_content: str = "项目代号是蓝鲸。 [资料 1 · L1-2](citation:1)"
     captured: list = Field(default_factory=list)
