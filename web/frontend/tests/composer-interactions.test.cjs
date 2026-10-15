@@ -88,9 +88,10 @@ test("local source preview behaves as a keyboard-safe modal", () => {
 });
 
 test("mobile navigation closes on Escape and restores trigger focus", () => {
-  const source = read("app/page.tsx");
+  const source = read("components/research/ResearchWorkspace.tsx");
   assert.match(source, /const closeMobileRail = useCallback/);
-  assert.match(source, /event\.key !== "Escape"/);
+  assert.match(source, /useDialogFocus\(\{/);
+  assert.match(read("hooks/useDialogFocus.ts"), /event\.key === "Escape"/);
   assert.match(source, /mobileRailTriggerRef\.current\?\.focus\(\)/);
   assert.match(source, /onClick=\{closeMobileRail\}/);
 });

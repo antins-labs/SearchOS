@@ -15,6 +15,7 @@ build/
 # Workspace (runtime generated)
 searchos_workspace/
 .searchos/
+web/frontend/.next-service/
 local-index/
 knowledge_base
 searchos_skill_jobs/

@@ -10,7 +10,7 @@ function loadApi(fetch, globals = {}) {
   const timers = new Map();
   const context = {
     exports: {}, process: { env: {} }, fetch, AbortController, AbortSignal,
-    URLSearchParams,
+    URLSearchParams, Headers,
     setTimeout(fn, delay) { timers.set(fn, delay); return fn; },
     clearTimeout(fn) { timers.delete(fn); },
     ...globals,
@@ -136,6 +136,7 @@ test('本地文件上传区分传输进度与服务端解析阶段', async () =>
     static latest;
     constructor() { this.upload = {}; FakeXMLHttpRequest.latest = this; }
     open(method, url) { this.method = method; this.url = url; }
+    setRequestHeader(name, value) { this.headers = { ...this.headers, [name]: value }; }
     send(body) {
       this.body = body;
       this.upload.onprogress({ lengthComputable: true, loaded: 5, total: 10 });
@@ -156,6 +157,8 @@ test('本地文件上传区分传输进度与服务端解析阶段', async () =>
   assert.equal(FakeXMLHttpRequest.latest.method, 'POST');
   assert.equal(FakeXMLHttpRequest.latest.url, 'http://localhost:8000/api/local/libraries/lib%201/uploads');
   assert.equal(FakeXMLHttpRequest.latest.timeout, 180000);
+  assert.equal(FakeXMLHttpRequest.latest.withCredentials, true);
+  assert.equal(FakeXMLHttpRequest.latest.headers["X-SearchOS-Request"], "1");
   assert.deepEqual(Array.from(phases, (item) => [item.phase, item.percent]), [
     ['uploading', 50],
     ['parsing', 100],
@@ -287,4 +290,26 @@ test('技能查询携带关键词、分类和分页参数', async () => {
     return new Response(JSON.stringify({ items: [], total: 0, page: 1, pages: 0, page_size: 12, counts: {} }));
   });
   assert.equal((await api.querySkillLibrary({ q: 'RSS 搜索', category: 'access', page: 2, page_size: 12 })).total, 0);
+});
+
+
+test('mobile requests use same origin, cookie credentials and CSRF header', async () => {
+  const { api } = loadApi(async (url, init) => {
+    assert.equal(url, '/api/search');
+    assert.equal(init.credentials, 'include');
+    assert.equal(init.headers.get('X-SearchOS-Request'), '1');
+    assert.equal(init.headers.get('Content-Type'), 'application/json');
+    return new Response('{"session_id":"s"}');
+  }, { window: { location: { origin: 'https://search.example.test' } } });
+  await api.startSearch({ query: 'test' });
+});
+
+test('mobile websocket uses current secure origin', () => {
+  let url;
+  const { api } = loadApi(() => {}, {
+    window: { location: { origin: 'https://search.example.test' } },
+    WebSocket: class { constructor(value) { url = value; } },
+  });
+  api.connectWebSocket('session', () => {});
+  assert.equal(url, 'wss://search.example.test/api/ws/session');
 });

@@ -81,7 +81,7 @@ test("同一主题文档较多时自动叠放，并可按主题展开", () => {
 
 test("主页面提供常驻知识库入口并渲染图管理面板", () => {
   const rail = fs.readFileSync(path.join(__dirname, "../src/components/shell/HistoryRail.tsx"), "utf8");
-  const page = fs.readFileSync(path.join(__dirname, "../src/app/page.tsx"), "utf8");
+  const page = fs.readFileSync(path.join(__dirname, "../src/components/research/ResearchWorkspace.tsx"), "utf8");
   const panel = fs.readFileSync(path.join(__dirname, "../src/components/local/KnowledgeBasePanel.tsx"), "utf8");
   const graph = fs.readFileSync(path.join(__dirname, "../src/components/local/KnowledgeGraphView.tsx"), "utf8");
   const list = fs.readFileSync(path.join(__dirname, "../src/components/local/KnowledgeListView.tsx"), "utf8");

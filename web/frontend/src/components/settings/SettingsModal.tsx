@@ -1,5 +1,7 @@
 "use client";
 
+import { useWorkspaceBase } from "@/hooks/useWorkspaceBase";
+
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ExternalLink, WifiOff, X } from "lucide-react";
@@ -25,6 +27,7 @@ const BODIES: Partial<Record<SectionId, React.ComponentType>> = {
 };
 
 export default function SettingsModal({ onClose }: { onClose: () => void }) {
+  const base = useWorkspaceBase();
   const { status, refresh, uiPrefs } = useSettings();
   const zh = uiPrefs.language === "zh";
   const [active, setActive] = useState<SectionId>(SECTIONS[0].id);
@@ -48,7 +51,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
         aria-labelledby="settings-dialog-title"
         tabIndex={-1}
         onMouseDown={(e) => e.stopPropagation()}
-        className="rise-in surface flex h-[100dvh] w-full flex-col overflow-hidden rounded-none shadow-xl sm:h-[min(620px,85vh)] sm:w-[min(860px,92vw)] sm:rounded-2xl"
+        className="mobile-settings rise-in surface flex h-[100dvh] w-full flex-col overflow-hidden rounded-none shadow-xl sm:h-[min(620px,85vh)] sm:w-[min(860px,92vw)] sm:rounded-2xl"
       >
         <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
           <h1 id="settings-dialog-title" className="font-serif text-[16px] text-ink">{zh ? "设置" : "Settings"}</h1>
@@ -68,7 +71,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
         <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
           <div className="flex w-full shrink-0 items-center border-b border-line p-2 sm:w-44 sm:flex-col sm:items-stretch sm:justify-between sm:border-b-0 sm:border-r sm:p-3">
             <SectionNav active={active} onSelect={setActive} mode="tabs" />
-            <Link href="/settings" onClick={onClose}
+            <Link href={`${base}/settings`} onClick={onClose}
               className="hidden items-center gap-1.5 rounded-lg px-2.5 py-2 text-[12px] text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink sm:flex">
               <ExternalLink size={13} /> {zh ? "完整设置" : "Full settings"}
             </Link>

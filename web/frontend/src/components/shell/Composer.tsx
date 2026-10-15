@@ -628,7 +628,7 @@ export default function Composer({
       <LocalSourceControl controller={localLibrary} open={sourceOpen} onOpenChange={changeSourceOpen} />
       <form
         onSubmit={(e) => { e.preventDefault(); submit(); }}
-        className={`surface flex items-end gap-2 transition-shadow focus-within:border-line-strong ${
+        className={`research-composer-form surface flex items-end gap-2 transition-shadow focus-within:border-line-strong ${
           hero ? "rounded-2xl px-4 py-3.5 shadow-[0_2px_18px_rgba(21,34,56,0.06)]" : "rounded-2xl px-3.5 py-2.5"
         }`}
       >
@@ -690,6 +690,7 @@ export default function Composer({
         )}
         <textarea
           ref={ref}
+          aria-label="Research question"
           rows={1}
           value={text}
           onChange={(e) => { setText(e.target.value); setSel(0); setMenuDismissed(false); }}

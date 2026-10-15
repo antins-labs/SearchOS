@@ -138,7 +138,15 @@ class ResolveEvidenceResponse(BaseModel):
 
 @router.post("/search", response_model=SearchResponse)
 async def create_search(req: SearchRequest):
-    """Start a new search session (runs in background)."""
+    response = await launch_search_request(req)
+    from api.assistant.runtime import get_runtime
+    sid = response["session_id"] if isinstance(response, dict) else response.session_id
+    get_runtime().track_session(sid, req.model_dump())
+    return response
+
+
+async def launch_search_request(req: SearchRequest, session_id_override: str | None = None):
+    """Shared engine entry point for immediate and scheduled work."""
     from searchos.harness.telemetry.conversation_context import build_preamble
     from searchos.socm import ForeignKey, Relation, RelationKind
     from searchos.socm.frontier import FrontierTask
@@ -170,7 +178,7 @@ async def create_search(req: SearchRequest):
         # launcher resets SearchState for every turn, so only the current
         # document selection can contribute evidence while prior turns remain
         # available as conversational context and history.
-        session_id = req.follow_up_to or new_session_id()
+        session_id = req.follow_up_to or session_id_override or new_session_id()
         prior = sessions.get(session_id)
         if prior and prior["status"] == "running":
             raise HTTPException(409, f"Session {session_id} is still running")
@@ -191,6 +199,7 @@ async def create_search(req: SearchRequest):
             document_ids=req.sources.local.document_ids,
             history=local_history,
             selection=req.sources.local.selection,
+            max_time=req.max_time,
         )
     if source_mode == "web" and req.sources and req.sources.local is not None:
         raise HTTPException(422, "Web 模式不能夹带本地资料范围")
@@ -257,7 +266,7 @@ async def create_search(req: SearchRequest):
             state = SearchState(intent=req.query)
         context_preamble = build_preamble(history) or None
     else:
-        session_id = new_session_id()
+        session_id = session_id_override or new_session_id()
 
         # Build initial state. Entities/attrs only come from an explicit manual
         # pin (the /schema composer fields) — same autonomy as the CLI/TUI, which
@@ -354,6 +363,8 @@ async def _launch_search(
     from searchos.harness.session import SearchSession
     from searchos.harness.steering import SteeringQueue
 
+    from api.assistant.runtime import get_runtime
+    await get_runtime().before_replace(session_id)
     store = settings_store.store
     effort_snapshot: dict[str, int] | None = None
     if req.effort:

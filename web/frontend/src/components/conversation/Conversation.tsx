@@ -77,7 +77,7 @@ export default function Conversation({ turns, running, reconnecting = false, sto
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div ref={scrollViewportRef} onScroll={trackAutoFollow} className="min-h-0 flex-1 overflow-y-auto">
-        <div ref={scrollContentRef} className="mx-auto max-w-[760px] px-3 pb-6 pt-16 sm:px-5 min-[1180px]:px-6 min-[1180px]:py-8">
+        <div ref={scrollContentRef} className="conversation-content mx-auto max-w-[760px] px-3 pb-6 pt-16 sm:px-5 min-[1180px]:px-6 min-[1180px]:py-8">
           {turns.map((t, index) => (
             <TurnView
               key={t.id}

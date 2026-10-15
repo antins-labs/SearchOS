@@ -138,7 +138,7 @@ export default function ExecutionDrawer({
     if (event.key === "ArrowRight" || event.key === "ArrowDown") nextIndex = (index + 1) % tabs.length;
     else if (event.key === "ArrowLeft" || event.key === "ArrowUp") nextIndex = (index - 1 + tabs.length) % tabs.length;
     else if (event.key === "Home") nextIndex = 0;
-    else if (event.key === "End") nextIndex = TABS.length - 1;
+    else if (event.key === "End") nextIndex = tabs.length - 1;
     if (nextIndex === null) return;
     event.preventDefault();
     const nextTab = tabs[nextIndex].id;
@@ -149,7 +149,7 @@ export default function ExecutionDrawer({
   const body = (
     <div className="flex h-full min-h-0 flex-col bg-surface">
       {/* header */}
-      <div className="flex items-center gap-2 border-b border-line px-4 py-3">
+      <div className="activity-heading flex items-center gap-2 border-b border-line px-4 py-3">
         <span className="font-serif text-[16px] font-semibold text-ink">{isLocal ? "Local activity" : "Activity"}</span>
         {stateLabel && (
           <span className="flex items-center gap-1 text-[11px] text-ink-faint">
@@ -170,7 +170,7 @@ export default function ExecutionDrawer({
         </div>
       </div>
 
-      <div className="isolate min-h-0 flex-1 overflow-y-auto">
+      <div className="activity-scroll isolate min-h-0 flex-1 overflow-y-auto">
         {/* sub-agents */}
         <div className="border-b border-line">
           <button
@@ -191,7 +191,7 @@ export default function ExecutionDrawer({
         </div>
 
         {/* tabs */}
-        <div role="tablist" aria-label="Activity views" className="sticky top-0 z-50 flex gap-1 overflow-x-auto border-b border-line bg-surface px-1 sm:px-3">
+        <div role="tablist" aria-label="Activity views" className="activity-tabs sticky top-0 z-50 flex gap-1 overflow-x-auto border-b border-line bg-surface px-1 sm:px-3">
           {tabs.map((t, index) => (
             <button
               key={t.id}
