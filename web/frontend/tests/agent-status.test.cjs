@@ -44,6 +44,9 @@ test('失败卡片显示真实原因和重新排队状态，工具失败不冒�
   assert.equal(timeout.summary,'证据收尾超时');
   const deferred = agentIssue([event({type:'harness',kind:'evidence_comparison_deferred'})]);
   assert.equal(deferred.summary,'证据已保存，核验已延后');
+  const extraction = agentIssue([event({type:'harness',kind:'evidence_extraction_deferred'})]);
+  assert.equal(extraction.summary,'部分证据待抽取');
+  assert.equal(extraction.retry,'');
 });
 
 test('子代理输出最终文本后仍等待证据收尾，再以完成事件结束', () => {

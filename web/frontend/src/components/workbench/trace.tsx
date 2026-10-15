@@ -30,12 +30,14 @@ export function agentLabel(name: string): string {
 export function agentIssue(events: WSEvent[]): { summary: string; detail: string; retry: string } | null {
   let failure: Record<string, unknown> | null = null;
   let deferredReview = false;
+  let deferredExtraction = false;
   let retry = "";
   for (const event of events) {
     if (event.type !== "trajectory") continue;
     const data = (event.data ?? {}) as Record<string, unknown>;
     if (data.type === "agent_error") failure = data;
     if (data.kind === "evidence_comparison_deferred") deferredReview = true;
+    if (data.kind === "evidence_extraction_deferred") deferredExtraction = true;
     if (data.kind === "task_recycled") {
       retry = data.outcome === "requeued" ? "该任务已重新排队"
         : data.outcome === "review_required" ? "已保留证据，等待核对缺口"
@@ -52,6 +54,7 @@ export function agentIssue(events: WSEvent[]): { summary: string; detail: string
       : detail;
     return { summary, detail, retry };
   }
+  if (deferredExtraction) return { summary: "部分证据待抽取", detail: "已有证据已保存，未完成的观测已保留，可继续抽取。检索任务未重新排队。", retry: "" };
   return deferredReview ? { summary: "证据已保存，核验已延后", detail: "核验超过收尾时限，后续可继续核验已有证据。", retry: "" } : null;
 }
 

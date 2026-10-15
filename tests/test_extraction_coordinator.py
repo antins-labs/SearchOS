@@ -439,8 +439,8 @@ async def test_explicit_flush_reuses_only_same_agent_same_source_context() -> No
 
 
 @pytest.mark.asyncio
-async def test_parse_failure_releases_hash_for_one_retry() -> None:
-    judge = SequenceJudge(["not-json", json.dumps([_row()])])
+async def test_parse_failure_releases_hash_after_bounded_repair() -> None:
+    judge = SequenceJudge(["not-json"] * 3 + [json.dumps([_row()])])
     coordinator = ExtractionCoordinator(
         judge,
         InMemoryEvidenceStore(_state()),
@@ -456,7 +456,7 @@ async def test_parse_failure_releases_hash_for_one_retry() -> None:
     assert second.accepted is True
     assert second.duplicate is False
     assert len(second.committed_node_ids) == 1
-    assert judge.calls == 2
+    assert judge.calls == 4
 
 
 @pytest.mark.asyncio

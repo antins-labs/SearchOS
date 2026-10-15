@@ -115,20 +115,41 @@ class RowExtractor:
                 global_task=global_task,
                 coverage_snapshot=view,
             )
-        try:
-            raw = await self.invoke(prompt)
-        except Exception:  # noqa: BLE001
-            logger.warning("row extraction (%s) raised", mode, exc_info=True)
+        rows = None
+        raw = ""
+        for attempt in range(3):
+            retry_prompt = prompt
+            if attempt:
+                retry_prompt += (
+                    "\n\n[JSON format correction] The previous response was not a valid JSON array of objects. "
+                    "Return the complete result as valid JSON only. Quote all strings, including values "
+                    "containing units or symbols. Preserve source values and excerpts; do not calculate, "
+                    "drop rows or invent values to repair formatting. Return [] only when the sources support no rows."
+                )
+            try:
+                raw = await self.invoke(retry_prompt)
+            except Exception:  # noqa: BLE001
+                logger.warning("row extraction (%s) raised", mode, exc_info=True)
+                return [], False
+            self.call_count += 1
+            rows = self._parse_findings(raw) if raw else None
+            if rows is not None or not raw:
+                break  # invoke already bounds retries for transport failures
+            if attempt < 2 and self._trajectory_logger:
+                self._trajectory_logger._append_raw({
+                    "type": "harness", "kind": "judge_format_retry", "mode": mode,
+                    "attempt": attempt + 1, "source": items[0].get("source_url", "") if items else "",
+                })
+        if rows is None:
+            self._log_row_extraction_empty(raw, items[0] if items else {}, mode=mode)
             return [], False
-        rows = self._parse_findings(raw) if raw else []
-        self.call_count += 1
         if not rows:
-            reason = self._log_row_extraction_empty(
-                raw,
+            self._log_row_extraction_empty(
+                "[]",
                 items[0] if items else {},
                 mode=mode,
             )
-            return [], reason == "judge_returned_no_rows"
+            return [], True
         # Missing/invalid page tags are resolved from each row below. Until
         # then equal primary keys may refer to different sources.
         deduped = self.dedup_rows(rows, schema) if len(pages) == 1 else rows
@@ -304,16 +325,18 @@ class RowExtractor:
         return [row for rows in groups.values() for row in rows]
 
     @staticmethod
-    def _parse_findings(raw: str) -> list[dict]:
-        """Parse judge output: bare JSON array, embedded array, or single object."""
+    def _parse_findings(raw: str) -> list[dict] | None:
+        """有效空结果返回 []，格式错误返回 None，不把解析失败当作没有证据。"""
         from searchos.util.json_extract import extract_json_object
 
         raw = raw.strip()
+        if raw == "{}":
+            return []
         if raw.startswith("["):
             try:
                 arr = json.loads(raw)
                 if isinstance(arr, list):
-                    return arr
+                    return arr if all(isinstance(row, dict) for row in arr) else None
             except json.JSONDecodeError:
                 pass
         import re
@@ -323,13 +346,13 @@ class RowExtractor:
             try:
                 arr = json.loads(match.group())
                 if isinstance(arr, list):
-                    return arr
+                    return arr if all(isinstance(row, dict) for row in arr) else None
             except json.JSONDecodeError:
-                pass
+                return None
         obj = extract_json_object(raw)
         if obj and isinstance(obj, dict) and ("finding" in obj or "entity_hint" in obj):
             return [obj]
-        return []
+        return None
 
     @staticmethod
     def strip_row_metadata(row: dict[str, Any]) -> dict[str, Any]:

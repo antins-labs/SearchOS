@@ -83,12 +83,11 @@ async def test_slow_conflict_review_keeps_committed_facts_and_finishes(tmp_path,
 
 
 @pytest.mark.asyncio
-async def test_required_extraction_timeout_still_raises_and_retains_observation(tmp_path):
+async def test_extraction_timeout_defers_observation_without_failing_agent(tmp_path):
     judge = Judge(block_extraction=True)
     _, coordinator = setup(tmp_path, judge)
     assert (await coordinator.submit(observation())).accepted
-    with pytest.raises(TimeoutError):
-        await coordinator.finalize(timeout=0.05)
+    await coordinator.finalize(timeout=0.05)
     assert coordinator.summary().buffered == 1
     assert not coordinator.committed_node_ids
     assert judge.active == 0

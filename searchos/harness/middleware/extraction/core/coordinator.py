@@ -258,10 +258,22 @@ class ExtractionCoordinator:
     async def drain_before_model(self) -> ExtractionSummary:
         """等待已触发的抽取完成；未满且未切 URL 的缓冲留待后续观察。"""
         if self._recovered:
+            from searchos.config.settings import settings
+
             recovered, self._recovered = self._recovered, []
             self._flush_in_flight_count += len(recovered)
+            recovery_deadline = asyncio.timeout(settings.extraction_finalize_timeout_s)
             try:
-                await self._run_snapshot(recovered, reason="recovery")
+                async with recovery_deadline:
+                    await self._run_snapshot(recovered, reason="recovery")
+            except TimeoutError:
+                if not recovery_deadline.expired():
+                    raise
+                self._retain_failed(recovered, "recovery_timeout")
+                self._pending_feedback.append(
+                    "[Extraction feedback] Recovery timed out; observations remain saved for an extraction retry. "
+                    "Continue with committed evidence and assess remaining gaps."
+                )
             finally:
                 self._flush_in_flight_count -= len(recovered)
                 self._report_pending()
@@ -283,23 +295,31 @@ class ExtractionCoordinator:
         return self.summary()
 
     async def finalize(self, *, timeout: float = 30.0) -> ExtractionSummary:
-        """先提交观测，再用剩余时间核验；待核验证据无需重新检索。"""
+        """有界收尾；抽取超时保留观测，存储异常和外部取消继续传播。"""
         deadline = asyncio.get_running_loop().time() + timeout
         self._finalizing = True
         # 核验不占用证据提交的收尾时间；已启动的抽取仍须结算。
         for task in tuple(self._comparison_tasks):
             task.cancel()
+        settlement = asyncio.timeout_at(deadline)
+        deferred_reason = "extraction_failed"
         try:
             try:
-                async with asyncio.timeout_at(deadline):
+                async with settlement:
                     await self.drain_before_model()
                     await self.flush(reason="finalize")
             except TimeoutError:
+                if not settlement.expired():
+                    raise
                 pending = tuple(self._flush_tasks)
                 for task in pending:
                     task.cancel()
                 await asyncio.gather(*pending, return_exceptions=True)
-                raise
+                # _run_snapshot 已保存被取消的观测。尚未开始的缓冲仍在 journal。
+                deferred_reason = "finalize_timeout"
+                if self._background_flush_errors:
+                    errors, self._background_flush_errors = self._background_flush_errors, []
+                    raise RuntimeError("Background evidence extraction failed") from errors[0]
             keys = set(self._deferred_comparison_keys)
             if self._conflicts is not None and keys:
                 try:
@@ -307,7 +327,7 @@ class ExtractionCoordinator:
                         await self._conflicts.review(keys)
                 except TimeoutError:
                     # SOCM 保留 conflict_status=pending；后续调度核验可恢复。
-                    # 这里只容忍核验超时，抽取失败和外部取消仍向上传播。
+                    # 核验结果延后处理；外部取消仍向上传播。
                     if self._trajectory_logger:
                         self._trajectory_logger._append_raw({
                             "type": "harness", "kind": "evidence_comparison_deferred",
@@ -316,9 +336,17 @@ class ExtractionCoordinator:
                         })
                 else:
                     self._deferred_comparison_keys.difference_update(keys)
-            return self.summary()
+            summary = self.summary()
+            if summary.buffered and self._trajectory_logger:
+                self._trajectory_logger._append_raw({
+                    "type": "harness", "kind": "evidence_extraction_deferred",
+                    "agent": self.task.agent_id, "reason": deferred_reason,
+                    "observations": summary.buffered,
+                })
+            return summary
         finally:
             self._finalizing = False
+            self._store.report_extraction_pending(self, 0)
 
     async def _review_conflicts(self, keys: set[str]) -> None:
         if self._conflicts is None or not keys:
@@ -358,7 +386,7 @@ class ExtractionCoordinator:
             self._report_pending()
             try:
                 async with self._flush_semaphore:
-                    await self._run_snapshot(batch, reason=reason, raise_on_failure=False)
+                    await self._run_snapshot(batch, reason=reason)
             except Exception as exc:  # noqa: BLE001
                 self._background_flush_errors.append(exc)
                 logger.warning(
@@ -395,7 +423,7 @@ class ExtractionCoordinator:
                 b.evidence_id for b in before.evidence_graph.task_bindings if b.task_id == task_id
             }
             async with self._flush_semaphore:
-                reports = await self._run_snapshot([item], reason=reason, raise_on_failure=False)
+                reports = await self._run_snapshot([item], reason=reason)
             after = self._store.load_state()
             attached = {
                 b.evidence_id for b in after.evidence_graph.task_bindings if b.task_id == task_id
@@ -429,7 +457,6 @@ class ExtractionCoordinator:
             total = (
                 len(self._pending_buffer)
                 + self._flush_in_flight_count
-                + len(getattr(self, "_retry_items", {}))
                 + len(getattr(self, "_recovered", []))
             )
             self._store.report_extraction_pending(self, total)
@@ -440,10 +467,11 @@ class ExtractionCoordinator:
         """取出剩余与失败批次；失败时保留原始观测，允许下一次显式结算重试。"""
         async with self._buffer_lock:
             combined = {item["content_hash"]: item for item in self._pending_buffer}
-            combined.update(self._retry_items)
+            if reason != "finalize":
+                combined.update(self._retry_items)
+                self._retry_items.clear()
             snapshot = list(combined.values())
             self._pending_buffer.clear()
-            self._retry_items.clear()
         if snapshot:
             self._flush_in_flight_count += len(snapshot)
             try:
@@ -453,7 +481,7 @@ class ExtractionCoordinator:
                 self._report_pending()
         self._report_pending()
 
-    async def _run_snapshot(self, snapshot, *, reason, raise_on_failure=True):
+    async def _run_snapshot(self, snapshot, *, reason):
         """执行及结算持久记录；取消或异常不能使已接收观测凭空消失。"""
         try:
             reports = await self._flush_snapshot(snapshot, reason=reason)
@@ -463,8 +491,6 @@ class ExtractionCoordinator:
                     "[Extraction feedback] Extraction failed; observations are retained for retry. "
                     "This is not an empty evidence result."
                 )
-                if raise_on_failure:
-                    raise RuntimeError("Evidence extraction returned a failed report")
             else:
                 for item in snapshot:
                     self._extracted_content_hashes.add(item["content_hash"])

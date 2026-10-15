@@ -987,6 +987,16 @@ def _compute_agent_report(
         + (f", {len(discovered)} new rows" if discovered else "")
     )
     result = f"{result}: {own_delta}" if result else own_delta
+    pending_extraction = sum(
+        resource.summary().buffered
+        for resource in (extractions or ((extraction,) if extraction else ()))
+        if callable(getattr(resource, "summary", None))
+    )
+    if pending_extraction:
+        result += (
+            f"; {pending_extraction} observation(s) retained for extraction retry. "
+            "Extraction is incomplete; use committed evidence and inspect the remaining gaps."
+        )
 
     return SearchReport(
         agent_id=agent_id,

@@ -16,6 +16,38 @@ from searchos.socm.workspace import WorkspaceManager
 from searchos.tools import tasks
 
 
+@pytest.mark.parametrize("plural", [False, True])
+def test_deferred_extraction_preserves_evidence_without_requeue(tmp_path, plural):
+    workspace = WorkspaceManager(tmp_path, "deferred-extraction")
+    workspace.create()
+    state = SearchState(intent="research", research_mode="findings")
+    state.frontier.add(FrontierTask(id="task", question="research", attempts=1,
+        status=FrontierTaskStatus.RUNNING, assigned_agent_id="search_agent"))
+    state.evidence_graph.add_node(EvidenceNode(id="fact", finding="supported fact",
+                                             source="https://example.org"))
+    bind_task_evidence(state, "task", ["fact"])
+    workspace.save_state(state)
+    set_orchestrator_context(workspace=workspace, model=object())
+    extraction = SimpleNamespace(committed_node_ids=frozenset({"fact"}),
+                                 summary=lambda: SimpleNamespace(buffered=1))
+    _ctx.agent_graphs["search_agent"] = {
+        "agent_type": "search_agent", "assigned_task_id": "task",
+        **({"extractions": (extraction,)} if plural else {"extraction": extraction}),
+    }
+
+    report = _compute_agent_report(agent_id="search_agent", thread_id="search_agent",
+        pre_snapshot={"evidence_ids": set(), "filled_keys": set()}, started_at=0,
+        status="completed", result="Finished", last_ai_text="partial report")
+
+    assert report.status == "completed"
+    assert report.evidence_nodes_added == 1
+    assert "1 observation(s) retained for extraction retry" in report.result
+    current = workspace.load_state()
+    assert current.frontier.questions[0].status == FrontierTaskStatus.COMPLETED
+    assert current.frontier.questions[0].attempts == 1
+    assert current.evidence_graph.get_node("fact") is not None
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("status,active,reassigned", [
     ("looped", True, False),
