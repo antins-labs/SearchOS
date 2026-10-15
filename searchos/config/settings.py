@@ -208,9 +208,9 @@ class Settings(BaseSettings):
     enable_skills: bool = True
     skill_library_path: str = "searchos/skills/library"
     browser_auth_dir: str = '.searchos/browser-auth'
-    # Access-catalog top-k pre-filter via the ``skill_router`` LLM role; fail-open.
+    # 按需目录查询使用 skill_router 做语义匹配；关闭后保留名称/关键词查找。
     enable_skill_router: bool = True
-    skill_router_top_k: int = 40
+    skill_router_top_k: int = 40  # 每次查询的候选上限，工具分页返回。
     skill_promotion_threshold: float = 0.6
     skill_optimization_threshold: float = 0.8
     max_anti_patterns_per_skill: int = 8

@@ -29,7 +29,7 @@ const KNOB_HINTS: Record<string, { zh: string; en: string }> = {
   max_finds_per_sub_agent: { zh: "每个子智能体在已打开页面中查找文本的次数。", en: "Maximum text searches inside opened pages per agent." },
   max_skills_per_sub_agent: { zh: "每个子智能体可调用的访问技能次数。", en: "Maximum access-skill calls per agent." },
   default_max_time_s: { zh: "该档位采用的任务总时长限制。", en: "Wall-clock limit applied by this effort level." },
-  skill_router_top_k: { zh: "任务开始前最多保留多少个候选技能。", en: "Maximum candidate skills retained before a run." },
+  skill_router_top_k: { zh: "每次按需查询最多返回多少个相关候选技能。", en: "Maximum relevant candidates per on-demand skill query." },
   max_search_agents_per_session: { zh: "一次研究中最多创建多少个检索智能体；0 表示不限制。", en: "Maximum search agents created in one run; 0 disables the cap." },
   search_agent_no_progress_tool_limit: { zh: "单个检索智能体连续调用工具但没有新增阅读或事实后，触发收尾的次数。", en: "Finalize an agent after this many tool calls add no reading or facts." },
 };

@@ -157,7 +157,7 @@ Runtime tool availability and limits are authoritative.
 
 {skill_catalog}
 
-Select skills for their capabilities and respect runtime availability.
+Let search agents discover skills for their current task. The optional `skills` field carries known recommendations, not a required selection or permission grant.
 
 # Research Workflow
 
@@ -319,7 +319,7 @@ Per-dispatch default budgets: max {max_searches_per_agent} retrieval actions and
 
 {skill_catalog}
 
-When dispatching a sub-agent, pass `skills=[...]` with up to 3 skill names from the catalog.
+Let search agents discover skills for their current task. Omit `skills` by default; use it only for known recommendations from this run. Never invent a skill name.
 {playbook_block}
 
 # Tools

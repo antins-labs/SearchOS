@@ -74,7 +74,7 @@ def test_duplicate_names_diagnosed(tmp_path):
 @pytest.mark.asyncio
 async def test_router_empty_and_cap(tmp_path):
     from types import SimpleNamespace
-    from searchos.skills.catalog.router import select_access_skills
+    from searchos.skills.catalog.router import discover_skills
     for i in range(4):
         package(tmp_path, f'skill-{i}')
     reg = SkillRegistry(all_disabled=False, disabled_layers=[])
@@ -84,9 +84,10 @@ async def test_router_empty_and_cap(tmp_path):
         async def ainvoke(self, messages):
             return SimpleNamespace(content=self.content)
     model = Model()
-    assert await select_access_skills('q', reg, top_k=2, model=model) == set()
-    model.content = '{"skills": ["skill-3", "skill-2", "skill-1"]}'
-    assert await select_access_skills('q', reg, top_k=2, model=model) == {'skill-3', 'skill-2'}
+    assert await discover_skills('q', reg.list_all(), limit=2, model=model) == []
+    model.content = '{"skills": [{"name":"skill-3"}, {"name":"skill-2"}, {"name":"skill-1"}]}'
+    result = await discover_skills('q', reg.list_all(), limit=2, model=model)
+    assert [item['name'] for item in result] == ['skill-3', 'skill-2']
 
 
 def test_staging_validation_and_disabled(tmp_path):

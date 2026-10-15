@@ -82,6 +82,7 @@ class SkillRegistry:
     ) -> None:
         self.diagnostics: list[str] = []
         self._skills: dict[str, Skill] = {}  # name → Skill
+        self.discovery_cache: dict[tuple, list[dict]] = {}
         self._dir_mtime_cache: dict[str, tuple[str, int]] = {}
         self._excluded: set[str] = canonical_skill_names(set(excluded or set()) | _env_excluded())
         # Whitelist — arg wins, else env var, else None (no filter).
@@ -317,7 +318,7 @@ class SkillRegistry:
         """Generate a compact skill catalog for LLM consumption.
 
         ``access_allow``: when set, list only access skills named in it (the
-        ``skill_router`` top-k pre-filter). ``strategy_allow``: when set, list
+        caller's explicit filter). ``strategy_allow``: when set, list
         only strategy skills named in it (the ``/skill`` picker's unchecked
         set subtracted); ``None`` keeps all strategy skills.
 

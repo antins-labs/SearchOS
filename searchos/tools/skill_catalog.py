@@ -98,15 +98,17 @@ def _banned_skills_from_state() -> set[str]:
 
 
 @tool
-async def list_skills(category: str = "", availability: str = "", query: str = "", offset: int = 0, limit: int = 20) -> str:
-    """List available skills.
+async def list_skills(category: str = "", availability: str = "", query: str = "", offset: int = 0, limit: int = 5) -> str:
+    """Discover skills for your current task, source or missing capability.
 
-    Returns names, descriptions, categories, availability, executor flags,
-    triggers, counts, and session bans. Skills banned as AntiPatterns in this
-    session are filtered out.
+    query accepts a natural-language need in any language, an exact skill name,
+    or a source domain/URL. Results are ranked candidates with match reasons;
+    load_skill to check instructions and limitations before deciding to use one.
+    Empty query browses the directory without model selection. No match is fine:
+    continue with ordinary web tools. An error is not evidence of no matching skill.
 
     Args:
-        category (str): ``"strategy"`` | ``"access"`` | ``"orchestrator"`` — empty = all.
+        category (str): ``"strategy"`` | ``"access"`` | ``"orchestrator"`` — empty = access + strategy.
         availability (str): ``"enabled"`` | ``"disabled"`` — empty = all.
             The runtime registry contains enabled Skills only.
     """
@@ -117,7 +119,11 @@ async def list_skills(category: str = "", availability: str = "", query: str = "
     if reg is None:
         return json.dumps({"skills": [], "count": 0, "error": "skill registry not bound"})
     banned = _banned_skills_from_state()
-    out = []
+    if category and category not in {'access', 'strategy', 'orchestrator'}:
+        return json.dumps({'skills': [], 'count': 0, 'error': 'invalid skill category'})
+    if len(query) > 2000:
+        return json.dumps({'skills': [], 'count': 0, 'error': 'Describe the current retrieval need in at most 2000 characters.'})
+    candidates = []
     banned_hits = 0
     for s in reg.list_all():
         if not _skill_allowed(s):
@@ -129,9 +135,23 @@ async def list_skills(category: str = "", availability: str = "", query: str = "
             continue
         if availability and s.meta.availability.value != availability:
             continue
-        if query and query.casefold() not in (s.meta.name + " " + s.meta.description).casefold():
+        if not category and s.meta.category.value == 'orchestrator':
             continue
-        out.append({
+        candidates.append(s)
+    matches = {}
+    if query.strip():
+        from searchos.skills.catalog.router import discover_skills
+        try:
+            ranked = await discover_skills(query, candidates, limit=settings.skill_router_top_k,
+                cache=getattr(reg, 'discovery_cache', None), semantic=settings.enable_skill_router)
+        except Exception as exc:
+            return json.dumps({'skills': [], 'count': 0, 'error': 'skill_discovery_failed',
+                'error_type': type(exc).__name__,
+                'note': 'Discovery could not complete. Retry later, browse with an empty query, or continue with web tools.'})
+        by_name = {s.meta.name: s for s in candidates}
+        candidates = [by_name[item['name']] for item in ranked]
+        matches = {item['name']: item['reason'] for item in ranked}
+    out = [{
             "name": s.meta.name,
             "description": (s.meta.description or s.meta.trigger or "")[:500],
             "package_format": s.package_format,
@@ -140,7 +160,9 @@ async def list_skills(category: str = "", availability: str = "", query: str = "
             "has_executor": s.meta.has_executor,
             "has_scripts": any(resource.startswith("scripts/") for resource in s.resources),
             "trigger": s.meta.trigger,
-        })
+            "compatibility": s.meta.compatibility,
+            **({'match_reason': matches[s.meta.name]} if s.meta.name in matches else {}),
+        } for s in candidates]
     start, size = max(0, offset), min(50, max(1, limit))
     return json.dumps(
         {"skills": out[start:start + size], "count": len(out), "banned": banned_hits,

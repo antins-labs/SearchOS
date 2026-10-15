@@ -304,11 +304,9 @@ class SearchSession:
         waits for the current tool batch. Middleware commits each message once
         within the same graph. Neither mode cancels running sub-agents.
 
-        ``access_only`` (optional): when set, the orchestrator's access-skill
-        catalog is restricted to exactly these skill names, overriding the
-        query-driven router. ``access_deny`` (optional): names removed from the
-        catalog whatever the router selects. Both let the interactive TUI's
-        ``/skill`` command pin / disable specific access skills.
+        ``access_only`` (optional) limits discovery and execution to these access
+        skills. ``access_deny`` removes names before discovery and execution.
+        Both let the interactive TUI's ``/skill`` command set the allowed scope.
 
         ``strategy_deny`` (optional): strategy-skill names hidden from the
         sub-agent catalog. ``orchestrator_deny`` (optional): orchestrator-skill
@@ -492,37 +490,14 @@ class SearchSession:
                 ]
             orchestrator_playbook = render_playbook(orch_candidates)
 
-            # Query-driven top-k pre-filter; fail-open (None → full catalog).
-            access_allow = None
-            if settings.enable_skill_router:
-                from searchos.skills.catalog.router import select_access_skills
-                access_allow = await select_access_skills(
-                    query,
-                    self._skill_registry,
-                    top_k=settings.skill_router_top_k,
-                )
-            # TUI /skill overrides: ``access_only`` pins the catalog to an exact
-            # set (ignoring the router); ``access_deny`` subtracts names from
-            # whatever the catalog would otherwise be.
-            if access_only is not None:
-                access_allow = set(access_only)
-            if access_deny:
-                if access_allow is None:
-                    access_allow = {
-                        s.meta.name
-                        for s in self._skill_registry.list_by_category(SkillCategory.ACCESS)
-                    }
-                access_allow = set(access_allow) - set(access_deny)
-            # Strategy skills carry no router; default all-on, minus any the
-            # /skill picker unchecked.
-            strategy_allow = None
-            if strategy_deny:
-                strategy_allow = {
-                    s.meta.name
-                    for s in self._skill_registry.list_by_category(SkillCategory.STRATEGY)
-                } - set(strategy_deny)
-            skill_catalog = self._skill_registry.generate_catalog(
-                access_allow=access_allow, strategy_allow=strategy_allow)
+            # 子 agent 按当前检索需求发现技能；权限仍由上面的 policy 约束。
+            skill_catalog = (
+                "Search agents start each task by discovering Access and Strategy skills with "
+                "list_skills(query=their current retrieval need), then read load_skill "
+                "before use. Give them the task, source hints and acceptance criteria. "
+                "The skills field is optional; omit it unless you already know a suitable "
+                "skill from this run. Do not guess skill names."
+            )
         else:
             orchestrator_playbook = ""
             skill_catalog = ""

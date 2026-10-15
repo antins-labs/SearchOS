@@ -14,6 +14,15 @@ from searchos.tools.search_state import _current_task_var
 SECRET = '候选秘密方法：直接检查官方年度报告的收入表。'
 TASK = '查明 Example 公司 2025 年收入，并给出官方来源。'
 
+
+@pytest.fixture(autouse=True)
+def isolate_fixture_library(monkeypatch):
+    # 本地测试库不继承 WebUI/环境对真实技能库的禁用与筛选配置。
+    for name in ('SEARCHOS_SKILLS_DISABLED', 'SEARCHOS_SKILL_LAYERS_DISABLED',
+                 'SEARCHOS_SKILL_ONLY', 'SEARCHOS_SKILL_EXCLUDE'):
+        monkeypatch.delenv(name, raising=False)
+
+
 class Builder:
     async def ainvoke(self, messages):
         return AIMessage(content='---\nname: official-revenue\ndescription: 从官方报告核对收入\nmetadata:\n  searchos-category: strategy\n---\n'+SECRET)

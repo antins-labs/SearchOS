@@ -1093,10 +1093,7 @@ async def _spawn_sub_agent(
             return s
         _ctx.workspace.atomic_update_state(_bind)
 
-    # Per-role assembly (paper §Agent Roles): each role package owns its
-    # toolset. ``agent_type`` is already normalized to a known role above, so
-    # web search injects typed skill_* tools, local search gets local-only
-    # tools, explore gets browser only, writer gets drafting tools.
+    # 各角色拥有独立工具集；Web Search 使用固定的技能发现、加载和 exec 工具。
     role = _ROLE_REGISTRY[agent_type]
     from searchos.tools.search_state import _source_scope_var
     source_scope = _source_scope_var.get()
@@ -1185,13 +1182,16 @@ async def _spawn_sub_agent(
             prompt_parts.append(socm_block)
 
     missing_skills: list[str] = []
-    if skill_names and _ctx.skill_registry:
+    if skill_names and _ctx.skill_registry and any(getattr(t, 'name', '') == 'load_skill' for t in tools):
+        from searchos.tools.skill_catalog import _skill_allowed
         skill_parts: list[str] = []
         for sname in skill_names:
             skill = _ctx.skill_registry.get(sname)
             if not skill:
                 logger.warning("Skill '%s' not found in registry — Orchestrator hallucinated a name", sname)
                 missing_skills.append(sname)
+                continue
+            if not _skill_allowed(skill):
                 continue
             if skill.body:
                 skill_parts.append(f"### {skill.meta.name}\n{skill.meta.description}")
@@ -1210,9 +1210,9 @@ async def _spawn_sub_agent(
                         + ap_index
                     )
                 skill_parts.append(
-                    f"Call `load_skill(\"{sname}\")` to bind the package version, "
-                    "then follow its instructions with `exec`. Read the returned "
-                    "skill:// pages with `open/find`; command logs are diagnostics."
+                    f"Consider `load_skill(\"{sname}\")` if it fits the current need. "
+                    "Apply method instructions through your existing tools; use exec "
+                    "only for documented scripts. You may discover a better fit with list_skills."
                 )
         if skill_parts:
             prompt_parts.append("## Recommended Skills\n" + "\n\n".join(skill_parts))
