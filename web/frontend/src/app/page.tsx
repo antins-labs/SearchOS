@@ -8,7 +8,8 @@ import { useLocalLibrary } from "@/hooks/useLocalLibrary";
 import { useLiveFollowUps } from "@/hooks/useLiveFollowUps";
 import { branchHistoryTurn, getWorkspaceFiles, listHistory, loadHistory, updateHistoryAssets, deleteHistory, resolveEvidence, stopSearch, type HistoryAssetPatch, type HistoryItem, type HistoryTurn } from "@/lib/api";
 import { deriveAnswer, foldWorkers } from "@/lib/derive";
-import type { FileNode, RepairCellTarget, SearchState, WSEvent } from "@/lib/types";
+import type { FileNode, RepairCellTarget, SearchState, SourceSelection, WSEvent } from "@/lib/types";
+import { sourceSelectionForTurn } from "@/lib/sourceSelection";
 import {
   continuationSessionId,
   historyEventSegments,
@@ -225,8 +226,9 @@ export default function Home() {
       setStopPending(false);
       // Keep the conversation across modes. The server fixes each turn's
       // source scope and resets prior evidence whenever that scope changes.
-      const localRun = opts.sources?.mode === "local";
-      const sourceMode = opts.sources?.mode ?? "web";
+      const sources: SourceSelection = structuredClone(opts.sources ?? { mode: "web" });
+      const localRun = sources.mode === "local";
+      const sourceMode = sources.mode;
       const followUpTo = continuationSessionId(turns, sourceMode, freshRun);
       const sessionTurns = followUpTo
         ? turns
@@ -241,7 +243,7 @@ export default function Home() {
       const turn: Turn = {
         id, query: q, sessionId: null, status: "running",
         events: [], workers: [], searchState: null, stateSource: "live",
-        sourceMode, answer: "", meta: {}, error: null,
+        sourceMode, sources, answer: "", meta: {}, error: null,
       };
       setTurns((prevTurns) => freshRun ? [turn] : [...prevTurns, turn]);
       setActiveTurnId(id);
@@ -267,7 +269,7 @@ export default function Home() {
           skills: overrides.skills,
           trusted_domains: localRun ? [] : overrides.trusted_domains,
           excluded_domains: localRun ? [] : overrides.excluded_domains,
-          sources: opts.sources,
+          sources,
           follow_up_to: followUpTo,
           history,
         },
@@ -277,9 +279,11 @@ export default function Home() {
     [run, overrides, turns],
   );
 
-  const handleRerun = useCallback((query: string) => {
-    handleSubmit(query, {}, true);
-  }, [handleSubmit]);
+  const handleRerun = useCallback((turn: Turn) => {
+    const sources = sourceSelectionForTurn(turn);
+    restoreSourceSelection(sources);
+    handleSubmit(turn.query, { sources }, true);
+  }, [handleSubmit, restoreSourceSelection]);
 
   const handleRepair = useCallback((sourceTurn: Turn, cells: RepairCellTarget[]) => {
     if (sessionActive || !sourceTurn.sessionId || !sourceTurn.searchState || cells.length === 0) return;
@@ -495,19 +499,7 @@ export default function Home() {
           };
         });
         const turn = restored[last];
-        const scope = turn.searchState?.source_scope;
-        const restoredMode = scope?.mode ?? turn.sourceMode ?? "web";
-        const documentIds = scope?.document_ids ?? scope?.documents.map((document) => document.document_id) ?? [];
-        const restoredSelection = scope?.selection ?? (documentIds.length > 0 ? "documents" : "library");
-        restoreSourceSelection({
-          mode: restoredMode,
-          ...(restoredMode !== "web" && scope?.library_id
-              && (restoredMode === "local" || documentIds.length > 0) ? {
-            local: { library_id: scope.library_id,
-              document_ids: restoredSelection === "documents" ? documentIds : [],
-              selection: restoredSelection, model_access: true as const },
-          } : {}),
-        });
+        restoreSourceSelection(sourceSelectionForTurn(turn));
         setDrawerTurnId(null);
         setSelectedFile(null);
         setTurns(restored);

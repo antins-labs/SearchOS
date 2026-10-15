@@ -23,7 +23,7 @@ interface Props {
   onSubmit: (q: string, opts: SubmitOpts) => void;
   liveFollowUps?: LiveFollowUpController;
   onStop?: () => void;
-  onRerun: (query: string) => void;
+  onRerun: (turn: Turn) => void;
   onRepair: (turn: Turn, cells: RepairCellTarget[]) => void;
   onOpenDrawer: (turnId: string) => void;
   registerTurnRef?: (id: string, el: HTMLDivElement | null) => void;
@@ -84,7 +84,7 @@ export default function Conversation({ turns, running, reconnecting = false, sto
               key={t.id}
               turn={t}
               onOpen={() => onOpenDrawer(t.id)}
-              onRerun={() => onRerun(t.query)}
+              onRerun={() => onRerun(t)}
               onRepairCells={!running && repairSource?.id === t.id
                 ? (cells) => onRepair(t, cells)
                 : undefined}

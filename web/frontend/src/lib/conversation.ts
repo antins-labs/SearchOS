@@ -1,4 +1,4 @@
-import type { CoverageCell, ModelDistributionItem, RepairCellTarget, SearchState, TokenPhaseUsage, TokenUsage, WSEvent } from "./types";
+import type { CoverageCell, ModelDistributionItem, RepairCellTarget, SearchState, SourceSelection, TokenPhaseUsage, TokenUsage, WSEvent } from "./types";
 import type { WorkerInfo } from "./types";
 
 export interface RepairCellSnapshot extends RepairCellTarget {
@@ -15,6 +15,8 @@ export interface Turn {
   searchState: SearchState | null;
   stateSource?: "live" | "snapshot" | "latest" | "unavailable";
   sourceMode?: "web" | "local" | "hybrid";
+  /** 提交时保存来源范围，首个后端快照返回前失败也能重试。 */
+  sources?: SourceSelection;
   answer: string;
   /** Live follow-ups steered into this turn while it was running. */
   followUps?: string[];
