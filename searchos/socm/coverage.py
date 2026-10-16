@@ -74,7 +74,8 @@ class CoverageCell(CamelModel):
     """One cell (entity × attribute). Holds the set of supporting evidence
     ids — not a single canonical value; the synthesizer reads all findings
     and decides how to render. ``status`` derives from best alignment seen;
-    ``display_hint`` is a short cached snippet for live summaries."""
+    ``display_hint`` is a short cached snippet for live summaries;
+    ``full_value`` preserves the selected projection for tools and exports."""
 
     status: CellStatus = CellStatus.MISSING
     supporting_evidence_ids: list[str] = []
@@ -83,6 +84,7 @@ class CoverageCell(CamelModel):
     best_tier: int = 1                 # provenance tier of winner (2 anchored / 1 page / 0 derived)
     has_conflict: bool = False
     display_hint: str = ""
+    full_value: str | None = None
     primary_evidence_id: str = ""
     conflict_evidence_ids: list[str] = Field(default_factory=list)
     conflict_history_evidence_ids: list[str] = Field(default_factory=list)
@@ -91,7 +93,7 @@ class CoverageCell(CamelModel):
     @computed_field  # type: ignore[misc]
     @property
     def value(self) -> str:
-        return self.display_hint
+        return self.full_value if self.full_value is not None else self.display_hint
 
 
 class CellEvidenceBinding(CamelModel):
@@ -490,6 +492,7 @@ class CoverageMap(CamelModel):
             cell.best_confidence = confidence
             cell.best_tier = tier
             if display_hint:
+                cell.full_value = display_hint
                 cell.display_hint = display_hint[:120]
             if finding_id:
                 cell.primary_evidence_id = finding_id
@@ -604,6 +607,7 @@ class CoverageMap(CamelModel):
                     pk_values = new_name.split("|") if pk and "|" in new_name else [new_name]
                     pk_idx = pk.index(attr) if attr in pk else 0
                     cell.display_hint = pk_values[pk_idx] if pk_idx < len(pk_values) else new_name
+                    cell.full_value = cell.display_hint
                 self.cells[new_key] = cell
         return True, f"renamed {canonical!r} → {new_name!r}", canonical
 
@@ -690,7 +694,7 @@ class CoverageMap(CamelModel):
                     node.entity, node.attribute,
                     finding_id=node.id, alignment=self._fill_alignment(node),
                     confidence=self._effective_confidence(node), tier=self._fill_tier(node),
-                    display_hint=(node.value or node.finding)[:120], table_id=tid,
+                    display_hint=node.value or node.finding, table_id=tid,
                 )
                 filled += 1
         return filled

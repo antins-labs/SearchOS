@@ -1192,13 +1192,16 @@ async def inspect_table(
             filled = every data column filled; partial = some; empty = none.
         with_values: include a ``values`` map of the current cell values for
             every row with at least one filled cell (default True). Set False
-            for a pure scope audit on very wide tables.
+            for a pure scope audit on very wide tables. ``citations`` maps the
+            same cells to evidence references. Use `[label](evidence:ID)` in
+            answers; use read_evidence for the original source and excerpt.
 
     Returns:
         JSON — always complete, never truncated:
         ``{"table_id", "total_rows", "columns": [data cols...],
         "filled": [pk...], "partial": {pk: [missing columns...]},
-        "empty": [pk...], "values": {pk: {col: value, ...}, ...}}``
+        "empty": [pk...], "values": {pk: {col: value, ...}, ...},
+        "citations": {pk: {col: "evidence:ID", ...}, ...}}``
         (only the groups selected by ``status``; ``values`` omitted when
         ``with_values`` is False or ``status`` is "empty").
     """
@@ -1223,6 +1226,10 @@ async def inspect_table(
     partial: dict[str, list[str]] = {}
     empty: list[str] = []
     values: dict[str, dict[str, str]] = {}
+    citations: dict[str, dict[str, str]] = {}
+    from searchos.socm.coverage import answer_evidence, project_cell_evidence
+
+    evidence = {node.id: node for node in answer_evidence(state)} if with_values else {}
     for ent in ts.entities:
         cells = {a: cmap.cells.get(cmap.cell_key(tid, ent, a))
                  for a in data_cols}
@@ -1236,13 +1243,22 @@ async def inspect_table(
             1 for c in cells.values()
             if c is not None and c.status.value == "filled"
         )
-        # Current value per filled cell (display_hint = best-alignment snippet).
+        # Full selected projection; display_hint is only a live-summary preview.
         row_vals = {
             a: c.value for a, c in cells.items()
             if c is not None and c.status.value == "filled" and c.value
         }
         if row_vals:
             values[ent] = row_vals
+            refs = {
+                attr: f"evidence:{cell.primary_evidence_id}"
+                for attr, cell in cells.items()
+                if attr in row_vals and cell is not None
+                and (node := evidence.get(cell.primary_evidence_id)) is not None
+                and project_cell_evidence(cmap, node, tid, ent, attr) is not None
+            }
+            if refs:
+                citations[ent] = refs
         if not missing:
             filled.append(ent)
         elif n_filled == 0:
@@ -1268,6 +1284,7 @@ async def inspect_table(
         else:  # partial
             selected = {k: v for k, v in values.items() if k in partial}
         out["values"] = dict(sorted(selected.items()))
+        out["citations"] = {row: citations[row] for row in sorted(selected) if row in citations}
     return json.dumps(out, ensure_ascii=False)
 
 

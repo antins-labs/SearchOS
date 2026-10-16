@@ -185,6 +185,28 @@ class SearchState(CamelModel):
     """Top-level search state — single source of truth, persisted as
     workspace/search_state.json."""
 
+    def model_post_init(self, __context: Any) -> None:
+        """旧快照从已选证据恢复完整值；保留排序、状态与单元格投影。"""
+        from searchos.socm.coverage import (
+            CellStatus,
+            evidence_source_allowed,
+            project_cell_evidence,
+        )
+
+        cmap = self.coverage_map
+        for key, cell in cmap.cells.items():
+            if cell.full_value is not None or cell.status != CellStatus.FILLED:
+                continue
+            target = cmap.cell_binding(key)
+            if target is None or target[2] in cmap.tables[target[0]].primary_key:
+                continue
+            node = self.evidence_graph.get_node(cell.primary_evidence_id)
+            if node is None or not evidence_source_allowed(self, node):
+                continue
+            projected = project_cell_evidence(cmap, node, *target)
+            if projected is not None:
+                cell.full_value = projected.value or projected.finding
+
     intent: str = ""
     research_plan: ResearchPlan | None = None
     # None retains CLI compatibility; WebUI always supplies an explicit scope.
