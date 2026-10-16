@@ -67,3 +67,20 @@ test("保存页面区域独立于证据视图，证据数不被路径挤掉", ()
   assert.ok(savePanel >= 0 && tabs > savePanel);
   assert.match(source, /shrink-0 text-\[9\.5px\] text-ink-faint">关联 \{source\.evidenceCount\} 条证据/);
 });
+
+test("内部观测链接追溯原文，不把执行快照当作原文缓存", () => {
+  const { groupEvidenceBySource, evidenceSourceUrls } = loadEvidenceList();
+  const node = { id: "fact", claim: "A", source: "skill://lookup/run", page_id: "snapshot",
+    source_urls: ["https://example.org/a", "https://example.org/b", "javascript:alert(1)"],
+    confidence: 0.8, entity: "", attribute: "" };
+  assert.deepEqual(Array.from(evidenceSourceUrls(node)), ["https://example.org/a", "https://example.org/b"]);
+  const pages = groupEvidenceBySource([node]);
+  assert.equal(pages.length, 2);
+  assert.ok(pages.every((page) => page.pageId === ""));
+  const html = require("react-dom/server").renderToStaticMarkup(require("react").createElement(
+    loadEvidenceList().default, { nodes: [node], defaultView: "all" },
+  ));
+  assert.match(html, /href="https:\/\/example.org\/a"/);
+  assert.match(html, /href="https:\/\/example.org\/b"/);
+  assert.doesNotMatch(html, /href="skill:/);
+});

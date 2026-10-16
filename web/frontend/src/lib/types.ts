@@ -473,6 +473,7 @@ export interface CellEvidenceBinding {
 }
 
 export interface EvidenceNode {
+  source_urls?: string[];
   id: string;
   claim: string;
   value?: string;

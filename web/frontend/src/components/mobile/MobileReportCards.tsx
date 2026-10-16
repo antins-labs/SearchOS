@@ -50,7 +50,7 @@ export default function MobileReportCards({ table, cells, evidence, onOpenSource
         {selected.fields.filter(field => field.text !== selected.title || field.conflict || field.status !== "filled").map(field => <section key={field.name} className={s.digestField}>
           <h4>{field.name}{field.conflict ? <span>信息有冲突</span> : field.status === "uncertain" || field.status === "hard_cell" ? <span>待核实</span> : null}</h4>
           {!field.text || field.status === "missing" ? <p className={s.caption}>暂无信息</p> : field.links.length ? <div className={s.digestSources}>{field.links.map(url => url.startsWith("local://") ? <button key={url} onClick={() => { setSelectedId(null); onOpenSource(url); }}>{sourceName(url)}<ArrowUpRight size={16} /></button> : <a key={url} href={url} target="_blank" rel="noopener noreferrer"><span>{sourceName(url)}<small>{url}</small></span><ArrowUpRight size={16} /></a>)}</div> :
-            <Answer markdown={field.text} localSources={evidence.map(node => node.source).filter(source => source.startsWith("local://"))} evidenceSources={Object.fromEntries(evidence.filter(node => !node.status || node.status === "active").map(node => [node.id, node.source]))} onOpenLocalSource={source => { setSelectedId(null); onOpenSource(source); }} />}
+            <Answer markdown={field.text} localSources={evidence.map(node => node.source).filter(source => source.startsWith("local://"))} evidenceSources={Object.fromEntries(evidence.filter(node => !node.status || node.status === "active").map(node => [node.id, node.source_urls?.length ? node.source_urls : node.source]))} onOpenLocalSource={source => { setSelectedId(null); onOpenSource(source); }} />}
         </section>)}
       </div>
     </MobileSheet>}

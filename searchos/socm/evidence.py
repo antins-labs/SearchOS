@@ -34,6 +34,7 @@ class EvidenceNode(CamelModel):
     finding: str = ""         # NL sentence; structured paths use "{entity} {attr}: {value}"
     value: str = ""           # cell-level value alone (e.g. "$97,690 million"); empty for free-form
     source: str = ""          # URL or file path
+    source_urls: list[str] = Field(default_factory=list)  # 内部观测所引用的原文地址。
     source_excerpt: str = ""  # verbatim supporting quote
     local_source_metadata: dict[str, Any] | None = None
     confidence: float = 0.5   # 0-1; from high/medium/low at extraction
@@ -103,22 +104,27 @@ class SourceObservation(CamelModel):
     text: str
     text_hash: str
     local_source_metadata: dict[str, Any] | None = None
+    source_urls: list[str] = Field(default_factory=list)
 
     @classmethod
     def capture(
-        cls, source: str, text: str, metadata: dict[str, Any] | None = None
+        cls, source: str, text: str, metadata: dict[str, Any] | None = None, *, source_urls=()
     ) -> "SourceObservation":
         import hashlib
         import json
 
         digest = hashlib.sha256(text.encode()).hexdigest()
-        identity = json.dumps([source, digest, metadata], sort_keys=True, ensure_ascii=False)
+        identity_parts = [source, digest, metadata]
+        if source_urls:
+            identity_parts.append(list(source_urls))
+        identity = json.dumps(identity_parts, sort_keys=True, ensure_ascii=False)
         return cls(
             id="obs_" + hashlib.sha256(identity.encode()).hexdigest()[:24],
             source=source,
             text=text,
             text_hash="sha256:" + digest,
             local_source_metadata=metadata,
+            source_urls=list(source_urls),
         )
 
 

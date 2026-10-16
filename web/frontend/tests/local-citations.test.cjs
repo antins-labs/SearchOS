@@ -358,3 +358,18 @@ test("single and adjacent bracketed web URLs become independent links", async ()
   assert.match(html, new RegExp(`href="${second}"`));
   assert.doesNotMatch(html, /\[<a |<\/a>\]|%5D%5B/);
 });
+
+test("历史事实引用可展开多个原文链接，内部地址不可点击", async () => {
+  const Answer = await loadAnswer();
+  const render = require("react-dom/server").renderToStaticMarkup;
+  const element = require("react").createElement;
+  const html = render(element(Answer, {
+    markdown: "结论 [依据](evidence:fact) [缺失](evidence:missing)",
+    evidenceSources: { fact: ["https://example.org/v1/a", "https://example.org/v1/b"],
+      missing: "agent://worker/summary" },
+  }));
+  assert.match(html, /href="https:\/\/example.org\/v1\/a"/);
+  assert.match(html, /href="https:\/\/example.org\/v1\/b"/);
+  assert.doesNotMatch(html, /href="agent:/);
+  assert.match(html, /来源不可用/);
+});

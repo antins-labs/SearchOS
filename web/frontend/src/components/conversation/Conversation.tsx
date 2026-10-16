@@ -184,7 +184,7 @@ function TurnView({
               <Answer markdown={displayAnswer} localSources={localSources} localSourceLabels={sourceLabels}
                 evidenceSources={Object.fromEntries((turn.searchState?.evidence_graph?.nodes ?? [])
                   .filter((node) => !node.status || node.status === "active")
-                  .map((node) => [node.id, node.source]))}
+                  .map((node) => [node.id, node.source_urls?.length ? node.source_urls : node.source]))}
                 onOpenLocalSource={onOpenLocalSource} />
             </div>
             {done ? (

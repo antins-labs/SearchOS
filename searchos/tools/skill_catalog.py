@@ -401,14 +401,18 @@ def _make_typed_tool(
 
     ParamsModel = create_model(f"{skill_name}_params", **fields)  # type: ignore[call-overload]
 
-    async def _run(**kwargs: Any) -> str:
+    async def _run(**kwargs: Any):
         """执行 skill，将完整结果注册为页面并返回初始视窗。"""
         from searchos.tools.simple_browser.skill_pages import show_skill_result
+        def present(result):
+            artifact = {}
+            content = show_skill_result(skill_name, dict(kwargs), result, artifact=artifact)
+            return content, artifact
         # Ban check — mirror list_skills' filtering so skills flagged as
         # AntiPatterns this session can't be called via typed tool either.
         banned = _banned_skills_from_state()
         if skill_name in banned:
-            return show_skill_result(skill_name, dict(kwargs), {
+            return present({
                 "error": f"skill {skill_name!r} has been banned this session "
                          "(repeated failures); try another approach."
             })
@@ -449,7 +453,7 @@ def _make_typed_tool(
                 "No usable result. Change the query or source; repeated failures disable this skill for the session."
             )
 
-        return show_skill_result(skill_name, dict(kwargs), result)
+        return present(result)
 
     tool_description = description or f"Agent-called skill: {skill_name}"
     tool_description += (
@@ -471,4 +475,5 @@ def _make_typed_tool(
         name=f"skill_{skill_name}",
         description=tool_description,
         args_schema=ParamsModel,
+        response_format="content_and_artifact",
     )

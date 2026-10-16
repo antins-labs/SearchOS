@@ -162,7 +162,9 @@ export default function CellEvidencePopover({
             </div>
           ) : (
             matched.map((n) => {
-              const urls = extractUrls(n.source);
+              const origins = /^(https?:|local:)\/\//.test(n.source) ? [n.source] : (n.source_urls ?? []);
+              const urls = extractUrls(origins);
+              const localRefs = origins.filter((url) => url.startsWith("local://"));
               const excerpt = n.source_excerpt ? cleanExcerpt(n.source_excerpt) : "";
               const status = n.status ?? "active";
               const current = n.id === cell.primary_evidence_id;
@@ -189,19 +191,19 @@ export default function CellEvidencePopover({
                       </span>
                     )}
                     <span>confidence {(n.confidence * 100).toFixed(0)}%</span>
-                    {n.source.startsWith("local://") && onOpenLocalSource ? (
-                      <button type="button" className="ml-auto text-accent-ink hover:underline"
-                        onClick={() => onOpenLocalSource(n.source)}>
-                        {localCitationLabels([], [n])[n.source] || "本地原文"}
+                    {onOpenLocalSource && localRefs.map((url) => (
+                      <button key={url} type="button" className="ml-auto text-accent-ink hover:underline"
+                        onClick={() => onOpenLocalSource(url)}>
+                        {localCitationLabels([], [n])[url] || "本地原文"}
                       </button>
-                    ) : urls.length > 0 ? (
+                    ))}
+                    {urls.length > 0 ? (
                       <span className="ml-auto flex flex-wrap items-center gap-x-2.5 gap-y-1">
                         {urls.map((u, i) => (
                           <a
                             key={u}
-                            // The excerpt belongs to one page; anchor only the
-                            // primary link — extra sources open plain.
-                            href={i === 0 ? anchorUrl(u, n.source_excerpt) : u}
+                            // 执行摘要的摘录不冒充原始网页中的逐字定位。
+                            href={i === 0 && u === n.source ? anchorUrl(u, n.source_excerpt) : u}
                             target="_blank"
                             rel="noreferrer"
                             title={i === 0 ? "Open the source scrolled to this excerpt" : undefined}
@@ -213,7 +215,7 @@ export default function CellEvidencePopover({
                         ))}
                       </span>
                     ) : (
-                      n.source && <span className="ml-auto">{n.source}</span>
+                      localRefs.length === 0 && <span className="ml-auto">原始来源未提供</span>
                     )}
                   </div>
                 </div>

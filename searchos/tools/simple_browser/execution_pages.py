@@ -6,6 +6,7 @@ import json
 import re
 from pathlib import Path
 
+from searchos.socm.provenance import result_source_urls
 from searchos.tools.simple_browser.render import PageContents
 from searchos.tools.simple_browser.skill_pages import format_skill_result
 from searchos.tools.simple_browser.state import _get_browser, _persist_page, _read_page_from_disk
@@ -47,12 +48,13 @@ def register_execution_pages(result: dict, binding: dict, saved: Path, task_key:
     prefix = f"skill://{binding['name']}/{result['execution_id']}"
     pages, skipped = [], []
 
-    def publish(key, title, content, kind, digest='', *, primary_page_url=''):
+    def publish(key, title, content, kind, digest='', *, primary_page_url='', source_urls=()):
         url = prefix + '/' + key
         metadata = {'kind': kind, 'evidence_eligible': kind == 'skill_result',
                     'execution_id': result['execution_id'], 'package_hash': binding['package_hash'],
                     'producer_task': task_key, 'artifact_hash': digest,
-                    'page_content_hash': hashlib.sha256(content.encode()).hexdigest()}
+                    'page_content_hash': hashlib.sha256(content.encode()).hexdigest(),
+                    'source_urls': list(source_urls)}
         if primary_page_url:
             metadata['primary_page_url'] = primary_page_url
         page = PageContents(url=url, title=title, text=content, metadata=metadata)
@@ -75,7 +77,8 @@ def register_execution_pages(result: dict, binding: dict, saved: Path, task_key:
             text = format_skill_result(value)
         failed = isinstance(value, dict) and (value.get('error') or value.get('success') is False)
         kind = 'diagnostic' if diagnostic or failed else ('fixture' if _fixture(value) else 'skill_result')
-        pages.append(publish(key, title, text, kind, digest))
+        pages.append(publish(key, title, text, kind, digest,
+                             source_urls=result_source_urls(value) if kind == 'skill_result' else ()))
 
     for item in result.get('artifacts', []):
         try:

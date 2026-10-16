@@ -89,6 +89,8 @@ An additional query needs a distinct retrieval hypothesis: a different source, t
 
 # Final summary
 
+Keep the original source link beside each factual finding in the summary. Copy the exact URL returned by the source or skill result (including its version), or cite an existing evidence ID. `skill://` and `agent://` identify execution records, not original sources. If a result supplies several sources, associate each finding with its own source; if none is supplied, state that provenance is missing.
+
 End with a natural-language summary, no tool call — even on failure. Structure it answer-first:
 
 - **Answer** — the requested findings or target values, or an explicit "not found", with the source and relevant scope identified so the Orchestrator can judge support.

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
@@ -23,7 +24,7 @@ export default function Answer({ markdown, localSources = [], localSourceLabels 
   markdown: string;
   localSources?: string[];
   localSourceLabels?: Record<string, string>;
-  evidenceSources?: Record<string, string>;
+  evidenceSources?: Record<string, string | string[]>;
   onOpenLocalSource?: (refId: string) => void;
 }) {
   const clean = repairLocalCitationLinks(
@@ -40,14 +41,26 @@ export default function Answer({ markdown, localSources = [], localSourceLabels 
       }
     }
   }
+  const sourceLink = (href: string | undefined, children: ReactNode) => {
+    if (href?.startsWith("local://")) return (
+      <button type="button" onClick={() => onOpenLocalSource?.(href)}
+        className="text-left text-accent-ink underline decoration-line-strong underline-offset-2 hover:decoration-accent">
+        {children}
+      </button>
+    );
+    const safe = href ? defaultUrlTransform(href) : "";
+    if (!safe || safe === "invalid-local-reference" || safe === "invalid-evidence-reference") return (
+      <span className="text-warn" title="该引用无法关联到原始来源">{children}（来源不可用）</span>
+    );
+    return <a href={safe} target="_blank" rel="noreferrer"
+      className="text-accent-ink underline decoration-line-strong underline-offset-2 hover:decoration-accent">{children}</a>;
+  };
   return (
     <div className="min-w-0 max-w-full space-y-3 [overflow-wrap:anywhere] text-[15px] leading-[1.7] text-ink">
       <ReactMarkdown
         remarkPlugins={[remarkGfm, [remarkLocalCitations, localSourceLabels]]}
         urlTransform={(url) => {
-          const source = url.startsWith("evidence:")
-            ? evidenceSources[url.slice("evidence:".length)] || "invalid-evidence-reference" : url;
-          return source.startsWith("local://") ? source : defaultUrlTransform(source);
+          return url.startsWith("evidence:") || url.startsWith("local://") ? url : defaultUrlTransform(url);
         }}
         components={{
           h1: ({ children }) => <h2 className="font-serif text-[22px] font-semibold tracking-tight text-ink">{children}</h2>,
@@ -57,19 +70,15 @@ export default function Answer({ markdown, localSources = [], localSourceLabels 
           ul: ({ children }) => <ul className="list-disc space-y-1 pl-5 marker:text-ink-faint">{children}</ul>,
           ol: ({ children }) => <ol className="list-decimal space-y-1 pl-5 marker:text-ink-faint">{children}</ol>,
           li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-          a: ({ href, children }) => href?.startsWith("local://") ? (
-            <button
-              type="button"
-              onClick={() => onOpenLocalSource?.(href)}
-              className="text-left text-accent-ink underline decoration-line-strong underline-offset-2 hover:decoration-accent"
-            >
-              {children}
-            </button>
-          ) : href === "invalid-local-reference" || href === "invalid-evidence-reference" ? (
-            <span className="text-warn" title="该历史引用无法关联到已验证来源">{children}（来源不可用）</span>
-          ) : (
-            <a href={href} target="_blank" rel="noreferrer" className="text-accent-ink underline decoration-line-strong underline-offset-2 hover:decoration-accent">{children}</a>
-          ),
+          a: ({ href, children }) => {
+            if (!href?.startsWith("evidence:")) return sourceLink(href, children);
+            const value = evidenceSources[href.slice("evidence:".length)];
+            const sources = Array.isArray(value) ? value : [value || "invalid-evidence-reference"];
+            if (sources.length === 1) return sourceLink(sources[0], children);
+            return <>{sources.length ? sources.map((url, index) => (
+              <span key={url}>{index > 0 && " "}{sourceLink(url, children)}</span>
+            )) : sourceLink("invalid-evidence-reference", children)}</>;
+          },
           strong: ({ children }) => <strong className="font-semibold text-ink">{children}</strong>,
           code: ({ children }) => <code className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[13px] text-accent-ink">{children}</code>,
           blockquote: ({ children }) => <blockquote className="border-l-2 border-line-strong pl-3 text-ink-dim">{children}</blockquote>,

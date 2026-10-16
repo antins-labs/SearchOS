@@ -97,6 +97,7 @@ Each row is an object with ALL column names as keys:
       "_alignment_note": "<one sentence>",
       "_confidence": "high" | "medium" | "low",
       "_source_authority": "official" | "aggregator" | "news" | "blog" | "unclear"}}
+- For skill:// or agent:// observations, add `_source_urls`: a map from each data column to the original source URLs (or evidence:IDs) supporting that value, copied from the observation or its Declared source links. Keep sources separate per value; never invent URLs or assign every result link to every cell. Unknown provenance is an empty list.
 - ONE ROW = ONE PAGE. `_source_page` is the number in that page's "### Page N" header, and `_source_excerpt` quotes THAT page only. When several pages state values for the same primary key, emit one row object per page (same PK, different `_source_page`) — never merge values from different pages into one row.
 - `_source_excerpt` is the factual warrant for the row: quote the page passage(s) that state the non-null data values (join distant fragments with " … ", keep it under ~400 chars). Copy characters exactly — no paraphrase, no reflow.
 - A data value you cannot point to inside `_source_excerpt` (or another verbatim quote of this page) does not exist for this extraction → that cell is null.
@@ -197,6 +198,7 @@ def _render_pages_block(pages: list[dict[str, str]]) -> str:
         parts.append(
             f"### Page {i + 1}\n"
             f"Source: {p.get('source_url', '')}\n{identity}\n"
+            f"Declared source links: {p.get('source_urls', [])}\n"
             f"{p.get('content', '')}"
         )
     return "\n\n".join(parts)

@@ -87,6 +87,7 @@ class RowExtractor:
         pages = [
             {
                 "source_url": it.get("source_url", "") or "",
+                "source_urls": it.get("source_urls", []),
                 "page_id": it.get("page_id", "") or "",
                 "content": it.get("content", "") or "",
                 "local_source_metadata": it.get("local_source_metadata"),
@@ -169,7 +170,8 @@ class RowExtractor:
                 for page in pages
                 if page["content"] == text and page["source_url"] == source
             )
-            bundles.append((row, text, source, metadata, mode, original, page.get("page_id", "")))
+            bundles.append((row, text, source, metadata, mode, original,
+                            page.get("page_id", ""), page.get("source_urls", [])))
         return bundles, True
 
     @staticmethod

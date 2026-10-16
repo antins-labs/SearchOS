@@ -170,6 +170,7 @@ class ExtractionCoordinator:
         item = {
             "content": content,
             "source_url": observation.source_url,
+            "source_urls": list(observation.source_urls),
             "page_id": observation.page_id,
             "content_hash": content_hash,
             "target_table": target_table,

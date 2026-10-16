@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from searchos.socm.coverage import answer_evidence, project_cell_evidence, evidence_rank
+from searchos.socm.provenance import evidence_source_urls
 
 
 # ---------------------------------------------------------------------------
@@ -32,10 +33,9 @@ def build_url_citation_map(evidence: list[Any]) -> dict[str, int]:
     for n in evidence:
         if getattr(n, "status", "active") != "active":
             continue
-        url = (getattr(n, "source", "") or "").strip()
-        if not url or url.startswith("agent://") or url in mapping:
-            continue
-        mapping[url] = len(mapping) + 1
+        for url in evidence_source_urls(n):
+            if url not in mapping:
+                mapping[url] = len(mapping) + 1
     return mapping
 
 
@@ -120,8 +120,7 @@ def _render_scalar_cell(
     best = max(findings, key=_rank_f)
     raw = (getattr(best, "value", "") or "").strip() or (getattr(best, "finding", "") or "")
     snippet = raw.replace("\n", " ").strip()
-    url = (getattr(best, "source", "") or "").strip()
-    cite = f" [{url_map[url]}]" if url in url_map else ""
+    cite = "".join(f" [{url_map[url]}]" for url in evidence_source_urls(best) if url in url_map)
     if evidence_rank(best)[1] == 3:
         return f"{snippet}{cite}"
     return f"◇ {snippet}（部分）{cite}"
@@ -144,8 +143,7 @@ def _render_list_cell(
     if not non_loose:
         best = max(findings, key=_rank_f)
         snippet = _node_text(best).replace("\n", " ").strip()
-        url = (getattr(best, "source", "") or "").strip()
-        cite = f" [{url_map[url]}]" if url in url_map else ""
+        cite = "".join(f" [{url_map[url]}]" for url in evidence_source_urls(best) if url in url_map)
         return f"◇ {snippet}（待确认）{cite}" if snippet else "—"
 
     ordered = sorted(non_loose, key=_rank_f, reverse=True)
@@ -173,8 +171,7 @@ def _render_list_cell(
             continue
         seen.add(key)
         if len(items) < max_items:
-            url = (getattr(f, "source", "") or "").strip()
-            cite = f" [{url_map[url]}]" if url in url_map else ""
+            cite = "".join(f" [{url_map[url]}]" for url in evidence_source_urls(f) if url in url_map)
             items.append(f"{snip}{cite}")
     if not items:
         return "—"
@@ -718,6 +715,7 @@ async def finalize_research(*, state, query, model, stop_reason, max_chars=48_00
         row = {"id": node.id, "finding": node.finding,
                "source_excerpt": node.source_excerpt,
                "source": node.source,
+               "source_urls": evidence_source_urls(node),
                "citation": f"[{label}](evidence:{node.id})",
                "task_ids": [binding.task_id for binding in state.evidence_graph.task_bindings
                             if binding.evidence_id == node.id]}

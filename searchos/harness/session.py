@@ -1329,7 +1329,7 @@ async def _finalize_stopped_research(*, workspace, state, query, orchestrator_mo
 
 def _write_findings_answer(workspace, state, query, final_state, *, execution_error="",
                            stop_reason="") -> str:
-    """保存主 Agent 最后一轮正文，仅解析引用，不核验或改写回答。"""
+    """保存正文，将事实引用解析到原文并记录缺失；不作语义核验。"""
     import json
 
     from searchos.local.library import _LOCAL_LINK_RE
@@ -1338,7 +1338,8 @@ def _write_findings_answer(workspace, state, query, final_state, *, execution_er
     nodes = answer_evidence(state)
     from searchos.harness.report.grounding import final_answer_text
     answer = final_answer_text(final_state)
-    canonical = {node.source: node.source for node in nodes if node.source.startswith("local://")}
+    from searchos.socm.provenance import evidence_source_urls
+    canonical = {url: url for node in nodes for url in evidence_source_urls(node) if url.startswith("local://")}
     from searchos.local.reader.references import parse_ref_id
     document_refs: dict[str, set[str]] = {}
     for node in nodes:
@@ -1358,16 +1359,15 @@ def _write_findings_answer(workspace, state, query, final_state, *, execution_er
     if not answer.strip():
         answer = "研究执行中断，尚未生成回答。" if execution_error else "本次研究尚未生成回答。"
         mode = "hybrid_partial"
-    import re
-    evidence_refs = {f"evidence:{node.id}": node.source for node in nodes}
-    answer = re.sub(r"evidence:[a-zA-Z0-9_-]+",
-                    lambda match: evidence_refs.get(match.group(0), "invalid-evidence-reference"), answer)
+    from searchos.socm.provenance import resolve_answer_citations
+    answer, citation_issues = resolve_answer_citations(answer, nodes)
     answer = _LOCAL_LINK_RE.sub(lambda m: canonical.get(m.group(0), "invalid-local-reference"), answer)
     workspace.write_output("report.md", answer)
     workspace.write_output("result.json", json.dumps({
         "query": query, "answer": answer, "mode": mode,
         "execution_error": execution_error,
         "stop_reason": stop_reason,
+        "citation_issues": citation_issues,
         "evidence_count": len(nodes),
         "coverage": state.coverage_map.coverage_score,
         "frontier_progress": _frontier_progress(state),
@@ -1467,11 +1467,13 @@ async def _harness_synthesize(
         body = state.outline.model_copy(update={"sections": eligible_sections}).rendered().strip()
         mode = "outline_writer" if body else "structured_only"
 
-    report = _assemble(body)
+    from searchos.socm.provenance import resolve_answer_citations
+    report, citation_issues = resolve_answer_citations(_assemble(body), evidence)
     workspace.write_output("report.md", report)
     workspace.write_output("result.json", _json.dumps({
         "query": query,
         "answer": report,
+        "citation_issues": citation_issues,
         "mode": mode,
         **writer_metadata,
         "evidence_count": len(evidence),

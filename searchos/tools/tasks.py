@@ -37,20 +37,20 @@ logger = logging.getLogger(__name__)
 
 def _ground_hybrid_report(report: dict, state: Any) -> None:
     """让已绑定事实进入主 Agent 上下文，执行汇报保留为未核验信息。"""
-    if (state.source_scope or {}).get("mode") != "hybrid":
-        return
     from searchos.socm.coverage import answer_evidence
+    from searchos.socm.provenance import evidence_source_urls
     ids = {binding["evidence_id"] for binding in report.get("evidence_bindings", [])}
     nodes = [node for node in answer_evidence(state) if node.id in ids]
     report["agent_report"] = {"verified": False, "text": report.get("last_message", "")}
     report["grounded_findings"] = [
         {"id": node.id, "finding": node.finding, "citation": f"evidence:{node.id}",
-         "source": node.source, "source_excerpt": node.source_excerpt}
+         "source": node.source, "source_urls": evidence_source_urls(node),
+         "source_excerpt": node.source_excerpt}
         for node in nodes[:24]
     ]
     report["grounded_findings_total"] = len(nodes)
     report["last_message"] = (
-        "已自动绑定的原文事实：\n" + "\n".join(
+        "已自动绑定的证据（原文地址见 source_urls；摘要仍需原文核验）：\n" + "\n".join(
             f"- {node.finding} [evidence:{node.id}]" for node in nodes[:24])
         if nodes else "本任务无已核验并绑定的事实；执行汇报仅供定位缺口，不可作为答案依据。"
     )

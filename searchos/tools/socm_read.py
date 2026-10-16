@@ -94,6 +94,8 @@ def coverage_summary(state: Any) -> dict[str, Any]:
 
 
 def _node_snapshot(node: Any, state: Any = None, *, include_inactive: bool = False) -> dict[str, Any]:
+    from searchos.socm.provenance import evidence_source_urls
+
     finding = node.finding or ""
     truncated = len(finding) > _FINDING_EXCERPT_CHARS
     return {
@@ -111,6 +113,7 @@ def _node_snapshot(node: Any, state: Any = None, *, include_inactive: bool = Fal
         "finding": finding[:_FINDING_EXCERPT_CHARS],
         **({"finding_truncated": True} if truncated else {}),
         "source": node.source,
+        "source_urls": evidence_source_urls(node),
         "citation": f"evidence:{node.id}",
         "source_excerpt": node.source_excerpt,
         "local_source_metadata": node.local_source_metadata,

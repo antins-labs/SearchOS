@@ -58,6 +58,7 @@ class EvidenceObservation:
 
     content: str
     source_url: str
+    source_urls: tuple[str, ...] = ()
     page_id: str = ""
     source_kind: EvidenceSourceKind = EvidenceSourceKind.PAGE
     target_table: str = ""

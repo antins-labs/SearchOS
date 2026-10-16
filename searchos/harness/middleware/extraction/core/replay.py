@@ -76,6 +76,7 @@ async def extract_saved_observation(
 
     item = {
         "source_url": observation.source,
+        "source_urls": observation.source_urls,
         "content": observation.text[start:end],
         "observation_text": observation.text,
         "observation_offset": start,

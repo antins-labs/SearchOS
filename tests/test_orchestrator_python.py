@@ -51,7 +51,7 @@ async def test_edit_keeps_original_source_without_requiring_python_receipt(works
 @pytest.mark.asyncio
 async def test_edit_distinguishes_sources_and_preserves_existing_scope_checks(workspace):
     for host in ("one", "two"):
-        assert "Set 1" in await edit(source=f"https://{host}.example/data")
+        assert "Set 1" in await edit(source=f"https://{host}.example/data", source_excerpt="25.0")
     state = workspace.load_state()
     assert {node.source for node in state.evidence_graph.nodes} == {
         "https://one.example/data", "https://two.example/data"}
@@ -62,7 +62,7 @@ async def test_edit_distinguishes_sources_and_preserves_existing_scope_checks(wo
     # A local-only scope cannot be bypassed by supplying a Web source.
     state.source_scope = {"mode": "local", "documents": []}
     workspace.save_state(state)
-    assert "Errors:" in await edit(source="https://three.example/data")
+    assert "Errors:" in await edit(source="https://three.example/data", source_excerpt="25.0")
 
 
 @pytest.mark.asyncio
@@ -123,6 +123,6 @@ def test_tool_surface_and_general_calculation_guidance():
         assert "python" in {tool.name for tool in get_orchestrator_tools(source_mode=mode)}
         prompt = build_orchestrator_prompt("agents", "skills", source_mode=mode)
         assert "write Python code with those inputs" in prompt
-        assert "original `source` and `source_excerpt`" in prompt
+        assert "original `source` (or `source_urls`" in prompt
     assert "python" in ORCHESTRATOR_DRAIN_TOOLS
     assert set(python_execution.python.args) == {"code", "timeout_s"}

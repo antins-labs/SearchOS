@@ -223,7 +223,7 @@ function MobileTurn({ turn, reconnecting, onDetails, onOpenSource, onContinue, o
     {turn.error && <p className={s.error} role="alert">{turn.error}</p>}
     {answer && <section className={s.report}>
       <div className={s.sectionLabel}><span>{turn.status !== "completed" ? "当前输出 · 非最终报告" : expanded ? "完整报告" : "报告预览"}</span><BookOpen size={15} /></div>
-      {expanded ? <Answer markdown={answer} localSources={evidence.map(node => node.source).filter(source => source.startsWith("local://"))} localSourceLabels={localCitationLabels(turn.events, evidence)} evidenceSources={Object.fromEntries(evidence.filter(node => !node.status || node.status === "active").map(node => [node.id,node.source]))} onOpenLocalSource={onOpenSource} /> : <div className={s.reportPreview}>
+      {expanded ? <Answer markdown={answer} localSources={evidence.map(node => node.source).filter(source => source.startsWith("local://"))} localSourceLabels={localCitationLabels(turn.events, evidence)} evidenceSources={Object.fromEntries(evidence.filter(node => !node.status || node.status === "active").map(node => [node.id, node.source_urls?.length ? node.source_urls : node.source]))} onOpenLocalSource={onOpenSource} /> : <div className={s.reportPreview}>
         {!tables.length && preview && <p>{preview}</p>}
         {tables.map(table => <MobileReportCards key={table.table_id} table={table} cells={turn.searchState?.coverage_map.cells ?? {}} evidence={evidence} onOpenSource={onOpenSource} />)}
         {!preview && !tables.length && <p>报告以结构化信息呈现，展开查看详细内容与来源。</p>}

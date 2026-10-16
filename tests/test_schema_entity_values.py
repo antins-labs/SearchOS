@@ -107,7 +107,10 @@ async def test_edit_entities_overwrites_and_clears_through_shared_path(workspace
 
     result = await schema_tools.edit_entities.ainvoke({
         "table_id": "items",
-        "edits_json": '[{"entity":"alpha","set":{"value":"new"}}]',
+        "edits_json": json.dumps([{
+            "entity": "alpha", "set": {"value": "new"},
+            "source": "https://example.org/update", "source_excerpt": "alpha value is new",
+        }]),
     })
     state = workspace.load_state()
     cell = state.coverage_map.cells["items/alpha.value"]
@@ -128,3 +131,62 @@ async def test_edit_entities_overwrites_and_clears_through_shared_path(workspace
     assert cell.display_hint == ""
     assert any(node.value == "new" and node.status == EvidenceStatus.REJECTED
                for node in state.evidence_graph.nodes)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("provenance", [
+    {},
+    {"source": "https://example.org/medalists"},
+    {"source_excerpt": "Vladimir Voevodsky | Institute for Advanced Study, US"},
+    {"source": "agent://orchestrator/edit", "source_excerpt": "translated"},
+])
+async def test_translate_after_rename_requires_original_source(workspace, provenance):
+    """复现真实 case：先重命名，再翻译值，不能替换为无源 edit 节点。"""
+    from searchos.socm import EvidenceNode
+    from searchos.socm.coverage import commit_evidence
+
+    await _create_table(workspace)
+    await schema_tools.add_entities.ainvoke({
+        "entities_json": '["Vladimir Voevodsky"]', "table_id": "items",
+    })
+    source = "https://example.org/medalists"
+    excerpt = "Vladimir Voevodsky | Institute for Advanced Study, US"
+
+    def seed(state):
+        commit_evidence(state, [EvidenceNode(
+            id="original", finding=excerpt, value="Institute for Advanced Study",
+            entity="Vladimir Voevodsky", attribute="value", table_id="items",
+            source=source, source_excerpt=excerpt, confidence=0.9, alignment="full",
+        )])
+        return state
+
+    workspace.atomic_update_state(seed)
+    entity = "弗拉基米尔·沃沃斯基(Vladimir Voevodsky)"
+    await schema_tools.edit_entities.ainvoke({
+        "table_id": "items",
+        "edits_json": json.dumps([{"entity": "Vladimir Voevodsky", "rename": entity}]),
+    })
+    edit = {"entity": entity, "set": {"value": "高等研究院（美国）"}}
+    rejected = await schema_tools.edit_entities.ainvoke({
+        "table_id": "items", "edits_json": json.dumps([{**edit, **provenance}]),
+    })
+    assert "Errors:" in rejected
+    state = workspace.load_state()
+    cell = state.coverage_map.cells[f"items/{entity}.value"]
+    assert cell.primary_evidence_id == "original"
+    assert cell.display_hint == "Institute for Advanced Study"
+    assert state.evidence_graph.get_node("original").status == EvidenceStatus.ACTIVE
+    assert len(state.evidence_graph.nodes) == 1
+
+    accepted = await schema_tools.edit_entities.ainvoke({
+        "table_id": "items",
+        "edits_json": json.dumps([{**edit, "source": source, "source_excerpt": excerpt}]),
+    })
+    assert "Set 1 cell value(s)" in accepted
+    state = workspace.load_state()
+    cell = state.coverage_map.cells[f"items/{entity}.value"]
+    current = state.evidence_graph.get_node(cell.primary_evidence_id)
+    assert cell.display_hint == "高等研究院（美国）"
+    assert current.source == source
+    assert current.source_excerpt == excerpt
+    assert state.evidence_graph.get_node("original").status == EvidenceStatus.SUPERSEDED

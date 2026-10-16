@@ -162,6 +162,10 @@ def _assert_cell_value(
     """
     from searchos.socm import EvidenceNode
 
+    from searchos.socm.provenance import is_original_source
+
+    if overwrite and (not is_original_source(source) or not source_excerpt.strip()):
+        return False
     if (state.source_scope or {}).get("mode") == "hybrid" and source.startswith("agent://"):
         return False
 
@@ -1000,7 +1004,11 @@ async def edit_entities(
     edits_json: str,
     table_id: str = "",
 ) -> str:
-    """Edit existing entity rows: rename PK and/or overwrite cell values. For calculated values, include the original source and source_excerpt in each edit object alongside entity and set.
+    """Edit existing rows. Every non-empty set value MUST include its original
+    http/https/local source and supporting source_excerpt in the same edit object.
+    Read these with read_evidence first; for skill/agent evidence use source_urls.
+    Never cite skill://, agent:// or edit:// as the original. Formatting changes
+    must preserve meaning and attribution; use separate items for different sources.
 
     Args:
         edits_json: JSON array of edit operations. Each element is an object:
@@ -1012,15 +1020,15 @@ async def edit_entities(
               (confidence=0.7, alignment="full"). An empty value
               ("", null, or []) CLEARS the cell instead: it resets to
               missing and its old evidence is rejected (kept for audit).
-            - ``source`` (optional): original evidence URL (http/https, local or
-              skill URL) supporting the set values. Required for values in hybrid
-              mode; use the original data source when writing Python calculations.
-            - ``source_excerpt`` (optional): original source text supporting the
+            - ``source``: original http/https or local URL supporting the set values.
+              Required for every non-empty set in all source modes; not needed for
+              a pure rename or clear. Use the original inputs for calculations.
+            - ``source_excerpt``: required supporting source text for non-empty sets;
+              for a calculation, identify the original text supporting the
               inputs. Do not present calculated values as verbatim source quotes.
               Source fields apply to all set values in this item; use separate
               items when sources differ.
-            Example: '[{"entity": "Apolo 11", "rename": "Apollo 11",
-                        "set": {"Launch_Date": "1969-07-16"}}]'
+            Example: '[{"entity": "Apolo 11", "rename": "Apollo 11"}]'
         table_id: Target table id. Required in multi-table schemas.
     """
     if _orch_ctx().workspace is None:
@@ -1067,11 +1075,11 @@ async def edit_entities(
                 from urllib.parse import urlsplit
                 try:
                     parsed = urlsplit(source)
-                    valid_source = parsed.scheme in {"http", "https", "local", "skill"} and bool(parsed.netloc)
+                    valid_source = parsed.scheme in {"http", "https", "local"} and bool(parsed.netloc)
                 except ValueError:
                     valid_source = False
                 if not valid_source:
-                    errors.append(f"set {raw_name!r}: source must be an original http/https, local or skill URL")
+                    errors.append(f"set {raw_name!r}: source must be an original http/https or local URL; use read_evidence.source_urls for skill/agent observations")
                     continue
 
             # Rename
@@ -1134,10 +1142,9 @@ async def edit_entities(
                         set_cells["v"] += 1
                     else:
                         reason = (
-                            "provide the original evidence source for calculated values, or dispatch "
-                            "a source-reading task for missing inputs; check source scope and column constraints"
-                            if (s.source_scope or {}).get("mode") == "hybrid"
-                            else "rejected invalid assertion"
+                            "provide original source and source_excerpt for every non-empty set; "
+                            "use read_evidence.source_urls for skill/agent observations; "
+                            "check source scope and column constraints"
                         )
                         errors.append(f"set {canonical!r}.{col}: {reason}")
         return s

@@ -144,17 +144,24 @@ export function groupEvidenceByEntity(nodes: EvidenceNode[]): EntityEvidenceGrou
     .sort((a, b) => a.entity.localeCompare(b.entity));
 }
 
+export function evidenceSourceUrls(node: EvidenceNode): string[] {
+  return [...new Set((/^(https?:|local:)\/\//.test(node.source)
+    ? [node.source] : (node.source_urls ?? [])).filter((url) => /^(https?:|local:)\/\//.test(url)))];
+}
+
 export function groupEvidenceBySource(nodes: EvidenceNode[]): SourcePage[] {
   const pages = new Map<string, SourcePage>();
   for (const node of nodes) {
-    if (!/^https?:\/\//.test(node.source)) continue;
-    const current = pages.get(node.source);
-    pages.set(node.source, {
-      url: node.source,
-      pageId: current?.pageId || node.page_id || "",
-      evidenceCount: (current?.evidenceCount ?? 0) + 1,
-      capturedAt: Math.max(current?.capturedAt ?? 0, node.created_at ?? 0) || undefined,
-    });
+    for (const url of evidenceSourceUrls(node).filter((url) => /^https?:\/\//.test(url))) {
+      const current = pages.get(url);
+      pages.set(url, {
+        url,
+        // 内部执行快照不能作为原始网页的缓存正文导入。
+        pageId: current?.pageId || (url === node.source ? node.page_id : "") || "",
+        evidenceCount: (current?.evidenceCount ?? 0) + 1,
+        capturedAt: Math.max(current?.capturedAt ?? 0, node.created_at ?? 0) || undefined,
+      });
+    }
   }
   return [...pages.values()].sort((a, b) => a.url.localeCompare(b.url));
 }
@@ -622,12 +629,12 @@ function ConflictSource({
           </div>
           <p className="mt-1 text-[13px] font-medium leading-5 text-ink">{node.value || node.claim}</p>
         </div>
-        {node.source && /^https?:\/\//.test(node.source) && (
-          <a href={node.source} target="_blank" rel="noreferrer" title="Open source" aria-label={`Open ${sourceLabel(node.source)}`}
+        {evidenceSourceUrls(node).filter((url) => /^https?:\/\//.test(url)).map((url) => (
+          <a key={url} href={url} target="_blank" rel="noreferrer" title="打开原始来源" aria-label={`Open ${sourceLabel(url)}`}
             className="shrink-0 rounded p-1 text-accent-ink hover:bg-clay">
             <ExternalLink size={13} />
           </a>
-        )}
+        ))}
       </div>
       <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1 text-[10.5px] text-ink-dim">
         <span>Quality {(quality(node) * 100).toFixed(0)}%</span>
@@ -701,8 +708,8 @@ function EvidenceRow({ node, compactEntity = false, onOpenLocalSource }: {
   onOpenLocalSource?: (refId: string) => void;
 }) {
   const status = node.status ?? "active";
-  const local = node.source.startsWith("local://");
-  const localLabel = localCitationLabels([], [node])[node.source] || "本地原文";
+  const sources = evidenceSourceUrls(node);
+  const localLabels = localCitationLabels([], [node]);
   return (
     <article className={`py-3 ${status === "active" ? "" : "opacity-60"}`}>
       <div className="flex items-start gap-2">
@@ -715,16 +722,16 @@ function EvidenceRow({ node, compactEntity = false, onOpenLocalSource }: {
               ? <span>原文支持已核验</span>
               : <span>Quality {(quality(node) * 100).toFixed(0)}%</span>}
             <span className="capitalize">{status}</span>
-            {node.source && /^https?:\/\//.test(node.source) && (
-              <a href={node.source} target="_blank" rel="noreferrer" className="ml-auto flex min-w-0 items-center gap-1 text-accent-ink hover:underline">
-                <ExternalLink size={10} /> <span className="max-w-[150px] truncate">{sourceLabel(node.source)}</span>
-              </a>
-            )}
-            {local && onOpenLocalSource && (
-              <button type="button" onClick={() => onOpenLocalSource(node.source)} className="ml-auto flex min-w-0 items-center gap-1 text-accent-ink hover:underline">
-                <FileText size={10} /> <span className="max-w-[150px] truncate">{localLabel}</span>
+            {sources.map((url) => url.startsWith("local://") ? (
+              onOpenLocalSource && <button key={url} type="button" onClick={() => onOpenLocalSource(url)} className="ml-auto flex min-w-0 items-center gap-1 text-accent-ink hover:underline">
+                <FileText size={10} /> <span className="max-w-[150px] truncate">{localLabels[url] || "本地原文"}</span>
               </button>
-            )}
+            ) : (
+              <a key={url} href={url} target="_blank" rel="noreferrer" className="ml-auto flex min-w-0 items-center gap-1 text-accent-ink hover:underline">
+                <ExternalLink size={10} /> <span className="max-w-[150px] truncate">{sourceLabel(url)}</span>
+              </a>
+            ))}
+            {sources.length === 0 && <span>原始来源未提供</span>}
           </div>
         </div>
       </div>

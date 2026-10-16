@@ -19,6 +19,8 @@ from searchos.socm.workspace import WorkspaceManager
 
 
 def _trace_node(node: EvidenceNode, ws: WorkspaceManager | None, state: SearchState) -> dict[str, Any]:
+    from searchos.socm.provenance import evidence_source_urls
+
     raw_snippet = node.source_excerpt or ""
     # Prefer the span stored at extraction; re-compute only as a fallback for
     # older evidence records without span populated.
@@ -43,6 +45,7 @@ def _trace_node(node: EvidenceNode, ws: WorkspaceManager | None, state: SearchSt
         "evidence_id": node.id,
         "page_id": node.page_id,
         "source_url": node.source,
+        "source_urls": evidence_source_urls(node),
         "snippet": raw_snippet,
         "span": span_obj,
         "span_basis": "observation" if node.observation_id else "page",

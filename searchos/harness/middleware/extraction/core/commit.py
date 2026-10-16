@@ -48,6 +48,7 @@ def _ingest_rows(
         validate_row,
     )
     from searchos.socm.evidence import SourceObservation
+    from searchos.socm.provenance import select_source_urls
     from searchos.util.span_match import find_span
 
     cmap = s.coverage_map
@@ -67,8 +68,11 @@ def _ingest_rows(
         mode = bundle[4] if len(bundle) > 4 else bundle[3] if len(bundle) > 3 else "merged"
         original = bundle[5] if len(bundle) > 5 else page_text
         page_id = bundle[6] if len(bundle) > 6 else ""
+        source_urls = bundle[7] if len(bundle) > 7 else []
         observed = (
-            SourceObservation.capture(source_url, original, local_source_metadata)
+            SourceObservation.capture(
+                source_url, original, local_source_metadata, source_urls=source_urls,
+            )
             if independent
             else None
         )
@@ -198,6 +202,12 @@ def _ingest_rows(
                 finding=f"{entity} {attr}: {val}",
                 value=val,
                 source=source_url,
+                source_urls=select_source_urls(
+                    source_url, original, excerpt,
+                    (row.get("_source_urls", {}).get(attr)
+                     if isinstance(row.get("_source_urls"), dict)
+                     else row.get("_source_urls")), available=source_urls, state=s,
+                ),
                 source_excerpt=excerpt,
                 local_source_metadata=local_source_metadata,
                 confidence=cell_conf,
