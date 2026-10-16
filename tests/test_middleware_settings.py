@@ -68,6 +68,11 @@ def test_runtime_conditions_still_gate_selected_components(monkeypatch):
         graph = capture_pipeline(monkeypatch, pipelines.web_search_pipeline, workspace=workspace,
                                  task=TaskContext("test"), extraction_model=model, final_summary=final_summary)
         assert [type(item).__name__ for item in graph.middleware] == expected
+        conditions = {"extraction_model": model is not None, "final_summary": final_summary}
+        catalog = {item["id"]: item for item in CATALOG}
+        assert [name for name in selected if all(
+            conditions[key] == value for key, value in catalog[name]["requirements"].items()
+        )] == expected
 
 
 def test_compaction_uses_agent_model_and_requires_known_window(monkeypatch):

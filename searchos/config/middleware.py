@@ -35,11 +35,24 @@ ORDERS = {
 }
 
 
+MOUNT_CONDITIONS = {
+    "CompactionContextMiddleware": {"model_window": True},
+    "SteeringMiddleware": {"steer_queue": True},
+    "WebEvidenceMiddleware": {"extraction_model": True},
+    "LocalEvidenceMiddleware": {"extraction_model": True},
+    "FinalSummaryEvidenceMiddleware": {"extraction_model": True, "final_summary": True},
+    "ProgressGuardMiddleware": {"extraction_model": True},
+    "ToolProgressMiddleware": {"extraction_model": False},
+    "StateStallMiddleware": {"workspace": True},
+}
+
+
 def entry(name, category, label, description, hooks, condition=None):
     return {
         "id": name, "category": category, "label": copy(*label),
         "description": copy(*description), "hooks": hooks,
         "condition": copy(*condition) if condition else None,
+        "requirements": MOUNT_CONDITIONS.get(name, {}),
     }
 
 
@@ -81,6 +94,9 @@ def validate_pipelines(value: dict[str, list[str]]) -> dict[str, list[str]]:
         unknown = set(names) - set(available(pipeline))
         if unknown:
             raise ValueError(f"Unsupported middleware in {pipeline}: {sorted(unknown)}")
+        if ("BudgetMiddleware" in names and "CompactionContextMiddleware" in names
+                and names.index("BudgetMiddleware") > names.index("CompactionContextMiddleware")):
+            raise ValueError("Place BudgetMiddleware before CompactionContextMiddleware")
     return value
 
 

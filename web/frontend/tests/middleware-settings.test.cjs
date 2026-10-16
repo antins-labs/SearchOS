@@ -38,6 +38,14 @@ function harness() {
     };
     if (name === '@/components/settings/SettingsProvider') return { useSettings: () => context };
     if (name === '@/components/settings/controls/Toggle') return { __esModule: true, default: 'test-toggle' };
+    if (name === './MiddlewareWorkbench') return { __esModule: true, default: 'test-workbench' };
+    if (name === '@/lib/middleware-assembly') {
+      const compiled = { exports: {} };
+      vm.runInNewContext(ts.transpileModule(readFileSync(join(__dirname, '../src/lib/middleware-assembly.ts'), 'utf8'), {
+        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+      }).outputText, compiled);
+      return compiled.exports;
+    }
     if (name === '@/components/settings/primitives') return { SectionShell: 'section', OfflineSkeleton: 'skeleton' };
     if (name === '@/lib/api') return { async putMiddleware(id, selected) {
       calls.push({ id, selected: plain(selected) });
@@ -115,4 +123,22 @@ test('搜索不改变装配，断线禁用写入，旧后端显示升级提示',
   assert.equal(label(h.render(), '挂载 C').props.disabled, true);
   delete h.context.settings.middleware;
   assert.ok(find(h.render(), (node) => node.type === 'p' && node.props.children.includes('重启 API')));
+});
+
+test('可视化与列表共用草稿，切换用途后保留，保存提交可视化顺序', async () => {
+  const h = harness();
+  button(h.render(), '可视化').props.onClick();
+  const workbench = () => find(h.render(), (node) => node.type === 'test-workbench');
+  workbench().props.onChange(['C', 'A']);
+  button(h.render(), 'writer').props.onClick();
+  assert.deepEqual(plain(workbench().props.selected), ['A', 'B']);
+  button(h.render(), 'orchestrator ·').props.onClick();
+  assert.deepEqual(plain(workbench().props.selected), ['C', 'A']);
+  button(h.render(), '列表').props.onClick();
+  assert.equal(label(h.render(), '挂载 C').props.checked, true);
+  assert.equal(label(h.render(), '挂载 B').props.checked, false);
+  assert.equal(label(h.render(), '上移 C').props.disabled, true);
+  assert.equal(h.calls.length, 0);
+  await button(h.render(), '保存装配').props.onClick();
+  assert.deepEqual(h.calls[0].selected, ['C', 'A']);
 });

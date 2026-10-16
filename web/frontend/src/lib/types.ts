@@ -372,6 +372,7 @@ export interface MiddlewareComponent {
   description: LocalizedCopy;
   hooks: string[];
   condition: LocalizedCopy | null;
+  requirements?: Record<string, boolean>;
 }
 
 export interface MiddlewarePipeline {

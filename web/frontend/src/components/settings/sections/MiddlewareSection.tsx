@@ -1,11 +1,13 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, Check, ChevronRight, Layers, RotateCcw, Search } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, ChevronRight, Layers, LayoutGrid, List, RotateCcw, Search } from "lucide-react";
 import { putMiddleware } from "@/lib/api";
+import { assemblyOrderError } from "@/lib/middleware-assembly";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { OfflineSkeleton, SectionShell } from "@/components/settings/primitives";
 import Toggle from "@/components/settings/controls/Toggle";
+import MiddlewareWorkbench from "./MiddlewareWorkbench";
 
 const CATEGORIES = {
   context: { zh: "上下文", en: "Context" },
@@ -23,13 +25,14 @@ export default function MiddlewareSection() {
   const [category, setCategory] = useState("all");
   const [saving, setSaving] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [mode, setMode] = useState<"list" | "visual">("list");
   const detailPrefix = useId();
   const savingRef = useRef(false);
   const view = settings?.middleware;
   const title = zh ? "Middleware 装配" : "Middleware assembly";
   const description = zh
-    ? "选择组件并调整顺序，点击名称查看详情。"
-    : "Select and order components. Click a name for details.";
+    ? "选择组件并调整顺序，或在可视化视图中拖拽装配、演示调用链。"
+    : "Select and order components, or use the visual view to assemble and explore the call chain.";
 
   if (!view) return (
     <SectionShell id="middleware" title={title} description={description}>
@@ -44,6 +47,7 @@ export default function MiddlewareSection() {
   const selected = drafts[pipeline.id] ?? pipeline.selected;
   const dirty = JSON.stringify(selected) !== JSON.stringify(pipeline.selected);
   const disabled = saving || status !== "ready";
+  const invalidOrder = assemblyOrderError(selected);
   const catalog = new Map(view.catalog.map((item) => [item.id, item]));
   const ordered = [...selected, ...pipeline.available.filter((id) => !selected.includes(id))];
   const visible = ordered.filter((id) => {
@@ -63,7 +67,7 @@ export default function MiddlewareSection() {
     change(next);
   };
   const save = async (reset = false) => {
-    if (savingRef.current) return;
+    if (savingRef.current || (!reset && invalidOrder)) return;
     savingRef.current = true;
     setSaving(true);
     try {
@@ -114,6 +118,13 @@ export default function MiddlewareSection() {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
+        <div className="flex rounded-lg border border-line p-0.5" aria-label={zh ? "装配视图" : "Assembly view"}>
+          {(["list", "visual"] as const).map((id) => <button key={id} type="button" aria-pressed={mode === id} onClick={() => setMode(id)}
+            className={`flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] ${mode === id ? "bg-clay text-accent-ink" : "text-ink-dim hover:bg-surface-2"}`}>
+            {id === "list" ? <List size={13} /> : <LayoutGrid size={13} />}
+            {id === "list" ? (zh ? "列表" : "List") : (zh ? "可视化" : "Visual")}
+          </button>)}
+        </div>
         <label className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-line px-3 py-2 text-ink-faint">
           <Search size={14} className="shrink-0" />
           <input value={query} onChange={(event) => setQuery(event.target.value)}
@@ -130,6 +141,8 @@ export default function MiddlewareSection() {
         {zh ? "当前为空组合：不装载业务 middleware，基础运行设施仍保留。" : "Empty composition: no business middleware; core runtime facilities remain."}
       </p>}
 
+      {mode === "visual" ? <MiddlewareWorkbench key={pipeline.id} catalog={view.catalog} available={pipeline.available}
+        selected={selected} visible={visible} language={language} disabled={disabled} onChange={change} /> :
       <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
         {visible.map((id) => {
           const item = catalog.get(id)!;
@@ -178,8 +191,11 @@ export default function MiddlewareSection() {
           );
         })}
         {visible.length === 0 && <p className="py-6 text-center text-[13px] text-ink-faint">{zh ? "没有匹配的组件。" : "No matching components."}</p>}
-      </div>
+      </div>}
 
+      {invalidOrder && <p role="alert" className="rounded-lg border border-warn/30 bg-warn/10 px-3 py-2 text-[12px] text-warn">
+        {zh ? "请将「预算控制」放在「上下文压缩」之前，以便在压缩历史前记录用量。" : "Place Budget control before Context compaction to record usage before compacting history."}
+      </p>}
       <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface p-3 shadow-sm">
         <button type="button" disabled={disabled || (!pipeline.customized && !dirty)} onClick={() => save(true)}
           className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-[12px] text-ink-dim hover:bg-surface-2 disabled:opacity-40">
@@ -188,7 +204,7 @@ export default function MiddlewareSection() {
         <div className="flex items-center gap-2">
           {dirty && <button type="button" disabled={disabled} onClick={() => change([...pipeline.selected])}
             className="rounded-lg px-2 py-2 text-[12px] text-ink-dim hover:bg-surface-2 disabled:opacity-40">{zh ? "撤销修改" : "Discard"}</button>}
-          <button type="button" disabled={disabled || !dirty} onClick={() => save()}
+          <button type="button" disabled={disabled || !dirty || invalidOrder} onClick={() => save()}
             className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-[12px] text-white hover:opacity-90 disabled:opacity-40">
             <Check size={14} /> {saving ? (zh ? "保存中…" : "Saving…") : (zh ? "保存装配" : "Save assembly")}
           </button>

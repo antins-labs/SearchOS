@@ -545,6 +545,7 @@ def test_middleware_empty_and_reset_are_distinct(client):
     ("writer", {"selected": ["WebEvidenceMiddleware"]}, 422),
     ("web_search", {"selected": ["BudgetMiddleware", "BudgetMiddleware"]}, 422),
     ("web_search", {"selected": ["unknown"]}, 422),
+    ("writer", {"selected": ["CompactionContextMiddleware", "BudgetMiddleware"]}, 422),
     ("web_search", {}, 422),
 ])
 def test_middleware_rejects_invalid_configuration_without_mutation(client, pipeline, payload, status):
