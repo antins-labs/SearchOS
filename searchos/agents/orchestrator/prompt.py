@@ -13,6 +13,22 @@ Explore is optional and can be dispatched before or during Search. Decide from t
 - **Translate findings into a plan:** derive targets, fields, and task boundaries from the user's requirements and observed source structure. Treat unverified candidates as hypotheses. Start with the structure needed for the requested answer, then extend it when evidence reveals a relevant gap.
 """
 
+_RESEARCH_PLAN_SECTION = """\
+## Research plan
+
+At the first planning decision, call `set_research_plan` with a short plan; it may share a tool batch with independent work. If an explicit initial-Explore policy applies, record the plan after that required first dispatch. Reuse it on follow-ups and update it only when the request or evidence changes.
+- `simple`: verify a small number of facts with a suitable source, then answer without a table or Explore unless uncertainty requires them.
+- `broad`: establish the set boundary and members, then collect their attributes. Record source-backed members in `set_scope`; unknowns stay unknown, and estimated counts are hints only.
+- For any exhaustive enumeration, record a `set_scope` boundary even while its members and count are unknown. Once a source supplies the inventory, update `expected_members` and `basis_evidence_ids` before the final member check.
+- `deep`: investigate the premises, mechanism, exceptions and conflicts needed for the requested conclusion. Combine strategies when useful.
+- Set concrete `evidence_obligations` and a `stop_rule`. For Hybrid, derive Web tasks from unresolved local requirements; do not expand them into every possible property of the topic.
+- Choose `table_policy=none` for a lookup or explanation; `as_needed` for sustained multi-entity, multi-attribute collection. Keep URLs and excerpts in evidence metadata unless the user explicitly requests them as data.
+- Source permissions and execution budgets remain runtime-owned. A plan cannot grant access or increase a budget.
+- Before finishing an enumeration, compare actual members with the source-backed boundary. Known-row coverage, equal counts, and guessed lists do not prove recall or correctness. For open sets or unverified boundaries, state the search scope and stopping limitation.
+
+Use `read_evidence` citations in the answer. For skill/agent observations, `source_urls` carries the original links; never output internal skill://, agent:// or edit:// addresses as source citations. Every non-empty `edit_entities` set must include the original source and supporting excerpt; formatting alone must not change meaning. Preserve source versions.
+"""
+
 _LIVE_CONVERSATION_SECTION = """\
 # Live Conversation and Progress
 
@@ -59,7 +75,7 @@ Write the Explore task as a **natural-language brief tailored to this specific q
 _NO_EXPLORE_SECTION = """\
 ## 1. Schema Creation (no Explore)
 
-**Explore is disabled in this configuration.** Do NOT dispatch an `explore_agent`. Create a schema if none exists, then dispatch focused Search tasks. Reuse and extend existing tables when continuing a session.
+**Explore is disabled in this configuration.** Do NOT dispatch an `explore_agent`. Dispatch focused Search with `result_mode="findings"` for a lookup or explanation; create a schema only when table-bound collection is useful. Reuse and extend existing tables when continuing a session.
 
 Derive the schema directly from the user's query:
 - Identify the entity type(s) and the attributes the query asks for.
@@ -169,6 +185,8 @@ Let search agents discover skills for their current task. The optional `skills` 
 # Research Workflow
 
 {_LIVE_CONVERSATION_SECTION}
+
+{_RESEARCH_PLAN_SECTION}
 
 The sections below organize decisions, not mandatory execution stages. Source choice and result structure are independent: reading can start without a schema, and a task need not use both local and Web sources.
 
@@ -343,6 +361,8 @@ Internal schema is for retrieval accuracy, not final formatting. Design tables b
 
 {_LIVE_CONVERSATION_SECTION}
 
+{_RESEARCH_PLAN_SECTION}
+
 Choose the next action from the current state. The sections below describe available decisions. Follow the initial-action policy below, then adapt from returned evidence. Table-bound Search requires a schema.
 
 {explore_section}
@@ -410,7 +430,7 @@ A session that dispatched zero data-collecting agents (`search_agent`) is incomp
 - Use `search_agent` for web evidence. It has browser and eligible Access Skill tools, but no local-document tools.
 - Uploaded documents and previous document answers are outside this run's evidence scope. Ground the answer in the available web sources.
 
-After schema creation, repeat: enqueue tasks → `check_agents` → evaluate → adjust → stop when coverage is sufficient or budget is exhausted.
+For table-bound collection, after schema creation repeat: enqueue tasks → `check_agents` → evaluate → adjust → stop when coverage is sufficient or budget is exhausted.
 
 ### Writing effective task briefs
 
@@ -454,7 +474,7 @@ After each `check_agents`, read the sub-agent summaries and adapt:
 - `edit_entities(edits_json, table_id=...)` — to fix PK typos or overwrite cell values. Setting a column to `""` (or `null`) clears that cell back to missing and rejects its old evidence.
 - `remove_entities(entities_json, reason, table_id=...)` — ONLY when an authoritative source positively excludes a row (the official list enumerates the full universe and the row is absent, or the row fails an explicit task filter). NEVER remove a row just because data wasn't found.
 
-**Row-key ingestion rule**: when sub-agent reports list concrete row keys not in the schema, call `add_entities(...)` IMMEDIATELY after `check_agents` and BEFORE the next dispatch. If Explore estimated N rows but schema has < 80% × N after `check_agents`, scan each sub-agent's `last_message` for row keys and seed them.
+**Row-key ingestion rule**: when source-backed reports identify in-scope row keys not in the schema, add them before the next table-bound dispatch. Compare members against ResearchPlan's declared set boundary; an estimated count only prompts a review and must not seed invented rows or define recall.
 
 ### Evaluating progress
 

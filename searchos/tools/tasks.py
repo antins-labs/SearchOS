@@ -350,6 +350,17 @@ async def check_agents(timeout: float = 0.0) -> str:
             "'let me keep waiting'. Synthesize what was actually learned this round."
         )
     return json.dumps(response, ensure_ascii=False)
+def _task_result_mode(state: Any, item: dict) -> str:
+    if item.get("result_mode"):
+        return item["result_mode"]
+    if item.get("target_table") or item.get("table_id") or item.get("target_cells"):
+        return "table"
+    plan = state.research_plan
+    if plan and (plan.table_policy == "none" or not state.coverage_map.tables):
+        return "findings"
+    return state.research_mode
+
+
 @tool
 async def enqueue_tasks(items_json: str) -> str:
     """Append tasks to the Frontier. The Scheduler starts dispatching
@@ -402,10 +413,11 @@ async def enqueue_tasks(items_json: str) -> str:
 
     # Schema-gate non-explore enqueues (mirrors old dispatch_agents check).
     needs_schema = []
+    dispatch_state = _ctx.workspace.load_state()
     for i, item in enumerate(items):
         if not isinstance(item, dict):
             continue
-        if item.get("result_mode") == "findings":
+        if _task_result_mode(dispatch_state, item) == "findings":
             continue
         at = item.get("agent_type", "")
         kn = item.get("kind", "")
@@ -476,7 +488,7 @@ async def enqueue_tasks(items_json: str) -> str:
             target_table = str(
                 item.get("target_table") or item.get("table_id") or ""
             ).strip()
-            result_mode = item.get("result_mode") or ("table" if target_table else s.research_mode)
+            result_mode = _task_result_mode(s, item)
             if result_mode not in {"findings", "table"}:
                 errors.append(f"item[{i}]: invalid result_mode")
                 continue

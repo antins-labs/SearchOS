@@ -40,6 +40,7 @@ from searchos.harness.middleware.sensor.route_middleware import RetryRouteMiddle
 ORCHESTRATOR_DRAIN_TOOLS = frozenset(
     {
         "check_agents",
+        "set_research_plan",
         "add_entities",
         "edit_entities",
         "remove_entities",

@@ -15,6 +15,7 @@ from pydantic import Field
 from searchos.socm.coverage import CoverageMap
 from searchos.socm.evidence import EvidenceGraph
 from searchos.socm.frontier import FrontierMemory
+from searchos.socm.research_plan import ResearchPlan
 from searchos.socm.strategy import StrategyMemory
 from searchos.util.base_model import CamelModel
 
@@ -185,6 +186,7 @@ class SearchState(CamelModel):
     workspace/search_state.json."""
 
     intent: str = ""
+    research_plan: ResearchPlan | None = None
     # None retains CLI compatibility; WebUI always supplies an explicit scope.
     source_scope: dict[str, Any] | None = None
     research_mode: Literal["table", "findings"] = "table"

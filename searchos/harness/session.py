@@ -1362,12 +1362,15 @@ def _write_findings_answer(workspace, state, query, final_state, *, execution_er
     from searchos.socm.provenance import resolve_answer_citations
     answer, citation_issues = resolve_answer_citations(answer, nodes)
     answer = _LOCAL_LINK_RE.sub(lambda m: canonical.get(m.group(0), "invalid-local-reference"), answer)
+    from searchos.socm.research_plan import membership_review
     workspace.write_output("report.md", answer)
     workspace.write_output("result.json", json.dumps({
         "query": query, "answer": answer, "mode": mode,
         "execution_error": execution_error,
         "stop_reason": stop_reason,
         "citation_issues": citation_issues,
+        "research_plan": state.research_plan.model_dump() if state.research_plan else None,
+        "membership_review": membership_review(state),
         "evidence_count": len(nodes),
         "coverage": state.coverage_map.coverage_score,
         "frontier_progress": _frontier_progress(state),
@@ -1468,12 +1471,15 @@ async def _harness_synthesize(
         mode = "outline_writer" if body else "structured_only"
 
     from searchos.socm.provenance import resolve_answer_citations
+    from searchos.socm.research_plan import membership_review
     report, citation_issues = resolve_answer_citations(_assemble(body), evidence)
     workspace.write_output("report.md", report)
     workspace.write_output("result.json", _json.dumps({
         "query": query,
         "answer": report,
         "citation_issues": citation_issues,
+        "research_plan": state.research_plan.model_dump() if state.research_plan else None,
+        "membership_review": membership_review(state),
         "mode": mode,
         **writer_metadata,
         "evidence_count": len(evidence),

@@ -683,6 +683,7 @@ async def finalize_research(*, state, query, model, stop_reason, max_chars=48_00
     import json
     from langchain_core.messages import HumanMessage, SystemMessage
     from searchos.harness.answer_stream import message_chunk_text
+    from searchos.socm.research_plan import render_research_plan
 
     nodes = answer_evidence(state)
     payload = {
@@ -694,6 +695,7 @@ async def finalize_research(*, state, query, model, stop_reason, max_chars=48_00
         "omitted_tasks": 0,
         "omitted_evidence": 0,
         "unavailable_sources": (state.source_scope or {}).get("unavailable_sources", {}),
+        "research_plan": render_research_plan(state),
     }
     # Admit complete records, never cut JSON or silently truncate source facts.
     # Reserve most of the context for facts; task status supplies the gaps.

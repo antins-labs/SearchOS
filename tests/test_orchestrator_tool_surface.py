@@ -8,7 +8,7 @@ def test_hybrid_tool_surface_excludes_manual_evidence_operations():
     tools = get_orchestrator_tools(source_mode="hybrid")
     assert {tool.name for tool in tools} == {
         "create_schema", "add_columns", "add_entities", "remove_entities", "edit_entities", "inspect_table",
-        "enqueue_tasks", "stop_task", "check_agents", "read_evidence", "list_frontier", "python",
+        "enqueue_tasks", "stop_task", "check_agents", "read_evidence", "list_frontier", "python", "set_research_plan",
     }
     prompt = build_orchestrator_prompt("agents", "skills", source_mode="hybrid",
                                        orch_toolset=render_toolset(tools))
