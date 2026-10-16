@@ -30,7 +30,33 @@
 <p align="center">
   <a href="#-quick-start">Quick start</a> · <a href="#-local-and-hybrid-research">Local &amp; Hybrid</a> ·
   <a href="#-skill-system">Skills</a> · <a href="#-configuration">Models &amp; configuration</a> ·
-  <a href="#-framework">Architecture</a>
+  <a href="#-framework">Architecture</a> · <a href="#-gallery">Demos</a> · <a href="#-evaluation">Evaluation</a>
+</p>
+
+<p align="center">
+  <img src="assets/main.png" alt="SearchOS-V1 architecture" width="95%">
+</p>
+
+<p align="center"><sub>SearchOS-V1 architecture.</sub></p>
+
+<p align="center">
+  <a href="https://youtu.be/DZNXxMcxnMQ">
+    <img src="assets/searchos-demo.gif" alt="SearchOS demo" width="95%">
+  </a>
+</p>
+
+<p align="center">
+  🎬 <b><a href="https://youtu.be/DZNXxMcxnMQ">Full demo video (YouTube)</a></b>
+</p>
+
+<p align="center">
+  <a href="https://youtu.be/wxy74AqykwY" title="Watch the narrated SearchOS product walkthrough in English">
+    <img src="assets/gallery/product-demo-en.jpg" alt="SearchOS product walkthrough" width="95%">
+  </a>
+</p>
+
+<p align="center">
+  🎬 <b><a href="https://youtu.be/wxy74AqykwY">Full product walkthrough (English)</a></b>
 </p>
 
 ## ✨ Highlights
@@ -41,6 +67,10 @@
 - 🧰 **Create and reuse skills** — start from a website, task, or execution trace; inspect creation progress and installed packages in the Web UI. Portable packages use `SKILL.md` and ordinary CLI scripts.
 - 💬 **Steer research while it runs** — add a constraint, correct the scope, or ask for a final answer. A follow-up wakes a waiting Orchestrator without waiting for a sub-agent to finish.
 - 🗂️ **Inspect shared research state** — SOCM keeps tasks, evidence, coverage, and strategy in persistent state. Agents work against explicit gaps, while budget and progress checks help contain stalled work.
+- 🧩 **Research against explicit coverage gaps** — entity × attribute tables record sourced values and missing fields. The Orchestrator uses these gaps to direct follow-up retrieval within the available budget.
+- ⚡ **Run research tasks in parallel** — independent agents overlap searching, reading, and evidence collection; task dependencies determine which work is ready to dispatch.
+
+> 📊 **SearchOS-V1** led the reported F1 metrics on **WideSearch / GISA**, including **GISA Set · F1 +13.4 points** over the next-best baseline. See [Evaluation](#-evaluation) for the original results and their scope.
 
 ## 📣 News
 
@@ -51,7 +81,78 @@
 - **2026-09-13** — **Hybrid Search.** Coordinate local document reading and Web retrieval in one research workflow, combining their evidence into answers and comparison tables.
 - **2026-09-10** — **Local Search.** Search your own documents and read relevant passages to answer questions from local source material.
 - **2026-07-17** — **SearchOS-V1 on arXiv.** Read the paper on [arXiv](https://arxiv.org/abs/2607.15257) or [Hugging Face](https://huggingface.co/papers/2607.15257).
+- **2026-07-11** — **Start faster. Search wider. See every step.** A new one-command installer gets SearchOS running; parallel Explore waves scout the web in batches, while live progress and evidence grouped by entity make every discovery easier to follow. Skills now run in hardened, isolated workers. ⚡
+- **2026-07-10** — **A whole new way to research.** Draw the structure of your question. SearchOS turns it into citation-backed research you can explore, refine, and export. 🧩
+- **2026-07-09** — **Pick up exactly where you left off.** Every session returns with its conversation, progress, evidence, and live activity intact. ⏪
+- **2026-07-08** — **Everything in one place.** Models, providers, search, skills, and budgets now come together in one beautifully simple control center. ⚙️
 - **2026-07-07** — **SearchOS is open source.** Multi-agent search, structured research, TUI, and Web UI.
+
+## 🎥 Gallery
+
+### Local Search introduction
+
+<p align="center">
+  <a href="https://youtu.be/l9vEq6SdvZA">
+    <img src="https://i.ytimg.com/vi/l9vEq6SdvZA/hqdefault.jpg" alt="Local Search introduction" width="720">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://youtu.be/l9vEq6SdvZA"><b>Watch the Local Search introduction on YouTube</b></a>
+</p>
+
+The recordings below demonstrate Web and TUI workflows.
+
+### Web and TUI demos
+
+<table align="center">
+  <tr>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/dfzu9aeK0Cs" title="SearchOS-Web Demo · Watch on YouTube">
+        <img src="assets/gallery/web-demo.jpg" alt="SearchOS-Web Demo" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-Web Demo</b></sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/bS07neJm6FA" title="SearchOS-Web Demo 2 · Watch on YouTube">
+        <img src="https://img.youtube.com/vi/bS07neJm6FA/hqdefault.jpg" alt="SearchOS-Web Demo 2" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-Web Demo 2</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/YhJdc7Qhr1U" title="SearchOS-demo1 · Watch on YouTube">
+        <img src="assets/gallery/demo1.jpg" alt="SearchOS-demo1" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-demo1</b></sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/IA_-sO2avTA" title="SearchOS-demo3 · Watch on YouTube">
+        <img src="assets/gallery/demo3.jpg" alt="SearchOS-demo3" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-demo2</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/HxCLoauXoYg" title="SearchOS-demo4 · Watch on YouTube">
+        <img src="assets/gallery/demo4.jpg" alt="SearchOS-demo4" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-demo3</b></sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/-QmjRr_3B1s" title="SearchOS-demo5 · Watch on YouTube">
+        <img src="assets/gallery/demo5.jpg" alt="SearchOS-demo5" width="100%">
+      </a>
+      <br><sub>▶️ <b>SearchOS-demo4</b></sub>
+    </td>
+  </tr>
+</table>
+
+<p align="center"><sub>Click a cover to watch on YouTube.</sub></p>
+
+<!-- To add a video: copy a <td>…</td> block above and swap the youtu.be link, assets/gallery thumbnail, and title -->
 
 ## 🧭 Quick start
 
@@ -78,6 +179,12 @@ Open [the Web workspace](http://localhost:3000). The API runs on port `8000`. In
 5. Open a citation to inspect its source. Save useful Web sources to the library for future research.
 
 CLI and TUI remain available:
+
+For example, run a structured Web query from the terminal:
+
+```bash
+searchos "Top-5 universities per subject in the 2025 QS rankings, with application deadlines"
+```
 
 | Command | What it does |
 | --- | --- |
@@ -129,9 +236,6 @@ After a run, follow-ups reuse the session's evidence and tables. The Orchestrato
 | **Mid-run** | **Live steering** — wakes an Orchestrator waiting for sub-agents and starts its next model call with your input; use it to add constraints, change direction, or request a final answer |
 | After a run | **Multi-turn follow-up** — reuses the previous round's coverage map and evidence: if the answer is already in the table it is answered directly (no new search); otherwise the existing table is extended incrementally, never rebuilt from scratch |
 
-<details>
-<summary>TUI commands and effort presets</summary>
-
 Slash commands are available during a run; configuration changes apply as described below:
 
 | Command | Alias / shortcut | What it does |
@@ -156,8 +260,6 @@ The four `/effort` presets apply to subsequent runs; all four set the parallel s
 | `medium` (default) | 50 | 20 | 30 min | 40 |
 | `high` | 100 | 35 | 60 min | 60 |
 | `max` | 150 | 50 | 120 min | 80 |
-
-</details>
 
 ## 🧰 Skill system
 
@@ -237,6 +339,13 @@ Long research tasks accumulate sources, unresolved questions, and partial conclu
 
 SearchOS maintains tasks, evidence, coverage, and strategy in **SOCM — Search-Oriented Context Management**. Source reading feeds extraction and verification; committed facts retain their sources and can support later tasks or table cells. The Orchestrator schedules unresolved work against that state. Budget and progress monitoring help detect repeated or stalled activity, while the workspace exposes the resulting evidence and remaining gaps.
 
+These mechanisms address four recurring problems:
+
+- **Losing progress in conversation history.** Persistent tasks, evidence, and coverage let later work continue from recorded findings. Context middleware brings the relevant state into each agent's context; session history supports inspection and resumption.
+- **Repeating completed or stalled work.** The Orchestrator tracks unresolved tasks and table cells, while Sensor middleware checks budgets and progress. These signals guide follow-up work and changes in search direction.
+- **Losing sources during summarization.** Agents locate and read material; Extraction middleware extracts and verifies candidate facts before committing them with source references. Answers and table cells can then cite the supporting evidence.
+- **Rebuilding access methods and research procedures.** Access, Strategy, and Orchestrator skills preserve source-specific retrieval, methods such as ranking and disambiguation, and orchestration guidance. See the [Skill system](#-skill-system).
+
 Local libraries add persistent source material to this workflow. Their catalogs help agents locate relevant documents; Hybrid research connects those readings with public sources. Skills preserve reusable access methods and research procedures for later runs.
 
 ## 🧩 Framework
@@ -264,14 +373,33 @@ The Orchestrator selects the next action from the question and current evidence.
 
 The **Context, Sensor, and Extraction** middleware handle context assembly, budgets and progress, and evidence intake. The Orchestrator normally produces the final answer; the optional Writer and synthesis fallback support other delivery paths. Session workspaces retain state, reading records, and execution logs for follow-ups and inspection.
 
-<details>
-<summary>SearchOS-V1 architecture overview</summary>
+For structured Web or Hybrid research, the workflow has six stages. The Orchestrator can revisit them as new evidence or gaps appear:
 
-<p align="center">
-  <img src="assets/main.png" alt="SearchOS-V1 architecture" width="95%">
-</p>
+1. **Explore** — when needed, clarify the question, locate useful sources, and identify candidate entities.
+2. **Schema** — define entity tables, attributes, and relations when the task calls for structured comparison; Hybrid can collect findings before creating a table.
+3. **Dispatch** — split unresolved work into subtasks and dispatch ready tasks according to priority, dependencies, and available concurrency.
+4. **Extract** — turn source observations into verified facts with citations, then associate them with tasks and relevant table cells.
+5. **Assess** — review results, remaining gaps, conflicts, progress, and budget to decide what needs further work.
+6. **Synthesize** — assemble the answer from recorded evidence, preserve citations, and identify unresolved gaps when the run ends.
 
-</details>
+### What the output looks like
+
+This excerpt is preserved from the July 2026 README to show how cell-level citations map to source entries. The original query asked for a survey of popular insurance products in Hong Kong; the values belong to that historical run.
+
+```markdown
+### Major insurers in Hong Kong
+| Company     | English name   | 2024 APE rank | 2023 premiums  |
+|-------------|----------------|---------------|----------------|
+| 友邦保险     | AIA [6]        | #1 [6]        | HK$87.1B [6]   |
+| 保诚         | Prudential [6] | #2 [6]        | HK$65.3B [6]   |
+| 汇丰保险     | HSBC Life [6]  | #3 [6]        | HK$55.5B [6]   |
+| 宏利         | Manulife [6]   | #4 [6]        | HK$49.8B [6]   |
+
+### Sources
+[6] https://www.ia.org.hk/tc/infocenter/press_releases/20250425.html, https://inews.hket.com/…
+```
+
+The full artifact (a replayable directory with the trajectory, page cache, and SOCM state) lives under `searchos_workspace/<timestamp>/`.
 
 ## 📊 Evaluation
 
@@ -328,97 +456,6 @@ datasets/          WideSearch and GISA data
 eval_results/      Evaluation outputs
 searchos_workspace/ Research session workspaces
 ```
-
-## 🎥 Gallery
-
-### Local Search introduction
-
-<p align="center">
-  <a href="https://youtu.be/l9vEq6SdvZA">
-    <img src="https://i.ytimg.com/vi/l9vEq6SdvZA/hqdefault.jpg" alt="Local Search introduction" width="720">
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://youtu.be/l9vEq6SdvZA"><b>Watch the Local Search introduction on YouTube</b></a>
-</p>
-
-The recordings below demonstrate Web and TUI workflows.
-
-<details>
-<summary>Web and TUI demos</summary>
-
-<p align="center">
-  <a href="https://youtu.be/DZNXxMcxnMQ">
-    <img src="assets/searchos-demo.gif" alt="SearchOS demo: launch a real query from the terminal TUI → agents fill the table in parallel → switch to the web frontend for the synthesized answer" width="95%">
-  </a>
-</p>
-
-<p align="center">
-  🎬 <b><a href="https://youtu.be/DZNXxMcxnMQ">Full demo video (YouTube)</a></b>
-</p>
-
-<p align="center">
-  <a href="https://youtu.be/wxy74AqykwY" title="Watch the narrated SearchOS product walkthrough in English">
-    <img src="assets/gallery/product-demo-en.jpg" alt="SearchOS product walkthrough: setup, live coverage, evidence, repair, and export" width="95%">
-  </a>
-</p>
-
-<p align="center">
-  🎬 <b><a href="https://youtu.be/wxy74AqykwY">Full product walkthrough (English)</a></b>
-</p>
-
-<table align="center">
-  <tr>
-    <td width="50%" align="center">
-      <a href="https://youtu.be/dfzu9aeK0Cs" title="SearchOS-Web Demo · Watch on YouTube">
-        <img src="assets/gallery/web-demo.jpg" alt="SearchOS-Web Demo" width="100%">
-      </a>
-      <sub>▶️ <b>SearchOS-Web Demo</b></sub>
-    </td>
-    <td width="50%" align="center">
-      <a href="https://youtu.be/bS07neJm6FA" title="SearchOS-Web Demo 2 · Watch on YouTube">
-        <img src="https://img.youtube.com/vi/bS07neJm6FA/hqdefault.jpg" alt="SearchOS-Web Demo 2" width="100%">
-      </a>
-      <sub>▶️ <b>SearchOS-Web Demo 2</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" align="center">
-      <a href="https://youtu.be/YhJdc7Qhr1U" title="SearchOS-demo1 · Watch on YouTube">
-        <img src="assets/gallery/demo1.jpg" alt="SearchOS-demo1" width="100%">
-      </a>
-      <sub>▶️ <b>SearchOS-demo1</b></sub>
-    </td>
-    <td width="50%" align="center">
-      <a href="https://youtu.be/IA_-sO2avTA" title="SearchOS-demo3 · Watch on YouTube">
-        <img src="assets/gallery/demo3.jpg" alt="SearchOS-demo3" width="100%">
-      </a>
-      <sub>▶️ <b>SearchOS-demo2</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" align="center">
-      <a href="https://youtu.be/HxCLoauXoYg" title="SearchOS-demo4 · Watch on YouTube">
-        <img src="assets/gallery/demo4.jpg" alt="SearchOS-demo4" width="100%">
-      </a>
-      <sub>▶️ <b>SearchOS-demo3</b></sub>
-    </td>
-    <td width="50%" align="center">
-      <a href="https://youtu.be/-QmjRr_3B1s" title="SearchOS-demo5 · Watch on YouTube">
-        <img src="assets/gallery/demo5.jpg" alt="SearchOS-demo5" width="100%">
-      </a>
-      <br><sub>▶️ <b>SearchOS-demo4</b></sub>
-    </td>
-  </tr>
-</table>
-
-<p align="center"><sub>Click a cover to watch on YouTube.</sub></p>
-
-<!-- To add a video: copy a <td>…</td> block above and swap the youtu.be link, assets/gallery thumbnail, and title -->
-
-</details>
-
 
 ## 👥 Authors
 
