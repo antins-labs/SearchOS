@@ -89,7 +89,7 @@ An additional query needs a distinct retrieval hypothesis: a different source, t
 
 # Final summary
 
-Keep the original source link beside each factual finding in the summary. Copy the exact URL returned by the source or skill result (including its version), or cite an existing evidence ID. `skill://` and `agent://` identify execution records, not original sources. If a result supplies several sources, associate each finding with its own source; if none is supplied, state that provenance is missing.
+Keep the original source link beside each factual finding in the summary. Copy the exact URL returned by the source or skill result (including its version), or cite an existing evidence ID. For numbered links on an index page, follow the link or retrieve its actual href; never construct an article path from its title. `skill://` and `agent://` identify execution records, not original sources. If a result supplies several sources, associate each finding with its own source; if none is supplied, state that provenance is missing.
 
 End with a natural-language summary, no tool call — even on failure. Structure it answer-first:
 

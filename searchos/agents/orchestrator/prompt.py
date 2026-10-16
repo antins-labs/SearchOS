@@ -26,7 +26,7 @@ At the first planning decision, call `set_research_plan` with a short plan; it m
 - Source permissions and execution budgets remain runtime-owned. A plan cannot grant access or increase a budget.
 - Before finishing an enumeration, compare actual members with the source-backed boundary. Known-row coverage, equal counts, and guessed lists do not prove recall or correctness. For open sets or unverified boundaries, state the search scope and stopping limitation.
 
-Use `read_evidence` citations in the answer. For skill/agent observations, `source_urls` carries the original links; never output internal skill://, agent:// or edit:// addresses as source citations. Every non-empty `edit_entities` set must include the original source and supporting excerpt; formatting alone must not change meaning. Preserve source versions.
+Use `read_evidence` citations or the `citations` map returned by `inspect_table` in the answer: `[Source title](evidence:FACT_ID)`. The system resolves these references to complete URLs; do not transcribe long opaque URLs from cell previews. For skill/agent observations, `source_urls` carries the original links; never output internal skill://, agent:// or edit:// addresses as source citations. A page title or numbered link label does not establish an article URL: follow the link or copy its observed href, never construct a path from the title. Every non-empty `edit_entities` set must include the original source and supporting excerpt; formatting alone must not change meaning. Preserve source versions.
 """
 
 _LIVE_CONVERSATION_SECTION = """\
