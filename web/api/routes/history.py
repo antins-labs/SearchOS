@@ -15,7 +15,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from searchos.socm.workspace import new_session_id
+from searchos.socm.storage.workspace import new_session_id
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -532,7 +532,7 @@ async def branch_history_turn(session_id: str, turn_index: int):
     """Copy one historical turn into a new, independently editable session."""
     from searchos.harness.telemetry.conversation_context import conversation_turns
     from searchos.socm.state import SearchState
-    from searchos.socm.workspace import WorkspaceManager
+    from searchos.socm.storage.workspace import WorkspaceManager
 
     source_ws = _safe_ws(session_id)
     session_id = source_ws.name

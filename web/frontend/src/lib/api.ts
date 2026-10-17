@@ -369,14 +369,6 @@ export async function listNetworkImports(libraryId: string): Promise<NetworkImpo
   }, { errorPrefix: "Load source imports failed" });
 }
 
-export async function retryNetworkImport(libraryId: string, jobId: string): Promise<NetworkImportJob> {
-  return request(
-    `/api/local/libraries/${encodeURIComponent(libraryId)}/imports/${encodeURIComponent(jobId)}/retry`,
-    { method: "POST" },
-    { errorPrefix: "Retry source import failed" },
-  );
-}
-
 export async function getLocalLibraryGraph(libraryId: string): Promise<LocalLibraryGraph> {
   return request(`/api/local/libraries/${encodeURIComponent(libraryId)}/graph`, {
     cache: "no-store",
@@ -760,7 +752,6 @@ export type SkillLibraryItem = {
   enabled: boolean; package_format: string; entry: string;
 };
 export type SkillLibraryDetail = SkillLibraryItem & { body: string; source: string; files: string[] };
-export const listSkillLibrary = () => request<SkillLibraryItem[]>("/api/skills/library", { cache: "no-store" });
 export const getSkillLibraryDetail = (category: string, name: string) => request<SkillLibraryDetail>(`/api/skills/library/${encodeURIComponent(category)}/${encodeURIComponent(name)}`);
 export const getSkillLibraryFile = (category: string, name: string, path: string) => request<{ path: string; content: string }>(`/api/skills/library/${encodeURIComponent(category)}/${encodeURIComponent(name)}/file?path=${encodeURIComponent(path)}`);
 

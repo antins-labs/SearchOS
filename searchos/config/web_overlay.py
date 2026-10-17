@@ -10,7 +10,7 @@ whose subdirectories are scanned as sessions.
 
 This module owns the DATA MODEL and the read/apply path so it can be shared by
 both entry points: the web app (which additionally writes via
-``web/api/settings_store.py``) and the ``searchos`` CLI/TUI (read-only). Keeping
+``web/api/settings/store.py``) and the ``searchos`` CLI/TUI (read-only). Keeping
 it under ``searchos.config`` avoids a ``searchos → web`` dependency.
 """
 

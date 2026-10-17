@@ -28,7 +28,7 @@ class _DetectionRecords:
         if self.workspace is None:
             return
         from searchos.socm import AntiPatternKind
-        from searchos.socm.strategy import record_strategy_pattern
+        from searchos.socm.planning.strategy import record_strategy_pattern
 
         record_strategy_pattern(
             self.workspace,

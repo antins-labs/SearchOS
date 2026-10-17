@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-import os
-import tempfile
 import uuid
 from pathlib import Path
 from typing import Any
@@ -19,6 +17,7 @@ from searchos.local.models import (
     ProcessingStatus,
     SourceLocator,
 )
+from searchos.local.storage_io import atomic_write_text
 
 SCHEMA_VERSION = 2
 _FRONT_MATTER_START = "---\n"
@@ -62,27 +61,6 @@ class SourceRecord(BaseModel):
     # Optional provenance for explicit network imports. Existing uploads and
     # old records remain valid with an empty origin.
     origin: dict[str, Any] | None = None
-
-
-def _atomic_write(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    handle = tempfile.NamedTemporaryFile(
-        mode="w",
-        encoding="utf-8",
-        dir=path.parent,
-        prefix=f".{path.name}.",
-        suffix=".tmp",
-        delete=False,
-    )
-    temporary = Path(handle.name)
-    try:
-        with handle:
-            handle.write(content)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary, path)
-    finally:
-        temporary.unlink(missing_ok=True)
 
 
 def _render_record(data: dict[str, Any], heading: str) -> str:
@@ -149,7 +127,7 @@ class SourceRegistry:
             root_id = _root_id(resolved)
             if record.source_roots.get(root_id) != str(resolved):
                 record.source_roots[root_id] = str(resolved)
-        _atomic_write(
+        atomic_write_text(
             self.library_path,
             _render_record(record.model_dump(mode="json"), "SearchOS local library"),
         )
@@ -182,7 +160,7 @@ class SourceRegistry:
         if record.library_id != library.library_id:
             raise ValueError("来源记录不属于当前资料库")
         path = self.source_path(record.document_id)
-        _atomic_write(
+        atomic_write_text(
             path,
             _render_record(record.model_dump(mode="json"), f"Source: {record.relative_path}"),
         )

@@ -11,7 +11,7 @@ from searchos.harness.middleware.extraction.utils.grounding import (
 )
 from searchos.harness.middleware.extraction.utils.unit_normalize import normalize_value
 from searchos.socm import TableSchema
-from searchos.socm.values import is_missing_value
+from searchos.socm.evidence.values import is_missing_value
 
 
 def ingest_rows(bundles, table_id, state, *, commit_stats=None):
@@ -48,7 +48,7 @@ def _ingest_rows(
         validate_row,
     )
     from searchos.socm.evidence import SourceObservation
-    from searchos.socm.provenance import select_source_urls
+    from searchos.socm.evidence.provenance import select_source_urls
     from searchos.util.span_match import find_span
 
     cmap = s.coverage_map

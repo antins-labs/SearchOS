@@ -29,7 +29,7 @@ from searchos.config.run_config import EffectiveRunConfig, activate_run_config
 from searchos.harness.middleware.context.socm_middleware import SOCMContextMiddleware
 from searchos.harness.middleware.models import TaskContext
 from searchos.socm import FrontierTask, FrontierTaskStatus, SearchReport, SearchState
-from searchos.socm.workspace import WorkspaceManager
+from searchos.socm.storage.workspace import WorkspaceManager
 from searchos.tools.search_state import _source_scope_var
 
 CASES = [

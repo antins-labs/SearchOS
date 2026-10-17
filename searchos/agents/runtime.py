@@ -25,7 +25,7 @@ from langchain_core.tools import BaseTool
 from langgraph.checkpoint.memory import MemorySaver
 
 from searchos.harness.steering import SteerQueue
-from searchos.socm.workspace import WorkspaceManager
+from searchos.socm.storage.workspace import WorkspaceManager
 
 logger = logging.getLogger(__name__)
 

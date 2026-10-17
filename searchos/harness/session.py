@@ -366,7 +366,7 @@ class SearchSession:
         access_deny = canonical_skill_names(access_deny or ())
         strategy_deny = canonical_skill_names(strategy_deny or ())
         orchestrator_deny = canonical_skill_names(orchestrator_deny or ())
-        from searchos.tools.skill_catalog import _skill_access_policy_var
+        from searchos.tools.skills.catalog import _skill_access_policy_var
         _skill_access_policy_var.set({
             "access_only": None if access_only is None else frozenset(access_only),
             "access_deny": frozenset(access_deny or ()),
@@ -1338,7 +1338,7 @@ def _write_findings_answer(workspace, state, query, final_state, *, execution_er
     nodes = answer_evidence(state)
     from searchos.harness.report.grounding import final_answer_text
     answer = final_answer_text(final_state)
-    from searchos.socm.provenance import evidence_source_urls
+    from searchos.socm.evidence.provenance import evidence_source_urls
     canonical = {url: url for node in nodes for url in evidence_source_urls(node) if url.startswith("local://")}
     from searchos.local.reader.references import parse_ref_id
     document_refs: dict[str, set[str]] = {}
@@ -1359,10 +1359,10 @@ def _write_findings_answer(workspace, state, query, final_state, *, execution_er
     if not answer.strip():
         answer = "研究执行中断，尚未生成回答。" if execution_error else "本次研究尚未生成回答。"
         mode = "hybrid_partial"
-    from searchos.socm.provenance import resolve_answer_citations
+    from searchos.socm.evidence.provenance import resolve_answer_citations
     answer, citation_issues = resolve_answer_citations(answer, nodes)
     answer = _LOCAL_LINK_RE.sub(lambda m: canonical.get(m.group(0), "invalid-local-reference"), answer)
-    from searchos.socm.research_plan import membership_review
+    from searchos.socm.planning.research_plan import membership_review
     workspace.write_output("report.md", answer)
     workspace.write_output("result.json", json.dumps({
         "query": query, "answer": answer, "mode": mode,
@@ -1470,8 +1470,8 @@ async def _harness_synthesize(
         body = state.outline.model_copy(update={"sections": eligible_sections}).rendered().strip()
         mode = "outline_writer" if body else "structured_only"
 
-    from searchos.socm.provenance import resolve_answer_citations
-    from searchos.socm.research_plan import membership_review
+    from searchos.socm.evidence.provenance import resolve_answer_citations
+    from searchos.socm.planning.research_plan import membership_review
     report, citation_issues = resolve_answer_citations(_assemble(body), evidence)
     workspace.write_output("report.md", report)
     workspace.write_output("result.json", _json.dumps({

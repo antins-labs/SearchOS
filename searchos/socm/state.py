@@ -12,11 +12,11 @@ from typing import Any, Literal
 
 from pydantic import Field
 
-from searchos.socm.coverage import CoverageMap
-from searchos.socm.evidence import EvidenceGraph
-from searchos.socm.frontier import FrontierMemory
-from searchos.socm.research_plan import ResearchPlan
-from searchos.socm.strategy import StrategyMemory
+from searchos.socm.coverage.models import CoverageMap
+from searchos.socm.evidence.graph import EvidenceGraph
+from searchos.socm.planning.frontier import FrontierMemory
+from searchos.socm.planning.research_plan import ResearchPlan
+from searchos.socm.planning.strategy import StrategyMemory
 from searchos.util.base_model import CamelModel
 
 
@@ -187,8 +187,8 @@ class SearchState(CamelModel):
 
     def model_post_init(self, __context: Any) -> None:
         """旧快照从已选证据恢复完整值；保留排序、状态与单元格投影。"""
-        from searchos.socm.coverage import (
-            CellStatus,
+        from searchos.socm.coverage.models import CellStatus
+        from searchos.socm.coverage.projection import (
             evidence_source_allowed,
             project_cell_evidence,
         )

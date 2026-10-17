@@ -145,7 +145,7 @@ async def open(id_or_url: Any, loc: int = 0, view_tokens: int | None = None) -> 
     else:
         disk_cached = _read_page_from_disk(url)
         if disk_cached is None and url.startswith("skill://"):
-            from searchos.tools.simple_browser.execution_pages import resolve_execution_root
+            from searchos.tools.simple_browser.result_pages import resolve_execution_root
 
             disk_cached = resolve_execution_root(url)
             if disk_cached is not None:

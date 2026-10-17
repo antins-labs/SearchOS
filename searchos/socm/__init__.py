@@ -31,7 +31,7 @@ from searchos.socm.evidence import (
     EvidenceRelation,
     EvidenceStatus,
 )
-from searchos.socm.frontier import (
+from searchos.socm.planning.frontier import (
     MAX_TASK_ATTEMPTS,
     FrontierMemory,
     FrontierTask,
@@ -47,7 +47,7 @@ from searchos.socm.state import (
     SearchState,
     WriterReport,
 )
-from searchos.socm.strategy import (
+from searchos.socm.planning.strategy import (
     AntiPatternKind,
     AntiPatternScope,
     FailureMemory,
@@ -55,7 +55,7 @@ from searchos.socm.strategy import (
     StrategyPattern,
 )
 from searchos.socm.views.trace import resolve_cell_provenance
-from searchos.socm.workspace import WorkspaceManager
+from searchos.socm.storage.workspace import WorkspaceManager
 
 __all__ = [
     # Frontier

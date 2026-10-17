@@ -365,7 +365,7 @@ class BudgetMiddleware(AgentMiddleware):
             result = await handler(request)
         except asyncio.CancelledError:
             if name == "exec":
-                from searchos.tools.skill_execution import execution_started
+                from searchos.tools.skills.execution import execution_started
 
                 call_id = request.tool_call.get("id", "")
                 if call_id not in self._accounted_tools and execution_started(call_id):

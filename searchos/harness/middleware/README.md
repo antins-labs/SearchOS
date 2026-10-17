@@ -9,8 +9,8 @@ middleware/
 ├── pipelines.py                # 默认网页、本地、探索、写作和调度组合
 ├── context/
 │   ├── *_middleware.py         # 上下文与工具结果功能
-│   ├── core/models.py          # Episode 状态
-│   └── utils/                  # 消息裁剪、历史渲染与投影
+│   ├── episodes.py             # Episode 记录、解析与历史渲染
+│   └── utils/                  # 消息裁剪、压缩与投影
 ├── extraction/
 │   ├── *_middleware.py         # Web、Local、最终摘要
 │   ├── base.py                 # 来源组件共有的提交与反馈
@@ -25,7 +25,7 @@ middleware/
     └── tools.py                # 工具工作量计量
 ```
 
-一个可独立选择的功能对应一个组件；同一功能的内部步骤不拆成公开 middleware。复杂领域实现归 core，辅助函数归 utils；短小私有函数留在使用它的文件内。不再有 profiles、Assembly、公开 barrier、execution 或 telemetry 功能分类。
+一个可独立选择的功能对应一个组件；同一功能的内部步骤不拆成公开 middleware。复杂领域实现归 core；同一概念的记录类型与辅助函数放在一起，不为短小内部实现单独增加目录。跨功能的辅助函数归 utils，短小私有函数留在使用它的文件内。不再有 profiles、Assembly、公开 barrier、execution 或 telemetry 功能分类。
 
 运行设施由所属模块管理：
 

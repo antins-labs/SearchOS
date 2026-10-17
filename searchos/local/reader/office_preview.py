@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import os
 import subprocess
 import tempfile
@@ -11,6 +10,7 @@ from xml.sax.saxutils import escape
 
 from searchos.local.index.locks import advisory_lock
 from searchos.local.parsers.vision import resolve_soffice_executable
+from searchos.local.storage_io import file_sha256
 
 _OFFICE_EXTENSIONS = {".docx", ".pptx", ".xlsx"}
 _PREVIEW_CACHE_VERSION = "office-pdf-v2-fontconfig"
@@ -22,14 +22,6 @@ _CJK_FALLBACK_FAMILIES = (
     "Noto Sans CJK SC",
     "WenQuanYi Zen Hei",
 )
-
-
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        while chunk := stream.read(1024 * 1024):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def _safe_identifier(value: str, label: str) -> str:
@@ -130,7 +122,7 @@ class OfficePreviewService:
         if source.suffix.casefold() not in _OFFICE_EXTENSIONS:
             raise ValueError("只支持 DOCX、PPTX 和 XLSX 的 Office 预览")
 
-        revision = _sha256(source)
+        revision = file_sha256(source)
         preview_dir = self.root / library / document / revision / _PREVIEW_CACHE_VERSION
         target = preview_dir / "original.pdf"
         with advisory_lock(preview_dir / ".preview.lock"):

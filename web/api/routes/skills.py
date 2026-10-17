@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import Literal
 from pydantic import BaseModel, Field
-from api.skill_creation_jobs import CreationInput, jobs
+from api.skills.creation import CreationInput, jobs
 
 router = APIRouter(prefix='/api/skills/creations', tags=['skills'])
 
@@ -66,7 +66,7 @@ async def resume_creation(job_id: str, index: int):
 
 @router.get('/{job_id}/requests/{index}/draft')
 def get_draft(job_id: str, index: int):
-    from api.skill_creation_drafts import detail
+    from api.skills.drafts import detail
     try:
         return detail(jobs.read(job_id), jobs.root, index)
     except (ValueError, FileNotFoundError) as exc:
@@ -75,7 +75,7 @@ def get_draft(job_id: str, index: int):
 
 @router.get('/{job_id}/requests/{index}/draft/file')
 def get_draft_file(job_id: str, index: int, path: str):
-    from api.skill_creation_drafts import read_file
+    from api.skills.drafts import read_file
     try:
         return read_file(jobs.read(job_id), jobs.root, index, path)
     except (ValueError, FileNotFoundError) as exc:
@@ -90,7 +90,7 @@ class DraftEdit(BaseModel, extra='forbid'):
 
 @router.put('/{job_id}/requests/{index}/draft/file')
 async def put_draft_file(job_id: str, index: int, edit: DraftEdit):
-    from api.skill_creation_drafts import edit_file
+    from api.skills.drafts import edit_file
     try:
         job = jobs.read(job_id)
         jobs.assert_editable(job, index)
@@ -106,7 +106,7 @@ library_router = APIRouter(prefix='/api/skills/library', tags=['skills'])
 
 @library_router.get('')
 def list_library():
-    from api.skill_library import catalog
+    from api.skills.library import catalog
     return catalog()
 
 
@@ -115,17 +115,17 @@ def query_library(q: str = Query(default='', max_length=500),
                   category: Literal['all', 'access', 'strategy', 'orchestrator'] = 'all',
                   page: int = Query(default=1, ge=1),
                   page_size: int = Query(default=24, ge=1, le=100)):
-    from api.skill_library import query_catalog
+    from api.skills.library import query_catalog
     return query_catalog(q=q, category=category, page=page, page_size=page_size)
 
 
 @library_router.get('/{category}/{name}')
 def get_skill(category: str, name: str):
-    from api.skill_library import detail
+    from api.skills.library import detail
     return detail(category, name)
 
 
 @library_router.get('/{category}/{name}/file')
 def get_skill_file(category: str, name: str, path: str):
-    from api.skill_library import read_file
+    from api.skills.library import read_file
     return read_file(category, name, path)

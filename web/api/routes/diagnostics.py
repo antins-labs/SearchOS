@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
-from api.settings_store import store
+from api.settings.store import store
 
 router = APIRouter(prefix="/api/diagnostics")
 

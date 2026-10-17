@@ -4,8 +4,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from searchos.socm.coverage import answer_evidence, project_cell_evidence, evidence_rank
-from searchos.socm.provenance import evidence_source_urls
+from searchos.harness.report.tables import (
+    cell_findings,
+    connected_components,
+    entity_pk_values,
+    is_list_attr,
+    schema_table_id,
+)
+from searchos.socm.coverage import answer_evidence, evidence_rank
+from searchos.socm.evidence.provenance import evidence_source_urls
 
 
 # ---------------------------------------------------------------------------
@@ -83,11 +90,6 @@ def _canonicalize_list_value(text: str) -> str:
     return "|".join(items)
 
 
-def _active_only(findings: list) -> list:
-    """Conflict arbitration marks losing nodes superseded — never render them."""
-    return [f for f in findings if getattr(f, "status", "active") == "active"]
-
-
 def _is_trivial_for_list_cell(text: str) -> bool:
     """Filter values that the LLM wrongly stuffed into a list-typed cell.
 
@@ -104,10 +106,6 @@ def _is_trivial_for_list_cell(text: str) -> bool:
     return s.isdigit() and len(s) <= 4
 
 
-def _rank_f(f: Any) -> tuple:
-    return evidence_rank(f)
-
-
 def _render_scalar_cell(
     findings: list[Any], url_map: dict[str, int],
 ) -> str:
@@ -117,7 +115,7 @@ def _render_scalar_cell(
     "$97,690 million") over ``finding`` (the structured form with
     entity|attr prefix that's only useful in evidence logs).
     """
-    best = max(findings, key=_rank_f)
+    best = max(findings, key=evidence_rank)
     raw = (getattr(best, "value", "") or "").strip() or (getattr(best, "finding", "") or "")
     snippet = raw.replace("\n", " ").strip()
     cite = "".join(f" [{url_map[url]}]" for url in evidence_source_urls(best) if url in url_map)
@@ -141,12 +139,12 @@ def _render_list_cell(
         if (getattr(f, "alignment", "") or "") in ("full", "partial")
     ]
     if not non_loose:
-        best = max(findings, key=_rank_f)
+        best = max(findings, key=evidence_rank)
         snippet = _node_text(best).replace("\n", " ").strip()
         cite = "".join(f" [{url_map[url]}]" for url in evidence_source_urls(best) if url in url_map)
         return f"◇ {snippet}（待确认）{cite}" if snippet else "—"
 
-    ordered = sorted(non_loose, key=_rank_f, reverse=True)
+    ordered = sorted(non_loose, key=evidence_rank, reverse=True)
     seen: set[str] = set()
     items: list[str] = []
     # Walk every finding to populate ``seen`` (the equivalence-class count
@@ -205,7 +203,7 @@ def _render_cell_with_citation(
     """
     if cell is None or not cell.supporting_evidence_ids:
         return "—"
-    findings = _cell_findings(cell, evidence_by_id, binding)
+    findings = cell_findings(cell, evidence_by_id, binding)
     if not findings:
         return "—"
     if attr_is_list:
@@ -213,46 +211,13 @@ def _render_cell_with_citation(
     return _render_scalar_cell(findings, url_map)
 
 
-def _schema_table_id(cmap: Any, schema: Any) -> str:
-    return getattr(schema, "table_id", "") or "_default"
-
-
-def _is_list_attr(schema: Any, attr: str) -> bool:
-    cd = (getattr(schema, "column_desc", None) or {}).get(attr)
-    if cd is None:
-        return False
-    col_type = getattr(cd, "type", "") or ""
-    return "list" in col_type.lower()
-
-
-def _entity_pk_values(schema: Any, entity: str) -> dict[str, str]:
-    pk = list(getattr(schema, "primary_key", []) or [])
-    if not pk:
-        return {}
-    vals = entity.split("|") if "|" in entity else [entity]
-    vals = vals + [""] * (len(pk) - len(vals))
-    return {attr: vals[i] for i, attr in enumerate(pk)}
-
-
-def _cell_findings(
-    cell: Any, evidence_by_id: dict,
-    binding: tuple[Any, str, str, str] | None = None,
-) -> list[Any]:
-    if cell is None or not getattr(cell, "supporting_evidence_ids", None):
-        return []
-    nodes = [evidence_by_id[fid] for fid in cell.supporting_evidence_ids if fid in evidence_by_id]
-    if binding is not None:
-        nodes = [view for node in nodes if (view := project_cell_evidence(binding[0], node, *binding[1:])) is not None]
-    return _active_only(nodes)
-
-
 def _raw_cell_value(
     cell: Any, evidence_by_id: dict,
     binding: tuple[Any, str, str, str] | None = None,
 ) -> str:
-    findings = _cell_findings(cell, evidence_by_id, binding)
+    findings = cell_findings(cell, evidence_by_id, binding)
     if findings:
-        best = max(findings, key=_rank_f)
+        best = max(findings, key=evidence_rank)
         raw = ((getattr(best, "value", "") or "").strip()
                or (getattr(best, "finding", "") or ""))
         if raw:
@@ -267,10 +232,10 @@ def _row_raw_value(
     attr: str,
     evidence_by_id: dict,
 ) -> str:
-    pk_vals = _entity_pk_values(schema, entity)
+    pk_vals = entity_pk_values(schema, entity)
     if attr in pk_vals and pk_vals[attr]:
         return pk_vals[attr]
-    tid = _schema_table_id(cmap, schema)
+    tid = schema_table_id(schema)
     cell = cmap.cells.get(cmap.cell_key(tid, entity, attr))
     return _raw_cell_value(cell, evidence_by_id, (cmap, tid, entity, attr)) if cell is not None else ""
 
@@ -283,13 +248,13 @@ def _render_row_attr(
     evidence_by_id: dict,
     url_map: dict[str, int],
 ) -> str:
-    pk_vals = _entity_pk_values(schema, entity)
+    pk_vals = entity_pk_values(schema, entity)
     if attr in pk_vals and pk_vals[attr]:
         return pk_vals[attr]
-    tid = _schema_table_id(cmap, schema)
+    tid = schema_table_id(schema)
     cell = cmap.cells.get(cmap.cell_key(tid, entity, attr))
     return _render_cell_with_citation(
-        cell, evidence_by_id, url_map, attr_is_list=_is_list_attr(schema, attr),
+        cell, evidence_by_id, url_map, attr_is_list=is_list_attr(schema, attr),
         binding=(cmap, tid, entity, attr),
     )
 
@@ -533,28 +498,6 @@ def _render_joined_coverage_table_with_citations(
     return table_md
 
 
-def _connected_components(tables: dict, relations: list) -> list[list[str]]:
-    """Group table ids into relation-connected components, preserving the
-    declared table order both within and across components."""
-    parent = {tid: tid for tid in tables}
-
-    def find(x: str) -> str:
-        while parent[x] != x:
-            parent[x] = parent[parent[x]]
-            x = parent[x]
-        return x
-
-    for rel in relations:
-        a, b = rel.from_table, rel.foreign_key.target_table
-        if a in parent and b in parent:
-            parent[find(a)] = find(b)
-
-    groups: dict[str, list[str]] = {}
-    for tid in tables:
-        groups.setdefault(find(tid), []).append(tid)
-    return [grp for grp in groups.values()]
-
-
 def build_coverage_table_with_citations(
     state: Any,
     evidence_by_id: dict,
@@ -579,7 +522,7 @@ def build_coverage_table_with_citations(
         return ""
     relations = list(getattr(cmap, "relations", []) or [])
 
-    components = _connected_components(tables, relations)
+    components = connected_components(tables, relations)
     multi = len(components) > 1
     parts: list[str] = []
     for comp_tids in components:
@@ -683,7 +626,7 @@ async def finalize_research(*, state, query, model, stop_reason, max_chars=48_00
     import json
     from langchain_core.messages import HumanMessage, SystemMessage
     from searchos.harness.answer_stream import message_chunk_text
-    from searchos.socm.research_plan import render_research_plan
+    from searchos.socm.planning.research_plan import render_research_plan
 
     nodes = answer_evidence(state)
     payload = {

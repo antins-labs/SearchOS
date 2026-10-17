@@ -6,7 +6,7 @@ import { ChevronDown, ChevronRight, Loader2 } from "lucide-react";
 import { putRoles } from "@/lib/api";
 import { hasModelPurposeCatalog, modelPurposeGroups, modelBindingIssue, modelConfigurationKey, planModelAllocation, type ModelBindingChange } from "@/lib/modelPurposes";
 import { useSettings } from "@/components/settings/SettingsProvider";
-import Select from "@/components/settings/controls/Select";
+import Select from "@/components/ui/Select";
 
 export default function ModelPurposeBindings() {
   const { settings, status, mutate, notify, refresh, uiPrefs } = useSettings();

@@ -7,7 +7,7 @@ import { testProvider } from "@/lib/api";
 import type { ModelsView, ProviderDiagnostic } from "@/lib/types";
 import { modelPurposeGroups } from "@/lib/modelPurposes";
 import { useSettings } from "@/components/settings/SettingsProvider";
-import Select from "@/components/settings/controls/Select";
+import Select from "@/components/ui/Select";
 
 export default function ProviderDiagnosticPanel() {
   const { settings, status, uiPrefs } = useSettings();

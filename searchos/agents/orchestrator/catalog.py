@@ -66,14 +66,6 @@ AGENT_CATALOG: list[AgentSpec] = [
 ]
 
 
-def get_agent_spec(name: str) -> AgentSpec | None:
-    """Look up an agent spec by name."""
-    for spec in AGENT_CATALOG:
-        if spec.name == name:
-            return spec
-    return None
-
-
 def _is_agent_enabled(name: str) -> bool:
     """Per-agent enablement gate.
 

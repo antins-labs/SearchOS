@@ -110,17 +110,6 @@ def trim_with_task_anchor(
     return [messages[i] for i in sorted(selected)]
 
 
-def task_anchor_index(messages: list[BaseMessage]) -> int | None:
-    for index, message in enumerate(messages):
-        if message.type != "human":
-            continue
-        metadata = getattr(message, "additional_kwargs", {}) or {}
-        if metadata.get("sf_synthetic") or metadata.get("sf_kind") == "socm_update":
-            continue
-        return index
-    return None
-
-
 def has_orphan_tool_message(messages: list[BaseMessage]) -> bool:
     known_call_ids: set[str] = set()
     for message in messages:

@@ -5,7 +5,7 @@ from typing import Literal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-from api.routes.search import SourcesRequest
+from api.research.contracts import SourcesRequest
 
 
 class ScheduleInput(BaseModel):

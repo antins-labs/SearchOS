@@ -156,8 +156,9 @@ class AssistantRuntime:
                 await self.launch(row["id"])
 
     async def launch(self, run_id):
-        from api.routes.search import SearchRequest, launch_search_request
-        from searchos.socm.workspace import new_session_id
+        from api.research.contracts import SearchRequest
+        from api.routes.search import launch_search_request
+        from searchos.socm.storage.workspace import new_session_id
         with self.store.transaction() as db:
             row = db.execute("SELECT * FROM runs WHERE id=? AND status='queued'", (run_id,)).fetchone()
             if not row:

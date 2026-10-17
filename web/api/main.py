@@ -14,7 +14,10 @@ sys.path.insert(0, str(_REPO_ROOT / "web"))
 
 from contextlib import asynccontextmanager  # noqa: E402
 
-from api import local_index_jobs, network_import_jobs, settings_store, topic_recap_jobs  # noqa: E402
+from api.local import index_jobs as local_index_jobs  # noqa: E402
+from api.local import import_jobs as network_import_jobs  # noqa: E402
+from api.settings import store as settings_store  # noqa: E402
+from api.local import recap_jobs as topic_recap_jobs  # noqa: E402
 from api.routes import (  # noqa: E402
     skills,
     diagnostics,
@@ -40,7 +43,7 @@ logging.basicConfig(
 async def lifespan(_app: FastAPI):
     # Apply the persisted web-settings overlay on top of the env base layer.
     settings_store.load_and_apply()
-    from api.skill_creation_jobs import jobs as skill_jobs
+    from api.skills.creation import jobs as skill_jobs
     skill_jobs.recover()
     local_index_jobs.resume_background_indexes()
     network_import_jobs.resume_network_imports()

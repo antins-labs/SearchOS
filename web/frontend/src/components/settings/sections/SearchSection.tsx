@@ -6,7 +6,7 @@ import { ChevronRight, ExternalLink, Loader2 } from "lucide-react";
 import { detectWebImageCapability, putAdvanced, putMisc, putSearchBackend } from "@/lib/api";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { Card, OfflineSkeleton, Row, SectionShell } from "@/components/settings/primitives";
-import Select from "@/components/settings/controls/Select";
+import Select from "@/components/ui/Select";
 import TextField from "@/components/settings/controls/TextField";
 import KeyEditor from "@/components/settings/models/KeyEditor";
 import BackendDiagnosticPanel from "@/components/settings/diagnostics/BackendDiagnosticPanel";

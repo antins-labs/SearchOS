@@ -19,7 +19,7 @@ from api.state_stream import StateStream
 from searchos.harness.telemetry.conversation import ConversationLogger, read_conversation
 from searchos.harness.telemetry.trajectory import ConversationMessage
 from searchos.socm.state import SearchState
-from searchos.socm.workspace import WorkspaceManager
+from searchos.socm.storage.workspace import WorkspaceManager
 
 
 def measure(fn, repeats=9):

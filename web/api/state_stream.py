@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from searchos.socm.persistence import read_snapshot
+from searchos.socm.storage.persistence import read_snapshot
 
 
 def json_delta(before, after, path=()):

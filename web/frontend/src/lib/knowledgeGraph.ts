@@ -179,5 +179,3 @@ export function layoutKnowledgeGraph(
   }
   return { width, height, nodes: positioned, edges };
 }
-
-export const ROOT_DOCUMENT_GROUP = ROOT_GROUP;

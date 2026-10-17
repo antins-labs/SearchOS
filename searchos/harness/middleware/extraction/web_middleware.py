@@ -16,7 +16,7 @@ from searchos.harness.middleware.extraction.core.models import (
 from searchos.harness.middleware.extraction.core.preparation import is_extractable_page
 from searchos.harness.middleware.models import SourceContext, TaskContext
 from searchos.harness.middleware.utils.messages import extract_tool_name
-from searchos.socm.strategy import record_source_antipattern
+from searchos.socm.planning.strategy import record_source_antipattern
 
 logger = logging.getLogger(__name__)
 

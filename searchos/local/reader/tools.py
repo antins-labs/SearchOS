@@ -39,6 +39,7 @@ from searchos.local.reader.references import (
     parse_ref_id,
     resolve_reference,
 )
+from searchos.local.storage_io import file_sha256
 
 _MARKDOWN_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 _SEGMENT_RE = re.compile(
@@ -176,14 +177,6 @@ def _safe_text_path(path: Path, root: Path) -> Path:
     if len(relative.parts) != 2:
         raise ValueError("原文缓存必须位于 texts/<document_id>.md")
     return resolved
-
-
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        while chunk := stream.read(1024 * 1024):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def _parse_location(label: str) -> tuple[str, int, int]:
@@ -382,7 +375,7 @@ def _load_legacy_source(ref_id: str, state: LocalBrowserState) -> _SourceExcerpt
         raise ValueError("原文超出建立索引时授权的目录") from exc
     if not source_path.exists() or not source_path.is_file():
         raise FileNotFoundError("原文当前不可用")
-    if not expected_hash or _sha256(source_path) != expected_hash:
+    if not expected_hash or file_sha256(source_path) != expected_hash:
         raise ValueError("STALE_INDEX：原文已变化，请重新建立索引")
 
     selected: list[str] = []
@@ -466,14 +459,14 @@ def _verify_v2(reference: LocalReference, state: LocalBrowserState) -> _Verified
         raise ValueError("原文超出授权目录") from exc
     if not source_path.is_file():
         raise FileNotFoundError("原文当前不可用")
-    if _sha256(source_path) != reference.source_revision:
+    if file_sha256(source_path) != reference.source_revision:
         raise ValueError("VERSION_MISMATCH：原文已变化，请重新建立索引")
 
     store = DocumentMarkdownStore(state.root)
     artifact_path = store.generation_path(record.document_id, record.generation)
     if not artifact_path.is_file():
         raise FileNotFoundError("解析产物当前不可用")
-    if _sha256(artifact_path) != record.artifact_sha256:
+    if file_sha256(artifact_path) != record.artifact_sha256:
         raise ValueError("CORRUPT_ARTIFACT：解析产物摘要不匹配")
     metadata, blocks = read_blocks(artifact_path)
     expected = {
@@ -519,7 +512,7 @@ def _load_v2_source(
         if representation_id not in {None, "primary"}:
             raise ValueError(f"引用位置不存在表示：{representation_id}")
         raise ValueError("解析产物中不存在引用的位置")
-    if _sha256(source_path) != reference.source_revision:
+    if file_sha256(source_path) != reference.source_revision:
         raise ValueError("VERSION_MISMATCH：读取期间原文发生变化，请重试")
 
     uncovered_locators = [
@@ -801,7 +794,7 @@ def _render_original(
             "\nPreview: 当前格式不能内联显示原文；请在应用中打开上述原文件，定位到 "
             + ", ".join(labels)
         )
-    if _sha256(path) != source.source_revision:
+    if file_sha256(path) != source.source_revision:
         raise ValueError("VERSION_MISMATCH：预览期间原文发生变化，请重试")
     return blocks
 

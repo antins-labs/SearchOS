@@ -128,9 +128,42 @@ def _check_schema_exists() -> str:
             "queries pass one object per table plus relations linking them."
         )
     return ""
+
+
+def _missing_agent_report(agent_id: str, agent_type: str, result: str) -> Any:
+    """注册已丢失时，按派发角色登记可回收的最小错误报告。"""
+    from searchos.socm import ExploreReport, FrontierTaskStatus, SearchReport, WriterReport
+
+    task_ids = []
+    if _ctx.workspace is not None:
+        state = _ctx.workspace.load_state()
+        task_ids = [
+            task.id for task in state.frontier.questions
+            if task.assigned_agent_id == agent_id
+            and task.status in (FrontierTaskStatus.RUNNING, FrontierTaskStatus.BLOCKED)
+        ]
+        for task_id in task_ids:
+            if not _recycle_failed_task(
+                task_id, agent_id, "error", result, require_assignment=True,
+            ):
+                # 未完成回收时不登记 completed，让后续 zombie 检查仍可恢复任务。
+                raise RuntimeError(f"cannot recycle task {task_id} for {agent_id}")
+    report_type = {
+        _explore.AGENT_TYPE: ExploreReport,
+        _writer.AGENT_TYPE: WriterReport,
+    }.get(agent_type, SearchReport)
+    report = report_type(agent_id=agent_id, status="error", result=result)
+    if isinstance(report, SearchReport):
+        report.task_ids = task_ids
+    _ctx.completed[agent_id] = report
+    return report
+
+
 async def _continue_sub_agent_run(
     agent_id: str,
     follow_up: str,
+    *,
+    agent_type: str = _search.AGENT_TYPE,
 ) -> Any:
     """Coroutine body for a `continue_agent` Task.
 
@@ -145,9 +178,8 @@ async def _continue_sub_agent_run(
 
     info = _ctx.agent_graphs.get(agent_id)
     if info is None:
-        from searchos.socm import AgentReport
-        return AgentReport(
-            agent_id=agent_id, status="error",
+        return _missing_agent_report(
+            agent_id, agent_type,
             result=f"cannot continue {agent_id}: not in agent graph registry",
         )
 
@@ -315,7 +347,7 @@ def _record_skill_failure(skill_name: str, params: dict) -> None:
     if _ctx.workspace is None:
         return
     from searchos.socm import AntiPatternKind, AntiPatternScope
-    from searchos.socm.strategy import record_strategy_pattern
+    from searchos.socm.planning.strategy import record_strategy_pattern
     entity = str(params.get("entity", "")).strip() if isinstance(params, dict) else ""
     attribute = ""
     if isinstance(params, dict):
@@ -644,7 +676,8 @@ def _is_rate_limit_error(result: str) -> bool:
     return "429" in low or "rate limit" in low or "rate_limit" in low
 def _recycle_failed_task(
     task_id: str, agent_id: str, status: str, result: str,
-) -> None:
+    *, require_assignment: bool = False,
+) -> bool:
     """失败 agent 的绑定任务回收：循环停止且有有效事实时取消原任务，交回主
     Agent 核对缺口；其他失败翻回 PENDING 允许重派（attempts 已由
     set_running/next 累加），达到 MAX_TASK_ATTEMPTS 则 CANCELLED。
@@ -663,6 +696,8 @@ def _recycle_failed_task(
         for q in s.frontier.questions:
             if q.id != task_id:
                 continue
+            if require_assignment and q.assigned_agent_id != agent_id:
+                break
             if q.status not in (_Q.RUNNING, _Q.BLOCKED):
                 break
             from searchos.socm.coverage import answer_evidence
@@ -706,7 +741,7 @@ def _recycle_failed_task(
         _ctx.workspace.atomic_update_state(_apply)
     except Exception:  # noqa: BLE001 — 回收失败不应拖垮报告路径
         logger.warning("task recycle failed for %s", task_id, exc_info=True)
-        return
+        return False
     tlog = getattr(_ctx, "trajectory_logger", None)
     if outcome["v"] and tlog:
         event = {
@@ -721,6 +756,7 @@ def _recycle_failed_task(
             from searchos.config.settings import settings as _settings
             event["rate_limit_cooldown_s"] = _settings.rate_limit_recycle_cooldown_s
         tlog._append_raw(event)
+    return True
 def _compute_agent_report(
     *,
     agent_id: str,
@@ -1177,7 +1213,7 @@ async def _spawn_sub_agent(
 
     route_task = next((q for q in state.frontier.questions if q.id == assigned_task_id), None)
     if route_task:
-        from searchos.socm.retry_routes import retry_route_prompt
+        from searchos.socm.planning.retry_routes import retry_route_prompt
         route_prompt = retry_route_prompt(route_task)
         if route_prompt:
             prompt_parts.append(route_prompt)
@@ -1193,7 +1229,7 @@ async def _spawn_sub_agent(
 
     missing_skills: list[str] = []
     if skill_names and _ctx.skill_registry and any(getattr(t, 'name', '') == 'load_skill' for t in tools):
-        from searchos.tools.skill_catalog import _skill_allowed
+        from searchos.tools.skills.catalog import _skill_allowed
         skill_parts: list[str] = []
         for sname in skill_names:
             skill = _ctx.skill_registry.get(sname)
@@ -1451,13 +1487,15 @@ async def _spawn_sub_agent(
     }
 
     t = asyncio.create_task(
-        _collect_sub_agent_result(agent_label),
+        _collect_sub_agent_result(agent_label, agent_type=agent_type),
         name=f"sub-agent:{agent_label}",
     )
     _ctx.task_pool[agent_label] = t
 
     return agent_label
-async def _collect_sub_agent_result(agent_id: str) -> Any:
+async def _collect_sub_agent_result(
+    agent_id: str, *, agent_type: str = _search.AGENT_TYPE,
+) -> Any:
     """Coroutine body of a spawned sub-agent Task.
 
     Runs ``graph.astream`` to completion, streaming conversation messages
@@ -1467,9 +1505,8 @@ async def _collect_sub_agent_result(agent_id: str) -> Any:
     """
     info = _ctx.agent_graphs.get(agent_id)
     if info is None:
-        from searchos.socm import AgentReport
-        return AgentReport(
-            agent_id=agent_id, status="error",
+        return _missing_agent_report(
+            agent_id, agent_type,
             result=f"agent {agent_id} not registered — internal bug",
         )
 
@@ -1482,7 +1519,7 @@ async def _collect_sub_agent_result(agent_id: str) -> Any:
     started_at = info["started_at"]
     scope_entities = info.get("scope_entities")
     target_table = info.get("target_table", "") or ""
-    agent_type = info.get("agent_type", "search_agent")
+    agent_type = info.get("agent_type", agent_type)
 
     from searchos.tools.search_state import (
         set_current_agent,

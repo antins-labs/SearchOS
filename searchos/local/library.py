@@ -7,7 +7,6 @@ import hashlib
 import os
 import re
 import shutil
-import tempfile
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, replace
@@ -37,6 +36,7 @@ from searchos.local.models import PipelineOptions, ProcessingStatus, locator_gro
 from searchos.local.pipeline import DocumentRecapPipeline, build_parser_registry
 from searchos.local.reader.references import parse_ref_id, resolve_reference
 from searchos.local.recap.service import RecapProgressCallback
+from searchos.local.storage_io import atomic_write_text, file_sha256
 
 _CATALOG_VERSION = 1
 _FRONT_MATTER_END = "\n---\n"
@@ -156,31 +156,6 @@ class _CitationStream:
             self.emit("".join(parts))
 
 
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        while chunk := stream.read(1024 * 1024):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def _atomic_write(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    handle = tempfile.NamedTemporaryFile(
-        mode="w", encoding="utf-8", dir=path.parent, prefix=f".{path.name}.",
-        suffix=".tmp", delete=False,
-    )
-    temporary = Path(handle.name)
-    try:
-        with handle:
-            handle.write(content)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary, path)
-    finally:
-        temporary.unlink(missing_ok=True)
-
-
 class LocalLibraryService:
     """Owns server-side library identities; clients never submit filesystem roots."""
 
@@ -211,7 +186,7 @@ class LocalLibraryService:
         return output
 
     def _write_pending(self, record: PendingSavedDocument) -> None:
-        _atomic_write(
+        atomic_write_text(
             self._pending_path(record.library_id, record.document_id),
             record.model_dump_json(indent=2) + "\n",
         )
@@ -251,7 +226,7 @@ class LocalLibraryService:
             catalog.model_dump(mode="json"), allow_unicode=True,
             default_flow_style=False, sort_keys=True,
         ).strip()
-        _atomic_write(self.catalog_path, f"---\n{payload}\n---\n\n# WebUI local libraries\n")
+        atomic_write_text(self.catalog_path, f"---\n{payload}\n---\n\n# WebUI local libraries\n")
 
     def list_libraries(self) -> list[LocalLibraryRecord]:
         return self._read_catalog().libraries
@@ -404,7 +379,7 @@ class LocalLibraryService:
                     d["document_id"] == document_id for d in self.list_documents(library_id)
                 ):
                     raise KeyError("文档不存在")
-                _atomic_write(root / ".deleted_documents" / document_id, "deleted\n")
+                atomic_write_text(root / ".deleted_documents" / document_id, "deleted\n")
                 catalog, state = store.load(), store.read_state()
                 affected = {key for key, topic in catalog.items() if document_id in topic.documents}
                 for topic in catalog.values():
@@ -430,7 +405,7 @@ class LocalLibraryService:
         with advisory_lock(self.data_root / ".locks" / "libraries.lock"):
             root = Path(self.get_library(library_id).index_root)
             with advisory_lock(root / ".locks" / "catalog-transaction.lock"):
-                _atomic_write(root / ".deleted", "deleted\n")
+                atomic_write_text(root / ".deleted", "deleted\n")
                 catalog = self._read_catalog()
                 catalog.libraries = [r for r in catalog.libraries if r.library_id != library_id]
                 self._write_catalog(catalog)
@@ -543,7 +518,7 @@ class LocalLibraryService:
         size = temporary.stat().st_size
         if size > _MAX_UPLOAD_BYTES:
             raise OverflowError("导入文件超过 150 MiB 限制")
-        revision = _sha256(temporary)
+        revision = file_sha256(temporary)
         lock_path = Path(library.index_root) / ".locks" / "network-import.lock"
         with advisory_lock(lock_path):
             SourceRegistry(Path(library.index_root)).ensure_active()
@@ -605,7 +580,7 @@ class LocalLibraryService:
             source.relative_to(authorized)
         except ValueError as exc:
             raise ValueError("导入原件越出资料库目录") from exc
-        if not source.is_file() or _sha256(source) != pending.source_revision:
+        if not source.is_file() or file_sha256(source) != pending.source_revision:
             raise ValueError("SOURCE_SCOPE_CHANGED：导入原件已变化或不可用")
         await DocumentRecapPipeline(output_root=library.index_root).process(
             source,
@@ -727,7 +702,7 @@ class LocalLibraryService:
             document_id,
             record.generation,
         )
-        if not text_path.is_file() or _sha256(text_path) != record.artifact_sha256:
+        if not text_path.is_file() or file_sha256(text_path) != record.artifact_sha256:
             raise ValueError("ARTIFACT_INVALID：解析产物校验失败")
         _, blocks = read_blocks(text_path)
         return library, record, blocks
@@ -907,7 +882,7 @@ class LocalLibraryService:
         size = temporary.stat().st_size
         if size > _MAX_UPLOAD_BYTES:
             raise OverflowError("上传文件超过 150 MiB 限制")
-        revision = _sha256(temporary)
+        revision = file_sha256(temporary)
         document_id = f"doc_{uuid.uuid4().hex}"
         target_dir = self.uploads_root / library_id / document_id / revision
         target = target_dir / safe_name
@@ -956,7 +931,7 @@ class LocalLibraryService:
             source_path.relative_to(authorized_upload_root)
         except ValueError as exc:
             raise ValueError("文档原件越出上传目录") from exc
-        if not source_path.is_file() or _sha256(source_path) != record.source_revision:
+        if not source_path.is_file() or file_sha256(source_path) != record.source_revision:
             raise ValueError("SOURCE_SCOPE_CHANGED：文档原件已变化或不可用")
 
         processor = pipeline or DocumentRecapPipeline(output_root=root)
@@ -997,10 +972,10 @@ class LocalLibraryService:
                 source_path.relative_to(authorized_upload_root)
             except ValueError as exc:
                 raise ValueError("文档原件越出上传目录") from exc
-            if not source_path.is_file() or _sha256(source_path) != record.source_revision:
+            if not source_path.is_file() or file_sha256(source_path) != record.source_revision:
                 raise ValueError("SOURCE_SCOPE_CHANGED：文档原件已变化或不可用")
             text_path = store.generation_path(document_id, record.generation)
-            if not text_path.is_file() or _sha256(text_path) != record.artifact_sha256:
+            if not text_path.is_file() or file_sha256(text_path) != record.artifact_sha256:
                 raise ValueError("ARTIFACT_INVALID：解析产物校验失败")
             _, blocks = read_blocks(text_path)
             output.extend(
@@ -1119,15 +1094,6 @@ class LocalLibraryService:
         linked = _NUMBERED_CITATION_LINK_RE.sub(bind, linked)
         return _NUMBERED_CITATION_TEXT_RE.sub(bind, linked)
 
-    @staticmethod
-    def _sanitize_answer(answer: str, allowed: set[str]) -> str:
-        return _LOCAL_LINK_RE.sub(
-            lambda match: (
-                match.group(0) if match.group(0) in allowed else "invalid-local-reference"
-            ),
-            answer,
-        )
-
     def resolve_citation(self, ref_id: str) -> dict[str, Any]:
         reference = parse_ref_id(ref_id)
         library_id = reference.library_id
@@ -1199,7 +1165,7 @@ class LocalLibraryService:
                 source.relative_to(authorized)
             except ValueError as exc:
                 raise ValueError("导入原件越出上传目录") from exc
-            if not source.is_file() or _sha256(source) != pending.source_revision:
+            if not source.is_file() or file_sha256(source) != pending.source_revision:
                 raise ValueError("SOURCE_SCOPE_CHANGED：导入原件已变化或不可用")
             return source
         verified = self._verified_blocks(library_id, [document_id])

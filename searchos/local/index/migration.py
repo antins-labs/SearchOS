@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import hashlib
 import re
 from dataclasses import dataclass
 from pathlib import Path
 
 from searchos.local.models import PipelineOptions
 from searchos.local.pipeline import DocumentRecapPipeline
-from searchos.local.index.document_store import _atomic_write
+from searchos.local.storage_io import atomic_write_text, file_sha256
 
 _RECORD_START = "## 文件记录\n\n"
 _BODY_START = "\n\n## 正文\n\n"
@@ -30,14 +29,6 @@ class MigrationItem:
 
 class _SourceChangedError(Exception):
     pass
-
-
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        while chunk := stream.read(1024 * 1024):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def _legacy_record(path: Path) -> dict[str, str]:
@@ -87,7 +78,7 @@ def _inspect_candidate(
     match = _SHA256.fullmatch(record["内容哈希"])
     if match is None:
         raise ValueError("内容哈希不是有效 SHA-256")
-    if _sha256(source) != match.group(1):
+    if file_sha256(source) != match.group(1):
         raise _SourceChangedError("原文版本与旧索引不一致")
     return source, source_root, document_id
 
@@ -141,7 +132,7 @@ def write_migration_report(path: Path, items: list[MigrationItem]) -> None:
         values = [item.document_id, item.status, item.source, item.message]
         escaped = [value.replace("|", "\\|").replace("\n", " ") for value in values]
         lines.append("| " + " | ".join(escaped) + " |")
-    _atomic_write(path, "\n".join(lines).rstrip() + "\n")
+    atomic_write_text(path, "\n".join(lines).rstrip() + "\n")
 
 
 async def _run() -> int:

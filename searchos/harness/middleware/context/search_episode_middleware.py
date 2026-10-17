@@ -13,8 +13,8 @@ from typing import Any
 from langchain.agents.middleware.types import AgentMiddleware
 from langchain_core.messages import SystemMessage
 
-from searchos.harness.middleware.context.core.models import EpisodeRecord
-from searchos.harness.middleware.context.utils.episodes import (
+from searchos.harness.middleware.context.episodes import (
+    EpisodeRecord,
     insert_history,
     render_episode,
     tool_calls,

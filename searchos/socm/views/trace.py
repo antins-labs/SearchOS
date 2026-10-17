@@ -15,11 +15,11 @@ from typing import Any
 
 from searchos.socm.evidence import EvidenceNode
 from searchos.socm.state import SearchState
-from searchos.socm.workspace import WorkspaceManager
+from searchos.socm.storage.workspace import WorkspaceManager
 
 
 def _trace_node(node: EvidenceNode, ws: WorkspaceManager | None, state: SearchState) -> dict[str, Any]:
-    from searchos.socm.provenance import evidence_source_urls
+    from searchos.socm.evidence.provenance import evidence_source_urls
 
     raw_snippet = node.source_excerpt or ""
     # Prefer the span stored at extraction; re-compute only as a fallback for

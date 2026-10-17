@@ -60,17 +60,10 @@ from searchos.local.parsers.vision import (
     SlideRenderer,
     VisionTranscriber,
 )
+from searchos.local.storage_io import file_sha256
 
 PARSER_VERSION = "local-parser-v7"
 logger = logging.getLogger(__name__)
-
-
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        while chunk := stream.read(1024 * 1024):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def _profile_model(role: str) -> str:
@@ -155,7 +148,7 @@ class DocumentRecapPipeline:
             raise ValueError("document_id 只能包含字母、数字、点、下划线和连字符")
 
         suffix = path.suffix.lower()
-        content_hash = _sha256(path)
+        content_hash = file_sha256(path)
         if options.allow_remote:
             recap_model = self._recap_model_name or _profile_model("local_recap")
             vision_model = self._vision_model_name or _profile_model("local_vision")
@@ -380,7 +373,7 @@ class DocumentRecapPipeline:
                 warnings=[*document.warnings, *recap.warnings],
             )
 
-        if _sha256(path) != content_hash:
+        if file_sha256(path) != content_hash:
             raise LocalDocumentError("处理期间原文发生变化，已停止写入，请重试")
 
         # Skipping catalog generation means "not built", not "ready".  The

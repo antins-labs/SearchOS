@@ -150,7 +150,7 @@ class Scheduler:
         from searchos.harness.middleware.extraction.core.judge import RowExtractor
         from searchos.harness.middleware.extraction.core.models import ExtractionConfig
         from searchos.harness.middleware.extraction.core.store import WorkspaceEvidenceStore
-        from searchos.socm.conflicts import reconcile_conflicts
+        from searchos.socm.coverage.conflicts import reconcile_conflicts
         from searchos.socm.coverage import evidence_source_allowed
 
         state = _ctx.workspace.load_state()
@@ -247,7 +247,9 @@ class Scheduler:
         _ctx.workspace.atomic_update_state(_enqueue)
 
         task_with_id = f"{task}\n\nWrite task id: {write_task_id}"
-        writer_id = await _spawn_sub_agent("writer_agent", task_with_id, [])
+        writer_id = await _spawn_sub_agent(
+            "writer_agent", task_with_id, [], bind_task_id=write_task_id,
+        )
         _set_writer_last_evidence_count(writer_id, state.evidence_graph.node_count)
         info = _ctx.agent_graphs.get(writer_id)
         if info is not None:
@@ -303,7 +305,9 @@ class Scheduler:
         _ctx.completed.pop(writer_id, None)
         _ctx.task_pool.pop(writer_id, None)
         _ctx.task_pool[writer_id] = asyncio.create_task(
-            _continue_sub_agent_run(writer_id, f"[FOLLOW_UP_TASK]\n{follow_up}"),
+            _continue_sub_agent_run(
+                writer_id, f"[FOLLOW_UP_TASK]\n{follow_up}", agent_type="writer_agent",
+            ),
             name=f"continue:{writer_id}",
         )
         _set_writer_last_evidence_count(writer_id, current_count)

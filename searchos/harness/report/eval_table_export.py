@@ -9,57 +9,23 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from searchos.harness.report.tables import (
+    cell_findings,
+    connected_components,
+    entity_pk_values,
+    is_list_attr,
+    schema_table_id,
+)
 from searchos.socm import SearchState
-from searchos.socm.coverage import answer_evidence, project_cell_evidence, evidence_rank
+from searchos.socm.coverage import answer_evidence, evidence_rank
 
 
 logger = logging.getLogger(__name__)
 
 
-def _rank_f(f: Any) -> tuple:
-    return evidence_rank(f)
-
-
-def _active_only(findings: list) -> list:
-    return [f for f in findings if getattr(f, "status", "active") == "active"]
-
-
-def _is_list_attr(schema: Any, attr: str) -> bool:
-    cd = (getattr(schema, "column_desc", None) or {}).get(attr)
-    if cd is None:
-        return False
-    col_type = getattr(cd, "type", "") or ""
-    return "list" in col_type.lower()
-
-
-def _entity_pk_values(schema: Any, entity: str) -> dict[str, str]:
-    pk = list(getattr(schema, "primary_key", []) or [])
-    if not pk:
-        return {}
-    vals = entity.split("|") if "|" in entity else [entity]
-    vals = vals + [""] * (len(pk) - len(vals))
-    return {attr: vals[i] for i, attr in enumerate(pk)}
-
-
-def _schema_table_id(cmap: Any, schema: Any) -> str:
-    return getattr(schema, "table_id", "") or "_default"
-
-
-def _cell_findings(
-    cell: Any, evidence_by_id: dict,
-    binding: tuple[Any, str, str, str] | None = None,
-) -> list[Any]:
-    if cell is None or not getattr(cell, "supporting_evidence_ids", None):
-        return []
-    nodes = [evidence_by_id[fid] for fid in cell.supporting_evidence_ids if fid in evidence_by_id]
-    if binding is not None:
-        nodes = [view for node in nodes if (view := project_cell_evidence(binding[0], node, *binding[1:])) is not None]
-    return _active_only(nodes)
-
-
 def _raw_scalar_value(findings: list[Any]) -> str:
     """Best-ranked finding value, no hedge, no citation."""
-    best = max(findings, key=_rank_f)
+    best = max(findings, key=evidence_rank)
     raw = (getattr(best, "value", "") or "").strip() or (getattr(best, "finding", "") or "")
     return raw.replace("\n", " ").strip()
 
@@ -71,7 +37,7 @@ def _raw_list_value(findings: list[Any]) -> str:
         if (getattr(f, "alignment", "") or "") in ("full", "partial")
     ]
     pool = non_loose if non_loose else findings
-    ordered = sorted(pool, key=_rank_f, reverse=True)
+    ordered = sorted(pool, key=evidence_rank, reverse=True)
     seen: set[str] = set()
     items: list[str] = []
     for f in ordered:
@@ -92,7 +58,7 @@ def _render_cell_raw(
     binding: tuple[Any, str, str, str] | None = None,
 ) -> str:
     """Render a single cell as plain text (no hedge, no citation)."""
-    findings = _cell_findings(cell, evidence_by_id, binding)
+    findings = cell_findings(cell, evidence_by_id, binding)
     if not findings:
         return ""
     if is_list:
@@ -104,8 +70,8 @@ def _render_row(
     cmap: Any, schema: Any, entity: str, evidence_by_id: dict, data_cols: list[str],
 ) -> list[str]:
     """Render all data columns for one entity row."""
-    tid = _schema_table_id(cmap, schema)
-    pk_vals = _entity_pk_values(schema, entity)
+    tid = schema_table_id(schema)
+    pk_vals = entity_pk_values(schema, entity)
     cells: list[str] = []
     for attr in data_cols:
         if attr in pk_vals and pk_vals[attr]:
@@ -113,7 +79,7 @@ def _render_row(
             continue
         cell = cmap.cells.get(cmap.cell_key(tid, entity, attr))
         cells.append(_render_cell_raw(
-            cell, evidence_by_id, _is_list_attr(schema, attr), (cmap, tid, entity, attr),
+            cell, evidence_by_id, is_list_attr(schema, attr), (cmap, tid, entity, attr),
         ))
     return cells
 
@@ -195,17 +161,17 @@ def _build_joined_table(
         return True
 
     def _row_raw_val(cm: Any, sch: Any, ent: str, attr: str, evi: dict) -> str:
-        pk_vals = _entity_pk_values(sch, ent)
+        pk_vals = entity_pk_values(sch, ent)
         if attr in pk_vals and pk_vals[attr]:
             return pk_vals[attr]
-        tid = _schema_table_id(cm, sch)
+        tid = schema_table_id(sch)
         cell = cm.cells.get(cm.cell_key(tid, ent, attr))
         if cell is None:
             return ""
-        findings = _cell_findings(cell, evi, (cm, tid, ent, attr))
+        findings = cell_findings(cell, evi, (cm, tid, ent, attr))
         if not findings:
             return ""
-        best = max(findings, key=_rank_f)
+        best = max(findings, key=evidence_rank)
         raw = (getattr(best, "value", "") or "").strip() or (getattr(best, "finding", "") or "")
         return raw.replace("\n", " ").strip()
 
@@ -296,42 +262,20 @@ def _build_joined_table(
             if not entity:
                 rendered_cells.append("")
             else:
-                pk_vals = _entity_pk_values(schema, entity)
+                pk_vals = entity_pk_values(schema, entity)
                 if attr in pk_vals and pk_vals[attr]:
                     rendered_cells.append(pk_vals[attr])
                 else:
                     cell = cmap.cells.get(cmap.cell_key(tid, entity, attr))
                     rendered_cells.append(
                         _render_cell_raw(
-                            cell, evidence_by_id, _is_list_attr(schema, attr),
+                            cell, evidence_by_id, is_list_attr(schema, attr),
                             (cmap, tid, entity, attr),
                         )
                     )
         rows.append("| " + " | ".join(rendered_cells) + " |")
 
     return "\n".join(rows)
-
-
-def _connected_components(tables: dict, relations: list) -> list[list[str]]:
-    """Group table ids into relation-connected components, preserving the
-    declared table order both within and across components."""
-    parent = {tid: tid for tid in tables}
-
-    def find(x: str) -> str:
-        while parent[x] != x:
-            parent[x] = parent[parent[x]]
-            x = parent[x]
-        return x
-
-    for rel in relations:
-        a, b = rel.from_table, rel.foreign_key.target_table
-        if a in parent and b in parent:
-            parent[find(a)] = find(b)
-
-    groups: dict[str, list[str]] = {}
-    for tid in tables:
-        groups.setdefault(find(tid), []).append(tid)
-    return [grp for grp in groups.values()]
 
 
 def _render_component(
@@ -389,7 +333,7 @@ def build_eval_table(state: SearchState) -> str:
     relations = list(getattr(cmap, "relations", []) or [])
 
     parts: list[str] = []
-    for comp_tids in _connected_components(tables, relations):
+    for comp_tids in connected_components(tables, relations):
         comp = {tid: tables[tid] for tid in comp_tids}
         comp_rels = [
             r for r in relations

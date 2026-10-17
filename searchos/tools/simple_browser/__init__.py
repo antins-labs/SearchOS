@@ -6,6 +6,7 @@ Layout:
 - ``state``   — ``BrowserState``, fetch/persist, find matching, provider binding
 - ``render``  — HTML → line-numbered markdown (pure)
 - ``cache``   — disk fetch cache
+- ``result_pages`` — 技能执行结果页与资源索引
 - ``search/`` — search providers (serper / tavily / ragflow)
 - ``backend/``— fetch backends (aiohttp / crawl4ai / jina / search_engine)
 """

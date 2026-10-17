@@ -351,44 +351,10 @@ class SectionRecap(BaseModel):
         return locator_group_label(self.source_locators)
 
 
-class StageState(BaseModel):
-    status: ProcessingStatus
-    key: str = ""
-    warnings: list[str] = Field(default_factory=list)
-
-
-class PipelineStages(BaseModel):
-    source: StageState
-    parse: StageState
-    recap: StageState
-    catalog: StageState
-
-
 class DocumentRecap(BaseModel):
     summary: str = ""
     sections: list[SectionRecap] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
-
-
-class GenerationFingerprint(BaseModel):
-    parser_version: str
-    prompt_version: str
-    catalog_prompt_version: str
-    recap_model: str
-    vision_model: str
-    pdf_mode: PdfMode
-    pptx_mode: PptxMode = PptxMode.AUTO
-    allow_remote: bool
-    build_catalog: bool
-    recap_chunk_chars: int
-    pdf_render_dpi: int
-    pdf_max_dimension: int
-    pdf_native_min_chars: int
-
-    @property
-    def digest(self) -> str:
-        payload = json.dumps(self.model_dump(mode="json"), sort_keys=True, ensure_ascii=True)
-        return hashlib.sha256(payload.encode()).hexdigest()
 
 
 class ParseFingerprint(BaseModel):

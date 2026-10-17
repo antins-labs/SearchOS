@@ -31,7 +31,7 @@ interfaces are `searchos --setup`, the Web settings page, and the TUI commands
 | L1 `.env` | Manual edits, `searchos --setup`, or the Web settings page (secret values only) | All processes through `load_dotenv` | Once at process startup |
 | L2 presets | `SF_PROVIDER` environment variable | `config/providers.py` | When `Settings()` is constructed |
 | L3 overrides | `SF_PROFILES__*` and related values in `.env` | The `config/settings.py` validator | When `Settings()` is constructed |
-| L4 overlay | Web settings API, TUI commands, or the wizard (`web/api/settings_store.py` + `config/web_overlay.py`) | `load_and_apply()` and each settings update | At startup and after every write |
+| L4 overlay | Web settings API, TUI commands, or the wizard (`web/api/settings/store.py` + `config/web_overlay.py`) | `load_and_apply()` and each settings update | At startup and after every write |
 | L5 per-run | Run overrides in the Web Composer | `web/api/routes/search.py` | For each search request |
 
 ## The four overlay sections
@@ -155,6 +155,6 @@ L4 supports two forms of model customization:
 - `searchos/config/web_overlay.py` — overlay model, `apply_to_runtime()`, and
   migration
 - `searchos/config/effort.py` — effort presets shared by the TUI and Web UI
-- `web/api/settings_store.py` — L4 write transaction, validation rollback, and
+- `web/api/settings/store.py` — L4 write transaction, validation rollback, and
   overlay replay
 - `web/api/routes/models.py` and `routes/settings.py` — settings API endpoints

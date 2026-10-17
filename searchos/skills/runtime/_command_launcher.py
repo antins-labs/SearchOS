@@ -1,7 +1,6 @@
 """在 OS 隔离内设置继承资源限制后替换为技能解释器。"""
 import math
 import os
-from pathlib import Path
 import resource
 import sys
 

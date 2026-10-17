@@ -19,7 +19,7 @@ def get_tools(skill_names: list[str] | None = None) -> list:
         include_read_visual=current_run_config().enable_web_image_read,
     ))
     if settings.enable_skills:
-        from searchos.tools.skill_catalog import get_skill_tools
+        from searchos.tools.skills import get_skill_tools
 
         tools.extend(get_skill_tools(skill_names))
     return tools

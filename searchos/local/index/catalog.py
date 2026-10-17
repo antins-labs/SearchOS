@@ -13,10 +13,11 @@ from typing import Any, Protocol
 from pydantic import BaseModel, Field, ValidationError
 
 from searchos.local.errors import RecapValidationError
-from searchos.local.index.document_store import _atomic_write, _one_line
+from searchos.local.index.document_store import _one_line
 from searchos.local.index.locks import AsyncAdvisoryLock, advisory_lock
 from searchos.local.models import DocumentRecap, ParsedDocument
 from searchos.local.parsers.vision import _message_text
+from searchos.local.storage_io import atomic_write_text
 from searchos.util.json_extract import extract_json_object
 
 CATALOG_PROMPT_VERSION = "local-catalog-v4"
@@ -251,7 +252,7 @@ class CatalogMarkdownStore:
         return state
 
     def write_state(self, state: dict[str, Any]) -> None:
-        _atomic_write(
+        atomic_write_text(
             self.root / "catalog_state.json", json.dumps(state, ensure_ascii=False, indent=2)
         )
 
@@ -299,7 +300,7 @@ class CatalogMarkdownStore:
                 )
             path = self.subindexes_dir / f"{item.subindex_id}.md"
             active_paths.add(path)
-            _atomic_write(path, "\n".join(lines).rstrip() + "\n")
+            atomic_write_text(path, "\n".join(lines).rstrip() + "\n")
 
         for path in self.subindexes_dir.glob("*.md"):
             if path not in active_paths:
@@ -311,7 +312,7 @@ class CatalogMarkdownStore:
                 f"- [{_label(item.title)}](subindexes/{item.subindex_id}.md)："
                 f"{_one_line(item.summary)} ({item.character_count} chars)"
             )
-        _atomic_write(self.index_path, "\n".join(lines).rstrip() + "\n")
+        atomic_write_text(self.index_path, "\n".join(lines).rstrip() + "\n")
 
 
 class CatalogService:

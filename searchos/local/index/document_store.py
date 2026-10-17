@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import re
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -34,6 +32,7 @@ from searchos.local.models import (
 from searchos.local.index.locks import advisory_lock
 from searchos.local.reader.references import build_ref_id
 from searchos.local.index.source_registry import SCHEMA_VERSION, SourceRecord, SourceRegistry
+from searchos.local.storage_io import atomic_write_text, file_sha256
 
 _HASH_RE = re.compile(r"^- 内容哈希：sha256:([0-9a-f]{64})$", re.MULTILINE)
 _FINGERPRINT_RE = re.compile(r"^- 生成指纹：sha256:([0-9a-f]{64})$", re.MULTILINE)
@@ -189,35 +188,6 @@ def _sha256_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
 
 
-def _sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        while chunk := stream.read(1024 * 1024):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def _atomic_write(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    handle = tempfile.NamedTemporaryFile(
-        mode="w",
-        encoding="utf-8",
-        dir=path.parent,
-        prefix=f".{path.name}.",
-        suffix=".tmp",
-        delete=False,
-    )
-    temp_path = Path(handle.name)
-    try:
-        with handle:
-            handle.write(content)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temp_path, path)
-    finally:
-        temp_path.unlink(missing_ok=True)
-
-
 def _front_matter(data: dict[str, Any]) -> str:
     payload = yaml.safe_dump(
         data,
@@ -344,7 +314,7 @@ class DocumentMarkdownStore:
             or record.parse_key != parse_key
             or record.parse_status == ProcessingStatus.FAILED
             or not path.is_file()
-            or _sha256_file(path) != record.artifact_sha256
+            or file_sha256(path) != record.artifact_sha256
         ):
             return None
         try:
@@ -413,7 +383,7 @@ class DocumentMarkdownStore:
             or record.recap_status != ProcessingStatus.READY
             or not text_path.is_file()
             or not document_path.is_file()
-            or _sha256_file(text_path) != record.artifact_sha256
+            or file_sha256(text_path) != record.artifact_sha256
         ):
             return None
         try:
@@ -514,11 +484,11 @@ class DocumentMarkdownStore:
             raise ValueError("document_id 已绑定到另一份原文件")
 
         if text_path.exists():
-            if _sha256_file(text_path) != artifact_sha256:
+            if file_sha256(text_path) != artifact_sha256:
                 raise OSError("不可变解析 generation 已存在但内容不一致")
         else:
-            _atomic_write(text_path, artifact)
-            if _sha256_file(text_path) != artifact_sha256:
+            atomic_write_text(text_path, artifact)
+            if file_sha256(text_path) != artifact_sha256:
                 raise OSError("解析产物写入后校验失败")
 
         if recap_status is None:
@@ -564,7 +534,7 @@ class DocumentMarkdownStore:
             warnings=[*document.warnings, *recap.warnings],
         )
         self.registry.write(record)
-        _atomic_write(
+        atomic_write_text(
             document_path,
             self._render_document(
                 document,
@@ -619,7 +589,7 @@ class DocumentMarkdownStore:
             }
             self.registry.write(record.model_copy(update={"references": references}))
             document_path = self.documents_dir / f"{document.document_id}.md"
-            _atomic_write(
+            atomic_write_text(
                 document_path,
                 self._render_document(
                     document,

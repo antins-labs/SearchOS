@@ -17,9 +17,10 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from api import settings_store, skills_catalog
-from api.settings_store import EffortLevel
-from api.settings_views import (
+from api.settings import store as settings_store
+from api.skills import catalog as skills_catalog
+from api.settings.store import EffortLevel
+from api.settings.views import (
     advanced_view,
     aggregate_view,
     effort_view,
@@ -27,7 +28,7 @@ from api.settings_views import (
     run_defaults_view,
     skills_view,
 )
-from api.skills_catalog import SKILL_CATEGORIES
+from api.skills.catalog import SKILL_CATEGORIES
 
 router = APIRouter(prefix="/api/settings")
 

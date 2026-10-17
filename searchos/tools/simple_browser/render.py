@@ -236,12 +236,6 @@ def _wrap_lines(text: str, width: int = 80) -> list[str]:
     return wrapped
 
 
-def _truncate(text: str, max_len: int = 100, suffix: str = "...") -> str:
-    if len(text) > max_len:
-        return text[:max_len - len(suffix)] + suffix
-    return text
-
-
 def _extract_link_text(match: re.Match) -> str:
     """Extract display text from a 【id†text†domain】 anchor."""
     content = match.group(0)

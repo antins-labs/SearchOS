@@ -37,6 +37,7 @@ datasets/
 .DS_Store
 
 # Testing
+/tests/
 .pytest_cache/
 .coverage
 htmlcov/

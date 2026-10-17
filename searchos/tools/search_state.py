@@ -6,7 +6,7 @@ from contextvars import ContextVar
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from searchos.socm.workspace import WorkspaceManager
+    from searchos.socm.storage.workspace import WorkspaceManager
 
 # ContextVar 隔离并发会话；新建 asyncio Task 时继承当前绑定。
 _workspace_var: ContextVar["WorkspaceManager | None"] = ContextVar(

@@ -16,12 +16,6 @@ if _env_path.exists():
     load_dotenv(_env_path)
 
 
-def get_llm(model: str | None = None):
-    from searchos.config.models import get_model_for
-
-    return get_model_for(model or "judge")
-
-
 def init_search_provider(name: str | None = None):
     # SearchOS binds search + page-fetch onto one shared browser provider.
     # An explicit ``name`` (from web settings) wins; otherwise same resolution
@@ -53,7 +47,7 @@ sessions: dict[str, dict] = {}
 def session_directory(root: str | Path, session_id: str) -> Path:
     """API 的统一 session 路径解析，保留旧链接并拒绝越界路径。"""
     from fastapi import HTTPException
-    from searchos.socm.workspace import resolve_session_path
+    from searchos.socm.storage.workspace import resolve_session_path
 
     try:
         return resolve_session_path(root, session_id)

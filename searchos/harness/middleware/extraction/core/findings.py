@@ -13,7 +13,7 @@ from searchos.socm.evidence import (
     SourceObservation,
     bind_task_evidence,
 )
-from searchos.socm.provenance import select_source_urls
+from searchos.socm.evidence.provenance import select_source_urls
 from searchos.util.span_match import find_span
 
 

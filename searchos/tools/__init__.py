@@ -1,15 +1,9 @@
-"""Tool system (paper §Tool System) — grouped by agent assignment.
+"""按能力组织 Agent 工具，每类目录在入口声明其工具集合。
 
-One module per tool group; each exposes a ``get_*_tools()`` factory:
+schema：表格定义、行编辑与投影；tasks：任务、计划与报告；
+socm_read：状态只读视图；writer：提纲与章节；skills：技能发现与执行；
+python：受限代码执行；simple_browser：搜索与页面读取。
 
-- ``simple_browser`` — search / open / find (Search, Explore)
-- ``schema`` — schema + entity CRUD (Orchestrator)
-- ``tasks`` — sub-agent task queue (Orchestrator)
-- ``writer`` — outline management (Writer)
-- ``socm_read`` — read-only SOCM views (Writer)
-- ``skill_catalog`` — list / load skills (Search, Writer)
-- ``searchos.local.reader.tools`` — catalog / open / find for Local Search Agent
-
-``search_state`` holds the per-task workspace / agent ContextVars the
-tools read from.
+search_state 仅保存共享 ContextVar。Local Search 的文档工具由
+searchos.local.reader.tools 提供，与本地资料库实现保持一致。
 """

@@ -90,7 +90,7 @@ function harness(file, initialModels = fixture()) {
       return [states[slot], (value) => { states[slot] = typeof value === "function" ? value(states[slot]) : value; }];
     } };
     if (name === "@/components/settings/SettingsProvider") return { useSettings: () => context };
-    if (name === "@/components/settings/controls/Select") return { __esModule: true, default: "test-select" };
+    if (name === "@/components/ui/Select") return { __esModule: true, default: "test-select" };
     if (name === "@/lib/modelPurposes") return helpers;
     if (name === "@/lib/api") return { async putRoles(bindings) {
       calls.push(plain(bindings));

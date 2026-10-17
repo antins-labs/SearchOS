@@ -19,14 +19,14 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from api.deps import LOCAL_DATA_ROOT, WORKSPACE_ROOT, sessions
-from api.local_index_jobs import (
+from api.local.index_jobs import (
     LocalIndexJob,
     LocalIndexJobStore,
     cancel_background_index,
     retry_background_index,
     schedule_background_index,
 )
-from api.network_import_jobs import (
+from api.local.import_jobs import (
     NetworkImportJobStore,
     cancel_network_import,
     retry_network_import,
@@ -196,7 +196,7 @@ async def delete_library(library_id: str):
         service = _service()
         root = Path(service.get_library(library_id).index_root)
         await _cancel_library_jobs(library_id)
-        from api.topic_recap_jobs import cancel_topic_recaps
+        from api.local.recap_jobs import cancel_topic_recaps
 
         await cancel_topic_recaps(root)
         await asyncio.to_thread(service.delete_library, library_id)
@@ -210,7 +210,7 @@ async def edit_document(library_id: str, document_id: str, req: DocumentEditRequ
     try:
         service = _service()
         graph = await asyncio.to_thread(service.edit_document, library_id, document_id, req.name)
-        from api.topic_recap_jobs import schedule_topic_recaps
+        from api.local.recap_jobs import schedule_topic_recaps
 
         schedule_topic_recaps(Path(service.get_library(library_id).index_root))
         return graph
@@ -225,7 +225,7 @@ async def delete_document(library_id: str, document_id: str):
         service.get_library(library_id)
         await _cancel_library_jobs(library_id, document_id)
         graph = await asyncio.to_thread(service.delete_document, library_id, document_id)
-        from api.topic_recap_jobs import schedule_topic_recaps
+        from api.local.recap_jobs import schedule_topic_recaps
 
         schedule_topic_recaps(Path(service.get_library(library_id).index_root))
         return graph
@@ -349,7 +349,7 @@ async def set_document_topics(
             document_id,
             req.subindex_ids,
         )
-        from api.topic_recap_jobs import schedule_topic_recaps
+        from api.local.recap_jobs import schedule_topic_recaps
         schedule_topic_recaps(Path(service.get_library(library_id).index_root))
         return graph
     except Exception as exc:  # noqa: BLE001
@@ -359,7 +359,7 @@ async def set_document_topics(
 @router.post("/libraries/{library_id}/topic-recaps/retry")
 async def retry_topic_recaps(library_id: str):
     try:
-        from api.topic_recap_jobs import schedule_topic_recaps
+        from api.local.recap_jobs import schedule_topic_recaps
         from searchos.local.index.catalog import CatalogMarkdownStore
         from searchos.local.index.locks import advisory_lock
 

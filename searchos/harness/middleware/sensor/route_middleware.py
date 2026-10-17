@@ -7,7 +7,7 @@ from langchain.agents.middleware.types import AgentMiddleware
 
 from searchos.harness.middleware.sensor.utils.outcomes import tool_outcome
 from searchos.harness.middleware.utils.messages import blocked_result, extract_tool_name, is_blocked
-from searchos.socm.retry_routes import check_and_record_route, record_route_outcome, route_signature
+from searchos.socm.planning.retry_routes import check_and_record_route, record_route_outcome, route_signature
 
 
 class RetryRouteMiddleware(AgentMiddleware):

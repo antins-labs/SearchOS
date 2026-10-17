@@ -9,7 +9,7 @@ import weakref
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-from searchos.socm.conflicts import EvidencePair, cell_pairs, normalize_text, reconcile_conflicts
+from searchos.socm.coverage.conflicts import EvidencePair, cell_pairs, normalize_text, reconcile_conflicts
 from searchos.socm.evidence import EvidenceComparison
 
 # 相同 workspace 的不同 Extraction 实例串行比较，提交后重新读取缓存。

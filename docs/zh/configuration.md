@@ -45,7 +45,7 @@ Web 设置页按“连接模型服务 → 添加模型配置 → 分配模型用
 | L1 `.env` | 手动 / `searchos --setup` / web 设置页（仅密钥值） | 所有进程启动 `load_dotenv` | 进程启动一次 |
 | L2 预设 | `SF_PROVIDER` 环境变量 | `config/providers.py` | `Settings()` 构造时 |
 | L3 覆写 | `.env` 中的 `SF_PROFILES__*` 等 | `config/settings.py` validator | `Settings()` 构造时 |
-| L4 overlay | web 设置 API / TUI 命令 / 向导（`web/api/settings_store.py` + `config/web_overlay.py`） | `load_and_apply()`；每次变更即时应用 | 启动 + 每次写入 |
+| L4 overlay | web 设置 API / TUI 命令 / 向导（`web/api/settings/store.py` + `config/web_overlay.py`） | `load_and_apply()`；每次变更即时应用 | 启动 + 每次写入 |
 | L5 per-run | 前端 Composer 的 run overrides | `web/api/routes/search.py` | 每次发起搜索 |
 
 ## overlay 的四个区
@@ -162,5 +162,5 @@ L4 还承载 per-profile 定制（web 设置页 Models 区的 profile 卡）：
 - `searchos/config/env_file.py` — `.env` 原子读写、值校验、`remove_env_keys`
 - `searchos/config/web_overlay.py` — overlay 数据模型、`apply_to_runtime()`、迁移函数（Web 与 CLI/TUI 共享）
 - `searchos/config/effort.py` — effort 档位（TUI `/effort` 与 web 共用）
-- `web/api/settings_store.py` — L4 overlay 的写事务（锁 + dry-run 回滚 + reload 重放）
+- `web/api/settings/store.py` — L4 overlay 的写事务（锁 + dry-run 回滚 + reload 重放）
 - `web/api/routes/models.py` / `routes/settings.py` — 设置 API 端点
