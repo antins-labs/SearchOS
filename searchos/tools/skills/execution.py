@@ -154,7 +154,15 @@ def execution_started(tool_call_id: str) -> bool:
 async def load_skill(skill_name: str) -> str:
     """Read instructions and freeze a skill package for this task before exec."""
     try:
-        return json.dumps(load_package(skill_name), ensure_ascii=False)
+        package = load_package(skill_name)
+        fields = (
+            "name", "body", "category", "description", "compatibility", "resources",
+            "execution", "invocation", "legacy_parameters",
+        )
+        visible = {key: package[key] for key in fields if key in package}
+        if package.get("resources_truncated"):
+            visible["resources_truncated"] = True
+        return json.dumps(visible, ensure_ascii=False)
     except (ValueError, OSError) as exc:
         return json.dumps({"error": str(exc)}, ensure_ascii=False)
 
@@ -233,9 +241,10 @@ def _execution_response(result: dict) -> tuple[str, dict]:
     visible = {key: result[key] for key in ("execution_id", "status", "exit_code", "page_url", "index_page_url") if key in result}
     if result.get("page_url"):
         visible["read_result"] = {"tool": "open", "arguments": {"id_or_url": result["page_url"]}}
-        visible["reading_note"] = "Open the saved result before continuing retrieval. exec does not extract evidence; open/find submit eligible reading windows for extraction."
-    for key, value in result.items():
-        if key in visible or key == "artifacts":
+        visible["reading_note"] = "Read the saved result with open before continuing retrieval."
+    for key in ("error", "page_error", "stdout", "stderr"):
+        value = result.get(key)
+        if not value:
             continue
         if key in {"stdout", "stderr"}:
             if key == "stdout" and result.get("page_url") and not result.get("page_error"):
@@ -244,6 +253,14 @@ def _execution_response(result: dict) -> tuple[str, dict]:
             if len(value) > 2000:
                 value = value[:2000] + "\n[preview truncated; full output saved in execution logs]"
         visible[key] = value
+    for key in ("auth_required", "truncated", "replayed"):
+        if result.get(key):
+            visible[key] = True
+    if result.get("pages_total", 0) > 1:
+        visible["pages"] = result.get("pages", [])
+        visible["pages_total"] = result["pages_total"]
+    if result.get("unrendered"):
+        visible["unrendered"] = result["unrendered"]
     return _json(visible), {"execution": result, "outcome": {"status": result["status"]}}
 
 
@@ -329,7 +346,7 @@ async def exec_skill(
             if accepted:
                 failure = {"status": "blocked", "started": bool(result and result.get("started")), "error": str(exc)}
                 _write_json(receipt, {"state": "complete", "request_hash": request_hash, "result": failure})
-                return _json(failure), {"execution": failure, "outcome": {"status": "blocked"}}
+                return _execution_response(failure)
             raise
         except asyncio.CancelledError:
             _write_json(skill_workspace_dir(root, "executions") / execution_id / "binding.json",
@@ -344,5 +361,5 @@ async def exec_skill(
         return _execution_response(result)
     except (ValueError, OSError) as exc:
         result = {"status": "blocked", "error": str(exc), "started": False}
-        return _json(result), {"execution": result, "outcome": {"status": "blocked"}}
+        return _execution_response(result)
 

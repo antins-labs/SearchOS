@@ -32,8 +32,7 @@ def _ground_hybrid_report(report: dict, state: Any) -> None:
     ]
     report["grounded_findings_total"] = len(nodes)
     report["last_message"] = (
-        "已自动绑定的证据（原文地址见 source_urls；摘要仍需原文核验）：\n" + "\n".join(
-            f"- {node.finding} [evidence:{node.id}]" for node in nodes[:24])
+        f"See grounded_findings for {len(nodes)} source-linked findings and citations."
         if nodes else "本任务无已核验并绑定的事实；执行汇报仅供定位缺口，不可作为答案依据。"
     )
     if len(nodes) > 24:
@@ -133,7 +132,7 @@ async def check_agents(timeout: float = 0.0) -> str:
             still-running agents.
     Returns:
         JSON string: ``{"reports": [...], "remaining": N, "running_ids": [...]}``.
-        Each report in ``reports`` is an ``AgentReport.model_dump()`` dict.
+        Reports contain findings, task references and actionable execution status.
         ``remaining`` is the count of sub-agents still running after this
         call.
     """
@@ -214,7 +213,7 @@ async def check_agents(timeout: float = 0.0) -> str:
             # per-cell list can be tens of KB on wide tables. Keep row/column
             # counts plus the column set — new rows arrive via
             # ``discovered_entities`` and the full grid stays in the SOCM block.
-            rd = report.model_dump()
+            rd = report.model_dump(exclude={"duration_s"})
             current = _ctx.workspace.load_state()
             task_ids = set(rd.get("task_ids", []))
             if not task_ids:

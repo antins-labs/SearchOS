@@ -661,18 +661,16 @@ def _source_metadata_payload(
     }
 
 
-def _source_metadata(source: _SourceExcerpt, *, start: int, end: int) -> str:
+def _source_metadata(source: _SourceExcerpt) -> str:
     payload = {
         "coverage": source.coverage,
         "location": compact_locator_labels(list(source.source_locators)),
-        "ref_id": source.ref_id,
         "representation_id": (
             source.representation_ids[0]
             if len(source.representation_ids) == 1
             else list(source.representation_ids)
         ),
-        "text_range": [start, end],
-        "warnings": list(source.warnings),
+        **({"warnings": list(source.warnings)} if source.warnings else {}),
     }
     return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
@@ -726,7 +724,7 @@ def _render_original(
             "type": "text",
             "text": (
                 f"[LOCAL_ORIGINAL]\nSource: {source.ref_id}\nPath: {source.display_path}\n"
-                f"Metadata: {_source_metadata(source, start=0, end=len(source.text))}"
+                f"Metadata: {_source_metadata(source)}"
             ),
         }
     ]
@@ -891,7 +889,7 @@ async def local_open(
             f"Source: {source.ref_id}",
             f"Path: {source.display_path}",
             f"Characters: [{loc}, {end}) of {total}",
-            f"Metadata: {_source_metadata(source, start=loc, end=end)}",
+            f"Metadata: {_source_metadata(source)}",
         ]
         if end < total:
             header.append(
@@ -959,8 +957,9 @@ async def local_find(
             "[LOCAL_SOURCE]",
             f"Source: {source.ref_id}",
             f"Path: {source.display_path}",
-            f"Representation: {', '.join(source.representation_ids)}",
-            f"Metadata: {_source_metadata(source, start=0, end=len(source.text))}",
+            f"Metadata: {_source_metadata(source)}",
+            (f'Open a match with local_open(ref_id="{source.ref_id}", loc=<match loc>, '
+             f"max_chars=6000, representation_id={source.representation_selector!r})."),
             "",
         ]
         for index, position in enumerate(matches):
@@ -970,13 +969,7 @@ async def local_find(
             lines.extend(
                 [
                     f"# Match {index} — loc={position}",
-                    f"Metadata: {_source_metadata(source, start=snippet_start, end=snippet_end)}",
                     snippet,
-                    (
-                        f'Open: local_open(ref_id="{source.ref_id}", '
-                        f"loc={position}, max_chars=6000, "
-                        f"representation_id={source.representation_selector!r})"
-                    ),
                     "",
                 ]
             )

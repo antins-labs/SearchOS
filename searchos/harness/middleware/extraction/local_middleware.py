@@ -115,8 +115,14 @@ class LocalEvidenceMiddleware(ObservationMiddleware):
                 payload = json.loads(line.removeprefix("Metadata: "))
             except json.JSONDecodeError:
                 return None
-            if isinstance(payload, dict) and payload.get("ref_id") == source_url:
-                return payload
+            if isinstance(payload, dict) and payload.get("ref_id", source_url) == source_url:
+                metadata = {**payload, "ref_id": source_url}
+                window = re.search(r"^Characters: \[(\d+), (\d+)\)", header, re.MULTILINE)
+                if window and "text_range" not in metadata:
+                    metadata["text_range"] = {
+                        "start": int(window.group(1)), "end": int(window.group(2)),
+                    }
+                return metadata
         return None
 
     @staticmethod

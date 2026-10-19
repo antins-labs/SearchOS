@@ -283,8 +283,6 @@ class BrowserState:
             # 展示可复制的完整来源地址；find 的派生地址只放结构化元数据。
             header += f"\nURL: {source_url}"
         page_id = self.page_ids.get(page.url, "")
-        if page_id:
-            header += f"\nPage ID: {page_id}"
         header += f"\n**{scrollbar}**\n\n"
         if artifact is not None:
             artifact["page_source"] = {

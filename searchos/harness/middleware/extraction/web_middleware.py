@@ -154,4 +154,9 @@ class WebEvidenceMiddleware(ObservationMiddleware):
     @staticmethod
     def _extract_page_id(content: str) -> str:
         match = re.search(r"^Page ID:\s*([a-f0-9]{12})\s*$", content, re.MULTILINE)
-        return match.group(1) if match else ""
+        if match:
+            return match.group(1)
+        from searchos.tools.simple_browser.state import _compute_page_id
+
+        source = WebEvidenceMiddleware._extract_source_url(content)
+        return _compute_page_id(source) if source else ""

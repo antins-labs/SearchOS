@@ -17,12 +17,19 @@ from searchos.socm.views.trace import resolve_cell_provenance as _resolve
 from searchos.tools.search_state import _ws
 
 _FINDING_EXCERPT_CHARS = 500
+_READABLE_SOURCE_FIELDS = (
+    "file_name", "ref_id", "tool_ref_id", "location", "source_locator", "locators",
+    "text_range", "coverage", "warnings", "extraction_method",
+    "representation_id", "representation_selector",
+)
 
 def _node_snapshot(node: Any, state: Any = None, *, include_inactive: bool = False) -> dict[str, Any]:
     from searchos.socm.evidence.provenance import evidence_source_urls
 
     finding = node.finding or ""
     truncated = len(finding) > _FINDING_EXCERPT_CHARS
+    metadata = node.local_source_metadata or {}
+    source_details = {key: metadata[key] for key in _READABLE_SOURCE_FIELDS if key in metadata}
     return {
         "id": node.id,
         "status": node.status.value,
@@ -31,26 +38,28 @@ def _node_snapshot(node: Any, state: Any = None, *, include_inactive: bool = Fal
         "entity": node.entity,
         "attribute": node.attribute,
         "value": node.value,
-        "cell_bindings": ([{"cell": key, **binding.model_dump()} for key, records in state.coverage_map.evidence_bindings.items()
-                           for binding in records if binding.evidence_id == node.id
-                           and (include_inactive or (key in state.coverage_map.cells and binding.status.value == "active"))]
-                          if state is not None else []),
+        "cell_bindings": ([
+            {"cell": key, **binding.model_dump(exclude={"evidence_id"})}
+            for key, records in state.coverage_map.evidence_bindings.items()
+            for binding in records
+            if binding.evidence_id == node.id
+            and (include_inactive or (
+                key in state.coverage_map.cells and binding.status.value == "active"
+            ))
+        ] if state is not None else []),
         "finding": finding[:_FINDING_EXCERPT_CHARS],
         **({"finding_truncated": True} if truncated else {}),
         "source": node.source,
         "source_urls": evidence_source_urls(node),
         "citation": f"evidence:{node.id}",
         "source_excerpt": node.source_excerpt,
-        "local_source_metadata": node.local_source_metadata,
+        **({"local_source_metadata": source_details} if source_details else {}),
         "confidence": node.confidence,
         "alignment": node.alignment,
-        "page_id": node.page_id,
         "observation_id": node.observation_id,
         "span_basis": "observation" if node.observation_id else "page",
         "span": (list(node.span) if node.span else None),
-        "text_hash": node.text_hash,
         "source_authority": node.source_authority,
-        "created_at": node.created_at,
     }
 
 
@@ -132,7 +141,7 @@ async def read_evidence(
 
         cached = state.coverage_map.evidence_comparisons.get(cell, {})
         comparisons = [
-            result.model_dump() for pair in cell_pairs(state, cell)
+            result.model_dump(exclude={"retry_after"}) for pair in cell_pairs(state, cell)
             if (result := cached.get(pair.fingerprint)) is not None
         ]
     return json.dumps(
@@ -150,12 +159,14 @@ async def resolve_cell_provenance(
     cell: str = "",
     evidence_id: str = "",
 ) -> str:
-    """Look up verbatim page snippets for a cell or a single evidence id (provide exactly one). Returns ``{records:[{evidence_id, page_id, source_url, snippet, span, text_hash, finding, confidence}], count}``; ``span`` is ``{start_char, end_char}`` when verbatim in the cached page, else null.
+    """Look up original snippets for a cell or a single evidence id; provide exactly one.
+
+    Records include evidence_id, source_url/source_urls, snippet, finding, confidence and observation_id. ``span`` is ``{start_char, end_char}`` relative to ``span_basis`` (observation or page), or null when not located.
 
     Args:
         cell (str): ``"entity.attribute"`` cell key.
         evidence_id (str): a single evidence id.
-    """
+    """  # noqa: E501
     ws = _ws()
     state = ws.load_state()
     records = _resolve(
@@ -164,4 +175,9 @@ async def resolve_cell_provenance(
         evidence_id=(evidence_id or None),
         workspace=ws,
     )
-    return json.dumps({"records": records, "count": len(records)}, ensure_ascii=False)
+    fields = (
+        "evidence_id", "source_url", "source_urls", "snippet", "finding", "confidence",
+        "observation_id", "span", "span_basis", "cell", "cell_value",
+    )
+    visible = [{key: record[key] for key in fields if key in record} for record in records]
+    return json.dumps({"records": visible, "count": len(visible)}, ensure_ascii=False)

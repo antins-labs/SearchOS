@@ -64,6 +64,7 @@ _Avoid_：Evidence Middleware、抽取回调
 - **Creation Pipeline** 不负责运行时 Skill Selection，也不反查创建关系决定注入
 - 只有 **Skill Availability** 为 enabled 的 Skill 才会进入运行时 registry；旧 lifecycle 值仅在读取时兼容映射
 - 每个 **Evidence Observation** 只能在一次 **Evidence Extraction** 生命周期中被预留一次
+- 模型可见的工具结果只保留事实、来源、操作标识及影响下一步决策的状态；哈希、内部路径、性能时间和完整审计元数据保留在状态、日志或工具 artifact 中。来源版本引用、观测 ID、representation 与阅读位置仍可用于后续操作，不能按字段名称一概删除。原文与技能返回的业务 JSON 保持完整，不递归剥离其中的 `meta` 或 `sha` 字段。
 - Evidence 的 `source` 保留观测身份，`source_urls` 保存该条事实引用的原文地址。Access Skill 从返回结果的来源字段传递链接，Agent Summary 从逐条引用传递；抽取只能选择观测已声明的地址。多来源结果按事实归属，未知来源不猜测。回答、证据面板与表格引用解析到原文，内部执行地址保留用于审计；链接可追溯不等于原文已支持该陈述。
 - `edit_entities` 在所有来源模式下写入非空事实值时，必须提供原始 http/https/local 地址和支持摘录；skill/agent 事实先读取 `source_urls`。纯重命名和清空不要求来源。此检查阻止无来源覆盖，不替代语义核验。
 - 一次 **Evidence Extraction** 提交必须让 Evidence Graph 与 Coverage Map 的更新原子可见

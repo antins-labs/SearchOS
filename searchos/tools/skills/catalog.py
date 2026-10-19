@@ -83,12 +83,10 @@ async def list_skills(category: str = "", availability: str = "", query: str = "
     if len(query) > 2000:
         return json.dumps({'skills': [], 'count': 0, 'error': 'Describe the current retrieval need in at most 2000 characters.'})
     candidates = []
-    banned_hits = 0
     for s in reg.list_all():
         if not _skill_allowed(s):
             continue
         if s.meta.name in banned:
-            banned_hits += 1
             continue
         if category and s.meta.category.value != category:
             continue
@@ -113,18 +111,14 @@ async def list_skills(category: str = "", availability: str = "", query: str = "
     out = [{
             "name": s.meta.name,
             "description": (s.meta.description or s.meta.trigger or "")[:500],
-            "package_format": s.package_format,
             "category": s.meta.category.value,
-            "availability": s.meta.availability.value,
-            "has_executor": s.meta.has_executor,
-            "has_scripts": any(resource.startswith("scripts/") for resource in s.resources),
             "trigger": s.meta.trigger,
             "compatibility": s.meta.compatibility,
             **({'match_reason': matches[s.meta.name]} if s.meta.name in matches else {}),
         } for s in candidates]
     start, size = max(0, offset), min(50, max(1, limit))
     return json.dumps(
-        {"skills": out[start:start + size], "count": len(out), "banned": banned_hits,
+        {"skills": out[start:start + size], "count": len(out),
          "next_offset": start + size if start + size < len(out) else None},
         ensure_ascii=False,
     )
