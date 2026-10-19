@@ -1,8 +1,10 @@
-"""原文摘录定位与数值支持检查。"""
+"""原文摘录定位、完整地址与数值支持检查。"""
 
 from __future__ import annotations
 
 import re
+
+from searchos.socm.evidence.provenance import source_refs
 
 # 仅过滤整个单元格为空值标记的情况，不影响日期或带连字符的文本。
 _NULL_VALUES = {"", "none", "null", "n/a", "/", "-", "–", "—", "--"}
@@ -65,6 +67,9 @@ def _ungrounded_number(page_text: str, value: str) -> str | None:
     "3.5" split by the decimal point) false-positive; the observed
     fabrications are prices / counts / amounts. Values without such tokens
     pass (textual cells are governed by the excerpt rules instead)."""
+    # 地址中的日期和 ID 由完整 URL 检查负责，不要求正文重述路径中的数字。
+    for ref in source_refs(value):
+        value = value.replace(ref, "")
     tokens = [t for t in re.findall(r"\d+", _fold_digits(value)) if len(t) >= 3]
     if not tokens:
         return None
@@ -72,6 +77,21 @@ def _ungrounded_number(page_text: str, value: str) -> str | None:
     missing = [t for t in tokens if t not in page]
     if missing:
         return "number_not_on_page:" + ",".join(missing[:3])
+    return None
+
+
+def _ungrounded_url(
+    page_text: str, value: str, source_url: str, *, source_urls=(),
+) -> str | None:
+    """只接受观测中完整出现的地址；域名、路径前缀不能证明目标 URL。
+
+    观测自身地址和宿主声明的来源链接也可支持地址值。此检查只验证
+    地址存在，不证明目标页已被阅读或支持陈述，也不改变证据的 source。
+    """
+    allowed = {*source_refs(page_text), source_url, *source_urls}
+    missing = [ref for ref in source_refs(value) if ref not in allowed]
+    if missing:
+        return "url_not_on_page:" + ",".join(missing[:3])
     return None
 
 

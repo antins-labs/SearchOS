@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from searchos.harness.middleware.extraction.utils.grounding import (
     _NULL_VALUES,
     _anchored_excerpt,
     _ungrounded_number,
+    _ungrounded_url,
 )
 from searchos.harness.middleware.extraction.utils.unit_normalize import normalize_value
 from searchos.socm import TableSchema
@@ -147,7 +149,10 @@ def _ingest_rows(
             # (unit conversion happens below, in code), so its significant
             # numbers must literally occur on the page. Cell-level reject —
             # the row's other cells may still be grounded.
-            gate_reason = _ungrounded_number(page_text, val)
+            url_value = raw_value if isinstance(raw_value, str) else json.dumps(raw_value)
+            gate_reason = _ungrounded_url(
+                original, url_value, source_url, source_urls=source_urls,
+            ) or _ungrounded_number(page_text, val)
             if gate_reason:
                 rejected.append(
                     {
