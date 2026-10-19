@@ -29,7 +29,6 @@
 .research-workspace[data-mobile-workspace="forced"] .conversation-content { padding-top: 24px; }
 .research-workspace[data-mobile-workspace="forced"] [aria-label="Resize Activity drawer"],
 .research-workspace[data-mobile-workspace="forced"] [aria-label="Maximize Activity drawer"] { display: none; }
-.research-workspace :is(button, a, input, textarea, select):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 @media (min-width: 1180px) {
   .research-workspace[data-mobile-workspace="responsive"] .workspace-history { display: flex; }
 }

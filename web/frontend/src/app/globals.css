@@ -105,12 +105,29 @@ body::before {
   color: transparent;
 }
 
-/* ── Keyboard focus feedback (mouse clicks stay outline-free) ── */
+/* 按钮保留键盘焦点；输入控件允许组件提供自己的焦点反馈。 */
 button:focus-visible,
 a:focus-visible,
 [role="button"]:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+@layer base {
+  :where(input, textarea, select):focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.input-surface:focus-within:not([aria-invalid="true"]):not(:has([aria-invalid="true"])) {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.08);
+}
+
+/* surface 的非分层边框不能覆盖表单控件的焦点反馈。 */
+:is(input, textarea, select).surface:focus:not(.border-err):not([aria-invalid="true"]) {
+  border-color: var(--accent);
 }
 
 /* ── Scrollbars ── */

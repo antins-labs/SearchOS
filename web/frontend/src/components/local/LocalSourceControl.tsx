@@ -206,7 +206,7 @@ export default function LocalSourceControl({ controller, open, onOpenChange }: P
                 setFilter("");
                 controller.setLibraryId(event.target.value);
               }}
-              className="mb-2 w-full rounded-lg border border-line bg-surface-2 px-2.5 py-1.5 text-[12px] text-ink outline-none"
+              className="input-surface mb-2 w-full rounded-lg border border-line bg-surface-2 px-2.5 py-1.5 text-[12px] text-ink outline-none"
             >
               {controller.libraries.map((library) => (
                 <option key={library.library_id} value={library.library_id}>{library.name}</option>
@@ -215,7 +215,7 @@ export default function LocalSourceControl({ controller, open, onOpenChange }: P
           )}
           {controller.documents.length > 0 && (
             <div className="mb-2 flex flex-wrap items-center gap-1.5">
-              <label className="flex min-w-44 flex-1 items-center gap-1.5 rounded-lg border border-line bg-paper px-2 py-1.5">
+              <label className="input-surface flex min-w-44 flex-1 items-center gap-1.5 rounded-lg border border-line bg-paper px-2 py-1.5">
                 <Search size={12} className="shrink-0 text-ink-faint" />
                 <input
                   value={filter}

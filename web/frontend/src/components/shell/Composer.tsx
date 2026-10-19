@@ -629,7 +629,7 @@ export default function Composer({
       {liveFollowUps && <PendingFollowUps queue={liveFollowUps} running={running} />}
       <form
         onSubmit={(e) => { e.preventDefault(); submit(); }}
-        className={`research-composer-form surface flex items-end gap-2 transition-shadow focus-within:border-line-strong ${
+        className={`research-composer-form input-surface surface flex items-end gap-2 transition-shadow ${
           hero ? "rounded-2xl px-4 py-3.5 shadow-[0_2px_18px_rgba(21,34,56,0.06)]" : "rounded-2xl px-3.5 py-2.5"
         }`}
       >
@@ -816,7 +816,7 @@ export default function Composer({
           </div>
 
           {showPaste && (
-            <div className="surface mb-2 overflow-hidden rounded-xl">
+            <div className="input-surface surface mb-2 overflow-hidden rounded-xl">
               <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2">
                 <label className="flex min-w-[190px] flex-1 items-center gap-2 text-[12px]">
                   <span className="shrink-0 text-ink-faint">Entity</span>
@@ -847,7 +847,7 @@ export default function Composer({
           {activeDraft ? (
             <div className="surface overflow-hidden rounded-xl">
               <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2 text-[13px]">
-                <label title={issueFor(`table:${activeDraft.id}:entity`)} className={`flex min-w-[180px] flex-1 items-center gap-2 rounded-md px-2 py-1 ${issueFor(`table:${activeDraft.id}:entity`) ? "bg-err/5 text-err ring-1 ring-err/35" : ""}`}>
+                <label title={issueFor(`table:${activeDraft.id}:entity`)} className={`input-surface flex min-w-[180px] flex-1 items-center gap-2 rounded-md px-2 py-1 ${issueFor(`table:${activeDraft.id}:entity`) ? "bg-err/5 text-err ring-1 ring-err/35" : ""}`}>
                   <span className="shrink-0 text-ink-faint">Entity</span>
                   <input
                     autoFocus
@@ -860,7 +860,7 @@ export default function Composer({
                     className="min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-ink-faint"
                   />
                 </label>
-                <label title={issueFor(`table:${activeDraft.id}:primary`)} className={`flex min-w-[170px] flex-1 items-center gap-2 rounded-md px-2 py-1 ${issueFor(`table:${activeDraft.id}:primary`) ? "bg-err/5 text-err ring-1 ring-err/35" : ""}`}>
+                <label title={issueFor(`table:${activeDraft.id}:primary`)} className={`input-surface flex min-w-[170px] flex-1 items-center gap-2 rounded-md px-2 py-1 ${issueFor(`table:${activeDraft.id}:primary`) ? "bg-err/5 text-err ring-1 ring-err/35" : ""}`}>
                   <KeyRound size={13} className="shrink-0 text-accent-ink" />
                   <input
                     value={activeDraft.primaryKey}
@@ -917,7 +917,7 @@ export default function Composer({
                       </th>
                       {activeDraft.columns.map((col, i) => (
                         <th key={i} title={issueFor(`table:${activeDraft.id}:column:${i}`)} className={`w-36 border-r px-2 py-1.5 text-left font-medium ${issueFor(`table:${activeDraft.id}:column:${i}`) ? "border-err/40 bg-err/5" : "border-line"}`}>
-                          <div className="flex items-center gap-1">
+                          <div className="input-surface flex items-center gap-1 rounded-sm">
                             <input
                               value={col}
                               onChange={(e) => updateDraftColumn(i, e.target.value)}
@@ -972,7 +972,7 @@ export default function Composer({
                             }}
                             placeholder={`实体 ${rowIndex + 1}`}
                             spellCheck={false}
-                            className="w-full bg-transparent font-medium text-ink outline-none placeholder:text-ink-faint"
+                            className="input-surface w-full rounded-sm bg-transparent font-medium text-ink outline-none placeholder:text-ink-faint"
                           />
                         </td>
                         {activeDraft.columns.map((_, colIndex) => (
@@ -1040,7 +1040,7 @@ export default function Composer({
               </div>
               {!hasDraftTables && (
                 <div className="grid grid-cols-1 gap-2 text-[13px] sm:grid-cols-2">
-                  <label className="surface flex items-center gap-2 rounded-xl px-3 py-2 focus-within:border-line-strong">
+                  <label className="input-surface surface flex items-center gap-2 rounded-xl px-3 py-2">
                     <span className="shrink-0 text-ink-faint">Rows</span>
                     <input
                       autoFocus
@@ -1052,7 +1052,7 @@ export default function Composer({
                       className="w-full bg-transparent text-ink outline-none placeholder:text-ink-faint"
                     />
                   </label>
-                  <label className="surface flex items-center gap-2 rounded-xl px-3 py-2 focus-within:border-line-strong">
+                  <label className="input-surface surface flex items-center gap-2 rounded-xl px-3 py-2">
                     <span className="shrink-0 text-ink-faint">Cols</span>
                     <input
                       value={attrs}
@@ -1157,7 +1157,7 @@ export default function Composer({
                             onBlur={breakSchemaMerge}
                             placeholder={`${fromMeta?.label ?? "From"} -> ${toMeta?.label ?? "To"}`}
                             spellCheck={false}
-                            className="rounded-md border border-line bg-surface px-2 py-1 text-ink outline-none placeholder:text-ink-faint sm:col-span-4"
+                            className="input-surface rounded-md border border-line bg-surface px-2 py-1 text-ink outline-none placeholder:text-ink-faint sm:col-span-4"
                           />
                         </div>
                         {relationIssue && (

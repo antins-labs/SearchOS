@@ -15,7 +15,7 @@
 .hostCard dd { text-align: right; overflow-wrap: anywhere; }
 .app button,.app a,.sheet button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .app button:disabled,.sheet button:disabled { opacity: .4; cursor: not-allowed; }
-.app :is(button,a,input,textarea,select):focus-visible,.sheet :is(button,a,input,textarea,select):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.app :is(button,a,input[type="checkbox"],input[type="radio"]):focus-visible,.sheet :is(button,a,input[type="checkbox"],input[type="radio"]):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .header { display: flex; gap: 9px; align-items: center; padding: max(12px, env(safe-area-inset-top)) 20px 12px; flex-shrink: 0; background: var(--paper); }
 .brand { display: flex; align-items: center; gap: 9px; flex: 1; font-size: 17px; font-weight: 700; letter-spacing: -.4px; }
 .brand small { display: block; font-size: 10px; color: var(--ink-dim); font-weight: 400; letter-spacing: 1px; margin-top: 1px; }
@@ -44,8 +44,8 @@
 .sectionLabel button { min-height: 36px; display: flex; align-items: center; gap: 5px; font-size: 11px; }
 .composerArea { flex-shrink: 0; padding: 9px 16px 0; background: var(--paper); box-shadow: 0 -12px 18px var(--paper); z-index: 2; }
 .composer { border: 1px solid var(--line-strong); border-radius: 23px; background: var(--surface); padding: 13px 12px 10px; box-shadow: 0 4px 22px rgba(var(--accent-rgb),.05); }
-.composer:focus-within { border-color: var(--accent); }
-.composer textarea { width: 100%; display: block; font-size: 16px; line-height: 1.55; resize: none; border: 0; outline: none !important; background: transparent; min-height: 49px; max-height: 144px; padding: 0 3px; }
+.composer:focus-within,.searchBox:focus-within { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),.08); }
+.composer textarea { width: 100%; display: block; font-size: 16px; line-height: 1.55; resize: none; border: 0; outline: none; background: transparent; min-height: 49px; max-height: 144px; padding: 0 3px; }
 .composer textarea::placeholder { color: var(--ink-faint); }
 .composerTools { display: flex; gap: 4px; align-items: center; margin-top: 4px; }
 .addButton,.optionButton { height: 42px; min-width: 39px; display: grid; place-items: center; color: var(--ink-dim); }
@@ -112,7 +112,8 @@
 .uploadTile small,.environmentCard small { display: block; color: var(--ink-dim); font-size: 11px; margin-top: 4px; }
 .tileIcon { color: var(--accent-ink); display: grid; place-items: center; width: 38px; height: 38px; background: var(--surface-2); border-radius: 12px; flex-shrink: 0; }
 .fieldLabel { display: flex; flex-direction: column; gap: 9px; font-size: 12px; color: var(--ink-dim); margin: 18px 0; }
-.fieldLabel input,.fieldLabel select,.fieldLabel textarea { min-height: 46px; width: 100%; min-width: 0; border: 1px solid var(--line-strong); border-radius: 10px; padding: 11px; font-size: 16px; background: var(--surface); color: var(--ink); }
+.fieldLabel input,.fieldLabel select,.fieldLabel textarea { min-height: 46px; width: 100%; min-width: 0; border: 1px solid var(--line-strong); border-radius: 10px; padding: 11px; font-size: 16px; background: var(--surface); color: var(--ink); outline: none; }
+.fieldLabel :is(input,select,textarea):focus { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),.08); }
 .fieldLabel textarea { resize: vertical; }
 .documentList { display: grid; gap: 8px; }
 .document { display: flex; gap: 10px; align-items: center; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 14px 11px; min-height: 76px; }

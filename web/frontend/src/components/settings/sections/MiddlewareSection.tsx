@@ -125,7 +125,7 @@ export default function MiddlewareSection() {
             {id === "list" ? (zh ? "列表" : "List") : (zh ? "可视化" : "Visual")}
           </button>)}
         </div>
-        <label className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-line px-3 py-2 text-ink-faint">
+        <label className="input-surface flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-line px-3 py-2 text-ink-faint">
           <Search size={14} className="shrink-0" />
           <input value={query} onChange={(event) => setQuery(event.target.value)}
             aria-label={zh ? "搜索 Middleware" : "Search middleware"} placeholder={zh ? "搜索组件名称或作用…" : "Find a component…"}

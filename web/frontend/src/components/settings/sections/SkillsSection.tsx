@@ -109,7 +109,7 @@ export default function SkillsSection() {
     <SectionShell id="skills" title={zh ? "技能" : "Skills"}
       description={zh ? "管理编排器和子智能体可以使用的技能。" : "Manage skills available to the orchestrator and sub-agents."}>
       <div className="flex items-center justify-between gap-3">
-        <label className="surface flex min-w-0 flex-1 items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-ink-faint">
+        <label className="input-surface surface flex min-w-0 flex-1 items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-ink-faint">
           <Search size={14} />
           <input
             value={filter}
