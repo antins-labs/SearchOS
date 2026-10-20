@@ -36,6 +36,7 @@ async def build_skill(
     site_intent: bool = False,
     intent_model: Any = None,
     site_session_path: Path | None = None,
+    intent_review: dict | None = None,
     on_stage: Any = None,
 ) -> Path | None:
     """Build one access skill and return its directory on success.
@@ -104,6 +105,18 @@ async def build_skill(
             diagnostics['draft_path'] = str(pointer)
     workspace.checkpoint = checkpoint
     try:
+        if intent_review is not None:
+            diagnostics['failure_stage'] = 'site_intent_review'
+            diagnostics['intent_review'] = {'status': 'pending'}
+            if not site_intent:
+                raise ValueError('host intent review requires site intent mode and a previously locked plan')
+            if (not isinstance(intent_review, dict)
+                    or set(intent_review) != {'capability_id', 'question', 'evidence_ids'}
+                    or not isinstance(intent_review['capability_id'], str) or not intent_review['capability_id'].strip()
+                    or not isinstance(intent_review['question'], str) or not intent_review['question'].strip()
+                    or not isinstance(intent_review['evidence_ids'], list) or not intent_review['evidence_ids']
+                    or not all(isinstance(ref, str) and ref for ref in intent_review['evidence_ids'])):
+                raise ValueError('host intent review requires capability_id, question and evidence_ids')
         if resume_draft is not None:
             from searchos.skills.pipeline.drafts import load_draft
             source, saved = load_draft(resume_draft)
@@ -153,6 +166,10 @@ async def build_skill(
             session = SiteIntentSession(intent_model or builder_model, workspace, record)
             workspace.site_intent = session
             previous_session = resume_draft.parent / 'site-session.json' if resume_draft is not None else site_session_path
+            if intent_review is not None:
+                saved_session = json.loads(Path(previous_session).read_text()) if previous_session is not None else {}
+                if not isinstance(saved_session, dict) or not isinstance(saved_session.get('plan'), dict):
+                    raise ValueError('host intent review requires a previously locked plan; it cannot start planning')
             if on_stage is not None:
                 await on_stage('site_intent')
             try:
@@ -164,6 +181,16 @@ async def build_skill(
             if resume_draft is not None and workspace.examples != planned_examples:
                 raise ValueError('saved capability plan no longer matches draft examples')
             workspace.set_validation_examples(planned_examples)
+            if intent_review is not None:
+                diagnostics['failure_stage'] = 'site_intent_review'
+                answer = await session.advise(**intent_review, allow_example_replacement=False)
+                diagnostics['intent_review'] = {**answer, 'status': answer.get('status', 'error')}
+                record.event('site_intent_review', request=intent_review, result=diagnostics['intent_review'])
+                if answer.get('status') != 'clarified':
+                    raise ValueError('host intent review did not clarify repair feedback: ' + json.dumps(answer, ensure_ascii=False))
+                notes += '\n宿主修复反馈复核（保留原验收，仅追加有证据的边界）：' + json.dumps(answer, ensure_ascii=False)
+                plan = session.state['plan']
+                diagnostics.pop('failure_stage', None)
             notes += session.builder_notes()
             diagnostics['example_source'] = 'site_intent'
             diagnostics['capabilities'] = [c['id'] for c in plan['capabilities']]
@@ -174,10 +201,18 @@ async def build_skill(
         return await _build_episode(workspace, final_dir, host, probe_urls, notes, tool_model, max_turns, diagnostics, record)
     except asyncio.CancelledError:
         diagnostics.update(exit_reason='cancelled')
+        if intent_review is not None and diagnostics.get('failure_stage') == 'site_intent_review':
+            diagnostics['intent_review'] = {'status': 'cancelled'}
+            record.event('site_intent_review', request=intent_review, result=diagnostics['intent_review'])
         record.event('cancelled')
         raise
     except Exception as exc:
-        diagnostics.update(exit_reason='site_intent_error' if diagnostics.get('failure_stage') == 'site_intent' else 'execution_error', error_type=type(exc).__name__)
+        stage = diagnostics.get('failure_stage')
+        if intent_review is not None and stage == 'site_intent_review' and diagnostics.get('intent_review', {}).get('status') == 'pending':
+            diagnostics['intent_review'] = {'status': 'error', 'error_type': type(exc).__name__, 'error': str(exc)}
+            record.event('site_intent_review', request=intent_review, result=diagnostics['intent_review'])
+        diagnostics.update(exit_reason='site_intent_error' if stage == 'site_intent' else
+                           'site_intent_review_error' if stage == 'site_intent_review' else 'execution_error', error_type=type(exc).__name__)
         record.event('execution_error', error_type=type(exc).__name__)
         raise
     finally:
@@ -252,6 +287,16 @@ async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_mod
                 guidance = ('固定验收样例及其 expected_status 由宿主管理，不能修改或重新注册。修复 CLI 实现、stdout JSON、参数和依赖；'
                             '用 exec 检查负例，用 validate_skill 重新验收，不扩展功能。当前验证结果：\n')
             messages.append(HumanMessage(content=guidance + json.dumps(report, ensure_ascii=False)))
+        remaining = max_turns - turn
+        budget_guidance = f'剩余 {remaining} 次模型调用（含本轮）；请安排读取、修改与验证。'
+        if remaining == 1:
+            budget_guidance += ('这是最后一次模型调用；优先完成已定位的最小修改，必要时同轮调用工具验证。'
+                                '本轮工具执行后宿主会做最终验收，不会再有模型修复轮；仍受阻时保留诊断和可恢复草稿。')
+        # 预算提示独立于阶段与样例锁定分支，保留本轮具体错误反馈。
+        if isinstance(messages[-1], HumanMessage):
+            messages[-1] = HumanMessage(content=messages[-1].content + '\n\n' + budget_guidance)
+        else:
+            messages.append(HumanMessage(content=budget_guidance))
         diagnostics['turns_attempted'] = turn + 1
         phase = 'repair' if turn >= repair_start else ('discovery' if discovery_turns is not None and turn < discovery_turns else 'build')
         diagnostics['phase'] = phase

@@ -410,7 +410,10 @@ async def test_site_entry_uses_intent_dialogue_and_builds_one_multicapability_pa
                 return AIMessage(content='', tool_calls=[dict(id='question', name='ask_intent_agent', args={
                     'capability_id': 'detail', 'question': '详情操作应读取实体还是列表？', 'evidence_ids': ['obs-1']})])
             if self.calls == 2:
-                assert '不能返回搜索列表' in messages[-1].content
+                advice = next(message for message in reversed(messages)
+                              if getattr(message, 'tool_call_id', None) == 'question')
+                assert '不能返回搜索列表' in advice.content
+                assert '剩余 44 次模型调用' in messages[-1].content
                 script = 'SOURCE = ' + repr(capability_source) + '\n' + '''import argparse,json,sys,urllib.request
 p=argparse.ArgumentParser();p.add_argument('operation');p.add_argument('--input');a=p.parse_args()
 inputs=json.loads(a.input)
@@ -531,3 +534,176 @@ def test_parse_object_rejects_ambiguous_or_incomplete_payloads(content):
     from searchos.skills.intent.site import parse_object
     with pytest.raises(ValueError):
         parse_object(AIMessage(content=content))
+
+
+def host_review_fixture(tmp_path, monkeypatch, *, response='clarified', draft=False, mismatch=False):
+    from dataclasses import asdict
+    from searchos.skills import SkillRequest
+    from searchos.skills.pipeline.access import run
+    from searchos.skills.pipeline.access.browser import ResearchBrowser
+    from searchos.skills.pipeline.drafts import save_draft
+    saved = tmp_path/'saved'; saved.mkdir()
+    original = validate_plan(plan(), [{'id': 'obs-1', 'tool': 'web_open', 'usable': True}])
+    state = {'version': 1, 'host': 'example.com', 'plan': original,
+             'observations': [{'id': 'obs-1', 'tool': 'web_open', 'usable': True,
+                               'result': {'content': 'Original public source', 'live_evidence': True}}],
+             'calls': 9, 'dialogues': [{'capability_id': 'search', 'question': 'previous', 'answer': {'status': 'clarified'}}]}
+    session = saved/'site-session.json'; session.write_text(json.dumps(state))
+    request = SkillRequest('access', 'example-com', '读取站点记录', host='example.com', probe_urls=('https://example.com/',))
+    review = {'capability_id': 'search', 'question': '来源确认新的无匹配边界，请复核并保留原例。', 'evidence_ids': ['obs-1']}
+    episodes = []
+    async def episode(workspace, final_dir, host, urls, notes, model, *args):
+        episodes.append({'examples': deepcopy(workspace.examples), 'locked': workspace.examples_locked,
+                         'plan': deepcopy(workspace.site_intent.state['plan']), 'notes': notes})
+        return None
+    async def browser(self, name, args):
+        assert name == 'web_open'
+        return {'content': 'This query has no matching records.', 'live_evidence': True, 'content_source': 'page'}
+    monkeypatch.setattr(run, '_build_episode', episode)
+    monkeypatch.setattr(ResearchBrowser, 'dispatch', browser)
+    class Intent:
+        calls = 0
+        def bind_tools(self, definitions): return self
+        async def ainvoke(self, messages):
+            self.calls += 1
+            if response == 'cancelled':
+                import asyncio
+                raise asyncio.CancelledError()
+            if response == 'call_budget':
+                raise RuntimeError('site_total_model_call_budget_exhausted')
+            if response in {'clarified', 'replacement'} and self.calls == 1:
+                return AIMessage(content='', tool_calls=[{'name': 'web_open', 'args': {'id_or_url': 'https://example.com/empty'}, 'id': 'review-read'}])
+            if response == 'invalid':
+                return AIMessage(content=json.dumps({'status': 'clarified', 'guidance': 'invalid evidence', 'evidence_ids': ['missing']}))
+            advice = {'status': response if response in {'blocked', 'needs_evidence'} else 'clarified',
+                      'guidance': '来源已核实，应保留原记录并添加此边界。',
+                      'evidence_ids': ['obs-2'] if response in {'clarified', 'replacement'} else ['obs-1']}
+            if response == 'clarified':
+                advice['boundary_additions'] = [boundary_case(evidence_ids=['obs-2'])]
+            if response == 'replacement':
+                advice['example_replacement'] = {'reason': 'attempt to weaken old cases',
+                    'examples': [{'query': 'easier-a'}, {'query': 'easier-b'}]}
+            return AIMessage(content=json.dumps(advice))
+    intent = Intent()
+    kwargs = {'library_path': tmp_path/'library', 'trial_root': tmp_path/'trials', 'model': intent,
+              'access_site_intent': True, 'access_intent_model': intent, 'access_site_session': session}
+    if draft:
+        source = tmp_path/'draft-source'; source.mkdir()
+        (source/'SKILL.md').write_text('unfinished original draft')
+        examples = capability_examples(original)
+        pointer = save_draft(saved, source, ['SKILL.md'], name='example-com',
+                             examples=examples[:-1] if mismatch else examples, require_host=True)
+        (saved/'request.json').write_text(json.dumps({'request': asdict(request), 'base_hash': None,
+                                                     'access_site_intent': True}))
+        kwargs['resume_draft'] = pointer
+    return request, review, kwargs, intent, episodes, state
+
+
+@pytest.mark.asyncio
+async def test_explicit_host_review_reuses_session_and_locks_added_boundary_before_builder(tmp_path, monkeypatch):
+    from searchos.skills import run_pipeline
+    request, review, kwargs, model, episodes, original = host_review_fixture(tmp_path, monkeypatch, draft=True)
+    result = await run_pipeline(request, **kwargs, access_intent_review=review)
+    assert len(episodes) == 1 and episodes[0]['locked']
+    assert episodes[0]['examples'][:4] == capability_examples(original['plan'])
+    assert episodes[0]['examples'][4]['expected_status'] == 'empty'
+    assert episodes[0]['plan']['capabilities'][0]['examples'] == original['plan']['capabilities'][0]['examples']
+    assert episodes[0]['plan']['capabilities'][1] == original['plan']['capabilities'][1]
+    assert '来源已核实' in episodes[0]['notes']
+    saved = json.loads((result.trial_path.parent/'site-session.json').read_text())
+    assert model.calls == 2 and saved['calls'] == 11 and len(saved['dialogues']) == 2
+    assert saved['initial_plan'] == original['plan']
+    diagnostics = json.loads((result.trial_path.parent/'builder.json').read_text())
+    assert diagnostics['intent_review']['status'] == 'clarified'
+    assert 'failure_stage' not in diagnostics
+    recorded = json.loads((result.trial_path.parent/'request.json').read_text())
+    assert recorded['access_intent_review'] == review
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('response', ['blocked', 'needs_evidence', 'invalid', 'call_budget', 'replacement', 'dialogue_budget'])
+async def test_unsuccessful_host_review_stops_before_builder_and_preserves_locked_plan(tmp_path, monkeypatch, response):
+    from searchos.skills import run_pipeline
+    request, review, kwargs, model, episodes, original = host_review_fixture(tmp_path, monkeypatch, response=response)
+    if response == 'dialogue_budget':
+        original['dialogues'].append({'question': 'second previous dialogue'})
+        kwargs['access_site_session'].write_text(json.dumps(original))
+    result = await run_pipeline(request, **kwargs, access_intent_review=review)
+    assert result.status == 'error' and result.failure_stage == 'site_intent_review'
+    assert not episodes and model.calls == (0 if response == 'dialogue_budget' else 2 if response == 'replacement' else 1)
+    saved = json.loads((result.trial_path.parent/'site-session.json').read_text())
+    assert saved['plan'] == original['plan'] and len(saved['dialogues']) == 2
+    diagnostics = json.loads((result.trial_path.parent/'builder.json').read_text())
+    assert diagnostics['intent_review']['status'] != 'clarified'
+    assert diagnostics['turns_attempted'] == 0
+    assert not (tmp_path/'library/access/example-com').exists()
+
+
+@pytest.mark.asyncio
+async def test_locked_plan_without_explicit_review_adds_no_intent_calls(tmp_path, monkeypatch):
+    from searchos.skills import run_pipeline
+    request, _, kwargs, model, episodes, original = host_review_fixture(tmp_path, monkeypatch)
+    result = await run_pipeline(request, **kwargs)
+    assert len(episodes) == 1 and model.calls == 0
+    assert episodes[0]['examples'] == capability_examples(original['plan'])
+    saved = json.loads((result.trial_path.parent/'site-session.json').read_text())
+    assert saved['calls'] == 9 and saved['dialogues'] == original['dialogues']
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('configuration', ['new_plan', 'unlocked_plan', 'site_intent_disabled', 'draft_mismatch'])
+async def test_host_review_requires_existing_locked_plan_and_matching_original_draft(tmp_path, monkeypatch, configuration):
+    from searchos.skills import run_pipeline
+    request, review, kwargs, model, episodes, original = host_review_fixture(tmp_path, monkeypatch,
+        draft=configuration == 'draft_mismatch', mismatch=configuration == 'draft_mismatch')
+    if configuration == 'new_plan': kwargs['access_site_session'] = None
+    if configuration == 'unlocked_plan':
+        original['plan'] = None
+        kwargs['access_site_session'].write_text(json.dumps(original))
+    if configuration == 'site_intent_disabled': kwargs['access_site_intent'] = False
+    result = await run_pipeline(request, **kwargs, access_intent_review=review)
+    assert result.status == 'error' and result.failure_stage == 'site_intent_review'
+    assert model.calls == 0 and not episodes
+
+
+@pytest.mark.asyncio
+async def test_host_review_cancellation_propagates_and_keeps_consumed_dialogue(tmp_path, monkeypatch):
+    import asyncio
+    from searchos.skills import run_pipeline
+    request, review, kwargs, model, episodes, _ = host_review_fixture(tmp_path, monkeypatch, response='cancelled')
+    with pytest.raises(asyncio.CancelledError):
+        await run_pipeline(request, **kwargs, access_intent_review=review)
+    saved = json.loads(next((tmp_path/'trials').glob('*/*/site-session.json')).read_text())
+    assert saved['calls'] == 10 and len(saved['dialogues']) == 2 and model.calls == 1 and not episodes
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('followup_options', [{}, {'allow_example_replacement': True}])
+async def test_host_review_keeps_later_builder_questions_append_only(tmp_path, followup_options):
+    from searchos.skills.intent.site import SiteIntentSession
+    from searchos.skills.pipeline.access.records import BuildRecord
+    from searchos.skills.pipeline.access.tools import BuilderWorkspace
+    workspace = BuilderWorkspace(tmp_path/'package')
+    try:
+        session = SiteIntentSession(None, workspace, BuildRecord(tmp_path/'record'))
+        session.state.update(plan=plan(), observations=[{'id': 'obs-1', 'tool': 'web_open', 'usable': True}])
+        original = deepcopy(session.state['plan'])
+        workspace.set_validation_examples(capability_examples(original))
+        async def converse(*args, **kwargs):
+            if len(session.state['dialogues']) == 1:
+                return {'status': 'clarified', 'guidance': '保留原正例修复脚本。', 'evidence_ids': ['obs-1']}
+            oid = session.observe('web_open', {'id_or_url': 'https://example.com/new'},
+                {'content': 'New identifiers', 'live_evidence': True}, 'intent')
+            return {'status': 'clarified', 'guidance': '尝试替换原正例。', 'evidence_ids': [oid],
+                    'example_replacement': {'reason': '新的标识更容易访问',
+                        'examples': [{'query': 'easier-a'}, {'query': 'easier-b'}]}}
+        session.converse = converse
+        await session.advise('search', '复核修复反馈', ['obs-1'], allow_example_replacement=False)
+        with pytest.raises(ValueError, match='cannot replace existing examples'):
+            await session.advise('search', '继续处理原样例', ['obs-1'], **followup_options)
+        assert session.state['plan'] == original
+        assert workspace.examples == capability_examples(original)
+        assert len(session.state['dialogues']) == 2
+        assert all(item['mode'] == 'append_only_review' for item in session.state['dialogues'])
+    finally:
+        workspace.close()

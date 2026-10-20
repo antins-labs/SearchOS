@@ -282,3 +282,116 @@ async def test_progress_gate_does_not_block_debugging_research_or_intent_tools(s
     actual, events = await staged_builder([calls])
     assert actual == [call['id'] for call in calls]
     assert not any(event['event'] == 'discovery_call_deferred' for event in events)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('size,limit,expected_length,next_offset', [
+    (14307, None, 14307, None),
+    (16000, None, 16000, None),
+    (16001, None, 16000, 16000),
+    (24000, 24000, 24000, None),
+    (24001, 50000, 24000, 24000),
+])
+async def test_read_file_character_windows_and_exact_boundaries(tmp_path, size, limit, expected_length, next_offset):
+    from searchos.skills.pipeline.access.tools import BuilderWorkspace
+    workspace = BuilderWorkspace(tmp_path/'example-com')
+    try:
+        content = '汉' * size
+        await workspace.write_file('scripts/long.py', content)
+        args = {'path': 'scripts/long.py'}
+        if limit is not None: args['limit'] = limit
+        result = await workspace.dispatch('read_file', args)
+        assert result['content'] == content[:expected_length]
+        assert result['total_chars'] == size
+        assert result['next_offset'] == next_offset
+        assert result['truncated'] is (next_offset is not None)
+    finally:
+        workspace.close()
+
+
+@pytest.mark.asyncio
+async def test_read_file_large_file_paginates_without_gaps(tmp_path):
+    from searchos.skills.pipeline.access.tools import BuilderWorkspace
+    workspace = BuilderWorkspace(tmp_path/'example-com')
+    try:
+        content = ''.join(str(i % 10) for i in range(50003))
+        await workspace.write_file('scripts/long.py', content)
+        offset, chunks, offsets = 0, [], []
+        while offset is not None:
+            result = await workspace.read_file('scripts/long.py', offset=offset, limit=24000)
+            assert result['total_chars'] == len(content)
+            chunks.append(result['content']); offsets.append(result['next_offset'])
+            offset = result['next_offset']
+        assert [len(chunk) for chunk in chunks] == [24000, 24000, 2003]
+        assert offsets == [24000, 48000, None] and ''.join(chunks) == content
+        end = await workspace.read_file('scripts/long.py', offset=len(content))
+        assert end == {'content': '', 'total_chars': len(content), 'truncated': False, 'next_offset': None}
+    finally:
+        workspace.close()
+
+
+def test_read_file_schema_advertises_default_maximum_and_pagination():
+    from searchos.skills.pipeline.access.tools import BuilderWorkspace
+    tool = next(tool['function'] for tool in BuilderWorkspace.TOOL_DEFINITIONS if tool['function']['name'] == 'read_file')
+    limit = tool['parameters']['properties']['limit']
+    assert limit['default'] == 16000 and limit['maximum'] == 24000
+    assert all(field in tool['description'] for field in ('total_chars', 'truncated', 'next_offset'))
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('locked', [False, True])
+async def test_two_call_local_builder_can_read_long_file_then_edit_with_final_budget(tmp_path, monkeypatch, locked):
+    """本地模型替身验证工具与提示链路；不代表真实模型已完成修复。"""
+    from langchain_core.messages import ToolMessage
+    from searchos.skills.pipeline.access import run, tools
+    seed = tmp_path/'seed'; (seed/'scripts').mkdir(parents=True)
+    (seed/'SKILL.md').write_text('---\nname: example-com\ndescription: 本地预算回归\nmetadata:\n'
+        '  searchos-category: access\n  host: example.com\n---\npython scripts/access.py\n')
+    suffix = "\nvalue = 'before'\n"
+    original = '#' + 'x' * (14307 - len(suffix) - 1) + suffix
+    (seed/'scripts/access.py').write_text(original)
+    async def local_validation(package, *args, **kwargs):
+        changed = "value = 'after'" in (package/'scripts/access.py').read_text()
+        return {'valid': changed, 'stage': 'local_test', 'error': '' if changed else 'unrepaired'}
+    monkeypatch.setattr(run, 'validate_access_package', local_validation)
+    monkeypatch.setattr(tools, 'validate_access_package', local_validation)
+    class LocalModel:
+        calls = 0
+        def bind_tools(self, definitions): return self
+        async def ainvoke(self, messages):
+            self.calls += 1
+            assert f'剩余 {3-self.calls} 次模型调用（含本轮）' in messages[-1].content
+            if self.calls == 1:
+                return AIMessage(content='', tool_calls=[builder_call('read_file', 'read-long', path='scripts/access.py')])
+            assert '最后一次模型调用' in messages[-1].content
+            if locked: assert '固定验收样例' in messages[-1].content
+            read = next(message for message in messages if isinstance(message, ToolMessage) and message.tool_call_id == 'read-long')
+            observed = json.loads(read.content)
+            assert observed['content'] == original and observed['total_chars'] == 14307
+            assert not observed['truncated'] and observed['next_offset'] is None
+            return AIMessage(content='', tool_calls=[builder_call('edit_file', 'edit-tail', path='scripts/access.py',
+                old_text="value = 'before'", new_text="value = 'after'")])
+    model = LocalModel(); diagnostics = {}; target = tmp_path/'library/example-com'
+    examples = [{'argv': ['python', 'scripts/access.py'], 'output': '', 'records_key': 'records'}] if locked else None
+    result = await build_skill('example.com', [], output_dir=target, existing_package=seed,
+        validation_examples=examples, builder_model=model, max_turns=2, diagnostics=diagnostics,
+        record_dir=tmp_path/'record')
+    assert result == target and model.calls == 2 and diagnostics['turns_completed'] == 2
+    assert (target/'scripts/access.py').read_text() == original.replace("value = 'before'", "value = 'after'")
+
+
+@pytest.mark.asyncio
+async def test_read_file_tool_message_preserves_full_bounded_page(tmp_path):
+    from searchos.skills.pipeline.access.tools import BuilderWorkspace, run_tool
+    workspace = BuilderWorkspace(tmp_path/'example-com')
+    try:
+        content = '汉"\\\n' * 7000
+        await workspace.write_file('scripts/long.py', content)
+        message = await run_tool(workspace, builder_call('read_file', 'read-page',
+            path='scripts/long.py', limit=24000))
+        result = json.loads(message.content)
+        assert result['content'] == content[:24000]
+        assert result['total_chars'] == len(content)
+        assert result['truncated'] is True and result['next_offset'] == 24000
+    finally:
+        workspace.close()

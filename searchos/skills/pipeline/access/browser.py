@@ -74,7 +74,7 @@ class ResearchBrowser:
         return metadata
 
     async def _http_fallback(self, metadata: dict, loc: int) -> tuple[str | None, str]:
-        """Try the existing HTML reader once without bypassing proxy settings."""
+        """Read public HTML/JSON once without bypassing proxy or TLS settings."""
         from searchos.tools.simple_browser.backend.aiohttp import AiohttpBackend
         from searchos.tools.simple_browser.image_reading import validate_public_url
         from searchos.tools.simple_browser.render import PageContents
@@ -85,7 +85,7 @@ class ResearchBrowser:
             if not is_url_allowed(url):
                 raise ValueError("source domain is excluded for this run")
             await asyncio.wait_for(validate_public_url(url), timeout=5)
-            backend = AiohttpBackend(max_retries=0, trust_env=True, allow_redirects=False)
+            backend = AiohttpBackend(max_retries=0, trust_env=True, allow_redirects=False, allow_json=True)
             fetched = await asyncio.wait_for(backend.fetch(url, timeout=15), timeout=16)
             if not fetched.ok or not fetched.markdown.strip():
                 return None, fetched.error or f"HTTP fallback returned status {fetched.status} or empty content"

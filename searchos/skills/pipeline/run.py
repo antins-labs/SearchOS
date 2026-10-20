@@ -53,7 +53,8 @@ async def run_pipeline(request: SkillRequest, *, library_path: str | Path,
                        access_validation_examples: list[dict] | None = None,
                        access_site_intent: bool | None = None,
                        access_intent_model: Any = None,
-                       access_site_session: Path | None = None) -> PipelineResult:
+                       access_site_session: Path | None = None,
+                       access_intent_review: dict | None = None) -> PipelineResult:
     """一个请求对应一次生成；不解析用户问题或轨迹，也不进行运行时选择。"""
     library = Path(library_path)
     category_root = library / request.category.value
@@ -61,6 +62,9 @@ async def run_pipeline(request: SkillRequest, *, library_path: str | Path,
     draft_path = None
     diagnostics = {}
     try:
+        if access_intent_review is not None and request.category.value != 'access':
+            diagnostics['failure_stage'] = 'site_intent_review'
+            raise ValueError('site intent review requires an access skill')
         from searchos.skills.catalog.registry import SkillRegistry
         from searchos.skills.packaging import package_fingerprint
         registry = SkillRegistry()
@@ -102,7 +106,8 @@ async def run_pipeline(request: SkillRequest, *, library_path: str | Path,
             access_site_intent = saved_site_intent
         save_record(record_dir / 'request.json', {'request': asdict(request), 'base_hash': original_hash,
                                                 'access_validation_examples': access_validation_examples,
-                                                'access_site_intent': bool(access_site_intent)})
+                                                'access_site_intent': bool(access_site_intent),
+                                                **({'access_intent_review': access_intent_review} if access_intent_review is not None else {})})
         if on_draft is not None:
             await on_draft(draft_path)
         category_root.mkdir(parents=True, exist_ok=True)
@@ -118,6 +123,7 @@ async def run_pipeline(request: SkillRequest, *, library_path: str | Path,
                                           validation_examples=access_validation_examples,
                                           site_intent=bool(access_site_intent), intent_model=access_intent_model,
                                           site_session_path=access_site_session, on_stage=on_stage,
+                                          intent_review=access_intent_review,
                                           existing_package=final if existing else None, resume_draft=resume_draft)
             else:
                 if on_stage is not None:

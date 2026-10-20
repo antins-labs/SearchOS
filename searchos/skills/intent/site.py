@@ -202,6 +202,7 @@ class SiteIntentSession:
         self.model, self.workspace, self.record = model, workspace, record
         self.state = {'version': 1, 'plan': None, 'observations': [], 'dialogues': [], 'calls': 0}
         self.path = record.root / 'site-session.json'
+        self._append_only_review = False
 
     def save(self):
         temporary = self.path.with_suffix('.tmp')
@@ -373,7 +374,7 @@ class SiteIntentSession:
             self.save()
         return self.state['plan']
 
-    async def advise(self, capability_id, question, evidence_ids):
+    async def advise(self, capability_id, question, evidence_ids, *, allow_example_replacement=True):
         if len(self.state['dialogues']) >= 2:
             return {'error': 'intent_dialogue_budget_exhausted', 'requirements_unchanged': True}
         if capability_id not in {c['id'] for c in self.state['plan']['capabilities']}:
@@ -381,7 +382,11 @@ class SiteIntentSession:
         observed = {o['id']: o for o in self.state['observations']}
         if not question.strip() or not evidence_ids or any(ref not in observed for ref in evidence_ids):
             raise ValueError('a concrete question and observed evidence IDs are required')
+        self._append_only_review = self._append_only_review or not allow_example_replacement
+        allow_example_replacement = not self._append_only_review
         item = {'capability_id': capability_id, 'question': question, 'evidence_ids': evidence_ids}
+        if not allow_example_replacement:
+            item['mode'] = 'append_only_review'
         self.state['dialogues'].append(item)
         self.save()  # 失败的追问也计入上限。
         before = {o['id'] for o in self.state['observations']}
@@ -389,22 +394,29 @@ class SiteIntentSession:
             advice = await self.converse([
                 SystemMessage(content='你是原站点需求 Agent。根据证据回答创建 Agent 的具体疑问，可补充查阅公开说明。'
                     '不能删除能力或必需字段。访问阻塞应如实报告，不能将外部索引冒充站内查询。'
-                    '只有开发样例标识本身错误或不存在时，可以用工具核实新公开标识后提出替换；不得为绕过实现失败而换容易输入。'
+                    + ('只有开发样例标识本身错误或不存在时，可以用工具核实新公开标识后提出替换；不得为绕过实现失败而换容易输入。'
+                       '确需修正样例时额外给出 example_replacement：{"reason":"原标识为何无效","examples":[两个新输入对象]}。'
+                       if allow_example_replacement else
+                       '本次是宿主修复反馈复核，原能力、字段、正例和已有边界均必须保留；仅可追加有新证据的边界。'
+                       '禁止提供 example_replacement 或替换原样例；无法满足原要求时如实返回 blocked 或 needs_evidence。') +
                     '只输出 JSON：{"status":"clarified|blocked|needs_evidence","guidance":"具体建议","evidence_ids":["obs-1"]}。'
-                    '确需修正样例时额外给出 example_replacement：{"reason":"原标识为何无效","examples":[两个新输入对象]}，'
                     'evidence_ids 必须包含本次新打开页面的实际观察，不能只重复旧证据。'
                     '若发现此前未覆盖的真实边界，可额外给出 boundary_additions：[{"input":{},"expected_status":"ok|empty|invalid_input",'
                     '"reason":"此边界为何必要","evidence_ids":["本次新读取页面ID"]}]。'
+                    'input 只能使用本能力已声明的参数；HTTP 响应夹具或模拟注入不是用户输入，不得为其虚构参数或加入 boundary_additions。'
                     '每项新增边界必须有新页面证据，输入不同于已有用例，新增后每能力最多三条；不能替换或删减旧边界。'
                     '仅在 status=clarified 时修订。原需求、字段和失败记录保留。'),
                 HumanMessage(content=json.dumps({'plan': self.state['plan'], 'question': item,
                     'observations': [observed[ref] for ref in evidence_ids]}, ensure_ascii=False))], 3)
-            if advice.get('status') not in {'clarified', 'blocked', 'needs_evidence'} or not isinstance(advice.get('guidance'), str):
+            if (advice.get('status') not in {'clarified', 'blocked', 'needs_evidence'}
+                    or not isinstance(advice.get('guidance'), str) or not advice['guidance'].strip()):
                 raise ValueError('invalid intent advice')
             refs = advice.get('evidence_ids')
             if not isinstance(refs, list) or not refs or any(ref not in {o['id'] for o in self.state['observations']} for ref in refs):
                 raise ValueError('intent advice must cite shared observations')
             replacement = advice.get('example_replacement')
+            if replacement is not None and not allow_example_replacement:
+                raise ValueError('host intent review cannot replace existing examples')
             additions = advice.get('boundary_additions')
             updates = {}
             if replacement is not None or additions is not None:
@@ -465,7 +477,9 @@ class SiteIntentSession:
                 '保持 HTTPS 证书验证；证书或网络异常按真实失败返回，不通过关闭验证使样例通过。'
                 '\n每个能力先运行一个真实用例，再实现其余能力；不重复需求 Agent 已完成的研究。'
                 '\n具体语义或访问缺口可通过 ask_intent_agent 追问，引用工具返回的 observation_id。'
-                '需求 Agent 不能删除能力或必需字段；若发现开发标识无效，可由它核实新来源并修订样例，原失败保留。'
+                + ('本轮宿主复核已锁定原能力、字段和正例，后续追问也不能替换原样例。'
+                   if self._append_only_review else
+                   '需求 Agent 不能删除能力或必需字段；若发现开发标识无效，可由它核实新来源并修订样例，原失败保留。') +
                 '发现遗漏的真实访问路径或输入边界时，也可请它依据新读取的页面追加 boundary_cases；不移除旧验收要求。'
                 '\n把能力到命令的映射写入 SKILL.md。可拆共享模块，但只发布一个技能包。'
                 '\n能力集合：' + json.dumps(plan, ensure_ascii=False)

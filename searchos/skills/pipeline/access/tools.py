@@ -60,10 +60,10 @@ class BuilderWorkspace:
             "type": "function",
             "function": {
                 "name": "read_file",
-                "description": "Read a UTF-8 text file under the skill directory. offset and limit count characters, not lines. Follow next_offset to read the remaining content.",
+                "description": "Read a UTF-8 text file under the skill directory. offset and limit count characters, not lines. Default limit is 16000; maximum is 24000. Returns content, total_chars, truncated and next_offset; follow next_offset when truncated.",
                 "parameters": {
                     "type": "object",
-                    "properties": {"path": {"type": "string"}, "offset": {"type": "integer", "default": 0}, "limit": {"type": "integer", "default": 7000}},
+                    "properties": {"path": {"type": "string"}, "offset": {"type": "integer", "default": 0}, "limit": {"type": "integer", "default": 16000, "minimum": 1, "maximum": 24000}},
                     "required": ["path"],
                 },
             },
@@ -214,14 +214,15 @@ class BuilderWorkspace:
         self.checkpoint()
         return {"path": str(target), "size": len(content)}
 
-    async def read_file(self, path: str, offset: int = 0, limit: int = 7000) -> dict[str, Any]:
+    async def read_file(self, path: str, offset: int = 0, limit: int = 16000) -> dict[str, Any]:
         target = self._resolve_inside(path)
         if not target.exists():
             return {"error": f"file not found: {path}"}
         text = target.read_text(encoding="utf-8")
-        start, count = max(0, offset), min(7000, max(1, limit))
-        return {"content": text[start:start + count],
-                "next_offset": start + count if start + count < len(text) else None}
+        start, count = max(0, offset), min(24000, max(1, limit))
+        truncated = start + count < len(text)
+        return {"content": text[start:start + count], "total_chars": len(text), "truncated": truncated,
+                "next_offset": start + count if truncated else None}
 
     async def edit_file(self, path: str, old_text: str, new_text: str, replace_all: bool = False) -> dict:
         text = self._resolve_inside(path).read_text(encoding='utf-8')
@@ -274,7 +275,7 @@ class BuilderWorkspace:
         if tool_name == "write_file":
             return await self.write_file(str(tool_input["path"]), str(tool_input["content"]))
         if tool_name == "read_file":
-            return await self.read_file(str(tool_input["path"]), int(tool_input.get('offset', 0)), int(tool_input.get('limit', 7000)))
+            return await self.read_file(str(tool_input["path"]), int(tool_input.get('offset', 0)), int(tool_input.get('limit', 16000)))
         if tool_name == 'edit_file':
             return await self.edit_file(str(tool_input['path']), str(tool_input['old_text']), str(tool_input['new_text']), bool(tool_input.get('replace_all', False)))
         return {"error": f"unknown tool: {tool_name}"}
@@ -314,7 +315,8 @@ async def run_tool(workspace: BuilderWorkspace, tool_call: Any) -> Any:
         payload = json.dumps(result, ensure_ascii=False, default=str)
     except Exception as exc:  # noqa: BLE001
         payload = json.dumps({"error": str(exc)}, ensure_ascii=False)
-    if len(payload) > 10000:
+    # read_file 已按字符分页；二次截断会破坏 content 与 next_offset 的对应关系。
+    if name != 'read_file' and len(payload) > 10000:
         payload = json.dumps({'truncated': True, 'content': payload[:9000]}, ensure_ascii=False)
     return ToolMessage(
         content=payload,

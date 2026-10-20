@@ -15,7 +15,7 @@ def block_unconfigured_research_fallback(monkeypatch, request):
     async def public_url(url):
         if not url.startswith('https://example.com/'):
             raise ValueError('fixture: non-public or disallowed URL')
-    if request.node.originalname != 'test_research_http_reader_preserves_proxy_and_encoding_options':
+    if not request.node.originalname.startswith('test_research_http_reader_'):
         monkeypatch.setattr('searchos.tools.simple_browser.backend.aiohttp.AiohttpBackend.fetch', blocked)
     monkeypatch.setattr('searchos.tools.simple_browser.image_reading.validate_public_url', public_url)
 
@@ -46,6 +46,143 @@ async def test_research_http_reader_preserves_proxy_and_encoding_options(monkeyp
     assert calls['session']['trust_env'] is trust_env
     assert calls['request']['allow_redirects'] is allow_redirects
     assert calls['request']['headers']['Accept-Encoding'] == 'gzip, deflate'
+
+
+@pytest.fixture
+def http_reader_response(monkeypatch):
+    """Fake only HTTP transport, keeping research fallback and parsing real."""
+    def install(content_type, body, *, status=200):
+        calls = {'chunks': 0, 'requests': 0}
+        class Response:
+            headers = {'Content-Type': content_type}
+            content = None
+            async def iter_chunked(self, size):
+                for offset in range(0, len(body), size):
+                    calls['chunks'] += 1
+                    yield body[offset:offset+size]
+            async def __aenter__(self): return self
+            async def __aexit__(self, *args): pass
+        response = Response()
+        response.status = status
+        response.content = response
+        class Session:
+            def __init__(self, **kwargs): calls['session'] = kwargs
+            async def __aenter__(self): return self
+            async def __aexit__(self, *args): pass
+            def get(self, url, **kwargs):
+                calls['requests'] += 1
+                calls['request'] = kwargs
+                return response
+        monkeypatch.setattr('searchos.tools.simple_browser.backend.aiohttp.aiohttp.ClientSession', Session)
+        monkeypatch.setattr('searchos.tools.simple_browser.backend.aiohttp.aiohttp.TCPConnector', lambda **kwargs: calls.setdefault('connector', kwargs))
+        from searchos.tools.simple_browser.render import PageContents
+        from searchos.tools.simple_browser.state import _format_fetch_error
+        async def primary(url, **kwargs):
+            return PageContents(url=url, text=_format_fetch_error(url, -2, 'unsupported_content_type'))
+        monkeypatch.setattr('searchos.tools.simple_browser.tools._fetch_page', primary)
+        return calls
+    return install
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('content_type', ['application/json', 'application/json; charset=utf-8', 'Application/vnd.test+json'])
+async def test_research_http_reader_reads_api_json_as_findable_page(http_reader_response, content_type):
+    import ssl
+    from searchos.skills.pipeline.access.browser import ResearchBrowser
+    payload = {'status': 'ok', 'message': {'items': [{'title': ['Readable 中文'], 'DOI': '10.1/example'}]}}
+    calls = http_reader_response(content_type, json.dumps(payload, ensure_ascii=False).encode())
+    browser = ResearchBrowser()
+    url = 'https://example.com/works?query=research&rows=1'
+    opened = await browser.dispatch('web_open', {'id_or_url': url})
+    assert opened['live_evidence'] is True and opened['fetch_status'] == 'ok'
+    assert opened['access_method'] == 'http_fallback' and opened['source_url'] == url
+    assert json.loads(browser.state.get_page().text) == payload
+    found = await browser.dispatch('web_find', {'pattern': 'Readable 中文'})
+    assert found['live_evidence'] is True and 'Readable 中文' in found['content']
+    await browser.dispatch('web_open', {'id_or_url': url})
+    assert calls['requests'] == 1 and calls['session']['trust_env'] is True
+    assert calls['request']['allow_redirects'] is False
+    assert calls['connector']['ssl'].verify_mode == ssl.CERT_REQUIRED
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('body', [b'{"items":', b'{"x": NaN}', b'{"x": Infinity}', b'{"x":1e309}',
+    b'{"status":"ok","status":"error"}', b'\xff', b'<html>not JSON</html>', b''])
+async def test_research_http_reader_rejects_malformed_json_as_live_evidence(http_reader_response, body):
+    from searchos.skills.pipeline.access.browser import ResearchBrowser
+    http_reader_response('application/json', body)
+    result = await ResearchBrowser().dispatch('web_open', {'id_or_url': 'https://example.com/api'})
+    assert result['live_evidence'] is False and result['fetch_status'] == 'failed'
+    assert 'invalid JSON' in result['fallback_error']
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('status', [302, 404, 429, 500])
+async def test_research_http_reader_keeps_json_http_failures_unusable(http_reader_response, status):
+    from searchos.skills.pipeline.access.browser import ResearchBrowser
+    calls = http_reader_response('application/json', b'{"items":[]}', status=status)
+    result = await ResearchBrowser().dispatch('web_open', {'id_or_url': 'https://example.com/api'})
+    assert result['live_evidence'] is False and result['fetch_status'] == 'failed'
+    assert result['fallback_error'] == f'HTTP {status}'
+    assert calls['requests'] == 1 and calls['chunks'] == 0
+
+
+@pytest.mark.asyncio
+async def test_research_http_reader_bounds_json_before_decoding(http_reader_response):
+    from searchos.skills.pipeline.access.browser import ResearchBrowser
+    calls = http_reader_response('application/json', b'{"large":"' + b'x' * 2_000_000 + b'"}')
+    result = await ResearchBrowser().dispatch('web_open', {'id_or_url': 'https://example.com/api'})
+    assert result['live_evidence'] is False
+    assert 'exceeds 1000000 bytes' in result['fallback_error']
+    assert calls['chunks'] <= 16  # Stop at the first chunk beyond the decoded byte cap.
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('content_type', ['text/json', 'application/javascript', 'application/+json', 'text/html+json'])
+async def test_research_http_reader_does_not_sniff_unapproved_json_types(http_reader_response, content_type):
+    from searchos.skills.pipeline.access.browser import ResearchBrowser
+    calls = http_reader_response(content_type, b'{"items":[]}')
+    result = await ResearchBrowser().dispatch('web_open', {'id_or_url': 'https://example.com/api'})
+    assert result['live_evidence'] is False and 'unsupported content-type' in result['fallback_error']
+    assert calls['chunks'] == 0
+
+
+@pytest.mark.asyncio
+async def test_research_http_reader_json_does_not_widen_default_html_reader(http_reader_response):
+    from searchos.tools.simple_browser.backend.aiohttp import AiohttpBackend
+    calls = http_reader_response('application/json', b'{"items":[]}')
+    result = await AiohttpBackend(max_retries=0).fetch('https://example.com/api')
+    assert not result.ok and 'unsupported content-type' in result.error
+    assert calls['chunks'] == 0
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('under_limit', [False, True])
+async def test_research_http_reader_json_limit_counts_utf8_bytes_across_chunks(http_reader_response, under_limit):
+    from searchos.tools.simple_browser.backend.aiohttp import AiohttpBackend
+    value = {'title': '中' * 22000, 'count': 0}
+    body = json.dumps(value, ensure_ascii=False).encode()
+    calls = http_reader_response('application/json', body)
+    result = await AiohttpBackend(max_retries=0, allow_json=True,
+        max_html_bytes=len(body) - int(under_limit)).fetch('https://example.com/api')
+    assert calls['chunks'] == 2
+    assert result.ok is not under_limit
+    assert result.html == ''
+    if under_limit:
+        assert f'exceeds {len(body)-1} bytes' in result.error
+    else:
+        assert json.loads(result.markdown) == value
+
+
+@pytest.mark.asyncio
+async def test_research_http_reader_bounds_json_rendering_expansion(http_reader_response):
+    from searchos.tools.simple_browser.backend.aiohttp import AiohttpBackend
+    body = b'[' * 50 + b','.join([b'0'] * 500) + b']' * 50
+    http_reader_response('application/json', body)
+    result = await AiohttpBackend(max_retries=0, allow_json=True,
+        max_html_bytes=len(body)).fetch('https://example.com/api')
+    assert not result.ok and 'rendered JSON exceeds' in result.error
+    assert result.markdown == ''
 
 
 @pytest.mark.asyncio
