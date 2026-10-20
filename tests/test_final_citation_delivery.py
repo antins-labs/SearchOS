@@ -2,11 +2,13 @@
 
 import asyncio
 import json
+from dataclasses import replace
 from types import SimpleNamespace
 
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage
 
+from searchos.config.run_config import EffectiveRunConfig
 from searchos.config.settings import settings
 from searchos.harness.answer_stream import AnswerStreamEmitter
 from searchos.harness.session import _finalize_stopped_research
@@ -190,6 +192,100 @@ async def test_citation_repair_timeout_delivers_incomplete_without_another_model
     assert "Finalization crashed" not in answer
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("repair", [GOOD, BAD, "cancel", "audit_failure", "precommit_failure", "self_audit"])
+async def test_normal_session_final_does_not_bypass_repair_and_history(
+    tmp_path, monkeypatch, repair
+):
+    from searchos.config import models
+    from searchos.harness import session
+    from searchos.harness.telemetry.conversation_context import conversation_turns
+    from searchos.skills.catalog.registry import SkillRegistry
+
+    model = ScriptedModel(
+        asyncio.CancelledError() if repair == "cancel" else
+        GOOD if repair in {"audit_failure", "precommit_failure", "self_audit"} else repair,
+        is_final=repair != "self_audit",
+    )
+    if repair in {"audit_failure", "precommit_failure"}:
+        original_audit = session._finalization_audit
+
+        def fail_after_commit(workspace, audit):
+            if audit["status"] == "repaired" or repair == "precommit_failure":
+                raise OSError("offline audit storage failure")
+            return original_audit(workspace, audit)
+
+        monkeypatch.setattr(session, "_finalization_audit", fail_after_commit)
+    monkeypatch.setattr(models, "get_model_for", lambda role: model)
+    monkeypatch.setattr(settings, "enable_skills", False)
+    monkeypatch.setattr(settings, "enable_access_skill_generation", False)
+    monkeypatch.setattr(session, "_premature_end_reason", lambda *_: None)
+
+    def build(self, **kwargs):
+        async def stream(payload, **stream_kwargs):
+            first = payload["messages"][0]
+            yield (
+                "values",
+                {
+                    "messages": [
+                        HumanMessage(content=first["content"], id=first.get("id")),
+                        AIMessage(content="Let me write the comprehensive answer." if repair == "self_audit" else BAD),
+                    ]
+                },
+            )
+
+        return SimpleNamespace(middleware=[], astream=stream), None
+
+    monkeypatch.setattr(session.SearchSession, "_build_research_graph", build)
+    harness = session.SearchSession(
+        workspace_root=str(tmp_path),
+        skill_registry=SkillRegistry(),
+        max_time_s=30,
+        run_config=replace(EffectiveRunConfig.from_settings(), execution_path="unified"),
+    )
+    events = []
+    invocation = harness.run(
+        "Current question",
+        session_id="normal",
+        initial_state=evidence_state(),
+        on_event=events.append,
+    )
+    output = tmp_path / "normal" / settings.output_dir
+    if repair == "precommit_failure":
+        output.mkdir(parents=True)
+        (output / "report.md").write_text(OLD_REPORT)
+        (output / "result.json").write_text(OLD_RESULT)
+        result = await invocation
+        assert result.execution_error == "OSError"
+        assert len(model.calls) == 0
+        assert (output / "report.md").read_text() == OLD_REPORT
+        assert (output / "result.json").read_text() == OLD_RESULT
+        error = json.loads((output / "finalization_error.json").read_text())
+        assert error["error_type"] == "OSError"
+        assert not any(e.get("phase") == "final_answer" for e in events)
+        return
+    if repair == "cancel":
+        with pytest.raises(asyncio.CancelledError):
+            await invocation
+        assert len(model.calls) == 1
+        assert not (output / "report.md").exists()
+        assert not (output / "result.json").exists()
+        assert not any(e.get("phase") == "final_answer" for e in events)
+        return
+    result = await invocation
+    assert len(model.self_checks) == 1
+    assert len(model.calls) == 1
+    report = (output / "report.md").read_text()
+    committed = json.loads((output / "result.json").read_text())
+    assert report == committed["answer"] == conversation_turns(result.workspace_path)[-1]["answer"]
+    assert report == result.final_messages[-1]["content"]
+    assert "".join(e.get("delta", "") for e in events if e.get("phase") == "final_answer") == report
+    assert "source（原始来源未提供）" not in report and "Finalization crashed" not in report
+    if repair in {GOOD, "audit_failure", "self_audit"}:
+        assert report == RESOLVED
+    else:
+        assert committed["mode"] == "research_incomplete"
+        assert committed["citation_issues"] == ["evidence:unsourced"]
 
 
 @pytest.mark.asyncio

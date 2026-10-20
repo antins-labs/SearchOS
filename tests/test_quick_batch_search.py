@@ -4,17 +4,16 @@ import asyncio
 from types import SimpleNamespace
 
 import pytest
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import AIMessage, ToolMessage
 
+from searchos.config.settings import settings
 from searchos.harness.middleware.extraction.web_middleware import WebEvidenceMiddleware
 from searchos.harness.middleware.models import TaskContext
 from searchos.tools.simple_browser import batch
 from searchos.tools.simple_browser.render import PageContents
 from searchos.tools.simple_browser.search.base import SearchResult
-
-
-URL = "https://example.org/widget-release?version=" + "a" * 150
-FACT = "Widget was released in 2024."
+from tests.test_simple_search import ANSWER, FACT, URL, call, run
+from tests.test_simple_search import setup as setup  # noqa: F401
 
 
 @pytest.fixture
@@ -135,6 +134,39 @@ async def test_batch_observations_keep_separate_original_sources():
     assert all(o.task_id == "q1" and "Misleading" not in o.content for o in observed)
 
 
+@pytest.mark.asyncio
+async def test_batch_simple_worker_reuses_explore_pipeline(setup, pages, monkeypatch):
+    async def handler(count, messages):
+        queries = ["Widget official release", "Widget date",
+                   "Widget announcement", "Widget archive"]
+        return (call("explore_web", {"queries": queries}) if count == 1
+                else AIMessage(content=ANSWER))
+
+    from searchos.agents.runtime import _ctx
+    from searchos.harness.middleware import pipelines
+
+    original = pipelines.explore_pipeline
+    invocations = []
+
+    def observed(*args, **kwargs):
+        invocations.append(kwargs)
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(pipelines, "explore_pipeline", observed)
+    workspace, model, extraction = setup(handler)
+    monkeypatch.setattr(settings, "enable_explore", True)
+    result = await run(workspace)
+    assert not result.escalate, result.reason
+    assert result.answer == ANSWER and extraction.calls
+    assert set(model.tool_names) == {"explore_web", "open", "find", "escalate_to_research"}
+    assert len(model.calls) == 2
+    assert len(invocations) == 1 and invocations[0]["extraction_model"] is extraction
+    info = next(iter(_ctx.agent_graphs.values()))
+    assert info["agent_type"] == "explore_agent" and info["task_kind"] == "search"
+    assert not workspace.load_state().pending_agent_summaries
+    report = next(iter(_ctx.completed.values()))
+    assert report.kind == "search" and report.task_ids and report.evidence_nodes_added
+    assert any(o.source == URL for o in workspace.load_state().evidence_graph.observations)
 
 
 @pytest.mark.asyncio
@@ -150,3 +182,30 @@ async def test_batch_reads_relevant_text_beyond_old_700_token_window(pages, monk
         "type": "tool_call", "args": {"queries": ["announcement"]}})
     assert fact in result.content
     assert fact in result.artifact["pages"][0]["content"]
+
+
+@pytest.mark.asyncio
+async def test_planning_explore_still_stashes_brief_and_original_pages(setup, pages, monkeypatch):
+    from searchos.agents.orchestrator.lifecycle import _spawn_sub_agent
+    from searchos.agents.runtime import _ctx
+    from searchos.socm import FrontierTask
+
+    async def handler(count, messages):
+        return (call("explore_web", {"queries": ["Widget release source"]}) if count == 1
+                else AIMessage(content="Planning brief: the official release page identifies the "
+                               "source needed for the next retrieval task. " + URL))
+
+    workspace, _, _ = setup(handler)
+    monkeypatch.setattr(settings, "enable_explore", True)
+    state = workspace.load_state()
+    state.frontier.add(FrontierTask(id="plan", question="Locate an official release source",
+                                    kind="explore", agent_type="explore_agent"))
+    workspace.save_state(state)
+    agent_id = await _spawn_sub_agent("explore_agent", "Locate the source", [], bind_task_id="plan")
+    report = await _ctx.task_pool.pop(agent_id)
+    assert report.kind == "explore"
+    assert not _ctx.agent_graphs[agent_id]["extractions"]
+    state = workspace.load_state()
+    assert any(p["source_url"] == URL for p in state.pending_agent_summaries)
+    assert any(p["source_url"].startswith("agent://") for p in state.pending_agent_summaries)
+    assert not state.evidence_graph.task_bindings

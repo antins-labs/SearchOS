@@ -1,8 +1,4 @@
-"""SearchSession: Main Agent (Orchestrator) as the sole decision maker.
-
-The Orchestrator explores, plans, dispatches Sub Agents, evaluates, and synthesizes.
-No external auto_plan or DAGExecutor — the Orchestrator owns the full loop.
-"""
+"""Route simple searches and research through a shared evidence runtime."""
 
 from __future__ import annotations
 
@@ -167,17 +163,7 @@ async def close_browser_service() -> None:
 
 
 class SearchSession:
-    """Orchestrator-based search harness.
-
-    Flow (unified — Orchestrator is the sole decision maker):
-        1. Create workspace + state
-        2. Build Orchestrator Agent with orchestrator tools (create_schema,
-           spawn/check/continue_agent, plus SOCM read + skill management)
-        3. Orchestrator autonomously: choose exploration / schema / retrieval →
-           poll → continue/spawn as needed
-        4. Harness drains Agent work; Orchestrator finalizes the answer
-           without tools, with Synthesis reserved for failure fallback
-    """
+    """Share sources, evidence, and finalization across direct search and research."""
 
     def __init__(
         self,
@@ -272,6 +258,170 @@ class SearchSession:
             if self._conversation_logger is not None:
                 self._conversation_logger.flush()
 
+    def _build_research_graph(
+        self, *, state, workspace, query, fixed_schema, targeted_repair_mode,
+        orchestrator_deny, follow_up, context_preamble, traj_logger, conv_logger,
+        orch_budget, orch_control, steer_queue,
+    ):
+        """Build the research graph on demand, leaving simple searches without an orchestrator."""
+        from datetime import datetime as _dt
+
+        from searchos.agents.orchestrator import get_orchestrator_tools
+        from searchos.agents.orchestrator.catalog import (
+            _is_agent_enabled,
+            generate_agent_catalog_text,
+        )
+        from searchos.agents.orchestrator.prompt import build_orchestrator_prompt
+        orchestrator_tools = get_orchestrator_tools(source_mode=(state.source_scope or {}).get("mode", ""))
+        if not self._run_config.enable_research_plan_tool:
+            orchestrator_tools = [t for t in orchestrator_tools if t.name != "set_research_plan"]
+        if fixed_schema:
+            orchestrator_tools = [
+                tool for tool in orchestrator_tools
+                if getattr(tool, "name", "") not in {"create_schema", "add_columns"}
+            ]
+        if targeted_repair_mode:
+            repair_tool_allowlist = {
+                "enqueue_tasks",
+                "stop_task",
+                "check_agents",
+                "inspect_table",
+            }
+            orchestrator_tools = [
+                tool for tool in orchestrator_tools
+                if getattr(tool, "name", "") in repair_tool_allowlist
+            ]
+        from searchos.agents.toolset_render import render_toolset
+
+        # Inject ALL orchestrator-layer skills into the playbook directly — no
+        # router LLM call. Skipped entirely when enable_skills=False so the
+        # orchestrator cannot see or use skills.
+        if settings.enable_skills and "web" not in state.source_scope.get("unavailable_sources", {}):
+            from searchos.skills.catalog.router import render_playbook
+            from searchos.skills.core.models import SkillCategory
+            orch_candidates = self._skill_registry.list_by_category(SkillCategory.ORCHESTRATOR)
+            if orchestrator_deny:
+                orch_candidates = [
+                    s for s in orch_candidates if s.meta.name not in orchestrator_deny
+                ]
+            orchestrator_playbook = render_playbook(orch_candidates)
+
+            # 子 agent 按当前检索需求发现技能；权限仍由上面的 policy 约束。
+            skill_catalog = (
+                "Search agents start each task by discovering Access and Strategy skills with "
+                "list_skills(query=their current retrieval need), then read load_skill "
+                "before use. Give them the task, source hints and acceptance criteria. "
+                "The skills field is optional; omit it unless you already know a suitable "
+                "skill from this run. Do not guess skill names."
+            )
+        else:
+            orchestrator_playbook = ""
+            skill_catalog = ""
+
+        system_prompt = build_orchestrator_prompt(
+            agent_catalog=generate_agent_catalog_text(),
+            skill_catalog=skill_catalog,
+            max_dispatches=settings.orch_max_dispatches,
+            max_searches_per_agent=settings.max_searches_per_sub_agent,
+            max_skills_per_agent=settings.max_skills_per_sub_agent,
+            max_search_agents_per_session=settings.max_search_agents_per_session,
+            # Date-only: minute precision forks the prompt-cache prefix
+            # across sessions started in different minutes.
+            current_time=_dt.now().strftime("%Y-%m-%d"),
+            orch_toolset=render_toolset(orchestrator_tools, header="## Available Tools"),
+            enable_explore=_is_agent_enabled("explore_agent"),
+            explore_on_start=self._run_config.explore_on_start and not targeted_repair_mode,
+            orchestrator_playbook=orchestrator_playbook,
+            follow_up=follow_up or bool(context_preamble),
+            enable_research_plan_tool=self._run_config.enable_research_plan_tool,
+            research_mode=state.research_mode,
+            source_mode=(state.source_scope or {}).get("mode", ""),
+            local_sources=(
+                "Current library: " + str(state.source_scope.get("library_id", ""))
+                + (
+                    "; scope: readable library snapshot.\n"
+                    if state.source_scope.get("selection") == "library"
+                    else "; scope: selected documents.\n"
+                )
+                + f"Readable documents: {len(state.source_scope.get('documents', []))}.\n"
+                if (state.source_scope or {}).get("library_id") else ""
+            ) + "\n".join(
+                f"- {record['relative_path']} (document_id={record['document_id']})"
+                for record in (state.source_scope or {}).get("documents", [])
+            ),
+            source_limitations="\n".join(state.source_scope.get("unavailable_sources", {}).values()),
+        )
+        if fixed_schema:
+            system_prompt += (
+                "\n\n## Fixed Prebuilt Schema Mode (experimental override)\n"
+                "The SOCM already contains the complete, immutable schema for this run. "
+                "This block overrides any earlier instruction to create or redesign a schema. "
+                "The create_schema and add_columns tools are intentionally unavailable. Do not add tables or columns or "
+                "reinterpret the table boundaries. You may discover rows, call add_entities / "
+                "edit_entities, dispatch agents from the current Agent Catalog, "
+                "and fill the existing cells. "
+                "Follow the configured initial-action policy for Explore, using the existing "
+                "table IDs and relations; Explore must not redesign the schema. "
+                "Every retrieval task in a multi-table "
+                "run must name target_table."
+            )
+        if targeted_repair_mode:
+            system_prompt += (
+                "\n\n## Targeted Repair Mode (overrides the normal workflow)\n"
+                "The selected cells in the user message are an immutable allowlist. "
+                "Plan the work yourself and call `enqueue_tasks` with the appropriate "
+                "retrieval agents from the current Agent Catalog. "
+                "Every task MUST provide the exact "
+                "`target_table` and explicit "
+                "`target_cells`, and their cells must be a subset of the allowlist; "
+                "the tool rejects any wider scope. Group and stage tasks as you judge "
+                "best for the available pool. Do not create or edit schemas or entities. "
+                "Use `check_agents`, adapt later waves from returned evidence, inspect "
+                "only the selected cells, then report their changes."
+            )
+
+        conv_logger.register_sub_agent(
+            agent_name="orchestrator",
+            parent="",
+            task=query,
+            system_prompt=system_prompt,
+            agent_type="orchestrator",
+        )
+
+        from deepagents.backends import FilesystemBackend
+
+        from searchos.harness.middleware.pipelines import orchestrator_pipeline
+
+        def stop_dispatch():
+            from searchos.agents.runtime import _ctx
+
+            _ctx.mark_budget_exhausted()
+
+        from searchos.agents.runtime import _ctx
+
+        orch_backend = FilesystemBackend(
+            root_dir=str(workspace.path / "orchestrator_logs"),
+            virtual_mode=False,
+        )
+
+        graph = orchestrator_pipeline(
+            model=self._model,
+            tools=orchestrator_tools,
+            system_prompt=system_prompt,
+            workspace=workspace, budget=orch_budget, control=orch_control,
+            agent_graphs=_ctx.agent_graphs, task_pool=_ctx.task_pool,
+            on_exhausted=stop_dispatch, trajectory_logger=traj_logger,
+            conversation_logger=conv_logger,
+            backend=orch_backend,
+            name="orchestrator",
+            steer_queue=steer_queue,
+        )
+        from searchos.harness.middleware.context.steering_middleware import SteeringMiddleware
+
+        steering = next((m for m in graph.middleware if isinstance(m, SteeringMiddleware)), None)
+
+        return graph, steering
+
     async def _run_impl(
         self,
         query: str,
@@ -349,8 +499,8 @@ class SearchSession:
         state = initial_state or SearchState(intent=query)
         if state.source_scope is None:
             state.source_scope = {"mode": "web", "documents": []}
-        if state.source_scope.get("mode") == "local":
-            raise ValueError("Local mode uses the direct Local Search Agent")
+        if state.source_scope.get("mode") == "local" and (trusted_domains or excluded_domains):
+            raise ValueError("Local mode does not accept Web domain controls")
         state.research_mode = self._research_mode or (
             "findings" if state.source_scope.get("mode") == "hybrid" else "table"
         )
@@ -427,7 +577,6 @@ class SearchSession:
         })
 
         # --- Set up orchestrator tools context ---
-        from searchos.agents.orchestrator import get_orchestrator_tools
         from searchos.agents.runtime import set_orchestrator_context
         from searchos.tools.search_state import set_workspace
         from searchos.tools.simple_browser.state import _provider, set_browser_provider
@@ -456,126 +605,6 @@ class SearchSession:
             set_browser_provider(_provider)
 
 
-        from datetime import datetime as _dt
-
-        from searchos.agents.orchestrator.catalog import _is_agent_enabled, generate_agent_catalog_text
-        from searchos.agents.orchestrator.prompt import build_orchestrator_prompt
-        orchestrator_tools = get_orchestrator_tools(source_mode=(state.source_scope or {}).get("mode", ""))
-        if fixed_schema:
-            orchestrator_tools = [
-                tool for tool in orchestrator_tools
-                if getattr(tool, "name", "") not in {"create_schema", "add_columns"}
-            ]
-        if targeted_repair_mode:
-            repair_tool_allowlist = {
-                "enqueue_tasks",
-                "stop_task",
-                "check_agents",
-                "inspect_table",
-            }
-            orchestrator_tools = [
-                tool for tool in orchestrator_tools
-                if getattr(tool, "name", "") in repair_tool_allowlist
-            ]
-        from searchos.agents.toolset_render import render_toolset
-
-        # Inject ALL orchestrator-layer skills into the playbook directly — no
-        # router LLM call. Skipped entirely when enable_skills=False so the
-        # orchestrator cannot see or use skills.
-        if settings.enable_skills and "web" not in state.source_scope.get("unavailable_sources", {}):
-            from searchos.skills.catalog.router import render_playbook
-            from searchos.skills.core.models import SkillCategory
-            orch_candidates = self._skill_registry.list_by_category(SkillCategory.ORCHESTRATOR)
-            if orchestrator_deny:
-                orch_candidates = [
-                    s for s in orch_candidates if s.meta.name not in orchestrator_deny
-                ]
-            orchestrator_playbook = render_playbook(orch_candidates)
-
-            # 子 agent 按当前检索需求发现技能；权限仍由上面的 policy 约束。
-            skill_catalog = (
-                "Search agents start each task by discovering Access and Strategy skills with "
-                "list_skills(query=their current retrieval need), then read load_skill "
-                "before use. Give them the task, source hints and acceptance criteria. "
-                "The skills field is optional; omit it unless you already know a suitable "
-                "skill from this run. Do not guess skill names."
-            )
-        else:
-            orchestrator_playbook = ""
-            skill_catalog = ""
-
-        system_prompt = build_orchestrator_prompt(
-            agent_catalog=generate_agent_catalog_text(),
-            skill_catalog=skill_catalog,
-            max_dispatches=settings.orch_max_dispatches,
-            max_searches_per_agent=settings.max_searches_per_sub_agent,
-            max_skills_per_agent=settings.max_skills_per_sub_agent,
-            max_search_agents_per_session=settings.max_search_agents_per_session,
-            # Date-only: minute precision forks the prompt-cache prefix
-            # across sessions started in different minutes.
-            current_time=_dt.now().strftime("%Y-%m-%d"),
-            orch_toolset=render_toolset(orchestrator_tools, header="## Available Tools"),
-            enable_explore=_is_agent_enabled("explore_agent"),
-            explore_on_start=self._run_config.explore_on_start and not targeted_repair_mode,
-            orchestrator_playbook=orchestrator_playbook,
-            follow_up=follow_up or bool(context_preamble),
-            research_mode=state.research_mode,
-            source_mode=(state.source_scope or {}).get("mode", ""),
-            local_sources=(
-                "Current library: " + str(state.source_scope.get("library_id", ""))
-                + (
-                    "; scope: readable library snapshot.\n"
-                    if state.source_scope.get("selection") == "library"
-                    else "; scope: selected documents.\n"
-                )
-                + f"Readable documents: {len(state.source_scope.get('documents', []))}.\n"
-                if (state.source_scope or {}).get("library_id") else ""
-            ) + "\n".join(
-                f"- {record['relative_path']} (document_id={record['document_id']})"
-                for record in (state.source_scope or {}).get("documents", [])
-            ),
-            source_limitations="\n".join(state.source_scope.get("unavailable_sources", {}).values()),
-        )
-        if fixed_schema:
-            system_prompt += (
-                "\n\n## Fixed Prebuilt Schema Mode (experimental override)\n"
-                "The SOCM already contains the complete, immutable schema for this run. "
-                "This block overrides any earlier instruction to create or redesign a schema. "
-                "The create_schema and add_columns tools are intentionally unavailable. Do not add tables or columns or "
-                "reinterpret the table boundaries. You may discover rows, call add_entities / "
-                "edit_entities, dispatch agents from the current Agent Catalog, "
-                "and fill the existing cells. "
-                "Follow the configured initial-action policy for Explore, using the existing "
-                "table IDs and relations; Explore must not redesign the schema. "
-                "Every retrieval task in a multi-table "
-                "run must name target_table."
-            )
-        if targeted_repair_mode:
-            system_prompt += (
-                "\n\n## Targeted Repair Mode (overrides the normal workflow)\n"
-                "The selected cells in the user message are an immutable allowlist. "
-                "Plan the work yourself and call `enqueue_tasks` with the appropriate "
-                "retrieval agents from the current Agent Catalog. "
-                "Every task MUST provide the exact "
-                "`target_table` and explicit "
-                "`target_cells`, and their cells must be a subset of the allowlist; "
-                "the tool rejects any wider scope. Group and stage tasks as you judge "
-                "best for the available pool. Do not create or edit schemas or entities. "
-                "Use `check_agents`, adapt later waves from returned evidence, inspect "
-                "only the selected cells, then report their changes."
-            )
-
-        conv_logger.register_sub_agent(
-            agent_name="orchestrator",
-            parent="",
-            task=query,
-            system_prompt=system_prompt,
-            agent_type="orchestrator",
-        )
-
-        from deepagents.backends import FilesystemBackend
-
-        from searchos.harness.middleware.pipelines import orchestrator_pipeline
         from searchos.harness.middleware.sensor.core.models import BudgetState, ControlState
 
         # Orchestrator never calls `search` — bound by iterations + sensors.
@@ -585,48 +614,11 @@ class SearchSession:
             max_time_s=(settings.default_max_time_s
                         if self._max_time_s is None else self._max_time_s),
         )
-        def stop_dispatch():
-            from searchos.agents.runtime import _ctx
-
-            _ctx.mark_budget_exhausted()
-
-        from searchos.agents.runtime import _ctx
-
+        # Router, simple worker and research share this session deadline.
+        orch_budget._start_ts = start_time
         orch_control = ControlState()
-        orch_backend = FilesystemBackend(
-            root_dir=str(workspace.path / "orchestrator_logs"),
-            virtual_mode=False,
-        )
-
-        graph = orchestrator_pipeline(
-            model=self._model,
-            tools=orchestrator_tools,
-            system_prompt=system_prompt,
-            workspace=workspace, budget=orch_budget, control=orch_control,
-            agent_graphs=_ctx.agent_graphs, task_pool=_ctx.task_pool,
-            on_exhausted=stop_dispatch, trajectory_logger=traj_logger,
-            conversation_logger=conv_logger,
-            backend=orch_backend,
-            name="orchestrator",
-            steer_queue=steer_queue,
-        )
-        from searchos.harness.middleware.context.steering_middleware import SteeringMiddleware
-
-        steering = next((m for m in graph.middleware if isinstance(m, SteeringMiddleware)), None)
-
-        if targeted_repair_mode:
-            from searchos.agents.runtime import _scheduler
-
-            dispatch_result = None
-            if targeted_repair_task_ids:
-                dispatch_result = await _scheduler().drain_ready_tasks()
-            traj_logger._append_raw({
-                "type": "harness",
-                "kind": "targeted_repair_delegated",
-                "task_ids": sorted(targeted_repair_task_ids or ()),
-                "target_cells": list(targeted_repair_cells or []),
-                "dispatch": dispatch_result,
-            })
+        steering = None
+        graph = None
 
         # --- Run Orchestrator ---
         logger.info(
@@ -647,158 +639,259 @@ class SearchSession:
         )
         committed_final_answer = ""
         cancelled = False  # set when the user interrupts (Ctrl-C → task.cancel)
+        simple_outcome = None
+        route = None
+        initial_query_logged = False
         try:
-            model_name = getattr(self._model, "model_name", None) or getattr(self._model, "model", "") or ""
-            # SOCMContextMiddleware supplies live state during each model turn.
-            astream_config = {
-                "configurable": {"thread_id": workspace.session_id},
-                "run_name": f"orchestrator:{workspace.session_id}",
-                "tags": [
-                    f"session:{workspace.session_id}",
-                ],
-                "metadata": {
-                    "session_id": workspace.session_id,
-                    "query": query,
-                    "model": str(model_name),
-                },
-            }
-            user_content = query
-            if context_preamble:
-                user_content = (
-                    f"{context_preamble}\n\n---\n当前问题：{query}"
+            import json
+
+            from langchain_core.messages import AIMessage
+
+            from searchos.harness.routing import select_route
+            from searchos.harness.simple_search import run_simple_search
+
+            def remaining_time():
+                return max(0.0, orch_budget.max_time_s - (time.time() - start_time)) if orch_budget.max_time_s else None
+
+            route = await select_route(
+                model=self._model, query=query, state=state,
+                execution_path=self._run_config.execution_path,
+                follow_up=follow_up or bool(context_preamble), fixed_schema=fixed_schema,
+                targeted_repair=targeted_repair_mode, table_export=self._skip_synthesis,
+                remaining_time_s=remaining_time(), trajectory_logger=traj_logger,
+            )
+            routing_record = {"execution_path": self._run_config.execution_path, **route.model_dump(), "escalated": False}
+            workspace.write_output("routing.json", json.dumps(routing_record, ensure_ascii=False, indent=2))
+            if self._run_config.execution_path != "unified" and not (follow_up or context_preamble or targeted_repair_mode):
+                state.research_plan = route.plan()
+                if route.path == "simple":
+                    state.research_mode = "findings"
+                workspace.save_state(state)
+            if route.path == "simple":
+                from searchos.harness.telemetry.trajectory import ConversationMessage
+
+                conv_logger.register_sub_agent(
+                    agent_name="orchestrator", parent="", task=query,
+                    agent_type="search_session",
                 )
-            if targeted_repair_mode:
-                targets = ", ".join(targeted_repair_cells or [])
-                user_content = (
-                    "[TARGETED CELL REPAIR]\n"
-                    f"Repair only these coverage cells: {targets}.\n"
-                    "You own the repair plan and dispatch. Split these cells into focused "
-                    "retrieval tasks with enqueue_tasks using the current Agent Catalog; "
-                    "set target_table and "
-                    "target_cells on every task (`target_cells` may use Entity.Attribute "
-                    "or the full table/Entity.Attribute key). Do not create or change schemas, add "
-                    "entities, or expand beyond this allowlist. Keep dispatching and "
-                    "checking agents until the selected cells are repaired or the "
-                    "available evidence is exhausted, then summarize what changed."
+                conv_logger.log(ConversationMessage(role="user", content=query))
+                initial_query_logged = True
+
+                def record_simple_steer(message):
+                    for entry in langchain_msg_to_conversation_msgs(message):
+                        conv_logger.log(entry)
+
+                remaining = remaining_time()
+                # Reserve time to recover from a mistaken initial route.
+                simple_time = min(120.0, remaining * 0.6) if remaining is not None else 120.0
+                simple_outcome = await run_simple_search(
+                    workspace=workspace, query=query,
+                    evidence_obligations=route.evidence_obligations,
+                    remaining_time_s=simple_time, steer_queue=steer_queue,
+                    trajectory_logger=traj_logger,
+                    on_steer_delivery=record_simple_steer,
                 )
-            input_payload: dict[str, Any] = {
-                "messages": [{"role": "user", "content": user_content}],
-            }
-            resume_attempts = 0
-            # Same thread_id on every astream call → each resume continues
-            # the checkpointed conversation instead of starting over.
-            while True:
-                # Close the previous stream and flush its checkpoint before
-                # re-entering; otherwise the next call can lose ToolMessages.
-                async with aclosing(graph.astream(
-                    input_payload,
-                    config=astream_config,
-                    stream_mode=["values"],
-                )) as stream:
-                    async for stream_kind, stream_event in stream:
-                        event = stream_event
-                        if not isinstance(event, dict):
-                            continue
-                        final_state = event
-                        if "messages" not in event:
-                            continue
-                        msgs = event["messages"]
-                        new_msgs = msgs[prev_msg_count:]
-                        prev_msg_count = len(msgs)
+                if simple_outcome.escalate:
+                    state = workspace.load_state()
+                    state.research_mode = self._research_mode or "table"
+                    state.research_plan = route.model_copy(update={
+                        "path": "research", "strategy": ["deep"], "table_policy": "as_needed",
+                    }).plan()
+                    workspace.save_state(state)
+                    routing_record.update(escalated=True, final_path="research", escalation_reason=simple_outcome.reason)
+                    traj_logger._append_raw({"type": "harness", "kind": "search_route_escalated", "reason": simple_outcome.reason})
+                else:
+                    final_state = {"messages": [AIMessage(content=simple_outcome.answer)]}
+                    routing_record["final_path"] = "simple"
+                workspace.write_output("routing.json", json.dumps(routing_record, ensure_ascii=False, indent=2))
 
-                        for msg in new_msgs:
-                            # Record to conversation logger
-                            for conv_msg in langchain_msg_to_conversation_msgs(msg):
-                                conv_logger.log(conv_msg)
-
-                            # Record Orchestrator tool events to trajectory
-                            _log_orchestrator_tool_events(
-                                msg, traj_logger, pending_tool_calls,
-                            )
-
-                            # Track token phase transitions
-                            phase_tracker.observe(msg)
-
-                            # Stream the orchestrator's own reasoning/content to the
-                            # live UI (Claude-Code-style per-turn output).
-                            if on_event is not None and getattr(msg, "type", None) == "ai":
-                                _c = getattr(msg, "content", "") or ""
-                                if isinstance(_c, list):
-                                    _c = " ".join(
-                                        b.get("text", "") for b in _c
-                                        if isinstance(b, dict) and b.get("type") == "text"
-                                    )
-                                _ex = getattr(msg, "additional_kwargs", None) or {}
-                                _r = _ex.get("reasoning_content", "") if isinstance(_ex, dict) else ""
-                                if (_c or "").strip() or (_r or "").strip():
-                                    try:
-                                        on_event({"type": "assistant", "agent": "orchestrator",
-                                                  "content": _c or "", "reasoning": _r or ""})
-                                    except Exception:
-                                        pass
-                                # Surface the tool call the instant it's emitted —
-                                # don't wait for the result (which merges in a later
-                                # astream batch, one step behind). The live UI shows
-                                # the call now and back-fills the result by id.
-                                for _tc in (getattr(msg, "tool_calls", None) or []):
-                                    _name = (_tc.get("name", "") if isinstance(_tc, dict)
-                                             else getattr(_tc, "name", ""))
-                                    if not _name:
-                                        continue
-                                    _tcid = (_tc.get("id", "") if isinstance(_tc, dict)
-                                             else getattr(_tc, "id", ""))
-                                    _targs = (_tc.get("args", {}) if isinstance(_tc, dict)
-                                              else getattr(_tc, "args", {}))
-                                    try:
-                                        on_event({
-                                            "type": "orchestrator_tool_call",
-                                            "tool": _name, "tool_call_id": _tcid,
-                                            "args": _full_args(_targs),
-                                        })
-                                    except Exception:
-                                        pass
-
-                        # Once research is stopped, leave the graph at a complete
-                        # tool/message boundary. Synthesis runs after task drain.
-                        if (not self._skip_synthesis
-                                and (orch_control.forced or orch_budget.fully_exhausted)
-                                and _is_safe_steer_boundary(event)):
-                            finalization_reason = orch_control.reason or "harness_stopped"
-                            break
-
-                reason = _premature_end_reason(workspace, orch_control)
-                if orch_control.stopped:
-                    finalization_reason = orch_control.reason or "harness_stopped"
-                if (
-                    reason is None
-                    or resume_attempts >= settings.orch_premature_end_max_resumes
-                ):
-                    if reason is not None:
-                        finalization_reason = "premature_end_resumes_exhausted"
-                        logger.warning(
-                            "Orchestrator ended without a tool call and work "
-                            "remains (%s), but resume budget is spent — "
-                            "accepting the end.", reason,
-                        )
-                    break
-                resume_attempts += 1
-                logger.warning(
-                    "Orchestrator ended without a tool call but work remains "
-                    "(%s); resuming %d/%d",
-                    reason, resume_attempts,
-                    settings.orch_premature_end_max_resumes,
+            if simple_outcome is None or simple_outcome.escalate:
+                state = workspace.load_state()
+                graph, steering = self._build_research_graph(
+                    state=state, workspace=workspace, query=query, fixed_schema=fixed_schema,
+                    targeted_repair_mode=targeted_repair_mode, orchestrator_deny=orchestrator_deny,
+                    follow_up=follow_up, context_preamble=context_preamble,
+                    traj_logger=traj_logger, conv_logger=conv_logger,
+                    orch_budget=orch_budget, orch_control=orch_control, steer_queue=steer_queue,
                 )
-                traj_logger._append_raw({
-                    "type": "harness",
-                    "kind": "premature_end_resume",
-                    "reason": reason,
-                    "attempt": resume_attempts,
-                })
-                input_payload = {
-                    "messages": [
-                        {"role": "user", "content": _premature_end_nudge(reason)},
+                if simple_outcome is not None and steering is not None:
+                    steering.delivered.extend(simple_outcome.delivered)
+                if targeted_repair_mode:
+                    from searchos.agents.runtime import _scheduler
+
+                    dispatch_result = None
+                    if targeted_repair_task_ids:
+                        dispatch_result = await _scheduler().drain_ready_tasks()
+                    traj_logger._append_raw({
+                        "type": "harness",
+                        "kind": "targeted_repair_delegated",
+                        "task_ids": sorted(targeted_repair_task_ids or ()),
+                        "target_cells": list(targeted_repair_cells or []),
+                        "dispatch": dispatch_result,
+                    })
+
+
+                model_name = getattr(self._model, "model_name", None) or getattr(self._model, "model", "") or ""
+                # SOCMContextMiddleware supplies live state during each model turn.
+                astream_config = {
+                    "configurable": {"thread_id": workspace.session_id},
+                    "run_name": f"orchestrator:{workspace.session_id}",
+                    "tags": [
+                        f"session:{workspace.session_id}",
                     ],
+                    "metadata": {
+                        "session_id": workspace.session_id,
+                        "query": query,
+                        "model": str(model_name),
+                    },
                 }
+                user_content = query
+                if context_preamble:
+                    user_content = (
+                        f"{context_preamble}\n\n---\n当前问题：{query}"
+                    )
+                if targeted_repair_mode:
+                    targets = ", ".join(targeted_repair_cells or [])
+                    user_content = (
+                        "[TARGETED CELL REPAIR]\n"
+                        f"Repair only these coverage cells: {targets}.\n"
+                        "You own the repair plan and dispatch. Split these cells into focused "
+                        "retrieval tasks with enqueue_tasks using the current Agent Catalog; "
+                        "set target_table and "
+                        "target_cells on every task (`target_cells` may use Entity.Attribute "
+                        "or the full table/Entity.Attribute key). Do not create or change schemas, add "
+                        "entities, or expand beyond this allowlist. Keep dispatching and "
+                        "checking agents until the selected cells are repaired or the "
+                        "available evidence is exhausted, then summarize what changed."
+                    )
+                input_payload: dict[str, Any] = {
+                    "messages": [{"role": "user", "content": user_content, "id": "routed-query"}],
+                }
+                if simple_outcome is not None:
+                    handoff = (
+                        "[AUTOMATED HARNESS — simple search handoff]\n" + simple_outcome.reason
+                        + "\nReuse existing task evidence and source observations; investigate remaining gaps."
+                        + "\nPrior worker draft (not verified):\n" + simple_outcome.answer
+                    )
+                    if simple_outcome.delivered:
+                        handoff += "\nAlready delivered user updates:\n" + "\n".join(simple_outcome.delivered)
+                    input_payload["messages"].append({"role": "user", "content": handoff})
+                resume_attempts = 0
+                # Same thread_id on every astream call → each resume continues
+                # the checkpointed conversation instead of starting over.
+                while True:
+                    # Close the previous stream and flush its checkpoint before
+                    # re-entering; otherwise the next call can lose ToolMessages.
+                    async with aclosing(graph.astream(
+                        input_payload,
+                        config=astream_config,
+                        stream_mode=["values"],
+                    )) as stream:
+                        async for stream_kind, stream_event in stream:
+                            event = stream_event
+                            if not isinstance(event, dict):
+                                continue
+                            final_state = event
+                            if "messages" not in event:
+                                continue
+                            msgs = event["messages"]
+                            new_msgs = msgs[prev_msg_count:]
+                            prev_msg_count = len(msgs)
+
+                            for msg in new_msgs:
+                                # Record to conversation logger
+                                if not (initial_query_logged and getattr(msg, "id", None) == "routed-query"):
+                                    for conv_msg in langchain_msg_to_conversation_msgs(msg):
+                                        conv_logger.log(conv_msg)
+
+                                # Record Orchestrator tool events to trajectory
+                                _log_orchestrator_tool_events(
+                                    msg, traj_logger, pending_tool_calls,
+                                )
+
+                                # Track token phase transitions
+                                phase_tracker.observe(msg)
+
+                                # Stream the orchestrator's own reasoning/content to the
+                                # live UI (Claude-Code-style per-turn output).
+                                if on_event is not None and getattr(msg, "type", None) == "ai":
+                                    _c = getattr(msg, "content", "") or ""
+                                    if isinstance(_c, list):
+                                        _c = " ".join(
+                                            b.get("text", "") for b in _c
+                                            if isinstance(b, dict) and b.get("type") == "text"
+                                        )
+                                    _ex = getattr(msg, "additional_kwargs", None) or {}
+                                    _r = _ex.get("reasoning_content", "") if isinstance(_ex, dict) else ""
+                                    if (_c or "").strip() or (_r or "").strip():
+                                        try:
+                                            on_event({"type": "assistant", "agent": "orchestrator",
+                                                      "content": _c or "", "reasoning": _r or ""})
+                                        except Exception:
+                                            pass
+                                    # Surface the tool call the instant it's emitted —
+                                    # don't wait for the result (which merges in a later
+                                    # astream batch, one step behind). The live UI shows
+                                    # the call now and back-fills the result by id.
+                                    for _tc in (getattr(msg, "tool_calls", None) or []):
+                                        _name = (_tc.get("name", "") if isinstance(_tc, dict)
+                                                 else getattr(_tc, "name", ""))
+                                        if not _name:
+                                            continue
+                                        _tcid = (_tc.get("id", "") if isinstance(_tc, dict)
+                                                 else getattr(_tc, "id", ""))
+                                        _targs = (_tc.get("args", {}) if isinstance(_tc, dict)
+                                                  else getattr(_tc, "args", {}))
+                                        try:
+                                            on_event({
+                                                "type": "orchestrator_tool_call",
+                                                "tool": _name, "tool_call_id": _tcid,
+                                                "args": _full_args(_targs),
+                                            })
+                                        except Exception:
+                                            pass
+
+                            # Once research is stopped, leave the graph at a complete
+                            # tool/message boundary. Synthesis runs after task drain.
+                            if (not self._skip_synthesis
+                                    and (orch_control.forced or orch_budget.fully_exhausted)
+                                    and _is_safe_steer_boundary(event)):
+                                finalization_reason = orch_control.reason or "harness_stopped"
+                                break
+
+                    reason = _premature_end_reason(workspace, orch_control)
+                    if orch_control.stopped:
+                        finalization_reason = orch_control.reason or "harness_stopped"
+                    if (
+                        reason is None
+                        or resume_attempts >= settings.orch_premature_end_max_resumes
+                    ):
+                        if reason is not None:
+                            finalization_reason = "premature_end_resumes_exhausted"
+                            logger.warning(
+                                "Orchestrator ended without a tool call and work "
+                                "remains (%s), but resume budget is spent — "
+                                "accepting the end.", reason,
+                            )
+                        break
+                    resume_attempts += 1
+                    logger.warning(
+                        "Orchestrator ended without a tool call but work remains "
+                        "(%s); resuming %d/%d",
+                        reason, resume_attempts,
+                        settings.orch_premature_end_max_resumes,
+                    )
+                    traj_logger._append_raw({
+                        "type": "harness",
+                        "kind": "premature_end_resume",
+                        "reason": reason,
+                        "attempt": resume_attempts,
+                    })
+                    input_payload = {
+                        "messages": [
+                            {"role": "user", "content": _premature_end_nudge(reason)},
+                        ],
+                    }
 
         except asyncio.CancelledError:
             # User interrupted (Ctrl-C). Skip the slow drain below — cancel
@@ -807,6 +900,9 @@ class SearchSession:
             logger.info("Orchestrator run cancelled by user")
             raise
         except Exception as exc:
+            if graph is None and (simple_outcome is None or simple_outcome.escalate):
+                # Invalid graph/configuration remains a caller-visible setup error.
+                raise
             execution_error = type(exc).__name__
             logger.error("Orchestrator execution failed", exc_info=True)
             traj_logger._append_raw({"type": "harness", "kind": "execution_failed",
@@ -957,7 +1053,7 @@ class SearchSession:
                         )
                     else:
                         answer_completed = False
-                        if not execution_error:
+                        if not execution_error and (simple_outcome is None or simple_outcome.escalate):
                             _record_finalization_follow_ups(steering, conv_logger)
                             final_state, answer_completed = await _check_or_complete_answer(
                                 final_state=final_state, query=query, model=self._model,
@@ -1000,6 +1096,9 @@ class SearchSession:
                         pass
 
         final_search_state = workspace.load_state()
+        elapsed = time.time() - start_time
+        final_search_state.budget.elapsed_s = elapsed
+        workspace.save_state(final_search_state)
 
         # Extract messages
         final_messages: list[dict[str, Any]] = []

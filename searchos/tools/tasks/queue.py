@@ -150,7 +150,11 @@ async def enqueue_tasks(items_json: str) -> str:
                 errors.append(f"item[{i}]: invalid kind {kind!r}")
                 continue
             if not agent_type:
-                agent_type = _KIND_TO_AGENT_BY_KIND.get(kind, "search_agent")
+                agent_type = (
+                    "local_search_agent"
+                    if kind == "search" and (s.source_scope or {}).get("mode") == "local"
+                    else _KIND_TO_AGENT_BY_KIND.get(kind, "search_agent")
+                )
             if agent_type not in _KNOWN_AGENT_TYPES:
                 errors.append(f"item[{i}]: invalid agent_type {agent_type!r}")
                 continue

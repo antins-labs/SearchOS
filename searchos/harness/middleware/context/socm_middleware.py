@@ -83,8 +83,14 @@ class SOCMContextMiddleware(AgentMiddleware):
                 if self.view == "overview"
                 else render_compact_summary(snapshot)
             )
+            from searchos.config.run_config import current_run_config
             from searchos.socm.planning.research_plan import render_research_plan
-            text = render_research_plan(state, prompt_for_plan=self.view == "overview") + "\n\n" + text
+
+            editable_plan = current_run_config().enable_research_plan_tool
+            text = render_research_plan(
+                state, prompt_for_plan=self.view == "overview" and editable_plan,
+                can_update=editable_plan,
+            ) + "\n\n" + text
         # 每轮读取运行环境日期；无表时也注入，覆盖首次任务派发。
         temporal = (
             "[Runtime time]\n"

@@ -17,6 +17,8 @@ class EffectiveRunConfig:
     explore_max_waves: int
     source: Literal["product", "eval"] = "product"
     explore_on_start: bool = False
+    execution_path: Literal["auto", "unified"] = "auto"
+    enable_research_plan_tool: bool = True
 
     @classmethod
     def from_settings(cls, *, for_eval: bool = False) -> EffectiveRunConfig:
@@ -29,6 +31,7 @@ class EffectiveRunConfig:
             explore_max_waves=settings.explore_max_waves,
             source="eval" if for_eval else "product",
             explore_on_start=for_eval and settings.enable_explore,
+            execution_path="unified" if for_eval else "auto",
         )
 
     def snapshot(self) -> dict[str, object]:

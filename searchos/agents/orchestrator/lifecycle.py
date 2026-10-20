@@ -130,12 +130,15 @@ def _check_schema_exists() -> str:
 
 
 def _missing_agent_report(agent_id: str, agent_type: str, result: str) -> Any:
-    """注册已丢失时，按派发角色登记可回收的最小错误报告。"""
+    """Recover report purpose from bound tasks, falling back to the dispatched role."""
     from searchos.socm import ExploreReport, FrontierTaskStatus, SearchReport, WriterReport
 
     task_ids = []
+    direct_search = False
     if _ctx.workspace is not None:
         state = _ctx.workspace.load_state()
+        direct_search = any(task.assigned_agent_id == agent_id and task.kind == "search"
+                            for task in state.frontier.questions)
         task_ids = [
             task.id for task in state.frontier.questions
             if task.assigned_agent_id == agent_id
@@ -151,6 +154,8 @@ def _missing_agent_report(agent_id: str, agent_type: str, result: str) -> Any:
         _explore.AGENT_TYPE: ExploreReport,
         _writer.AGENT_TYPE: WriterReport,
     }.get(agent_type, SearchReport)
+    if agent_type == _explore.AGENT_TYPE and direct_search:
+        report_type = SearchReport
     report = report_type(agent_id=agent_id, status="error", result=result)
     if isinstance(report, SearchReport):
         report.task_ids = task_ids
@@ -790,12 +795,15 @@ def _compute_agent_report(
     if info is not None:
         agent_type = info.get("agent_type", "search_agent")
 
+    planning_explore = (agent_type == "explore_agent"
+                        and (info or {}).get("task_kind", "explore") == "explore")
+
     if _ctx.workspace is None:
         # Degraded: return a minimal report of the right kind
         if agent_type == "writer_agent":
             return WriterReport(agent_id=agent_id, status=status,
                                 result=result, duration_s=duration_s)
-        if agent_type == "explore_agent":
+        if planning_explore:
             return ExploreReport(agent_id=agent_id, status=status,
                                 result=result, duration_s=duration_s)
         return SearchReport(agent_id=agent_id, status=status,
@@ -821,7 +829,7 @@ def _compute_agent_report(
             _recycle_failed_task(bound_task_id, agent_id, status, result)
             state = _ctx.workspace.load_state()
 
-    if agent_type == "explore_agent":
+    if planning_explore:
         # Stash the briefing as a synthetic page so create_schema can
         # replay extraction over it once tables are declared. Explore
         # has no extraction middleware attached, so this is the only
@@ -1071,6 +1079,12 @@ async def _spawn_sub_agent(
     search_budget: int | None = None,
     middleware: list[Any] | None = None,
     strategy_guidance: str = "",
+    max_iterations: int = 0,
+    max_time_s: float = 0,
+    extra_tools: list[Any] | None = None,
+    prompt_suffix: str = "",
+    steer_queue: Any = None,
+    drain_tools: frozenset[str] = frozenset(),
 ) -> str:
     """Build sub-agent graph, register it, create an asyncio.Task wrapping
     its run — return ``agent_id`` immediately.
@@ -1090,6 +1104,11 @@ async def _spawn_sub_agent(
 
     assert _ctx.workspace is not None
     assert _ctx.model is not None
+    if steer_queue is not None and (
+        agent_type not in {"search_agent", "local_search_agent", "explore_agent"}
+        or middleware is not None
+    ):
+        raise ValueError("Direct steering requires a default retrieval pipeline")
 
     # Plan §6.4 单 agent strategy skill 注入上限 K — clamp here so no
     # caller can blow up the system prompt by passing 20 skills.
@@ -1143,6 +1162,8 @@ async def _spawn_sub_agent(
     tools = list(role.get_tools(skill_names, model_access=True)) if (
         agent_type == _local_search.AGENT_TYPE and source_scope is not None
     ) else list(role.get_tools(skill_names))
+    if extra_tools:
+        tools.extend(extra_tools)
 
     # Build system prompt: agent.md first (persona), then SOCM context
     state = _ctx.workspace.load_state()
@@ -1285,6 +1306,8 @@ async def _spawn_sub_agent(
     strategy_guidance_applied = bool(strategy_guidance and agent_type in {"search_agent", "local_search_agent"})
     if strategy_guidance_applied:
         prompt_parts.append("## 本次子任务的候选检索方法\n权限、来源范围和预算仍遵守已有规则。\n" + strategy_guidance)
+    if prompt_suffix:
+        prompt_parts.append(prompt_suffix)
     system_prompt = "\n\n".join(prompt_parts)
 
     # Enforce budgets independently of optional trajectory logging.
@@ -1318,6 +1341,7 @@ async def _spawn_sub_agent(
     budget = BudgetState(
         max_queries=max_searches, max_opens=max_opens,
         max_finds=max_finds, max_skills=max_skills,
+        max_iterations=max_iterations, max_time_s=max_time_s,
     )
     control = ControlState()
     task_context = TaskContext(agent_label, assigned_task_id, target_table, task)
@@ -1375,8 +1399,9 @@ async def _spawn_sub_agent(
             **graph_options, middleware=middleware, workspace=_ctx.workspace,
             trajectory_logger=_ctx.trajectory_logger, conversation_logger=_ctx.conversation_logger,
             agent_id=agent_label, control=runtime_control, policy=runtime_policy,
-            drain_tools=WRITER_DRAIN_TOOLS if agent_type == "writer_agent" else frozenset(),
-            finish_without_tools=agent_type != "writer_agent",
+            drain_tools=(drain_tools or
+                         (WRITER_DRAIN_TOOLS if agent_type == "writer_agent" else frozenset())),
+            finish_without_tools=agent_type != "writer_agent" and not drain_tools,
         )
     else:
         pipeline = {
@@ -1398,6 +1423,21 @@ async def _spawn_sub_agent(
                 final_summary=not hybrid,
                 source=SourceContext(workspace=_ctx.workspace, scope=source_scope),
             )
+        elif agent_type == "explore_agent" and assigned and assigned.kind == "search":
+            options.update(
+                extraction_model=_ctx.extraction_model,
+                source=SourceContext(workspace=_ctx.workspace, scope=source_scope),
+            )
+        if steer_queue is not None:
+            options["steer_queue"] = steer_queue
+        if drain_tools:
+            options["drain_tools"] = drain_tools
+            # Keep the agent in the existing drain loop so a blocked retrieval
+            # can be followed by its answer or explicit handoff decision.
+            options["finish_without_tools"] = False
+        if (agent_type in {"search_agent", "local_search_agent", "explore_agent"}
+                and (max_iterations or max_time_s)):
+            options["enforce_budget"] = True
         graph = pipeline(**graph_options, **options)
 
     from searchos.harness.middleware.sensor.progress_middleware import ReadingProgressMiddleware
@@ -1465,6 +1505,7 @@ async def _spawn_sub_agent(
         "graph": graph,
         "thread_id": thread_id,
         "agent_type": agent_type,
+        "task_kind": assigned.kind if assigned else _KIND_FROM_AGENT[agent_type],
         "task": task,
         "wrapped_task": wrapped_task,
         "skill_names": list(skill_names),
@@ -1600,7 +1641,8 @@ async def _collect_sub_agent_result(
         # extraction can replay over them after schema is committed.
         explore_pages = (
             _extract_explore_open_pages(latest_messages)
-            if agent_type == "explore_agent" else None
+            if agent_type == "explore_agent" and info.get("task_kind", "explore") == "explore"
+            else None
         )
 
         report = _compute_agent_report(

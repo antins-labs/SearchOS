@@ -31,7 +31,7 @@ ORDERS = {
     ),
     "web_search": (*PROGRESS, "SearchEpisodeMiddleware", *WORKER, "WebEvidenceMiddleware", "FinalSummaryEvidenceMiddleware"),
     "local_search": (*PROGRESS, *WORKER, "LocalEvidenceMiddleware", "FinalSummaryEvidenceMiddleware"),
-    "explore": WORKER,
+    "explore": (*WORKER, "WebEvidenceMiddleware"),
     "writer": WORKER,
 }
 

@@ -76,17 +76,36 @@ SEARCH_RESULT_LIMITS = dict.fromkeys(
 )
 
 
-def _graph(model, tools, system_prompt, middleware, *, pipeline, **graph_options):
+def _graph(model, tools, system_prompt, middleware, *, pipeline,
+           steer_queue=None, enforce_budget=False, **graph_options):
     from searchos.agents.runtime import create_search_agent_graph
     from searchos.harness.middleware.context.compaction_context_middleware import CompactionContextMiddleware
     from searchos.harness.middleware.context.utils.messages import model_input_limit
 
+    required_middleware = []
+    for item in middleware:
+        if isinstance(item, BudgetMiddleware):
+            item.drain_tools = item.drain_tools | graph_options.get("drain_tools", frozenset())
+    if steer_queue is not None:
+        from searchos.harness.middleware.context.steering_middleware import SteeringMiddleware
+
+        required_middleware.append(SteeringMiddleware(
+            steer_queue, trajectory_logger=graph_options.get("trajectory_logger"),
+        ))
+    if enforce_budget:
+        required_middleware.extend(
+            item for item in middleware if isinstance(item, BudgetMiddleware)
+        )
     selected = selection(pipeline, settings)
     if pipeline in settings.middleware_pipelines:
         instances = {type(item).__name__: item for item in middleware}
         if "CompactionContextMiddleware" in selected and model_input_limit(model):
             instances["CompactionContextMiddleware"] = CompactionContextMiddleware(model)
         middleware = [instances[name] for name in selected if name in instances]
+    # Direct workers retain their inbox and explicitly requested hard limits
+    # even when the optional business middleware is customized.
+    middleware = [*required_middleware,
+                  *(item for item in middleware if item not in required_middleware)]
 
     return create_search_agent_graph(
         model=model,
@@ -191,6 +210,8 @@ def web_search_pipeline(
     agent_graphs=None,
     trajectory_logger=None,
     conversation_logger=None,
+    steer_queue=None,
+    enforce_budget=False,
     **graph_options,
 ):
     """网页检索默认组合；修改来源行为可直接手写 middleware 列表。"""
@@ -231,6 +252,7 @@ def web_search_pipeline(
         system_prompt,
         middleware,
         pipeline="web_search",
+        steer_queue=steer_queue, enforce_budget=enforce_budget,
         control=control,
         workspace=workspace,
         trajectory_logger=trajectory_logger,
@@ -256,6 +278,8 @@ def local_search_pipeline(
     agent_graphs=None,
     trajectory_logger=None,
     conversation_logger=None,
+    steer_queue=None,
+    enforce_budget=False,
     **graph_options,
 ):
     """本地检索默认组合，保留原文窗口供下一轮推理使用。"""
@@ -285,6 +309,7 @@ def local_search_pipeline(
         system_prompt,
         middleware,
         pipeline="local_search",
+        steer_queue=steer_queue, enforce_budget=enforce_budget,
         control=control,
         workspace=workspace,
         trajectory_logger=trajectory_logger,
@@ -303,6 +328,11 @@ def explore_pipeline(
     system_prompt="",
     budget=None,
     control=None,
+    extraction_model=None,
+    extraction_policy="task_rows",
+    source: SourceContext | None = None,
+    steer_queue=None,
+    enforce_budget=False,
     agent_graphs=None,
     trajectory_logger=None,
     conversation_logger=None,
@@ -318,6 +348,13 @@ def explore_pipeline(
         history=DynamicTrimMiddleware(max_tokens_fraction=settings.dynamic_trim_fraction),
         agent_graphs=agent_graphs,
     )
+    extraction = _extraction(
+        extraction_model, workspace, task, extraction_policy, trajectory_logger,
+    )
+    if extraction is not None:
+        middleware.append(WebEvidenceMiddleware(
+            extraction, source=source, trajectory_logger=trajectory_logger,
+        ))
     from searchos.agents.explore.policy import ExplorePolicy
 
     policy = None
@@ -333,6 +370,7 @@ def explore_pipeline(
         system_prompt,
         middleware,
         pipeline="explore",
+        steer_queue=steer_queue, enforce_budget=enforce_budget,
         control=control,
         workspace=workspace,
         trajectory_logger=trajectory_logger,

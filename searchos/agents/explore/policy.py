@@ -24,7 +24,7 @@ class ExplorePolicy:
                 return blocked_result(
                     request,
                     "[Harness EXPLORE_MAX_WAVES] Exploration wave budget exhausted. "
-                    "Return the supported briefing and identify unresolved uncertainty.",
+                    "Return the task's requested result and identify remaining gaps.",
                 )
             # 在 await 前预留次数，避免同轮并发调用突破上限；失败也消耗尝试次数。
             self.waves_used += 1
@@ -37,7 +37,7 @@ class ExplorePolicy:
         if remaining:
             guidance = (
                 f"[Harness EXPLORE_BUDGET] At most {remaining} explore_web wave(s) remain. "
-                "There is no minimum wave count. Return the briefing as soon as the "
+                "There is no minimum wave count. Return the requested result as soon as the "
                 "assigned uncertainty is resolved. Continue only for a concrete remaining gap."
             )
         else:
