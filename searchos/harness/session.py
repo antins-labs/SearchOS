@@ -11,6 +11,7 @@ import logging
 import time
 from collections.abc import Callable
 from contextlib import aclosing
+from pathlib import Path
 from typing import Any
 
 from langchain_core.language_models import BaseChatModel
@@ -397,6 +398,7 @@ class SearchSession:
 
         # --- Log task_start event ---
         from datetime import datetime, timezone
+        trace_offset = workspace.trajectory_path.stat().st_size if workspace.trajectory_path.exists() else 0
         traj_logger._append_raw({
             "type": "task_start",
             "source_mode": (state.source_scope or {}).get("mode", "web"),
@@ -1066,6 +1068,16 @@ class SearchSession:
         result.tool_counts = traj_logger.tool_counts
         result.model_distribution = self._model_distribution
 
+        skill_generation = None
+        if settings.enable_access_skill_generation:
+            from searchos.skills.post_run import TraceSkillGeneration
+
+            try:
+                skill_generation = TraceSkillGeneration(workspace.path, query, trace_offset=trace_offset)
+                result.skill_generation_id = skill_generation.id
+            except Exception:
+                logger.warning("Failed to initialize trace skill generation", exc_info=True)
+
         try:
             workspace.save_turn_snapshot(
                 query,
@@ -1080,6 +1092,7 @@ class SearchSession:
                     "token_usage": result.token_usage,
                     "token_phases": result.token_phases,
                     "model_distribution": result.model_distribution,
+                    "skill_generation_id": result.skill_generation_id,
                 },
             )
         except Exception:
@@ -1097,26 +1110,13 @@ class SearchSession:
         )
 
         # 兼容原配置名；统一 trace intent 决定三类技能的新增或更新。
-        if settings.enable_access_skill_generation:
-            async def _generate_trace_skills() -> None:
-                from pathlib import Path
-                from searchos.skills import generate_from_trace
-
-                try:
-                    lib = self._skill_library_path or "searchos/skills/library"
-                    results = await generate_from_trace(
-                        workspace.trajectory_path, library_path=Path(lib),
-                        model=self._skill_evolver_model,
-                        max_requests=settings.access_skill_max_per_run,
-                    )
-                    installed = sum(1 for r in results if r.status == "installed")
-                    logger.info("Trace skill generation finished: %d installed/updated, %d requests",
-                                installed, len(results))
-                except Exception:
-                    logger.warning("Trace skill generation failed", exc_info=True)
-
+        if skill_generation is not None:
             access_task = asyncio.create_task(
-                _generate_trace_skills(), name=f"skill-gen-{workspace.session_id}",
+                skill_generation.run(
+                    library_path=Path(self._skill_library_path or "searchos/skills/library"),
+                    model=self._skill_evolver_model,
+                    max_requests=settings.access_skill_max_per_run,
+                ), name=f"skill-gen-{workspace.session_id}",
             )
             _PENDING_EVOLUTIONS.add(access_task)
             access_task.add_done_callback(_PENDING_EVOLUTIONS.discard)
@@ -1731,6 +1731,7 @@ class SearchResult:
         self.final_messages = final_messages or []
         self.execution_error = execution_error
         self.access_task: asyncio.Task[None] | None = None
+        self.skill_generation_id: str | None = None
         self.token_usage: dict[str, Any] = {}
         self.token_phases: dict[str, Any] = {}
         self.browser_usage: dict[str, int] = {}

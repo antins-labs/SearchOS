@@ -9,6 +9,7 @@ export interface Turn {
   id: string;
   query: string;
   sessionId: string | null;
+  skillGenerationId?: string | null;
   status: "running" | "completed" | "error";
   events: WSEvent[];
   workers: WorkerInfo[];

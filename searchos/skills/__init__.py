@@ -44,7 +44,8 @@ async def generate_skills(signal: SkillSignal, *, library_path: str | Path | Non
 
 
 async def generate_from_trace(trace_path: str | Path, *, library_path: str | Path,
-                              model: Any = None, max_requests: int | None = None):
+                              model: Any = None, max_requests: int | None = None,
+                              on_progress: Any = None):
     """任务结束后的独立生成；验证不再向已结束的搜索会话写入证据。"""
     from searchos.skills.pipeline.strategy.standalone import run_standalone_subtask
     return await generate_skills(
@@ -52,6 +53,7 @@ async def generate_from_trace(trace_path: str | Path, *, library_path: str | Pat
         intent_model=model, builder_model=model, max_requests=max_requests,
         categories=('access', 'strategy', 'orchestrator'),
         subtask_runner=run_standalone_subtask,
+        on_progress=on_progress,
     )
 
 

@@ -31,6 +31,7 @@ import type {
   SearchState,
   SettingsData,
   SkillsView,
+  SkillGeneration,
   WSEvent,
 } from "./types";
 
@@ -210,6 +211,7 @@ export interface HistoryAssetPatch {
 export type HistoryStateSource = "snapshot" | "latest" | "unavailable";
 
 export interface HistoryTurn {
+  skill_generation_id?: string | null;
   query: string;
   answer: string;
   steers?: string[];
@@ -248,6 +250,11 @@ export async function listHistory(query = ""): Promise<HistoryItem[]> {
 
 export async function loadHistory(sessionId: string): Promise<HistoryDetail> {
   return request(`/api/history/${sessionId}`, {}, { errorPrefix: "Load session failed" });
+}
+
+export function getSkillGeneration(sessionId: string, generationId: string, signal?: AbortSignal): Promise<SkillGeneration> {
+  return request(`/api/search/${encodeURIComponent(sessionId)}/skill-generations/${encodeURIComponent(generationId)}`,
+    { cache: "no-store", signal }, { errorPrefix: "Load skill changes failed" });
 }
 
 export interface HistoryBranchResponse {

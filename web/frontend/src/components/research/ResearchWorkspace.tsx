@@ -153,6 +153,7 @@ export default function ResearchWorkspace({ mobile = false }: { mobile?: boolean
         return {
           ...t,
           sessionId: session.sessionId,
+          skillGenerationId: session.result?.skill_generation_id ?? t.skillGenerationId,
           status,
           events: session.events,
           workers: session.workers,
@@ -472,6 +473,7 @@ export default function ResearchWorkspace({ mobile = false }: { mobile?: boolean
             id: i === last ? data.session_id : `${data.session_id}#${i}`,
             query: h.query || data.query,
             sessionId: data.session_id,
+            skillGenerationId: h.skill_generation_id,
             status: runState.status,
             events: segEvents,
             workers: foldWorkers(segEvents, !turnRunning, runState.status === "error" ? "error" : "completed"),

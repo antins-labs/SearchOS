@@ -761,12 +761,25 @@ async def get_search_result(session_id: str):
         "elapsed_s": result.elapsed_s,
         "eval_verdict": result.eval_verdict,
         "workspace_path": result.workspace_path,
+        "skill_generation_id": getattr(result, "skill_generation_id", None),
         "token_usage": getattr(result, "token_usage", None),
         "token_phases": getattr(result, "token_phases", None),
         "tool_counts": getattr(result, "tool_counts", None),
         "model_distribution": getattr(result, "model_distribution", None),
         "search_state": result.search_state.model_dump(),
     }
+
+
+@router.get("/search/{session_id}/skill-generations/{generation_id}")
+async def get_skill_generation(session_id: str, generation_id: str):
+    """搜索结束后仍可读取该轮后台技能生成，历史轮次使用独立 ID。"""
+    from searchos.skills.post_run import load_generation
+
+    workspace = session_directory(WORKSPACE_ROOT, session_id)
+    try:
+        return await asyncio.to_thread(load_generation, workspace, generation_id)
+    except (ValueError, FileNotFoundError) as exc:
+        raise HTTPException(404, "Skill generation not found") from exc
 
 
 @router.get("/search/{session_id}/state")

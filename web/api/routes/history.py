@@ -271,6 +271,7 @@ def _turn_views(
     for index, turn in enumerate(turns):
         view = dict(turn)
         snapshot = snapshots.get(index)
+        view["skill_generation_id"] = snapshot.get("skill_generation_id") if snapshot else None
         resource = resources.get(index, {})
         if snapshot is not None:
             view.update({

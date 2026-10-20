@@ -620,6 +620,7 @@ export interface ModelDistributionItem {
 }
 
 export interface SearchResult {
+  skill_generation_id?: string | null;
   revision?: string;
   not_modified?: boolean;
   status: "running" | "completed" | "error";
@@ -640,6 +641,28 @@ export interface SearchResult {
   model_distribution?: Record<string, ModelDistributionItem>;
   search_state?: SearchState;
   error?: string;
+}
+
+export interface GeneratedSkill {
+  name: string;
+  category: "access" | "strategy" | "orchestrator";
+  action: "create" | "update";
+  description: string;
+  reason: string;
+  status: "pending" | "running" | "installed" | "build_failed" | "validation_failed" | "error" | "interrupted";
+  body?: string;
+  error?: string;
+}
+
+export interface SkillGeneration {
+  id: string;
+  query: string;
+  status: "queued" | "running" | "completed" | "error" | "interrupted";
+  stage: string;
+  created_at: string;
+  updated_at: string;
+  items: GeneratedSkill[];
+  error: string;
 }
 
 export interface DiagnosticBase {

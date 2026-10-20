@@ -15,6 +15,7 @@ import type { SubmitOpts } from "@/components/shell/Composer";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import Answer, { cleanAnswer } from "@/components/conversation/Answer";
 import AnswerActions from "@/components/conversation/AnswerActions";
+import SkillChanges from "@/components/conversation/SkillChanges";
 import { localCitationLabels } from "@/lib/localCitations";
 import MaterialPicker from "./MaterialPicker";
 import MobileSheet from "./MobileSheet";
@@ -231,6 +232,7 @@ function MobileTurn({ turn, reconnecting, onDetails, onOpenSource, onContinue, o
       <button className={s.readReport} onClick={() => setExpanded(value => !value)}>{expanded ? "收起报告" : "阅读完整报告"}{expanded ? <ChevronDown size={16} /> : <ArrowDown size={16} />}</button>
       {expanded && <AnswerActions query={turn.query} markdown={answer} collapsible={false} collapsed={false} onToggleCollapse={() => {}} onRerun={onRerun} onContinue={onContinue} runDisabled={runDisabled} />}
     </section>}
+    <SkillChanges sessionId={turn.sessionId} generationId={turn.skillGenerationId} />
     {turn.followUps?.map((text,index) => <div className={s.followup} key={index}><span>补充要求</span>{text}</div>)}
     <div className={s.turnActions}><button onClick={onDetails}>来源与更多详情 <ChevronRight size={14} /></button>{turn.status === "error" && <button onClick={onRerun} disabled={runDisabled}>重新执行 <RefreshCw size={14} /></button>}{turn.status === "completed" && <button onClick={onContinue}>继续追问 <ArrowRight size={14} /></button>}</div>
   </article>;

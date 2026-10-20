@@ -6,6 +6,7 @@ import Composer, { type SubmitOpts } from "@/components/shell/Composer";
 import TurnActivity from "./TurnActivity";
 import Answer, { cleanAnswer } from "./Answer";
 import AnswerActions from "./AnswerActions";
+import SkillChanges from "./SkillChanges";
 import CoverageTable from "@/components/coverage/CoverageTable";
 import ResultExportMenu from "@/components/coverage/ResultExportMenu";
 import type { Turn } from "@/lib/conversation";
@@ -206,6 +207,8 @@ function TurnView({
             ) : null}
           </div>
         )}
+
+        <SkillChanges sessionId={turn.sessionId} generationId={turn.skillGenerationId} />
 
         {done && hasTable && (
           <div className="mb-4 overflow-hidden rounded-xl border border-line">

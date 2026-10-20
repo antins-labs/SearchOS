@@ -62,6 +62,7 @@ _Avoid_：Evidence Middleware、抽取回调
 - **Need Intent** 与 **Repair Intent** 均可对应零到多个 Skill 创建结果
 - **Source Intent** 通常对应一个 Access Skill，但 hostname 不是全局唯一 Skill 标识
 - **Creation Pipeline** 不负责运行时 Skill Selection，也不反查创建关系决定注入
+- 开启运行后生成技能时，每轮搜索固定本轮轨迹，独立记录后台生成进度和结果。WebUI 会话按轮次显示新增、更新与未入库状态；只有校验入库成功的结果计入变化，历史预览读取当轮保存的技能正文，不随技能库后续更新改变。
 - 只有 **Skill Availability** 为 enabled 的 Skill 才会进入运行时 registry；旧 lifecycle 值仅在读取时兼容映射
 - 每个 **Evidence Observation** 只能在一次 **Evidence Extraction** 生命周期中被预留一次
 - 模型可见的工具结果只保留事实、来源、操作标识及影响下一步决策的状态；哈希、内部路径、性能时间和完整审计元数据保留在状态、日志或工具 artifact 中。来源版本引用、观测 ID、representation 与阅读位置仍可用于后续操作，不能按字段名称一概删除。原文与技能返回的业务 JSON 保持完整，不递归剥离其中的 `meta` 或 `sha` 字段。
