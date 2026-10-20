@@ -13,7 +13,6 @@ from typing import Any
 from searchos.skills.intent.models import name_for_host
 from searchos.skills.pipeline.access.prompt import SYSTEM_PROMPT, user_prompt
 from searchos.skills.pipeline.access.tools import BuilderWorkspace, run_tool
-from searchos.skills.pipeline.access.valid import validate_access_package
 
 logger = logging.getLogger(__name__)
 MAX_TURNS = 45
@@ -27,7 +26,6 @@ async def build_skill(
     builder_model: Any = None,
     model: str | None = None,
     max_turns: int = MAX_TURNS,
-    discovery_turns: int | None = None,
     validation_examples: list[dict] | None = None,
     existing_package: Path | None = None,
     diagnostics: dict | None = None,
@@ -36,7 +34,6 @@ async def build_skill(
     site_intent: bool = False,
     intent_model: Any = None,
     site_session_path: Path | None = None,
-    intent_review: dict | None = None,
     on_stage: Any = None,
 ) -> Path | None:
     """Build one access skill and return its directory on success.
@@ -49,17 +46,13 @@ async def build_skill(
     """
     if max_turns < 1:
         raise ValueError('max_turns must be positive')
-    if discovery_turns is not None and not 0 <= discovery_turns < max_turns:
-        raise ValueError('discovery_turns must be between zero and max_turns - 1')
     from uuid import uuid4
     from searchos.skills.pipeline.access.records import BuildRecord
     final_dir = output_dir or Path("searchos/skills/library/access") / name_for_host(host)
     record = BuildRecord(record_dir or final_dir.parent / '.build-runs' / uuid4().hex)
     diagnostics = diagnostics if diagnostics is not None else {}
     diagnostics.update(max_turns=max_turns, turns_attempted=0, turns_completed=0,
-                       repair_turns=min(8, max(1, max_turns // 5)), exit_reason='running',
-                       record_dir=str(record.root))
-    diagnostics['discovery_turns'] = discovery_turns
+                       exit_reason='running', record_dir=str(record.root))
     diagnostics['example_source'] = 'host' if validation_examples is not None else 'builder'
     diagnostics['model_usage'] = {}
     record.summary(diagnostics)
@@ -96,6 +89,7 @@ async def build_skill(
     final_dir.parent.mkdir(parents=True, exist_ok=True)
     staging = Path(tempfile.mkdtemp(prefix=f".staging_{final_dir.name}_", dir=final_dir.parent))
     workspace = BuilderWorkspace(staging, expected_name=final_dir.name)
+    workspace.expected_host = host
     def checkpoint():
         from searchos.skills.pipeline.drafts import save_draft
         pointer = save_draft(record.root, staging, workspace.files, name=final_dir.name,
@@ -105,18 +99,6 @@ async def build_skill(
             diagnostics['draft_path'] = str(pointer)
     workspace.checkpoint = checkpoint
     try:
-        if intent_review is not None:
-            diagnostics['failure_stage'] = 'site_intent_review'
-            diagnostics['intent_review'] = {'status': 'pending'}
-            if not site_intent:
-                raise ValueError('host intent review requires site intent mode and a previously locked plan')
-            if (not isinstance(intent_review, dict)
-                    or set(intent_review) != {'capability_id', 'question', 'evidence_ids'}
-                    or not isinstance(intent_review['capability_id'], str) or not intent_review['capability_id'].strip()
-                    or not isinstance(intent_review['question'], str) or not intent_review['question'].strip()
-                    or not isinstance(intent_review['evidence_ids'], list) or not intent_review['evidence_ids']
-                    or not all(isinstance(ref, str) and ref for ref in intent_review['evidence_ids'])):
-                raise ValueError('host intent review requires capability_id, question and evidence_ids')
         if resume_draft is not None:
             from searchos.skills.pipeline.drafts import load_draft
             source, saved = load_draft(resume_draft)
@@ -130,7 +112,14 @@ async def build_skill(
             workspace.examples = saved['examples']
             workspace.require_host = saved['require_host']
             workspace.last_validation = saved['validation']
-            workspace.resuming = True
+            if existing_package is not None:
+                # 恢复更新任务时也要与已安装包比较，不能把旧包通过样例当成修复完成。
+                import hashlib
+                from searchos.skills.packaging import package_files
+                workspace.update_base = {
+                    relative.as_posix(): hashlib.sha256((existing_package / relative).read_bytes()).hexdigest()
+                    for relative in package_files(existing_package)
+                }
             notes += '\n继续修复已保存草稿，不重新探索或重写已验证能力。文件：' + ', '.join(sorted(workspace.files))
             notes += '\n上一轮验证结果：' + json.dumps(saved['validation'], ensure_ascii=False)
             notes += '\n已恢复的完整验证样例（索引从 0 开始）：' + json.dumps(
@@ -166,10 +155,6 @@ async def build_skill(
             session = SiteIntentSession(intent_model or builder_model, workspace, record)
             workspace.site_intent = session
             previous_session = resume_draft.parent / 'site-session.json' if resume_draft is not None else site_session_path
-            if intent_review is not None:
-                saved_session = json.loads(Path(previous_session).read_text()) if previous_session is not None else {}
-                if not isinstance(saved_session, dict) or not isinstance(saved_session.get('plan'), dict):
-                    raise ValueError('host intent review requires a previously locked plan; it cannot start planning')
             if on_stage is not None:
                 await on_stage('site_intent')
             try:
@@ -178,19 +163,11 @@ async def build_skill(
                 diagnostics['failure_stage'] = 'site_intent'
                 raise
             planned_examples = capability_examples(plan)
-            if resume_draft is not None and workspace.examples != planned_examples:
+            # 需求阶段中断时，草稿可能已有文件但尚未保存验收样例。
+            # 从恢复的计划编译首次样例；已有样例仍必须逐项匹配。
+            if resume_draft is not None and workspace.examples and workspace.examples != planned_examples:
                 raise ValueError('saved capability plan no longer matches draft examples')
             workspace.set_validation_examples(planned_examples)
-            if intent_review is not None:
-                diagnostics['failure_stage'] = 'site_intent_review'
-                answer = await session.advise(**intent_review, allow_example_replacement=False)
-                diagnostics['intent_review'] = {**answer, 'status': answer.get('status', 'error')}
-                record.event('site_intent_review', request=intent_review, result=diagnostics['intent_review'])
-                if answer.get('status') != 'clarified':
-                    raise ValueError('host intent review did not clarify repair feedback: ' + json.dumps(answer, ensure_ascii=False))
-                notes += '\n宿主修复反馈复核（保留原验收，仅追加有证据的边界）：' + json.dumps(answer, ensure_ascii=False)
-                plan = session.state['plan']
-                diagnostics.pop('failure_stage', None)
             notes += session.builder_notes()
             diagnostics['example_source'] = 'site_intent'
             diagnostics['capabilities'] = [c['id'] for c in plan['capabilities']]
@@ -201,18 +178,12 @@ async def build_skill(
         return await _build_episode(workspace, final_dir, host, probe_urls, notes, tool_model, max_turns, diagnostics, record)
     except asyncio.CancelledError:
         diagnostics.update(exit_reason='cancelled')
-        if intent_review is not None and diagnostics.get('failure_stage') == 'site_intent_review':
-            diagnostics['intent_review'] = {'status': 'cancelled'}
-            record.event('site_intent_review', request=intent_review, result=diagnostics['intent_review'])
         record.event('cancelled')
         raise
     except Exception as exc:
         stage = diagnostics.get('failure_stage')
-        if intent_review is not None and stage == 'site_intent_review' and diagnostics.get('intent_review', {}).get('status') == 'pending':
-            diagnostics['intent_review'] = {'status': 'error', 'error_type': type(exc).__name__, 'error': str(exc)}
-            record.event('site_intent_review', request=intent_review, result=diagnostics['intent_review'])
-        diagnostics.update(exit_reason='site_intent_error' if stage == 'site_intent' else
-                           'site_intent_review_error' if stage == 'site_intent_review' else 'execution_error', error_type=type(exc).__name__)
+        diagnostics.update(exit_reason='site_intent_error' if stage == 'site_intent' else 'execution_error',
+                           error_type=type(exc).__name__)
         record.event('execution_error', error_type=type(exc).__name__)
         raise
     finally:
@@ -231,7 +202,7 @@ async def build_skill(
 
 async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_model, max_turns, diagnostics=None, record=None):
     logger.info("dynamic builder: host=%s output=%s", host, final_dir)
-    from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+    from langchain_core.messages import HumanMessage, SystemMessage
 
     messages: list[Any] = [
         SystemMessage(content=SYSTEM_PROMPT),
@@ -245,64 +216,19 @@ async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_mod
             'empty 要求零退出和空 records，invalid_input 要求非零退出和空 records，二者均须输出 warnings。'
             '用 validate_skill 验证实现。固定样例：\n' + json.dumps(workspace.examples, ensure_ascii=False))))
 
-    repair_start = max_turns - diagnostics['repair_turns']
-    discovery_turns = diagnostics.get('discovery_turns')
-    initial_package_state = workspace.package_state() if discovery_turns is not None else None
-    if discovery_turns is not None:
-        messages.append(HumanMessage(content=(
-            f'本次总预算 {max_turns} 次模型调用；前 {discovery_turns} 次用于入口发现，'
-            f'最后 {diagnostics["repair_turns"]} 次用于验收修复。'
-            '发现阶段结束前用 write_file 保存已确认的入口与诊断。'
-            '随后必须写出 SKILL.md 和核心脚本，再对具体错误做最小探测。'
-            '已有包或草稿的旧文件不算本轮进展；须实际修改实现或保存新的诊断内容，原样重写不解锁 run_python。'
-            '可继续使用 exec 调试、validate_skill 验收、读取文件和网页、追问需求 Agent。'
-            '不得削减用户核心需求来制造成功，外部阻塞应保存诊断和可恢复草稿。')))
-    for turn in range(max_turns):
-        if turn == discovery_turns and not workspace.resuming:
-            record.event('implementation_phase', turn=turn + 1, files=sorted(workspace.files))
-            messages.append(HumanMessage(content=(
-                '入口发现预算已用完。现在用 write_file 保存 SKILL.md、scripts/ 下的核心实现和诊断。'
-                '没有可信入口时保存阻塞原因，不得猜测接口或输出固定数据。'
-                '核心文件齐全且本轮内容已有变化之前，run_python 将被暂缓；优先用 exec 调试包内脚本。')))
-        if turn == repair_start or (turn == 0 and workspace.resuming):
-            report = await workspace.validate()
-            record.event('repair_phase', turn=turn + 1, validation=report)
-            if report['valid']:
-                diagnostics['exit_reason'] = 'validation_passed'
-                break
-            if report.get('auth_required'):
-                diagnostics['exit_reason'] = 'auth_required'
-                break
-            guidance = (
-                f"进入收尾阶段，剩余 {max_turns - turn} 轮。停止探索新功能。"
-                "只保留用户需求所必需的命令，补齐每个已声明命令的 register_example，"
-                "运行 validate_skill 并修复失败。使用 read_file/edit_file/write_file/exec 修复现有包。"
-                "仍可针对当前错误查询相关资料或做最小对照探测；不要扩展功能或重复失败请求。"
-                "遇到外部依赖阻塞时保存诊断，如实说明限制。当前验证结果：\n")
-            if workspace.resuming and turn < repair_start:
-                guidance = ("从草稿的验证失败处继续。先读取现有文件和样例，修复具体错误，补齐缺失文件，"
-                            "保留已工作的功能。先核对核心取数路径是否真的实现；不要在辅助命令的格式问题上耗尽预算。"
-                            "需要时可针对失败点查询资料，不要重新全量探索站点。当前验证结果：\n")
-            if workspace.examples_locked:
-                guidance = ('固定验收样例及其 expected_status 由宿主管理，不能修改或重新注册。修复 CLI 实现、stdout JSON、参数和依赖；'
-                            '用 exec 检查负例，用 validate_skill 重新验收，不扩展功能。当前验证结果：\n')
-            messages.append(HumanMessage(content=guidance + json.dumps(report, ensure_ascii=False)))
-        remaining = max_turns - turn
-        budget_guidance = f'剩余 {remaining} 次模型调用（含本轮）；请安排读取、修改与验证。'
-        if remaining == 1:
-            budget_guidance += ('这是最后一次模型调用；优先完成已定位的最小修改，必要时同轮调用工具验证。'
-                                '本轮工具执行后宿主会做最终验收，不会再有模型修复轮；仍受阻时保留诊断和可恢复草稿。')
-        # 预算提示独立于阶段与样例锁定分支，保留本轮具体错误反馈。
-        if isinstance(messages[-1], HumanMessage):
-            messages[-1] = HumanMessage(content=messages[-1].content + '\n\n' + budget_guidance)
-        else:
-            messages.append(HumanMessage(content=budget_guidance))
+    for turn in range(max_turns + 1):
+        closing = turn == max_turns
+        guidance = (
+            '常规调用额度已用完。这是额外的一次收尾调用；停止新探索，不调用网页研究或 run_python。'
+            '依据已有结果完成文件修改、运行 CLI 和 validate_skill；失败时如实保留问题，不会再有修复调用。'
+            if closing else
+            f'本轮是第 {turn + 1}/{max_turns} 次常规模型调用；按需探索、实现并调用 validate_skill 验收。'
+        )
+        messages.append(HumanMessage(content=guidance))
         diagnostics['turns_attempted'] = turn + 1
-        phase = 'repair' if turn >= repair_start else ('discovery' if discovery_turns is not None and turn < discovery_turns else 'build')
-        diagnostics['phase'] = phase
-        record.event('model_started', turn=turn + 1, phase=phase)
+        record.event('model_started', turn=turn + 1, closing=closing)
         record.summary(diagnostics)
-        logger.info("dynamic builder: turn %s/%s", turn + 1, max_turns)
+        logger.info("dynamic builder: turn %s/%s", turn + 1, max_turns + 1)
         try:
             msg = await tool_model.ainvoke(messages)
         except Exception as exc:
@@ -319,44 +245,46 @@ async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_mod
         tool_calls = getattr(msg, "tool_calls", None) or []
         record.event('model_completed', turn=turn + 1, content=msg.content, tool_calls=tool_calls, usage=usage)
         record.summary(diagnostics)
-        # Preserve the provider-normalized assistant message, including tool
-        # calls, so the next turn remains valid for every supported protocol.
         messages.append(msg)
-
-        if not tool_calls:
-            report = await workspace.validate()
-            record.event('validation', turn=turn + 1, report=report)
-            if report["valid"]:
-                diagnostics['exit_reason'] = 'validation_passed'
-                break
-            if report.get('auth_required'):
-                diagnostics['exit_reason'] = 'auth_required'
-                logger.info('dynamic builder awaits user authentication: %s', host)
-                break
-            messages.append(HumanMessage(content="校验失败，请修复后继续：\n" + json.dumps(report, ensure_ascii=False)))
-            continue
-
         for tc in tool_calls:
             record.event('tool_started', turn=turn + 1, name=tc.get('name'), call_id=tc.get('id'))
-            has_core = 'SKILL.md' in workspace.files and any(p.startswith('scripts/') for p in workspace.files)
-            if (discovery_turns is not None and turn >= discovery_turns and tc.get('name') == 'run_python'
-                    and (not has_core or workspace.package_state() == initial_package_state)):
-                result = ToolMessage(content=json.dumps({'error': 'discovery_budget_exhausted',
-                    'next_action': '先补齐 SKILL.md 和核心脚本，并落实本轮内容变化。已有包可先将新证据写入 references/diagnosis.md；'
-                                   '原样重写不解锁。可继续 exec 调试、validate_skill 验收、读取文件和网页或追问需求 Agent；不得伪造成功。'}, ensure_ascii=False),
-                    tool_call_id=tc['id'])
-                record.event('discovery_call_deferred', turn=turn + 1, name=tc.get('name'))
-            else:
-                result = await run_tool(workspace, tc)
+            result = await run_tool(workspace, tc)
             messages.append(result)
             record.event('tool_result', turn=turn + 1, name=tc.get('name'), call_id=tc.get('id'), content=result.content)
+
+        # 完成回复或额度结束时验收当前文件；同轮先通过再修改也必须重验。
+        changed = workspace.checked_state != workspace.validation_state()
+        if changed and (not tool_calls or turn >= max_turns - 1 or workspace.last_validation.get('valid')):
+            report = await workspace.validate()
+            record.event('validation', turn=turn + 1, report=report)
+            if not report['valid']:
+                messages.append(HumanMessage(content='校验失败，请修复后继续：\n' + json.dumps(report, ensure_ascii=False)))
+        if workspace.checked_state == workspace.validation_state():
+            if workspace.last_validation.get('valid'):
+                diagnostics['exit_reason'] = 'validation_passed'
+                break
+            if workspace.last_validation.get('auth_required'):
+                diagnostics['exit_reason'] = 'auth_required'
+                break
+            if not tool_calls and not changed:
+                messages.append(HumanMessage(content='校验失败，请修复后继续：\n' + json.dumps(workspace.last_validation, ensure_ascii=False)))
     else:
         diagnostics['exit_reason'] = 'max_turns'
-        logger.warning("dynamic builder reached max turns for %s", host)
+        logger.warning("dynamic builder exhausted regular and closing calls for %s", host)
     record.event('generation_stopped', reason=diagnostics['exit_reason'], examples=workspace.examples)
-    record.summary(diagnostics)
 
-    # Publish only files written through write_file, then validate the exact package.
+    report = workspace.last_validation
+    if workspace.checked_state != workspace.validation_state():
+        report = {'valid': False, 'stage': 'validation',
+                  'error': 'generation stopped before the current package was validated'}
+    diagnostics.update(report)
+    record.event('final_validation', report=report)
+    record.summary(diagnostics)
+    if not report.get('valid'):
+        logger.warning("dynamic builder validation failed for %s: %s", host, report)
+        return None
+
+    # 发布与刚验收相同的文件，不在预算循环之外再引入一次可能失败的网络验收。
     with tempfile.TemporaryDirectory(prefix=".builder-publish-", dir=final_dir.parent) as temporary:
         candidate = Path(temporary) / final_dir.name
         candidate.mkdir()
@@ -365,15 +293,6 @@ async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_mod
             target = candidate / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
-        report = workspace.revision_error() or await validate_access_package(candidate, final_dir.name, workspace.examples, require_host=workspace.require_host)
-        workspace.last_validation = report
-        if diagnostics is not None:
-            diagnostics.update(report)
-        record.event('final_validation', report=report)
-        record.summary(diagnostics)
-        if not report["valid"]:
-            logger.warning("dynamic builder validation failed for %s: %s", host, report)
-            return None
         from searchos.skills.pipeline.store import publish_package
         publish_package(candidate, final_dir)
     return final_dir

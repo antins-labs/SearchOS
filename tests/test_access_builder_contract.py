@@ -45,7 +45,7 @@ async def test_builder_repairs_failed_validation_and_publishes_only_package(tmp_
                     {'id': '2', 'name': 'write_file', 'args': {'path': 'scripts/search.py', 'content': 'print(1)'}},
                 ])
             if self.count == 3:
-                assert 'register at least one' in messages[-1].content
+                assert any('register at least one' in message.content for message in messages)
                 return AIMessage(content='', tool_calls=[{'id': '3', 'name': 'register_example', 'args': {'argv': ['python', 'scripts/search.py'], 'output': '', 'records_key': 'records'}}])
             return AIMessage(content='完成')
     async def run(package, argv, **kwargs):

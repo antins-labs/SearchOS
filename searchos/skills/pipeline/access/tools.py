@@ -22,10 +22,10 @@ class BuilderWorkspace:
             "function": {
                 "name": "run_python",
                 "description": (
-                    "Run Python code from the skill output directory. Use this "
-                    "for site HTTP or Playwright browser probes and "
-                    "site exploration. Playwright's fixed driver is "
-                    "allowed; arbitrary subprocesses are blocked."
+                    "Probe HTTP or Playwright from the skill output directory in a "
+                    "restricted Python worker. For Scrapy, native dependencies or a "
+                    "complete browser workflow, write the package CLI and use exec "
+                    "to test it in the final execution environment."
                 ),
                 "parameters": {
                     "type": "object",
@@ -96,13 +96,13 @@ class BuilderWorkspace:
              "path": {"type": "string"}, "old_text": {"type": "string"}, "new_text": {"type": "string"},
              "replace_all": {"type": "boolean", "default": False}}, "required": ["path", "old_text", "new_text"]}}},
         {"type": "function", "function": {"name": "exec",
-         "description": "Run a package CLI script in an isolated persistent work directory; use argv, not shell strings.",
+         "description": "Run a package CLI in the final isolated runtime, including installed Scrapy/Playwright libraries. Use argv and write outputs to the persistent work directory. Dependency declarations do not install libraries.",
          "parameters": {"type": "object", "properties": {
              "argv": {"type": "array", "items": {"type": "string"}},
              "stdin": {"type": "string"}, "timeout_s": {"type": "number"},
              "proxy_mode": PROXY_SCHEMA}, "required": ["argv"]}}},
         {"type": "function", "function": {"name": "validate_skill",
-         "description": "Validate the distributable SKILL.md + scripts package and execute registered real-data examples.",
+         "description": "Execute the declared capability examples and check their CLI output. Repair reported errors and validate again.",
          "parameters": {"type": "object", "properties": {}}}},
     ])
 
@@ -111,8 +111,9 @@ class BuilderWorkspace:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.expected_name = expected_name or output_dir.name
         self.require_host = True
+        self.expected_host: str | None = None
         self.last_validation: dict = {}
-        self.resuming = False
+        self.checked_state = None
         self.update_base = None
         self.checkpoint = lambda: None
         self.examples: list[dict[str, Any]] = []
@@ -169,9 +170,15 @@ class BuilderWorkspace:
                     'error': 'update_has_no_changes: 旧包通过基础样例不表示本次修复完成；请先落实请求中的文件修改。'}
         return None
 
+    def validation_state(self):
+        return self.package_state(), deepcopy(self.examples), self.require_host, self.expected_host
+
     async def validate(self) -> dict:
+        self.checked_state = None
+        state = self.validation_state()
         if error := self.revision_error():
             self.last_validation = error
+            self.checked_state = state
             self.checkpoint()
             return error
         with tempfile.TemporaryDirectory(prefix=".builder-package-", dir=self.output_dir.parent) as tmp:
@@ -182,8 +189,11 @@ class BuilderWorkspace:
                 target = candidate / relative
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, target)
-            report = await validate_access_package(candidate, self.expected_name, self.examples, require_host=self.require_host)
+            report = await validate_access_package(candidate, self.expected_name, self.examples,
+                                                   require_host=self.require_host,
+                                                   expected_host=self.expected_host)
             self.last_validation = report
+            self.checked_state = state
             self.checkpoint()
             return report
 

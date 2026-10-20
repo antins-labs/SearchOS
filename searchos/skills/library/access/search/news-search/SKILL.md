@@ -3,9 +3,6 @@ name: news-search
 description: 搜索近期新闻文章（NewsAPI + Google News RSS 双源回退），返回标题、来源、日期、摘要
 metadata:
   searchos-category: access
-  searchos-aliases: news_search
-  searchos-config: '{"category": "strategy", "trigger": "查询涉及近期新闻、时事、最新动态、\"最近\"、\"近期\"、\"本周\"、\"本月\"等时效性关键词时触发",
-    "availability": "enabled", "compatibility": ""}'
 compatibility: Python 3.10+；依赖见 requirements.txt；检索需要网络。
 ---
 
@@ -22,7 +19,27 @@ python /path/to/news-search/scripts/run.py --help
 python /path/to/news-search/scripts/run.py --params-file /path/to/parameters.json --result-file /path/to/result.json
 ```
 
-参数可以用独立命令行选项（下划线转连字符）、`--params` JSON 或 `--params-file` 文件传入；文件名 `-` 表示读取 stdin。独立选项覆盖 JSON 同名值。以 [参数说明](references/parameters.json) 为准；缺省参数保留来源实现的默认行为。运行 `--validate-only` 可只校验参数，`--check-dependencies` 可检查 Python 依赖，两者均不执行检索。
+参数可以用独立命令行选项（连字符格式）、`--params` JSON 或 `--params-file` 文件传入；文件名 `-` 表示读取 stdin。独立选项覆盖 JSON 同名值。以 [参数说明](references/parameters.json) 为准；缺省参数保留来源实现的默认行为。运行 `--validate-only` 可只校验参数，`--check-dependencies` 可检查 Python 依赖，两者均不执行检索。
+
+### 参数命名规范
+
+**重要：命令行选项使用连字符格式，不支持下划线格式。**
+
+| 参数名 | 命令行选项 | 错误示例 |
+|--------|-----------|---------|
+| query | `--query` | — |
+| num_results | `--num-results` | ~~`--num_results`~~ |
+| days_back | `--days-back` | ~~`--days_back`~~ |
+
+正确用法：
+```bash
+python scripts/run.py --query "OpenAI" --num-results 5 --days-back 7
+```
+
+错误用法（会导致 `unrecognized arguments` 错误）：
+```bash
+python scripts/run.py --query "OpenAI" --num_results 5 --days_back 7
+```
 
 阅读 [来源操作说明](references/source-guide.md) 选择功能、查询、分页和结束条件。原文中的函数调用仅描述参数语义；使用本页 CLI 执行。
 

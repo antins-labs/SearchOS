@@ -1,4 +1,4 @@
-"""生成预算、收尾阶段与失败诊断回归。"""
+"""常规调用、一次额外收尾与验证反馈回归。"""
 import json
 import pytest
 from langchain_core.messages import AIMessage
@@ -16,7 +16,7 @@ def site_plan():
 
 
 @pytest.mark.asyncio
-async def test_site_final_call_still_uses_structured_submission(tmp_path):
+async def test_site_extra_closing_call_submits_final_json(tmp_path):
     from types import SimpleNamespace
     from searchos.skills.intent.site import SiteIntentSession, validate_plan
     from searchos.skills.pipeline.access.records import BuildRecord
@@ -25,10 +25,10 @@ async def test_site_final_call_still_uses_structured_submission(tmp_path):
         def bind_tools(self, definitions): return self
         async def ainvoke(self, messages):
             self.calls += 1
-            if self.calls == 3:
-                assert 'submit_site_plan' in messages[-1].content
-                assert '不再调用工具' not in messages[-1].content
-                proposal = site_plan()
+            if self.calls == 4:
+                assert '额外收尾' in messages[-1].content
+                assert '不再调用工具' in messages[-1].content
+                return AIMessage(content=json.dumps(site_plan()))
             else:
                 proposal = {'capabilities': []}
             return AIMessage(content='', tool_calls=[{'name':'submit_site_plan', 'args':proposal, 'id':str(self.calls)}])
@@ -36,12 +36,12 @@ async def test_site_final_call_still_uses_structured_submission(tmp_path):
     session = SiteIntentSession(model, SimpleNamespace(), BuildRecord(tmp_path/'record'))
     session.state['observations'] = [{'id':'obs-1', 'tool':'web_open', 'usable':True,
                                     'result':{'content':'public page', 'live_evidence':True}}]
-    result = await session.converse([], 3, validator=lambda v: validate_plan(v, session.state['observations']), research_turns=0)
-    assert result['capabilities'][0]['id'] == 'latest' and model.calls == 3
+    result = await session.converse([], 3, validator=lambda v: validate_plan(v, session.state['observations']))
+    assert result['capabilities'][0]['id'] == 'latest' and model.calls == 4
 
 
 @pytest.mark.asyncio
-async def test_site_without_page_evidence_stops_before_format_repair_calls(tmp_path):
+async def test_site_without_page_evidence_fails_after_closing_submission(tmp_path):
     from types import SimpleNamespace
     from searchos.skills.intent.site import SiteIntentSession, validate_plan
     from searchos.skills.pipeline.access.records import BuildRecord
@@ -53,13 +53,15 @@ async def test_site_without_page_evidence_stops_before_format_repair_calls(tmp_p
         def bind_tools(self, definitions): return self
         async def ainvoke(self, messages):
             self.calls += 1
+            if self.calls == 6:
+                return AIMessage(content=json.dumps(site_plan()))
             return AIMessage(content='', tool_calls=[{'name':'web_search', 'args':{'query':'site docs'}, 'id':str(self.calls)}])
     model = Model()
     session = SiteIntentSession(model, SimpleNamespace(browser=Browser()), BuildRecord(tmp_path/'record'))
     session.observe('web_open', {'id_or_url':'https://example.com'}, {'content':'[FETCH_ERROR] network_failure'}, 'intent')
     with pytest.raises(ValueError, match='site_page_evidence_unavailable'):
-        await session.converse([], 5, validator=lambda v: validate_plan(v, session.state['observations']), research_turns=2)
-    assert model.calls == 2
+        await session.converse([], 5, validator=lambda v: validate_plan(v, session.state['observations']))
+    assert model.calls == 6
     saved = json.loads(session.path.read_text())
     assert saved['failure']['code'] == 'site_page_evidence_unavailable'
 
@@ -81,7 +83,7 @@ async def test_site_final_format_error_does_not_erase_contract_error(tmp_path):
     session = SiteIntentSession(Model(), SimpleNamespace(), BuildRecord(tmp_path/'record'))
     session.state['observations'] = [{'id':'obs-1','usable':True}]
     with pytest.raises(ValueError, match=r'latest.inputs'):
-        await session.converse([], 3, validator=lambda v: validate_plan(v, session.state['observations']), research_turns=0)
+        await session.converse([], 3, validator=lambda v: validate_plan(v, session.state['observations']))
     assert session.state['failure']['code'] == 'site_plan_invalid'
     assert 'latest.inputs' in session.state['failure']['message']
 
@@ -103,12 +105,15 @@ async def test_model_failure_retains_cause_and_attempt_count(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_reserve_phase_allows_focused_research_and_records_exhaustion(tmp_path):
+async def test_regular_budget_gets_exactly_one_extra_closing_call(tmp_path):
     class Model:
         def __init__(self): self.prompts = []
         def bind_tools(self, tools): return self
         async def ainvoke(self, messages):
             self.prompts.append(messages[-1].content)
+            if len(self.prompts) == 3:
+                assert '额外的一次收尾' in messages[-1].content and '停止新探索' in messages[-1].content
+                return AIMessage(content='无法完成，保留失败。')
             return AIMessage(content='', tool_calls=[dict(id=str(len(self.prompts)), name='web_search', args={'query':'example.com code 37 proxy'})])
     from searchos.skills.pipeline.access import run
     calls = []
@@ -116,7 +121,7 @@ async def test_reserve_phase_allows_focused_research_and_records_exhaustion(tmp_
         calls.append(call['name'])
         from langchain_core.messages import ToolMessage
         return ToolMessage(content='research', tool_call_id=call['id'])
-    # 两轮均可查证具体错误，收尾阶段仍受总轮数限制。
+    # 常规两轮可研究；尚未交付时仅额外一次收尾。
     from unittest.mock import patch
     model = Model(); diagnostics = {}
     with patch.object(run, 'run_tool', tool):
@@ -125,10 +130,10 @@ async def test_reserve_phase_allows_focused_research_and_records_exhaustion(tmp_
     assert calls == ['web_search', 'web_search']
     assert any('收尾' in str(prompt) for prompt in model.prompts)
     assert diagnostics['exit_reason'] == 'max_turns'
-    assert diagnostics['turns_completed'] == 2
+    assert diagnostics['turns_completed'] == 3
     events = [json.loads(line) for line in (tmp_path/'record/events.jsonl').read_text().splitlines()]
-    assert any(event['event'] == 'repair_phase' for event in events)
-    assert not any(event.get('blocked') for event in events)
+    assert [event['closing'] for event in events if event['event'] == 'model_started'] == [False, False, True]
+    assert not any(event['event'] in {'repair_phase', 'implementation_phase'} for event in events)
 
 
 def test_record_redacts_env_credentials_and_private_fields(tmp_path, monkeypatch):
@@ -159,7 +164,7 @@ async def test_pipeline_failure_points_to_persistent_builder_record(tmp_path, mo
 
 
 @pytest.mark.asyncio
-async def test_repair_phase_registers_missing_commands_and_passes(tmp_path, monkeypatch):
+async def test_validation_failure_registers_missing_commands_and_passes(tmp_path, monkeypatch):
     from searchos.skills.runtime import command_runtime
     class Model:
         def __init__(self): self.turn = 0
@@ -169,8 +174,8 @@ async def test_repair_phase_registers_missing_commands_and_passes(tmp_path, monk
             if self.turn == 1:
                 files = {'SKILL.md': '---\nname: example-com\ndescription: 查询股价\nmetadata:\n  searchos-category: access\n  host: example.com\n---\npython scripts/history.py\npython scripts/quote.py\n',
                          'scripts/history.py': 'print(1)', 'scripts/quote.py': 'print(1)'}
-                return AIMessage(content='', tool_calls=[dict(id=str(i), name='write_file', args=dict(path=p, content=c)) for i, (p, c) in enumerate(files.items())])
-            assert '收尾' in messages[-1].content and 'missing_entries' in messages[-1].content
+                return AIMessage(content='', tool_calls=[*[dict(id=str(i), name='write_file', args=dict(path=p, content=c)) for i, (p, c) in enumerate(files.items())], dict(id='validate', name='validate_skill', args={})])
+            assert any('missing_entries' in str(message.content) for message in messages)
             return AIMessage(content='', tool_calls=[dict(id='register-'+name, name='register_example', args=dict(argv=['python', 'scripts/'+name+'.py'], output='', records_key='records')) for name in ['history', 'quote']])
     async def command(*args, **kwargs):
         return {'exit_code': 0, 'stdout': json.dumps({'records': [{'url':'https://example.com/record', 'price': 10}]})}
@@ -182,106 +187,8 @@ async def test_repair_phase_registers_missing_commands_and_passes(tmp_path, monk
     assert diagnostics['turns_completed'] == 2
 
 
-@pytest.fixture
-def staged_builder(tmp_path, monkeypatch):
-    """只执行真实文件工具，外部探测与验收由本地替身记录。"""
-    from langchain_core.messages import ToolMessage
-    from searchos.skills.pipeline.access import run
-    from searchos.skills.pipeline.access.tools import BuilderWorkspace
-    from searchos.skills.pipeline.drafts import save_draft
-    files = {'SKILL.md': '---\nname: example-com\ndescription: 查询记录\nmetadata:\n'
-                        '  searchos-category: access\n  host: example.com\n---\npython scripts/access.py\n',
-             'scripts/access.py': 'print(1)\n'}
-    actual = []
-    original_tool = run.run_tool
-    async def tool(workspace, call):
-        actual.append(call['id'])
-        if call['name'] in {'write_file', 'edit_file', 'read_file'}:
-            return await original_tool(workspace, call)
-        return ToolMessage(content='{"observed":"local test"}', tool_call_id=call['id'])
-    async def invalid(*args, **kwargs):
-        return {'valid': False, 'stage': 'examples', 'error': 'controlled validation failure'}
-    monkeypatch.setattr(run, 'run_tool', tool)
-    monkeypatch.setattr(run, 'validate_access_package', invalid)
-    monkeypatch.setattr(BuilderWorkspace, 'validate', invalid)
-    async def execute(steps, *, source='new', discovery_turns=0):
-        options = {}
-        if source != 'new':
-            seed = tmp_path/'seed'
-            for name, content in files.items():
-                target = seed/name; target.parent.mkdir(parents=True, exist_ok=True); target.write_text(content)
-            if source == 'update':
-                options['existing_package'] = seed
-            else:
-                options['resume_draft'] = save_draft(tmp_path/'previous', seed, files,
-                    name='example-com', examples=[], require_host=True, validation=await invalid())
-        class Model:
-            turn = 0
-            def bind_tools(self, definitions): return self
-            async def ainvoke(self, messages):
-                calls = steps[self.turn]; self.turn += 1
-                return AIMessage(content='', tool_calls=calls)
-        await build_skill('example.com', [], output_dir=tmp_path/'library/example-com', builder_model=Model(),
-            max_turns=len(steps), discovery_turns=discovery_turns, record_dir=tmp_path/'record', **options)
-        events = [json.loads(line) for line in (tmp_path/'record/events.jsonl').read_text().splitlines()]
-        return actual, events
-    execute.files = files
-    return execute
-
-
 def builder_call(name, call_id, **args):
     return {'name': name, 'id': call_id, 'args': args}
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize('source', ['update', 'resume'])
-async def test_seeded_package_requires_current_episode_progress_before_more_python(staged_builder, source):
-    call = builder_call
-    actual, events = await staged_builder([
-        [call('run_python', 'old-core', code='print(1)')],
-        [call('write_file', 'same-write', path='scripts/access.py', content='print(1)\n')],
-        [call('run_python', 'unchanged-core', code='print(1)')],
-        [call('write_file', 'diagnosis', path='references/diagnosis.md',
-              content='观察来源 https://example.com/：列表结构已变化，下一步用 exec 复验解析器。'),
-         call('run_python', 'after-progress', code='print(1)')],
-    ], source=source)
-    assert 'old-core' not in actual and 'unchanged-core' not in actual
-    assert 'after-progress' in actual
-    assert sum(event['event'] == 'discovery_call_deferred' for event in events) == 2
-
-
-@pytest.mark.asyncio
-async def test_new_package_needs_core_and_same_batch_writes_take_effect(staged_builder):
-    call = builder_call
-    actual, events = await staged_builder([
-        [call('write_file', 'diagnosis', path='references/diagnosis.md', content='已观察公开入口。'),
-         call('run_python', 'without-core', code='print(1)')],
-        [*[call('write_file', path, path=path, content=content) for path, content in staged_builder.files.items()],
-         call('run_python', 'with-core', code='print(1)')],
-    ])
-    assert 'without-core' not in actual and 'with-core' in actual
-
-
-@pytest.mark.asyncio
-async def test_explicit_none_keeps_unrestricted_python_probes(staged_builder):
-    actual, events = await staged_builder([
-        [builder_call('run_python', str(index), code='print(1)')] for index in range(3)
-    ], source='update', discovery_turns=None)
-    assert actual == ['0', '1', '2']
-    assert not any(event['event'] == 'discovery_call_deferred' for event in events)
-
-
-@pytest.mark.asyncio
-async def test_progress_gate_does_not_block_debugging_research_or_intent_tools(staged_builder):
-    calls = [builder_call(name, name, **args) for name, args in [
-        ('exec', {'argv': ['python', 'scripts/access.py']}), ('validate_skill', {}),
-        ('read_file', {'path': 'SKILL.md'}), ('web_search', {'query': 'source docs'}),
-        ('web_open', {'id_or_url': 'https://example.com/docs'}), ('web_find', {'pattern': 'API'}),
-        ('ask_intent_agent', {'capability_id': 'search', 'question': '入口变化如何处理？', 'evidence_ids': ['obs-1']}),
-    ]]
-    actual, events = await staged_builder([calls])
-    assert actual == [call['id'] for call in calls]
-    assert not any(event['event'] == 'discovery_call_deferred' for event in events)
 
 
 @pytest.mark.asyncio
@@ -340,7 +247,7 @@ def test_read_file_schema_advertises_default_maximum_and_pagination():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('locked', [False, True])
-async def test_two_call_local_builder_can_read_long_file_then_edit_with_final_budget(tmp_path, monkeypatch, locked):
+async def test_extra_closing_call_can_repair_after_reading_a_long_file(tmp_path, monkeypatch, locked):
     """本地模型替身验证工具与提示链路；不代表真实模型已完成修复。"""
     from langchain_core.messages import ToolMessage
     from searchos.skills.pipeline.access import run, tools
@@ -353,18 +260,16 @@ async def test_two_call_local_builder_can_read_long_file_then_edit_with_final_bu
     async def local_validation(package, *args, **kwargs):
         changed = "value = 'after'" in (package/'scripts/access.py').read_text()
         return {'valid': changed, 'stage': 'local_test', 'error': '' if changed else 'unrepaired'}
-    monkeypatch.setattr(run, 'validate_access_package', local_validation)
     monkeypatch.setattr(tools, 'validate_access_package', local_validation)
     class LocalModel:
         calls = 0
         def bind_tools(self, definitions): return self
         async def ainvoke(self, messages):
             self.calls += 1
-            assert f'剩余 {3-self.calls} 次模型调用（含本轮）' in messages[-1].content
             if self.calls == 1:
                 return AIMessage(content='', tool_calls=[builder_call('read_file', 'read-long', path='scripts/access.py')])
-            assert '最后一次模型调用' in messages[-1].content
-            if locked: assert '固定验收样例' in messages[-1].content
+            assert '额外的一次收尾' in messages[-1].content
+            if locked: assert any('固定样例' in str(message.content) for message in messages)
             read = next(message for message in messages if isinstance(message, ToolMessage) and message.tool_call_id == 'read-long')
             observed = json.loads(read.content)
             assert observed['content'] == original and observed['total_chars'] == 14307
@@ -374,7 +279,7 @@ async def test_two_call_local_builder_can_read_long_file_then_edit_with_final_bu
     model = LocalModel(); diagnostics = {}; target = tmp_path/'library/example-com'
     examples = [{'argv': ['python', 'scripts/access.py'], 'output': '', 'records_key': 'records'}] if locked else None
     result = await build_skill('example.com', [], output_dir=target, existing_package=seed,
-        validation_examples=examples, builder_model=model, max_turns=2, diagnostics=diagnostics,
+        validation_examples=examples, builder_model=model, max_turns=1, diagnostics=diagnostics,
         record_dir=tmp_path/'record')
     assert result == target and model.calls == 2 and diagnostics['turns_completed'] == 2
     assert (target/'scripts/access.py').read_text() == original.replace("value = 'before'", "value = 'after'")
@@ -395,3 +300,133 @@ async def test_read_file_tool_message_preserves_full_bounded_page(tmp_path):
         assert result['truncated'] is True and result['next_offset'] == 24000
     finally:
         workspace.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('apply_change', [False, True])
+async def test_resumed_update_keeps_revision_requirement_even_when_old_examples_pass(tmp_path, monkeypatch, apply_change):
+    from searchos.skills.pipeline.access import run, tools
+    from searchos.skills.pipeline.drafts import save_draft
+    seed = tmp_path/'seed'; (seed/'scripts').mkdir(parents=True)
+    (seed/'SKILL.md').write_text('---\nname: example-com\ndescription: 查询记录\nmetadata:\n'
+        '  searchos-category: access\n  host: example.com\n---\npython scripts/access.py\n')
+    (seed/'scripts/access.py').write_text("value = 'before'\n")
+    pointer = save_draft(tmp_path/'previous', seed, ['SKILL.md', 'scripts/access.py'],
+        name='example-com', examples=[{'argv': ['python', 'scripts/access.py'], 'output': '', 'records_key': 'records'}],
+        require_host=True, validation={'valid': False, 'stage': 'examples', 'error': 'known previous failure'})
+    original = pointer.read_bytes()
+    async def old_examples_pass(*args, **kwargs): return {'valid': True}
+    monkeypatch.setattr(tools, 'validate_access_package', old_examples_pass)
+    class Model:
+        calls = 0
+        def bind_tools(self, definitions): return self
+        async def ainvoke(self, messages):
+            self.calls += 1
+            if self.calls == 1:
+                assert any('known previous failure' in str(message.content) for message in messages)
+            else:
+                assert any('update_has_no_changes' in str(message.content) for message in messages)
+            return AIMessage(content='', tool_calls=[builder_call('edit_file', 'repair',
+                path='scripts/access.py', old_text="'before'", new_text="'after'")] if apply_change else [])
+    model = Model(); target = tmp_path/'result/example-com'
+    result = await build_skill('example.com', [], output_dir=target, existing_package=seed,
+        resume_draft=pointer, notes='修复现有取数逻辑', builder_model=model, max_turns=1,
+        record_dir=tmp_path/'record')
+    assert model.calls == (1 if apply_change else 2)
+    assert (result == target) if apply_change else result is None
+    assert (seed/'scripts/access.py').read_text() == "value = 'before'\n"
+    assert pointer.read_bytes() == original
+    if apply_change:
+        assert (target/'scripts/access.py').read_text() == "value = 'after'\n"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('repair', [False, True])
+async def test_cli_failure_is_returned_to_builder_and_closing_call_can_repair(tmp_path, monkeypatch, repair):
+    from langchain_core.messages import ToolMessage
+    from searchos.skills.intent.site import SiteIntentSession
+    from searchos.skills.runtime import command_runtime
+
+    executions = []
+    async def prepare(self, *args, **kwargs):
+        self.state['plan'] = site_plan()
+        return self.state['plan']
+    async def execute(package, argv, **kwargs):
+        if argv[-1] == '--help':
+            return {'exit_code': 0, 'stdout': 'usage'}
+        code = (package/'scripts/access.py').read_text()
+        executions.append(code)
+        if 'broken' in code:
+            return {'exit_code': 1, 'status': 'failed', 'stdout': json.dumps({
+                'status': 'parse_error', 'records': [], 'warnings': ['missing response records']})}
+        return {'exit_code': 0, 'stdout': json.dumps({'status': 'ok', 'records': [
+            {'title': None, 'source_url': 'https://example.com/item'}], 'warnings': []})}
+    monkeypatch.setattr(SiteIntentSession, 'prepare', prepare)
+    monkeypatch.setattr(command_runtime, 'run_command', execute)
+    class Builder:
+        calls = 0
+        def bind_tools(self, definitions): return self
+        async def ainvoke(self, messages):
+            self.calls += 1
+            if self.calls == 1:
+                return AIMessage(content='', tool_calls=[
+                    builder_call('write_file', 'doc', path='SKILL.md',
+                        content='---\nname: example-com\ndescription: 获取公开记录\nmetadata:\n'
+                                '  searchos-category: access\n  host: example.com\n---\npython scripts/access.py\n'),
+                    builder_call('write_file', 'script', path='scripts/access.py', content="value = 'broken'\n"),
+                    builder_call('validate_skill', 'first-check')])
+            assert self.calls == 2 and '额外的一次收尾' in messages[-1].content
+            feedback = next(m for m in messages if isinstance(m, ToolMessage) and m.tool_call_id == 'first-check')
+            failure = json.loads(feedback.content)
+            assert failure['stage'] == 'examples' and 'missing response records' in failure['error']
+            if not repair:
+                return AIMessage(content='解析失败，无法修复。')
+            return AIMessage(content='', tool_calls=[
+                builder_call('edit_file', 'repair', path='scripts/access.py',
+                             old_text="value = 'broken'", new_text='value = None'),
+                builder_call('validate_skill', 'second-check')])
+    builder = Builder(); diagnostics = {}; target = tmp_path/'library/example-com'
+    result = await build_skill('example.com', [], output_dir=target, builder_model=builder,
+        site_intent=True, max_turns=1, diagnostics=diagnostics, record_dir=tmp_path/'records')
+    assert builder.calls == 2
+    if not repair:
+        assert result is None and not target.exists()
+        assert diagnostics['stage'] == 'examples'
+        assert (tmp_path/'records/draft.json').exists()
+        assert executions == ["value = 'broken'\n"]
+    else:
+        assert result == target and (target/'scripts/access.py').read_text() == 'value = None\n'
+        assert executions == ["value = 'broken'\n", 'value = None\n']
+
+
+@pytest.mark.asyncio
+async def test_closing_call_edit_after_success_requires_revalidation_before_publish(tmp_path, monkeypatch):
+    from searchos.skills.pipeline.access import tools
+
+    executions = []
+    async def validate(package, name, examples, **kwargs):
+        script = package/'scripts/access.py'
+        if not script.exists():
+            return {'valid': False, 'stage': 'package', 'error': 'missing CLI'}
+        code = script.read_text(); executions.append(code)
+        return {'valid': 'broken' not in code, 'stage': 'examples', 'error': 'invalid output' if 'broken' in code else ''}
+    monkeypatch.setattr(tools, 'validate_access_package', validate)
+    class Builder:
+        calls = 0
+        def bind_tools(self, definitions): return self
+        async def ainvoke(self, messages):
+            self.calls += 1
+            if self.calls == 1:
+                return AIMessage(content='尚未完成')
+            return AIMessage(content='', tool_calls=[
+                builder_call('write_file', 'doc', path='SKILL.md', content='document'),
+                builder_call('write_file', 'script', path='scripts/access.py', content='value = None\n'),
+                builder_call('validate_skill', 'successful-check'),
+                builder_call('edit_file', 'subsequent-edit', path='scripts/access.py',
+                             old_text='value = None', new_text="value = 'broken'")])
+    builder = Builder(); diagnostics = {}; target = tmp_path/'library/example-com'
+    result = await build_skill('example.com', [], output_dir=target, builder_model=builder,
+        max_turns=1, diagnostics=diagnostics, record_dir=tmp_path/'records')
+    assert builder.calls == 2 and result is None and not target.exists()
+    assert diagnostics['stage'] == 'examples'
+    assert executions == ['value = None\n', "value = 'broken'\n"]

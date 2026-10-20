@@ -51,6 +51,16 @@ CLI 参数和输出字段由 scripts/search.py --help 说明。
 
 包内还可使用 `references/` 保存参考材料、`assets/` 保存资源文件，并提供依赖声明。脚本应将运行结果写入调用方指定的位置，便于在不同宿主下复用。
 
+### 访问实现与依赖
+
+Access Skill 可以用 HTTP 客户端读取 API、Feed 或静态页面，用 Scrapy 组织分页、链接跟随、去重和并发，也可以用 Playwright 完成搜索表单、筛选、滚动、动态结果等待和下载。需要多种方式时可组合实现，例如通过 [scrapy-playwright](https://github.com/scrapy-plugins/scrapy-playwright) 处理需渲染的请求。创建 Agent 根据站点实际行为选择技术；需求 Agent 定义要获取的信息及其含义。
+
+包内 CLI 使用普通库完成这些操作，并在 `requirements.txt` 或 `package.json` 中声明实际依赖，在 `SKILL.md` 中说明版本、安装、浏览器和代理要求。Scrapy 支持通过脚本启动爬取，Playwright 需要同时准备 Python 库与浏览器引擎，参见 [Scrapy 脚本入口](https://docs.scrapy.org/en/latest/topics/practices.html)与 [Playwright 安装说明](https://playwright.dev/python/docs/library)。
+
+SearchOS 的 `access` 可选依赖组包含 Scrapy、Playwright 和 scrapy-playwright。宿主环境可用 `python -m pip install -e '.[access]'` 和 `python -m playwright install chromium` 准备；迁移到其他 Harness 时按具体技能包的依赖安装。写入依赖文件不会自动安装库。
+
+探索工具 `run_python` 对原生模块和子进程有限制，适合小型 HTTP / Playwright 探测；Scrapy 和完整浏览器流程应直接写入包内脚本，通过 `exec` 使用最终隔离运行环境调试。浏览器代理需在 CLI 中显式配置，不能依赖探索工具的自动注入。爬取和交互应设置时间、页数、并发与结果数量上限，并在结束时关闭浏览器；验收样例使用有代表性的小规模操作。
+
 ### 从输入信号创建或更新技能
 
 创建流程分为 Intent 与 Pipeline。Intent 判断输入中是否存在值得复用的能力缺口，Pipeline 生成候选包并完成对应类别的校验。
@@ -125,6 +135,14 @@ Agent 通过固定工具接口使用技能。技能推荐帮助它选择候选�
   ]
 }
 ```
+
+Access 能力的交付粒度由用户用途和站点实际信息共同确定。新闻聚合可以交付摘要与原文链接，目录或检索可以交付条目与详情链接，正文读取再交付原文内容。满足需求的列表或摘要能力可以独立成立，不因链接指向外站就必须逐条读取。
+
+`source_url` 表示与记录对应、有来源响应依据的 HTTP(S) 链接，可以指向原始报道、实体详情、目录条目或实际读取页面，不要求与入口同域，也不要求已打开目标。需要保留实际获取位置时，可另用 `retrieved_from` 记录聚合页或 API 地址；它不是通用必填字段。技能说明应写清来源字段含义和返回内容的粒度，不能把摘要声称为全文，或把返回原文链接声称为已核实原文。
+
+创建流程依次完成需求分析、脚本创建和逐能力执行验证。验证运行已登记的真实 CLI 样例，检查退出状态、返回记录、必需字段和来源 URL；需求中明确声明的边界样例按其预期状态执行。来源缺失的业务值允许为空，不用其他字段补齐。
+
+验证失败时，将具体错误和脚本输出直接反馈给创建 Agent，在剩余轮数内修改并重测。需求 Agent 或创建 Agent 到达常规轮数仍未完成时，额外调用一次提示其收尾；仍失败则保留记录和草稿。只有当前文件通过验证才发布，不额外引入来源复核 Agent 或站点专用规则。
 
 Agent 收到 `page_url` 后，通过 `open` 和 `find` 阅读结果。页面元数据保留包版本、执行 ID、文件哈希和生产任务；阅读窗口沿用 Web 证据抽取与核验流程，能够从结论追溯到执行产物与来源内容。执行完成本身不等于证据提交，实际打开的结果内容才进入阅读和抽取流程。
 

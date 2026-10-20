@@ -19,6 +19,19 @@
 - 微信公众号内容（使用 wechat_article skill）
 
 ## 执行方式
+
+### CLI 调用（推荐）
+```bash
+# 使用连字符格式的命令行选项
+python scripts/run.py --query "OpenAI GPT-5 release" --num-results 5 --days-back 7
+
+# 或使用 JSON 参数
+python scripts/run.py --params '{"query": "OpenAI GPT-5 release", "num_results": 5, "days_back": 7}'
+```
+
+**注意：命令行选项必须使用连字符格式（`--num-results`、`--days-back`），不支持下划线格式（`--num_results`、`--days_back`）。**
+
+### 代码调用
 ```python
 result = await execute({
     "query": "OpenAI GPT-5 release",

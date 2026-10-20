@@ -466,7 +466,7 @@ async def test_update_cannot_finish_by_only_revalidating_old_package(tmp_path, m
     target = tmp_path/'new/example-com'
     result = await build_skill('example.com', [], output_dir=target, existing_package=original,
         builder_model=model, max_turns=2, validation_examples=[{'argv':['python','scripts/access.py'],'output':'','records_key':'records'}])
-    assert model.count == 2
+    assert model.count == (2 if change else 3)
     if change:
         assert result == target and (target/'scripts/access.py').read_text() == 'print("new")'
     else:

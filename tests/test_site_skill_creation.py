@@ -45,8 +45,9 @@ async def test_intent_can_only_add_boundary_cases_with_fresh_page_evidence(tmp_p
         async def converse(*args, **kwargs):
             oid = session.observe('web_open', {'id_or_url': 'https://example.com/no-match'},
                 {'content': 'No matching records', 'live_evidence': True}, 'intent') if fresh else 'obs-1'
-            return {'status': 'clarified', 'guidance': '新增已核实的无匹配边界，保留原能力。',
-                    'evidence_ids': [oid], 'boundary_additions': [boundary_case(evidence_ids=[oid])]}
+            return kwargs['response_validator']({
+                'status': 'clarified', 'guidance': '新增已核实的无匹配边界，保留原能力。',
+                'evidence_ids': [oid], 'boundary_additions': [boundary_case(evidence_ids=[oid])]})
         session.converse = converse
         if not fresh:
             with pytest.raises(ValueError, match='newly opened'):
@@ -176,7 +177,7 @@ async def test_structured_submission_storage_error_stops_after_one_model_call(tm
 
 
 @pytest.mark.asyncio
-async def test_intent_reserves_submission_and_repair_inside_eight_calls(tmp_path):
+async def test_intent_can_research_and_correct_submission_within_regular_calls(tmp_path):
     from searchos.skills.intent.site import SiteIntentSession
     from searchos.skills.pipeline.access.records import BuildRecord
     from types import SimpleNamespace
@@ -194,7 +195,7 @@ async def test_intent_reserves_submission_and_repair_inside_eight_calls(tmp_path
             self.calls += 1
             if self.calls <= 5:
                 return AIMessage(content='', tool_calls=[dict(id=str(self.calls), name='web_search', args={'query':'docs'})])
-            assert self.tools == {'submit_site_plan'}
+            assert {'submit_site_plan', 'web_search', 'web_open', 'web_find'} == self.tools
             proposal = plan()
             if self.calls == 6:
                 proposal['capabilities'][0]['inputs'] = ['query']
@@ -207,6 +208,49 @@ async def test_intent_reserves_submission_and_repair_inside_eight_calls(tmp_path
     assert result == plan() and model.calls == 7
     assert len(requests) == 6  # 一次预读 + 五次研究；提交不执行网页工具。
     assert session.state['validation_errors'][0]['call'] == 6
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('final_response', ['plan', 'malformed', 'tool'])
+async def test_intent_adds_one_final_json_call_only_after_regular_budget(tmp_path, final_response):
+    from types import SimpleNamespace
+    from searchos.skills.intent.site import SiteIntentSession
+    from searchos.skills.pipeline.access.records import BuildRecord
+    reads = []
+    class Browser:
+        async def dispatch(self, name, args):
+            reads.append((name, args))
+            return {'content': 'Public source', 'live_evidence': True}
+    class Model:
+        calls = 0
+        bindings = 0
+        def bind_tools(self, definitions):
+            self.bindings += 1
+            assert 'web_open' in {tool['function']['name'] for tool in definitions}
+            owner = self
+            class Bound:
+                async def ainvoke(self, messages):
+                    owner.calls += 1
+                    return AIMessage(content='', tool_calls=[dict(id=str(owner.calls), name='web_open',
+                        args={'id_or_url': 'https://example.com/docs'})])
+            return Bound()
+        async def ainvoke(self, messages):
+            self.calls += 1
+            assert self.calls == 3 and '唯一一次额外收尾' in messages[-1].content
+            if final_response == 'tool':
+                return AIMessage(content='', tool_calls=[dict(id='late', name='web_open',
+                    args={'id_or_url': 'https://example.com/late'})])
+            return AIMessage(content=json.dumps(plan()) if final_response == 'plan' else '{}')
+    model = Model()
+    session = SiteIntentSession(model, SimpleNamespace(browser=Browser()), BuildRecord(tmp_path / 'record'))
+    invoke = lambda: session.converse([], 2, validator=lambda value: validate_plan(value, session.state['observations']))
+    if final_response == 'plan':
+        assert await invoke() == plan()
+    else:
+        with pytest.raises(ValueError, match='budget exhausted'):
+            await invoke()
+    assert model.calls == session.state['calls'] == 3 and model.bindings == 2
+    assert len(reads) == 2  # 额外收尾轮不会执行研究工具，也没有第二次收尾。
 
 
 @pytest.mark.asyncio
@@ -278,7 +322,7 @@ async def test_locked_plan_resume_neither_researches_nor_replans(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_unlocked_resume_is_bounded_to_two_research_and_three_submission_calls(tmp_path):
+async def test_unlocked_resume_allows_five_regular_calls_and_one_final_response(tmp_path):
     from searchos.skills.intent.site import SiteIntentSession
     from searchos.skills.pipeline.access.records import BuildRecord
     from types import SimpleNamespace
@@ -297,17 +341,17 @@ async def test_unlocked_resume_is_bounded_to_two_research_and_three_submission_c
             return self
         async def ainvoke(self, messages):
             self.calls += 1
-            if self.calls <= 2:
+            if self.calls <= 5:
                 return AIMessage(content='', tool_calls=[dict(id=str(self.calls), name='web_search', args={'query': 'docs'})])
-            assert self.tools == {'submit_site_plan'}
+            assert {'submit_site_plan', 'web_search', 'web_open', 'web_find'} == self.tools
             return AIMessage(content='invalid JSON')
     model = Intent()
     session = SiteIntentSession(model, SimpleNamespace(browser=Browser()), BuildRecord(tmp_path / 'resumed'))
     with pytest.raises(ValueError, match='budget exhausted'):
         await session.prepare('example.com', ['https://example.com/news'], '', resume=prior)
-    assert model.calls == 5 and session.state['calls'] == 13
-    assert len(reads) == 3  # 一次入口刷新、两次模型研究，其余只能提交。
-    assert json.loads(session.path.read_text())['calls'] == 13
+    assert model.calls == 6 and session.state['calls'] == 14
+    assert len(reads) == 6  # 一次入口刷新、五次常规研究，最后额外一次仅输出。
+    assert json.loads(session.path.read_text())['calls'] == 14
     assert json.loads(prior.read_text()) == original
 
 
@@ -339,7 +383,7 @@ async def test_planning_failure_persists_its_stage_without_starting_builder(tmp_
     saved = json.loads(result.trial_path.read_text())
     assert saved['failure_stage'] == 'site_intent'
     assert saved['diagnostics']['turns_attempted'] == 0
-    assert intent.calls == 8 and builder.calls == 0
+    assert intent.calls == 9 and builder.calls == 0
 
 
 @pytest.mark.parametrize('bad', ['evidence', 'duplicate', 'cycle', 'identical_examples'])
@@ -381,7 +425,9 @@ async def test_site_entry_uses_intent_dialogue_and_builds_one_multicapability_pa
     from searchos.skills.pipeline.access.browser import ResearchBrowser
 
     async def research(self, name, args):
-        return {'content': 'Public documentation: search records and read entity details. https://example.com/docs'}
+        return {'content': 'Public documentation: search records and read entity details. '
+                           'The local source returns title=local record. https://example.com/docs',
+                'live_evidence': True, 'content_source': 'page'}
     monkeypatch.setattr(ResearchBrowser, 'dispatch', research)
     site_plan = plan()
     site_plan['capabilities'][0].update(inputs={}, examples=[{}])
@@ -395,8 +441,9 @@ async def test_site_entry_uses_intent_dialogue_and_builds_one_multicapability_pa
             self.calls += 1
             if self.calls == 1:
                 return AIMessage(content=json.dumps(site_plan))
-            assert 'question' in messages[1].content
-            return AIMessage(content=json.dumps({'status': 'clarified', 'guidance': 'detail 按实体标识读取，不能返回搜索列表。', 'evidence_ids': ['obs-1']}))
+            if self.calls == 2:
+                assert 'question' in messages[1].content
+                return AIMessage(content=json.dumps({'status': 'clarified', 'guidance': 'detail 按实体标识读取，不能返回搜索列表。', 'evidence_ids': ['obs-1']}))
 
     class Builder:
         calls = 0
@@ -413,7 +460,7 @@ async def test_site_entry_uses_intent_dialogue_and_builds_one_multicapability_pa
                 advice = next(message for message in reversed(messages)
                               if getattr(message, 'tool_call_id', None) == 'question')
                 assert '不能返回搜索列表' in advice.content
-                assert '剩余 44 次模型调用' in messages[-1].content
+                assert '2/45' in messages[-1].content
                 script = 'SOURCE = ' + repr(capability_source) + '\n' + '''import argparse,json,sys,urllib.request
 p=argparse.ArgumentParser();p.add_argument('operation');p.add_argument('--input');a=p.parse_args()
 inputs=json.loads(a.input)
@@ -488,6 +535,86 @@ async def test_advice_cannot_change_locked_plan_and_budget_survives_resume(tmp_p
         workspace.close()
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize('malformed', ['output_fields', 'nested_input'])
+@pytest.mark.parametrize('corrected', [True, False])
+async def test_advice_repairs_its_own_contract_within_existing_call_budget(tmp_path, malformed, corrected):
+    from searchos.skills.intent.site import SiteIntentSession
+    from searchos.skills.pipeline.access.records import BuildRecord
+    from searchos.skills.pipeline.access.tools import BuilderWorkspace
+
+    original = plan()
+    replacement = [{'query': 'real-alpha'}, {'query': 'real-beta'}]
+    checkpoints = []
+    class Browser:
+        async def dispatch(self, name, args):
+            return {'content': 'Verified identifiers real-alpha and real-beta; observed-empty has no records.',
+                    'live_evidence': True, 'content_source': 'page'}
+    class Intent:
+        calls = 0
+        def bind_tools(self, definitions): return self
+        async def ainvoke(self, messages):
+            self.calls += 1
+            assert session.state['plan'] == original
+            assert workspace.examples == capability_examples(original)
+            assert not session.state.get('revisions') and not checkpoints
+            if self.calls == 1:
+                return AIMessage(content='', tool_calls=[dict(id='evidence', name='web_open',
+                    args={'id_or_url': 'https://example.com/identifiers'})])
+            if self.calls == 3:
+                feedback = '\n'.join(str(message.content) for message in messages[-2:])
+                assert 'search.examples' in feedback and '需求 Agent' in feedback
+            examples = deepcopy(replacement)
+            if self.calls == 2 or not corrected:
+                examples = ([{**item, 'title': 'output field', 'source_url': 'https://example.com/a'}
+                             for item in examples] if malformed == 'output_fields' else
+                            [{'input': item, 'expected_status': 'ok', 'reason': 'valid identifier'}
+                             for item in examples])
+            return AIMessage(content=json.dumps({
+                'status': 'clarified', 'guidance': '修正已核实的错误标识并保留原能力。',
+                'evidence_ids': ['obs-2'],
+                'example_replacement': {'reason': '原标识无效，已读取真实标识。', 'examples': examples},
+                'boundary_additions': [boundary_case(evidence_ids=['obs-2'])]}))
+
+    workspace = BuilderWorkspace(tmp_path/'package')
+    try:
+        workspace.browser = Browser()
+        workspace.checkpoint = lambda: checkpoints.append(deepcopy(workspace.examples))
+        model = Intent()
+        session = SiteIntentSession(model, workspace, BuildRecord(tmp_path/'record'))
+        session.state.update(plan=deepcopy(original), calls=8, observations=[
+            {'id': 'obs-1', 'tool': 'web_open', 'usable': True}])
+        workspace.set_validation_examples(capability_examples(original))
+        if corrected:
+            answer = await session.advise('search', '开发标识无效，请核实并修正。', ['obs-1'])
+            assert answer['contract_revision'] == 1
+            assert session.state['initial_plan'] == original
+            assert len(session.state['revisions']) == len(checkpoints) == 1
+            revised = session.state['plan']
+            assert revised['capabilities'][0]['examples'] == replacement
+            assert revised['capabilities'][0]['required_fields'] == original['capabilities'][0]['required_fields']
+            assert revised['capabilities'][1] == original['capabilities'][1]
+            assert workspace.examples == capability_examples(revised)
+        else:
+            with pytest.raises(ValueError, match='site intent agent advice.*search.examples'):
+                await session.advise('search', '开发标识无效，请核实并修正。', ['obs-1'])
+            assert session.state['plan'] == original
+            assert workspace.examples == capability_examples(original)
+            assert not session.state.get('revisions') and not session.state.get('initial_plan')
+            assert not checkpoints
+            assert 'site intent agent advice' in session.state['dialogues'][0]['error']
+        assert model.calls == (3 if corrected else 4)
+        assert session.state['calls'] == 8 + model.calls
+        assert len(session.state['dialogues']) == 1
+        assert not session.state.get('last_proposal')  # 建议不覆盖原规划草案。
+        saved = json.loads(session.path.read_text())
+        assert saved['plan'] == session.state['plan'] and saved['calls'] == 8 + model.calls
+        assert all(item['kind'] == 'advice_validation' for item in saved['validation_errors'])
+        assert len(saved['validation_errors']) == (1 if corrected else 3)
+    finally:
+        workspace.close()
+
+
 def test_draft_checkpoints_are_bounded_and_identical_files_are_reused(tmp_path):
     from searchos.skills.pipeline.drafts import save_draft, load_draft
     source = tmp_path/'source'; source.mkdir()
@@ -536,7 +663,7 @@ def test_parse_object_rejects_ambiguous_or_incomplete_payloads(content):
         parse_object(AIMessage(content=content))
 
 
-def host_review_fixture(tmp_path, monkeypatch, *, response='clarified', draft=False, mismatch=False):
+def resumed_pipeline_fixture(tmp_path, monkeypatch, *, draft=False):
     from dataclasses import asdict
     from searchos.skills import SkillRequest
     from searchos.skills.pipeline.access import run
@@ -550,15 +677,14 @@ def host_review_fixture(tmp_path, monkeypatch, *, response='clarified', draft=Fa
              'calls': 9, 'dialogues': [{'capability_id': 'search', 'question': 'previous', 'answer': {'status': 'clarified'}}]}
     session = saved/'site-session.json'; session.write_text(json.dumps(state))
     request = SkillRequest('access', 'example-com', '读取站点记录', host='example.com', probe_urls=('https://example.com/',))
-    review = {'capability_id': 'search', 'question': '来源确认新的无匹配边界，请复核并保留原例。', 'evidence_ids': ['obs-1']}
     episodes = []
     async def episode(workspace, final_dir, host, urls, notes, model, *args):
         episodes.append({'examples': deepcopy(workspace.examples), 'locked': workspace.examples_locked,
-                         'plan': deepcopy(workspace.site_intent.state['plan']), 'notes': notes})
+                         'plan': deepcopy(workspace.site_intent.state['plan'])})
         return None
     async def browser(self, name, args):
         assert name == 'web_open'
-        return {'content': 'This query has no matching records.', 'live_evidence': True, 'content_source': 'page'}
+        return {'content': 'Public documentation.', 'live_evidence': True, 'content_source': 'page'}
     monkeypatch.setattr(run, '_build_episode', episode)
     monkeypatch.setattr(ResearchBrowser, 'dispatch', browser)
     class Intent:
@@ -566,83 +692,25 @@ def host_review_fixture(tmp_path, monkeypatch, *, response='clarified', draft=Fa
         def bind_tools(self, definitions): return self
         async def ainvoke(self, messages):
             self.calls += 1
-            if response == 'cancelled':
-                import asyncio
-                raise asyncio.CancelledError()
-            if response == 'call_budget':
-                raise RuntimeError('site_total_model_call_budget_exhausted')
-            if response in {'clarified', 'replacement'} and self.calls == 1:
-                return AIMessage(content='', tool_calls=[{'name': 'web_open', 'args': {'id_or_url': 'https://example.com/empty'}, 'id': 'review-read'}])
-            if response == 'invalid':
-                return AIMessage(content=json.dumps({'status': 'clarified', 'guidance': 'invalid evidence', 'evidence_ids': ['missing']}))
-            advice = {'status': response if response in {'blocked', 'needs_evidence'} else 'clarified',
-                      'guidance': '来源已核实，应保留原记录并添加此边界。',
-                      'evidence_ids': ['obs-2'] if response in {'clarified', 'replacement'} else ['obs-1']}
-            if response == 'clarified':
-                advice['boundary_additions'] = [boundary_case(evidence_ids=['obs-2'])]
-            if response == 'replacement':
-                advice['example_replacement'] = {'reason': 'attempt to weaken old cases',
-                    'examples': [{'query': 'easier-a'}, {'query': 'easier-b'}]}
-            return AIMessage(content=json.dumps(advice))
+            raise AssertionError('locked plan restoration must not call the model')
     intent = Intent()
     kwargs = {'library_path': tmp_path/'library', 'trial_root': tmp_path/'trials', 'model': intent,
               'access_site_intent': True, 'access_intent_model': intent, 'access_site_session': session}
     if draft:
         source = tmp_path/'draft-source'; source.mkdir()
         (source/'SKILL.md').write_text('unfinished original draft')
-        examples = capability_examples(original)
         pointer = save_draft(saved, source, ['SKILL.md'], name='example-com',
-                             examples=examples[:-1] if mismatch else examples, require_host=True)
+                             examples=capability_examples(original), require_host=True)
         (saved/'request.json').write_text(json.dumps({'request': asdict(request), 'base_hash': None,
                                                      'access_site_intent': True}))
         kwargs['resume_draft'] = pointer
-    return request, review, kwargs, intent, episodes, state
+    return request, kwargs, intent, episodes, state
 
 
 @pytest.mark.asyncio
-async def test_explicit_host_review_reuses_session_and_locks_added_boundary_before_builder(tmp_path, monkeypatch):
+async def test_locked_plan_pipeline_resume_adds_no_intent_calls(tmp_path, monkeypatch):
     from searchos.skills import run_pipeline
-    request, review, kwargs, model, episodes, original = host_review_fixture(tmp_path, monkeypatch, draft=True)
-    result = await run_pipeline(request, **kwargs, access_intent_review=review)
-    assert len(episodes) == 1 and episodes[0]['locked']
-    assert episodes[0]['examples'][:4] == capability_examples(original['plan'])
-    assert episodes[0]['examples'][4]['expected_status'] == 'empty'
-    assert episodes[0]['plan']['capabilities'][0]['examples'] == original['plan']['capabilities'][0]['examples']
-    assert episodes[0]['plan']['capabilities'][1] == original['plan']['capabilities'][1]
-    assert '来源已核实' in episodes[0]['notes']
-    saved = json.loads((result.trial_path.parent/'site-session.json').read_text())
-    assert model.calls == 2 and saved['calls'] == 11 and len(saved['dialogues']) == 2
-    assert saved['initial_plan'] == original['plan']
-    diagnostics = json.loads((result.trial_path.parent/'builder.json').read_text())
-    assert diagnostics['intent_review']['status'] == 'clarified'
-    assert 'failure_stage' not in diagnostics
-    recorded = json.loads((result.trial_path.parent/'request.json').read_text())
-    assert recorded['access_intent_review'] == review
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize('response', ['blocked', 'needs_evidence', 'invalid', 'call_budget', 'replacement', 'dialogue_budget'])
-async def test_unsuccessful_host_review_stops_before_builder_and_preserves_locked_plan(tmp_path, monkeypatch, response):
-    from searchos.skills import run_pipeline
-    request, review, kwargs, model, episodes, original = host_review_fixture(tmp_path, monkeypatch, response=response)
-    if response == 'dialogue_budget':
-        original['dialogues'].append({'question': 'second previous dialogue'})
-        kwargs['access_site_session'].write_text(json.dumps(original))
-    result = await run_pipeline(request, **kwargs, access_intent_review=review)
-    assert result.status == 'error' and result.failure_stage == 'site_intent_review'
-    assert not episodes and model.calls == (0 if response == 'dialogue_budget' else 2 if response == 'replacement' else 1)
-    saved = json.loads((result.trial_path.parent/'site-session.json').read_text())
-    assert saved['plan'] == original['plan'] and len(saved['dialogues']) == 2
-    diagnostics = json.loads((result.trial_path.parent/'builder.json').read_text())
-    assert diagnostics['intent_review']['status'] != 'clarified'
-    assert diagnostics['turns_attempted'] == 0
-    assert not (tmp_path/'library/access/example-com').exists()
-
-
-@pytest.mark.asyncio
-async def test_locked_plan_without_explicit_review_adds_no_intent_calls(tmp_path, monkeypatch):
-    from searchos.skills import run_pipeline
-    request, _, kwargs, model, episodes, original = host_review_fixture(tmp_path, monkeypatch)
+    request, kwargs, model, episodes, original = resumed_pipeline_fixture(tmp_path, monkeypatch)
     result = await run_pipeline(request, **kwargs)
     assert len(episodes) == 1 and model.calls == 0
     assert episodes[0]['examples'] == capability_examples(original['plan'])
@@ -651,59 +719,36 @@ async def test_locked_plan_without_explicit_review_adds_no_intent_calls(tmp_path
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('configuration', ['new_plan', 'unlocked_plan', 'site_intent_disabled', 'draft_mismatch'])
-async def test_host_review_requires_existing_locked_plan_and_matching_original_draft(tmp_path, monkeypatch, configuration):
+@pytest.mark.parametrize('plan_locked', [False, True])
+async def test_resume_before_examples_checkpoint_compiles_plan_without_rewriting_history(tmp_path, monkeypatch, plan_locked):
     from searchos.skills import run_pipeline
-    request, review, kwargs, model, episodes, original = host_review_fixture(tmp_path, monkeypatch,
-        draft=configuration == 'draft_mismatch', mismatch=configuration == 'draft_mismatch')
-    if configuration == 'new_plan': kwargs['access_site_session'] = None
-    if configuration == 'unlocked_plan':
+    request, kwargs, _, episodes, original = resumed_pipeline_fixture(tmp_path, monkeypatch, draft=True)
+    pointer = kwargs['resume_draft']
+    draft = json.loads(pointer.read_text())
+    draft['examples'] = []
+    pointer.write_text(json.dumps(draft))
+    original_plan = deepcopy(original['plan'])
+    if not plan_locked:
         original['plan'] = None
         kwargs['access_site_session'].write_text(json.dumps(original))
-    if configuration == 'site_intent_disabled': kwargs['access_site_intent'] = False
-    result = await run_pipeline(request, **kwargs, access_intent_review=review)
-    assert result.status == 'error' and result.failure_stage == 'site_intent_review'
-    assert model.calls == 0 and not episodes
+    previous_draft = pointer.read_bytes()
+    previous_session = kwargs['access_site_session'].read_bytes()
 
+    class Intent:
+        calls = 0
+        def bind_tools(self, definitions): return self
+        async def ainvoke(self, messages):
+            self.calls += 1
+            return AIMessage(content=json.dumps(original_plan))
 
-@pytest.mark.asyncio
-async def test_host_review_cancellation_propagates_and_keeps_consumed_dialogue(tmp_path, monkeypatch):
-    import asyncio
-    from searchos.skills import run_pipeline
-    request, review, kwargs, model, episodes, _ = host_review_fixture(tmp_path, monkeypatch, response='cancelled')
-    with pytest.raises(asyncio.CancelledError):
-        await run_pipeline(request, **kwargs, access_intent_review=review)
-    saved = json.loads(next((tmp_path/'trials').glob('*/*/site-session.json')).read_text())
-    assert saved['calls'] == 10 and len(saved['dialogues']) == 2 and model.calls == 1 and not episodes
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize('followup_options', [{}, {'allow_example_replacement': True}])
-async def test_host_review_keeps_later_builder_questions_append_only(tmp_path, followup_options):
-    from searchos.skills.intent.site import SiteIntentSession
-    from searchos.skills.pipeline.access.records import BuildRecord
-    from searchos.skills.pipeline.access.tools import BuilderWorkspace
-    workspace = BuilderWorkspace(tmp_path/'package')
-    try:
-        session = SiteIntentSession(None, workspace, BuildRecord(tmp_path/'record'))
-        session.state.update(plan=plan(), observations=[{'id': 'obs-1', 'tool': 'web_open', 'usable': True}])
-        original = deepcopy(session.state['plan'])
-        workspace.set_validation_examples(capability_examples(original))
-        async def converse(*args, **kwargs):
-            if len(session.state['dialogues']) == 1:
-                return {'status': 'clarified', 'guidance': '保留原正例修复脚本。', 'evidence_ids': ['obs-1']}
-            oid = session.observe('web_open', {'id_or_url': 'https://example.com/new'},
-                {'content': 'New identifiers', 'live_evidence': True}, 'intent')
-            return {'status': 'clarified', 'guidance': '尝试替换原正例。', 'evidence_ids': [oid],
-                    'example_replacement': {'reason': '新的标识更容易访问',
-                        'examples': [{'query': 'easier-a'}, {'query': 'easier-b'}]}}
-        session.converse = converse
-        await session.advise('search', '复核修复反馈', ['obs-1'], allow_example_replacement=False)
-        with pytest.raises(ValueError, match='cannot replace existing examples'):
-            await session.advise('search', '继续处理原样例', ['obs-1'], **followup_options)
-        assert session.state['plan'] == original
-        assert workspace.examples == capability_examples(original)
-        assert len(session.state['dialogues']) == 2
-        assert all(item['mode'] == 'append_only_review' for item in session.state['dialogues'])
-    finally:
-        workspace.close()
+    intent = Intent()
+    kwargs['access_intent_model'] = intent
+    result = await run_pipeline(request, **kwargs)
+    assert len(episodes) == 1 and episodes[0]['locked'], result.error
+    assert episodes[0]['examples'] == capability_examples(original_plan)
+    assert intent.calls == (0 if plan_locked else 1)
+    saved = json.loads((result.trial_path.parent/'site-session.json').read_text())
+    assert saved['plan'] == original_plan
+    assert saved['calls'] == original['calls'] + intent.calls
+    assert pointer.read_bytes() == previous_draft
+    assert kwargs['access_site_session'].read_bytes() == previous_session

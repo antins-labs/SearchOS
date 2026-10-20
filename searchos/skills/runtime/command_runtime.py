@@ -37,7 +37,9 @@ def _entry(skill: Path, argv: list[str]) -> list[str]:
     executable = sys.executable if argv[0] in {"python", "python3"} else shutil.which(argv[0])
     if not executable:
         raise ValueError(f"interpreter unavailable: {argv[0]}")
-    return [str(Path(executable).resolve()), str(script), *argv[2:]]
+    # Python locates pyvenv.cfg through its invocation path; resolving the
+    # interpreter symlink would silently switch to the base environment.
+    return [os.path.abspath(executable), str(script), *argv[2:]]
 
 
 def _browser_cache() -> Path | None:
@@ -72,6 +74,12 @@ def _backend(command: list[str], skill: Path, work: Path, network: bool) -> tupl
     if cache := _browser_cache():
         roots.append(cache)
     roots = list(dict.fromkeys(p.resolve() for p in roots if p.exists()))
+    # Parsers may consult system MIME tables outside the runtime directories.
+    # Permit only existing table files, without opening their parent directories.
+    for filename in mimetypes.knownfiles:
+        path = Path(filename).resolve()
+        if path.is_file() and not any(_inside(path, root) for root in roots):
+            roots.append(path)
     if sys.platform == "darwin":
         sandbox = shutil.which("sandbox-exec")
         if not sandbox:
@@ -83,6 +91,14 @@ def _backend(command: list[str], skill: Path, work: Path, network: bool) -> tupl
                    f'(allow file-read* {read})'
                    f'(allow file-read* file-write* (subpath {json.dumps(str(work))}))'
                    '(allow file-read* file-write* (literal "/dev/null") (literal "/dev/urandom") (literal "/dev/random"))')
+        # Headless Chromium uses power monitoring and a PID-named rendezvous port.
+        if _browser_cache():
+            profile += (
+                '(allow iokit-open (iokit-user-client-class "RootDomainUserClient"))'
+                '(allow mach-register mach-lookup (global-name-regex '
+                '#"^org[.]chromium[.]Chromium[.]MachPortRendezvousServer[.][0-9]+$"))'
+                '(allow signal (target self) (target children))'
+            )
         if network:
             profile += '(allow network*)(allow mach-lookup (global-name "com.apple.mDNSResponder"))(allow file-read* (literal "/private/etc/resolv.conf") (literal "/private/etc/hosts") (subpath "/private/etc/ssl"))'
         return [sandbox, '-p', profile, *command], 'sandbox-exec'
