@@ -23,6 +23,23 @@ from searchos.tools.search_state import (
 )
 
 
+WORK_LOCK_WAIT_TIMEOUT_S = 300.0
+
+
+async def _acquire_work_lock(lock) -> None:
+    """同任务的并行调用等待共享目录；不阻塞事件循环，取消时不遗留抢锁线程。"""
+    try:
+        async with asyncio.timeout(WORK_LOCK_WAIT_TIMEOUT_S):
+            while True:
+                try:
+                    fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    return
+                except BlockingIOError:
+                    await asyncio.sleep(0.05)
+    except TimeoutError as exc:
+        raise ValueError("timed out waiting for this task's work directory; command was not started") from exc
+
+
 def _json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False)
 
@@ -271,7 +288,7 @@ async def exec_skill(
 ) -> tuple[str, dict]:
     """Run a bundled Python, Shell or Node script from a loaded skill.
 
-    argv starts with python/python3, bash/sh or node and a package-relative script path. No shell strings or inline code. cwd is the task work directory.
+    argv starts with python/python3, bash/sh or node and a package-relative script path. No shell strings or inline code. cwd is the task work directory. Concurrent calls within one task wait for this directory; different tasks run independently.
     Returns an execution receipt with read_result and saved page URLs. Follow read_result with open, then use find or open(loc=...) to inspect relevant windows before further retrieval. exec itself does not extract evidence.
     proxy_mode is inherit (environment), direct (no application proxy), or proxy (require a configured proxy). Browser scripts must honor these environment defaults.
     Legacy skills accept ["legacy-executor", "--params", "<JSON object>"].
@@ -299,10 +316,10 @@ async def exec_skill(
         # accept the same call or overwrite each other's pending receipt.
         lock = (skill_workspace_dir(root, "work") / f".{key}.lock").open("a")
         try:
-            fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
+            await _acquire_work_lock(lock)
+        except BaseException:
             lock.close()
-            raise ValueError("another command is running for this task; wait before retrying")
+            raise
         accepted = False
         result = None
         try:

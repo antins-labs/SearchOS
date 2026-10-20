@@ -54,6 +54,9 @@ class BudgetMiddleware(AgentMiddleware):
         self._thread_id = None
         self._epoch = uuid4().hex
         self._accounted_tools: set[str] = set()
+        # A cancelled duplicate can settle an execution before its owner returns.
+        # This only coordinates in-flight callbacks; checkpoints retain the charge.
+        self._cancelled_exec_charges: set[str] = set()
         self._has_run = False
         self._resuming = False
         self.workspace = workspace
@@ -144,6 +147,7 @@ class BudgetMiddleware(AgentMiddleware):
                     setattr(self.budget, key, value)
             self._restore_control(saved.get("control", {}))
             self._accounted_tools = set(saved.get("accounted_tools", ()))
+            self._cancelled_exec_charges.clear()
             self._notified = set(saved.get("notified", ()))
             self._exhausted = bool(saved.get("exhausted"))
             self._restore_rejections(saved.get("rejections", {}))
@@ -179,6 +183,7 @@ class BudgetMiddleware(AgentMiddleware):
             self._restore_control(asdict(ControlState()))
             self._epoch = uuid4().hex
             self._accounted_tools.clear()
+            self._cancelled_exec_charges.clear()
             self._notified.clear()
             self._exhausted = False
             self._restore_rejections({})
@@ -373,6 +378,7 @@ class BudgetMiddleware(AgentMiddleware):
                         field = "consumed_" + self._fields[dimension]
                         setattr(self.budget, field, getattr(self.budget, field) + cost)
                     self._accounted_tools.add(call_id)
+                    self._cancelled_exec_charges.add(call_id)
                     self._round_executed = True
                     # No ToolMessage exists on cancellation. This charge is captured
                     # by the next normal checkpoint; it is not a cross-store transaction.
@@ -390,10 +396,12 @@ class BudgetMiddleware(AgentMiddleware):
             and (execution.get("started") is False or execution.get("replayed") is True)
         ):
             return result
+        already_charged = name == "exec" and request.tool_call.get("id", "") in self._cancelled_exec_charges
         for dimension, cost in costs.items():
             field = self._fields[dimension]
             attribute = f"consumed_{field}"
-            setattr(self.budget, attribute, getattr(self.budget, attribute) + cost)
+            if not already_charged:
+                setattr(self.budget, attribute, getattr(self.budget, attribute) + cost)
             cap = getattr(self.budget, f"max_{field}")
             if (
                 cap > 0
