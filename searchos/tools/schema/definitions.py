@@ -75,12 +75,12 @@ async def create_schema(
     """Define SOCM coverage tables. Additive — every call ADDS tables; none
     are ever wiped, and all tables coexist permanently.
 
-    A table whose columns exactly match one that already exists is refused as
-    a duplicate; a table whose ``table_id`` already exists is also refused.
+    Tables are identified by ``table_id``. Different tables may have identical
+    columns; only a ``table_id`` that already exists is refused.
     To add columns to an existing table use ``add_columns``; for rows use
     ``add_entities`` / ``remove_entities`` /
-    ``edit_entities``. To introduce a genuinely new table (different columns,
-    new ``table_id``), call this again — it is appended alongside the rest.
+    ``edit_entities``. To introduce a new table, use a new ``table_id`` and
+    call this again — it is appended alongside the rest.
 
     Args:
         tables_json: JSON array of table objects. Each object:
@@ -384,9 +384,8 @@ async def create_schema(
 
     state = assertions._orch_ctx().workspace.load_state()
 
-    # ---- Dedup against existing tables (additive create) ----
+    # ---- Reject existing table IDs (additive create) ----
     existing = state.coverage_map.tables
-    headers_by_table = {tid: tuple(sch.attributes) for tid, sch in existing.items()}
     for t in parsed_tables:
         if t["table_id"] in existing:
             return (
@@ -394,15 +393,6 @@ async def create_schema(
                 "with add_columns / add_entities / remove_entities / edit_entities, or use a "
                 "new table_id for a genuinely different table."
             )
-        dup = next((tid for tid, hdr in headers_by_table.items()
-                    if hdr == tuple(t["attributes"])), None)
-        if dup is not None:
-            return (
-                f"Error: table {t['table_id']!r} has the same columns as "
-                f"table {dup!r} — refusing duplicate. Add rows to "
-                f"{dup!r} with add_entities instead."
-            )
-        headers_by_table[t["table_id"]] = tuple(t["attributes"])
 
     # ---- Required-attributes coverage check (eval mode), union over all tables ----
     required = state.required_attributes
