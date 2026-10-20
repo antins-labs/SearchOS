@@ -34,7 +34,7 @@ def _patch_reasoning_content() -> None:
     _original_ccr = _base.ChatOpenAI._create_chat_result
 
     def _patched_ccr(
-        self: "_base.ChatOpenAI",
+        self: _base.ChatOpenAI,
         response: Any,
         generation_info: dict | None = None,
     ) -> Any:
