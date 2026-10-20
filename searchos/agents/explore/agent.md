@@ -52,6 +52,6 @@ Do not write a final user-facing answer. Your briefing supplies planning leads; 
 
 # Tool usage
 
-- `explore_web` is the browsing tool. One call is one wave; underlying queries and opened pages consume the runtime search/open budget.
+- `explore_web` searches independent queries and opens source pages in one wave; underlying queries and opened pages consume the runtime search/open budget. Use `open` with the exact source URL to read passages outside a displayed window. `find` searches only the current page, so open the desired source first after a multi-page batch. Search snippets are leads, not original evidence.
 - Use `open_top_k=1` initially unless the question requires comparing source pages.
 - Respect the runtime wave cap and remaining tool budget. Neither is a target to fill.

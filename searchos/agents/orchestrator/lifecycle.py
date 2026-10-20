@@ -69,7 +69,6 @@ _ANTIPATTERN_DECAY_S = 1800  # 30 min — patterns older than this drop from pro
 _ANTIPATTERN_BLOCK_THRESHOLD = 2  # 2+ = "proven invalid, avoid"
 _EXPLORE_PAGE_URL_HDR = re.compile(r"^URL:\s*(\S+)", re.MULTILINE)
 _EXPLORE_PAGE_MIN_CHARS = 300
-_EXPLORE_PAGE_MAX_CHARS = 30_000  # per-page cap fed to extraction
 _KNOWN_AGENT_TYPES = set(_ROLE_REGISTRY)
 _KIND_FROM_AGENT = {
     _search.AGENT_TYPE: "search",
@@ -661,8 +660,6 @@ def _extract_explore_open_pages(messages: list) -> list[dict]:
             url = m.group(1).strip() if m else ""
             if not url.startswith("http"):
                 continue
-            if len(page_content) > _EXPLORE_PAGE_MAX_CHARS:
-                page_content = page_content[:_EXPLORE_PAGE_MAX_CHARS]
             out.append({"source_url": url, "content": page_content})
     # Dedup by URL — keep the longest body per URL
     by_url: dict[str, dict] = {}

@@ -22,10 +22,11 @@ from searchos.harness.middleware.context.utils.messages import (
     request_overhead_tokens,
     trim_with_task_anchor,
 )
+from searchos.util.tool_output_budget import DEFAULT_CONTEXT_TOKENS
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MAX_TOKENS = 100_000
+DEFAULT_MAX_TOKENS = DEFAULT_CONTEXT_TOKENS
 
 
 class DynamicTrimMiddleware(AgentMiddleware):

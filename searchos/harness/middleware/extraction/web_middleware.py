@@ -44,6 +44,24 @@ class WebEvidenceMiddleware(ObservationMiddleware):
         if tool_name in {"local_open", "local_find", "local_catalog", "exec", "read_skill_file", "load_skill", "list_skills"}:
             return result
         artifact = getattr(result, "artifact", None)
+        if tool_name == "explore_web":
+            # Each page carries its own trusted tool metadata; never extract
+            # the aggregate search snippets as if they belonged to one URL.
+            pages = artifact.get("pages", []) if isinstance(artifact, dict) else []
+            for page in pages:
+                content = page.get("content", "")
+                url = page.get("source_url", "")
+                if (not page.get("evidence_eligible") or not url.startswith(("https://", "http://"))
+                        or len(content) < 50 or not is_extractable_page(content)):
+                    continue
+                page_source = page.get("page_source") or {}
+                result = await self._submit(EvidenceObservation(
+                    content=content, source_url=url,
+                    page_id=page_source.get("page_id") or self._extract_page_id(content),
+                    source_kind=EvidenceSourceKind.PAGE, target_table=self.context.target_table,
+                    task_id=self.context.task_id, task_text=self.context.task_text,
+                ), result)
+            return result
         if isinstance(artifact, dict):
             source = artifact.get("page_source", {})
             if isinstance(source, dict) and (source.get("evidence_eligible") is False or source.get("kind") in {"diagnostic", "fixture", "execution_index"}):

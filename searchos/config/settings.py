@@ -38,8 +38,8 @@ from typing import Any, Literal
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from searchos.config.model_purposes import RETIRED_MODEL_ROLES
 from searchos.config.middleware import validate_pipelines
+from searchos.config.model_purposes import RETIRED_MODEL_ROLES
 
 # Re-exported for backward compat — many call sites import these from here.
 from searchos.config.profiles import (  # noqa: F401
@@ -337,10 +337,8 @@ def reload_settings_in_place(fresh: Settings | None = None) -> None:
 
 # Per-agent budget overrides (max_searches, max_opens, max_finds, max_skills).
 AGENT_BUDGET_OVERRIDES: dict[str, dict[str, int]] = {
-    # Fits the maximum documented 12 + 8 + 6 three-wave coverage schedule;
-    # opens get extra headroom for small conflict-verification branches.
-    # A single explore_web call can consume many units concurrently.
-    "explore_agent": {"max_searches": 30, "max_opens": 36, "max_finds": 0},
+    # 批量调用按实际 query/page 计量；find 继承公共的单 Agent 预算。
+    "explore_agent": {"max_searches": 30, "max_opens": 36},
     "search_agent": {"max_searches": 15, "max_opens": 15, "max_finds": 15},
     "local_search_agent": {
         "max_searches": 15, "max_opens": 15, "max_finds": 15,

@@ -23,7 +23,7 @@ def tool_costs(name: str, args: Any) -> dict[str, int]:
         costs["skill"] = 1
     if name == "explore_web" and isinstance(args, dict):
         queries = args.get("queries") or []
-        count = max(1, min(len(queries) if isinstance(queries, (list, tuple)) else 1, 12))
+        count = max(1, len(queries) if isinstance(queries, (list, tuple)) else 1)
         try:
             top_k = max(1, min(int(args.get("open_top_k", 1)), 2))
         except (TypeError, ValueError):

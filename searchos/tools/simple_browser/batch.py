@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any
+from typing import Annotated, Any
 
 from langchain_core.tools import tool
+from pydantic import Field
 
 from searchos.tools.simple_browser.render import PageContents
 from searchos.tools.simple_browser.state import (
@@ -25,18 +26,19 @@ from searchos.tools.simple_browser.state import (
     get_provider,
     is_url_allowed,
 )
+from searchos.util.concurrency import ConcurrencyGate
+from searchos.util.tool_output_budget import bounded_text, text_token_bound, tool_output_budget
 
 logger = logging.getLogger(__name__)
 
-_MAX_QUERIES_PER_WAVE = 12
 _MAX_OPEN_TOP_K = 2
-_PAGE_VIEW_TOKENS = 700
-_SNIPPET_CHARS = 360
 _PAGE_START = "<<<EXPLORE_PAGE>>>"
 _PAGE_END = "<<<END_EXPLORE_PAGE>>>"
+# Limit search and page-fetch I/O independently of model request quotas.
+batch_io_gate = ConcurrencyGate(2)
 
 
-def _unique_nonempty(values: list[str], *, limit: int) -> list[str]:
+def _unique_nonempty(values: list[str]) -> list[str]:
     out: list[str] = []
     seen: set[str] = set()
     for value in values:
@@ -46,8 +48,6 @@ def _unique_nonempty(values: list[str], *, limit: int) -> list[str]:
             continue
         seen.add(key)
         out.append(item)
-        if len(out) >= limit:
-            break
     return out
 
 
@@ -62,7 +62,9 @@ async def _search_many(
 
     async def _one(query: str) -> tuple[str, list[Any], str]:
         try:
-            raw = await provider.search(query, max_results_per_query)
+            async with batch_io_gate.aslot():
+                pending = provider.search(query, max_results_per_query)
+                raw = await asyncio.wait_for(pending, 20)
             return query, apply_source_controls(raw), ""
         except Exception as exc:  # noqa: BLE001 — one failed branch must not kill the wave
             logger.warning("explore search failed for %r: %s", query, exc)
@@ -115,22 +117,13 @@ async def _open_many(urls: list[str]) -> list[PageContents]:
         cached = browser.get_page_by_url(url) or _read_page_from_disk(url)
         if cached is not None:
             return cached
-        page = await _fetch_page(url)
-        if page.text.startswith(FETCH_ERROR_SENTINEL) and url in browser.search_content_cache:
-            result = browser.search_content_cache[url]
-            snippet = result.content or result.snippet or ""
-            if snippet:
-                page = PageContents(
-                    url=url,
-                    title=result.title or page.title,
-                    text=(
-                        f"URL: {url}\n\n"
-                        "[NOTE] Live fetch failed; the content below is the "
-                        "search-engine snippet, not the full page.\n\n"
-                        f"{snippet}"
-                    ),
-                    urls={},
-                )
+        try:
+            async with batch_io_gate.aslot():
+                pending = _fetch_page(url)
+                page = await asyncio.wait_for(pending, 20)
+        except Exception as exc:
+            return PageContents(url=url, title=url,
+                                text=f"{FETCH_ERROR_SENTINEL} {type(exc).__name__}", urls={})
         return page
 
     pages = list(await asyncio.gather(*(_one(url) for url in urls)))
@@ -142,7 +135,7 @@ async def _open_many(urls: list[str]) -> list[PageContents]:
     return pages
 
 
-def _render_search_rows(rows: list[tuple[str, list[Any], str]]) -> str:
+def _render_search_rows(rows: list[tuple[str, list[Any], str]], *, snippets: bool = True) -> str:
     blocks: list[str] = ["# Explore wave: search results"]
     for index, (query, results, error) in enumerate(rows, start=1):
         blocks.append(f"\n## Query {index}: {query}")
@@ -154,45 +147,80 @@ def _render_search_rows(rows: list[tuple[str, list[Any], str]]) -> str:
             continue
         for rank, result in enumerate(results, start=1):
             snippet = (result.content or result.snippet or "").replace("\n", " ").strip()
-            if len(snippet) > _SNIPPET_CHARS:
-                snippet = snippet[:_SNIPPET_CHARS] + "…"
             blocks.append(f"- [{rank}] {result.title or '(untitled)'}")
             blocks.append(f"  URL: {result.url}")
-            if snippet:
+            if snippets and snippet:
                 blocks.append(f"  Snippet: {snippet}")
     return "\n".join(blocks)
 
 
-def _render_pages(pages: list[PageContents]) -> str:
-    blocks: list[str] = ["\n# Opened pages (concurrent)"]
-    for page in pages:
-        isolated = BrowserState(pages={page.url: page}, page_stack=[page.url])
-        rendered = isolated.show_page(view_tokens=_PAGE_VIEW_TOKENS)
-        blocks.extend([_PAGE_START, rendered, _PAGE_END])
-    return "\n".join(blocks)
+def _render_wave(rows, pages: list[PageContents], summary: str) -> tuple[str, dict]:
+    """整次返回共用预算；抽取观测严格复用已显示的页面窗口。"""
+    budget = max(0, tool_output_budget.get())
+    browsers = [BrowserState(pages={p.url: p}, page_stack=[p.url]) for p in pages]
+    # 足以显示全文；真正约束是下方对完整结果的统一计量。
+    full_view = max((len(p.text) * 2 + 1 for p in pages), default=1)
+
+    def render(view_tokens, search_text, notice=""):
+        observations = []
+        blocks = [summary, notice, search_text, "\n# Opened pages (concurrent)"]
+        for page, browser in zip(pages, browsers):
+            rendered, metadata = browser.show_page_with_metadata(view_tokens=view_tokens)
+            blocks.extend([_PAGE_START, rendered, _PAGE_END])
+            observations.append({
+                "content": rendered,
+                "source_url": page.source_url or page.url,
+                "evidence_eligible": not page.text.startswith(FETCH_ERROR_SENTINEL),
+                **metadata,
+            })
+        return "\n".join(blocks), {"pages": observations}
+
+    complete = render(full_view, _render_search_rows(rows))
+    if text_token_bound(complete[0]) <= budget:
+        return complete
+
+    # 先去掉检索摘要以保留原文，随后让长页面公平共享剩余空间；短页面释放额度。
+    search_text = _render_search_rows(rows, snippets=False)
+    notice = ("[Context budget: search snippets omitted; page windows may be shortened. "
+              "Open the desired source by exact URL before using find to locate missing passages.]")
+    best = render(1, search_text, notice)
+    if text_token_bound(best[0]) > budget:
+        # 连页头都放不下时，不提交任何未展示的页面给抽取层。
+        text = ("[Context budget: page bodies omitted and search listing may be truncated. "
+                "Use open with a source URL or issue a smaller batch.]\n"
+                + summary + "\n" + search_text)
+        return bounded_text(text, budget), {"pages": []}
+    low, high = 1, full_view
+    while low < high:
+        mid = (low + high + 1) // 2
+        candidate = render(mid, search_text, notice)
+        if text_token_bound(candidate[0]) <= budget:
+            low, best = mid, candidate
+        else:
+            high = mid - 1
+    return best
 
 
-@tool
+@tool(response_format="content_and_artifact")
 async def explore_web(
-    queries: list[str],
+    queries: Annotated[list[str], Field(min_length=1)],
     open_top_k: int = 1,
     max_results_per_query: int = 5,
-) -> str:
-    """Run one broad Explore wave with concurrent searches and page opens.
+) -> tuple[str, dict]:
+    """Run one Explore wave with concurrent searches and page opens.
 
-    Use 8-12 genuinely different query families in the first wave (official
-    roster, canonical list, region/category slices, alternative language,
-    historical names, and eligibility-boundary queries). Later waves should
-    target measured gaps, not paraphrase previous queries.
+    Scale queries to unresolved needs and budget; a narrow lookup may need only one.
+
+    Broad discovery can span source families or scope slices. Later waves target remaining gaps.
 
     Args:
-        queries: Distinct search queries for this coverage wave (maximum 12).
+        queries: Distinct search queries for this coverage wave, within the agent search budget.
         open_top_k: Top pages to open for each query, 1 or 2. URLs are deduped.
         max_results_per_query: Search hits retained per query, 1-8.
     """
-    clean_queries = _unique_nonempty(queries, limit=_MAX_QUERIES_PER_WAVE)
+    clean_queries = _unique_nonempty(queries)
     if not clean_queries:
-        return "Error: queries must contain at least one non-empty query"
+        return "Error: queries must contain at least one non-empty query", {"pages": []}
 
     open_top_k = max(1, min(int(open_top_k), _MAX_OPEN_TOP_K))
     max_results_per_query = max(1, min(int(max_results_per_query), 8))
@@ -210,7 +238,7 @@ async def explore_web(
         f"{sum(len(results) for _, results, _ in rows)} hits, "
         f"{len(pages)} unique pages opened."
     )
-    return summary + "\n\n" + _render_search_rows(rows) + "\n" + _render_pages(pages)
+    return _render_wave(rows, pages, summary)
 
 
 __all__ = ["explore_web"]

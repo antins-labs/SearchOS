@@ -73,7 +73,7 @@ SEARCH_RESULT_LIMITS = dict.fromkeys(
         "local_catalog",
     },
     6000,
-) | {"explore_web": 48000}
+)
 
 
 def _graph(model, tools, system_prompt, middleware, *, pipeline, **graph_options):
@@ -117,7 +117,6 @@ def _worker_defaults(
         QueryRepetitionMiddleware(control, workspace=workspace, task=task),
         ReadingReminderMiddleware(control),
         EmptyResultMiddleware(control, workspace=workspace, task=task),
-        ToolResultLimitMiddleware(SEARCH_RESULT_LIMITS),
     ]
     if not isinstance(history, DynamicTrimMiddleware):
         middleware.insert(0, history)
@@ -140,6 +139,7 @@ def _worker_defaults(
         if isinstance(history, DynamicTrimMiddleware)
         else DynamicTrimMiddleware(max_tokens_fraction=settings.dynamic_trim_fraction)
     )
+    middleware.append(ToolResultLimitMiddleware(SEARCH_RESULT_LIMITS))
     return middleware
 
 

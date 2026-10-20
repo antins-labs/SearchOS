@@ -18,8 +18,9 @@ PIPELINES = {
 }
 WORKER = (
     "BudgetMiddleware", "RetryRouteMiddleware", "QueryRepetitionMiddleware",
-    "ReadingReminderMiddleware", "EmptyResultMiddleware", "ToolResultLimitMiddleware",
+    "ReadingReminderMiddleware", "EmptyResultMiddleware",
     "SOCMContextMiddleware", "ToolHistoryMiddleware", "DynamicTrimMiddleware",
+    "ToolResultLimitMiddleware",
 )
 PROGRESS = ("ProgressGuardMiddleware", "ToolProgressMiddleware", "ReadingProgressMiddleware", "StateStallMiddleware")
 ORDERS = {
@@ -62,7 +63,10 @@ CATALOG = [
     entry("ToolHistoryMiddleware", "context", ("旧工具结果压缩", "Older tool result compression"), ("压缩较早的工具输出。", "Compress older tool outputs."), ["wrap_model_call"]),
     entry("DynamicTrimMiddleware", "context", ("上下文裁剪", "Context trimming"), ("按 token 预算裁剪历史，保留任务锚点。", "Trim history to the token budget while preserving task anchors."), ["wrap_model_call"]),
     entry("CompactionContextMiddleware", "context", ("上下文压缩", "Context compaction"), ("将较早的对话整理为摘要并写回历史，供 agent 继续执行任务。", "Use the agent model to compact history and persist a handoff."), ["before_model", "wrap_model_call"], ("模型提供有效的上下文窗口时挂载；摘要会额外调用模型。", "Mounted when the model declares a valid context window; summarization adds model calls.")),
-    entry("ToolResultLimitMiddleware", "context", ("工具结果限长", "Tool result limits"), ("限制单次工具输出长度。", "Limit individual tool result lengths."), ["wrap_tool_call"]),
+    entry("ToolResultLimitMiddleware", "context", ("工具结果限长", "Tool result limits"),
+          ("根据可用上下文限制批量返回，其他工具保留各自限长。",
+           "Bound batch output by available context; retain other tool limits."),
+          ["wrap_model_call", "wrap_tool_call"]),
     entry("SteeringMiddleware", "context", ("实时追问", "Live follow-ups"), ("在模型边界接收用户追问与引导。", "Receive user follow-ups at model boundaries."), ["before_model", "wrap_model_call", "after_model"], ("提供追问队列时挂载。", "Mounted when a follow-up queue is provided.")),
     entry("WebEvidenceMiddleware", "extraction", ("网页证据抽取", "Web evidence"), ("从网页原文抽取并提交证据。", "Extract and commit evidence from web content."), ["wrap_tool_call"], ("提供抽取模型时挂载。", "Mounted when an extraction model is provided.")),
     entry("LocalEvidenceMiddleware", "extraction", ("本地证据抽取", "Local evidence"), ("从本地原文窗口抽取并提交证据。", "Extract and commit evidence from local source windows."), ["wrap_tool_call"], ("提供抽取模型时挂载。", "Mounted when an extraction model is provided.")),

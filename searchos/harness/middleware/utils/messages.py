@@ -7,6 +7,8 @@ from typing import Any
 
 from langchain_core.messages import HumanMessage, ToolMessage
 
+from searchos.util.tool_output_budget import bounded_text
+
 
 def extract_tool_name(request: Any, default: str = "unknown") -> str:
     """Tool name from a middleware ToolCallRequest (or duck-typed variants).
@@ -65,6 +67,9 @@ def append_feedback(result: Any, text: str) -> Any:
             if isinstance(content, list)
             else str(content) + "\n\n" + text
         )
+        budget = (getattr(result, "additional_kwargs", {}) or {}).get("sf_output_token_budget")
+        if isinstance(content, str) and isinstance(budget, int):
+            content = bounded_text(content, budget)
         return result.model_copy(update={"content": content})
     if hasattr(result, "content"):
         from copy import copy
