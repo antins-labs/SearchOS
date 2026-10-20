@@ -78,7 +78,7 @@ def membership_review(state) -> list[dict]:
     return reviews
 
 
-def render_research_plan(state, *, prompt_for_plan=False) -> str:
+def render_research_plan(state, *, prompt_for_plan=False, can_update=True) -> str:
     warning = (
         "Coverage measures filling of known rows, not entity recall or factual correctness. "
         "For enumeration, check members against the declared boundary and source evidence "
@@ -103,6 +103,9 @@ def render_research_plan(state, *, prompt_for_plan=False) -> str:
         warning += (
             " No set boundary is recorded. If this task requests all members, update set_scope "
             "with the boundary and source-backed inventory before claiming exhaustive coverage."
+        ) if can_update else (
+            " No set boundary is recorded. For enumeration, compare the answer's members "
+            "with a source-backed inventory before claiming exhaustive coverage."
         )
     for scope in brief["set_scope"]:
         scope["expected_members_count"] = len(scope["expected_members"])

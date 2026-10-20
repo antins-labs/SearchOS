@@ -24,10 +24,11 @@ _READABLE_SOURCE_FIELDS = (
 )
 
 def _node_snapshot(node: Any, state: Any = None, *, include_inactive: bool = False) -> dict[str, Any]:
-    from searchos.socm.evidence.provenance import evidence_source_urls
+    from searchos.socm.evidence.provenance import evidence_citation, evidence_source_urls
 
     finding = node.finding or ""
     truncated = len(finding) > _FINDING_EXCERPT_CHARS
+    citation = evidence_citation(node)
     metadata = node.local_source_metadata or {}
     source_details = {key: metadata[key] for key in _READABLE_SOURCE_FIELDS if key in metadata}
     return {
@@ -51,7 +52,11 @@ def _node_snapshot(node: Any, state: Any = None, *, include_inactive: bool = Fal
         **({"finding_truncated": True} if truncated else {}),
         "source": node.source,
         "source_urls": evidence_source_urls(node),
-        "citation": f"evidence:{node.id}",
+        "citation": citation,
+        "citable": citation is not None,
+        "provenance_status": "source_linked" if citation else "original_source_missing",
+        **({"provenance_note": "未提供原始来源；此记录仅供审计与定位缺口。请读取并核验原文，不可作为原文证据引用。"}
+           if citation is None else {}),
         "source_excerpt": node.source_excerpt,
         **({"local_source_metadata": source_details} if source_details else {}),
         "confidence": node.confidence,
@@ -73,7 +78,14 @@ async def read_evidence(
     include_inactive: bool = False,
     task_id: str = "",
 ) -> str:
-    """Fetch active evidence within the current answer scope. Explicit ids/cell take precedence over entity/attribute; empty filters return the most recent nodes. Set ``include_inactive=True`` for an audit view. ``finding`` is excerpted to 500 chars — use ``resolve_cell_provenance`` for full text.
+    """Fetch active evidence within the current answer scope.
+
+    Explicit ids/cell take precedence over entity/attribute; empty filters return
+    the most recent nodes. Set ``include_inactive=True`` for an audit view.
+    ``finding`` is excerpted to 500 chars — use ``resolve_cell_provenance`` for full text.
+    Records without original sources have ``citable=False`` and no citation;
+    read and verify their original sources before using them as answer evidence.
+    ``source_linked`` means traceable, not semantically verified.
 
     Args:
         cell (str): exact cell key from ``read_coverage`` (``"table_id/entity.attribute"``).

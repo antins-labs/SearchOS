@@ -29,6 +29,9 @@ async def inspect_table(
             for a pure scope audit on very wide tables. ``citations`` maps the
             same cells to evidence references. Use `[label](evidence:ID)` in
             answers; use read_evidence for the original source and excerpt.
+            ``citation_gaps`` identifies values without a usable original-source
+            citation; retain those values for audit and verify the original
+            source before presenting them as supported facts.
 
     Returns:
         JSON — always complete, never truncated:
@@ -61,7 +64,9 @@ async def inspect_table(
     empty: list[str] = []
     values: dict[str, dict[str, str]] = {}
     citations: dict[str, dict[str, str]] = {}
+    citation_gaps: dict[str, dict[str, str]] = {}
     from searchos.socm.coverage import answer_evidence, project_cell_evidence
+    from searchos.socm.evidence.provenance import evidence_citation
 
     evidence = {node.id: node for node in answer_evidence(state)} if with_values else {}
     for ent in ts.entities:
@@ -84,15 +89,21 @@ async def inspect_table(
         }
         if row_vals:
             values[ent] = row_vals
-            refs = {
-                attr: f"evidence:{cell.primary_evidence_id}"
-                for attr, cell in cells.items()
-                if attr in row_vals and cell is not None
-                and (node := evidence.get(cell.primary_evidence_id)) is not None
-                and project_cell_evidence(cmap, node, tid, ent, attr) is not None
-            }
+            refs = {}
+            gaps = {}
+            for attr in row_vals:
+                cell = cells[attr]
+                node = evidence.get(cell.primary_evidence_id)
+                if node is None or project_cell_evidence(cmap, node, tid, ent, attr) is None:
+                    gaps[attr] = "evidence_unavailable"
+                elif citation := evidence_citation(node):
+                    refs[attr] = citation
+                else:
+                    gaps[attr] = "original_source_missing"
             if refs:
                 citations[ent] = refs
+            if gaps:
+                citation_gaps[ent] = gaps
         if not missing:
             filled.append(ent)
         elif n_filled == 0:
@@ -119,6 +130,9 @@ async def inspect_table(
             selected = {k: v for k, v in values.items() if k in partial}
         out["values"] = dict(sorted(selected.items()))
         out["citations"] = {row: citations[row] for row in sorted(selected) if row in citations}
+        out["citation_gaps"] = {
+            row: citation_gaps[row] for row in sorted(selected) if row in citation_gaps
+        }
     return json.dumps(out, ensure_ascii=False)
 
 

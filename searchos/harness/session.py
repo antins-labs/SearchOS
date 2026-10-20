@@ -958,47 +958,43 @@ class SearchSession:
                     else:
                         answer_completed = False
                         if not execution_error:
-                            if steering is not None:
-                                from searchos.harness.telemetry.conversation import langchain_msg_to_conversation_msgs
-
-                                def record_follow_up(message):
-                                    for entry in langchain_msg_to_conversation_msgs(message):
-                                        conv_logger.log(entry)
-
-                                steering.on_delivery = record_follow_up
+                            _record_finalization_follow_ups(steering, conv_logger)
                             final_state, answer_completed = await _check_or_complete_answer(
                                 final_state=final_state, query=query, model=self._model,
                                 follow_ups=steering.delivered if steering else (),
                                 context_preamble=context_preamble or "", steering=steering,
                             )
-                        committed_final_answer = _write_findings_answer(
-                            workspace, final_search_state, query, final_state,
+                        committed_final_answer = await _commit_final_answer(
+                            workspace=workspace, state=final_search_state,
+                            query=query, final_state=final_state, model=self._model,
                             execution_error=execution_error,
                             stop_reason=finalization_reason,
+                            answer_stream=answer_stream, trajectory_logger=traj_logger,
+                            conversation_logger=conv_logger,
+                            follow_ups=steering.delivered if steering else (),
+                            steering=steering,
+                            extra_generation_used=answer_completed,
+                            generation_events=([{"phase": "answer_completion", "status": "completed"}]
+                                               if answer_completed else ()),
                         )
-                        if answer_completed:
-                            from searchos.harness.telemetry.trajectory import ConversationMessage
-
-                            conv_logger.log(ConversationMessage(
-                                role="assistant", content=committed_final_answer,
-                                metadata={"phase": "final_answer", "finalizer": "orchestrator"},
-                            ))
-                        answer_stream.push(committed_final_answer)
-                        answer_stream.finish()
                     traj_logger._append_raw({
                         "type": "harness", "kind": "post_session_phase",
                         "phase": "finalization",
                         "status": "done",
                     })
-                except Exception:
+                except Exception as finalization_exc:
+                    execution_error = execution_error or type(finalization_exc).__name__
                     logger.error(
-                        "Harness finalization crashed; writing minimal marker",
+                        "Harness finalization failed; preserving delivered answer",
                         exc_info=True,
                     )
                     try:
+                        import json
+
                         workspace.write_output(
-                            "report.md",
-                            f"# {query}\n\n_Finalization crashed. See logs._\n",
+                            "finalization_error.json",
+                            json.dumps({"query": query, "error_type": execution_error},
+                                       ensure_ascii=False),
                         )
                     except Exception:
                         pass
@@ -1256,6 +1252,96 @@ def _export_eval_table(
     }, ensure_ascii=False, indent=2))
 
 
+class FinalCitationError(ValueError):
+    """Retain a rejected draft and its citation gaps before publishing output."""
+
+    def __init__(self, draft, issues, state):
+        from searchos.socm.coverage import answer_evidence
+
+        available = {node.id: node for node in answer_evidence(state)}
+        all_nodes = {node.id: node for node in state.evidence_graph.nodes}
+        self.draft = draft
+        self.issues = list(issues)
+        self.gaps = []
+        for ref in issues:
+            eid = ref.removeprefix("evidence:") if ref.startswith("evidence:") else ""
+            node = all_nodes.get(eid)
+            reason = (
+                "unknown_evidence" if node is None else
+                "unavailable_evidence" if eid not in available else
+                "original_source_missing"
+            )
+            self.gaps.append({
+                "reference": ref, "reason": reason,
+                "finding": node.finding if node is not None else "",
+            })
+        super().__init__("Final citation validation failed: " + ", ".join(issues))
+
+
+def _finalization_audit(workspace, audit):
+    import json
+
+    workspace.write_output(
+        f"finalization/{audit['id']}/audit.json",
+        json.dumps(audit, ensure_ascii=False, indent=2),
+    )
+
+
+def _archive_previous_delivery(workspace, audit_id):
+    """Archive previous output only after the new answer passes citation validation."""
+    if getattr(workspace, "path", None) is None:
+        return
+    output = workspace.path / settings.output_dir
+    for filename in ("report.md", "result.json"):
+        source = output / filename
+        if source.exists():
+            workspace.write_output(
+                f"finalization/{audit_id}/previous/{filename}",
+                source.read_text(encoding="utf-8"),
+            )
+
+
+def _record_finalization_follow_ups(steering, conversation_logger):
+    if steering is None or conversation_logger is None:
+        return
+    from searchos.harness.telemetry.conversation import langchain_msg_to_conversation_msgs
+
+    def record_follow_up(message):
+        for entry in langchain_msg_to_conversation_msgs(message):
+            conversation_logger.log(entry)
+
+    steering.on_delivery = record_follow_up
+
+
+def _incomplete_citation_answer(query, gaps):
+    import re
+
+    chinese = bool(re.search(r"[\u4e00-\u9fff]", query))
+    answer = (
+        "本次研究尚未形成可追溯的完整回答。以下内容仍缺少有效原文支持，需补充原文并核验后才能确认："
+        if chinese else
+        "This research is incomplete. The following material still needs an available original source and verification:"
+    )
+    findings = list(dict.fromkeys(gap["finding"] for gap in gaps if gap["finding"]))
+    for finding in findings[:10]:
+        # 缺口描述保留，内部地址不能重新成为正文引用。
+        finding = re.sub(r"evidence:[\w-]+|(?:agent|skill|edit)://\S+", "[unavailable source]", finding)
+        answer += "\n\n- " + finding
+    if not findings:
+        answer += (
+            "\n\n正文引用无法关联到当前可回答范围内的有效原文。"
+            if chinese else
+            "\n\nThe draft cites references that cannot be linked to available source evidence."
+        )
+    if len(findings) > 10:
+        answer += (
+            f"\n\n另有 {len(findings) - 10} 项缺口，完整草稿及引用问题已保留在审计记录中。"
+            if chinese else
+            f"\n\nThere are {len(findings) - 10} additional gaps; the full draft and citation issues are saved in the audit."
+        )
+    return answer
+
+
 async def _check_or_complete_answer(*, final_state, query, model, follow_ups=(),
                                     context_preamble="", steering=None):
     """无工具调用的结束内容只检查一次；不是最终答案时沿用对话补答一次。"""
@@ -1330,30 +1416,141 @@ async def _check_or_complete_answer(*, final_state, query, model, follow_ups=(),
     return {**final_state, "messages": completed_messages}, True
 
 
+async def _commit_final_answer(*, workspace, state, query, final_state, model,
+                               execution_error="", stop_reason="", finalizer="orchestrator",
+                               extra_generation_used=False, generation_events=(),
+                               answer_stream=None, trajectory_logger=None,
+                               conversation_logger=None, follow_ups=(), steering=None):
+    """Share publication checks and one extra generation across fallback and citation repair."""
+    from uuid import uuid4
+
+    from langchain_core.messages import AIMessage
+
+    from searchos.harness.report.synthesis import finalize_research
+    from searchos.harness.telemetry.trajectory import ConversationMessage
+
+    audit = {
+        "id": uuid4().hex, "status": "validating", "finalizer": finalizer,
+        "extra_generation_used": int(extra_generation_used),
+        "generation_events": list(generation_events), "citation_failures": [],
+    }
+    _record_finalization_follow_ups(steering, conversation_logger)
+    gaps = []
+    issues = []
+
+    def record_rejection(exc):
+        issues.extend(ref for ref in exc.issues if ref not in issues)
+        gaps.extend(gap for gap in exc.gaps if gap not in gaps)
+        attempt = len(audit["citation_failures"]) + 1
+        workspace.write_output(f"finalization/{audit['id']}/draft-{attempt}.md", exc.draft)
+        audit["citation_failures"].append({"attempt": attempt, "gaps": exc.gaps})
+        _finalization_audit(workspace, audit)
+
+    try:
+        answer = _write_findings_answer(
+            workspace, state, query, final_state, execution_error=execution_error,
+            stop_reason=stop_reason, finalization=audit,
+        )
+    except FinalCitationError as exc:
+        record_rejection(exc)
+        if not audit["extra_generation_used"] and model is not None:
+            audit["extra_generation_used"] = 1
+            audit["generation_events"].append({"phase": "citation_repair", "status": "started"})
+            _finalization_audit(workspace, audit)
+            try:
+                repaired = await finalize_research(
+                    state=workspace.load_state(), query=query, model=model,
+                    stop_reason=stop_reason or "citation_validation_failed",
+                    follow_ups=steering.delivered if steering is not None else follow_ups,
+                    steering=steering,
+                    max_chars=settings.research_finalize_max_chars,
+                    timeout_s=settings.research_finalize_timeout_s,
+                    citation_repair={"draft": exc.draft, "gaps": exc.gaps},
+                )
+            except asyncio.CancelledError:
+                audit["status"] = "cancelled"
+                audit["generation_events"][-1]["status"] = "cancelled"
+                try:
+                    _finalization_audit(workspace, audit)
+                except Exception:
+                    logger.warning("Failed to save cancelled finalization audit", exc_info=True)
+                raise
+            except Exception as repair_exc:
+                audit["generation_events"][-1].update(
+                    status="failed", error_type=type(repair_exc).__name__,
+                )
+            else:
+                audit["generation_events"][-1]["status"] = "completed"
+                state = workspace.load_state()
+                try:
+                    answer = _write_findings_answer(
+                        workspace, state, query, {"messages": [AIMessage(content=repaired)]},
+                        execution_error=execution_error, stop_reason=stop_reason,
+                        finalization=audit,
+                    )
+                except FinalCitationError as repaired_exc:
+                    record_rejection(repaired_exc)
+                else:
+                    audit["status"] = "repaired"
+        if audit["status"] != "repaired":
+            audit["status"] = "incomplete"
+            answer = _write_findings_answer(
+                workspace, workspace.load_state(), query,
+                {"messages": [AIMessage(content=_incomplete_citation_answer(query, gaps))]},
+                execution_error=execution_error, stop_reason=stop_reason,
+                finalization=audit, incomplete_issues=issues,
+            )
+    else:
+        audit["status"] = "published"
+    # 正式交付已完成。后置审计、通知故障不能撤销或改写该答案。
+    notifications = [("audit", lambda: _finalization_audit(workspace, audit))]
+    if conversation_logger is not None:
+        notifications.append(("conversation", lambda: conversation_logger.log(ConversationMessage(
+            role="assistant", content=answer,
+            metadata={"phase": "final_answer", "finalizer": finalizer,
+                      "stop_reason": stop_reason, "publication_status": audit["status"]},
+        ))))
+    if trajectory_logger is not None:
+        notifications.append(("trajectory", lambda: trajectory_logger._append_raw({
+            "type": "harness", "kind": "research_finalized", "stop_reason": stop_reason,
+            "finalizer": finalizer, "execution_error": execution_error,
+            "orchestrator_error": next((e.get("error_type", "") for e in generation_events
+                                        if e.get("phase") == "orchestrator"), ""),
+            "publication_status": audit["status"],
+            "extra_generation_used": audit["extra_generation_used"],
+            "citation_issues": issues,
+        })))
+    if answer_stream is not None:
+        def publish_stream():
+            answer_stream.push(answer)
+            answer_stream.finish()
+
+        notifications.append(("stream", publish_stream))
+    for phase, notify in notifications:
+        try:
+            notify()
+        except Exception:
+            logger.warning("Committed answer %s notification failed", phase, exc_info=True)
+    return answer
+
+
 async def _finalize_stopped_research(*, workspace, state, query, orchestrator_model,
                                      fallback_model=None, stop_reason,
                                      answer_stream=None, trajectory_logger=None,
                                      conversation_logger=None, follow_ups=(), steering=None) -> str:
-    """子任务回收后由 Orchestrator 生成终止轮，Synthesis 仅作降级。"""
+    """Finalize stopped research with the orchestrator and at most one synthesis fallback."""
     from langchain_core.messages import AIMessage
 
     from searchos.harness.report.synthesis import finalize_research
 
-    if steering is not None and conversation_logger is not None:
-        from searchos.harness.telemetry.conversation import langchain_msg_to_conversation_msgs
-
-        # The research stream is closed. Record late input here while the
-        # tool-free finalization graph owns the same inbox.
-        def record_follow_up(message):
-            for entry in langchain_msg_to_conversation_msgs(message):
-                conversation_logger.log(entry)
-
-        steering.on_delivery = record_follow_up
+    _record_finalization_follow_ups(steering, conversation_logger)
 
     draft = ""
     execution_error = ""
     orchestrator_error = ""
     finalizer = "orchestrator"
+    extra_generation_used = False
+    generation_events = [{"phase": "orchestrator", "status": "started"}]
     try:
         draft = await finalize_research(
             state=state, query=query, model=orchestrator_model,
@@ -1363,16 +1560,20 @@ async def _finalize_stopped_research(*, workspace, state, query, orchestrator_mo
             max_chars=settings.research_finalize_max_chars,
             timeout_s=settings.research_finalize_timeout_s,
         )
+        generation_events[-1]["status"] = "completed"
     except asyncio.CancelledError:
         raise
     except Exception as exc:
         orchestrator_error = type(exc).__name__
+        generation_events[-1].update(status="failed", error_type=orchestrator_error)
         logger.warning(
             "Orchestrator final turn failed (%s); trying synthesis fallback",
             orchestrator_error,
         )
         if fallback_model is not None:
             finalizer = "synthesis"
+            extra_generation_used = True
+            generation_events.append({"phase": "synthesis_fallback", "status": "started"})
             try:
                 draft = await finalize_research(
                     state=state, query=query, model=fallback_model,
@@ -1382,50 +1583,32 @@ async def _finalize_stopped_research(*, workspace, state, query, orchestrator_mo
                     max_chars=settings.research_finalize_max_chars,
                     timeout_s=settings.research_finalize_timeout_s,
                 )
+                generation_events[-1]["status"] = "completed"
             except asyncio.CancelledError:
                 raise
             except Exception as fallback_exc:
                 execution_error = type(fallback_exc).__name__
+                generation_events[-1].update(status="failed", error_type=execution_error)
                 logger.warning(
                     "Synthesis fallback failed: %s", execution_error,
                 )
         else:
             execution_error = orchestrator_error
     state = workspace.load_state()
-    answer = _write_findings_answer(
-        workspace, state, query, {"messages": [AIMessage(content=draft)]},
+    return await _commit_final_answer(
+        workspace=workspace, state=state, query=query,
+        final_state={"messages": [AIMessage(content=draft)]}, model=orchestrator_model,
         execution_error=execution_error, stop_reason=stop_reason,
+        finalizer=finalizer, extra_generation_used=extra_generation_used,
+        generation_events=generation_events,
+        answer_stream=answer_stream, trajectory_logger=trajectory_logger,
+        conversation_logger=conversation_logger, follow_ups=follow_ups, steering=steering,
     )
-    if conversation_logger is not None:
-        from searchos.harness.telemetry.trajectory import ConversationMessage
-
-        conversation_logger.log(ConversationMessage(
-            role="assistant",
-            content=answer,
-            metadata={
-                "phase": "final_answer",
-                "finalizer": finalizer,
-                "stop_reason": stop_reason,
-            },
-        ))
-    if trajectory_logger is not None:
-        trajectory_logger._append_raw({
-            "type": "harness",
-            "kind": "research_finalized",
-            "stop_reason": stop_reason,
-            "finalizer": finalizer,
-            "orchestrator_error": orchestrator_error,
-            "execution_error": execution_error,
-        })
-    if answer_stream is not None:
-        answer_stream.push(answer)
-        answer_stream.finish()
-    return answer
 
 
 def _write_findings_answer(workspace, state, query, final_state, *, execution_error="",
-                           stop_reason="") -> str:
-    """保存正文，将事实引用解析到原文并记录缺失；不作语义核验。"""
+                           stop_reason="", finalization=None, incomplete_issues=None) -> str:
+    """Reject untraceable citations before publishing; semantic support is checked separately."""
     import json
 
     from searchos.local.library import _LOCAL_LINK_RE
@@ -1456,11 +1639,16 @@ def _write_findings_answer(workspace, state, query, final_state, *, execution_er
         answer = "研究执行中断，尚未生成回答。" if execution_error else "本次研究尚未生成回答。"
         mode = "hybrid_partial"
     from searchos.socm.evidence.provenance import resolve_answer_citations
-    answer, citation_issues = resolve_answer_citations(answer, nodes)
+    resolved, citation_issues = resolve_answer_citations(answer, nodes)
+    if citation_issues:
+        raise FinalCitationError(answer, citation_issues, state)
+    answer = resolved
     answer = _LOCAL_LINK_RE.sub(lambda m: canonical.get(m.group(0), "invalid-local-reference"), answer)
     from searchos.socm.planning.research_plan import membership_review
-    workspace.write_output("report.md", answer)
-    workspace.write_output("result.json", json.dumps({
+    if incomplete_issues is not None:
+        mode = "research_incomplete"
+        citation_issues = incomplete_issues
+    result = {
         "query": query, "answer": answer, "mode": mode,
         "execution_error": execution_error,
         "stop_reason": stop_reason,
@@ -1470,7 +1658,18 @@ def _write_findings_answer(workspace, state, query, final_state, *, execution_er
         "evidence_count": len(nodes),
         "coverage": state.coverage_map.coverage_score,
         "frontier_progress": _frontier_progress(state),
-    }, ensure_ascii=False, indent=2))
+    }
+    if finalization is not None:
+        result["finalization"] = {
+            **finalization,
+            "status": "incomplete" if incomplete_issues is not None else
+                "repaired" if finalization["citation_failures"] else "published",
+        }
+    serialized = json.dumps(result, ensure_ascii=False, indent=2)
+    if finalization is not None:
+        _archive_previous_delivery(workspace, finalization["id"])
+    workspace.write_output("report.md", answer)
+    workspace.write_output("result.json", serialized)
     return answer
 
 

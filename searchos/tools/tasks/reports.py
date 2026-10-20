@@ -17,25 +17,47 @@ from searchos.harness.steering import steering_pending as has_steering
 from searchos.harness.steering import wait_for_steering
 from searchos.socm.coverage import CoverageMap, answer_evidence
 from searchos.socm.evidence import EvidenceNode
-from searchos.socm.evidence.provenance import evidence_source_urls
+from searchos.socm.evidence.provenance import evidence_citation, evidence_source_urls
 
 
 def _ground_search_report(report: dict, active_evidence: list[EvidenceNode]) -> None:
     """Expose bound evidence while keeping the worker's brief explicitly unverified."""
     ids = {binding["evidence_id"] for binding in report.get("evidence_bindings", [])}
-    nodes = [node for node in active_evidence if node.id in ids]
+    nodes: list[tuple[EvidenceNode, str]] = []
+    unlinked: list[EvidenceNode] = []
+    for node in active_evidence:
+        if node.id not in ids:
+            continue
+        citation = evidence_citation(node)
+        if citation:
+            nodes.append((node, citation))
+        else:
+            unlinked.append(node)
     report["agent_report"] = {"verified": False, "text": report.get("last_message", "")}
     report["grounded_findings"] = [
-        {"id": node.id, "finding": node.finding, "citation": f"evidence:{node.id}",
+        {"id": node.id, "finding": node.finding, "citation": citation,
          "source": node.source, "source_urls": evidence_source_urls(node),
+         "citable": True, "provenance_status": "source_linked",
          "source_excerpt": node.source_excerpt}
-        for node in nodes[:24]
+        for node, citation in nodes[:24]
     ]
     report["grounded_findings_total"] = len(nodes)
+    report["unlinked_findings"] = [
+        {"id": node.id, "finding": node.finding, "source": node.source,
+         "source_excerpt": node.source_excerpt, "citation": None, "citable": False,
+         "provenance_status": "original_source_missing"}
+        for node in unlinked[:24]
+    ]
+    report["unlinked_findings_total"] = len(unlinked)
     report["last_message"] = (
         f"See grounded_findings for {len(nodes)} source-linked findings and citations."
-        if nodes else "本任务无已核验并绑定的事实；执行汇报仅供定位缺口，不可作为答案依据。"
+        if nodes else "本任务无带原文地址且已绑定的事实；执行汇报仅供定位缺口，不可作为原文证据。"
     )
+    if unlinked:
+        report["last_message"] += (
+            f"\n另有 {len(unlinked)} 条记录缺少原始来源，见 unlinked_findings。"
+            "这些记录不能引用为原文证据；请补充原文阅读与核验，预算不足时明确报告缺口。"
+        )
     if len(nodes) > 24:
         report["last_message"] += (
             "\n此处仅展示前 24 条；用 read_evidence(task_id=...) 查看其余事实。"

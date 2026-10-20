@@ -49,6 +49,15 @@ def evidence_source_urls(node) -> list[str]:
     )
 
 
+def evidence_citation(node) -> str | None:
+    """Issue citations only for facts linked to original sources.
+
+    Callers still check evidence status, answer scope, and semantic support.
+    Unlinked summaries remain audit records; their IDs do not authorize citations
+    or source attribution inferred from other facts."""
+    return f"evidence:{node.id}" if node.id and evidence_source_urls(node) else None
+
+
 def select_source_urls(source, text, excerpt, requested=None, *, available=(), state=None):
     """抽取器选择原文引用；仅接收本次观测已声明的地址，不猜测多来源归属。"""
     if is_original_source(source):

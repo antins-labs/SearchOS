@@ -9,6 +9,7 @@ import re
 from dataclasses import asdict, dataclass, field
 
 from searchos.socm.coverage import answer_evidence
+from searchos.socm.evidence.provenance import evidence_citation, evidence_source_urls
 from searchos.util.span_match import find_span
 
 
@@ -47,11 +48,18 @@ async def review_answer(answer, state, model, *, max_chars=48_000, timeout_s=30,
     cited = set(re.findall(r"evidence:([a-zA-Z0-9_-]+)", answer))
     # Legacy answers may contain source URLs instead of short fact citations.
     source_urls = set(re.findall(r"(?:https?://|local://)[^\s<>\[\]`\"()]+", answer))
-    cited.update(node.id for node in nodes.values() if node.source in source_urls)
+    cited.update(node.id for node in nodes.values()
+                 if source_urls.intersection(evidence_source_urls(node)))
     unknown = cited - nodes.keys()
     if unknown:
         return AnswerReview(
             "unsupported", digest, issues=["引用了不可用事实：" + ", ".join(sorted(unknown))]
+        )
+    unlinked = {eid for eid in cited if not evidence_citation(nodes[eid])}
+    if unlinked:
+        return AnswerReview(
+            "unsupported", digest,
+            issues=["引用缺少原始来源，须补充原文阅读与核验：" + ", ".join(sorted(unlinked))],
         )
     if not answer.strip() or (not nodes and not allow_gap_only):
         return AnswerReview("no_evidence", digest, issues=["尚无可用于核验回答的有效事实。"])
@@ -196,6 +204,7 @@ async def review_answer(answer, state, model, *, max_chars=48_000, timeout_s=30,
                     {
                         "evidence_id": eid,
                         "source": nodes[eid].source,
+                        "source_urls": evidence_source_urls(nodes[eid]),
                         "finding": nodes[eid].finding,
                         "source_excerpt": nodes[eid].source_excerpt[slice(*quote_span)],
                     }
@@ -237,8 +246,11 @@ def review_matches_state(review: dict, answer: str, state) -> bool:
             node = nodes.get(binding["evidence_id"])
             if (
                 node is None
+                or evidence_citation(node) is None
                 or node.source != binding["source"]
                 or node.finding != binding["finding"]
+                or ("source_urls" in binding
+                    and evidence_source_urls(node) != binding["source_urls"])
             ):
                 return False
             if find_span(node.source_excerpt, binding["source_excerpt"])[0] is None:
