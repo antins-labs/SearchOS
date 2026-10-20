@@ -72,8 +72,13 @@ docs/knowledge-management.md
 docs/middleware-components-plan.md
 docs/middleware-refactor.md
 docs/skill_design.md
+docs/searchanything-pipeline-pilot.zh.md
+
+# 本地实验脚本、数据和过程记录
+/exp/
 
 # Local publication assets (not part of the repository)
 doc/pub/assets/
 
+# Local agent context
 CONTEXT.md
