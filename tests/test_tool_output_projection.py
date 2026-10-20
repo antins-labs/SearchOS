@@ -1,8 +1,10 @@
 """工具保留可操作来源与原文，宿主审计字段不进入模型上下文。"""
 
+import asyncio
 import json
 from copy import deepcopy
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -165,15 +167,73 @@ async def test_local_find_keeps_navigation_once_and_original_metadata_in_artifac
 
 
 def test_task_report_keeps_facts_once_and_preserves_unverified_worker_brief():
-    from searchos.tools.tasks.reports import _ground_hybrid_report
+    from searchos.socm.coverage import answer_evidence
+    from searchos.tools.tasks.reports import _ground_search_report
 
     state = sample_state()
     report = {"last_message": "A lead that still needs investigation.",
               "evidence_bindings": [{"evidence_id": "fact"}]}
-    _ground_hybrid_report(report, state)
+    _ground_search_report(report, answer_evidence(state))
     assert report["grounded_findings"][0]["finding"] == state.evidence_graph.nodes[0].finding
     assert report["grounded_findings"][0]["citation"] == "evidence:fact"
     assert state.evidence_graph.nodes[0].finding not in report["last_message"]
     assert report["agent_report"] == {
         "verified": False, "text": "A lead that still needs investigation.",
     }
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mode", ["web", "hybrid"])
+async def test_check_agents_batch_keeps_task_evidence_and_returns_each_report_once(
+    tmp_path, monkeypatch, mode,
+):
+    from searchos.agents.runtime import _ctx, set_orchestrator_context
+    from searchos.socm import FrontierTask, SearchReport
+    from searchos.socm.evidence import EvidenceStatus, bind_task_evidence
+    from searchos.socm.storage.workspace import WorkspaceManager
+    from searchos.tools.tasks import reports
+
+    state = SearchState(research_mode="findings", source_scope={"mode": mode, "documents": []})
+    for task_id in ("first", "second"):
+        state.frontier.add(FrontierTask(id=task_id, question=task_id))
+    facts = [f"fact-{index}" for index in range(30)]
+    for fact_id in [*facts, "other", "rejected"]:
+        state.evidence_graph.add_node(EvidenceNode(
+            id=fact_id, finding=fact_id, source=f"https://example.org/{fact_id}",
+        ))
+    bind_task_evidence(state, "first", [*facts, "rejected"])
+    bind_task_evidence(state, "second", [facts[0], "other"])
+    state.evidence_graph.get_node("rejected").status = EvidenceStatus.REJECTED
+    workspace = WorkspaceManager(tmp_path, "batch-reports")
+    workspace.create()
+    workspace.save_state(state)
+    set_orchestrator_context(workspace=workspace, model=object())
+    scheduler = SimpleNamespace(tick=AsyncMock(return_value={}))
+    monkeypatch.setattr(reports, "_scheduler", lambda: scheduler)
+    for task_id in ("first", "second"):
+        _ctx.completed[task_id] = SearchReport(
+            agent_id=task_id, task_ids=[task_id], status="completed", last_message=task_id,
+        )
+        _ctx.task_pool[task_id] = asyncio.create_task(asyncio.sleep(0))
+    await asyncio.gather(*_ctx.task_pool.values())
+    running = asyncio.create_task(asyncio.Event().wait())
+    _ctx.task_pool["running"] = running
+    try:
+        payload = json.loads(await reports.check_agents.ainvoke({}))
+        first, second = payload["reports"]
+        assert first["task_ids"] == ["first"] and second["task_ids"] == ["second"]
+        assert [item["id"] for item in first["grounded_findings"]] == facts[:24]
+        assert first["grounded_findings_total"] == 30
+        assert {binding["evidence_id"] for binding in first["evidence_bindings"]} == set(facts)
+        assert [item["id"] for item in second["grounded_findings"]] == [facts[0], "other"]
+        assert first["agent_report"] == {"verified": False, "text": "first"}
+        assert _ctx.completed["first"].last_message == "first"
+        assert payload["remaining"] == 1 and payload["running_ids"] == ["running"]
+        assert not running.done()
+
+        again = json.loads(await reports.check_agents.ainvoke({"timeout": 0.001}))
+        assert again["reports"] == [] and again["remaining"] == 1
+        assert not running.done()
+    finally:
+        running.cancel()
+        await asyncio.gather(running, return_exceptions=True)

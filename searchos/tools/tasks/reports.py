@@ -1,4 +1,4 @@
-"""回收执行报告，等待任务或追问，并汇总调度反馈。"""
+"""Wait for workers or follow-ups, collect reports, and surface scheduler actions."""
 
 from __future__ import annotations
 
@@ -12,17 +12,18 @@ from searchos.agents.orchestrator.lifecycle import (
     _SCOPE_AUDIT_NOTE,
     _outline_status,
 )
-from searchos.agents.runtime import _ctx, _pop_granularity_hints, _scheduler
+from searchos.agents.runtime import _ctx, _scheduler
 from searchos.harness.steering import steering_pending as has_steering
 from searchos.harness.steering import wait_for_steering
+from searchos.socm.coverage import CoverageMap, answer_evidence
+from searchos.socm.evidence import EvidenceNode
+from searchos.socm.evidence.provenance import evidence_source_urls
 
 
-def _ground_hybrid_report(report: dict, state: Any) -> None:
-    """让已绑定事实进入主 Agent 上下文，执行汇报保留为未核验信息。"""
-    from searchos.socm.coverage import answer_evidence
-    from searchos.socm.evidence.provenance import evidence_source_urls
+def _ground_search_report(report: dict, active_evidence: list[EvidenceNode]) -> None:
+    """Expose bound evidence while keeping the worker's brief explicitly unverified."""
     ids = {binding["evidence_id"] for binding in report.get("evidence_bindings", [])}
-    nodes = [node for node in answer_evidence(state) if node.id in ids]
+    nodes = [node for node in active_evidence if node.id in ids]
     report["agent_report"] = {"verified": False, "text": report.get("last_message", "")}
     report["grounded_findings"] = [
         {"id": node.id, "finding": node.finding, "citation": f"evidence:{node.id}",
@@ -36,7 +37,9 @@ def _ground_hybrid_report(report: dict, state: Any) -> None:
         if nodes else "本任务无已核验并绑定的事实；执行汇报仅供定位缺口，不可作为答案依据。"
     )
     if len(nodes) > 24:
-        report["last_message"] += "\n此处仅展示前 24 条；用 read_evidence(task_id=...) 查看其余事实。"
+        report["last_message"] += (
+            "\n此处仅展示前 24 条；用 read_evidence(task_id=...) 查看其余事实。"
+        )
 
 
 def _scope_audit_note(state: Any) -> str:
@@ -74,8 +77,6 @@ def _compact_scheduler_actions(actions: dict[str, Any]) -> dict[str, Any]:
                 and not val.get("cooling")
                 and val.get("reason") != "budget_exhausted_draining"):
             continue
-        if key == "granularity_hints" and not val:
-            continue
         out[key] = val
     return out
 
@@ -110,34 +111,78 @@ def _empty_table_warning(state: Any) -> str | None:
     )
 
 
+def _collect_reports(agent_ids: list[str]) -> list[dict[str, Any]]:
+    """Project a batch from one state snapshot, preserving each report's task ownership."""
+    if not agent_ids:
+        return []
+    current = _ctx.workspace.load_state()
+    active_evidence = answer_evidence(current)
+    active_ids = {node.id for node in active_evidence}
+    reports: list[dict[str, Any]] = []
+    for aid in agent_ids:
+        report = _ctx.completed.get(aid)
+        if report is None:
+            reports.append({
+                "agent_id": aid,
+                "status": "error",
+                "result": "task finished without producing AgentReport",
+            })
+            continue
+
+        rd = report.model_dump(exclude={"duration_s"})
+        task_ids = set(rd.get("task_ids", []))
+        if not task_ids:
+            # Explore、Writer 和旧报告仍需从运行注册或 Frontier 恢复任务归属。
+            info = _ctx.agent_graphs.get(aid, {})
+            bound_id = info.get("assigned_task_id") or info.get("write_task_id")
+            task_ids = ({bound_id} if bound_id else {
+                task.id for task in current.frontier.questions
+                if task.assigned_agent_id == aid})
+        rd["task_ids"] = sorted(task_ids)
+        if any(task.id in task_ids and task.resolution.startswith(
+            "partial_evidence_review_required:") for task in current.frontier.questions):
+            rd["next_step_hint"] = (
+                "This attempt stopped with partial evidence; the task was cancelled "
+                "to prevent an unchanged automatic retry, not marked complete. "
+                "Read its task-bound evidence, assess remaining requirements, and "
+                "enqueue only concrete unresolved gaps using the existing findings."
+            )
+        rd["evidence_bindings"] = [binding.model_dump()
+            for binding in current.evidence_graph.task_bindings
+            if binding.task_id in task_ids and binding.evidence_id in active_ids]
+        if rd.get("kind") == "search":
+            _ground_search_report(rd, active_evidence)
+        if "cells_filled" in rd:
+            # 完整表格由 SOCM 提供，报告只保留行列摘要。
+            cells = rd["cells_filled"] or []
+            parsed = [CoverageMap.parse_cell_key(cell) for cell in cells]
+            rd["cells_filled"] = {
+                "rows_with_new_evidence_count": len({ent for _tid, ent, attr in parsed if attr}),
+                "columns_touched": sorted({attr for _tid, _ent, attr in parsed if attr}),
+                "raw_cell_count": len(cells),
+            }
+            rd["discovered_entities_total"] = len(rd.get("discovered_entities") or [])
+        reports.append(rd)
+    return reports
+
+
 @tool
 async def check_agents(timeout: float = 0.0) -> str:
-    """Block until a sub-agent completes or a user follow-up arrives, then return
-    every AgentReport finished so far. Always waits on the whole pool;
-    you cannot target a specific id (intentional — it discourages the
-    "wait for this one before doing anything" anti-pattern).
+    """Wait for any worker to finish or an immediate follow-up, then collect reports.
 
-    PIPELINE RULE: when this returns ``reports`` non-empty AND
-    ``remaining > 0``, do NOT call ``check_agents`` again first. Read the
-    new reports, and if any new gap is visible call ``dispatch_agents``
-    immediately for it. Remaining agents keep running in the background;
-    reap them on the next round. SOCM context (Frontier / Evidence /
-    Coverage / Strategy) is injected on every orchestrator step by
-    SOCMContextMiddleware, so check_agents does not duplicate it in its return.
+    Waits on the whole pool; individual agent IDs cannot be targeted. Read new
+    reports before waiting again. If they reveal gaps while peers are running,
+    use enqueue_tasks for those gaps first. Frontier, Evidence, Coverage and
+    Strategy are provided separately by SOCM context.
 
     Args:
-        timeout: Optional seconds to cap the wait. 0 (default) means wait
-            until completion or a user follow-up. Non-zero returns even if no
-            Task completes, with ``reports`` empty and ``remaining`` reflecting
-            still-running agents.
+        timeout: Maximum seconds for the wait phase; 0 (default) or negative
+            means no limit. A timeout may return empty reports. Neither timeouts
+            nor follow-ups cancel workers. Scheduling and report processing
+            are outside this limit.
     Returns:
-        JSON string: ``{"reports": [...], "remaining": N, "running_ids": [...]}``.
-        Reports contain findings, task references and actionable execution status.
-        ``remaining`` is the count of sub-agents still running after this
-        call.
+        JSON string with reports, remaining, running_ids and scheduler actions.
     """
-    def _serialize(payload: dict[str, Any]) -> str:
-        return json.dumps(payload, ensure_ascii=False)
     if _ctx.workspace is None:
         return json.dumps({
             "error": "orchestrator context not initialized",
@@ -149,31 +194,24 @@ async def check_agents(timeout: float = 0.0) -> str:
 
     def steering_pending() -> bool:
         return has_steering(steer_queue, immediate_only=True)
-    # Entry backfill: fill any free slots (up to max_parallel_agents) with
-    # ready Frontier tasks BEFORE blocking on the wait. Previously this tick
-    # ran only when the pool was empty, so tasks enqueued while other agents
-    # were still running sat idle until one of those agents completed
-    # (reap → tick) — leaving free slots unused even though concurrency was
-    # below the cap (e.g. 4 running + 4 queued with max=8). Ticking here
-    # launches the queued tasks immediately. tick() is idempotent: when no
-    # slot is free it returns "saturated" without spawning.
+
+    # 等待前补满空闲槽位；有立即追问时先交回主 Agent 决策。
     pre_tick = {} if steering_pending() else await _scheduler().tick()
     if not pool:
+        current = _ctx.workspace.load_state()
         payload: dict[str, Any] = {
             "reports": [], "remaining": 0, "running_ids": [],
-            "scheduler_actions": _compact_scheduler_actions(
-                {**pre_tick, "granularity_hints": _pop_granularity_hints()}),
-            "note": f"No sub-agents running. {_scope_audit_note(_ctx.workspace.load_state())}",
+            "scheduler_actions": _compact_scheduler_actions(pre_tick),
+            "note": f"No sub-agents running. {_scope_audit_note(current)}",
         }
-        idle_warn = _empty_table_warning(_ctx.workspace.load_state())
+        idle_warn = _empty_table_warning(current)
         if idle_warn:
             payload["table_audit_warning"] = idle_warn
-        return _serialize(payload)
+        return json.dumps(payload, ensure_ascii=False)
 
     tasks_to_wait = list(pool.values())
 
-    # Wake on user input without cancelling workers or consuming the message.
-    # The harness injects it after this tool's matching ToolMessage is recorded.
+    # 追问只唤醒等待；消息由 harness 在记录工具结果后注入。
     wake = (asyncio.create_task(wait_for_steering(steer_queue, immediate_only=True))
             if steer_queue is not None else None)
     try:
@@ -188,8 +226,7 @@ async def check_agents(timeout: float = 0.0) -> str:
             wake.cancel()
             await asyncio.gather(wake, return_exceptions=True)
 
-    # Reap: drain ALL tasks that are `.done()` (may include peers we were
-    # not waiting on — it's free real estate). Move from pool to completed.
+    # 回收此时所有已结束的任务，报告已由子 Agent 写入 completed。
     reaped_ids: list[str] = []
     for aid in list(pool.keys()):
         t = pool[aid]
@@ -197,80 +234,20 @@ async def check_agents(timeout: float = 0.0) -> str:
             reaped_ids.append(aid)
             del pool[aid]
 
-    reports_json: list[dict[str, Any]] = []
-    for aid in reaped_ids:
-        report = _ctx.completed.get(aid)
-        if report is None:
-            # Task finished but _collect_sub_agent_result didn't register a
-            # report — should not happen, but stay defensive.
-            reports_json.append({
-                "agent_id": aid,
-                "status": "error",
-                "result": "task finished without producing AgentReport",
-            })
-        else:
-            # Compress cells_filled before sending to the orchestrator: the raw
-            # per-cell list can be tens of KB on wide tables. Keep row/column
-            # counts plus the column set — new rows arrive via
-            # ``discovered_entities`` and the full grid stays in the SOCM block.
-            rd = report.model_dump(exclude={"duration_s"})
-            current = _ctx.workspace.load_state()
-            task_ids = set(rd.get("task_ids", []))
-            if not task_ids:
-                # Compatibility for older reports and non-search workers.
-                info = _ctx.agent_graphs.get(aid, {})
-                bound_id = info.get("assigned_task_id") or info.get("write_task_id")
-                task_ids = ({bound_id} if bound_id else {
-                    task.id for task in current.frontier.questions
-                    if task.assigned_agent_id == aid})
-            rd["task_ids"] = sorted(task_ids)
-            if any(task.id in task_ids and task.resolution.startswith(
-                "partial_evidence_review_required:") for task in current.frontier.questions):
-                rd["next_step_hint"] = (
-                    "This attempt stopped with partial evidence; the task was cancelled "
-                    "to prevent an unchanged automatic retry, not marked complete. "
-                    "Read its task-bound evidence, assess remaining requirements, and "
-                    "enqueue only concrete unresolved gaps using the existing findings."
-                )
-            from searchos.socm.coverage import answer_evidence
-            active_ids = {node.id for node in answer_evidence(current)}
-            rd["evidence_bindings"] = [binding.model_dump()
-                for binding in current.evidence_graph.task_bindings
-                if binding.task_id in task_ids and binding.evidence_id in active_ids]
-            if rd.get("kind") == "search":
-                _ground_hybrid_report(rd, current)
-            if "cells_filled" in rd:  # SearchReport only — don't inject into explore/writer
-                cf = rd["cells_filled"] or []
-                from searchos.socm import CoverageMap
-                parsed_cells = [CoverageMap.parse_cell_key(c) for c in cf]
-                row_pks = {ent for _tid, ent, attr in parsed_cells if attr}
-                cols = sorted({attr for _tid, _ent, attr in parsed_cells if attr})
-                rd["cells_filled"] = {
-                    "rows_with_new_evidence_count": len(row_pks),
-                    "columns_touched": cols,
-                    "raw_cell_count": len(cf),
-                }
-                de = rd.get("discovered_entities") or []
-                rd["discovered_entities"] = de
-                rd["discovered_entities_total"] = len(de)
-            reports_json.append(rd)
+    reports_json = _collect_reports(reaped_ids)
 
-    # Broker work runs inline after reaping (rather than as a separate tool
-    # the orchestrator may skip) to guarantee it fires every time reports
-    # are returned; dispatch/continue decisions stay with the LLM.
+    # 回收后再次调度，承接释放的槽位和已解除的依赖。
     scheduler_actions = _compact_scheduler_actions(
-        {**({} if steering_pending() else await _scheduler().tick()),
-         "granularity_hints": _pop_granularity_hints()})
+        {} if steering_pending() else await _scheduler().tick())
 
     post_state = _ctx.workspace.load_state()
-    outline_state = _outline_status(post_state)
 
     response: dict[str, Any] = {
         "reports": reports_json,
-        "remaining": len(pool),  # pool size AFTER broker spawned any new agents
+        "remaining": len(pool),
         "running_ids": list(pool.keys()),
         "scheduler_actions": scheduler_actions,
-        "outline_status": outline_state,
+        "outline_status": _outline_status(post_state),
     }
     if steering_pending():
         response["interrupted_by"] = "user_follow_up"
@@ -279,18 +256,14 @@ async def check_agents(timeout: float = 0.0) -> str:
             "Read the incoming user message before deciding whether to continue, "
             "change the plan, or stop tasks with stop_task."
         )
-        return _serialize(response)
+        return json.dumps(response, ensure_ascii=False)
     table_warn = _empty_table_warning(post_state)
     if table_warn:
         response["table_audit_warning"] = table_warn
-    # Pool just drained — the orchestrator's next move is likely final
-    # synthesis, exactly where "all rows filled" gets misread as "task
-    # complete". Attach the scope audit before it ends the turn.
+    # 任务池清空后仍需核对答案范围与证据。
     if reports_json and not pool:
         response["note"] = f"All sub-agents have returned. {_scope_audit_note(post_state)}"
-    # Pipeline nudge: when at least one agent just returned but others are
-    # still running, encourage immediate dispatch rather than re-checking.
-    if reports_json and len(pool) > 0:
+    if reports_json and pool:
         response["next_step_hint"] = (
             f"{len(reports_json)} sub-agent(s) just returned while "
             f"{len(pool)} are still running. Read their reports now and, "
@@ -299,11 +272,6 @@ async def check_agents(timeout: float = 0.0) -> str:
             "remaining agents keep running in the background; reap them "
             "after your next dispatch."
         )
-    # Recap nudge: the orchestrator tends to narrate each return with a
-    # content-free line ("又有代理完成采集，让我继续等待") that wastes the
-    # user's attention. Push it to actually DIGEST the reports — name the
-    # concrete entities, columns and evidence each agent surfaced — so the
-    # user reads what was learned, not just that something happened.
     if reports_json:
         response["recap_hint"] = (
             "Before your next tool call, write a 1-2 sentence recap (in the "

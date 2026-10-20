@@ -261,9 +261,6 @@ _completed_var: ContextVar[dict[str, Any] | None] = ContextVar("so_orch_complete
 _agent_graph_var: ContextVar[dict[str, dict[str, Any]] | None] = ContextVar(
     "so_orch_agent_graphs", default=None
 )
-_granularity_hints_var: ContextVar[list[dict[str, Any]] | None] = ContextVar(
-    "so_orch_granularity_hints", default=None
-)
 _check_call_count_var: ContextVar[list[int] | None] = ContextVar(
     "so_orch_check_call_count", default=None
 )
@@ -279,16 +276,6 @@ _scheduler_var: ContextVar[Any] = ContextVar("so_orch_scheduler", default=None)
 _budget_exhausted_var: ContextVar[list[bool] | None] = ContextVar(
     "so_orch_budget_exhausted", default=None
 )
-
-
-def _pop_granularity_hints() -> list[dict[str, Any]]:
-    """Scheduler's drain-and-clear hook for pending granularity hints."""
-    hints = _granularity_hints_var.get()
-    if hints is None:
-        return []
-    out = list(hints)
-    hints.clear()
-    return out
 
 
 def _scheduler():
@@ -445,7 +432,6 @@ def set_orchestrator_context(
     _task_pool_var.set({})
     _completed_var.set({})
     _agent_graph_var.set({})
-    _granularity_hints_var.set([])
     _check_call_count_var.set([0])
     _post_mortem_count_var.set([0])
     _post_mortem_tasks_var.set([])
