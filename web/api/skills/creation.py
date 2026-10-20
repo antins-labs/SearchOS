@@ -5,6 +5,7 @@ import asyncio
 import json
 import re
 import shutil
+from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
@@ -81,7 +82,56 @@ class CreationJobs:
                 request['has_draft'] = True
             except ValueError:
                 request['has_draft'] = False
+            try:
+                self.site_session_pointer(job, index)
+                request['has_site_session'] = True
+            except (ValueError, OSError):
+                request['has_site_session'] = False
+            installed = any(r.get('name') == request['name'] and r.get('category') == request.get('category')
+                            and r.get('status') == 'installed' for r in job.get('results', []))
+            request['can_resume'] = not installed and (request['has_draft'] or request['has_site_session'])
         return job
+
+    def site_session_pointer(self, job, index):
+        """恢复已有研究；只接受本作业内、与原请求绑定的会话。计划可尚未通过校验。"""
+        if not 0 <= index < len(job.get('requests', [])):
+            raise ValueError('请求序号不存在')
+        request = {k: v for k, v in job['requests'][index].items() if k in SkillRequest.__dataclass_fields__}
+        if request.get('category') != 'access' or not request.get('host'):
+            raise ValueError('该请求没有站点需求会话')
+        try:
+            expected = json.loads(json.dumps(asdict(SkillRequest(**request))))
+        except (TypeError, ValueError) as exc:
+            raise ValueError('原创建请求不完整') from exc
+        result = next((r for r in job.get('results', []) if r.get('name') == expected['name']
+                       and r.get('category') == expected['category']), {})
+        values = [job.get('drafts', {}).get(str(index)), result.get('trial_path'),
+                  job.get('site_sessions', {}).get(str(index))]
+        owned = (self.root / 'trials' / job['id']).resolve()
+        if not owned.is_relative_to(self.root.resolve()):
+            raise ValueError('研究记录目录异常')
+        for value in values:
+            if not value:
+                continue
+            path = Path(value)
+            if not path.is_absolute():
+                path = _REPO_ROOT / path
+            pointer = path.parent / 'site-session.json'
+            request_path = path.parent / 'request.json'
+            if not all(p.resolve().is_relative_to(owned) for p in (path, pointer, request_path)):
+                raise ValueError('研究记录不属于当前创建作业')
+            if not pointer.is_file():
+                continue
+            saved = json.loads(request_path.read_text())
+            session = json.loads(pointer.read_text())
+            if not isinstance(saved, dict) or saved.get('request') != expected or saved.get('access_site_intent') is not True:
+                raise ValueError('研究记录与原创建请求不一致')
+            if not isinstance(session, dict) or session.get('version') != 1 or session.get('host') != expected['host']:
+                raise ValueError('站点需求会话版本或目标站点不一致')
+            if not isinstance(session.get('observations'), list) or type(session.get('calls')) is not int or session['calls'] < 0:
+                raise ValueError('站点需求会话不完整')
+            return pointer
+        raise ValueError('没有可恢复的站点研究记录')
 
     def assert_editable(self, job, index):
         if job['status'] in {'running', 'queued'}:
@@ -94,7 +144,7 @@ class CreationJobs:
             raise ValueError('该技能已入库，请发起新的更新请求')
         for active in self.list():
             if active['status'] in {'queued', 'running'} and active.get('resume_of') == {'job_id': job['id'], 'index': index}:
-                raise ValueError('该草稿正在续修，请查看新的续修记录')
+                raise ValueError('该请求正在继续创建，请查看新的记录')
 
     def resume(self, job_id, index):
         from api.skills.drafts import draft_pointer
@@ -104,13 +154,30 @@ class CreationJobs:
             if active['status'] in {'queued', 'running'} and active.get('resume_of') == {'job_id': job_id, 'index': index}:
                 return active
         self.assert_editable(parent, index)
-        pointer = draft_pointer(parent, self.root, index)
-        load_draft(pointer)
+        try:
+            pointer = draft_pointer(parent, self.root, index)
+        except ValueError:
+            pointer = None
+        session = None
+        if pointer is not None:
+            load_draft(pointer)
+        else:
+            session = self.site_session_pointer(parent, index)
         request = {k: v for k, v in parent['requests'][index].items() if k in SkillRequest.__dataclass_fields__}
         SkillRequest(**request)
         job = dict(id=uuid4().hex, input=parent['input'], status='queued', stage='repair',
                    requests=[request], results=[], current_index=None, error='', created_at=now(),
-                   resume_of={'job_id': job_id, 'index': index}, resume_draft=str(pointer))
+                   resume_of={'job_id': job_id, 'index': index}, resume_kind='draft' if pointer else 'site_session')
+        if pointer is not None:
+            job['resume_draft'] = str(pointer)
+        else:
+            # 入队前保存自有恢复点，排队时停止或服务重启也不依赖父记录继续存在。
+            owned = self.root / 'trials' / job['id'] / request['name'] / 'resume'
+            owned.mkdir(parents=True, mode=0o700)
+            for name in ('request.json', 'site-session.json'):
+                shutil.copy2(session.parent / name, owned / name)
+            job['resume_site_session'] = str(owned / 'site-session.json')
+            job['site_sessions'] = {'0': job['resume_site_session']}
         self.write(job)
         task = asyncio.create_task(self.run(job))
         self.tasks[job['id']] = task
@@ -141,7 +208,7 @@ class CreationJobs:
             if job['status'] in {'queued', 'running'} or (task is not None and not task.done()):
                 raise ValueError('请先停止创建，再删除记录')
             if any((child.get('resume_of') or {}).get('job_id') == identifier for child in active):
-                raise ValueError('该记录的草稿正在续修，请先停止续修任务')
+                raise ValueError('该记录正在继续创建，请先停止续修任务')
             for path in (self.path(identifier), self.root / 'trials', self.root / 'trials' / identifier):
                 if path.is_symlink() or not path.resolve().is_relative_to(self.root.resolve()):
                     raise ValueError('记录目录异常，不能删除')
@@ -166,7 +233,7 @@ class CreationJobs:
         job = self.read(job_id)
         if job['status'] in {'queued', 'running', 'interrupted'}:
             job.update(status='interrupted', current_index=None,
-                       error='用户已停止创建；草稿和已入库技能保留。')
+                       error='用户已停止创建；研究记录、草稿和已入库技能保留。')
             self.write(job)
         return job
 
@@ -177,7 +244,7 @@ class CreationJobs:
             except (ValueError, OSError):
                 continue
             if job['status'] in {'queued', 'running'}:
-                job.update(status='interrupted', error='服务已重启，创建中断；已保存的草稿可继续修复，已入库技能保留。')
+                job.update(status='interrupted', error='服务已重启，创建中断；可从已保存的研究记录或草稿继续，已入库技能保留。')
                 self.write(job)
 
     def create(self, request: CreationInput):
@@ -216,15 +283,19 @@ class CreationJobs:
 
                 request = CreationInput.model_validate(job['input'])
                 async with asyncio.timeout(3600):
-                    if job.get('resume_draft'):
+                    if job.get('resume_draft') or job.get('resume_site_session'):
+                        async def on_stage(stage):
+                            await progress({'stage': stage, 'index': 0})
                         async def on_draft(path):
-                            await progress({'stage': 'repair', 'index': 0, 'draft_path': str(path)})
-                        job.update(stage='repair', current_index=0)
+                            await progress({'stage': job['stage'], 'index': 0, 'draft_path': str(path)})
+                        job.update(stage='site_intent' if job.get('resume_site_session') else 'repair', current_index=0)
                         self.write(job)
                         selected = SkillRequest(**job['requests'][0])
+                        resume = ({'resume_draft': Path(job['resume_draft'])} if job.get('resume_draft') else
+                                  {'access_site_intent': True, 'access_site_session': self.site_session_pointer(job, 0)})
                         result = await run_pipeline(selected, library_path=library,
-                            resume_draft=Path(job['resume_draft']), subtask=selected.subtask,
-                            subtask_runner=run_standalone_subtask, on_draft=on_draft,
+                            **resume, subtask=selected.subtask,
+                            subtask_runner=run_standalone_subtask, on_draft=on_draft, on_stage=on_stage,
                             trial_root=self.root / 'trials' / job['id'])
                         results = [result]
                         await progress({'stage': 'result', 'index': 0, 'result': result.to_report()})
@@ -237,7 +308,7 @@ class CreationJobs:
                 job.update(status=('completed' if installed == len(results) else 'partial' if installed else 'failed'),
                            stage='done', current_index=None)
         except asyncio.CancelledError:
-            job.update(status='interrupted', error='服务停止，创建中断；已保存的草稿可继续修复，已入库技能保留。')
+            job.update(status='interrupted', error='服务停止，创建中断；可从已保存的研究记录或草稿继续，已入库技能保留。')
             raise
         except Exception as exc:
             job.update(status='failed', error=str(exc) or type(exc).__name__)

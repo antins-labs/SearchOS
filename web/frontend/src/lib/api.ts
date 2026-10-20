@@ -727,11 +727,12 @@ export type SkillCreationJob = {
   status: "queued" | "running" | "completed" | "partial" | "failed" | "interrupted";
   stage: string;
   current_index: number | null;
-  requests: { name: string; category: string; description: string; subtask?: string; action?: "create" | "update"; has_draft?: boolean }[];
-  results: { name: string; category: string; status: string; error?: string; path?: string; trial_path?: string; action?: "create" | "update" }[];
+  requests: { name: string; category: string; description: string; subtask?: string; action?: "create" | "update"; has_draft?: boolean; has_site_session?: boolean; can_resume?: boolean }[];
+  results: { name: string; category: string; status: string; error?: string; failure_stage?: string; path?: string; trial_path?: string; action?: "create" | "update" }[];
   error: string;
   created_at: string;
   resume_of?: { job_id: string; index: number };
+  resume_kind?: "draft" | "site_session";
 };
 export const createSkills = (input: SkillCreationInput) =>
   putJson<SkillCreationJob>("/api/skills/creations", input, "POST");

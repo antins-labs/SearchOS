@@ -30,14 +30,19 @@ class AiohttpBackend:
         *,
         max_retries: int = _MAX_RETRIES,
         max_html_bytes: int = _MAX_HTML_BYTES,
+        trust_env: bool = False,
+        allow_redirects: bool = True,
     ) -> None:
         self._max_retries = max_retries
         self._max_html_bytes = max_html_bytes
+        self._trust_env = trust_env
+        self._allow_redirects = allow_redirects
 
     async def fetch(
         self, url: str, *, query: str = "", timeout: float = 20.0,
     ) -> FetchResult:
-        headers = {**_HEADERS, "Referer": f"https://{urlparse(url).netloc}/"}
+        headers = {**_HEADERS, "Referer": f"https://{urlparse(url).netloc}/",
+                   "Accept-Encoding": "gzip, deflate"}
         ssl_ctx = ssl.create_default_context(cafile=certifi.where())
         last_error = ""
 
@@ -45,11 +50,12 @@ class AiohttpBackend:
             try:
                 async with aiohttp.ClientSession(
                     connector=aiohttp.TCPConnector(ssl=ssl_ctx),
+                    trust_env=self._trust_env,
                 ) as session:
                     async with session.get(
                         url, headers=headers,
                         timeout=aiohttp.ClientTimeout(total=timeout),
-                        allow_redirects=True,
+                        allow_redirects=self._allow_redirects,
                     ) as resp:
                         if resp.status in _RETRY_STATUSES and attempt < self._max_retries:
                             last_error = f"HTTP {resp.status}"

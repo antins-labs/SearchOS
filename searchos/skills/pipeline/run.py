@@ -22,6 +22,7 @@ class PipelineResult:
     error: str = ''
     trial_path: Path | None = None
     draft_path: Path | None = None
+    failure_stage: str = ''
 
     def to_report(self) -> dict[str, str]:
         report = {'category': self.request.category.value, 'name': self.request.name,
@@ -32,6 +33,8 @@ class PipelineResult:
             report['path'] = str(self.path)
         if self.error:
             report['error'] = self.error
+        if self.failure_stage:
+            report['failure_stage'] = self.failure_stage
         if self.trial_path:
             report['trial_path'] = str(self.trial_path)
         if self.draft_path and self.draft_path.is_file():
@@ -45,7 +48,12 @@ async def run_pipeline(request: SkillRequest, *, library_path: str | Path,
                        subtask: str | None = None, subtask_runner: Any = None,
                        judge_model: Any = None, trial_root: str | Path | None = None,
                        trial_timeout_s: float = 120, resume_draft: Path | None = None,
-                       on_draft: Any = None) -> PipelineResult:
+                       on_draft: Any = None, on_stage: Any = None, access_max_turns: int = 45,
+                       access_discovery_turns: int | None = None,
+                       access_validation_examples: list[dict] | None = None,
+                       access_site_intent: bool | None = None,
+                       access_intent_model: Any = None,
+                       access_site_session: Path | None = None) -> PipelineResult:
     """一个请求对应一次生成；不解析用户问题或轨迹，也不进行运行时选择。"""
     library = Path(library_path)
     category_root = library / request.category.value
@@ -86,7 +94,15 @@ async def run_pipeline(request: SkillRequest, *, library_path: str | Path,
                 raise ValueError('draft request does not match original request')
             if saved_request.get('base_hash') != original_hash:
                 raise ValueError('installed skill changed since draft creation; start a new update')
-        save_record(record_dir / 'request.json', {'request': asdict(request), 'base_hash': original_hash})
+            if saved_request.get('access_validation_examples') != access_validation_examples:
+                raise ValueError('host validation examples changed since draft creation')
+            saved_site_intent = saved_request.get('access_site_intent', False)
+            if access_site_intent is not None and access_site_intent != saved_site_intent:
+                raise ValueError('site intent mode changed since draft creation')
+            access_site_intent = saved_site_intent
+        save_record(record_dir / 'request.json', {'request': asdict(request), 'base_hash': original_hash,
+                                                'access_validation_examples': access_validation_examples,
+                                                'access_site_intent': bool(access_site_intent)})
         if on_draft is not None:
             await on_draft(draft_path)
         category_root.mkdir(parents=True, exist_ok=True)
@@ -98,8 +114,14 @@ async def run_pipeline(request: SkillRequest, *, library_path: str | Path,
                 built = await build_skill(host=host, probe_urls=list(request.probe_urls) or ([f'https://{host}/'] if host else []),
                                           notes=request.description + '\n' + request.reason,
                                           output_dir=candidate, builder_model=model, model=model_name, diagnostics=diagnostics, record_dir=record_dir,
+                                          max_turns=access_max_turns, discovery_turns=access_discovery_turns,
+                                          validation_examples=access_validation_examples,
+                                          site_intent=bool(access_site_intent), intent_model=access_intent_model,
+                                          site_session_path=access_site_session, on_stage=on_stage,
                                           existing_package=final if existing else None, resume_draft=resume_draft)
             else:
+                if on_stage is not None:
+                    await on_stage('pipeline')
                 from searchos.skills.pipeline.text.run import build_text_skill
                 from searchos.skills.pipeline.drafts import save_draft
                 from searchos.skills.packaging import package_files
@@ -148,8 +170,10 @@ async def run_pipeline(request: SkillRequest, *, library_path: str | Path,
         logger.warning('skill pipeline failed: %s/%s: %s', request.category.value, request.name, exc)
         if trial_path is not None:
             from searchos.skills.pipeline.strategy.trial import save_record
-            save_record(trial_path, {'status': 'error', 'error': str(exc), 'error_type': type(exc).__name__, 'diagnostics': diagnostics})
-        return PipelineResult(request, 'error', error=str(exc), trial_path=trial_path, draft_path=draft_path)
+            save_record(trial_path, {'status': 'error', 'error': str(exc), 'error_type': type(exc).__name__,
+                                     'failure_stage': diagnostics.get('failure_stage', ''), 'diagnostics': diagnostics})
+        return PipelineResult(request, 'error', error=str(exc), trial_path=trial_path, draft_path=draft_path,
+                              failure_stage=diagnostics.get('failure_stage', ''))
 
 
 __all__ = ['PipelineResult', 'run_pipeline']

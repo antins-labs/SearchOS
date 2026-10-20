@@ -1,6 +1,7 @@
 """Access Builder 工具：探索、包文件、CLI 调试与校验反馈。"""
 from __future__ import annotations
 import json
+from copy import deepcopy
 import shutil
 import tempfile
 from pathlib import Path
@@ -112,11 +113,40 @@ class BuilderWorkspace:
         self.require_host = True
         self.last_validation: dict = {}
         self.resuming = False
+        self.update_base = None
         self.checkpoint = lambda: None
         self.examples: list[dict[str, Any]] = []
+        self.examples_locked = False
         self.files: set[str] = set()
         self._runtime = tempfile.TemporaryDirectory(prefix="searchos-builder-runtime-")
         self.browser = ResearchBrowser()
+        self.site_intent = None
+
+    def set_validation_examples(self, examples: list[dict]) -> None:
+        """接收宿主编译的验收样例；模型只能修实现，不能改验收目标。"""
+        if not isinstance(examples, list) or not examples:
+            raise ValueError('host validation examples must be a nonempty list')
+        for example in examples:
+            if not isinstance(example, dict):
+                raise ValueError('host validation example must be an object')
+            argv = example.get('argv')
+            if (not isinstance(argv, list) or len(argv) < 2
+                    or not all(isinstance(v, str) for v in argv)):
+                raise ValueError('host example argv must contain an interpreter and a script')
+            script = Path(argv[1])
+            if not script.parts or script.is_absolute() or '..' in script.parts or script.parts[0] != 'scripts':
+                raise ValueError('host example entry must stay under scripts/')
+            output = example.get('output', '')
+            if not isinstance(output, str) or (output and (Path(output).is_absolute() or '..' in Path(output).parts)):
+                raise ValueError('host example output must stay in the working directory')
+            if not isinstance(example.get('records_key', ''), str):
+                raise ValueError('host example records_key must be a string')
+            if example.get('expected_status', 'ok') not in ('ok', 'empty', 'invalid_input'):
+                raise ValueError('host example expected_status must be ok, empty or invalid_input')
+            if 'proxy_mode' in example:
+                validate_proxy_mode(example['proxy_mode'])
+        self.examples = deepcopy(examples)
+        self.examples_locked = True
 
     def close(self) -> None:
         self._runtime.cleanup()
@@ -128,7 +158,22 @@ class BuilderWorkspace:
                                  execution_dir=root / "executions", stdin=stdin,
                                  timeout_s=min(120, max(.1, timeout_s)), network=True, proxy_mode=proxy_mode)
 
+    def package_state(self):
+        import hashlib
+        return {name: hashlib.sha256(self._resolve_inside(name).read_bytes()).hexdigest()
+                for name in sorted(self.files)}
+
+    def revision_error(self):
+        if self.update_base is not None and self.package_state() == self.update_base:
+            return {'valid': False, 'stage': 'revision',
+                    'error': 'update_has_no_changes: 旧包通过基础样例不表示本次修复完成；请先落实请求中的文件修改。'}
+        return None
+
     async def validate(self) -> dict:
+        if error := self.revision_error():
+            self.last_validation = error
+            self.checkpoint()
+            return error
         with tempfile.TemporaryDirectory(prefix=".builder-package-", dir=self.output_dir.parent) as tmp:
             candidate = Path(tmp) / self.expected_name
             candidate.mkdir()
@@ -186,9 +231,14 @@ class BuilderWorkspace:
         return await self.write_file(path, text.replace(old_text, new_text))
 
     async def dispatch(self, tool_name: str, tool_input: dict[str, Any]) -> Any:
+        if tool_name == 'ask_intent_agent' and self.site_intent is not None:
+            return await self.site_intent.advise(**tool_input)
         if tool_name in {"web_search", "web_open", "web_find"}:
             return await self.browser.dispatch(tool_name, tool_input)
         if tool_name == "register_example":
+            if self.examples_locked:
+                return {'error': 'host_validation_examples_locked', 'registered': len(self.examples),
+                        'next_action': '验收样例及预期状态已由宿主注册；无需重复注册或修改。请修复脚本，使用 exec 检查负例，使用 validate_skill 验收。'}
             argv = tool_input.get("argv")
             if not isinstance(argv, list) or not argv or not all(isinstance(v, str) for v in argv):
                 raise ValueError("argv must be a nonempty string array")
@@ -257,6 +307,10 @@ async def run_tool(workspace: BuilderWorkspace, tool_call: Any) -> Any:
         if not isinstance(args, dict):
             raise TypeError("tool call args must be an object")
         result = await workspace.dispatch(name, args)
+        if workspace.site_intent is not None:
+            observation = workspace.site_intent.observe(name, args, result, 'builder')
+            if observation is not None:
+                result = {**result, 'observation_id': observation}
         payload = json.dumps(result, ensure_ascii=False, default=str)
     except Exception as exc:  # noqa: BLE001
         payload = json.dumps({"error": str(exc)}, ensure_ascii=False)

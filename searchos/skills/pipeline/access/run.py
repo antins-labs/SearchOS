@@ -27,10 +27,16 @@ async def build_skill(
     builder_model: Any = None,
     model: str | None = None,
     max_turns: int = MAX_TURNS,
+    discovery_turns: int | None = None,
+    validation_examples: list[dict] | None = None,
     existing_package: Path | None = None,
     diagnostics: dict | None = None,
     record_dir: Path | None = None,
     resume_draft: Path | None = None,
+    site_intent: bool = False,
+    intent_model: Any = None,
+    site_session_path: Path | None = None,
+    on_stage: Any = None,
 ) -> Path | None:
     """Build one access skill and return its directory on success.
 
@@ -42,6 +48,8 @@ async def build_skill(
     """
     if max_turns < 1:
         raise ValueError('max_turns must be positive')
+    if discovery_turns is not None and not 0 <= discovery_turns < max_turns:
+        raise ValueError('discovery_turns must be between zero and max_turns - 1')
     from uuid import uuid4
     from searchos.skills.pipeline.access.records import BuildRecord
     final_dir = output_dir or Path("searchos/skills/library/access") / name_for_host(host)
@@ -50,6 +58,9 @@ async def build_skill(
     diagnostics.update(max_turns=max_turns, turns_attempted=0, turns_completed=0,
                        repair_turns=min(8, max(1, max_turns // 5)), exit_reason='running',
                        record_dir=str(record.root))
+    diagnostics['discovery_turns'] = discovery_turns
+    diagnostics['example_source'] = 'host' if validation_examples is not None else 'builder'
+    diagnostics['model_usage'] = {}
     record.summary(diagnostics)
     if builder_model is None:
         from searchos.config.models import get_model_for
@@ -62,7 +73,11 @@ async def build_skill(
             raise
 
     try:
-        tool_model = builder_model.bind_tools(BuilderWorkspace.TOOL_DEFINITIONS)
+        definitions = list(BuilderWorkspace.TOOL_DEFINITIONS)
+        if site_intent:
+            from searchos.skills.intent.site import ADVICE_TOOL
+            definitions.append(ADVICE_TOOL)
+        tool_model = builder_model.bind_tools(definitions)
     except Exception:
         logger.warning(
             "skill_evolver model does not support access-skill builder tools",
@@ -107,7 +122,8 @@ async def build_skill(
             notes += '\n上一轮验证结果：' + json.dumps(saved['validation'], ensure_ascii=False)
             notes += '\n已恢复的完整验证样例（索引从 0 开始）：' + json.dumps(
                 [{'index': index, **example} for index, example in enumerate(workspace.examples)], ensure_ascii=False)
-            notes += '\n修正已有样例时必须使用 register_example 的 replace_index；追加新样例不会移除旧的失败样例。'
+            if validation_examples is None:
+                notes += '\n修正已有样例时必须使用 register_example 的 replace_index；追加新样例不会移除旧的失败样例。'
             notes += '\n修复输出格式、参数或依赖问题后重新验证。不得移除用户要求的核心能力来制造成功；遇到登录/访问阻碍请如实说明。'
             record.event('resumed', draft=str(resume_draft), files=saved['files'], examples=workspace.examples)
             checkpoint()
@@ -120,23 +136,58 @@ async def build_skill(
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(existing_package / relative, target)
                 workspace.files.add(relative.as_posix())
+            workspace.update_base = workspace.package_state()
             notes += "\nExisting package files are seeded in the workspace: " + ", ".join(sorted(workspace.files))
             notes += "\nRead and extend this package. Preserve existing capabilities and register their regression examples as well as examples of new commands."
             if not workspace.require_host:
                 notes += "\nThis existing package has no single host. Preserve its multi-source scope; discover endpoints from existing scripts/references. metadata.host is optional for this update; do not invent a host."
             checkpoint()
+        if validation_examples is not None:
+            workspace.set_validation_examples(validation_examples)
+            record.event('host_validation_examples', examples=workspace.examples)
+            checkpoint()
+        if site_intent:
+            if validation_examples is not None:
+                raise ValueError('site capability plan cannot replace explicit host examples')
+            from searchos.skills.intent.site import SiteIntentSession, capability_examples
+            session = SiteIntentSession(intent_model or builder_model, workspace, record)
+            workspace.site_intent = session
+            previous_session = resume_draft.parent / 'site-session.json' if resume_draft is not None else site_session_path
+            if on_stage is not None:
+                await on_stage('site_intent')
+            try:
+                plan = await session.prepare(host, probe_urls, notes, resume=previous_session)
+            except Exception:
+                diagnostics['failure_stage'] = 'site_intent'
+                raise
+            planned_examples = capability_examples(plan)
+            if resume_draft is not None and workspace.examples != planned_examples:
+                raise ValueError('saved capability plan no longer matches draft examples')
+            workspace.set_validation_examples(planned_examples)
+            notes += session.builder_notes()
+            diagnostics['example_source'] = 'site_intent'
+            diagnostics['capabilities'] = [c['id'] for c in plan['capabilities']]
+            record.event('site_plan_locked', plan=plan)
+            checkpoint()
+        if on_stage is not None:
+            await on_stage('pipeline')
         return await _build_episode(workspace, final_dir, host, probe_urls, notes, tool_model, max_turns, diagnostics, record)
     except asyncio.CancelledError:
         diagnostics.update(exit_reason='cancelled')
         record.event('cancelled')
         raise
     except Exception as exc:
-        diagnostics.update(exit_reason='execution_error', error_type=type(exc).__name__)
+        diagnostics.update(exit_reason='site_intent_error' if diagnostics.get('failure_stage') == 'site_intent' else 'execution_error', error_type=type(exc).__name__)
         record.event('execution_error', error_type=type(exc).__name__)
         raise
     finally:
         try:
             checkpoint()
+            if workspace.site_intent is not None:
+                diagnostics['intent_calls'] = workspace.site_intent.state['calls']
+                diagnostics['intent_dialogues'] = len(workspace.site_intent.state['dialogues'])
+                if failure := workspace.site_intent.state.get('failure'):
+                    diagnostics['intent_failure'] = failure
             record.summary(diagnostics)
         finally:
             workspace.close()
@@ -145,15 +196,39 @@ async def build_skill(
 
 async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_model, max_turns, diagnostics=None, record=None):
     logger.info("dynamic builder: host=%s output=%s", host, final_dir)
-    from langchain_core.messages import HumanMessage, SystemMessage
+    from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 
     messages: list[Any] = [
         SystemMessage(content=SYSTEM_PROMPT),
         HumanMessage(content=user_prompt(host, probe_urls, notes) + f"\nFinal package name: {final_dir.name}"),
     ]
+    if workspace.examples_locked:
+        messages.append(HumanMessage(content=(
+            '宿主已从原始需求注册并锁定以下验收样例，输出由 stdout 读取；无需 register_example。'
+            '不得改写这些输入、输出位置或预期状态。用 exec 诊断错误输入和访问失败，保持其非零失败语义；'
+            '未声明 expected_status 的样例要求 ok 和非空 records；边界例按其 expected_status 验收：'
+            'empty 要求零退出和空 records，invalid_input 要求非零退出和空 records，二者均须输出 warnings。'
+            '用 validate_skill 验证实现。固定样例：\n' + json.dumps(workspace.examples, ensure_ascii=False))))
 
     repair_start = max_turns - diagnostics['repair_turns']
+    discovery_turns = diagnostics.get('discovery_turns')
+    initial_package_state = workspace.package_state() if discovery_turns is not None else None
+    if discovery_turns is not None:
+        messages.append(HumanMessage(content=(
+            f'本次总预算 {max_turns} 次模型调用；前 {discovery_turns} 次用于入口发现，'
+            f'最后 {diagnostics["repair_turns"]} 次用于验收修复。'
+            '发现阶段结束前用 write_file 保存已确认的入口与诊断。'
+            '随后必须写出 SKILL.md 和核心脚本，再对具体错误做最小探测。'
+            '已有包或草稿的旧文件不算本轮进展；须实际修改实现或保存新的诊断内容，原样重写不解锁 run_python。'
+            '可继续使用 exec 调试、validate_skill 验收、读取文件和网页、追问需求 Agent。'
+            '不得削减用户核心需求来制造成功，外部阻塞应保存诊断和可恢复草稿。')))
     for turn in range(max_turns):
+        if turn == discovery_turns and not workspace.resuming:
+            record.event('implementation_phase', turn=turn + 1, files=sorted(workspace.files))
+            messages.append(HumanMessage(content=(
+                '入口发现预算已用完。现在用 write_file 保存 SKILL.md、scripts/ 下的核心实现和诊断。'
+                '没有可信入口时保存阻塞原因，不得猜测接口或输出固定数据。'
+                '核心文件齐全且本轮内容已有变化之前，run_python 将被暂缓；优先用 exec 调试包内脚本。')))
         if turn == repair_start or (turn == 0 and workspace.resuming):
             report = await workspace.validate()
             record.event('repair_phase', turn=turn + 1, validation=report)
@@ -173,9 +248,14 @@ async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_mod
                 guidance = ("从草稿的验证失败处继续。先读取现有文件和样例，修复具体错误，补齐缺失文件，"
                             "保留已工作的功能。先核对核心取数路径是否真的实现；不要在辅助命令的格式问题上耗尽预算。"
                             "需要时可针对失败点查询资料，不要重新全量探索站点。当前验证结果：\n")
+            if workspace.examples_locked:
+                guidance = ('固定验收样例及其 expected_status 由宿主管理，不能修改或重新注册。修复 CLI 实现、stdout JSON、参数和依赖；'
+                            '用 exec 检查负例，用 validate_skill 重新验收，不扩展功能。当前验证结果：\n')
             messages.append(HumanMessage(content=guidance + json.dumps(report, ensure_ascii=False)))
         diagnostics['turns_attempted'] = turn + 1
-        record.event('model_started', turn=turn + 1, phase='repair' if turn >= repair_start else 'build')
+        phase = 'repair' if turn >= repair_start else ('discovery' if discovery_turns is not None and turn < discovery_turns else 'build')
+        diagnostics['phase'] = phase
+        record.event('model_started', turn=turn + 1, phase=phase)
         record.summary(diagnostics)
         logger.info("dynamic builder: turn %s/%s", turn + 1, max_turns)
         try:
@@ -187,8 +267,12 @@ async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_mod
             break
 
         diagnostics['turns_completed'] = turn + 1
+        usage = getattr(msg, 'usage_metadata', None) or {}
+        for key in ('input_tokens', 'output_tokens', 'total_tokens'):
+            if isinstance(usage.get(key), int):
+                diagnostics['model_usage'][key] = diagnostics['model_usage'].get(key, 0) + usage[key]
         tool_calls = getattr(msg, "tool_calls", None) or []
-        record.event('model_completed', turn=turn + 1, content=msg.content, tool_calls=tool_calls)
+        record.event('model_completed', turn=turn + 1, content=msg.content, tool_calls=tool_calls, usage=usage)
         record.summary(diagnostics)
         # Preserve the provider-normalized assistant message, including tool
         # calls, so the next turn remains valid for every supported protocol.
@@ -209,7 +293,16 @@ async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_mod
 
         for tc in tool_calls:
             record.event('tool_started', turn=turn + 1, name=tc.get('name'), call_id=tc.get('id'))
-            result = await run_tool(workspace, tc)
+            has_core = 'SKILL.md' in workspace.files and any(p.startswith('scripts/') for p in workspace.files)
+            if (discovery_turns is not None and turn >= discovery_turns and tc.get('name') == 'run_python'
+                    and (not has_core or workspace.package_state() == initial_package_state)):
+                result = ToolMessage(content=json.dumps({'error': 'discovery_budget_exhausted',
+                    'next_action': '先补齐 SKILL.md 和核心脚本，并落实本轮内容变化。已有包可先将新证据写入 references/diagnosis.md；'
+                                   '原样重写不解锁。可继续 exec 调试、validate_skill 验收、读取文件和网页或追问需求 Agent；不得伪造成功。'}, ensure_ascii=False),
+                    tool_call_id=tc['id'])
+                record.event('discovery_call_deferred', turn=turn + 1, name=tc.get('name'))
+            else:
+                result = await run_tool(workspace, tc)
             messages.append(result)
             record.event('tool_result', turn=turn + 1, name=tc.get('name'), call_id=tc.get('id'), content=result.content)
     else:
@@ -227,7 +320,7 @@ async def _build_episode(workspace, final_dir, host, probe_urls, notes, tool_mod
             target = candidate / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
-        report = await validate_access_package(candidate, final_dir.name, workspace.examples, require_host=workspace.require_host)
+        report = workspace.revision_error() or await validate_access_package(candidate, final_dir.name, workspace.examples, require_host=workspace.require_host)
         workspace.last_validation = report
         if diagnostics is not None:
             diagnostics.update(report)
