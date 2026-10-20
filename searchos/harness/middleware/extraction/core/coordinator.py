@@ -26,6 +26,10 @@ from searchos.harness.middleware.extraction.core.preparation import (
 )
 from searchos.harness.middleware.extraction.core.routing import SchemaRouting, TaskRouting
 from searchos.harness.middleware.extraction.core.store import EvidenceStore, WorkspaceEvidenceStore
+from searchos.harness.middleware.extraction.core.task_scope import (
+    capture_task_targets,
+    restrict_task_rows,
+)
 from searchos.harness.middleware.models import TaskContext
 
 logger = logging.getLogger(__name__)
@@ -181,6 +185,7 @@ class ExtractionCoordinator:
             "local_source_metadata": observation.local_source_metadata,
             "source_kind": str(observation.source_kind),
         }
+        item = capture_task_targets(state, item)
         flushes: list[tuple[str, list[dict[str, Any]]]] = []
         async with self._buffer_lock:
             if content_hash in self._extracted_content_hashes:
@@ -519,6 +524,7 @@ class ExtractionCoordinator:
         # Schema is authoritative at extraction time, including observations
         # buffered before schema creation. Preserve the originating task ID.
         state = self._store.load_state()
+        snapshot = [capture_task_targets(state, item) for item in snapshot]
         snapshot, rejected = self._routing.expand(state, snapshot)
         for item, table_id in rejected:
             self._pending_feedback.append(
@@ -794,7 +800,9 @@ class ExtractionCoordinator:
                 def _merge(s: Any) -> Any:
                     if s.source_scope != phase_state.source_scope:
                         raise ValueError("Source scope changed during table extraction")
-                    nodes, rejected = self._commit_rows(bundles, tid, s, commit_stats=phase_written)
+                    scoped, scope_rejected = restrict_task_rows(s, items, tid, bundles)
+                    nodes, rejected = self._commit_rows(scoped, tid, s, commit_stats=phase_written)
+                    rejected = scope_rejected + rejected
                     task_id = items[0].get("task_id", "") if items else ""
                     accepted_ids = phase_written.get("accepted_ids", [node.id for node in nodes])
                     if task_id and accepted_ids:

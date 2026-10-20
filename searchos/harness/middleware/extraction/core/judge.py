@@ -116,6 +116,18 @@ class RowExtractor:
                 global_task=global_task,
                 coverage_snapshot=view,
             )
+        scoped_targets = [item.get("task_target_cells") for item in items
+                          if item.get("task_target_cells")]
+        if scoped_targets:
+            prompt += (
+                "\n\n## Explicit task write scope\n"
+                "Only return values for these target cells: "
+                + json.dumps(scoped_targets, ensure_ascii=False)
+                + ". Do not reinterpret requirement IDs or fill other rows/columns. "
+                "These explicit targets constrain both FILL and DISCOVER. "
+                "A page about another requirement cannot fill these cells; "
+                "return [] when unsupported."
+            )
         rows = None
         raw = ""
         for attempt in range(3):
