@@ -29,7 +29,33 @@
 <p align="center">
   <a href="#-快速上手">快速上手</a> · <a href="#-本地与混合研究">本地与混合研究</a> ·
   <a href="#-技能系统">技能系统</a> · <a href="#-配置">模型与配置</a> ·
-  <a href="#-系统架构">系统架构</a>
+  <a href="#-系统架构">系统架构</a> · <a href="#-gallery">演示</a> · <a href="#-评测">评测</a>
+</p>
+
+<p align="center">
+  <img src="../assets/main.png" alt="SearchOS-V1 架构" width="95%">
+</p>
+
+<p align="center"><sub>SearchOS-V1 架构。</sub></p>
+
+<p align="center">
+  <a href="https://youtu.be/DZNXxMcxnMQ">
+    <img src="../assets/searchos-demo.gif" alt="SearchOS 演示" width="95%">
+  </a>
+</p>
+
+<p align="center">
+  🎬 <b><a href="https://youtu.be/DZNXxMcxnMQ">完整 Demo 视频（YouTube）</a></b>
+</p>
+
+<p align="center">
+  <a href="https://youtu.be/WsjcDtCN0Cs" title="观看 SearchOS 中文产品讲解">
+    <img src="../assets/gallery/product-demo-zh.jpg" alt="SearchOS 中文产品讲解" width="95%">
+  </a>
+</p>
+
+<p align="center">
+  🎬 <b><a href="https://youtu.be/WsjcDtCN0Cs">完整产品讲解（中文）</a></b>
 </p>
 
 ## ✨ 核心能力
@@ -40,6 +66,10 @@
 - 🧰 **创建并复用技能**——从站点、任务或执行轨迹发起创建，在 Web 中查看生成进度和已安装技能。通用技能包使用 `SKILL.md` 与普通 CLI 脚本。
 - 💬 **运行中调整研究**——补充约束、修改范围或要求收尾。追问会唤醒等待中的 Orchestrator，无需等子任务完成。
 - 🗂️ **查看共享研究状态**——SOCM 持久化任务、证据、覆盖表与策略，让智能体围绕明确缺口工作，并通过预算和进展检查约束停滞任务。
+- 🧩 **围绕覆盖缺口检索**——实体 × 属性表记录带来源的取值与待补字段，Orchestrator 根据这些缺口，在预算内安排后续检索。
+- ⚡ **并行推进研究任务**——独立智能体的搜索、阅读与证据收集可以重叠执行，任务依赖决定哪些工作可以分派。
+
+> 📊 **SearchOS-V1** 在 **WideSearch / GISA** 的已报告 F1 指标上领先，其中 **GISA Set · F1 比次优基线高 13.4 点**。原始结果与适用范围见[评测](#-评测)。
 
 ## 📣 更新
 
@@ -50,7 +80,80 @@
 - **2026-09-13**——**混合搜索（Hybrid Search）。** 在同一研究流程中协调本地阅读与联网检索，结合两类证据生成回答和比较表。
 - **2026-09-10**——**本地搜索（Local Search）。** 检索自己的文档，按问题定位并阅读相关段落，根据本地原文回答。
 - **2026-07-17**——**SearchOS-V1 论文上线 arXiv。** 前往 [arXiv](https://arxiv.org/abs/2607.15257) 或 [Hugging Face](https://huggingface.co/papers/2607.15257) 阅读。
+- **2026-07-11** — **更快开始，更广搜索，全程可见。** 全新一键安装器让 SearchOS 快速就绪；并行 Explore waves 分批探索开放网络，实时进度与按实体分组的证据让每一次发现都清晰可追。Skill 现已在强化隔离的工作进程中运行。 ⚡
+- **2026-07-10** — **研究，从画出结构开始。** 描绘问题，SearchOS 把它变成可探索、可完善、可导出的引用级研究成果。 🧩
+- **2026-07-09** — **离开多久，都能原样回来。** 对话、进度、证据与实时动态完整保留，打开即可继续。 ⏪
+- **2026-07-08** — **所有设置，一个地方。** 模型、服务商、搜索、技能与预算，汇聚在一个简单而完整的控制中心。 ⚙️
 - **2026-07-07**——**SearchOS 正式开源。** 提供多智能体搜索、结构化研究、TUI 与 Web UI。
+
+## 🎥 Gallery
+
+### Local Search 介绍
+
+<p align="center">
+  <a href="https://youtu.be/l9vEq6SdvZA">
+    <img src="https://i.ytimg.com/vi/l9vEq6SdvZA/hqdefault.jpg" alt="Local Search 介绍" width="720">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://youtu.be/l9vEq6SdvZA"><b>观看 Local Search 介绍视频（YouTube）</b></a>
+</p>
+
+下方展示 Web 与 TUI 的使用流程。
+
+### Web 与 TUI 演示
+
+<table align="center">
+  <tr>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/dfzu9aeK0Cs" title="SearchOS-Web Demo · 在 YouTube 观看">
+        <img src="../assets/gallery/web-demo.jpg" alt="SearchOS-Web Demo" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-Web Demo</b></sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/bS07neJm6FA" title="SearchOS-Web Demo 2 · 在 YouTube 观看">
+        <img src="https://img.youtube.com/vi/bS07neJm6FA/hqdefault.jpg" alt="SearchOS-Web Demo 2" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-Web Demo 2</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/YhJdc7Qhr1U" title="SearchOS-demo1 · 在 YouTube 观看">
+        <img src="../assets/gallery/demo1.jpg" alt="SearchOS-demo1" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-demo1</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/IA_-sO2avTA" title="SearchOS-demo3 · 在 YouTube 观看">
+        <img src="../assets/gallery/demo3.jpg" alt="SearchOS-demo3" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-demo3</b></sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/HxCLoauXoYg" title="SearchOS-demo4 · 在 YouTube 观看">
+        <img src="../assets/gallery/demo4.jpg" alt="SearchOS-demo4" width="100%">
+      </a>
+      <sub>▶️ <b>SearchOS-demo4</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <a href="https://youtu.be/-QmjRr_3B1s" title="SearchOS-demo5 · 在 YouTube 观看">
+        <img src="../assets/gallery/demo5.jpg" alt="SearchOS-demo5" width="50%">
+      </a>
+      <br><sub>▶️ <b>SearchOS-demo5</b></sub>
+    </td>
+  </tr>
+</table>
+
+<p align="center"><sub>点击封面在 YouTube 观看。</sub></p>
+
+<!-- 新增视频：复制上面的 <td>…</td> 块，替换 youtu.be 链接、assets/gallery 缩略图与标题即可 -->
 
 ## 🧭 快速上手
 
@@ -77,6 +180,12 @@ searchos --setup
 5. 点击引用检查原文，将有用的网络来源保存到知识库，供后续研究使用。
 
 也可以使用 CLI 和 TUI：
+
+例如，在终端发起一个结构化 Web 查询：
+
+```bash
+searchos "2025 年 QS 学科排名各学科前五的大学及其申请截止日期"
+```
 
 | 命令 | 作用 |
 | --- | --- |
@@ -128,9 +237,6 @@ Agent 先通过目录定位资料，再在相关章节查找并按需读取原�
 | **运行中** | **实时追问**——唤醒正在等待子任务的 Orchestrator，带着新要求发起下一次模型调用；可补充约束、调整方向或要求收尾 |
 | 运行结束后 | **多轮追问**——沿用上一轮覆盖表与证据：答案已在表中则直接作答（不再检索），否则在现有表上增量扩展，不从零重建 |
 
-<details>
-<summary>TUI 指令与投入档位</summary>
-
 运行中也可以使用斜杠指令；配置修改的生效时机见下表：
 
 | 指令 | 别名 / 快捷键 | 作用 |
@@ -155,8 +261,6 @@ Agent 先通过目录定位资料，再在相关章节查找并按需读取原�
 | `medium`（默认） | 50 | 20 | 30 min | 40 |
 | `high` | 100 | 35 | 60 min | 60 |
 | `max` | 150 | 50 | 120 min | 80 |
-
-</details>
 
 ## 🧰 技能系统
 
@@ -236,6 +340,13 @@ python -m pip install -e ".[all]"        # 全部可选运行依赖
 
 SearchOS 通过 **SOCM（Search-Oriented Context Management）**维护任务、证据、覆盖表和策略。来源阅读经过抽取与核验，提交的事实保留出处，并可支持后续任务或表格单元。Orchestrator 根据这些状态安排未完成工作；预算与进展监测帮助识别重复和停滞，工作台展示已有证据与剩余缺口。
 
+这些机制分别处理四类问题：
+
+- **进展淹没在对话历史中。** 任务、证据与覆盖表持久化保存，后续工作可以接续已有发现；Context 中间件将相关状态放入智能体上下文，会话历史支持检查与恢复。
+- **重复已完成或已停滞的工作。** Orchestrator 跟踪未解决的任务与单元格，Sensor 中间件检查预算和进展，为后续补漏与调整检索方向提供依据。
+- **汇总时丢失来源。** 智能体负责定位和阅读资料，Extraction 中间件抽取、核验候选事实，再连同来源提交；回答与表格单元据此引用支撑证据。
+- **反复实现访问方法与研究步骤。** Access、Strategy、Orchestrator 技能分别保存来源检索能力、排名与消歧等方法，以及编排指导。详见[技能系统](#-技能系统)。
+
 本地知识库为这一流程提供可持续使用的资料。目录帮助 Agent 定位文档，Hybrid 将本地阅读与公开来源连接起来，技能则保留可复用的访问方法与研究步骤。
 
 ## 🧩 系统架构
@@ -263,14 +374,33 @@ Orchestrator 根据问题与已有证据选择下一步动作。普通运行中�
 
 **Context、Sensor、Extraction** 中间件分别负责上下文组织、预算与进展监测、证据接入。常规最终回答由 Orchestrator 生成，可选 Writer 与合成兜底支持其他交付路径。会话工作区保存状态、阅读记录与执行日志，供追问和检查使用。
 
-<details>
-<summary>SearchOS-V1 架构总览</summary>
+结构化 Web 或 Hybrid 研究包含六个环节，Orchestrator 可以根据新证据和剩余缺口重新进入相应环节：
 
-<p align="center">
-  <img src="../assets/main.png" alt="SearchOS-V1 架构" width="95%">
-</p>
+1. **Explore**——按需澄清问题、定位来源并发现候选实体。
+2. **Schema**——任务需要结构化比较时，定义实体表、属性与关系；Hybrid 可以先收集 findings 再建表。
+3. **Dispatch**——将未完成工作拆成子任务，按优先级、依赖与可用并发分派。
+4. **Extract**——从来源观测中抽取并核验带引用的事实，再关联任务与对应单元格。
+5. **Assess**——检查结果、剩余缺口、冲突、进展与预算，决定后续工作。
+6. **Synthesize**——根据已有证据组织答案、保留引用，并在运行结束时说明尚未解决的缺口。
 
-</details>
+### 输出长什么样
+
+以下节选保留自 2026 年 7 月 README，展示单元格引用与文末来源的对应关系。原问题为“梳理香港近几年的热门保险”，数值属于当时的运行示例。
+
+```markdown
+### 香港主要保险公司
+| 公司       | 英文名          | 2024 APE 排名 | 2023 保费规模   |
+|-----------|----------------|--------------|---------------|
+| 友邦保险   | AIA [6]        | 第 1 名 [6]   | 871 亿港元 [6] |
+| 保诚       | Prudential [6] | 第 2 名 [6]   | 653 亿港元 [6] |
+| 汇丰保险   | HSBC Life [6]  | 第 3 名 [6]   | 555 亿港元 [6] |
+| 宏利       | Manulife [6]   | 第 4 名 [6]   | 498 亿港元 [6] |
+
+### 信息来源
+[6] https://www.ia.org.hk/tc/infocenter/press_releases/20250425.html, https://inews.hket.com/…
+```
+
+完整产物（带 trajectory、pages 缓存与 SOCM 状态的可复盘目录）见 `searchos_workspace/<时间戳>/`。
 
 ## 📊 评测
 
@@ -327,99 +457,6 @@ datasets/          WideSearch 与 GISA 数据
 eval_results/      评测输出
 searchos_workspace/ 研究会话工作区
 ```
-
-## 🎥 Gallery
-
-### Local Search 介绍
-
-<p align="center">
-  <a href="https://youtu.be/l9vEq6SdvZA">
-    <img src="https://i.ytimg.com/vi/l9vEq6SdvZA/hqdefault.jpg" alt="Local Search 介绍" width="720">
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://youtu.be/l9vEq6SdvZA"><b>观看 Local Search 介绍视频（YouTube）</b></a>
-</p>
-
-下方展示 Web 与 TUI 的使用流程。
-
-<details>
-<summary>展开 Web 与 TUI 演示</summary>
-
-<p align="center">
-  <a href="https://youtu.be/DZNXxMcxnMQ">
-    <img src="../assets/searchos-demo.gif" alt="SearchOS Demo：终端 TUI 发起真实查询 → 多智能体并行填表 → 切换到 Web 前端合成答案" width="95%">
-  </a>
-</p>
-
-<p align="center">
-  🎬 <b><a href="https://youtu.be/DZNXxMcxnMQ">完整 Demo 视频（YouTube）</a></b>
-</p>
-
-<p align="center">
-  <a href="https://youtu.be/WsjcDtCN0Cs" title="观看 SearchOS 中文产品讲解">
-    <img src="../assets/gallery/product-demo-zh.jpg" alt="SearchOS 中文产品讲解：结构化覆盖表、证据溯源、研究补漏与报告导出" width="95%">
-  </a>
-</p>
-
-<p align="center">
-  🎬 <b><a href="https://youtu.be/WsjcDtCN0Cs">完整产品讲解（中文）</a></b>
-</p>
-
-<table align="center">
-  <tr>
-    <td width="50%" align="center">
-      <a href="https://youtu.be/dfzu9aeK0Cs" title="SearchOS-Web Demo · 在 YouTube 观看">
-        <img src="../assets/gallery/web-demo.jpg" alt="SearchOS-Web Demo" width="100%">
-      </a>
-      <sub>▶️ <b>SearchOS-Web Demo</b></sub>
-    </td>
-    <td width="50%" align="center">
-      <a href="https://youtu.be/bS07neJm6FA" title="SearchOS-Web Demo 2 · 在 YouTube 观看">
-        <img src="https://img.youtube.com/vi/bS07neJm6FA/hqdefault.jpg" alt="SearchOS-Web Demo 2" width="100%">
-      </a>
-      <sub>▶️ <b>SearchOS-Web Demo 2</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" align="center">
-      <a href="https://youtu.be/YhJdc7Qhr1U" title="SearchOS-demo1 · 在 YouTube 观看">
-        <img src="../assets/gallery/demo1.jpg" alt="SearchOS-demo1" width="100%">
-      </a>
-      <sub>▶️ <b>SearchOS-demo1</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" align="center">
-      <a href="https://youtu.be/IA_-sO2avTA" title="SearchOS-demo3 · 在 YouTube 观看">
-        <img src="../assets/gallery/demo3.jpg" alt="SearchOS-demo3" width="100%">
-      </a>
-      <sub>▶️ <b>SearchOS-demo3</b></sub>
-    </td>
-    <td width="50%" align="center">
-      <a href="https://youtu.be/HxCLoauXoYg" title="SearchOS-demo4 · 在 YouTube 观看">
-        <img src="../assets/gallery/demo4.jpg" alt="SearchOS-demo4" width="100%">
-      </a>
-      <sub>▶️ <b>SearchOS-demo4</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2" align="center">
-      <a href="https://youtu.be/-QmjRr_3B1s" title="SearchOS-demo5 · 在 YouTube 观看">
-        <img src="../assets/gallery/demo5.jpg" alt="SearchOS-demo5" width="50%">
-      </a>
-      <br><sub>▶️ <b>SearchOS-demo5</b></sub>
-    </td>
-  </tr>
-</table>
-
-<p align="center"><sub>点击封面在 YouTube 观看。</sub></p>
-
-<!-- 新增视频：复制上面的 <td>…</td> 块，替换 youtu.be 链接、assets/gallery 缩略图与标题即可 -->
-
-</details>
-
 
 ## 👥 作者
 
