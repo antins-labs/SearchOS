@@ -95,6 +95,7 @@ def _compact_scheduler_actions(actions: dict[str, Any]) -> dict[str, Any]:
         if key == "maybe_continue_writer" and val.get("action") != "continued":
             continue
         if (key == "drain_ready_tasks" and not val.get("spawned")
+                and not val.get("continued") and not val.get("rejected")
                 and not val.get("skipped_stale")
                 and not val.get("cooling")
                 and val.get("reason") != "budget_exhausted_draining"):
@@ -135,14 +136,18 @@ def _empty_table_warning(state: Any) -> str | None:
 
 def _collect_reports(agent_ids: list[str]) -> list[dict[str, Any]]:
     """Project a batch from one state snapshot, preserving each report's task ownership."""
-    if not agent_ids:
+    pending = [
+        (aid, report)
+        for aid, info in _ctx.agent_graphs.items()
+        for report in info.pop("pending_reports", [])
+    ]
+    if not agent_ids and not pending:
         return []
     current = _ctx.workspace.load_state()
     active_evidence = answer_evidence(current)
     active_ids = {node.id for node in active_evidence}
     reports: list[dict[str, Any]] = []
-    for aid in agent_ids:
-        report = _ctx.completed.get(aid)
+    for aid, report in [*pending, *((aid, _ctx.completed.get(aid)) for aid in agent_ids)]:
         if report is None:
             reports.append({
                 "agent_id": aid,
@@ -152,6 +157,8 @@ def _collect_reports(agent_ids: list[str]) -> list[dict[str, Any]]:
             continue
 
         rd = report.model_dump(exclude={"duration_s"})
+        if _ctx.completed.get(aid) is report and aid in _ctx.agent_graphs:
+            _ctx.agent_graphs[aid]["report_delivered"] = True
         task_ids = set(rd.get("task_ids", []))
         if not task_ids:
             # Explore、Writer 和旧报告仍需从运行注册或 Frontier 恢复任务归属。
@@ -271,6 +278,9 @@ async def check_agents(timeout: float = 0.0) -> str:
         "scheduler_actions": scheduler_actions,
         "outline_status": _outline_status(post_state),
     }
+    from searchos.agents.orchestrator.reuse import reusable_agents
+
+    response["reusable_agents"] = reusable_agents()
     if steering_pending():
         response["interrupted_by"] = "user_follow_up"
         response["note"] = (

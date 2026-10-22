@@ -79,6 +79,18 @@ def retry_route_prompt(task) -> str:
     )
 
 
+def _assigned_task(state, worker: str):
+    """优先使用当前派发的任务，兼容尚未绑定 task_id 的调用。"""
+    from searchos.tools.search_state import _current_task_id_var
+
+    tasks = [task for task in state.frontier.questions if task.assigned_agent_id == worker]
+    task_id = _current_task_id_var.get()
+    current = next((task for task in tasks if task.id == task_id), None)
+    if current is not None:
+        return current
+    return next((task for task in tasks if task.status == "running"), tasks[0] if tasks else None)
+
+
 def check_and_record_route(workspace, worker: str, tool: str, args) -> str:
     if workspace is None or not isinstance(args, dict):
         return ""
@@ -95,7 +107,7 @@ def check_and_record_route(workspace, worker: str, tool: str, args) -> str:
     } and not tool.startswith("skill_"):
         return ""
     state = workspace.load_state()
-    if not any(q.assigned_agent_id == worker for q in state.frontier.questions):
+    if _assigned_task(state, worker) is None:
         return ""
     queries, families = call_routes(tool, args)
     if not queries and not families:
@@ -104,7 +116,7 @@ def check_and_record_route(workspace, worker: str, tool: str, args) -> str:
 
     def update(state):
         nonlocal error
-        task = next((q for q in state.frontier.questions if q.assigned_agent_id == worker), None)
+        task = _assigned_task(state, worker)
         if task is None:
             return state
         prior_queries = {query_family(q) for q in task.previous_queries}
@@ -114,12 +126,17 @@ def check_and_record_route(workspace, worker: str, tool: str, args) -> str:
         if task.route_history:
             repeated = []
         signature = route_signature(tool, args)
+        # 同一 Agent 可承担多次尝试；旧记录缺少 attempt 时沿用 worker 判定。
         repeated += [
             signature
             for record in task.route_history
             if record.get("signature") == signature
             and record.get("outcome") in {"empty", "permanent_error"}
-            and record.get("worker") != worker
+            and (
+                record["attempt"] != task.attempts
+                if record.get("attempt") is not None
+                else record.get("worker") != worker
+            )
         ]
         if repeated:
             error = (
@@ -183,9 +200,12 @@ def record_route_outcome(workspace, worker: str, signature: str, outcome: str) -
         return
 
     def update(state):
-        task = next((q for q in state.frontier.questions if q.assigned_agent_id == worker), None)
+        task = _assigned_task(state, worker)
         if task is not None:
-            record = {"signature": signature, "worker": worker, "outcome": outcome}
+            record = {
+                "signature": signature, "worker": worker,
+                "attempt": task.attempts, "outcome": outcome,
+            }
             task.route_history = [r for r in task.route_history if r.get("signature") != signature]
             task.route_history.append(record)
         return state

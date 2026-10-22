@@ -15,14 +15,26 @@ class TaskProjection:
         self,
         agent_id: str,
         *,
+        task_id: str = "",
         task_text: str = "",
         target_table: str = "",
         agent_graphs: Mapping[str, Any] | None = None,
     ) -> None:
         self.agent_id = agent_id
+        self.task_id = task_id
         self.task_text = task_text
         self.target_table = target_table
         self.agent_graphs = agent_graphs
+
+    def _assigned_tasks(self, state: Any) -> list[Any]:
+        tasks = [
+            task for task in getattr(state.frontier, "questions", ())
+            if task.assigned_agent_id == self.agent_id
+        ]
+        if self.task_id:
+            return [task for task in tasks if task.id == self.task_id]
+        running = [task for task in tasks if task.status == "running"]
+        return running or tasks
 
     def __call__(self, state: Any) -> str:
         cmap = getattr(state, "coverage_map", None)
@@ -96,18 +108,14 @@ class TaskProjection:
         target_cells: list[str] = []
         task_table_id = ""
         assigned_task_text = ""
-        try:
-            tasks = list(getattr(state.frontier, "questions", []) or [])
-        except Exception:
-            tasks = []
+        tasks = self._assigned_tasks(state)
         for t in tasks:
-            if getattr(t, "assigned_agent_id", "") == self.agent_id:
-                target_cells = list(getattr(t, "target_cells", []) or [])
-                task_table_id = getattr(t, "table_id", "") or ""
-                assigned_task_text = (
-                    getattr(t, "task_prompt", "") or getattr(t, "question", "") or ""
-                )
-                break
+            target_cells = list(getattr(t, "target_cells", []) or [])
+            task_table_id = getattr(t, "table_id", "") or ""
+            assigned_task_text = (
+                getattr(t, "task_prompt", "") or getattr(t, "question", "") or ""
+            )
+            break
 
         if target_cells:
             cmap = state.coverage_map

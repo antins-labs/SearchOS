@@ -407,6 +407,8 @@ class Scheduler:
         ready = live
 
         spawned: list[dict[str, str]] = []
+        continued: list[dict[str, str]] = []
+        rejected: list[dict[str, str]] = []
         by_kind: dict[str, int] = {}
         for task in ready:
             # Recount before EVERY spawn: _spawn_sub_agent awaits a lot
@@ -419,30 +421,56 @@ class Scheduler:
             # Stagger spawns within one tick so a full drain doesn't fire
             # every sub-agent's first LLM request in the same instant
             # (provider concurrency 429s killed whole batches on arrival).
-            if spawned and settings.spawn_stagger_s > 0:
+            if (spawned or continued) and settings.spawn_stagger_s > 0:
                 await asyncio.sleep(settings.spawn_stagger_s)
             agent_type = task.agent_type or _KIND_TO_AGENT_BY_KIND.get(task.kind, "search_agent")
+            requested = task.requested_agent_id
+            if requested:
+                from searchos.agents.orchestrator.reuse import reuse_error
+
+                current = _ctx.task_pool.get(requested)
+                if current is not None and not current.done():
+                    # 多个已入队任务可依次使用同一 Agent，不能并发覆盖其上下文。
+                    continue
+                reason = reuse_error(requested, agent_type, _ctx.workspace.load_state())
+                if reason:
+                    def _cancel_invalid(s: Any, task_id=task.id, note=reason) -> Any:
+                        for q in s.frontier.questions:
+                            if q.id == task_id and q.status == FrontierTaskStatus.PENDING:
+                                q.status = FrontierTaskStatus.CANCELLED
+                                q.resolution = note
+                        return s
+                    _ctx.workspace.atomic_update_state(_cancel_invalid)
+                    rejected.append({"task_id": task.id, "reason": reason})
+                    continue
             prompt = task.task_prompt or task.question
             if task.target_cells and agent_type in {
                 "search_agent", "local_search_agent",
             }:
                 prompt = f"{prompt}\n\nTarget cells: {', '.join(task.target_cells)}"
+            options = {"agent_id": requested} if requested else {}
             aid = await _spawn_sub_agent(
                 agent_type, prompt, list(task.skills or []),
                 bind_task_id=task.id,
                 target_table=task.table_id,
                 search_budget=task.max_searches,
+                **options,
             )
-            spawned.append({"agent_id": aid, "agent_type": agent_type, "task_id": task.id})
+            (continued if requested else spawned).append({
+                "agent_id": aid, "agent_type": agent_type, "task_id": task.id,
+            })
             by_kind[task.kind] = by_kind.get(task.kind, 0) + 1
 
         out: dict[str, Any] = {
             "spawned": len(spawned),
+            "continued": len(continued),
             "by_kind": by_kind,
-            "agents": spawned,
+            "agents": [*spawned, *continued],
             "running_before": running,
-            "remaining_ready": max(0, len(ready) - len(spawned)),
+            "remaining_ready": max(0, len(ready) - len(spawned) - len(continued) - len(rejected)),
         }
+        if rejected:
+            out["rejected"] = rejected
         if cooling:
             out["cooling"] = cooling
         if stale:

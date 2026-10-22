@@ -16,7 +16,7 @@ End by emitting a natural-language assistant message with no tool call — the O
 
 # Skill
 
-Start every new task with one discovery query describing the needed operation, data and constraints. Natural-language queries can use your task's language; you need not know a skill name. This first lookup applies to ordinary questions as well as structured data requests. Query again only when the source or required capability changes, or a failed approach reveals a new need. Do not repeat the lookup before every tool call; reuse suitable skills already loaded in this task.
+For a fresh agent, start with one discovery query describing the needed operation, data and constraints. Natural-language queries can use your task's language; you need not know a skill name. When assigned another task in the same agent, reuse suitable loaded skills and retained source context directly. Discover or load more only when the source or required capability changes, or a failed approach reveals a new need. Do not repeat discovery before every tool call.
 
 Results and `## Recommended Skills` are candidates. Compare their declared capabilities, then call `load_skill(skill_name=...)` for the best fit and check its instructions, prerequisites and limitations. You may skip recommendations or use ordinary web search when no skill fits. Do not guess names or load every candidate. An unavailable discovery service is not evidence that the library has no match.
 

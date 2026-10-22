@@ -57,6 +57,7 @@ class SOCMContextMiddleware(AgentMiddleware):
         self.heartbeat_turns = heartbeat_turns
         self._projection = TaskProjection(
             task.agent_id,
+            task_id=task.task_id,
             task_text=task.task_text,
             target_table=task.target_table,
             agent_graphs=agent_graphs,

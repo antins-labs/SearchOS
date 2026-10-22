@@ -86,6 +86,32 @@ def _binding_path(root: Path, key: str, name: str) -> Path:
     return skill_workspace_dir(root, "bindings") / key / f"{hashlib.sha256(canonical.encode()).hexdigest()}.json"
 
 
+def inherit_loaded_packages(root: Path, previous_identity: str, identity: str) -> None:
+    """续派继承已加载包的固定版本；工作目录和调用回执仍按任务隔离。"""
+    if previous_identity == identity:
+        return
+    bindings = skill_workspace_dir(root, "bindings")
+    previous = bindings / hashlib.sha256(previous_identity.encode()).hexdigest()[:24]
+    current = bindings / hashlib.sha256(identity.encode()).hexdigest()[:24]
+    for path in previous.glob("*.json"):
+        destination = current / path.name
+        if not destination.exists():
+            _write_json(destination, json.loads(path.read_text()))
+
+
+def loaded_package_names(root: Path, identity: str) -> list[str]:
+    directory = (
+        skill_workspace_dir(root, "bindings") / hashlib.sha256(identity.encode()).hexdigest()[:24]
+    )
+    names = set()
+    for path in directory.glob("*.json"):
+        try:
+            names.add(json.loads(path.read_text())["name"])
+        except (OSError, ValueError, KeyError, TypeError):
+            continue
+    return sorted(names)
+
+
 def load_package(name: str) -> dict[str, Any]:
     """固定本任务的技能版本；后续读取和执行使用同一快照。"""
     from searchos.skills.core.schema import parse_skill_file

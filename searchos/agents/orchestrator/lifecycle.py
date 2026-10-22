@@ -1085,6 +1085,7 @@ async def _spawn_sub_agent(
     prompt_suffix: str = "",
     steer_queue: Any = None,
     drain_tools: frozenset[str] = frozenset(),
+    agent_id: str = "",
 ) -> str:
     """Build sub-agent graph, register it, create an asyncio.Task wrapping
     its run — return ``agent_id`` immediately.
@@ -1104,6 +1105,15 @@ async def _spawn_sub_agent(
 
     assert _ctx.workspace is not None
     assert _ctx.model is not None
+    from searchos.agents.orchestrator.reuse import access_key, reuse_error, source_scope_key
+
+    previous = _ctx.agent_graphs.get(agent_id) if agent_id else None
+    if agent_id:
+        error = reuse_error(agent_id, agent_type, _ctx.workspace.load_state())
+        if error:
+            raise ValueError(error)
+        if not bind_task_id:
+            raise ValueError("task reassignment requires a Frontier task")
     if steer_queue is not None and (
         agent_type not in {"search_agent", "local_search_agent", "explore_agent"}
         or middleware is not None
@@ -1137,7 +1147,7 @@ async def _spawn_sub_agent(
         logger.info("Ignoring skills for isolated local_search_agent")
         skill_names = []
 
-    agent_label = _next_agent_label(agent_type)
+    agent_label = agent_id or _next_agent_label(agent_type)
     assigned_task_id = ""
     # Bind for every type (scheduler always passes bind_task_id; without
     # this, an OPEN task gets re-drained while its agent is still running).
@@ -1153,7 +1163,6 @@ async def _spawn_sub_agent(
                         q.attempts += 1
                     break
             return s
-        _ctx.workspace.atomic_update_state(_bind)
 
     # 各角色拥有独立工具集；Web Search 使用固定的技能发现、加载和 exec 工具。
     role = _ROLE_REGISTRY[agent_type]
@@ -1346,7 +1355,7 @@ async def _spawn_sub_agent(
     control = ControlState()
     task_context = TaskContext(agent_label, assigned_task_id, target_table, task)
 
-    if agent_type == _local_search.AGENT_TYPE:
+    if agent_type == _local_search.AGENT_TYPE and previous is None:
         from searchos.local.reader.tools import reset_local_browser
 
         if source_scope is not None:
@@ -1360,7 +1369,7 @@ async def _spawn_sub_agent(
             browser_state.selected_records = {r.document_id: r for r in records}
         else:
             reset_local_browser()
-    elif agent_type in {_search.AGENT_TYPE, _explore.AGENT_TYPE}:
+    elif agent_type in {_search.AGENT_TYPE, _explore.AGENT_TYPE} and previous is None:
         from searchos.tools.simple_browser import reset_browser_for_sub_agent
 
         reset_browser_for_sub_agent()
@@ -1376,9 +1385,12 @@ async def _spawn_sub_agent(
     sub_agent_model = _ctx.sub_agent_model or _ctx.model
     if agent_type == "writer_agent" and _ctx.synthesis_model is not None:
         sub_agent_model = _ctx.synthesis_model
+    from langgraph.checkpoint.memory import MemorySaver
+
+    checkpointer = previous["checkpointer"] if previous is not None else MemorySaver()
     graph_options = dict(
         model=sub_agent_model, tools=tools, system_prompt=system_prompt,
-        backend=agent_backend, name=agent_type,
+        backend=agent_backend, name=agent_type, checkpointer=checkpointer,
     )
     if middleware is not None:
         from searchos.agents.execution import bind_controls
@@ -1465,7 +1477,7 @@ async def _spawn_sub_agent(
     set_current_task(task)
     set_current_table("")
 
-    if _ctx.conversation_logger:
+    if _ctx.conversation_logger and previous is None:
         _ctx.conversation_logger.register_sub_agent(
             agent_name=thread_id,
             parent="orchestrator",
@@ -1488,6 +1500,8 @@ async def _spawn_sub_agent(
         _ctx.trajectory_logger._append_raw({
             "type": "dispatch",
             "agent": agent_label,
+            "task_id": assigned_task_id,
+            "reused": previous is not None,
             "task": task,
             "skills": skill_names,
             "tool_schemas": [_tool_schema(tool) for tool in tools],
@@ -1497,12 +1511,59 @@ async def _spawn_sub_agent(
         })
 
     wrapped_task = task
+    if previous is not None:
+        from searchos.tools.skills.execution import inherit_loaded_packages
+
+        inherit_loaded_packages(
+            _ctx.workspace.path,
+            previous.get("assigned_task_id") or agent_label,
+            assigned_task_id,
+        )
+        wrapped_task = (
+            "[NEW TASK — SAME AGENT]\n"
+            "Continue with your retained conversation, browser references and loaded skills. "
+            "Use the new task's targets and budget. Reuse suitable loaded skills directly; "
+            "discover or load more only when the required capability changes. "
+            "Prior task conclusions do not automatically establish evidence for this task.\n\n"
+            + task
+        )
+        def _reset_run(s: Any) -> Any:
+            s.agent_status.pop(agent_label, None)
+            s.agent_dead_ends.pop(agent_label, None)
+            return s
+        _ctx.workspace.atomic_update_state(_reset_run)
 
     # Pre-snapshot for AgentReport delta computation at completion time.
     pre_snapshot = _snapshot_state_for_diff(_ctx.workspace.load_state())
 
+    from contextvars import copy_context
+
+    execution_context = (
+        previous["execution_context"].copy() if previous is not None else copy_context()
+    )
+    pending_reports = list(previous.get("pending_reports", ())) if previous is not None else []
+    if (previous is not None and not previous.get("report_delivered", False)
+            and agent_label in _ctx.completed):
+        pending_reports.append(_ctx.completed[agent_label])
+    if bind_task_id:
+        _ctx.workspace.atomic_update_state(_bind)
     _ctx.agent_graphs[agent_label] = {
         "graph": graph,
+        "checkpointer": checkpointer,
+        "execution_context": execution_context,
+        "reusable": (
+            agent_type in {_search.AGENT_TYPE, _local_search.AGENT_TYPE}
+            and bool(assigned_task_id)
+            and middleware is None and steer_queue is None
+            and not extra_tools and not drain_tools and not prompt_suffix
+        ),
+        "source_scope_key": source_scope_key(state.source_scope),
+        "access_key": access_key(),
+        "pending_reports": pending_reports,
+        "report_delivered": False,
+        "logged_message_ids": (
+            set(previous.get("logged_message_ids", ())) if previous is not None else set()
+        ),
         "thread_id": thread_id,
         "agent_type": agent_type,
         "task_kind": assigned.kind if assigned else _KIND_FROM_AGENT[agent_type],
@@ -1515,7 +1576,9 @@ async def _spawn_sub_agent(
         "scope_entities": scope_entities,  # used by _compute_agent_report to
                                        # filter out peer-filled cells
         "started_at": time.time(),
-        "continue_turn_count": 1,
+        "continue_turn_count": (
+            previous.get("continue_turn_count", 1) + 1 if previous is not None else 1
+        ),
         "assigned_task_id": assigned_task_id,
         "target_table": target_table,
         "extraction": resources[0] if resources else None,
@@ -1524,9 +1587,11 @@ async def _spawn_sub_agent(
         "source_progress": source_progress,
     }
 
+    _ctx.completed.pop(agent_label, None)
     t = asyncio.create_task(
         _collect_sub_agent_result(agent_label, agent_type=agent_type),
         name=f"sub-agent:{agent_label}",
+        context=execution_context,
     )
     _ctx.task_pool[agent_label] = t
 
@@ -1573,6 +1638,7 @@ async def _collect_sub_agent_result(
 
     try:
         prev_msg_count = 0
+        logged_message_ids = info.setdefault("logged_message_ids", set())
         latest_messages: list[Any] = []
         async for event in graph.astream(
             {"messages": [{"role": "user", "content": wrapped_task}]},
@@ -1587,11 +1653,17 @@ async def _collect_sub_agent_result(
                     langchain_msg_to_conversation_msgs,
                 )
                 msgs = event["messages"]
-                for msg in msgs[prev_msg_count:]:
+                for index, msg in enumerate(msgs):
+                    message_id = getattr(msg, "id", None)
+                    if (message_id in logged_message_ids
+                            or (not message_id and index < prev_msg_count)):
+                        continue
                     for conv_msg in langchain_msg_to_conversation_msgs(msg):
                         conv_msg.agent_name = thread_id
                         conv_msg.parent_agent = "orchestrator"
                         _ctx.conversation_logger.log(conv_msg)
+                    if message_id:
+                        logged_message_ids.add(message_id)
                 prev_msg_count = len(msgs)
 
         # Human-readable result. Deliberately NO global stats here: global

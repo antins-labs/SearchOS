@@ -24,6 +24,7 @@ def _task_snapshot(task: Any) -> dict[str, Any]:
         "blocked_by": list(task.blocked_by),
         "attempts": task.attempts,
         "assigned_agent_id": task.assigned_agent_id,
+        "requested_agent_id": task.requested_agent_id,
         "created_by": task.created_by,
         "resolution_excerpt": task.resolution[:_RESOLUTION_EXCERPT_CHARS],
         "last_agent_report_excerpt": task.last_agent_report_excerpt,

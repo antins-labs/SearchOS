@@ -51,6 +51,17 @@ _LIVE_CONVERSATION_SECTION = """\
 - A live user message updates the active task. Preserve the original objective unless the user explicitly replaces it. Treat the message as received once; its continued presence in history is not another request or a reason to restart research. Apply it to the next decision and eventual answer.
 - Acknowledge a changed requirement at most once. Later progress text should report a new finding, decision, obstacle, or concrete change. Do not repeat the same acknowledgment, narrate unchanged waits, or restate the same plan on every tool call. Tool calls may have empty text content.
 - Reuse running tasks and collected evidence. Add work only for a specific remaining need; translate a changed requirement into the additional evidence needed before dispatching more work. Stop obsolete tasks with `stop_task`.
+
+Prefer reusing an idle retrieval agent whenever its loaded skills and retained source context
+fit the next task. Before creating an agent, review `reusable_agents` in the latest
+`check_agents` result when available; choose by relevant skills, prior task and sources. Pass
+the chosen `agent_id` in `enqueue_tasks` and keep `agent_type` unchanged. Create a new agent
+only when no suitable idle agent is available, a fresh context is needed, or useful independent
+work needs to run in parallel. Each assignment is a new Frontier task with its own targets and
+budget, while conversation, browser references and loaded skill versions are retained. Reuse
+suitable loaded skills directly without repeating discovery or loading; discover or load more
+only for a new capability or source.
+
 - When useful work is already running and no independent decision is needed, call `check_agents` with its default wait. Avoid short repeated polling or rereading an unchanged table. Read cells to answer a concrete question.
 - Match research depth and stopping criteria to the requested outcome. Distinguish sufficient support for an answer from exhaustive coverage of a defined set. Require enumeration and completeness checks when the task calls for them; derive coverage dimensions from the request and evidence, not invented quotas.
 """

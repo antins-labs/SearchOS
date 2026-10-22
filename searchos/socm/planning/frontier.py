@@ -45,6 +45,7 @@ class FrontierTask(CamelModel):
     # Dispatch hints set at enqueue; Scheduler consumes them when spawning.
     # Empty agent_type → Scheduler infers from `kind`.
     agent_type: str = ""
+    requested_agent_id: str = ""
     skills: list[str] = Field(default_factory=list)
     # Per-task search budget; None → agent-type override / settings default.
     max_searches: int | None = None

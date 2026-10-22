@@ -40,7 +40,8 @@ def _agent_creation_slots_used_for_frontier_kind(state: Any, kind: str) -> int:
     return sum(
         1
         for q in state.frontier.questions
-        if q.kind == kind and q.status != FrontierTaskStatus.CANCELLED
+        if q.kind == kind and not q.requested_agent_id
+        and q.status != FrontierTaskStatus.CANCELLED
     )
 
 
@@ -88,6 +89,9 @@ async def enqueue_tasks(items_json: str) -> str:
             sub-agent (int). Omit to use the default. Raise it for hard /
             wide targets, lower it for a quick single-cell lookup. Clamped
             to ``settings.max_searches_per_sub_agent_ceiling``.
+          - ``agent_id``: optional idle Search Agent ID from check_agents.
+            Reuse its conversation, browser and loaded skills for this new task;
+            role and source permissions must match. Omit to create a new agent.
           - ``id``: optional explicit task id.
 
     Returns: ``{"queued": [...ids], "deduped": [...], "rejected": [...], "errors": [...]}``.
@@ -165,10 +169,25 @@ async def enqueue_tasks(items_json: str) -> str:
             if not task_text:
                 errors.append(f"item[{i}]: 'task' is required")
                 continue
+            requested_agent_id = item.get("agent_id")
+            if requested_agent_id is not None:
+                if not isinstance(requested_agent_id, str) or not requested_agent_id.strip():
+                    errors.append(f"item[{i}]: agent_id must be a nonempty string")
+                    continue
+                requested_agent_id = requested_agent_id.strip()
+            else:
+                requested_agent_id = ""
+            if requested_agent_id:
+                from searchos.agents.orchestrator.reuse import reuse_error
+
+                reason = reuse_error(requested_agent_id, agent_type, s)
+                if reason:
+                    rejected.append({"index": i, "reason": reason})
+                    continue
             agent_creation_limit = _agent_creation_limit_for_frontier_kind(
                 _settings, kind
             )
-            if agent_creation_limit > 0:
+            if agent_creation_limit > 0 and not requested_agent_id:
                 slots_used = agent_creation_slots_used.get(kind, 0)
                 if slots_used >= agent_creation_limit:
                     rejected.append({
@@ -179,7 +198,7 @@ async def enqueue_tasks(items_json: str) -> str:
                             "SearchSession). This is enforced at enqueue_tasks "
                             "by counting existing non-cancelled Frontier tasks "
                             f"of kind={kind!r}. Inspect existing Frontier reports "
-                            "and synthesize."
+                            "and reuse an idle Search Agent with agent_id or synthesize."
                         ),
                     })
                     continue
@@ -317,6 +336,7 @@ async def enqueue_tasks(items_json: str) -> str:
                 target_cells=tcells,
                 table_id=target_table,
                 agent_type=agent_type,
+                requested_agent_id=requested_agent_id,
                 result_mode=result_mode,
                 source_scope_key=hashlib.sha256(
                     json.dumps(s.source_scope, sort_keys=True).encode()
@@ -332,9 +352,10 @@ async def enqueue_tasks(items_json: str) -> str:
                 deduped.append({"index": i, "existing_id": accepted.id})
             else:
                 queued.append(new_id)
-                agent_creation_slots_used[kind] = (
-                    agent_creation_slots_used.get(kind, 0) + 1
-                )
+                if not requested_agent_id:
+                    agent_creation_slots_used[kind] = (
+                        agent_creation_slots_used.get(kind, 0) + 1
+                    )
         return s
 
     _ctx.workspace.atomic_update_state(_apply)
@@ -449,7 +470,9 @@ async def stop_task(task_ids_json: str, reason: str = "") -> str:
                 await asyncio.wait({t}, timeout=10.0)
             except Exception:  # noqa: BLE001 — cancellation is best-effort
                 pass
-            _ctx.task_pool.pop(aid, None)
+            # 取消后的抽取收尾可能仍在运行，保留容量占用直到真正结束。
+            if t.done():
+                _ctx.task_pool.pop(aid, None)
             info = _ctx.agent_graphs.get(aid) or {}
             # State-diff report so whatever the agent DID land before the
             # cancel (evidence, cells) is visible in its delta.
