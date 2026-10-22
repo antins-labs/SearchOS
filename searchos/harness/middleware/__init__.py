@@ -34,6 +34,9 @@ from searchos.harness.middleware.sensor.detection_middleware import (
     ReadingReminderMiddleware,
     StateStallMiddleware,
 )
+from searchos.harness.middleware.sensor.failure_recording_middleware import (
+    FailureRecordingMiddleware,
+)
 from searchos.harness.middleware.sensor.progress_middleware import (
     ProgressGuardMiddleware,
     ReadingProgressMiddleware,
@@ -48,6 +51,7 @@ __all__ = [
     "ControlState",
     "DynamicTrimMiddleware",
     "EmptyResultMiddleware",
+    "FailureRecordingMiddleware",
     "QueryRepetitionMiddleware",
     "ReadingReminderMiddleware",
     "StateStallMiddleware",

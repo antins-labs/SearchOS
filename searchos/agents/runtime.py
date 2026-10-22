@@ -330,10 +330,6 @@ class _Ctx:
         return _post_mortem_model_var.get()
 
     @property
-    def post_mortem_tasks(self) -> list[Any] | None:
-        return _post_mortem_tasks_var.get()
-
-    @property
     def skill_registry(self) -> Any:
         return _skill_registry_var.get()
 

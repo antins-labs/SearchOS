@@ -133,7 +133,7 @@ def _classify_fetch_error(status: int, error: str) -> str:
         return f"http_{status}"
     if 500 <= status < 600:
         return f"http_{status}"
-    if "block" in err_lower or "captcha" in err_lower or "anti" in err_lower:
+    if re.search(r"\b(?:blocked|captcha|anti[- ]bot|access denied)\b", err_lower):
         return "blocked"
     if status == 0:
         return "network_failure"
@@ -190,6 +190,8 @@ async def _fetch_page(
             title=r.title or "Fetch failed",
             text=_format_fetch_error(url, r.status, r.error or r.markdown),
             urls={},
+            metadata={"access": {"status": "error", "reason": _classify_fetch_error(r.status, r.error or r.markdown),
+                                 "http_status": r.status}},
         )
     return PageContents(
         url=r.url, title=r.title, text=r.markdown, urls=dict(r.links),

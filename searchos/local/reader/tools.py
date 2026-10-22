@@ -51,6 +51,7 @@ _META_RE = re.compile(r"^- (?P<key>[^：]+)：(?P<value>.*)$", re.MULTILINE)
 _LOCATION_RE = re.compile(r"^(?P<kind>[PL])(?P<start>\d+)(?:-(?P<end>\d+))?$")
 _DOCUMENT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 _MAX_OPEN_CHARS = 20_000
+_MAX_CATALOG_MATCHES = 20
 
 
 @dataclass(slots=True)
@@ -300,14 +301,18 @@ def _catalog_paths(state: LocalBrowserState, path: str) -> list[Path]:
     return paths
 
 
-def _search_catalog(state: LocalBrowserState, query: str, path: str) -> str:
+def _search_catalog(
+    state: LocalBrowserState, query: str, path: str
+) -> tuple[str, int | None, list[str]]:
     phrase = query.casefold().strip()
     terms = [term for term in re.split(r"\s+", phrase) if term]
     candidates: list[tuple[int, Path, int, str]] = []
+    searched = False
     for candidate_path in _catalog_paths(state, path):
         if not candidate_path.exists() or not candidate_path.is_file():
             continue
         raw = candidate_path.read_text(encoding="utf-8")
+        searched = True
         for line_number, line in enumerate(raw.splitlines()):
             folded = line.casefold()
             score = (20 if phrase in folded else 0) + sum(folded.count(term) for term in terms)
@@ -315,12 +320,19 @@ def _search_catalog(state: LocalBrowserState, query: str, path: str) -> str:
                 candidates.append((score, candidate_path, line_number, line))
     candidates.sort(key=lambda value: (-value[0], value[1].as_posix(), value[2]))
     if not candidates:
-        return f"No local catalog matches for: {query}"
+        # 没有实际搜索对象不能证明查询为空；保留原有可见回执。
+        return f"No local catalog matches for: {query}", 0 if searched else None, []
 
+    selected = candidates[:_MAX_CATALOG_MATCHES]
+    source_refs = []
     lines = ["[LOCAL_CATALOG_SEARCH]", f"Query: {query}", ""]
-    for index, (_, candidate_path, line_number, line) in enumerate(candidates[:20]):
+    for index, (_, candidate_path, line_number, line) in enumerate(selected):
         relative = candidate_path.relative_to(state.root).as_posix()
         rendered = _render_catalog_text(candidate_path, line, state.root)
+        for match in _MARKDOWN_LINK_RE.finditer(line):
+            kind, value = _catalog_link(candidate_path, match.group(2), state.root)
+            if kind == "ref_id" and value not in source_refs:
+                source_refs.append(value)
         lines.extend(
             [
                 f"# Match {index}",
@@ -329,7 +341,7 @@ def _search_catalog(state: LocalBrowserState, query: str, path: str) -> str:
                 "",
             ]
         )
-    return "\n".join(lines).rstrip()
+    return "\n".join(lines).rstrip(), len(selected), source_refs
 
 
 def _parse_legacy_ref_id(ref_id: str, state: LocalBrowserState) -> tuple[Path, str, str]:
@@ -797,8 +809,8 @@ def _render_original(
     return blocks
 
 
-@tool
-async def local_catalog(path: str = "", query: str = "") -> str:
+@tool(response_format="content_and_artifact")
+async def local_catalog(path: str = "", query: str = "") -> tuple[str, dict[str, object]]:
     """Read or search local index files without opening original content.
 
     Args:
@@ -812,14 +824,34 @@ async def local_catalog(path: str = "", query: str = "") -> str:
 
     state = _state()
     if not state.root.exists():
-        return f"Error: 本地资料库不存在：{state.root}"
+        return f"Error: 本地资料库不存在：{state.root}", (
+            {"outcome": {"status": "error"}} if query.strip() else {}
+        )
     try:
         if query.strip():
-            return _search_catalog(state, query, path)
+            content, result_count, source_refs = _search_catalog(state, query, path)
+            if result_count is None:
+                return content, {
+                    "outcome": {
+                        "status": "error",
+                        "error": "No readable local catalogs in the requested scope.",
+                    }
+                }
+            return content, {
+                "outcome": {
+                    "status": "success",
+                    "result_count": result_count,
+                    "search_provider": "local_catalog",
+                    "max_results": _MAX_CATALOG_MATCHES,
+                },
+                "results": [{"ref_id": ref_id} for ref_id in source_refs],
+            }
         selected = path.strip() or "INDEX.md"
-        return _read_catalog(state.root / selected, state)
+        return _read_catalog(state.root / selected, state), {}
     except Exception as exc:  # noqa: BLE001
-        return f"Error: {exc}"
+        return f"Error: {exc}", (
+            {"outcome": {"status": "error", "error": str(exc)}} if query.strip() else {}
+        )
 
 
 @tool(response_format="content_and_artifact")

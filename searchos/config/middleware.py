@@ -17,7 +17,7 @@ PIPELINES = {
     "writer": copy("写作", "Writer"),
 }
 WORKER = (
-    "BudgetMiddleware", "RetryRouteMiddleware", "QueryRepetitionMiddleware",
+    "BudgetMiddleware", "RetryRouteMiddleware", "FailureRecordingMiddleware", "QueryRepetitionMiddleware",
     "ReadingReminderMiddleware", "EmptyResultMiddleware",
     "SOCMContextMiddleware", "ToolHistoryMiddleware", "DynamicTrimMiddleware",
     "ToolResultLimitMiddleware",
@@ -25,7 +25,7 @@ WORKER = (
 PROGRESS = ("ProgressGuardMiddleware", "ToolProgressMiddleware", "ReadingProgressMiddleware", "StateStallMiddleware")
 ORDERS = {
     "orchestrator": (
-        "SteeringMiddleware", "BudgetMiddleware", "RetryRouteMiddleware",
+        "SteeringMiddleware", "BudgetMiddleware", "RetryRouteMiddleware", "FailureRecordingMiddleware",
         "DispatchRoundMiddleware", "CoverageStallMiddleware", "ToolResultLimitMiddleware",
         "SOCMContextMiddleware", "ToolHistoryMiddleware", "DynamicTrimMiddleware",
     ),
@@ -73,6 +73,7 @@ CATALOG = [
     entry("FinalSummaryEvidenceMiddleware", "extraction", ("最终回复证据抽取", "Final answer evidence"), ("从 agent 的最终回复中提取证据。", "Extract evidence from the agent's final answer."), ["after_agent"], ("提供抽取模型且任务允许摘要抽取时挂载。", "Mounted with an extraction model when the task allows summary extraction.")),
     entry("BudgetMiddleware", "sensor", ("预算控制", "Budget control"), ("计量查询与迭代预算，触发收尾。", "Track query and iteration budgets and trigger wrap-up."), ["before_agent", "before_model", "after_model", "after_agent", "wrap_model_call", "wrap_tool_call"]),
     entry("RetryRouteMiddleware", "sensor", ("失败重试去重", "Failed retry deduplication"), ("记录访问结果，阻止后续重试重复已失败或无结果的查询与读取路径。", "Record access outcomes and block later retries of failed or empty routes."), ["wrap_tool_call"]),
+    entry("FailureRecordingMiddleware", "sensor", ("搜索失败记忆", "Search failure memory"), ("记录明确的空查询、来源限制和技能适用性失败。", "Record empty searches, source restrictions and skill applicability failures."), ["wrap_tool_call"]),
     entry("QueryRepetitionMiddleware", "sensor", ("重复查询检测", "Repeated queries"), ("检测重复查询并记录停滞信号。", "Detect repeated queries and record stall signals."), ["wrap_tool_call"]),
     entry("ReadingReminderMiddleware", "sensor", ("阅读提醒", "Reading reminders"), ("连续搜索后提醒读取原文。", "Prompt source reading after repeated searches."), ["wrap_tool_call"]),
     entry("EmptyResultMiddleware", "sensor", ("空结果检测", "Empty results"), ("检测连续无结果的工具调用。", "Detect consecutive empty tool results."), ["wrap_tool_call"]),
@@ -112,6 +113,8 @@ class MiddlewareOverlay(BaseModel, extra="forbid"):
 
 def default_selection(pipeline: str, settings) -> list[str]:
     excluded = set()
+    if not settings.enable_failure_memory:
+        excluded.add("FailureRecordingMiddleware")
     if not settings.enable_socm_projection:
         excluded.add("SOCMContextMiddleware")
     if not settings.compress_old_tool_results or pipeline == "local_search":

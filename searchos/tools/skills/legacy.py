@@ -1,11 +1,9 @@
-"""旧 Executor 的 typed-tool Adapter，保留历史调用与失败语义。"""
+"""旧 Executor 的 typed-tool Adapter；统一提供实际执行观察。"""
 
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
-
-from .catalog import _banned_skills_from_state
 
 _VALIDATION_ERROR_MARKERS = (
     "missing required parameter",
@@ -21,8 +19,7 @@ _VALIDATION_ERROR_MARKERS = (
 def _is_validation_error(result: dict) -> bool:
     """True when the executor rejected the *call* (bad/missing args / unknown
     function) rather than failing to fetch data. Such errors mean the skill
-    never ran — they're a caller bug, not evidence the source is dead, so they
-    must not count toward the session-global skill ban.
+    never ran — they're a caller bug, not a search failure.
 
     Recognises both an explicit ``error_type == "validation"`` (the canonical
     contract) and, for older skills that don't set it, a validation-shaped
@@ -35,14 +32,6 @@ def _is_validation_error(result: dict) -> bool:
         return False
     err_l = str(err).lower()
     return any(m in err_l for m in _VALIDATION_ERROR_MARKERS)
-
-
-def _is_failed_result(result: Any) -> bool:
-    """使用 Executor 的显式结果状态；空字段不等于检索失败。"""
-    return isinstance(result, dict) and not _is_validation_error(result) and bool(
-        result.get("error") or result.get("success") is False
-        or str(result.get("status", "")).lower() in {"empty", "error", "failed", "no_results"}
-    )
 
 
 _YAML_TYPE_TO_PY = {
@@ -116,57 +105,40 @@ def _make_typed_tool(
 
     async def _run(**kwargs: Any):
         """执行 skill，将完整结果注册为页面并返回初始视窗。"""
-        from searchos.tools.simple_browser.result_pages import show_skill_result
-        def present(result):
-            artifact = {}
-            content = show_skill_result(skill_name, dict(kwargs), result, artifact=artifact)
-            return content, artifact
-        # Ban check — mirror list_skills' filtering so skills flagged as
-        # AntiPatterns this session can't be called via typed tool either.
-        banned = _banned_skills_from_state()
-        if skill_name in banned:
-            return present({
-                "error": f"skill {skill_name!r} has been banned this session "
-                         "(repeated failures); try another approach."
-            })
-
-        from searchos.agents.orchestrator.lifecycle import _ctx, _record_skill_failure
+        from searchos.skills.packaging import package_fingerprint
         from searchos.skills.runtime.legacy.executor_runtime import run_executor
+        from searchos.tools.search_state import _workspace_var
+        from searchos.tools.simple_browser.result_pages import show_skill_result
 
         query = ""
-        if _ctx.workspace is not None:
+        workspace = _workspace_var.get()
+        if workspace is not None:
             try:
-                query = _ctx.workspace.load_state().intent or ""
+                query = workspace.load_state().intent or ""
             except Exception:
                 pass
 
+        try:
+            version = package_fingerprint(skill_dir)
+        except (ValueError, OSError):
+            version = ""
         result = await run_executor(
             skill_dir,
             dict(kwargs),
             query=query,
         )
 
-        # Failure signal = the executor's own verdict. Evidence is extracted
-        # asynchronously by the middleware (batched flush), so an evidence-count
-        # delta can't be measured synchronously here — using it would record a
-        # false failure on every call and ban working skills.
-        #
-        # Input-validation errors (bad/missing args) mean the executor never
-        # ran — the skill never touched the network. Counting them toward the
-        # session ban lets a malformed-call loop poison a working source for
-        # every agent (the www_universityrankings_ch regression). Only genuine
-        # run-time failures (network / no-evidence) count.
-        if _is_failed_result(result):
-            _record_skill_failure(skill_name, dict(kwargs))
-            result = dict(result)
-            result["recovery_hint"] = (
-                "This skill is now disabled for this session after repeated empty/failed results. "
-                "Use another source or search, then open the original page."
-                if skill_name in _banned_skills_from_state() else
-                "No usable result. Change the query or source; repeated failures disable this skill for the session."
-            )
-
-        return present(result)
+        artifact = {}
+        content = show_skill_result(skill_name, dict(kwargs), result, artifact=artifact)
+        failed = bool(result.get("error")) or result.get("success") is False
+        artifact["execution"] = {
+            "started": not _is_validation_error(result),
+            "status": "failed" if failed else "completed",
+            "package_hash": version,
+            "error_type": result.get("error_type", ""),
+            "error": result.get("error", ""),
+        }
+        return content, artifact
 
     tool_description = description or f"Agent-called skill: {skill_name}"
     tool_description += (

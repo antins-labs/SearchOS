@@ -29,12 +29,6 @@ from searchos.agents import (
 from searchos.agents import (
     writer as _writer,
 )
-from searchos.agents.orchestrator.post_mortem import (
-    build_failure_memory_prompt as _build_failure_memory_prompt,
-)
-from searchos.agents.orchestrator.post_mortem import (
-    run_post_mortem as _run_post_mortem,
-)
 from searchos.agents.runtime import (
     _ctx,  # noqa: F401 — re-exported (scheduler / skill_catalog import _ctx from here)
     _post_mortem_count_var,
@@ -65,8 +59,6 @@ WRITER_CONTINUE_EVIDENCE_DELTA = 3
 MAX_SKILLS_PER_DISPATCH = 5
 _OUTLINE_MIN_SECTIONS = 3
 _OUTLINE_CONTENT_RATIO = 0.6
-_ANTIPATTERN_DECAY_S = 1800  # 30 min — patterns older than this drop from prompt
-_ANTIPATTERN_BLOCK_THRESHOLD = 2  # 2+ = "proven invalid, avoid"
 _EXPLORE_PAGE_URL_HDR = re.compile(r"^URL:\s*(\S+)", re.MULTILINE)
 _EXPLORE_PAGE_MIN_CHARS = 300
 _KNOWN_AGENT_TYPES = set(_ROLE_REGISTRY)
@@ -227,6 +219,7 @@ async def _continue_sub_agent_run(
     from searchos.tools.search_state import _current_task_id_var
     _current_task_id_var.set(info.get("assigned_task_id", ""))
 
+    latest_messages: list[Any] = []
     try:
         prev_msg_count = 0
         async for event in graph.astream(
@@ -234,6 +227,8 @@ async def _continue_sub_agent_run(
             config={"configurable": {"thread_id": thread_id}},
             stream_mode="values",
         ):
+            if "messages" in event:
+                latest_messages = event["messages"]
             if _ctx.conversation_logger and "messages" in event:
                 from searchos.harness.telemetry.conversation import (
                     langchain_msg_to_conversation_msgs,
@@ -262,6 +257,7 @@ async def _continue_sub_agent_run(
                 "turn": "continued",
                 "summary": report.result,
             })
+        _review_search_attempt(info, agent_id, report, latest_messages)
         _ctx.completed[agent_id] = report
         return report
     except Exception as e:
@@ -288,6 +284,7 @@ async def _continue_sub_agent_run(
             status="error", result=f"Error: {err_msg}",
             scope_entities=scope_entities,
         )
+        _review_search_attempt(info, agent_id, report, latest_messages)
         _ctx.completed[agent_id] = report
         return report
 def _find_writer_id() -> str | None:
@@ -338,135 +335,6 @@ def _detect_scope_entities(task: str, entities: list[str]) -> set[str]:
     """返回任务涉及的所有实体；空集交由调用方按无范围处理。"""
     from searchos.util.scope import match_entities_in_task
     return match_entities_in_task(task, entities)
-def _record_skill_failure(skill_name: str, params: dict) -> None:
-    """Plan §5.5 写入来源 2 — record a kind=skill StrategyPattern when an
-    access skill ran but produced zero new evidence. Scope to the
-    target cell when params carry ``entity`` (+ optionally ``attribute``
-    /``fields``) — otherwise record global.
-
-    StrategyMemory.record dedups on (kind, signature), so a second
-    failure bumps observed_count to 2 and the skill becomes ban-worthy
-    under the §6.4 list_skills filter.
-    """
-    if _ctx.workspace is None:
-        return
-    from searchos.socm import AntiPatternKind, AntiPatternScope
-    from searchos.socm.planning.strategy import record_strategy_pattern
-    entity = str(params.get("entity", "")).strip() if isinstance(params, dict) else ""
-    attribute = ""
-    if isinstance(params, dict):
-        fields = params.get("fields") or params.get("attributes") or []
-        if isinstance(fields, list) and fields:
-            attribute = str(fields[0]).strip()
-        elif isinstance(params.get("attribute"), str):
-            attribute = params["attribute"].strip()
-    cells: list[str] = []
-    if entity and attribute:
-        cells = [f"{entity}.{attribute}"]
-    scope = AntiPatternScope(target_cells=cells, global_scope=not cells)
-
-    record_strategy_pattern(
-        _ctx.workspace,
-        kind=AntiPatternKind.SKILL,
-        signature=skill_name,
-        scope=scope,
-        reason="access-skill executor returned no new evidence",
-        created_by="sensor",
-    )
-def _build_antipattern_prompt(state: Any, *, scope_entities: set[str] | None = None) -> str:
-    """Plan §5.5 消费方 — render anti-patterns as a system-prompt block.
-
-    Filters:
-    - Scope: ``global_scope=True`` or ``target_cells`` matching any of
-      the current spawn's scope entities (prefix ``"<entity>."``).
-    - Age: entries older than ``_ANTIPATTERN_DECAY_S`` (30 min) are
-      dropped — stale signals shouldn't dominate late-session decisions.
-    - Severity: ``observed_count >= 2`` ⇒ rendered under "⛔ Blocked",
-      ``observed_count == 1`` ⇒ "⚠ Warn" (try a different angle).
-    Per-kind cap of 10 keeps the block bounded.
-    """
-    import time
-    patterns = getattr(state, "strategy_log", None)
-    if patterns is None:
-        return ""
-    records = getattr(patterns, "patterns", []) or []
-    if not records:
-        return ""
-
-    now = time.time()
-
-    def _in_scope(p: Any) -> bool:
-        scope = getattr(p, "scope", None)
-        if scope is None:
-            return True
-        if getattr(scope, "global_scope", False):
-            return True
-        cells = list(getattr(scope, "target_cells", []) or [])
-        if not cells:
-            return True
-        if not scope_entities:
-            return False
-        return any(
-            c == e or c.startswith(f"{e}.")
-            for e in scope_entities for c in cells
-        )
-
-    # severity → kind → list of (sig, reason, count, age_s)
-    by_sev: dict[str, dict[str, list[tuple[str, str, int, float]]]] = {
-        "block": {k: [] for k in ("query", "source", "skill", "branch", "claim")},
-        "warn":  {k: [] for k in ("query", "source", "skill", "branch", "claim")},
-    }
-    for p in records:
-        if not _in_scope(p):
-            continue
-        age = now - (getattr(p, "last_seen", 0.0) or getattr(p, "first_seen", 0.0) or now)
-        if age > _ANTIPATTERN_DECAY_S:
-            continue
-        kind = getattr(p.kind, "value", str(p.kind))
-        if kind not in by_sev["block"]:
-            continue
-        bucket = "block" if p.observed_count >= _ANTIPATTERN_BLOCK_THRESHOLD else "warn"
-        by_sev[bucket][kind].append((p.signature, p.reason, p.observed_count, age))
-
-    if not any(any(v) for v in by_sev.values()):
-        return ""
-
-    for sev_buckets in by_sev.values():
-        for kind, entries in sev_buckets.items():
-            # Put the most repeated and most recent failures first so the
-            # bounded prompt block preserves the highest-value warnings.
-            sev_buckets[kind] = sorted(entries, key=lambda e: (-e[2], e[3]))
-
-    labels = {
-        "query": "Queries that returned no new evidence",
-        "source": "Sources that returned placeholders / paywalls",
-        "skill": "Skills that failed on the current cell",
-        "branch": "Frontier subtrees already dropped",
-        "claim": "Evidence claims marked rejected",
-    }
-
-    lines = ["## Anti-patterns (此 session 内已碰壁的路径)"]
-    # Blocked section
-    if any(by_sev["block"].values()):
-        lines.append("\n### ⛔ Proven invalid — avoid (observed ≥2×)")
-        for kind, entries in by_sev["block"].items():
-            if not entries:
-                continue
-            lines.append(f"**{labels[kind]}:**")
-            for sig, reason, count, age in entries[:10]:
-                detail = f" — {reason[:90]}" if reason else ""
-                lines.append(f"- `{sig[:80]}` (×{count}, {int(age/60)}m ago){detail}")
-    # Warn section
-    if any(by_sev["warn"].values()):
-        lines.append("\n### ⚠ Tried once — prefer a different angle")
-        for kind, entries in by_sev["warn"].items():
-            if not entries:
-                continue
-            lines.append(f"**{labels[kind]}:**")
-            for sig, reason, count, age in entries[:10]:
-                detail = f" — {reason[:90]}" if reason else ""
-                lines.append(f"- `{sig[:80]}` ({int(age/60)}m ago){detail}")
-    return "\n".join(lines)
 def _build_sub_agent_context(state: Any, *, agent_type: str | None = None) -> str:
     """Render the SOCM schema overview for a sub-agent.
 
@@ -1290,20 +1158,6 @@ async def _spawn_sub_agent(
         if skill_parts:
             prompt_parts.append("## Recommended Skills\n" + "\n\n".join(skill_parts))
 
-    # Plan §5.5 消费方 — Control: inject anti-patterns so the agent
-    # avoids paths that have already failed in this session. Scoped by
-    # target_cell when the spawn has scope entities, plus any global
-    # entries.
-    # Failure-memory block (post-mortem distilled advice) renders ABOVE
-    # the anti-pattern block — strategy guidance precedes the raw bullet
-    # list of failed queries/sources/skills.
-    failure_memory_block = _build_failure_memory_prompt(state, scope_entities=scope_entities, task=task)
-    if failure_memory_block:
-        prompt_parts.append(failure_memory_block)
-    ap_block = _build_antipattern_prompt(state, scope_entities=scope_entities)
-    if ap_block:
-        prompt_parts.append(ap_block)
-
     if assigned and assigned.result_mode == "findings":
         prompt_parts.append(
             "Read sources to collect supported facts and limitations for the assigned question. "
@@ -1344,7 +1198,10 @@ async def _spawn_sub_agent(
 
     from searchos.harness.middleware import ControlState, SourceContext, TaskContext
     from searchos.harness.middleware.pipelines import (
-        explore_pipeline, local_search_pipeline, web_search_pipeline, writer_pipeline,
+        explore_pipeline,
+        local_search_pipeline,
+        web_search_pipeline,
+        writer_pipeline,
     )
 
     budget = BudgetState(
@@ -1452,8 +1309,8 @@ async def _spawn_sub_agent(
             options["enforce_budget"] = True
         graph = pipeline(**graph_options, **options)
 
-    from searchos.harness.middleware.sensor.progress_middleware import ReadingProgressMiddleware
     from searchos.agents.execution import loaded_resources
+    from searchos.harness.middleware.sensor.progress_middleware import ReadingProgressMiddleware
 
     components = getattr(graph, "middleware", middleware or ())
     resources = loaded_resources(components)
@@ -1546,7 +1403,8 @@ async def _spawn_sub_agent(
             and agent_label in _ctx.completed):
         pending_reports.append(_ctx.completed[agent_label])
     if bind_task_id:
-        _ctx.workspace.atomic_update_state(_bind)
+        state = _ctx.workspace.atomic_update_state(_bind)
+        assigned = next((q for q in state.frontier.questions if q.id == assigned_task_id), None)
     _ctx.agent_graphs[agent_label] = {
         "graph": graph,
         "checkpointer": checkpointer,
@@ -1580,6 +1438,7 @@ async def _spawn_sub_agent(
             previous.get("continue_turn_count", 1) + 1 if previous is not None else 1
         ),
         "assigned_task_id": assigned_task_id,
+        "assigned_task_attempt": assigned.attempts if assigned else 0,
         "target_table": target_table,
         "extraction": resources[0] if resources else None,
         "extractions": resources,
@@ -1636,10 +1495,10 @@ async def _collect_sub_agent_result(
     set_current_table(target_table)
 
 
+    latest_messages: list[Any] = []
     try:
         prev_msg_count = 0
         logged_message_ids = info.setdefault("logged_message_ids", set())
-        latest_messages: list[Any] = []
         async for event in graph.astream(
             {"messages": [{"role": "user", "content": wrapped_task}]},
             config={"configurable": {"thread_id": thread_id}},
@@ -1736,59 +1595,7 @@ async def _collect_sub_agent_result(
                 "summary": report.result,
             })
 
-        # --- Post-mortem failure-memory trigger ---
-        # Fire when:
-        #   - status in {"error","budget_exhausted"} — the agent
-        #     crashed (RPC / runtime exception) or was hard-stopped
-        #     by the harness for blowing its search/open budget.
-        #     Set in _compute_agent_report.
-        #   - dead_ends non-empty — LoopSensor recorded specific stuck
-        #     queries on agent_dead_ends[thread_id]. Per-thread map,
-        #     so this is concurrency-safe.
-        # Deliberately NOT triggered on status=="looped" (overlaps with
-        # dead_ends but with a wider, noisier judgement) or on
-        # cells_filled==0 (concurrency-polluted: a sibling's writes
-        # also count, and many legitimate sub-agent missions are
-        # evidence-gathering and do not emit cells themselves).
-        # Gated by a per-session counter so a string of bad runs
-        # cannot burn an unbounded number of opus calls. fire-and-
-        # forget; the task writes a FailureMemory into
-        # state.strategy_log.failure_memories which the NEXT sub-agent
-        # picks up via _build_failure_memory_prompt.
-        from searchos.config.settings import settings
-        from searchos.socm import SearchReport
-        _pm_state = _ctx.workspace.load_state() if _ctx.workspace else None
-        _pm_sensor = (
-            _pm_state.agent_status.get(thread_id) if _pm_state else None
-        )
-        if (
-            settings.enable_failure_memory
-            and isinstance(report, SearchReport)
-            and _ctx.post_mortem_model is not None
-            and (
-                report.status in ("error", "budget_exhausted")
-                or _pm_sensor == "budget_exhausted"
-                or len(report.dead_ends) >= 1
-            )
-        ):
-            count_box = _post_mortem_count_var.get()
-            if (
-                count_box is not None
-                and count_box[0] < settings.max_post_mortems_per_session
-            ):
-                count_box[0] += 1
-                try:
-                    pm_task = asyncio.create_task(
-                        _run_post_mortem(thread_id, agent_id, report)
-                    )
-                    pm_tasks = _post_mortem_tasks_var.get()
-                    if pm_tasks is not None:
-                        pm_tasks.append(pm_task)
-                except RuntimeError:
-                    # No running loop — degraded path (sync caller).
-                    # Skip silently; failure memories are best-effort.
-                    pass
-
+        _review_search_attempt(info, agent_id, report, latest_messages)
         _ctx.completed[agent_id] = report
         return report
 
@@ -1816,8 +1623,29 @@ async def _collect_sub_agent_result(
             status="error", result=f"Error: {err_msg}",
             scope_entities=scope_entities,
         )
+        _review_search_attempt(info, agent_id, report, latest_messages)
         _ctx.completed[agent_id] = report
         return report
+
+
+def _review_search_attempt(info: dict, agent_id: str, report: Any, messages: list[Any]) -> None:
+    """仅传入本次任务的实际轨迹；SOCM 决定是否提炼搜索经验。"""
+    from searchos.socm.failure_memory.post_mortem import schedule_post_mortem
+
+    if info.get("agent_type") == "writer_agent":
+        return
+    starts = [index for index, message in enumerate(messages)
+              if getattr(message, "type", "") == "human"
+              and getattr(message, "content", None) == info.get("wrapped_task")]
+    if not starts:
+        return
+    schedule_post_mortem(
+        workspace=_ctx.workspace, model=_ctx.post_mortem_model,
+        pending_tasks=_post_mortem_tasks_var.get(), count=_post_mortem_count_var.get(),
+        agent_id=agent_id, task_id=info.get("assigned_task_id", ""),
+        attempt=info.get("assigned_task_attempt", 0), report=report,
+        messages=messages[starts[-1]:], trajectory_logger=_ctx.trajectory_logger,
+    )
 
 
 def _task_redundancy_reason(

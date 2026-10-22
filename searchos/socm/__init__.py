@@ -1,13 +1,13 @@
 """SOCM — Search-Oriented Context Management (paper §SOCM).
 
-The four-tuple search state (Frontier / Evidence / Coverage / Strategy) plus
+The four-tuple search state (Frontier / Evidence / Coverage / Failure) plus
 the aggregated SearchState, workspace persistence, role-specific views, and
 the provenance trace.
 """
 
 from searchos.socm.coverage import (
-    CellStatus,
     CellEvidenceBinding,
+    CellStatus,
     ColumnCheck,
     ColumnDesc,
     CoverageCell,
@@ -18,18 +18,19 @@ from searchos.socm.coverage import (
     SchemaMode,
     TableSchema,
 )
-from searchos.socm.views import (
-    FrontierSnapshot,
-    RowStatus,
-    SearchStateSnapshot,
-    TableSnapshot,
-)
 from searchos.socm.evidence import (
     EvidenceEdge,
     EvidenceGraph,
     EvidenceNode,
     EvidenceRelation,
     EvidenceStatus,
+)
+from searchos.socm.failure_memory import (
+    FailureKind,
+    FailureMemory,
+    FailureScope,
+    FailureStore,
+    record_failure,
 )
 from searchos.socm.planning.frontier import (
     MAX_TASK_ATTEMPTS,
@@ -39,23 +40,22 @@ from searchos.socm.planning.frontier import (
 )
 from searchos.socm.state import (
     BudgetState,
-    ExploreReport,
     ExploredPath,
+    ExploreReport,
     Outline,
     OutlineSection,
     SearchReport,
     SearchState,
     WriterReport,
 )
-from searchos.socm.planning.strategy import (
-    AntiPatternKind,
-    AntiPatternScope,
-    FailureMemory,
-    StrategyMemory,
-    StrategyPattern,
+from searchos.socm.storage.workspace import WorkspaceManager
+from searchos.socm.views import (
+    FrontierSnapshot,
+    RowStatus,
+    SearchStateSnapshot,
+    TableSnapshot,
 )
 from searchos.socm.views.trace import resolve_cell_provenance
-from searchos.socm.storage.workspace import WorkspaceManager
 
 __all__ = [
     # Frontier
@@ -67,9 +67,8 @@ __all__ = [
     # Coverage
     "CoverageMap", "CoverageCell", "CellEvidenceBinding", "CellStatus", "ColumnCheck", "ColumnDesc",
     "TableSchema", "SchemaMode", "ForeignKey", "Relation", "RelationKind",
-    # Strategy / failure
-    "StrategyMemory", "StrategyPattern", "FailureMemory",
-    "AntiPatternKind", "AntiPatternScope",
+    # Failure memory
+    "FailureKind", "FailureMemory", "FailureScope", "FailureStore", "record_failure",
     # State container + outline / budget / reports
     "SearchState", "Outline", "OutlineSection", "BudgetState", "ExploredPath",
     "SearchReport", "WriterReport", "ExploreReport",

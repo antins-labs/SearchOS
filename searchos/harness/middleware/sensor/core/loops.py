@@ -27,14 +27,12 @@ class QueryRepetitionSensor(Sensor):
         repetitions: int = 3,
         escalation: int = 2,
         search_tools: frozenset[str] = SEARCH_TOOLS,
-        on_warning: Callable[[str, str], None] | None = None,
         on_loop: Callable[[str], None] | None = None,
     ) -> None:
         self.queries: deque[str] = deque(maxlen=window)
         self.repetitions = repetitions
         self.escalation = escalation
         self.search_tools = search_tools
-        self.on_warning = on_warning
         self.on_loop = on_loop
         self._last_warning = ""
         self._warnings = 0
@@ -58,8 +56,6 @@ class QueryRepetitionSensor(Sensor):
             if self.on_loop is not None:
                 self.on_loop(query)
             return {"force_stop": False, "reason": "query_repetition_hard_loop"}
-        if self.on_warning is not None:
-            self.on_warning(normalized, f"query repeated {repeats} times")
         return {
             "reason": "query_repetition",
             "inject_message": (
@@ -112,11 +108,9 @@ class EmptyResultSensor(Sensor):
         *,
         threshold: int = 5,
         ignored_tools: frozenset[str] = FILE_TOOLS,
-        on_warning: Callable[[str, str], None] | None = None,
     ) -> None:
         self.threshold = threshold
         self.ignored_tools = ignored_tools
-        self.on_warning = on_warning
         self._empty = 0
 
     async def check(self, tool_name: str, tool_result: Any, tool_input: Any = None):
@@ -127,10 +121,6 @@ class EmptyResultSensor(Sensor):
         if self._empty < self.threshold:
             return None
         self._empty = 0
-        if self.on_warning is not None:
-            self.on_warning(
-                f"no-progress:{tool_name}", f"{self.threshold} empty/error tool results"
-            )
         return {
             "strategy_switch": True,
             "reason": f"search_loop_detected_after_{self.threshold}_steps",

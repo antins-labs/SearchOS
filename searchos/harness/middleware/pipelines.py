@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from searchos.config.run_config import current_run_config
 from searchos.config.middleware import selection
+from searchos.config.run_config import current_run_config
 from searchos.config.settings import settings
 from searchos.harness.middleware.context.dynamic_trim_middleware import DynamicTrimMiddleware
 from searchos.harness.middleware.context.search_episode_middleware import SearchEpisodeMiddleware
@@ -29,6 +29,9 @@ from searchos.harness.middleware.sensor.detection_middleware import (
     QueryRepetitionMiddleware,
     ReadingReminderMiddleware,
     StateStallMiddleware,
+)
+from searchos.harness.middleware.sensor.failure_recording_middleware import (
+    FailureRecordingMiddleware,
 )
 from searchos.harness.middleware.sensor.progress_middleware import (
     ProgressGuardMiddleware,
@@ -79,7 +82,9 @@ SEARCH_RESULT_LIMITS = dict.fromkeys(
 def _graph(model, tools, system_prompt, middleware, *, pipeline,
            steer_queue=None, enforce_budget=False, **graph_options):
     from searchos.agents.runtime import create_search_agent_graph
-    from searchos.harness.middleware.context.compaction_context_middleware import CompactionContextMiddleware
+    from searchos.harness.middleware.context.compaction_context_middleware import (
+        CompactionContextMiddleware,
+    )
     from searchos.harness.middleware.context.utils.messages import model_input_limit
 
     required_middleware = []
@@ -135,11 +140,14 @@ def _worker_defaults(
         RetryRouteMiddleware(workspace, agent_id=task.agent_id),
         QueryRepetitionMiddleware(control, workspace=workspace, task=task),
         ReadingReminderMiddleware(control),
-        EmptyResultMiddleware(control, workspace=workspace, task=task),
+        EmptyResultMiddleware(control),
     ]
     if not isinstance(history, DynamicTrimMiddleware):
         middleware.insert(0, history)
     selected = selection(pipeline, settings)
+    if "FailureRecordingMiddleware" in selected:
+        index = next(i for i, item in enumerate(middleware) if isinstance(item, RetryRouteMiddleware))
+        middleware.insert(index + 1, FailureRecordingMiddleware(workspace, task=task))
     if "SOCMContextMiddleware" in selected:
         middleware.append(
             SOCMContextMiddleware(
@@ -466,6 +474,9 @@ def orchestrator_pipeline(
 
         middleware.insert(0, SteeringMiddleware(steer_queue, trajectory_logger=trajectory_logger))
     selected = selection("orchestrator", settings)
+    if "FailureRecordingMiddleware" in selected:
+        index = next(i for i, item in enumerate(middleware) if isinstance(item, RetryRouteMiddleware))
+        middleware.insert(index + 1, FailureRecordingMiddleware(workspace, task=TaskContext(agent_id="orchestrator")))
     if "SOCMContextMiddleware" in selected:
         middleware.append(
             SOCMContextMiddleware(

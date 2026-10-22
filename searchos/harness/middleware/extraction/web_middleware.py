@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 import re
 from collections.abc import Callable
 from typing import Any
@@ -16,9 +15,6 @@ from searchos.harness.middleware.extraction.core.models import (
 from searchos.harness.middleware.extraction.core.preparation import is_extractable_page
 from searchos.harness.middleware.models import SourceContext, TaskContext
 from searchos.harness.middleware.utils.messages import extract_tool_name
-from searchos.socm.planning.strategy import record_source_antipattern
-
-logger = logging.getLogger(__name__)
 
 
 class WebEvidenceMiddleware(ObservationMiddleware):
@@ -35,7 +31,6 @@ class WebEvidenceMiddleware(ObservationMiddleware):
     ) -> None:
         super().__init__(coordinator, context=context)
         self.source = source or SourceContext(workspace=getattr(coordinator, "workspace", None))
-        self._workspace = self.source.workspace
         self._trajectory_logger = trajectory_logger
 
     async def awrap_tool_call(self, request: Any, handler: Callable) -> Any:
@@ -99,7 +94,6 @@ class WebEvidenceMiddleware(ObservationMiddleware):
         elif not is_extractable_page(content):
             reason = "unextractable_page"
         if reason:
-            self._record_source_skip(source_url or "<unknown>", reason)
             self._log_skip(source_url, reason)
             return result
 
@@ -116,19 +110,6 @@ class WebEvidenceMiddleware(ObservationMiddleware):
             ),
             result,
         )
-
-    def _record_source_skip(self, source_url: str, reason: str) -> None:
-        if self._workspace is None:
-            return
-        try:
-            record_source_antipattern(
-                self._workspace,
-                source_url,
-                reason=reason,
-                created_by="extraction",
-            )
-        except Exception:
-            logger.debug("strategy source write failed", exc_info=True)
 
     def _log_skip(self, source_url: str, reason: str) -> None:
         if self._trajectory_logger:

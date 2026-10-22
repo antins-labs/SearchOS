@@ -1,4 +1,4 @@
-"""技能发现、访问范围和失败记忆读取。"""
+"""技能发现、显式访问范围与技能包经验读取。"""
 
 from __future__ import annotations
 
@@ -25,37 +25,6 @@ def _registry():
     return _skill_registry_var.get()
 
 
-# Only hide a skill when it's failed repeatedly — a single extraction
-# miss could be a transient network / judge hiccup. Plan §6.4 bans "已
-# 被证实无效"; one observation doesn't证实.
-SKILL_BAN_MIN_OBSERVATIONS = 2
-
-
-def _banned_skills_from_state() -> set[str]:
-    """Return skill names flagged as anti-patterns in the current session.
-
-    Plan §6.4 with a guard: only skills with ``observed_count >=
-    SKILL_BAN_MIN_OBSERVATIONS`` are hidden. A first-time failure still
-    records the AntiPattern (for prompt-level "warn" surface) but
-    doesn't yet remove the skill from discovery.
-    """
-    from searchos.tools.search_state import _workspace_var
-    ws = _workspace_var.get()
-    if ws is None:
-        return set()
-    try:
-        state = ws.load_state()
-    except Exception:
-        return set()
-    banned: set[str] = set()
-    for p in getattr(state.strategy_log, "patterns", []) or []:
-        kind = getattr(p.kind, "value", str(p.kind))
-        if (kind == "skill" and p.signature
-                and p.observed_count >= SKILL_BAN_MIN_OBSERVATIONS):
-            banned.add(p.signature)
-    return banned
-
-
 @tool
 async def list_skills(category: str = "", availability: str = "", query: str = "", offset: int = 0, limit: int = 5) -> str:
     """Discover skills for your current task, source or missing capability.
@@ -77,7 +46,6 @@ async def list_skills(category: str = "", availability: str = "", query: str = "
     reg = _registry()
     if reg is None:
         return json.dumps({"skills": [], "count": 0, "error": "skill registry not bound"})
-    banned = _banned_skills_from_state()
     if category and category not in {'access', 'strategy', 'orchestrator'}:
         return json.dumps({'skills': [], 'count': 0, 'error': 'invalid skill category'})
     if len(query) > 2000:
@@ -85,8 +53,6 @@ async def list_skills(category: str = "", availability: str = "", query: str = "
     candidates = []
     for s in reg.list_all():
         if not _skill_allowed(s):
-            continue
-        if s.meta.name in banned:
             continue
         if category and s.meta.category.value != category:
             continue

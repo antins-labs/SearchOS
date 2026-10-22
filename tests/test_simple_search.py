@@ -159,6 +159,55 @@ async def test_simple_path_uses_real_extraction_and_preserves_original_url(setup
 
 
 @pytest.mark.asyncio
+async def test_quick_search_collects_failure_and_projects_it_on_next_model_call(
+    setup, retrieval_mode, monkeypatch,
+):
+    from searchos.tools.simple_browser import tools as browser_tools
+
+    query = "Widget release year exact phrase"
+
+    class EmptyProvider:
+        name = "offline-empty"
+
+        async def search(self, query, max_results):
+            return []
+
+    monkeypatch.setattr(settings, "enable_failure_memory", True)
+    monkeypatch.setattr(settings, "enable_socm_projection", True)
+    monkeypatch.setattr(settings, "enable_explore_batch", False)
+    monkeypatch.setattr(browser_tools, "get_provider", lambda: EmptyProvider())
+    original_open = next(tool for tool in search.get_tools() if tool.name == "open")
+    monkeypatch.setattr(search, "get_tools", lambda *args: [browser_tools.search, original_open])
+
+    async def handler(count, messages):
+        snapshots = [message for message in messages
+                     if message.additional_kwargs.get("sf_kind") == "socm_update"]
+        if count == 1:
+            assert all("Search failure memory" not in message.content for message in snapshots)
+            return call("search", {"query": query})
+        assert len(snapshots) == 1 and "Search failure memory" in snapshots[0].content
+        assert query in snapshots[0].content and "offline-empty" in snapshots[0].content
+        return call("open", {"url": URL}, number=2) if count == 2 else AIMessage(content=ANSWER)
+
+    workspace, model, _ = setup(handler)
+    outcome = await run(workspace)
+    assert outcome.answer == ANSWER and not outcome.escalate and len(model.calls) == 3
+    state = workspace.load_state()
+    assert state.evidence_graph.observations
+    assert len(state.failure_memory.records) == 1
+    memory = state.failure_memory.records[0]
+    task = state.frontier.questions[0]
+    assert memory.kind.value == "query" and memory.target == query
+    assert memory.scope.task_id == task.id and memory.observation_ids == [f"{task.id}:{task.attempts}:call-1"]
+    info = next(iter(runtime._ctx.agent_graphs.values()))
+    checkpoint = await info["graph"].aget_state({"configurable": {"thread_id": info["thread_id"]}})
+    snapshots = [message for message in checkpoint.values["messages"]
+                 if message.additional_kwargs.get("sf_kind") == "socm_update"]
+    assert len(snapshots) == 1 and snapshots[0].id == "socm-current"
+    assert query in snapshots[0].content
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("answer", [
     ANSWER,
     "I could not establish the release year.",
@@ -194,20 +243,43 @@ async def test_missing_committed_evidence_does_not_automatically_escalate(setup)
 
 @pytest.mark.asyncio
 async def test_explicit_upgrade_after_deadline_preserves_evidence_and_runtime(
-    setup, retrieval_mode,
+    setup, retrieval_mode, monkeypatch,
 ):
+    import time
+
+    from searchos.harness import simple_search
+
+    now = [0.0]
+    model_waiting, deadline_expired = asyncio.Event(), asyncio.Event()
+
+    async def expire_after_reading(tasks, *, timeout):
+        # 原文读取完成后才触发 deadline，避免把进程初始化速度当作测试条件。
+        await model_waiting.wait()
+        now[0] = 60.0
+        deadline_expired.set()
+        return set(), tasks
+
+    monkeypatch.setattr(simple_search, "time", SimpleNamespace(time=time.time, monotonic=lambda: now[0]))
+    monkeypatch.setattr(simple_search, "asyncio", SimpleNamespace(
+        wait=expire_after_reading, wait_for=asyncio.wait_for, gather=asyncio.gather,
+        CancelledError=asyncio.CancelledError,
+    ))
+
     async def handler(count, messages):
         if count == 1:
             return call("open", {"url": URL})
         if count == 2:
-            await asyncio.sleep(.2)
+            model_waiting.set()
+            await deadline_expired.wait()
+            info = next(iter(runtime._ctx.agent_graphs.values()))
+            assert info["control"].reason == "time_budget_exhausted"
             return call("escalate_to_research", {"reason": "Need all related releases"}, number=2)
         return AIMessage(content=ANSWER + " Need to enumerate the other releases.")
 
     workspace, _, _ = setup(handler)
     registry = runtime._ctx.agent_graphs
     counter = runtime._session_search_count_var.get()
-    outcome = await run(workspace, remaining_time_s=.15)
+    outcome = await run(workspace, remaining_time_s=60)
     assert outcome.escalate and outcome.reason == "Need all related releases"
     assert runtime._ctx.agent_graphs is registry
     assert runtime._session_search_count_var.get() is counter

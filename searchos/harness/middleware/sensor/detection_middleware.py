@@ -14,7 +14,6 @@ from searchos.harness.middleware.sensor.core.loops import (
 )
 from searchos.harness.middleware.sensor.core.models import ControlState
 from searchos.harness.middleware.sensor.utils.progress import task_progress
-from searchos.harness.middleware.sensor.utils.queries import normalize_query
 
 
 class _DetectionRecords:
@@ -24,39 +23,15 @@ class _DetectionRecords:
         self.workspace = workspace
         self.task = task
 
-    def warn(self, signature: str, reason: str) -> None:
-        if self.workspace is None:
-            return
-        from searchos.socm import AntiPatternKind
-        from searchos.socm.planning.strategy import record_strategy_pattern
-
-        record_strategy_pattern(
-            self.workspace,
-            kind=AntiPatternKind.QUERY,
-            signature=signature,
-            reason=reason,
-            created_by="sensor",
-        )
-
     def loop(self, query: str) -> None:
         if self.workspace is None:
             return
-        from searchos.socm import AntiPatternKind, StrategyPattern
-
         def update(state):
             agent_id = self.task.agent_id
             state.agent_status[agent_id] = "looped"
             dead_ends = state.agent_dead_ends.setdefault(agent_id, [])
             if query[:240] not in dead_ends:
                 dead_ends.append(query[:240])
-            state.strategy_log.record(
-                StrategyPattern(
-                    kind=AntiPatternKind.QUERY,
-                    signature=normalize_query(query),
-                    reason=f"research stalled (agent {agent_id})",
-                    created_by="sensor",
-                )
-            )
             return state
 
         self.workspace.atomic_update_state(update)
@@ -79,7 +54,6 @@ class QueryRepetitionMiddleware(_SensorMiddleware):
                 window=window,
                 repetitions=repetitions,
                 escalation=escalation,
-                on_warning=records.warn,
                 on_loop=records.loop,
             ),
             control,
@@ -100,12 +74,9 @@ class EmptyResultMiddleware(_SensorMiddleware):
         self,
         control: ControlState,
         *,
-        workspace: Any = None,
-        task: TaskContext = TaskContext(),
         threshold: int = 5,
     ) -> None:
-        records = _DetectionRecords(workspace, task)
-        super().__init__(EmptyResultSensor(threshold=threshold, on_warning=records.warn), control)
+        super().__init__(EmptyResultSensor(threshold=threshold), control)
 
     name = "EmptyResultMiddleware"
 

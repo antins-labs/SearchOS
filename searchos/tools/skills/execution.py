@@ -271,6 +271,7 @@ async def _legacy(directory: Path, argv: list[str], executions: Path, timeout: f
         "timed_out": result.get("error_type") == "timeout",
         "stdout": "Legacy result saved as result.json", "stderr": str(result.get("error", "")),
         "truncated": False, "legacy": True,
+        "error_type": result.get("error_type", ""),
         "artifacts": [{"id": "result.json", "path": "result.json", "media_type": "application/json",
                        "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest()}],
     }
@@ -373,6 +374,7 @@ async def exec_skill(
                     execution_dir=skill_workspace_dir(root, "executions"), stdin=stdin, timeout_s=timeout, network=True,
                     execution_id=execution_id, proxy_mode=proxy_mode,
                 )
+            result["package_hash"] = binding["package_hash"]
             if result.get("execution_id"):
                 _write_json(skill_workspace_dir(root, "executions") / result["execution_id"] / "binding.json",
                             {**binding, "task_key": key})

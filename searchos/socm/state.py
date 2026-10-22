@@ -10,13 +10,13 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from searchos.socm.coverage.models import CoverageMap
 from searchos.socm.evidence.graph import EvidenceGraph
+from searchos.socm.failure_memory.models import FailureStore, migrate_strategy_log
 from searchos.socm.planning.frontier import FrontierMemory
 from searchos.socm.planning.research_plan import ResearchPlan
-from searchos.socm.planning.strategy import StrategyMemory
 from searchos.util.base_model import CamelModel
 
 
@@ -185,6 +185,22 @@ class SearchState(CamelModel):
     """Top-level search state — single source of truth, persisted as
     workspace/search_state.json."""
 
+    @model_validator(mode="before")
+    @classmethod
+    def migrate_failure_memory(cls, value: Any) -> Any:
+        """历史失败状态单向转换；写出只保留统一 Failure Memory。"""
+        if not isinstance(value, dict) or "strategy_log" not in value:
+            return value
+        from searchos.socm.failure_memory.memory import source_scope_key
+
+        value = dict(value)
+        previous = value.pop("strategy_log")
+        if "failure_memory" not in value and isinstance(previous, dict):
+            value["failure_memory"] = migrate_strategy_log(
+                previous, source_scope_key(value.get("source_scope")),
+            )
+        return value
+
     def model_post_init(self, __context: Any) -> None:
         """旧快照从已选证据恢复完整值；保留排序、状态与单元格投影。"""
         from searchos.socm.coverage.models import CellStatus
@@ -216,7 +232,7 @@ class SearchState(CamelModel):
     explored_paths: list[ExploredPath] = Field(default_factory=list)
     evidence_graph: EvidenceGraph = Field(default_factory=EvidenceGraph)
     coverage_map: CoverageMap = Field(default_factory=CoverageMap)
-    strategy_log: StrategyMemory = Field(default_factory=StrategyMemory)
+    failure_memory: FailureStore = Field(default_factory=FailureStore)
     budget: BudgetState = Field(default_factory=BudgetState)
 
     # Per-sub-agent runtime flags written by sensors (LoopSensor) so the report

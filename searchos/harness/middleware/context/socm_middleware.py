@@ -13,6 +13,7 @@ from langchain_core.messages import HumanMessage, RemoveMessage
 from searchos.harness.middleware.context.utils.projection import TaskProjection
 from searchos.harness.middleware.models import TaskContext
 from searchos.harness.middleware.sensor.core.models import ControlState
+from searchos.socm.failure_memory.projection import render_failure_memory
 from searchos.socm.planning.research_plan import render_research_plan
 from searchos.socm.views.render import render_compact_summary, render_orchestrator_view
 from searchos.socm.views.snapshot import SearchStateSnapshot
@@ -65,9 +66,16 @@ class SOCMContextMiddleware(AgentMiddleware):
                 else render_compact_summary(snapshot)
             )
             # 路由预置计划本身不代表研究已开始；计划随实际研究状态展示。
-            if not text:
-                return ""
-            text = "\n\n".join(block for block in (render_research_plan(state), text) if block)
+            if text:
+                text = "\n\n".join(block for block in (render_research_plan(state), text) if block)
+        failure_memory = render_failure_memory(
+            state,
+            task_id=self.task.task_id,
+            agent_id=self.task.agent_id,
+            target_table=self.task.target_table,
+            view=self.view,
+        )
+        text = "\n\n".join(block for block in (text, failure_memory) if block)
         if not text:
             return ""
         return f"Current date (runtime local date): {date.today().isoformat()}\n\n{text}"

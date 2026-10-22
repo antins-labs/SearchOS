@@ -160,6 +160,19 @@ def _render_wave(rows, pages: list[PageContents], summary: str) -> tuple[str, di
     browsers = [BrowserState(pages={p.url: p}, page_stack=[p.url]) for p in pages]
     # 足以显示全文；真正约束是下方对完整结果的统一计量。
     full_view = max((len(p.text) * 2 + 1 for p in pages), default=1)
+    outcomes = [
+        {"id": f"search:{index}", "tool": "search", "args": {"query": query},
+         "outcome": {"status": "error" if error else "success", "result_count": len(results),
+                     "error": error},
+         "results": [{"url": result.url} for result in results[:8] if result.url]}
+        for index, (query, results, error) in enumerate(rows)
+    ]
+    outcomes.extend(
+        {"id": f"page:{index}", "tool": "open", "args": {"id_or_url": page.url},
+         "source_url": page.source_url or page.url,
+         "outcome": page.metadata.get("access", {})}
+        for index, page in enumerate(pages) if page.metadata.get("access")
+    )
 
     def render(view_tokens, search_text, notice=""):
         observations = []
@@ -173,7 +186,7 @@ def _render_wave(rows, pages: list[PageContents], summary: str) -> tuple[str, di
                 "evidence_eligible": not page.text.startswith(FETCH_ERROR_SENTINEL),
                 **metadata,
             })
-        return "\n".join(blocks), {"pages": observations}
+        return "\n".join(blocks), {"pages": observations, "outcomes": outcomes}
 
     complete = render(full_view, _render_search_rows(rows))
     if text_token_bound(complete[0]) <= budget:
@@ -189,7 +202,7 @@ def _render_wave(rows, pages: list[PageContents], summary: str) -> tuple[str, di
         text = ("[Context budget: page bodies omitted and search listing may be truncated. "
                 "Use open with a source URL or issue a smaller batch.]\n"
                 + summary + "\n" + search_text)
-        return bounded_text(text, budget), {"pages": []}
+        return bounded_text(text, budget), {"pages": [], "outcomes": outcomes}
     low, high = 1, full_view
     while low < high:
         mid = (low + high + 1) // 2
@@ -238,7 +251,15 @@ async def explore_web(
         f"{sum(len(results) for _, results, _ in rows)} hits, "
         f"{len(pages)} unique pages opened."
     )
-    return _render_wave(rows, pages, summary)
+    content, artifact = _render_wave(rows, pages, summary)
+    for item in artifact["outcomes"]:
+        if item["tool"] == "search":
+            provider = get_provider()
+            item["outcome"].update(
+                search_provider=getattr(provider, "name", type(provider).__qualname__),
+                max_results=max_results_per_query,
+            )
+    return content, artifact
 
 
 __all__ = ["explore_web"]

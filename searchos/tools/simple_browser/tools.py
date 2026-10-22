@@ -46,8 +46,8 @@ def _page_artifact_result(fn):
     return wrapped
 
 
-@tool
-async def search(query: str) -> str:
+@tool(response_format="content_and_artifact")
+async def search(query: str) -> tuple[str, dict]:
     """Search the web; returns hits as ``[0]/[1]/...`` ids + titles / URLs / snippets — pass an id or full URL to ``open``.
 
     Args:
@@ -57,7 +57,7 @@ async def search(query: str) -> str:
     max_results = settings.search_max_results
     provider = get_provider()
     if provider is None:
-        return "Error: search provider not configured."
+        return "Error: search provider not configured.", {}
 
     if query and query not in _get_browser().search_history:
         _get_browser().search_history.append(query)
@@ -73,7 +73,12 @@ async def search(query: str) -> str:
 
     page = _build_search_page(query, results)
     _get_browser().add_page(page)
-    return _get_browser().show_page(loc=0, view_tokens=VIEW_TOKENS)
+    return _get_browser().show_page(loc=0, view_tokens=VIEW_TOKENS), {
+        "outcome": {"status": "success", "result_count": len(results),
+                    "search_provider": getattr(provider, "name", type(provider).__qualname__),
+                    "max_results": max_results},
+        "results": [{"url": result.url} for result in results[:8] if result.url],
+    }
 
 
 @tool(response_format="content_and_artifact")
@@ -171,6 +176,7 @@ async def open(id_or_url: Any, loc: int = 0, view_tokens: int | None = None) -> 
                             f"{snippet}"
                         ),
                         urls={},
+                        metadata=opened_page.metadata,
                     )
     browser.add_page(opened_page)
     page_id = _persist_page(url, opened_page)

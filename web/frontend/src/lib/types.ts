@@ -582,7 +582,22 @@ export interface SearchState {
   research_mode?: "table" | "findings";
   source_scope?: { mode: "web" | "local" | "hybrid"; library_id?: string; selection?: "library" | "documents"; document_ids?: string[]; documents: { document_id: string; relative_path?: string }[]; unavailable_sources?: Record<string, string> } | null;
   coverage_map: CoverageMap;
-  strategy_log: { patterns: { pattern: string; effective: boolean; context: string }[] };
+  failure_memory: { records: {
+    id: string;
+    kind: "query" | "source" | "skill" | "path";
+    target: string;
+    reason: string;
+    what_failed: string;
+    scope: { task_id: string; table_id: string; target_cells: string[]; entities: string[]; source_scope_key: string };
+    operation: string;
+    skill_version: string;
+    guidance: string;
+    confidence: "low" | "medium" | "high";
+    observed_count: number;
+    created_at: number;
+    last_seen: number;
+    superseded: boolean;
+  }[] };
   budget: BudgetState;
   task_dag: TaskDAG;
 }

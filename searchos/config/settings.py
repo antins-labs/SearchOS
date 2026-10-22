@@ -249,10 +249,9 @@ class Settings(BaseSettings):
     access_skill_min_opens: int = 3  # fallback threshold when no triage model
     access_skill_obs_chars: int = 800
 
-    # --- Failure memory (post-mortem) ---
+    # --- 搜索失败记忆：观察采集、可选复盘与角色投影 ---
     enable_failure_memory: bool = True
     max_post_mortems_per_session: int = 10
-    post_mortem_min_evidence: int = 10
     failure_memory_decay_seconds: int = 1800
     failure_memory_max_inject: int = 5
 

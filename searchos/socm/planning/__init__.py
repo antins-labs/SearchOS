@@ -1,1 +1,1 @@
-"""研究计划、Frontier Task、重试路线与 Failure Memory。"""
+"""研究计划、Frontier Task 与任务重试路线。"""
