@@ -6,6 +6,7 @@ export interface HostStatus {
   uptime_seconds: number;
   instance_id: string;
   service_mode: "managed" | "manual";
+  service_manager?: string;
   keep_awake: "ac" | "off";
   catchup_window_minutes: number;
   push_ready: boolean;
@@ -37,7 +38,7 @@ export function freshHost(previous: HostSnapshot, now: number): HostSnapshot {
 }
 export const HOST_LABELS = { checking: "检查连接", online: "主机在线", degraded: "计划异常", unreachable: "连接中断" };
 export function hostMessage(host: HostSnapshot): string {
-  if (host.phase === "unreachable") return "暂时无法连接主机，请检查手机网络及电脑是否开机。连接恢复后会自动更新。";
+  if (host.phase === "unreachable") return "暂时无法连接主机，请检查手机网络及主机服务是否运行。连接恢复后会自动更新。";
   if (host.phase === "checking") return "正在确认主机状态，之前的运行信息可能已过期。";
   if (host.phase === "degraded") return "主机可连接，但计划服务未正常响应，定时任务可能延迟。";
   return "主机在线，计划服务正常。手机退出后，任务仍由主机执行。";

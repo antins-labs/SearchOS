@@ -1,8 +1,10 @@
 # SearchOS 移动工作区设计
 
-版本：v0.5 · 更新：2026-10-15（Asia/Shanghai）。当前分支：`SearchOS-pub/mobile`；移动功能来源：AntCode `mobile`。合并基线与验证见 [11 SearchOS-pub 集成](11-searchos-pub-integration.md)。
+正式移动设计：v0.7；独立设计原型：v0.7 · 更新：2026-10-22（Asia/Shanghai）。当前分支：`SearchOS-pub/mobile`；移动功能来源：AntCode `mobile`。前次集成基线见 [11 SearchOS-pub 集成](11-searchos-pub-integration.md)；本次合入远端 `bc2be3b42` 的后续更新。
 
 ## 当前实施基准
+
+2026-10-19：独立原型重做为 **v0.7「墨蓝简报」**，统一重设计 14 个页面，保留卡片、低饱和蓝色系与既有标志，清理重复说明。最新视觉与文案基准见 [13 墨蓝移动设计](13-ink-mobile-design.md)，早期研究与流程记录见 [11 设计调研](11-mobile-design-research.md)、[12 原型规格](12-native-mobile-prototype.md)。[可点击原型](prototype-v6/index.html) / [14 屏总览](prototype-v6/overview.html)。**2026-10-20 已迁入正式 `/m`，真实数据、交互与验收边界见 [14 正式迁移](14-production-design-migration.md)。**
 
 **手机是指令与结果入口，保留后端能力，重新设计手机交互并允许精简。** 当前基准为 [08 手机指令与结果入口](08-mobile-command-center.md)，用户已确认。导航调整为助理、任务、我的，重点为助理输入区、任务列表和资料选择。
 
@@ -21,6 +23,11 @@
 | 文档 | 用途与状态 |
 | --- | --- |
 | [11 SearchOS-pub 集成](11-searchos-pub-integration.md) | 当前本机入口、共享配置与合并验证 |
+| [15 个人云部署](15-personal-cloud-deployment.md) | 部署配置与 iPhone 接入说明，实际部署需单独执行 |
+| [14 正式迁移](14-production-design-migration.md) | **当前界面实现**：v0.7 迁移范围、真实数据与本机验收 |
+| [13 墨蓝移动设计](13-ink-mobile-design.md) | **最新视觉基准**：v0.7 高保真原型、组件、文案取舍与验证 |
+| [12 原型规格](12-native-mobile-prototype.md) | v0.6.x 原型流程与视觉迭代记录，视觉规则由 13 替代 |
+| [11 设计调研](11-mobile-design-research.md) | 移动端设计规范、参考资料与方法 |
 | [10 本地常驻运行](10-local-service.md) | **当前运行基准**：登录自启动、故障重启、主机状态、管理与迁移 |
 | [09 实现与本机验证](09-implementation-and-local-validation.md) | **当前功能基准**：调度、设备、通知、PWA、配置和验证 |
 | [08 手机指令与结果入口](08-mobile-command-center.md) | **当前实施基准**：移动交互、取舍、真实能力与原型边界 |
@@ -32,7 +39,14 @@
 | [05 服务与接口](05-services-and-apis.md) | v0.1 初期设计记录：建议接口与数据流 |
 | [06 原型预览](06-prototype-preview.md) | 已被替代的独立演示原型记录，截图仅供历史参考 |
 
-交互方向以 08 为准，功能状态、接口、配置与验证以 09 为准；01–07 的建议不自动视为当前实现。
+正式功能交互方向以 08 为准，功能状态、接口、配置与验证以 09 为准；新版独立原型以 13 为准，仍待评审。01–07 的建议不自动视为当前实现。
+
+## 原型预览与分享
+
+- [14 屏总览](prototype-v6/overview.html) / [完整交互原型](prototype-v6/index.html)：在电脑浏览器中打开；也可按 12 文档的方式启动本机预览。
+- [v0.7 分享包](exports/SearchOS-Mobile-Prototype-v0.7.zip)：解压后打开 `overview.html`，内含打开说明和三张静态预览图。
+- 当前样式为 `prototype-v6/design-v7.css`。沿用目录名以保持原有链接；`prototype.css` 和 v6 预览图仅保留为设计历史。
+- 分享包包含静态页面、交互脚本、品牌素材与示例数据，不依赖后端。原型更新后，应同步重新打包并核对包内文件与当前源文件。
 
 ## 后续环境验收
 
@@ -61,4 +75,4 @@
 - [移动工作区](http://127.0.0.1:3000/m)
 - [桌面工作区](http://127.0.0.1:3000/)
 
-移动功能的原始实施基线为 `73cf9e5`；当前已集成至 SearchOS-pub 的桌面代码。两入口共用一个 API 和同一份配置、任务及资料。09、10 中的 3100 端口和 LaunchAgent 验证属于原分支的历史记录，不表示本机已经安装常驻服务。预览地址只在当前电脑有效，尚不能直接用于 iPhone 远程连接。
+移动功能的原始实施基线为 `73cf9e5`；当前已集成至 SearchOS-pub 的桌面代码。两入口共用一个 API 和同一份配置、任务及资料。新版原型与正式迁移记录见 13、14，云部署说明见 15。09、10 中的 3100 端口和 LaunchAgent 验证属于原分支的历史记录，不表示本机已经安装常驻服务。预览地址只在当前电脑有效，尚不能直接用于 iPhone 远程连接。

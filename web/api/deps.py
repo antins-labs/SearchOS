@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 # Load .env from repo root
-_env_path = _REPO_ROOT / ".env"
+_env_path = Path(os.environ.get("SF_ENV_FILE", str(_REPO_ROOT / ".env")))
 if _env_path.exists():
     load_dotenv(_env_path)
 

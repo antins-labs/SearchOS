@@ -82,3 +82,9 @@ doc/pub/assets/
 
 # Local agent context
 CONTEXT.md
+# Personal deployment configuration and backups.
+deploy/.env
+deploy/backups/
+deploy/*.tgz
+deploy/*.partial
+web/frontend/.next-cloud-check/

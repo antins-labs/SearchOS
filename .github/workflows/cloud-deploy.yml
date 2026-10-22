@@ -1,0 +1,65 @@
+name: Cloud deployment
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "deploy/**"
+      - ".dockerignore"
+      - ".github/workflows/cloud-deploy.yml"
+      - "web/**"
+      - "searchos/**"
+      - "pyproject.toml"
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Configure local-only CI entry
+        run: |
+          printf 'SEARCHOS_DOMAIN=localhost\nSEARCHOS_EMAIL=ci@example.test\nSEARCHOS_BIND=127.0.0.1\n' > deploy/.env
+      - name: Build and boot
+        run: |
+          bash deploy/searchos.sh build
+          bash deploy/searchos.sh up
+      - name: Validate Caddy and private exposure
+        run: |
+          docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T caddy caddy validate --config /etc/caddy/Caddyfile
+          python deploy/smoke.py
+      - name: Probe browser and report sandbox compatibility
+        shell: bash
+        run: |
+          set +e
+          bash deploy/searchos.sh doctor
+          result=$?
+          # 2 explicitly reports a host sandbox restriction; no insecure fallback.
+          if [ "$result" -eq 2 ]; then
+            echo "::warning::Skill sandbox unavailable on this runner; core web deployment only."
+          elif [ "$result" -ne 0 ]; then
+            exit "$result"
+          fi
+      - name: Backup and restore into a second empty volume
+        run: |
+          bash deploy/searchos.sh backup /tmp/searchos-ci.tgz
+          bash deploy/searchos.sh stop
+          COMPOSE_PROJECT_NAME=searchos-restore bash deploy/searchos.sh restore /tmp/searchos-ci.tgz
+          COMPOSE_PROJECT_NAME=searchos-restore bash deploy/searchos.sh up
+          COMPOSE_PROJECT_NAME=searchos-restore python deploy/smoke.py
+      - name: Diagnostics
+        if: failure()
+        run: |
+          docker compose --env-file deploy/.env -f deploy/compose.yaml ps
+          docker compose --env-file deploy/.env -f deploy/compose.yaml logs --tail=80
+      - name: Cleanup disposable CI data
+        if: always()
+        run: |
+          docker compose --env-file deploy/.env -f deploy/compose.yaml down -v
+          docker compose -p searchos-restore --env-file deploy/.env -f deploy/compose.yaml down -v
+          rm -f /tmp/searchos-ci.tgz

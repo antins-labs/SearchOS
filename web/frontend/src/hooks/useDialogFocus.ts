@@ -41,6 +41,11 @@ export default function useDialogFocus({
     });
 
     const onKeyDown = (event: KeyboardEvent) => {
+      // A report can open an entry dialog. Only the innermost modal should
+      // handle Escape or trap focus; its parent remains mounted underneath.
+      const modals = document.querySelectorAll<HTMLElement>('[aria-modal="true"]');
+      const topModal = modals[modals.length - 1];
+      if (topModal && containerRef.current !== topModal && !topModal.contains(containerRef.current)) return;
       if (event.key === "Escape" && !event.defaultPrevented) {
         event.preventDefault();
         event.stopPropagation();

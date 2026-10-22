@@ -1,0 +1,85 @@
+name: searchos
+
+x-service: &service
+  restart: unless-stopped
+  init: true
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  api:
+    <<: *service
+    image: ${SEARCHOS_API_IMAGE:-searchos-api:local}
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.api
+    environment:
+      SF_PUBLIC_ORIGIN: https://${SEARCHOS_DOMAIN:?Set SEARCHOS_DOMAIN in deploy/.env}
+      SF_PUSH_CONTACT: mailto:${SEARCHOS_EMAIL:?Set SEARCHOS_EMAIL in deploy/.env}
+      SF_ASSISTANT_ROOT: /data/assistant
+      SF_WORKSPACE_ROOT: /data/workspaces
+      SF_LOCAL_DATA_ROOT: /data/knowledge
+      SF_WEB_SETTINGS_PATH: /data/web_settings.json
+      SF_ENV_FILE: /data/secrets.env
+      SF_SKILL_LIBRARY_PATH: /data/skills
+      SF_LOCAL_INDEX_ROOT: /data/local-index
+      SF_BROWSER_AUTH_DIR: /data/browser-auth
+      SF_SERVICE_MANAGED: docker
+      TZ: ${SEARCHOS_TIMEZONE:-Asia/Shanghai}
+    volumes:
+      - searchos_data:/data
+    shm_size: 512mb
+    cap_drop: [ALL]
+    stop_grace_period: 45s
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=5)"]
+      interval: 15s
+      timeout: 6s
+      start_period: 90s
+      retries: 5
+
+  web:
+    <<: *service
+    image: ${SEARCHOS_WEB_IMAGE:-searchos-web:local}
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+    cap_drop: [ALL]
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/m').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 10s
+      start_period: 60s
+      retries: 5
+
+  caddy:
+    <<: *service
+    image: caddy:2-alpine
+    ports:
+      - "${SEARCHOS_BIND:-0.0.0.0}:${SEARCHOS_HTTP_PORT:-80}:80"
+      - "${SEARCHOS_BIND:-0.0.0.0}:${SEARCHOS_HTTPS_PORT:-443}:443"
+    environment:
+      SEARCHOS_DOMAIN: ${SEARCHOS_DOMAIN:?Set SEARCHOS_DOMAIN}
+      SEARCHOS_EMAIL: ${SEARCHOS_EMAIL:?Set SEARCHOS_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+
+volumes:
+  searchos_data:
+  caddy_data:
+  caddy_config:

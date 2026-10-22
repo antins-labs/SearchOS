@@ -44,7 +44,10 @@ def _entry(skill: Path, argv: list[str]) -> list[str]:
 
 def _browser_cache() -> Path | None:
     """已安装的浏览器引擎是运行时依赖，不是用户浏览器资料目录。"""
-    if sys.platform == "darwin":
+    configured = os.environ.get("PLAYWRIGHT_BROWSERS_PATH", "")
+    if configured and Path(configured).is_absolute():
+        path = Path(configured)
+    elif sys.platform == "darwin":
         path = Path.home() / "Library/Caches/ms-playwright"
     elif sys.platform.startswith("linux"):
         path = Path.home() / ".cache/ms-playwright"

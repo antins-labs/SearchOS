@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SearchOS · iPhone 原型评审</title>
+  <link rel="icon" href="assets/searchos-mark.png">
+  <link rel="stylesheet" href="design-v7.css?v=7.0">
+</head>
+<body>
+  <div class="review-shell">
+    <aside class="review-nav">
+      <a class="brand" href="./index.html"><img class="brand-mark" src="assets/searchos-mark.png" alt="">SearchOS</a>
+      <div class="review-label">MOBILE DESIGN / 07</div>
+      <h1>墨蓝 · 简报</h1>
+      <p class="review-intro">SearchOS Mobile<br>高保真交互原型</p>
+      <nav id="screen-nav" aria-label="原型页面"></nav>
+      <div class="review-bottom"><a href="./overview.html" target="_blank" rel="noopener">查看整体页面总览 ↗</a><a href="?mode=phone" target="_blank" rel="noopener">打开全屏体验 ↗</a><span>2026.10.19 · 设计提案</span></div>
+    </aside>
+    <section class="stage" aria-label="手机原型预览">
+      <div class="stage-caption"><span class="stage-dot"></span>可点击原型<span>示例数据 · 不执行真实任务</span></div>
+      <div class="device"><div class="statusbar" aria-hidden="true"><b>9:41</b><div class="island"></div><span>▮▮▮ <svg width="16" height="14" viewBox="0 0 18 14"><path d="M2 4q7-6 14 0M5 7q4-4 8 0M8 10q1-1 2 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> <span class="battery"></span></span></div><div id="app" class="app"></div><div class="home-indicator" aria-hidden="true"></div></div>
+      <div class="stage-foot">390 × 844 · iPhone</div>
+    </section>
+    <aside class="review-notes">
+      <span class="eyebrow">DESIGN NOTES</span><div id="page-notes"></div>
+      <div class="scenario-box"><label for="scenario">体验状态</label><select id="scenario"><option value="normal">日常使用</option><option value="empty">首次使用 · 没有任务</option><option value="offline">主机离线</option><option value="failed">执行失败</option><option value="permission">通知未开启</option></select><p>仅切换原型示例状态</p><button id="complete-demo" class="review-action">模拟任务完成 →</button><button id="reset-demo" class="review-reset">重置原型</button></div>
+      <div class="research-links"><span class="eyebrow">REFERENCE DIRECTION</span><a href="https://developer.apple.com/design/resources/" target="_blank" rel="noopener">Apple · 界面规范与 UI Kit ↗</a><a href="https://culturedcode.com/things/features/" target="_blank" rel="noopener">Things · 时间与任务层级 ↗</a><p>本原型为 SearchOS 独立设计，<br>没有复制竞品页面。</p></div>
+    </aside>
+  </div>
+  <div class="mobile-prototype-label">原型 · 示例数据</div>
+  <script src="prototype.js?v=7.0"></script>
+</body>
+</html>

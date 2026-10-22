@@ -1,0 +1,22 @@
+{
+	email {$SEARCHOS_EMAIL}
+}
+
+https://{$SEARCHOS_DOMAIN} {
+	encode zstd gzip
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy same-origin
+		X-Frame-Options SAMEORIGIN
+	}
+	# Keep the original path, Host and Origin; reverse_proxy supports WebSocket.
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+	# API documentation is an operator tool, not part of the public entry.
+	@docs path /docs /docs/* /redoc /openapi.json
+	respond @docs 404
+	handle {
+		reverse_proxy web:3100
+	}
+}

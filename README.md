@@ -156,6 +156,11 @@ The recordings below demonstrate Web and TUI workflows.
 
 ## 🧭 Quick start
 
+**Personal cloud deployment + iPhone:** see [the self-hosting guide (中文)](docs/zh/self-hosting.md)
+for the Docker Compose source-build deployment, HTTPS, device pairing, notifications,
+backup and recovery. This requires a version containing `deploy/`; prebuilt official images
+are not published by this change.
+
 Requires **Python ≥ 3.11** and **Node.js ≥ 20.9** for the Web frontend. From the repository root:
 
 ```bash

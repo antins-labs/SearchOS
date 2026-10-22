@@ -1,0 +1,20 @@
+FROM python:3.12-slim-bookworm
+COPY --from=node:22-bookworm-slim /usr/local/bin/node /usr/local/bin/node
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
+    PLAYWRIGHT_BROWSERS_PATH=/opt/playwright \
+    PYTHONPATH=/app:/app/web HOME=/data/home
+WORKDIR /app
+COPY pyproject.toml README.md LICENSE ./
+COPY searchos ./searchos
+COPY web/api ./web/api
+COPY deploy ./deploy
+RUN apt-get update && apt-get install -y --no-install-recommends bubblewrap libstdc++6 \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir ".[access,local-docs,mobile,tavily]" \
+    && python -m playwright install --with-deps chromium \
+    && groupadd --gid 10001 searchos \
+    && useradd --uid 10001 --gid searchos --no-create-home searchos \
+    && mkdir /data && chown searchos:searchos /data
+USER 10001:10001
+ENTRYPOINT ["python", "/app/deploy/container_entry.py"]
+CMD ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--no-proxy-headers", "--timeout-graceful-shutdown", "30"]

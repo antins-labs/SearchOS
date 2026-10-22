@@ -28,7 +28,7 @@ export default function MobileReportCards({ table, cells, evidence, onOpenSource
   return <section className={s.digest} aria-label={label}>
     <button ref={header} className={s.digestHeader} type="button" aria-expanded={expanded} aria-controls={listId} onClick={toggle}>
       <span className={s.digestIcon}><Layers3 size={22} /></span>
-      <span className={s.digestHeading}><b>{label}</b><small>{rows.length} 个条目 · {expanded ? "已展开全部，点击收起" : "点击展开全部内容"}</small></span>
+      <span className={s.digestHeading}><b>{label}</b><small>{expanded ? "全部条目" : `精选预览 · 共 ${rows.length} 条`}</small></span>
       <span className={s.digestCount}>{rows.length}</span><ChevronRight size={17} className={expanded ? s.digestChevronOpen : undefined} />
     </button>
     <div id={listId} className={s.digestRows}>
