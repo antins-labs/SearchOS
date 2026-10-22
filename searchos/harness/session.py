@@ -308,11 +308,9 @@ class SearchSession:
 
             # 子 agent 按当前检索需求发现技能；权限仍由上面的 policy 约束。
             skill_catalog = (
-                "Search agents start each task by discovering Access and Strategy skills with "
-                "list_skills(query=their current retrieval need), then read load_skill "
-                "before use. Give them the task, source hints and acceptance criteria. "
-                "The skills field is optional; omit it unless you already know a suitable "
-                "skill from this run. Do not guess skill names."
+                "Search agents discover Access and Strategy skills for their current retrieval "
+                "need, then load the selected skill before use. Give them the task, source hints "
+                "and acceptance criteria; include known skill recommendations when useful."
             )
         else:
             orchestrator_playbook = ""
@@ -334,7 +332,8 @@ class SearchSession:
             orchestrator_playbook=orchestrator_playbook,
             follow_up=follow_up or bool(context_preamble),
             enable_research_plan_tool=self._run_config.enable_research_plan_tool,
-            research_mode=state.research_mode,
+            fixed_schema=fixed_schema,
+            targeted_repair=targeted_repair_mode,
             source_mode=(state.source_scope or {}).get("mode", ""),
             local_sources=(
                 "Current library: " + str(state.source_scope.get("library_id", ""))
@@ -351,35 +350,6 @@ class SearchSession:
             ),
             source_limitations="\n".join(state.source_scope.get("unavailable_sources", {}).values()),
         )
-        if fixed_schema:
-            system_prompt += (
-                "\n\n## Fixed Prebuilt Schema Mode (experimental override)\n"
-                "The SOCM already contains the complete, immutable schema for this run. "
-                "This block overrides any earlier instruction to create or redesign a schema. "
-                "The create_schema and add_columns tools are intentionally unavailable. Do not add tables or columns or "
-                "reinterpret the table boundaries. You may discover rows, call add_entities / "
-                "edit_entities, dispatch agents from the current Agent Catalog, "
-                "and fill the existing cells. "
-                "Follow the configured initial-action policy for Explore, using the existing "
-                "table IDs and relations; Explore must not redesign the schema. "
-                "Every retrieval task in a multi-table "
-                "run must name target_table."
-            )
-        if targeted_repair_mode:
-            system_prompt += (
-                "\n\n## Targeted Repair Mode (overrides the normal workflow)\n"
-                "The selected cells in the user message are an immutable allowlist. "
-                "Plan the work yourself and call `enqueue_tasks` with the appropriate "
-                "retrieval agents from the current Agent Catalog. "
-                "Every task MUST provide the exact "
-                "`target_table` and explicit "
-                "`target_cells`, and their cells must be a subset of the allowlist; "
-                "the tool rejects any wider scope. Group and stage tasks as you judge "
-                "best for the available pool. Do not create or edit schemas or entities. "
-                "Use `check_agents`, adapt later waves from returned evidence, inspect "
-                "only the selected cells, then report their changes."
-            )
-
         conv_logger.register_sub_agent(
             agent_name="orchestrator",
             parent="",

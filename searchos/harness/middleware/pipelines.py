@@ -148,7 +148,6 @@ def _worker_defaults(
                 view=view,
                 control=control,
                 agent_graphs=agent_graphs,
-                heartbeat_turns=settings.socm_heartbeat_turns,
             )
         )
     if "ToolHistoryMiddleware" in selected:
@@ -474,7 +473,6 @@ def orchestrator_pipeline(
                 task=TaskContext(agent_id="orchestrator"),
                 view="overview",
                 control=control,
-                heartbeat_turns=settings.socm_heartbeat_turns,
             )
         )
     from searchos.agents.orchestrator.policy import DispatchPolicy

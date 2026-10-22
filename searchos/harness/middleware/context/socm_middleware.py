@@ -1,17 +1,19 @@
-"""每次模型请求注入当前 SOCM 投影，不依赖临时消息被持久化。"""
+"""按角色投影更新单份 SOCM 消息，并随模型结果持久化到 checkpoint。"""
 
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
+from dataclasses import replace
 from datetime import date
 from typing import Any, Literal
 
-from langchain.agents.middleware.types import AgentMiddleware
+from langchain.agents.middleware.types import AgentMiddleware, ModelResponse
+from langchain_core.messages import HumanMessage, RemoveMessage
 
 from searchos.harness.middleware.context.utils.projection import TaskProjection
 from searchos.harness.middleware.models import TaskContext
 from searchos.harness.middleware.sensor.core.models import ControlState
-from searchos.harness.middleware.utils.messages import inject_context
+from searchos.socm.planning.research_plan import render_research_plan
 from searchos.socm.views.render import render_compact_summary, render_orchestrator_view
 from searchos.socm.views.snapshot import SearchStateSnapshot
 
@@ -26,8 +28,6 @@ class SOCMContextMiddleware(AgentMiddleware):
         task: TaskContext,
         view: Literal["task", "overview", "writing"] = "task",
         control: ControlState | None = None,
-        guidance: str | None = None,
-        heartbeat_turns: int = 0,
         agent_graphs: Mapping[str, Any] | None = None,
     ) -> None:
         if view not in {"task", "overview", "writing"}:
@@ -36,25 +36,6 @@ class SOCMContextMiddleware(AgentMiddleware):
         self.task = task
         self.view = view
         self.control = control
-        self.guidance = (
-            guidance
-            if guidance is not None
-            else {
-                "task": (
-                    "Continue your assigned task; adjust searches to its remaining targets "
-                    "and avoid unrelated work."
-                ),
-                "overview": (
-                    "Adjust dispatch using current gaps and in-flight tasks; "
-                    "avoid duplicate assignments. Before finishing, resolve derivable gaps with "
-                    "python and edit_entities. Read input sources with read_evidence(cell=...) "
-                    "and include their original source and source_excerpt in each edit object."
-                ),
-                "writing": "Ground writing in current evidence and report unresolved limitations.",
-            }[view]
-        )
-        # Compatibility parameter: snapshots must remain visible on every request.
-        self.heartbeat_turns = heartbeat_turns
         self._projection = TaskProjection(
             task.agent_id,
             task_id=task.task_id,
@@ -62,7 +43,6 @@ class SOCMContextMiddleware(AgentMiddleware):
             target_table=task.target_table,
             agent_graphs=agent_graphs,
         )
-        self._last_text = ""
 
     def bind_control(self, controls: tuple[ControlState, ...]) -> None:
         if self.control is not None or not controls:
@@ -84,37 +64,54 @@ class SOCMContextMiddleware(AgentMiddleware):
                 if self.view == "overview"
                 else render_compact_summary(snapshot)
             )
-            from searchos.config.run_config import current_run_config
-            from searchos.socm.planning.research_plan import render_research_plan
+            # 路由预置计划本身不代表研究已开始；计划随实际研究状态展示。
+            if not text:
+                return ""
+            text = "\n\n".join(block for block in (render_research_plan(state), text) if block)
+        if not text:
+            return ""
+        return f"Current date (runtime local date): {date.today().isoformat()}\n\n{text}"
 
-            editable_plan = current_run_config().enable_research_plan_tool
-            text = render_research_plan(
-                state, prompt_for_plan=self.view == "overview" and editable_plan,
-                can_update=editable_plan,
-            ) + "\n\n" + text
-        # 每轮读取运行环境日期；无表时也注入，覆盖首次任务派发。
-        temporal = (
-            "[Runtime time]\n"
-            f"Current date (runtime local date): {date.today().isoformat()}\n"
-            "Resolve relative dates against this date unless the user explicitly specifies "
-            "another reference date. Dates in source data or generated task briefs do not "
-            "change the current date."
-        )
-        return "\n\n".join(block for block in (temporal, text) if block)
-
-    async def awrap_model_call(self, request: Any, handler: Callable) -> Any:
+    async def awrap_model_call(self, request: Any, handler: Callable) -> ModelResponse:
+        # 此处位于抽取 drain 之后，读取本次调用前已提交的最新研究状态。
         text = self.render()
         if self.control is not None:
             self.control.context_snapshot = text
-        stopped = self.control is not None and self.control.stopped
-        guidance = (
-            "Search is stopped. Use these records only to summarize partial findings and "
-            "unresolved limitations; do not call tools or resume searching."
-            if stopped
-            else self.guidance
+        content = f"[AUTOMATED HARNESS — state snapshot]\n{text}" if text else ""
+        previous = next(
+            (m for m in request.messages if m.additional_kwargs.get("sf_kind") == "socm_update"),
+            None,
         )
-        content = f"[AUTOMATED HARNESS — state snapshot]\n{guidance}\n\n{text}" if text else ""
+        messages = [
+            m for m in request.messages if m.additional_kwargs.get("sf_kind") != "socm_update"
+        ]
+        updates = []
         if content:
-            request = inject_context(request, content, "socm_update")
-            self._last_text = content
-        return await handler(request)
+            changed = previous is None or previous.content != content
+            snapshot = (
+                HumanMessage(
+                    content=content,
+                    id="socm-current",
+                    additional_kwargs={"sf_synthetic": True, "sf_kind": "socm_update"},
+                )
+                if changed
+                else previous
+            )
+            if changed:
+                updates.append(snapshot)
+            # 更新标记只用于当前请求的遥测；checkpoint 保留纯状态消息。
+            messages.append(
+                snapshot.model_copy(
+                    update={
+                        "additional_kwargs": {
+                            **snapshot.additional_kwargs,
+                            "sf_context_changed": changed,
+                        }
+                    }
+                )
+            )
+        elif previous is not None:
+            updates.append(RemoveMessage(id=previous.id))
+        response = await handler(replace(request, messages=messages))
+        # 相同 ID 由 messages reducer 原位替换；失败或取消不会提交本次投影。
+        return replace(response, result=[*updates, *response.result]) if updates else response

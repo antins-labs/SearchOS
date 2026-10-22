@@ -23,10 +23,11 @@ def capture_task_targets(state: Any, item: dict) -> dict:
 
 def _target_keys(state: Any, targets: list[str], table_id: str) -> set[str]:
     cmap = state.coverage_map
-    fallback = table_id or (cmap.primary_table_id if len(cmap.tables) == 1 else "")
     keys = set()
     for raw in targets:
-        key = raw if "/" in raw else f"{fallback}/{raw}"
+        key = cmap.resolve_cell_reference(raw, table_id=table_id)
+        if key is None:
+            return set()
         binding = cmap.cell_binding(key)
         # 有目标但不能解析，表示拒绝写入，不能当作无目标。
         if binding is None or key not in cmap.cells:

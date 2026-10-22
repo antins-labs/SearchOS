@@ -113,9 +113,14 @@ async def create_schema(
                 # rows to pre-create, optional
                 # Single PK: ["Harvard", "MIT"]
                 # Multi PK: [["Arts and Humanities", "Harvard"], ["Engineering", "MIT"]]
+                # Array seeds contain only PK values, in primary_key order,
+                # with exactly one value per PK column. A partially known
+                # array may use "" for an unknown component; keep its position.
+                # Use row objects to supply non-PK values as well.
                 # Row object: [{"Ranking": 1, "Name": "IShowSpeed"}]
                 #   primary_key columns define the row key; non-PK columns are
                 #   seeded as inline assertions.
+                #   Row objects require a non-empty value for every PK column.
             }
         relations_json: JSON array of relation objects (omit for single-table). Each:
             {

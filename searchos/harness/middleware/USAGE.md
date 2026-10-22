@@ -105,17 +105,21 @@ mw.FinalSummaryEvidenceMiddleware(extraction)
 
 ### SOCMContextMiddleware：当前任务状态
 
-读取 workspace，生成任务相关的证据与缺口视图并注入模型请求。每次请求都附带当前快照，因为请求级注入不会写回历史；`heartbeat_turns` 仅为调用兼容保留，不再抑制快照。停止后使用收尾指引。
+在已触发的证据抽取提交后读取 workspace，生成当前角色的证据与缺口视图。没有相关表、任务或可用证据时不注入；路由预置计划不单独触发注入。模型调用成功后将最新投影保存为 checkpoint 中的一条固定 ID 消息，内容变化时原位更新，未变时直接复用，状态清空时删除。
+
+完整对话日志保持追加语义：每次投影变化，都在当前轮的注入位置追加一条包含完整内容的 user 消息，位于此前工具回执之后、本轮模型回答之前。历史版本与各自的注入位置全部保留；checkpoint 只保存最新投影，不覆盖或删除这些日志记录。内容未变时不产生新的注入记录。
 
 ```python
-mw.SOCMContextMiddleware(workspace, task=task, heartbeat_turns=3)
+mw.SOCMContextMiddleware(workspace, task=task)
 ```
 
 `view` 可选 `"task"`、`"overview"`、`"writing"`，分别面向任务执行、调度和写作。未显式传 `control` 时，图入口绑定列表中唯一的共享控制状态；同一 agent 的组件和运行层必须共享同一个 control，传入多个不同实例会报错。
 
+后续模型请求始终携带最新投影；DynamicTrim 和 Compaction 保留该消息。恢复执行图时按 workspace 校准 checkpoint 中的投影，没有 checkpoint 时也可从 workspace 重建。取消或失败的模型调用不提交投影更新。SOCM 只展示状态，操作方法来自角色提示词，停止约束由执行层处理。这里减少的是重复消息和更新事件，保留的状态仍会作为模型输入发送。
+
 ### CompactionContextMiddleware：持久化续接摘要
 
-接近上下文阈值时，将较早的执行历史整理为任务续接摘要，并写入 checkpoint。保留真实用户指令及预算内最近的完整工具交互；后续运行和断点恢复使用压缩后的活动历史。它是跨模型的文本版本，不等价于 OpenAI 服务端的加密压缩状态。
+接近上下文阈值时，将较早的执行历史整理为任务续接摘要，并写入 checkpoint。保留真实用户指令、最新 SOCM 投影及预算内最近的完整工具交互；后续运行和断点恢复使用压缩后的活动历史。它是跨模型的文本版本，不等价于 OpenAI 服务端的加密压缩状态。
 
 ```python
 # summary_model 是未绑定工具的聊天模型，可复用 agent 的基础 model。
@@ -186,6 +190,8 @@ mw.RetryRouteMiddleware(workspace, agent_id=task.agent_id)
 ### BudgetMiddleware：预算计量与限制
 
 按底层实际动作计算工具消耗，对并发调用预留额度，并产生预算提示与耗尽信号。单项额度不足时拦截相应调用；整体耗尽时进入收尾状态。
+
+运行层把动态预算、策略切换和停止信号追加为 user 消息，模型调用成功后按发送顺序保存到执行历史；相同内容保持原位，变化时追加新消息，不改写 system prompt。Explore 波次提示采用相同机制。日志在新消息实际发送的位置记录一次，回写历史不重复记录；工具额度与硬停止仍由执行层强制检查。
 
 单项预算耗尽后，从下一轮模型的可选工具中移除对应工具，并提示剩余额度。
 若出现 3 个有预算拒绝、且未执行其他计费动作的轮次，则以 `budget_rejection_loop`

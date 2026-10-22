@@ -177,7 +177,7 @@ class ConversationLogger:
                 self._flush_per_agent(name)
 
     def _flush_per_agent(self, agent_name: str) -> None:
-        """Write one agent's full record (prompt + messages) to conversations/snapshots/<agent>.json."""
+        """保存一个 Agent 的完整提示词与消息快照。"""
         target_dir = self._per_agent_dir
         if target_dir is None:
             return
@@ -289,6 +289,9 @@ def langchain_msg_to_conversation_msgs(msg: Any) -> list[ConversationMessage]:
 
     if msg_type == "human":
         extras = getattr(msg, "additional_kwargs", {}) or {}
+        # 注入已在模型请求边界记录；回写执行历史时不重复记录副本。
+        if extras.get("sf_kind") == "socm_update" or "sf_context_changed" in extras:
+            return []
         metadata = {
             key: extras[f"sf_{key}"]
             for key in ("steer_id", "steer_mode", "steer_text") if f"sf_{key}" in extras

@@ -2,7 +2,7 @@
 harness layer.
 
 ``settings.orch_max_dispatches`` is the intended cap.
-orchestrator_prompt renders it as "Max orchestrator dispatch rounds: N"
+orchestrator_prompt renders it as "Dispatch rounds: N"
 but that's soft — the LLM can and does ignore it, overshooting the cap
 with extra rescue rounds that spawn more sub-agents and waste tokens.
 

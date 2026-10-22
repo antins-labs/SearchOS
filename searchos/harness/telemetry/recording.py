@@ -22,8 +22,13 @@ class AgentRecorder:
         self._reasoning = ""
 
     def model_received(self, request):
+        # 本轮新注入的上下文在此追加到完整对话，保留它与工具回执、模型回答的顺序。
         for message in getattr(request, "messages", ()):
             kind = getattr(message, "additional_kwargs", {}).get("sf_kind")
+            if message.additional_kwargs.get("sf_context_changed") is False:
+                continue
+            if kind == "socm_update" and not message.additional_kwargs.get("sf_context_changed"):
+                continue
             if kind:
                 self.context_recorder(str(message.content), kind)
 
@@ -169,6 +174,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class ContextRecorder:
+    """逐次追加完整注入内容；checkpoint 的投影替换不修改历史日志。"""
+
     agent_id: str
     trajectory: Any = None
     conversation: Any = None

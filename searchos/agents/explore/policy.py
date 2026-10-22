@@ -1,13 +1,14 @@
 """Explore 只限制波次上限，结束时机由目标完成情况决定。"""
 
 from collections.abc import Callable
-from dataclasses import replace
 from typing import Any
 
-from langchain_core.messages import SystemMessage
-
 from searchos.harness.middleware.sensor.core.models import ControlState
-from searchos.harness.middleware.utils.messages import blocked_result, extract_tool_name
+from searchos.harness.middleware.utils.messages import (
+    blocked_result,
+    call_with_context,
+    extract_tool_name,
+)
 
 
 class ExplorePolicy:
@@ -46,6 +47,6 @@ class ExplorePolicy:
                 "Return the supported briefing and identify unresolved uncertainty; "
                 "do not call explore_web again."
             )
-        system = request.system_message
-        content = f"{system.content}\n\n{guidance}" if system else guidance
-        return await handler(replace(request, system_message=SystemMessage(content=content)))
+        return await call_with_context(
+            request, handler, content=guidance, kind="explore_budget",
+        )

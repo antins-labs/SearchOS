@@ -5,7 +5,11 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from searchos.socm.views.render import render_discovery_view, render_search_agent_view
+from searchos.socm.views.render import (
+    render_discovery_view,
+    render_search_agent_view,
+    render_task_evidence,
+)
 from searchos.socm.views.snapshot import SearchStateSnapshot
 from searchos.util.scope import match_entities_in_task
 
@@ -26,6 +30,18 @@ class TaskProjection:
         self.target_table = target_table
         self.agent_graphs = agent_graphs
 
+    def __call__(self, state: Any) -> str:
+        snap = SearchStateSnapshot.from_state(state)
+        task_ids = {t.id for t in self._assigned_tasks(state)}
+        return "\n\n".join(
+            block
+            for block in (
+                render_task_evidence(snap, task_ids),
+                self._render_tables(state, snap),
+            )
+            if block
+        )
+
     def _assigned_tasks(self, state: Any) -> list[Any]:
         tasks = [
             task for task in getattr(state.frontier, "questions", ())
@@ -36,12 +52,10 @@ class TaskProjection:
         running = [task for task in tasks if task.status == "running"]
         return running or tasks
 
-    def __call__(self, state: Any) -> str:
+    def _render_tables(self, state: Any, snap: SearchStateSnapshot) -> str:
         cmap = getattr(state, "coverage_map", None)
-        if cmap is None or not cmap.tables:
+        if cmap is None:
             return ""
-
-        snap = SearchStateSnapshot.from_state(state)
 
         # Sub-agent: resolve target cells to pick the right view
         in_scope_keys, in_scope_ents, task_table_id = self._resolve_agent_target_cells(state)
@@ -64,10 +78,6 @@ class TaskProjection:
                     + "\n".join(
                         f"- {json.dumps(key, ensure_ascii=False)}" for key in sorted(missing_keys)
                     )
-                    + (
-                        "\nCheck the task's table, entity and attribute names; "
-                        "these targets are not represented in the matched records."
-                    )
                 )
             for table in snap.tables:
                 table_keys = {
@@ -81,6 +91,8 @@ class TaskProjection:
                         render_search_agent_view(snap, in_scope_ents, table.table_id, table_keys)
                     )
             return "\n\n".join(blocks)
+        if not cmap.tables:
+            return ""
         target_tid = task_table_id
         if target_tid not in cmap.tables:
             target_tid = self.target_table

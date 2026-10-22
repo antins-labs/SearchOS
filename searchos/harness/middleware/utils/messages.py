@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 from dataclasses import replace
 from typing import Any
+from uuid import uuid4
 
+from langchain.agents.middleware.types import ModelResponse
 from langchain_core.messages import HumanMessage, ToolMessage
 
 from searchos.util.tool_output_budget import bounded_text
@@ -93,3 +96,31 @@ def inject_context(request: Any, content: str, kind: str) -> Any:
         )
     )
     return replace(request, messages=messages)
+
+
+async def call_with_context(
+    request: Any,
+    handler: Callable[[Any], Awaitable[ModelResponse]],
+    *,
+    content: str,
+    kind: str,
+) -> ModelResponse:
+    """在末尾追加变化后的控制消息，成功后按发送顺序写回历史。"""
+    previous = next(
+        (m for m in reversed(request.messages) if m.additional_kwargs.get("sf_kind") == kind),
+        None,
+    )
+    if previous is not None and previous.content == content:
+        return await handler(request)
+    message = HumanMessage(
+        content=content,
+        id=str(uuid4()),
+        additional_kwargs={
+            "sf_synthetic": True, "sf_kind": kind, "sf_context_changed": False,
+        },
+    )
+    injected = message.model_copy(update={
+        "additional_kwargs": {**message.additional_kwargs, "sf_context_changed": True},
+    })
+    response = await handler(replace(request, messages=[*request.messages, injected]))
+    return replace(response, result=[message, *response.result])

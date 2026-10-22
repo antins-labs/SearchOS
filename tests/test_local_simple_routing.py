@@ -155,11 +155,11 @@ async def test_local_session_completes_through_real_selected_pipeline(tmp_path, 
                 strategy=["simple" if path == "simple" else "deep"],
             ).model_dump_json())
         if count == 2:
-            # The local scope also determines the omitted role's default.
-            return call("enqueue_tasks", {"items_json": json.dumps([{
-                "id": "read-rules", "task": "Read the concurrency limit", "kind": "search",
+            return call("enqueue_tasks", {"items": [{
+                "id": "read-rules", "task": "Read the concurrency limit",
+                "agent_type": "local_search_agent",
                 "result_mode": "findings",
-            }])})
+            }]})
         if count == 3:
             return call("check_agents", number=2)
         state = workspace.load_state()

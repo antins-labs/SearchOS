@@ -9,12 +9,13 @@ from dataclasses import replace
 from typing import Any
 
 from langchain.agents.middleware.types import AgentMiddleware
-from langchain_core.messages import AIMessage, SystemMessage
+from langchain_core.messages import AIMessage
 from langchain_core.runnables import Runnable, RunnableConfig
 
 from searchos.harness.middleware.sensor.core.models import ControlState
 from searchos.harness.middleware.utils.messages import (
     blocked_result,
+    call_with_context,
     extract_tool_name,
     unwrap_ai_message,
 )
@@ -209,11 +210,11 @@ class ControlExecutor:
                 )
             )
         if signals:
-            system = request.system_message
-            content = "\n\n".join([str(system.content)] if system else [])
-            content = "\n\n".join(filter(None, [content, *signals]))
-            request = replace(request, system_message=SystemMessage(content=content))
-        response = await handler(request)
+            response = await call_with_context(
+                request, handler, content="\n\n".join(signals), kind="harness_control",
+            )
+        else:
+            response = await handler(request)
         message = unwrap_ai_message(response)
         calls = getattr(message, "tool_calls", None) or (
             getattr(message, "additional_kwargs", {}) or {}
@@ -240,7 +241,10 @@ class ControlExecutor:
                 )
             else:
                 terminal = AIMessage(content=content)
-            return replace(response, result=[terminal]) if hasattr(response, "result") else terminal
+            if hasattr(response, "result"):
+                updates = [m for m in response.result if m.type not in {"ai", "tool"}]
+                return replace(response, result=[*updates, terminal])
+            return terminal
         return response
 
 

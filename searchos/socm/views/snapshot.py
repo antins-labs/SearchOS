@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 @dataclass
 class CellInfo:
     attr: str
-    status: str          # missing | filled | uncertain | hard_cell
+    status: str  # missing | filled | uncertain | hard_cell
     display_hint: str
     evidence_count: int
     best_alignment: str  # full | partial | loose | ""
@@ -88,10 +88,11 @@ class RunningTaskSnap:
     (table / target cells / task text) instead of a bare RUNNING count, so it
     stops re-dispatching work already in flight.
     """
-    agent_id: str        # assigned_agent_id, or "unassigned"
+
+    agent_id: str  # assigned_agent_id, or "unassigned"
     table_id: str
-    targets: list[str]   # first few target_cells, for cell-level alignment
-    text: str            # short task text (question or task_prompt)
+    targets: list[str]  # first few target_cells, for cell-level alignment
+    text: str  # short task text (question or task_prompt)
 
 
 @dataclass
@@ -109,9 +110,10 @@ class SearchStateSnapshot:
     rows_with_gaps: int
     research_mode: str = "table"
     task_evidence: list[dict] = field(default_factory=list)
+    findings: list[dict] = field(default_factory=list)
 
     @staticmethod
-    def from_state(state: "SearchState") -> "SearchStateSnapshot":
+    def from_state(state: SearchState) -> SearchStateSnapshot:
         cmap = state.coverage_map
         frontier = state.frontier
 
@@ -130,64 +132,109 @@ class SearchStateSnapshot:
                     key = cmap.cell_key(tid, ent, attr)
                     cell = cmap.cells.get(key)
                     if cell is None:
-                        cells.append(CellInfo(
-                            attr=attr, status="missing", display_hint="",
-                            evidence_count=0, best_alignment="", has_conflict=False,
-                        ))
+                        cells.append(
+                            CellInfo(
+                                attr=attr,
+                                status="missing",
+                                display_hint="",
+                                evidence_count=0,
+                                best_alignment="",
+                                has_conflict=False,
+                            )
+                        )
                     else:
-                        cells.append(CellInfo(
-                            attr=attr,
-                            status=cell.status.value if cell.status else "missing",
-                            display_hint=cell.display_hint or "",
-                            evidence_count=len(cell.supporting_evidence_ids),
-                            best_alignment=cell.best_alignment or "",
-                            has_conflict=cell.has_conflict,
-                            conflict_status=cell.conflict_status,
-                        ))
+                        cells.append(
+                            CellInfo(
+                                attr=attr,
+                                status=cell.status.value if cell.status else "missing",
+                                display_hint=cell.display_hint or "",
+                                evidence_count=len(cell.supporting_evidence_ids),
+                                best_alignment=cell.best_alignment or "",
+                                has_conflict=cell.has_conflict,
+                                conflict_status=cell.conflict_status,
+                            )
+                        )
                 row = RowStatus(entity=ent, cells=cells)
                 rows.append(row)
                 if not row.is_complete:
                     rows_with_gaps += 1
 
             total_rows += len(rows)
-            tables.append(TableSnapshot(
-                table_id=tid,
-                label=ts.table_label or tid,
-                primary_key=list(ts.primary_key or []),
-                data_columns=data_cols,
-                is_open_set=ts.is_column_only,
-                rows=rows,
-                column_descriptions={a: f"{d.type}: {d.desc}" for a, d in ts.column_desc.items()},
-            ))
+            tables.append(
+                TableSnapshot(
+                    table_id=tid,
+                    label=ts.table_label or tid,
+                    primary_key=list(ts.primary_key or []),
+                    data_columns=data_cols,
+                    is_open_set=ts.is_column_only,
+                    rows=rows,
+                    column_descriptions={
+                        a: f"{d.type}: {d.desc}" for a, d in ts.column_desc.items()
+                    },
+                )
+            )
 
         by_status: Counter[str] = Counter()
         open_by_kind: Counter[str] = Counter()
         running_tasks: list[RunningTaskSnap] = []
-        for q in (frontier.questions if frontier else []):
+        for q in frontier.questions if frontier else []:
             s = q.status.value if q.status else ""
             by_status[s] += 1
             if s == "pending":
                 open_by_kind[q.kind or "search"] += 1
             elif s == "running":
-                running_tasks.append(RunningTaskSnap(
-                    agent_id=q.assigned_agent_id or "unassigned",
-                    table_id=q.table_id or "",
-                    targets=list(q.target_cells or [])[:4],
-                    text=(q.question or q.task_prompt or "")[:80],
-                ))
+                running_tasks.append(
+                    RunningTaskSnap(
+                        agent_id=q.assigned_agent_id or "unassigned",
+                        table_id=q.table_id or "",
+                        targets=list(q.target_cells or [])[:4],
+                        text=(q.question or q.task_prompt or "")[:80],
+                    )
+                )
 
         from searchos.socm.coverage import answer_evidence
-        active_ids = {node.id for node in answer_evidence(state)}
-        task_evidence = [{
-            "task_id": task.id, "question": task.question, "status": task.status.value,
-            "agent_type": task.agent_type, "result_mode": task.result_mode,
-            "evidence_count": len({binding.evidence_id
-                for binding in state.evidence_graph.task_bindings
-                if binding.task_id == task.id and binding.evidence_id in active_ids}),
-        } for task in frontier.questions] if state.research_mode == "findings" else []
+
+        evidence = answer_evidence(state)
+        active_ids = {node.id for node in evidence}
+        task_evidence = [
+            {
+                "task_id": task.id,
+                "question": task.question,
+                "status": task.status.value,
+                "agent_type": task.agent_type,
+                "result_mode": task.result_mode,
+                "evidence_count": len(
+                    {
+                        binding.evidence_id
+                        for binding in state.evidence_graph.task_bindings
+                        if binding.task_id == task.id and binding.evidence_id in active_ids
+                    }
+                ),
+            }
+            for task in frontier.questions
+        ]
+        findings = [
+            {
+                "id": node.id,
+                "finding": node.finding,
+                "value": node.value,
+                "source": node.source,
+                "source_urls": node.source_urls,
+                "task_ids": sorted(
+                    {
+                        binding.task_id
+                        for binding in state.evidence_graph.task_bindings
+                        if binding.evidence_id == node.id
+                    }
+                ),
+            }
+            for node in sorted(evidence, key=lambda n: n.id)
+            if not node.entity and not node.attribute
+        ]
         return SearchStateSnapshot(
             research_mode=state.research_mode,
             task_evidence=task_evidence,
+            findings=findings,
             tables=tables,
             frontier=FrontierSnapshot(
                 by_status=dict(by_status),

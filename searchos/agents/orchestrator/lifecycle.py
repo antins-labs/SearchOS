@@ -1830,8 +1830,7 @@ def _task_redundancy_reason(
     if not target_cells:
         return ""
     cmap = state.coverage_map
-    tid = table_id or (cmap.primary_table_id if cmap.tables else "")
-    keys = [c if "/" in c else (f"{tid}/{c}" if tid else c) for c in target_cells]
+    keys = [cmap.resolve_cell_reference(c, table_id=table_id) for c in target_cells]
     cells = [cmap.cells.get(k) for k in keys]
     if cells and all(
         c is not None and c.status.value == "filled" and not c.has_conflict

@@ -78,35 +78,13 @@ def membership_review(state) -> list[dict]:
     return reviews
 
 
-def render_research_plan(state, *, prompt_for_plan=False, can_update=True) -> str:
-    warning = (
-        "Coverage measures filling of known rows, not entity recall or factual correctness. "
-        "For enumeration, check members against the declared boundary and source evidence "
-        "before finishing. A count estimate or equal counts does not prove completeness. "
-        "Open sets require search scope and a stop reason; "
-        "without completeness evidence, state the limitation."
-    )
+def render_research_plan(state) -> str:
+    """展示已记录的计划及集合核对结果；没有计划时不生成提示。"""
     if state.research_plan is None:
-        return (
-            "[Research plan]\n"
-            + (
-                "Record a concise plan with set_research_plan at the first decision.\n"
-                if prompt_for_plan
-                else "No recorded plan.\n"
-            )
-            + warning
-        )
+        return ""
     reviews = membership_review(state)
     brief = state.research_plan.model_dump()
     brief["set_scope_status"] = "declared" if brief["set_scope"] else "not_declared"
-    if not brief["set_scope"] and state.coverage_map.tables:
-        warning += (
-            " No set boundary is recorded. If this task requests all members, update set_scope "
-            "with the boundary and source-backed inventory before claiming exhaustive coverage."
-        ) if can_update else (
-            " No set boundary is recorded. For enumeration, compare the answer's members "
-            "with a source-backed inventory before claiming exhaustive coverage."
-        )
     for scope in brief["set_scope"]:
         scope["expected_members_count"] = len(scope["expected_members"])
         scope["expected_members"] = scope["expected_members"][:20]
@@ -125,6 +103,4 @@ def render_research_plan(state, *, prompt_for_plan=False, can_update=True) -> st
             },
             ensure_ascii=False,
         )
-        + "\n"
-        + warning
     )

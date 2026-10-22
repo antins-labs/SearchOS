@@ -641,7 +641,7 @@ async def finalize_research(*, state, query, model, stop_reason, max_chars=48_00
         "omitted_evidence": 0,
         "original_source_missing_count": sum(not evidence_citation(node) for node in nodes),
         "unavailable_sources": (state.source_scope or {}).get("unavailable_sources", {}),
-        "research_plan": render_research_plan(state, can_update=False),
+        "research_plan": render_research_plan(state),
     }
     if citation_repair is not None:
         payload["citation_repair"] = citation_repair

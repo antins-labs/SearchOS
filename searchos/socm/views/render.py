@@ -9,9 +9,9 @@ from __future__ import annotations
 
 from searchos.socm.views.snapshot import (
     FrontierSnapshot,
+    RowStatus,
     SearchStateSnapshot,
     TableSnapshot,
-    RowStatus,
 )
 
 
@@ -20,7 +20,10 @@ def _has_unresolved_attributes(row: RowStatus) -> bool:
 
 
 def _render_entity_gaps(
-    lines: list[str], rows: list[RowStatus], *, include_recorded: bool = False,
+    lines: list[str],
+    rows: list[RowStatus],
+    *,
+    include_recorded: bool = False,
 ) -> None:
     """逐实体展示缺口；状态与候选值同行，不按属性组合分组。"""
     import json
@@ -40,14 +43,12 @@ def _render_entity_gaps(
                     detail += f" (current value: {quote(cell.display_hint)})"
                 details.append(detail)
             elif cell.conflict_status in {"pending", "uncertain"}:
-                details.append(
-                    f"{attr} evidence_comparison={cell.conflict_status} "
-                    "(not a confirmed conflict; retain source qualifications)"
-                )
+                details.append(f"{attr} evidence_comparison={cell.conflict_status}")
             elif cell.status == "filled":
                 if include_recorded:
                     recorded.append(
-                        f"{attr}={quote(cell.display_hint)}" if cell.display_hint
+                        f"{attr}={quote(cell.display_hint)}"
+                        if cell.display_hint
                         else f"{attr} (value preview unavailable)"
                     )
                 continue
@@ -72,18 +73,12 @@ def _render_entity_gaps(
 # Orchestrator view
 # ---------------------------------------------------------------------------
 
+
 def render_orchestrator_view(snap: SearchStateSnapshot) -> str:
-    lines: list[str] = []
-    if snap.research_mode == "findings":
-        lines.extend(["[Research tasks and evidence]",
-                      "Task status tracks execution; evidence counts do not measure answer completeness."])
-        for task in snap.task_evidence[-50:]:
-            lines.append(f"- {task['task_id']} ({task['agent_type']}, {task['result_mode']}, "
-                         f"{task['status']}): {task['question']} | "
-                         f"{task['evidence_count']} source-supported findings")
-        lines.append("Inspect details with read_evidence(task_id=...).")
-        if not snap.tables:
-            return "\n".join(lines)
+    tasks = render_task_evidence(snap)
+    lines: list[str] = [tasks] if tasks else []
+    if not snap.tables:
+        return "\n".join(lines)
     lines.append("[Table fill state — KNOWN rows only]")
     unresolved_rows = sum(bool(_has_unresolved_attributes(r)) for t in snap.tables for r in t.rows)
 
@@ -94,9 +89,7 @@ def render_orchestrator_view(snap: SearchStateSnapshot) -> str:
     if snap.total_rows and not unresolved_rows:
         lines.append(
             "- All known rows are filled. Coverage describes rows already "
-            "present in the schema; it does not describe undiscovered rows. "
-            "Audit the row set against the query's full scope and "
-            "add_entities for anything missing BEFORE final synthesis."
+            "present in the schema; it does not describe undiscovered rows."
         )
     open_set_tids = [t.table_id for t in snap.tables if t.is_open_set and t.rows]
     if open_set_tids:
@@ -107,11 +100,7 @@ def render_orchestrator_view(snap: SearchStateSnapshot) -> str:
         )
     empty_tids = [t.table_id for t in snap.tables if t.is_empty]
     if empty_tids:
-        lines.append(
-            "- ⚠️ EMPTY table(s) with 0 rows: "
-            + ", ".join(f"`{t}`" for t in empty_tids)
-            + " — dispatch search agents or add_entities to fill them."
-        )
+        lines.append("- ⚠️ EMPTY table(s) with 0 rows: " + ", ".join(f"`{t}`" for t in empty_tids))
 
     _render_frontier(lines, snap.frontier)
     for ts in snap.tables:
@@ -124,61 +113,58 @@ def _render_orch_table(lines: list[str], ts: TableSnapshot) -> None:
     if ts.is_empty:
         lines.append("")
         lines.append(
-            f"### `{ts.table_id}` ({ts.label}) — pk={ts.primary_key or '?'} "
-            f"— ⚠️ EMPTY (0 rows)"
+            f"### `{ts.table_id}` ({ts.label}) — pk={ts.primary_key or '?'} — ⚠️ EMPTY (0 rows)"
         )
         if ts.data_columns:
             lines.append(f"Data columns: {ts.data_columns}")
         return
 
     incomplete = [r for r in ts.rows if _has_unresolved_attributes(r)]
-    lines.extend(["", f"### `{ts.table_id}` ({ts.label}) — pk={ts.primary_key}",
-                  f"Rows: {len(ts.rows)}; rows with unresolved attributes: {len(incomplete)}; filled rows: {len(ts.rows) - len(incomplete)}."])
+    lines.extend(
+        [
+            "",
+            f"### `{ts.table_id}` ({ts.label}) — pk={ts.primary_key}",
+            f"Rows: {len(ts.rows)}; rows with unresolved attributes: {len(incomplete)}; "
+            f"filled rows: {len(ts.rows) - len(incomplete)}.",
+        ]
+    )
     if ts.is_open_set:
-        lines.append("OPEN SET: this view contains discovered rows only; additional rows may exist.")
+        lines.append(
+            "OPEN SET: this view contains discovered rows only; additional rows may exist."
+        )
     _render_entity_gaps(lines, incomplete)
 
 
-def _render_frontier(lines: list[str], fr: "FrontierSnapshot") -> None:
+def _render_frontier(lines: list[str], fr: FrontierSnapshot) -> None:
     if not fr.by_status:
         return
     lines.append("")
     lines.append(
         "### Frontier: "
-        + ", ".join(f"{k}={v}" for k, v in
-                    sorted(fr.by_status.items(), key=lambda x: -x[1]))
+        + ", ".join(f"{k}={v}" for k, v in sorted(fr.by_status.items(), key=lambda x: -x[1]))
     )
     if fr.open_by_kind:
         lines.append(
             "  open by kind: "
-            + ", ".join(f"{k}={v}" for k, v in
-                        sorted(fr.open_by_kind.items(), key=lambda x: -x[1]))
+            + ", ".join(f"{k}={v}" for k, v in sorted(fr.open_by_kind.items(), key=lambda x: -x[1]))
         )
     # In-flight tasks: show WHAT each running sub-agent is on, so the
     # orchestrator does not re-dispatch work already covered. A gap that
     # matches a task below is being worked — wait for it, don't re-enqueue.
     if fr.running_tasks:
-        lines.append(
-            f"  in-flight tasks ({len(fr.running_tasks)}) — already being "
-            "worked; do NOT re-enqueue these same targets:"
-        )
+        lines.append(f"  in-flight tasks ({len(fr.running_tasks)}):")
         for rt in fr.running_tasks[:10]:
             tbl = f"`{rt.table_id}` " if rt.table_id else ""
             tgt = f" → cells: {', '.join(rt.targets)}" if rt.targets else ""
             lines.append(f"  - [{rt.agent_id}] {tbl}{rt.text}{tgt}")
         if len(fr.running_tasks) > 10:
             lines.append(f"  - …+{len(fr.running_tasks) - 10} more running")
-        lines.append(
-            "  Wait only when your next action depends on a running task's result. "
-            "For independent gaps exposed by returned reports, dispatch focused work "
-            "now (including Explore for identity or scope uncertainty); do not wait "
-            "for unrelated tasks to finish."
-        )
 
 
 # ---------------------------------------------------------------------------
 # Search agent view (task-scoped)
 # ---------------------------------------------------------------------------
+
 
 def render_search_agent_view(
     snap: SearchStateSnapshot,
@@ -195,23 +181,31 @@ def render_search_agent_view(
     for row in ts.rows:
         if target_cells is None and row.entity not in in_scope_entities:
             continue
-        cells = [c for c in row.cells if target_cells is None or
-                 f"{ts.table_id}/{row.entity}.{c.attr}" in target_cells]
+        cells = [
+            c
+            for c in row.cells
+            if target_cells is None or f"{ts.table_id}/{row.entity}.{c.attr}" in target_cells
+        ]
         if cells:
             scoped_rows.append(RowStatus(row.entity, cells))
             targets.extend((f"{ts.table_id}/{row.entity}.{c.attr}", c) for c in cells)
-    remaining = [(key, c) for key, c in targets if c.has_conflict or c.status not in ("filled", "hard_cell")]
+    remaining = [
+        (key, c) for key, c in targets if c.has_conflict or c.status not in ("filled", "hard_cell")
+    ]
     unavailable = sum(c.status == "hard_cell" and not c.has_conflict for _, c in targets)
     completed = len(targets) - len(remaining) - unavailable
-    lines = ["[Coverage state — your task targets]",
-             f"### Target table: `{ts.table_id}` ({ts.label}) — pk={ts.primary_key}",
-             f"Assigned cells: {len(targets)}; filled: {completed}; actionable gaps: {len(remaining)}; unavailable: {unavailable}."]
+    lines = [
+        "[Coverage state — your task targets]",
+        f"### Target table: `{ts.table_id}` ({ts.label}) — pk={ts.primary_key}",
+        f"Assigned cells: {len(targets)}; filled: {completed}; "
+        f"actionable gaps: {len(remaining)}; unavailable: {unavailable}.",
+    ]
     if not targets:
-        lines.append("No matching assigned cells. Follow the explicit task scope; do not expand to unrelated rows or columns.")
+        lines.append("No matching assigned cells.")
     elif not remaining:
         lines.append("No actionable gaps are marked in the matched cells.")
     if unavailable:
-        lines.append("Unavailable cells are unresolved limitations, not filled answers; do not retry them without new evidence.")
+        lines.append("Unavailable cells remain unresolved.")
     lines.append("Target records (recorded values are previews):")
     _render_entity_gaps(lines, scoped_rows, include_recorded=True)
     described = {c.attr for row in scoped_rows for c in row.cells}
@@ -222,10 +216,10 @@ def render_search_agent_view(
     return "\n".join(lines)
 
 
-
 # ---------------------------------------------------------------------------
 # Discovery view (column_only, no in-scope entities)
 # ---------------------------------------------------------------------------
+
 
 def render_discovery_view(
     snap: SearchStateSnapshot,
@@ -237,22 +231,18 @@ def render_discovery_view(
         return ""
 
     lines: list[str] = ["[Coverage state — your task targets]"]
+    lines.append(f"### Target table: `{ts.table_id}` ({ts.label}) — pk={ts.primary_key or '?'}")
     lines.append(
-        f"### Target table: `{ts.table_id}` ({ts.label}) "
-        f"— pk={ts.primary_key or '?'}"
-    )
-    lines.append(
-        f"- {len(ts.rows)} rows discovered so far, "
-        f"{len(ts.complete_rows)} with all columns filled"
+        f"- {len(ts.rows)} rows discovered so far, {len(ts.complete_rows)} with all columns filled"
     )
     if ts.data_columns:
         lines.append(f"- Data columns: {ts.data_columns}")
 
     _render_entity_gaps(lines, ts.rows)
     import json
+
     complete_entities = [r.entity for r in ts.rows if not _has_unresolved_attributes(r)]
     lines.append("Collected entities: " + json.dumps(complete_entities, ensure_ascii=False))
-    lines.append("Stay within your discovery assignment; reuse known entity keys and avoid duplicating sibling scopes.")
 
     if sibling_agents:
         lines.append("")
@@ -268,9 +258,9 @@ def render_discovery_view(
 # ---------------------------------------------------------------------------
 
 # All extraction-view caps are ROW COUNTS — no char budgets.
-_SNAPSHOT_MAX_ROWS = 200      # max incomplete rows listed (with MISSING columns)
+_SNAPSHOT_MAX_ROWS = 200  # max incomplete rows listed (with MISSING columns)
 _SNAPSHOT_COMPLETE_CAP = 100  # max complete rows as dedup anchors (merged view)
-_PK_LIST_MAX_ROWS = 500       # DISCOVER-mode PK inventory cap (compact lines)
+_PK_LIST_MAX_ROWS = 500  # DISCOVER-mode PK inventory cap (compact lines)
 
 
 def render_extraction_snapshot(snap: SearchStateSnapshot, target_table_id: str) -> str:
@@ -350,7 +340,8 @@ def render_known_pk_list(
     if len(pks) <= max_rows:
         return header + ", ".join(f'"{e}"' for e in pks)
     return (
-        header + ", ".join(f'"{e}"' for e in pks[:max_rows])
+        header
+        + ", ".join(f'"{e}"' for e in pks[:max_rows])
         + f" … and {len(pks) - max_rows} more existing row(s) "
         "(protected by ingest-time dedup)."
     )
@@ -360,27 +351,55 @@ def render_known_pk_list(
 # Compact summary (Layer 3 frozen prefix)
 # ---------------------------------------------------------------------------
 
+
 def render_compact_summary(snap: SearchStateSnapshot) -> str:
+    tasks = render_task_evidence(snap)
+    if not snap.tables:
+        return tasks
     lines = ["[SEARCH STATE SUMMARY]"]
+    if tasks:
+        lines.append(tasks)
 
     total_cells = sum(len(r.cells) for t in snap.tables for r in t.rows)
     filled_cells = sum(
-        1 for t in snap.tables for r in t.rows
-        for c in r.cells if c.status == "filled"
+        1 for t in snap.tables for r in t.rows for c in r.cells if c.status == "filled"
     )
     if total_cells:
         pct = filled_cells / total_cells
         lines.append(f"Coverage: {pct:.0%} ({filled_cells}/{total_cells})")
     for table in snap.tables:
         lines.append(f"### `{table.table_id}`")
-        _render_entity_gaps(lines, table.rows)
+        _render_entity_gaps(lines, table.rows, include_recorded=True)
 
+    return "\n".join(lines)
+
+
+def render_task_evidence(snap: SearchStateSnapshot, task_ids: set[str] | None = None) -> str:
+    """展示任务及可用的无表证据；task_ids 用于子任务隔离。"""
+    import json
+
+    tasks = [t for t in snap.task_evidence if task_ids is None or t["task_id"] in task_ids]
+    findings = [
+        f for f in snap.findings if task_ids is None or task_ids.intersection(f["task_ids"])
+    ]
+    if not tasks and not findings:
+        return ""
+    lines = ["[Research tasks and evidence]"]
+    for task in tasks:
+        lines.append(
+            f"- {task['task_id']} ({task['agent_type']}, {task['result_mode']}, "
+            f"{task['status']}): {task['question']} | "
+            f"{task['evidence_count']} source-supported findings"
+        )
+    for finding in findings:
+        lines.append(json.dumps(finding, ensure_ascii=False, sort_keys=True))
     return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _find_table(snap: SearchStateSnapshot, table_id: str) -> TableSnapshot | None:
     for t in snap.tables:

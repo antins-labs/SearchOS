@@ -279,6 +279,16 @@ class CoverageMap(CamelModel):
                    if rest.endswith(f".{attr}") and rest[:-(len(attr) + 1)] in rows]
         return matches[0] if len(matches) == 1 else None
 
+    def resolve_cell_reference(self, reference: str, *, table_id: str = "") -> str | None:
+        """按已有行列解析完整键或表内短引用，行列名中的 / 不表示表前缀。"""
+        if reference in self.cells and self.cell_binding(reference) is not None:
+            return reference
+        tid = table_id or (self.primary_table_id if len(self.tables) == 1 else "")
+        key = f"{tid}/{reference}"
+        if key in self.cells and self.cell_binding(key) is not None:
+            return key
+        return None
+
     @staticmethod
     def parse_cell_key(key: str) -> tuple[str, str, str]:
         """Parse cell key → (table_id, entity, attribute)."""

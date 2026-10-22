@@ -21,11 +21,11 @@ PASSAGE = "The tomllib module supports reading TOML configuration files."
 
 async def _extract(
     *, target_cells, rows, policy="schema_facts", task_table="migration", clear_targets=False,
-    extra_column=False,
+    extra_column=False, value_column="API",
 ):
     state = SearchState(intent="核对每个迁移需求，M1 读取 TOML，M2 使用 Self，M4 使用 TaskGroup。")
     state.coverage_map.add_table(
-        "migration", ["Requirement", "API", *(["Notes"] if extra_column else [])],
+        "migration", ["Requirement", value_column, *(["Notes"] if extra_column else [])],
         primary_key=["Requirement"],
         entities=["M1", "M2", "M4"],
     )
@@ -41,7 +41,7 @@ async def _extract(
                 store.state.frontier.questions[0].target_cells = []
             # 重放 H01 的错误模式：模型把同一 tomllib 页面映射到多个需求编号。
             return SimpleNamespace(content=json.dumps([
-                {"Requirement": row, "API": "tomllib", "_source_excerpt": PASSAGE,
+                {"Requirement": row, value_column: "tomllib", "_source_excerpt": PASSAGE,
                  "_alignment": "full", "_confidence": "high",
                  **({"Notes": "reading TOML"} if extra_column else {})}
                 for row in rows
@@ -128,3 +128,23 @@ async def test_unresolvable_explicit_scope_never_becomes_open_discovery(target):
         state.coverage_map.cells[f"migration/{entity}.API"].status.value == "missing"
         for entity in ("M1", "M2", "M4")
     )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("policy", ["task_rows", "schema_facts"])
+@pytest.mark.parametrize("qualified", [False, True])
+@pytest.mark.parametrize("column", ["API/Behavior", "本国禁令/转化生效日期"])
+async def test_slash_in_column_does_not_empty_the_entire_task_scope(policy, qualified, column):
+    targets = [f"M1.{column}", "M1.Notes"]
+    if qualified:
+        targets = [f"migration/{target}" for target in targets]
+    state = await _extract(
+        target_cells=targets, rows=["M1", "M2"], policy=policy,
+        extra_column=True, value_column=column,
+    )
+    assert state.coverage_map.cells[f"migration/M1.{column}"].value == "tomllib"
+    assert state.coverage_map.cells["migration/M1.Notes"].value == "reading TOML"
+    assert state.evidence_graph.nodes
+    assert state.coverage_map.cells[f"migration/M2.{column}"].status.value == "missing"
+    assert state.coverage_map.cells["migration/M2.Notes"].status.value == "missing"
+    assert _task_redundancy_reason(state, target_cells=targets, table_id="migration")

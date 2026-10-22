@@ -146,17 +146,6 @@ class Settings(BaseSettings):
     hybrid_observation_review_max_chars: int = 48_000
     hybrid_observation_timeout_s: float = 30.0
 
-    # --- SOCM injection throttle (sub-agents only) ---
-    socm_throttle_enabled: bool = False
-    socm_throttle_min_rows: int = 3
-    socm_throttle_max_turns: int = 3
-    # Heartbeat: re-inject the latest snapshot every N real turns even when the
-    # cell signature is frozen — once all cells reach `filled` the signature
-    # stops changing and the agent would otherwise churn against a stale view.
-    # 0 disables (pure signature-change behavior).
-    socm_heartbeat_turns: int = 12
-    socm_max_row_names_per_group: int = 200  # 0 = no cap
-
     # --- Scheduler / Frontier dispatch ---
     max_parallel_agents: int = 8
     # Search 创建总限按未取消的 Frontier Task 计数；0 表示不限。

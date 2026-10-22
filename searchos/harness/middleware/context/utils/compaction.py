@@ -18,6 +18,8 @@ def count_context_tokens(messages: list[BaseMessage]) -> int:
 
 
 def pinned(message: BaseMessage) -> bool:
+    if message.additional_kwargs.get("sf_kind") == "socm_update":
+        return True
     if isinstance(message, SystemMessage):
         return True
     return isinstance(message, HumanMessage) and not message.additional_kwargs.get("sf_synthetic")

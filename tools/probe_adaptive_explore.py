@@ -1,23 +1,28 @@
 """用真实模型验证探索路由；检索回报使用明确的固定夹具，不衡量联网答案质量。
 
 运行：python -m tools.probe_adaptive_explore --output tmp/adaptive-explore/probe.json
-加 --baseline-ref HEAD 可对比旧版 Web 提示词的初始路由。
+加 --baseline-ref HEAD 可对比指定版本 Web 提示词的初始路由。
 """
 
 from __future__ import annotations
 
 import argparse
 import asyncio
+import importlib.util
 import json
 import subprocess
+import sys
 import time
+import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from zoneinfo import ZoneInfo
 
+from langchain.agents.middleware.types import ModelResponse
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+from langgraph.graph.message import add_messages
 
 from searchos.agents.orchestrator import get_orchestrator_tools
 from searchos.agents.orchestrator.catalog import generate_agent_catalog_text
@@ -57,17 +62,33 @@ CASES = [
 
 
 def baseline_builder(ref):
-    source = subprocess.check_output(
-        [
-            "git",
-            "show",
-            f"{ref}:searchos/agents/orchestrator/prompt.py",
-        ],
-        text=True,
-    )
-    namespace = {"__name__": "adaptive_explore_baseline"}
-    exec(compile(source, f"{ref}:prompt.py", "exec"), namespace)
-    return namespace["build_orchestrator_prompt"]
+    """从同一 Git 版本加载组装器与正文，避免混入工作区中的新段落。"""
+    root = "searchos/agents/orchestrator"
+    paths = subprocess.check_output(
+        ["git", "ls-tree", "-r", "--name-only", ref, "--",
+         f"{root}/prompt.py", f"{root}/prompts"], text=True,
+    ).splitlines()
+    with TemporaryDirectory(prefix="orchestrator-prompt-") as directory:
+        for path in paths:
+            relative = Path(path).relative_to(root)
+            destination = Path(directory) / (
+                "__init__.py" if relative == Path("prompt.py") else relative
+            )
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(subprocess.check_output(["git", "show", f"{ref}:{path}"]))
+        name = f"_orchestrator_prompt_{uuid.uuid4().hex}"
+        spec = importlib.util.spec_from_file_location(
+            name, Path(directory) / "__init__.py", submodule_search_locations=[directory],
+        )
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        try:
+            spec.loader.exec_module(module)
+            return module.build_orchestrator_prompt
+        finally:
+            for key in list(sys.modules):
+                if key == name or key.startswith(name + "."):
+                    sys.modules.pop(key, None)
 
 
 @dataclass
@@ -145,7 +166,8 @@ async def routing_case(case, builder, variant, output_dir, *, for_eval=False):
         state = SearchState(intent=query, source_scope=scope)
         mid_search = case_id == "mid_search_uncertainty"
         initial_explore = (
-            variant == "current" and EffectiveRunConfig.from_settings(for_eval=for_eval).explore_on_start
+            variant == "current"
+            and EffectiveRunConfig.from_settings(for_eval=for_eval).explore_on_start
         )
         if initial_explore and not mid_search:
             expected = "explore_agent"
@@ -186,21 +208,23 @@ async def routing_case(case, builder, variant, output_dir, *, for_eval=False):
         )
 
         async def invoke(request):
-            return await model.ainvoke(request.messages)
+            return ModelResponse(result=[await model.ainvoke(request.messages)])
 
         try:
             for _ in range(4):
-                reply = await asyncio.wait_for(
+                response = await asyncio.wait_for(
                     socm.awrap_model_call(ProbeRequest(messages), invoke),
                     90,
                 )
-                messages.append(reply)
+                messages = add_messages(messages, response.result)
+                reply = response.result[-1]
                 trace.append(
                     {
                         "content": reply.content,
                         "calls": reply.tool_calls,
                         "usage": reply.usage_metadata,
-                        "state_snapshot": socm._last_text,
+                        "state_snapshot": next((m.content for m in messages
+                            if m.additional_kwargs.get("sf_kind") == "socm_update"), ""),
                     }
                 )
                 for call in reply.tool_calls:
@@ -209,7 +233,7 @@ async def routing_case(case, builder, variant, output_dir, *, for_eval=False):
                     if mid_search and call["name"] == "check_agents":
                         waited = True
                     if call["name"] == "enqueue_tasks":
-                        items = json.loads(call["args"]["items_json"])
+                        items = call["args"]["items"]
                         agents.extend(item.get("agent_type", "search_agent") for item in items)
                 if agents or not reply.tool_calls:
                     break
