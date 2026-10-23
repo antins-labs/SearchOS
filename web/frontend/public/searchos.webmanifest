@@ -5,8 +5,8 @@
   "start_url": "/m",
   "scope": "/m",
   "display": "standalone",
-  "background_color": "#f7f4ee",
-  "theme_color": "#f7f4ee",
+  "background_color": "#F5F8FF",
+  "theme_color": "#2563EB",
   "icons": [
     {
       "src": "/mobile-icon-192.png",

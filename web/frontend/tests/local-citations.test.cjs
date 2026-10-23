@@ -216,6 +216,7 @@ test("Hybrid task evidence renders task relations and filename plus location", (
       jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
   }).outputText, { exports, require(name) {
     if (name === "@/lib/localCitations") return load();
+    if (name === "@/components/ui/Select") return { __esModule: true, default: "test-select" };
     if (name === "@/lib/api") return {
       importNetworkSource: async () => ({}),
       listLocalLibraries: async () => [],

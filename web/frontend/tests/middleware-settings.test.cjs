@@ -38,6 +38,7 @@ function harness() {
     };
     if (name === '@/components/settings/SettingsProvider') return { useSettings: () => context };
     if (name === '@/components/settings/controls/Toggle') return { __esModule: true, default: 'test-toggle' };
+    if (name === '@/components/ui/Select') return { __esModule: true, default: 'test-select' };
     if (name === './MiddlewareWorkbench') return { __esModule: true, default: 'test-workbench' };
     if (name === '@/lib/middleware-assembly') {
       const compiled = { exports: {} };

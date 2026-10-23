@@ -25,6 +25,7 @@ function loadEvidenceList() {
     require(name) {
       if (name === "@/lib/api") return {};
       if (name === "@/lib/localCitations") return { localCitationLabels: () => ({}) };
+      if (name === "@/components/ui/Select") return { __esModule: true, default: "test-select" };
       return require(name);
     },
   });

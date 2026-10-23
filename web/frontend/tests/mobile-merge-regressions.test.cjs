@@ -78,7 +78,7 @@ const props = original => ({
 
 test("移动新建使用当前输入发起 fresh run，不把输入当成旧轮次重跑", () => {
   const h = harness("MobileAssistant.tsx", props(turn()));
-  find(h.render(), node => node.props?.["aria-label"] === "交办新任务").props.onClick();
+  find(h.render(), node => node.props?.["aria-label"] === "新建任务").props.onClick();
   find(h.render(), node => node.type === "textarea").props.onChange({ target: { value: "A new question" } });
   find(h.render(), node => node.type === "MobileSheet").props.footer.props.onClick();
   assert.equal(h.submitted.length, 1);

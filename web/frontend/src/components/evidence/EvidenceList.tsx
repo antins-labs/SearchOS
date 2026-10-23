@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { importNetworkSource, listLocalLibraries, listNetworkImports } from "@/lib/api";
 import { localCitationLabels } from "@/lib/localCitations";
+import Select from "@/components/ui/Select";
 import type {
   CoverageMap,
   EvidenceEdge,
@@ -373,10 +374,9 @@ export default function EvidenceList({
               <Library size={12} />
               <span className="font-medium text-ink">保存来源页面</span>
               {libraries.length ? (
-                <select aria-label="保存来源页面到知识库" value={libraryId} onChange={(event) => setLibraryId(event.target.value)}
-                  className="min-w-0 flex-1 rounded border border-line bg-paper px-2 py-1 text-ink">
-                  {libraries.map((library) => <option key={library.library_id} value={library.library_id}>{library.name}</option>)}
-                </select>
+                <Select ariaLabel="保存来源页面到知识库" value={libraryId} onChange={setLibraryId}
+                  size="sm" className="min-w-0 flex-1"
+                  options={libraries.map(library => ({ value: library.library_id, label: library.name }))} />
               ) : <span>请先创建知识库</span>}
               <label className="flex items-center gap-1">
                 <input type="checkbox" checked={indexAfterSave} onChange={(event) => setIndexAfterSave(event.target.checked)} />

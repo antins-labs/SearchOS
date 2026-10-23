@@ -88,10 +88,10 @@ export function useLiveFollowUps(
         // Verify support before posting: older APIs submit immediately and have no queue UI.
         await getSteeringQueue(sessionId);
         const result = await steerSearch(sessionId, text, mode);
-        if (result?.status !== "queued") throw new Error("后端未确认追问已提交，请检查运行记录");
+        if (result?.status !== "queued") throw new Error("补充要求的提交状态尚未确认，请先查看任务记录。请勿重复发送。");
         if (isSteeringSnapshot(result.queue)) return result.queue;
         if (scopeRef.current === scope) {
-          notify("追问已提交，但后端未返回队列状态；请勿重复发送，重启 SearchOS API 后可使用队列操作");
+          notify("补充要求已提交，当前状态暂不可用。请查看任务记录，请勿重复发送。");
         }
         return null;
       });

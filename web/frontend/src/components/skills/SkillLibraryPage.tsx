@@ -9,6 +9,7 @@ import remarkGfm from "remark-gfm";
 import { ArrowLeft, ArrowUpRight, Blocks, Check, Code2, FileText, Globe2, Loader2, Plus, Search, X } from "lucide-react";
 import { getSkillLibraryDetail, getSkillLibraryFile, querySkillLibrary, type SkillLibraryQuery, type SkillLibraryResults, type SkillLibraryItem, type SkillLibraryDetail } from "@/lib/api";
 import { useSettings } from "@/components/settings/SettingsProvider";
+import Select from "@/components/ui/Select";
 
 function subscribeWidth(callback: () => void) {
   window.addEventListener("resize", callback);
@@ -46,7 +47,7 @@ function SkillReader({ item, zh, onClose }: { item: SkillLibraryItem; zh: boolea
     </div>
     {detail && <div className="flex flex-wrap items-center gap-2 border-b border-line px-5 py-3">
       <button type="button" onClick={() => { setFile(""); setContent(null); setError(""); }} className={`rounded-lg px-3 py-1.5 text-[12px] ${!file ? "bg-accent/10 text-accent-ink" : "text-ink-dim hover:bg-surface-2"}`}>{zh ? "使用说明" : "Instructions"}</button>
-      <label className="flex min-w-0 flex-1 items-center gap-2 text-[12px] text-ink-dim"><Code2 size={14} /><select aria-label={zh ? "查看技能文件" : "View skill files"} value={file} onChange={(e) => { setFile(e.target.value); setContent(null); setError(""); }} className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-2 py-1.5 outline-none focus:border-accent"><option value="">{zh ? "查看文件…" : "Browse files…"}</option>{detail.files.map((path) => <option key={path} value={path}>{path}</option>)}</select></label>
+      <label className="flex min-w-0 flex-1 items-center gap-2 text-[12px] text-ink-dim"><Code2 size={14} /><Select ariaLabel={zh ? "查看技能文件" : "View skill files"} value={file} onChange={(next) => { if (next === file) return; setFile(next); setContent(null); setError(""); }} className="min-w-0 flex-1" options={[{ value: "", label: zh ? "查看文件…" : "Browse files…" }, ...detail.files.map((path) => ({ value: path, label: path }))]} /></label>
     </div>}
     <div className="max-h-[70vh] overflow-auto p-5">
       {error ? <p role="alert" className="text-[12px] text-err">{error}</p> : !detail || file && content === null ? <div role="status" className="flex items-center gap-2 text-[12px] text-ink-faint"><Loader2 size={14} className="animate-spin" />{zh ? "正在读取…" : "Loading…"}</div> : file ? <pre className="whitespace-pre-wrap break-all font-mono text-[12px] leading-6 text-ink-dim">{content}</pre> : <div className="space-y-3 break-words text-[13px] leading-7 text-ink-dim [&_a]:text-accent-ink [&_a]:underline [&_code]:rounded [&_code]:bg-surface-2 [&_code]:px-1 [&_h1]:text-xl [&_h1]:font-semibold [&_h1]:text-ink [&_h2]:mt-6 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-ink [&_h3]:font-semibold [&_li]:ml-5 [&_ol]:list-decimal [&_pre]:overflow-auto [&_pre]:rounded-xl [&_pre]:bg-paper [&_pre]:p-3 [&_table]:block [&_table]:overflow-auto [&_td]:border [&_td]:border-line [&_td]:p-2 [&_th]:border [&_th]:border-line [&_th]:p-2 [&_ul]:list-disc">
@@ -116,7 +117,7 @@ export default function SkillLibraryPage() {
     </div>
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3 text-[12px] text-ink-dim">
       <span aria-live="polite">{loading && !append ? (zh ? "正在查询…" : "Searching…") : request.q ? (zh ? `“${request.q}” · ${results.total} 个结果` : `“${request.q}” · ${results.total} results`) : (zh ? `共 ${results.total} 个技能` : `${results.total} skills`)}</span>
-      <label className="flex items-center gap-2">{zh ? "每页" : "Per page"}<select value={request.page_size} onChange={(event) => updateQuery({ page_size: Number(event.target.value) })} className="rounded-lg border border-line bg-surface px-2 py-1.5">{[12, 24, 48].map((size) => <option key={size} value={size}>{size}</option>)}</select></label>
+      <label className="flex items-center gap-2">{zh ? "每页" : "Per page"}<Select ariaLabel={zh ? "每页" : "Per page"} value={String(request.page_size)} size="sm" onChange={(next) => { const pageSize = Number(next); if (pageSize !== request.page_size) updateQuery({ page_size: pageSize }); }} options={[12, 24, 48].map((size) => ({ value: String(size), label: String(size) }))} /></label>
     </div>
     {error && <p role="alert" className="mb-5 rounded-xl bg-err/5 p-4 text-[13px] text-err">{error}<button onClick={() => { setLoading(true); setAttempt((n) => n + 1); }} className="ml-4 underline">{zh ? "重试" : "Retry"}</button></p>}
     {loading && !append ? <p role="status" className="flex items-center gap-2 py-12 text-[13px] text-ink-dim"><Loader2 size={16} className="animate-spin" />{zh ? "正在读取技能库…" : "Loading library…"}</p> : <div className={`grid items-start gap-6 ${selected ? "lg:grid-cols-[minmax(0,1fr)_minmax(380px,0.95fr)]" : ""}`}>

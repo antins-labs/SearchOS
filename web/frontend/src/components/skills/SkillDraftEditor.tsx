@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Save, Play, FileCode2, RefreshCw } from "lucide-react";
 import { getSkillDraft, getSkillDraftFile, saveSkillDraftFile, type SkillCreationJob, type SkillDraft } from "@/lib/api";
+import Select from "@/components/ui/Select";
 
 export default function SkillDraftEditor({ job, index, zh, disabled, locked, onClose, onResume }: {
   job: SkillCreationJob; index: number; zh: boolean; disabled: boolean; locked: boolean;
@@ -84,7 +85,7 @@ export default function SkillDraftEditor({ job, index, zh, disabled, locked, onC
         {!draft && !error && <p role="status">{zh ? "读取草稿中…" : "Loading draft…"}</p>}
         {draft && <>
           <label className="flex items-center gap-2 text-xs text-ink-dim"><FileCode2 size={15} />{zh ? "草稿文件" : "Draft file"}
-            <select aria-label={zh ? "草稿文件" : "Draft file"} value={path} onChange={(e) => { setPath(e.target.value); setMessage(""); }} disabled={busy || dirty} className="min-w-0 flex-1 rounded-lg border border-line bg-paper p-2">{draft.files.map((file) => <option key={file}>{file}</option>)}</select>
+            <Select ariaLabel={zh ? "草稿文件" : "Draft file"} value={path} placeholder="" onChange={(next) => { if (next === path) return; setPath(next); setMessage(""); }} disabled={busy || dirty} className="min-w-0 flex-1" options={draft.files.map((file) => ({ value: file, label: file }))} />
           </label>
           <textarea aria-label={zh ? "草稿内容" : "Draft content"} spellCheck={false} value={content} onChange={(e) => setContent(e.target.value)} readOnly={!editable || busy || !!error} className="h-[45vh] w-full rounded-xl border border-line bg-paper p-4 font-mono text-xs leading-5 text-ink outline-none focus:border-accent" />
         </>}

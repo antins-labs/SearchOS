@@ -7,6 +7,7 @@ import { assemblyOrderError } from "@/lib/middleware-assembly";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { OfflineSkeleton, SectionShell } from "@/components/settings/primitives";
 import Toggle from "@/components/settings/controls/Toggle";
+import Select from "@/components/ui/Select";
 import MiddlewareWorkbench from "./MiddlewareWorkbench";
 
 const CATEGORIES = {
@@ -131,11 +132,10 @@ export default function MiddlewareSection() {
             aria-label={zh ? "搜索 Middleware" : "Search middleware"} placeholder={zh ? "搜索组件名称或作用…" : "Find a component…"}
             className="min-w-0 w-full bg-transparent text-[12px] text-ink outline-none" />
         </label>
-        <select value={category} onChange={(event) => setCategory(event.target.value)}
-          aria-label={zh ? "组件类别" : "Component category"} className="rounded-lg border border-line bg-surface px-2 py-2 text-[12px] text-ink">
-          <option value="all">{zh ? "全部类别" : "All categories"}</option>
-          {Object.entries(CATEGORIES).map(([id, label]) => <option key={id} value={id}>{label[language]}</option>)}
-        </select>
+        <Select value={category} onChange={(next) => { if (next !== category) setCategory(next); }}
+          ariaLabel={zh ? "组件类别" : "Component category"}
+          options={[{ value: "all", label: zh ? "全部类别" : "All categories" },
+            ...Object.entries(CATEGORIES).map(([id, label]) => ({ value: id, label: label[language] }))]} />
       </div>
       {selected.length === 0 && <p className="rounded-lg border border-line px-3 py-2 text-[12px] text-ink-dim">
         {zh ? "当前为空组合：不装载业务 middleware，基础运行设施仍保留。" : "Empty composition: no business middleware; core runtime facilities remain."}

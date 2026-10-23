@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  createContext,
+  useContext,
   useEffect,
   useId,
   useLayoutEffect,
@@ -8,6 +10,7 @@ import {
   useState,
   type CSSProperties,
   type KeyboardEvent,
+  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown } from "lucide-react";
@@ -18,6 +21,13 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
+type SelectSize = "sm" | "md" | "lg";
+const SelectSizeContext = createContext<SelectSize | null>(null);
+
+export function SelectSizeProvider({ size, children }: { size: SelectSize; children: ReactNode }) {
+  return <SelectSizeContext.Provider value={size}>{children}</SelectSizeContext.Provider>;
+}
+
 interface Props {
   value: string;
   options: SelectOption[];
@@ -26,11 +36,12 @@ interface Props {
   ariaLabel?: string;
   placeholder?: string;
   className?: string;
-  size?: "sm" | "md";
+  size?: SelectSize;
   monospace?: boolean;
 }
 
 type MenuPosition = {
+  container: Element;
   left: number;
   width: number;
   maxHeight: number;
@@ -50,9 +61,10 @@ export default function Select({
   ariaLabel,
   placeholder = "Select",
   className = "",
-  size = "md",
+  size: requestedSize = "md",
   monospace = false,
 }: Props) {
+  const size = useContext(SelectSizeContext) ?? requestedSize;
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
@@ -161,6 +173,7 @@ export default function Select({
         window.innerWidth - width - VIEWPORT_GAP,
       );
       const position: MenuPosition = {
+        container: trigger.closest("dialog[open]") ?? document.body,
         left,
         width,
         maxHeight: Math.min(MAX_MENU_HEIGHT, available),
@@ -200,7 +213,9 @@ export default function Select({
 
   const sizeClass = size === "sm"
     ? "rounded-md py-1 pl-2 pr-7 text-[12px]"
-    : "rounded-lg py-1.5 pl-3 pr-8 text-[13px]";
+    : size === "lg"
+      ? "min-h-12 rounded-xl py-3 pl-3.5 pr-10 text-[16px]"
+      : "rounded-lg py-1.5 pl-3 pr-8 text-[13px]";
 
   const menuStyle: CSSProperties | undefined = menuPosition ? {
     left: menuPosition.left,
@@ -230,7 +245,7 @@ export default function Select({
         </span>
         <ChevronDown
           size={size === "sm" ? 12 : 14}
-          className={`absolute right-2 shrink-0 text-ink-faint transition-transform ${open ? "rotate-180" : ""}`}
+          className={`absolute ${size === "lg" ? "right-3.5" : "right-2"} shrink-0 text-ink-faint transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -241,7 +256,7 @@ export default function Select({
           role="listbox"
           aria-label={ariaLabel}
           style={menuStyle}
-          className="fade-in fixed z-[100] overflow-y-auto rounded-lg border border-line bg-surface p-1 shadow-[0_12px_32px_rgba(15,23,42,0.18)]"
+          className={`fade-in fixed z-[100] overflow-y-auto border border-line bg-surface shadow-[0_12px_32px_rgba(15,23,42,0.18)] ${size === "lg" ? "rounded-2xl p-1.5" : "rounded-lg p-1"}`}
         >
           {options.map((option, index) => {
             const selected = option.value === value;
@@ -256,7 +271,7 @@ export default function Select({
                 onMouseEnter={() => { if (!option.disabled) setActiveIndex(index); }}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => choose(index)}
-                className={`flex min-h-8 items-center gap-2 rounded-md px-2 py-1.5 text-[12.5px] transition-colors ${
+                className={`flex items-center gap-2 transition-colors ${size === "lg" ? "min-h-11 rounded-lg px-3 py-3 text-[14px] leading-5" : "min-h-8 rounded-md px-2 py-1.5 text-[12.5px]"} ${
                   option.disabled
                     ? "cursor-not-allowed text-ink-faint opacity-50"
                     : active
@@ -264,7 +279,7 @@ export default function Select({
                       : "cursor-pointer text-ink-dim"
                 }`}
               >
-                <span className={`min-w-0 flex-1 truncate ${monospace ? "font-mono" : ""}`} title={option.label}>
+                <span className={`min-w-0 flex-1 ${size === "lg" ? "wrap-anywhere" : "truncate"} ${monospace ? "font-mono" : ""}`} title={option.label}>
                   {option.label}
                 </span>
                 {selected && <Check size={13} className="shrink-0 text-accent" />}
@@ -272,7 +287,7 @@ export default function Select({
             );
           })}
         </div>,
-        document.body,
+        menuPosition.container,
       )}
     </span>
   );

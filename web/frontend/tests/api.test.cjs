@@ -330,9 +330,9 @@ test('队列查询与变更拒绝不完整回执，避免错误数据进入 Reac
     { revision: 2, messages: [{ id: 'm', text: '论文', mode: 'unknown', status: 'queued' }] }];
   for (const payload of malformed) {
     const { api } = loadApi(async () => new Response(JSON.stringify(payload)));
-    await assert.rejects(api.getSteeringQueue('active'), /响应不兼容/);
-    await assert.rejects(api.promoteSteeringMessage('active', 'm'), /响应不兼容/);
-    await assert.rejects(api.removeSteeringMessage('active', 'm'), /响应不兼容/);
+    await assert.rejects(api.getSteeringQueue('active'), /暂时无法确认补充要求的状态/);
+    await assert.rejects(api.promoteSteeringMessage('active', 'm'), /暂时无法确认补充要求的状态/);
+    await assert.rejects(api.removeSteeringMessage('active', 'm'), /暂时无法确认补充要求的状态/);
   }
 });
 

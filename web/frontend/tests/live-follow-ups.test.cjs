@@ -91,7 +91,7 @@ test('旧 API 没有队列查询接口时，保留草稿并且不提交追问', 
   assert.equal(await h.render().enqueue('查询论文'), false);
   assert.equal(posts, 0);
   assert.equal(h.render().pending.length, 0);
-  assert.match(h.notifications.join('\n'), /重启.*API/);
+  assert.match(h.notifications.join('\n'), /暂时无法读取补充要求/);
 });
 
 test('新版回执保留排队和同消息引导行为', async () => {
@@ -127,5 +127,5 @@ test('异常队列响应不会替换现有状态，也不会新增一次提交',
   assert.equal(await h.render().enqueue('不要丢失草稿'), false);
   assert.equal(h.render().pending.length, 1);
   assert.equal(posts, 1);
-  assert.match(h.notifications.join('\n'), /响应不兼容/);
+  assert.match(h.notifications.join('\n'), /暂时无法确认补充要求的状态/);
 });

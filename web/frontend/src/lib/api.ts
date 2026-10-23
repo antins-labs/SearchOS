@@ -157,14 +157,14 @@ export function isSteeringSnapshot(value: unknown): value is SteeringSnapshot {
 
 function requireSteeringSnapshot(value: unknown): SteeringSnapshot {
   if (!isSteeringSnapshot(value)) {
-    throw new Error("追问队列响应不兼容，请重启 SearchOS API 后重试");
+    throw new Error("暂时无法确认补充要求的状态，请刷新查看。");
   }
   return value;
 }
 
 export async function getSteeringQueue(sessionId: string): Promise<SteeringSnapshot> {
   return requireSteeringSnapshot(await request(`/api/search/${sessionId}/steer`, { cache: "no-store" }, {
-    errorPrefix: "无法读取追问队列（旧版后端需重启 SearchOS API）",
+    errorPrefix: "暂时无法读取补充要求",
   }));
 }
 

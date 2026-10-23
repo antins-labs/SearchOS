@@ -103,7 +103,7 @@ export function useLocalLibrary(): LocalLibraryController {
       const job = document?.index_job;
       if (!job) return upload;
       if (job.status === "completed") return { ...upload, status: "ready", error: undefined };
-      if (job.status === "failed") return { ...upload, status: "index_error", error: job.error || "后台索引失败" };
+      if (job.status === "failed") return { ...upload, status: "index_error", error: job.error || "资料处理失败" };
       if (job.status === "cancelled") return { ...upload, status: "index_cancelled", error: undefined };
       return { ...upload, status: "indexing", error: undefined };
     }));

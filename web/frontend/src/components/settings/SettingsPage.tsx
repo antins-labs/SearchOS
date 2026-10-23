@@ -17,6 +17,7 @@ import ModelsSection from "@/components/settings/sections/ModelsSection";
 import SearchSection from "@/components/settings/sections/SearchSection";
 import AppearanceSection from "@/components/settings/sections/AppearanceSection";
 import QuickSetupSection from "@/components/settings/sections/QuickSetupSection";
+import Select from "@/components/ui/Select";
 
 export default function SettingsPage() {
   const base = useWorkspaceBase();
@@ -36,7 +37,7 @@ export default function SettingsPage() {
     mutate({
       call: () => resetSettings(),
       merge: (_s, data) => data,
-      errorLabel: "Couldn't reset settings",
+      errorLabel: zh ? "设置重置失败" : "Couldn't reset settings",
     }).finally(() => setConfirmReset(false));
 
   return (
@@ -58,15 +59,15 @@ export default function SettingsPage() {
         <h1 className="font-serif text-[24px] text-ink">{zh ? "设置" : "Settings"}</h1>
         <label className="mt-4 flex items-center gap-3 text-sm text-ink-dim lg:hidden">
           {zh ? "跳转分区" : "Jump to section"}
-          <select aria-label={zh ? "设置分区" : "Settings section"} value={active} onChange={(event) => scrollTo(event.target.value as SectionId)} className="min-w-0 flex-1 rounded-lg border border-line bg-surface p-3">
-            {SECTIONS.map(section => <option key={section.id} value={section.id}>{zh ? ({ setup: "快速配置", models: "模型", search: "联网与读取", skills: "技能", middleware: "中间件", budget: "预算与限制", experimental: "研究策略", appearance: "外观" }[section.id]) : section.label}</option>)}
-          </select>
+          <Select ariaLabel={zh ? "设置分区" : "Settings section"} value={active}
+            onChange={(next) => { if (next !== active) scrollTo(next as SectionId); }} className="min-w-0 flex-1"
+            options={SECTIONS.map(section => ({ value: section.id, label: zh ? ({ setup: "快速配置", models: "模型", search: "联网与读取", skills: "技能", middleware: "中间件", budget: "预算与限制", experimental: "研究策略", appearance: "外观" }[section.id]) : section.label }))} />
         </label>
 
         {status === "offline" && (
           <div className="mt-4 flex items-center gap-2 rounded-xl bg-warn/10 px-4 py-2.5 text-[13px] text-warn">
             <WifiOff size={14} />
-            {zh ? "后端未连接，暂时无法读取设置，正在重试…" : "Backend offline — settings can't be loaded. Retrying…"}
+            {zh ? "连接中断，正在重新读取设置…" : "Connection lost. Retrying settings…"}
           </div>
         )}
 
