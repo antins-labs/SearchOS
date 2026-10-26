@@ -7,6 +7,8 @@ from contextvars import ContextVar
 
 from langchain_core.tools import tool
 
+from searchos.skills.core.capabilities import read_capability_results
+
 _skill_access_policy_var: ContextVar[dict] = ContextVar("skill_access_policy", default={})
 
 
@@ -79,7 +81,7 @@ async def list_skills(category: str = "", availability: str = "", query: str = "
             "description": (s.meta.description or s.meta.trigger or "")[:500],
             "category": s.meta.category.value,
             "trigger": s.meta.trigger,
-            "compatibility": s.meta.compatibility,
+            **({'capability_results': results} if (results := read_capability_results(s)) else {}),
             **({'match_reason': matches[s.meta.name]} if s.meta.name in matches else {}),
         } for s in candidates]
     start, size = max(0, offset), min(50, max(1, limit))
