@@ -1,19 +1,21 @@
-"""生成器专用的 Simple Browser 会话；研究材料不进入任务证据或技能包。"""
+"""网页工具：互联网搜索、阅读、查找及来源观察。"""
 from __future__ import annotations
 
 import asyncio
+from copy import deepcopy
 
+from searchos.skills.pipeline.access.tools.execute import ACCESS_TIMEOUT_S
 
 TOOL_DEFINITIONS = [
-    {"type": "function", "function": {"name": "web_search",
-     "description": "Research site documentation and access methods using the configured web search provider. Results are external research, not proof that a generated CLI works.",
-     "parameters": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}}},
-    {"type": "function", "function": {"name": "web_open",
-     "description": "Read a research result ID or HTTP(S) URL with Simple Browser; use loc to read later lines. This is a document reader, not a logged-in interactive browser.",
-     "parameters": {"type": "object", "properties": {"id_or_url": {"type": "string"}, "loc": {"type": "integer", "default": 0}}, "required": ["id_or_url"]}}},
-    {"type": "function", "function": {"name": "web_find",
-     "description": "Find a short literal phrase in the current research page; returned IDs can be opened.",
-     "parameters": {"type": "object", "properties": {"pattern": {"type": "string"}}, "required": ["pattern"]}}},
+    {"type": "function", "function": {"name": "search",
+     "description": "通过互联网搜索引擎检索公开网页，查找目标站点、API、库文档、教程、示例和排错资料。query 填写网页检索关键词，返回网页线索后用 open 阅读原文。本地代码和文件定位使用 exec 或当前角色的文件读取工具。",
+     "parameters": {"type": "object", "properties": {"query": {"type": "string", "description": "互联网网页检索关键词，可组合站点、库名、版本、API 名或脱敏报错。"}}, "required": ["query"]}}},
+    {"type": "function", "function": {"name": "open",
+     "description": "读取互联网网页正文。id_or_url 接收 HTTP(S) URL 或 search/open/find 返回的网页结果 ID；loc 按网页行号续读。",
+     "parameters": {"type": "object", "properties": {"id_or_url": {"type": "string", "description": "互联网网页的 HTTP(S) URL 或网页结果 ID。"}, "loc": {"type": "integer", "default": 0, "description": "网页正文的起始行号。"}}, "required": ["id_or_url"]}}},
+    {"type": "function", "function": {"name": "find",
+     "description": "在当前已打开的互联网网页文本中按字面查找短语，定位文档段落、API 名称或错误说明；先用 open 打开目标网页。返回的网页结果 ID 可用 open 阅读。本地代码和文件定位使用 exec 或当前角色的文件读取工具。",
+     "parameters": {"type": "object", "properties": {"pattern": {"type": "string", "description": "要在当前互联网网页文本中查找的字面短语。"}}, "required": ["pattern"]}}},
 ]
 
 
@@ -99,8 +101,9 @@ class ResearchBrowser:
             return None, str(exc) or type(exc).__name__
 
     async def dispatch(self, name: str, args: dict) -> dict:
-        from searchos.tools.simple_browser import state, tools
+        name = {'search': 'web_search', 'open': 'web_open', 'find': 'web_find'}.get(name, name)
         from searchos.tools.search_state import _workspace_var
+        from searchos.tools.simple_browser import state, tools
 
         # Keep parent browser history and workspace pages untouched, including on error.
         browser_token = state._browser_var.set(self.state)
@@ -114,7 +117,7 @@ class ResearchBrowser:
                 query = str(args["query"]).strip()
                 if not query:
                     raise ValueError("query must not be empty")
-                results = state.apply_source_controls(await asyncio.wait_for(self.provider.search(query, 8), timeout=40))
+                results = state.apply_source_controls(await asyncio.wait_for(self.provider.search(query, 8), timeout=ACCESS_TIMEOUT_S))
                 for result in results:
                     self.state.search_content_cache[result.url] = result
                 self.state.search_history.append(query)
@@ -128,7 +131,7 @@ class ResearchBrowser:
                         raise ValueError("research can open only result IDs or HTTP(S) URLs")
                     args = {"id_or_url": target, "loc": int(args.get("loc", 0)), "view_tokens": 2000}
                 result = await asyncio.wait_for(tool.ainvoke({"name": tool.name, "args": args,
-                    "id": "builder-research", "type": "tool_call"}), timeout=45)
+                    "id": "builder-research", "type": "tool_call"}), timeout=ACCESS_TIMEOUT_S)
                 content = result.content
             metadata = self._observation_metadata(content, cached_pages)
             if name == "web_open" and metadata["fetch_status"] == "failed":
@@ -142,3 +145,18 @@ class ResearchBrowser:
         finally:
             _workspace_var.reset(workspace_token)
             state._browser_var.reset(browser_token)
+
+
+RESEARCH_TOOLS = deepcopy(TOOL_DEFINITIONS)
+
+
+for tool in RESEARCH_TOOLS:
+    function = tool['function']
+    function['name'] = function['name'].removeprefix('web_')
+    if function['name'] == 'open':
+        function['description'] += ' Planner 另支持读取回执中明确给出的保存产物路径，用 offset 和 limit 分页；本地探测代码定位使用 exec。'
+        function['parameters']['properties']['id_or_url']['description'] = (
+            '互联网网页的 HTTP(S) URL、网页结果 ID，或回执中明确给出的保存产物路径。')
+        function['parameters']['properties'].update(
+            offset={'type': 'integer', 'default': 0},
+            limit={'type': 'integer', 'default': 16000, 'minimum': 1, 'maximum': 24000})

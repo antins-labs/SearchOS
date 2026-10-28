@@ -246,11 +246,9 @@ class SkillRegistry:
                 parts = rel.parts
                 if len(parts) >= 2 and parts[0] in ("strategy", "access", "orchestrator"):
                     skill.meta.category = SkillCategory(parts[0])
-                # Access-skill identity is its directory name — it matches the
-                # ``skill_<name>`` typed tool and the baker's layout. Override
-                # any stray skill.md frontmatter name so the two never diverge.
                 if skill.package_format == "legacy" and skill.meta.category == SkillCategory.ACCESS:
-                    skill.meta.name = sub.parent.name
+                    logger.warning("Skipping Access Skill without SKILL.md: %s", sub)
+                    continue
                 if (
                     skill.meta.category is not None
                     and skill.meta.category.value in self._disabled_layers
@@ -260,9 +258,6 @@ class SkillRegistry:
                         skill.meta.name, skill.meta.category.value,
                     )
                     continue
-                executor_path = sub.parent / "executor.py"
-                if executor_path.exists():
-                    skill.meta.has_executor = True
                 if self._is_blocked(skill.meta.name):
                     continue
                 existing = self._skills.get(skill.meta.name)

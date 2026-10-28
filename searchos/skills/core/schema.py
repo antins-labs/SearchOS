@@ -8,7 +8,7 @@ from pathlib import Path
 
 import yaml
 
-from searchos.skills.core.models import Skill, SkillCategory, SkillMeta
+from searchos.skills.core.models import Skill, SkillMeta
 
 # Matches YAML frontmatter between --- delimiters
 _FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
@@ -54,48 +54,13 @@ def parse_skill_file(path: str | Path, *, expected_name: str | None = None) -> S
                 next((p for p in entries if p.name.casefold() == path.name.casefold()), path))
     standard = path.name == "SKILL.md"
     text = path.read_text(encoding="utf-8")
-    try:
-        skill = parse_skill_text(text, file_path=str(path), strict=standard, expected_name=expected_name)
-    except ValueError:
-        # Access skills are defined by a sibling ``manifest.yaml``; their
-        # skill.md is human documentation and carries no frontmatter.
-        # Synthesize the metadata from the manifest rather than failing.
-        if standard:
-            raise
-        manifest = path.parent / "manifest.yaml"
-        if not manifest.exists():
-            raise
-        skill = _skill_from_manifest(manifest, body=text, file_path=str(path))
+    skill = parse_skill_text(text, file_path=str(path), strict=standard, expected_name=expected_name)
     from searchos.skills.packaging import package_files, package_fingerprint
     skill.package_format = "portable" if standard else "legacy"
     skill.resources = [p.as_posix() for p in package_files(path.parent)]
     skill.package_hash = package_fingerprint(path.parent)
-    skill.meta.has_executor = (path.parent / "executor.py").is_file()
     _attach_anti_patterns(skill, path.parent)
     return skill
-
-
-def _skill_from_manifest(manifest_path: Path, *, body: str, file_path: str) -> Skill:
-    """Build a Skill for an access skill defined by ``manifest.yaml``.
-
-    The directory name is the canonical skill identifier — it matches the
-    ``skill_<name>`` typed-tool naming and the access-skill baker's layout;
-    the manifest only supplies the one-line catalog description.
-    """
-    try:
-        data = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
-    except Exception:
-        data = {}
-    if not isinstance(data, dict):
-        data = {}
-    desc_lines = str(data.get("description") or "").strip().splitlines()
-    meta = SkillMeta(
-        name=manifest_path.parent.name,
-        description=desc_lines[0] if desc_lines else "",
-        category=SkillCategory.ACCESS,
-        availability=data.get("availability", data.get("status", "enabled")),
-    )
-    return Skill(meta=meta, body=body.strip(), file_path=file_path)
 
 
 def _attach_anti_patterns(skill: Skill, skill_dir: Path) -> None:

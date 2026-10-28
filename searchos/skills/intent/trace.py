@@ -45,40 +45,49 @@ Return ONLY a JSON array, at most {max_n} items, each:
 """
 
 
-def _existing_skill_dir(library_root: Path | None, host: str) -> Path | None:
-    """Return an installed Access Skill directory that already covers host."""
+def _source_skill_index(library_root: Path | None) -> dict[tuple[str, str], Path]:
+    """索引有效的标准 Access 包，隔离目录和无效文件继续保留发现机会。"""
     if library_root is None or not library_root.exists():
-        return None
+        return {}
 
-    import yaml
+    from yaml import YAMLError
 
-    expected_names = {name_for_host(host), host.replace(".", "_").replace("-", "_")}
-    for entry in library_root.glob("**/SKILL.md"):
-        if any(part.startswith(("_", ".")) for part in entry.relative_to(library_root).parts):
+    from searchos.skills.core.models import SkillCategory
+    from searchos.skills.packaging import validate_package
+
+    index = {}
+    categories = {category.value for category in SkillCategory}
+    for entry in library_root.rglob('*'):
+        if entry.name != 'SKILL.md':
+            continue
+        relative = entry.relative_to(library_root)
+        if any(part.startswith(("_", ".")) for part in relative.parts):
             continue
         try:
-            text = entry.read_text(encoding="utf-8")
-            data = yaml.safe_load(text.split("---", 2)[1]) if text.startswith("---") else {}
-            metadata = data.get("metadata", {}) if isinstance(data, dict) else {}
-            declared_host = str(metadata.get("host", "")).lower() if isinstance(metadata, dict) else ""
-            if entry.parent.name in expected_names or declared_host == host.lower():
-                return entry.parent
-        except (OSError, ValueError, IndexError, yaml.YAMLError):
+            skill = validate_package(entry.parent)
+        except (OSError, ValueError, TypeError, YAMLError):
             continue
-    for manifest in library_root.glob("**/manifest.yaml"):
-        relative_path = manifest.relative_to(library_root)
-        if any(part.startswith(("_", ".")) for part in relative_path.parts):
+        category = skill.meta.category
+        # 与 Registry 按库目录归类的行为一致，兼容直接传入 access/ 的发现入口。
+        physical_category = library_root.name if library_root.name in categories else relative.parts[0]
+        if physical_category in categories:
+            category = SkillCategory(physical_category)
+        if category != SkillCategory.ACCESS:
             continue
-        if manifest.parent.name in expected_names:
-            return manifest.parent
-        try:
-            with manifest.open(encoding="utf-8") as file:
-                data = yaml.safe_load(file) or {}
-        except Exception:  # noqa: BLE001
-            continue
-        if any(host in str(pattern) for pattern in data.get("url_patterns") or []):
-            return manifest.parent
-    return None
+        index.setdefault(('name', skill.meta.name), entry.parent)
+        host = skill.meta.metadata.get('host')
+        if isinstance(host, str) and host.strip():
+            index.setdefault(('host', host.strip().lower()), entry.parent)
+    return index
+
+
+def _source_skill_dir(index: dict[tuple[str, str], Path], host: str) -> Path | None:
+    return index.get(('name', name_for_host(host))) or index.get(('host', host.lower()))
+
+
+def _existing_skill_dir(library_root: Path | None, host: str) -> Path | None:
+    """Return an installed standard Access Skill directory covering host."""
+    return _source_skill_dir(_source_skill_index(library_root), host)
 
 
 def _collect_opens(
@@ -202,12 +211,17 @@ class _AccessTraceIntent:
     async def discover(
         self,
         trajectory_path: str | Path,
+        *,
+        source_index: dict[tuple[str, str], Path] | None = None,
     ) -> list[SkillRequest]:
         opens = _collect_opens(trajectory_path, obs_chars=self.obs_chars)
+        installed = source_index
+        if installed is None:
+            installed = _source_skill_index(self.library_root) if opens else {}
         opens = {
             host: host_opens
             for host, host_opens in opens.items()
-            if _existing_skill_dir(self.library_root, host) is None
+            if _source_skill_dir(installed, host) is None
         }
         if not opens:
             return []

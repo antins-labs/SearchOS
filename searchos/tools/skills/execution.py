@@ -9,11 +9,12 @@ import json
 import math
 import re
 from pathlib import Path
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any
 from uuid import uuid4
 
 from langchain_core.tools import InjectedToolCallId, tool
 
+from searchos.skills.core.capabilities import read_capability_results
 from searchos.skills.runtime.paths import resolve_resource_file, skill_workspace_dir
 from searchos.tools.search_state import (
     _current_agent_var,
@@ -21,7 +22,6 @@ from searchos.tools.search_state import (
     _source_scope_var,
     _workspace_var,
 )
-
 
 WORK_LOCK_WAIT_TIMEOUT_S = 300.0
 
@@ -114,8 +114,7 @@ def loaded_package_names(root: Path, identity: str) -> list[str]:
 
 def load_package(name: str) -> dict[str, Any]:
     """固定本任务的技能版本；后续读取和执行使用同一快照。"""
-    from searchos.skills.core.schema import parse_skill_file
-    from searchos.skills.packaging import package_fingerprint, snapshot_package
+    from searchos.skills.packaging import package_fingerprint, snapshot_package, validate_package
 
     skill = _skill(name)
     name = skill.meta.name
@@ -125,6 +124,7 @@ def load_package(name: str) -> dict[str, Any]:
         binding = json.loads(binding_path.read_text())
     else:
         source = Path(skill.file_path).resolve().parent
+        validate_package(source, expected_name=name)
         fingerprint = package_fingerprint(source)
         destination = skill_workspace_dir(root, "packages") / fingerprint
         if not destination.exists():
@@ -139,27 +139,19 @@ def load_package(name: str) -> dict[str, Any]:
     directory = Path(binding["directory"])
     if package_fingerprint(directory) != binding["package_hash"]:
         raise ValueError("loaded skill snapshot hash changed")
-    frozen = parse_skill_file(directory, expected_name=binding["name"])
+    frozen = validate_package(directory, expected_name=binding["name"])
     resources = sorted(str(p.relative_to(directory)) for p in directory.rglob("*") if p.is_file())
-    legacy = (directory / "executor.py").is_file() and not any(
-        p.name == "SKILL.md" for p in directory.iterdir()
-    )
     answer = {
         **binding, "body": frozen.body, "category": frozen.meta.category.value,
         "description": frozen.meta.description, "compatibility": frozen.meta.compatibility,
         "availability": skill.meta.availability.value,
         "resources": resources[:200], "resources_truncated": len(resources) > 200,
         "work_directory": str(skill_workspace_dir(root, "work") / key),
-        "execution": "legacy-executor" if legacy else "cli",
+        "execution": "cli",
+        "invocation": "exec(skill=name, argv=[interpreter, package_relative_script, ...arguments])",
     }
-    if legacy:
-        manifest = directory / "manifest.yaml"
-        if manifest.is_file():
-            import yaml
-            answer["legacy_parameters"] = (yaml.safe_load(manifest.read_text()) or {}).get("params_schema", {})
-        answer["invocation"] = 'exec(skill=name, argv=["legacy-executor", "--params", "<JSON object>"])'
-    else:
-        answer["invocation"] = "exec(skill=name, argv=[interpreter, package_relative_script, ...arguments])"
+    if results := read_capability_results(frozen):
+        answer["capability_results"] = results
     return answer
 
 
@@ -170,9 +162,10 @@ def _loaded(name: str) -> dict[str, Any]:
     if not path.is_file():
         raise ValueError(f"load_skill({name!r}) before executing or reading its resources")
     binding = json.loads(path.read_text())
-    from searchos.skills.packaging import package_fingerprint
+    from searchos.skills.packaging import package_fingerprint, validate_package
     if package_fingerprint(Path(binding["directory"])) != binding["package_hash"]:
         raise ValueError("loaded skill snapshot hash changed")
+    validate_package(Path(binding["directory"]), expected_name=binding["name"])
     return binding
 
 
@@ -200,7 +193,7 @@ async def load_skill(skill_name: str) -> str:
         package = load_package(skill_name)
         fields = (
             "name", "body", "category", "description", "compatibility", "resources",
-            "execution", "invocation", "legacy_parameters",
+            "execution", "invocation", "capability_results",
         )
         visible = {key: package[key] for key in fields if key in package}
         if package.get("resources_truncated"):
@@ -232,51 +225,6 @@ async def read_skill_file(
                       "next_offset": start + count if start + count < len(text) else None})
     except (ValueError, OSError) as exc:
         return _json({"error": str(exc)})
-
-
-async def _legacy(directory: Path, argv: list[str], executions: Path, timeout: float, execution_id: str, proxy_mode: str = 'inherit') -> dict:
-    from searchos.skills.runtime.legacy.executor_runtime import ExecutionPolicy, run_executor
-
-    if len(argv) != 3 or argv[1] != "--params":
-        raise ValueError('legacy usage: ["legacy-executor", "--params", "<JSON object>"]')
-    params = json.loads(argv[2])
-    if not isinstance(params, dict):
-        raise ValueError("legacy params must be a JSON object")
-    if not (directory / "executor.py").is_file():
-        raise ValueError("this skill has no legacy executor")
-    if any(p.name == "SKILL.md" for p in directory.iterdir()):
-        raise ValueError("portable packages cannot use the legacy executor adapter")
-    saved = executions / execution_id
-    saved.mkdir(parents=True)
-    workspace = _workspace_var.get()
-    query = ""
-    if workspace is not None:
-        try:
-            query = workspace.load_state().intent or ""
-        except (AttributeError, OSError, ValueError):
-            pass
-    try:
-        result = await run_executor(directory, params, query=query,
-                                    policy=ExecutionPolicy.access(timeout_s=timeout, proxy_mode=proxy_mode))
-    except asyncio.CancelledError:
-        _write_json(saved / "record.json", {"execution_id": execution_id,
-                    "status": "cancelled", "started": False, "legacy": True, "artifacts": []})
-        raise
-    artifact = saved / "artifacts" / "result.json"
-    _write_json(artifact, result)
-    failed = bool(result.get("error")) or result.get("success") is False
-    record = {
-        "execution_id": execution_id, "status": "timed_out" if result.get("error_type") == "timeout" else ("failed" if failed else "completed"),
-        "exit_code": 1 if failed else 0, "started": True,
-        "timed_out": result.get("error_type") == "timeout",
-        "stdout": "Legacy result saved as result.json", "stderr": str(result.get("error", "")),
-        "truncated": False, "legacy": True,
-        "error_type": result.get("error_type", ""),
-        "artifacts": [{"id": "result.json", "path": "result.json", "media_type": "application/json",
-                       "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest()}],
-    }
-    _write_json(saved / "record.json", record)
-    return record
 
 
 def _execution_response(result: dict) -> tuple[str, dict]:
@@ -311,18 +259,15 @@ def _execution_response(result: dict) -> tuple[str, dict]:
 @tool("exec", response_format="content_and_artifact")
 async def exec_skill(
     skill: str, argv: list[str], tool_call_id: Annotated[str, InjectedToolCallId],
-    stdin: str = "", timeout_s: float = 60, proxy_mode: Literal['inherit', 'direct', 'proxy'] = 'inherit',
+    stdin: str = "", timeout_s: float = 60,
 ) -> tuple[str, dict]:
     """Run a bundled Python, Shell or Node script from a loaded skill.
 
     argv starts with python/python3, bash/sh or node and a package-relative script path. No shell strings or inline code. cwd is the task work directory. Concurrent calls within one task wait for this directory; different tasks run independently.
     Returns an execution receipt with read_result and saved page URLs. Follow read_result with open, then use find or open(loc=...) to inspect relevant windows before further retrieval. exec itself does not extract evidence.
-    proxy_mode is inherit (environment), direct (no application proxy), or proxy (require a configured proxy). Browser scripts must honor these environment defaults.
-    Legacy skills accept ["legacy-executor", "--params", "<JSON object>"].
+    Pass the documented business arguments. Package functions manage data access, network configuration, and failures using their validated defaults.
     """
     try:
-        from searchos.skills.runtime.network import validate_proxy_mode
-        validate_proxy_mode(proxy_mode)
         if (_source_scope_var.get() or {}).get("mode") == "local":
             raise ValueError("Access Skill execution is unavailable in Local source mode")
         binding = _loaded(skill)
@@ -335,8 +280,9 @@ async def exec_skill(
         if len(_json(argv)) + len(stdin) > 128_000:
             raise ValueError("command input exceeds 128000 characters")
         receipt = skill_workspace_dir(root, "calls") / key / (hashlib.sha256(tool_call_id.encode()).hexdigest() + ".json")
-        request_hash = hashlib.sha256(_json({"skill": skill, "package_hash": binding["package_hash"],
-                    "argv": argv, "stdin": stdin, "timeout": timeout, "proxy_mode": proxy_mode}).encode()).hexdigest()
+        request = {"skill": skill, "package_hash": binding["package_hash"],
+                   "argv": argv, "stdin": stdin, "timeout": timeout}
+        request_hash = hashlib.sha256(_json(request).encode()).hexdigest()
         work = skill_workspace_dir(root, "work") / key
         work.mkdir(parents=True, exist_ok=True)
         # Lock before reading/writing receipts: concurrent processes cannot both
@@ -352,7 +298,15 @@ async def exec_skill(
         try:
             if receipt.exists():
                 previous = json.loads(receipt.read_text())
-                if previous.get("request_hash") != request_hash:
+                previous_hash = previous.get("request_hash")
+                # 旧回执含工具级线路；匹配相同业务请求后直接回放，避免升级后重复执行。
+                matches = previous_hash == request_hash or any(
+                    previous_hash == hashlib.sha256(
+                        _json({**request, "proxy_mode": mode}).encode()
+                    ).hexdigest()
+                    for mode in ("inherit", "direct", "proxy")
+                )
+                if not matches:
                     raise ValueError("tool call id was already used with a different request")
                 result = previous.get("result") or {
                     "status": "blocked", "error": "previous execution outcome unknown; inspect saved runs before retrying",
@@ -363,17 +317,12 @@ async def exec_skill(
             _write_json(receipt, {"state": "pending", "request_hash": request_hash, "execution_id": execution_id,
                                  "skill": skill, "package_hash": binding["package_hash"]})
             accepted = True
-            if argv[0] == "legacy-executor":
-                if stdin:
-                    raise ValueError("legacy executor does not accept stdin")
-                result = await _legacy(Path(binding["directory"]), argv, skill_workspace_dir(root, "executions"), timeout, execution_id, proxy_mode)
-            else:
-                from searchos.skills.runtime.command_runtime import run_command
-                result = await run_command(
-                    Path(binding["directory"]), argv, work_dir=work,
-                    execution_dir=skill_workspace_dir(root, "executions"), stdin=stdin, timeout_s=timeout, network=True,
-                    execution_id=execution_id, proxy_mode=proxy_mode,
-                )
+            from searchos.skills.runtime.command_runtime import run_command
+            result = await run_command(
+                Path(binding["directory"]), argv, work_dir=work,
+                execution_dir=skill_workspace_dir(root, "executions"), stdin=stdin, timeout_s=timeout, network=True,
+                execution_id=execution_id,
+            )
             result["package_hash"] = binding["package_hash"]
             if result.get("execution_id"):
                 _write_json(skill_workspace_dir(root, "executions") / result["execution_id"] / "binding.json",

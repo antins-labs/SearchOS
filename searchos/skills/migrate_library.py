@@ -12,6 +12,7 @@ import tempfile
 
 import yaml
 
+from searchos.skills.core.models import Skill, SkillCategory, SkillMeta
 from searchos.skills.core.schema import parse_skill_file
 from searchos.skills.packaging import validate_package
 
@@ -41,13 +42,34 @@ def dependencies(source):
     return external, [DISTRIBUTIONS.get(name, name) for name in external]
 
 
+def _read_legacy_skill(entry: Path) -> Skill:
+    """仅离线迁移读取旧 manifest，运行时只读取技能正文元数据。"""
+    try:
+        return parse_skill_file(entry)
+    except ValueError:
+        manifest_path = entry.parent / 'manifest.yaml'
+        if not manifest_path.is_file():
+            raise
+        data = yaml.safe_load(manifest_path.read_text(encoding='utf-8')) or {}
+        if not isinstance(data, dict):
+            raise ValueError(f'invalid legacy manifest: {manifest_path}')
+        description = str(data.get('description') or '').strip().splitlines()
+        meta = SkillMeta(
+            name=entry.parent.name,
+            description=description[0] if description else '',
+            category=SkillCategory.ACCESS,
+            availability=data.get('availability', data.get('status', 'enabled')),
+        )
+        return Skill(meta=meta, body=entry.read_text(encoding='utf-8').strip(), file_path=str(entry))
+
+
 def plan(library):
     candidates = []
     targets = set()
     for entry in sorted(library.rglob('*')):
         if entry.name != 'skill.md' or any(part.startswith(('_', '.')) for part in entry.relative_to(library).parts):
             continue
-        skill = parse_skill_file(entry)
+        skill = _read_legacy_skill(entry)
         name = portable_name(skill.meta.name)
         destination = entry.parent.with_name(name)
         if destination in targets or (destination != entry.parent and destination.exists()):
@@ -78,7 +100,7 @@ def migrate(library: Path, aliases_path: Path):
             name = destination.name
             category = source.relative_to(library).parts[0]
             metadata = {'searchos-category': category, 'searchos-aliases': source.name,
-                        'searchos-config': json.dumps(skill.meta.model_dump(mode='json', exclude={'name', 'description', 'has_executor', 'metadata'}), ensure_ascii=False)}
+                        'searchos-config': json.dumps(skill.meta.model_dump(mode='json', exclude={'name', 'description', 'metadata'}), ensure_ascii=False)}
             front = {'name': name, 'description': (skill.meta.description or skill.meta.trigger or name)[:1024], 'metadata': metadata}
             if (package / 'executor.py').exists():
                 manifest_path = package / 'manifest.yaml'

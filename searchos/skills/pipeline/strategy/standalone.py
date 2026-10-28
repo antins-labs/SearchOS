@@ -5,7 +5,7 @@ import json
 from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
-from searchos.skills.pipeline.access.browser import ResearchBrowser, TOOL_DEFINITIONS
+from searchos.skills.pipeline.access.tools.web import ResearchBrowser, TOOL_DEFINITIONS
 
 
 async def run_standalone_subtask(*, subtask: str, strategy: str, model: Any = None) -> dict:

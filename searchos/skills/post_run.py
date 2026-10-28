@@ -104,16 +104,17 @@ class TraceSkillGeneration:
                     | {"status": "pending"}
                     for request in event["requests"]
                 ]
-            elif stage in {"pipeline", "result"}:
+            elif stage in {"pipeline", "access_validation", "result"}:
                 item = self.record["items"][event["index"]]
-                if stage == "pipeline":
+                if stage in {"pipeline", "access_validation"}:
                     item["status"] = "running"
                 else:
                     report = event["result"]
                     item.update(
                         {
                             key: report[key]
-                            for key in ("name", "category", "action", "reason", "status", "error")
+                            for key in ("name", "category", "action", "reason", "status", "error",
+                                        "failure_stage")
                             if key in report
                         }
                     )

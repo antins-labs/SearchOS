@@ -45,7 +45,6 @@ class SkillMeta(CamelModel):
         default=SkillAvailability.ENABLED,
         validation_alias=AliasChoices("availability", "status"),
     )
-    has_executor: bool = False
     compatibility: str = ""
     metadata: dict[str, Any] = Field(default_factory=dict)
 

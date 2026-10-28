@@ -10,6 +10,7 @@ from searchos.skills.pipeline import PipelineResult, run_pipeline
 
 async def generate_skills(signal: SkillSignal, *, library_path: str | Path | None = None,
                           intent_model: Any = None, builder_model: Any = None,
+                          validation_model: Any = None,
                           model_name: str | None = None,
                           categories: tuple[str, ...] = ('access', 'strategy', 'orchestrator'),
                           max_requests: int | None = None, min_opens: int = 3, obs_chars: int = 800,
@@ -41,6 +42,7 @@ async def generate_skills(signal: SkillSignal, *, library_path: str | Path | Non
         result = await run_pipeline(request, library_path=library_path, model=builder_model,
                                     model_name=model_name, subtask_runner=subtask_runner,
                                     access_site_intent=signal.kind == 'site', access_intent_model=intent_model,
+                                    access_validation_model=validation_model,
                                     subtask=request.subtask if signal.kind == 'trace' else None,
                                     judge_model=judge_model, trial_root=trial_root, on_draft=on_draft, on_stage=on_stage)
         results.append(result)

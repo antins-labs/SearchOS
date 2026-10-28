@@ -7,13 +7,12 @@ import json
 import re
 from pathlib import Path
 from typing import Any
-from uuid import uuid4
 
 from searchos.skills.runtime.paths import resolve_resource_file
 from searchos.socm.evidence.provenance import result_source_urls
 from searchos.tools.simple_browser.render import PageContents
 from searchos.tools.simple_browser.state import (
-    VIEW_TOKENS, _get_browser, _persist_page, _read_page_from_disk,
+    _get_browser, _persist_page, _read_page_from_disk,
 )
 
 MAX_TEXT_BYTES = 10_000_000
@@ -49,29 +48,6 @@ def format_skill_result(result: Any, width: int = 80) -> str:
     if line:
         lines.append(line)
     return "\n".join(lines)
-
-
-def show_skill_result(
-    skill_name: str, params: dict[str, Any], result: Any, *, artifact=None,
-) -> str:
-    """保留完整结果，仅将现有 renderer 的初始视窗返回给 agent。"""
-    url = f"skill://{skill_name}/{uuid4().hex}"
-    body = (
-        f"# Skill result: {skill_name}\n\n"
-        "## Parameters\n\n" + format_skill_result(params)
-        + "\n\n## Result\n\n"
-        + format_skill_result(result)
-    )
-    page = PageContents(
-        url=url, title=f"Skill: {skill_name}", text=body,
-        metadata={"kind": "skill_result", "source_urls": result_source_urls(result)},
-    )
-    browser = _get_browser()
-    browser.add_page(page)
-    page_id = _persist_page(url, page)
-    if page_id:
-        browser.page_ids[url] = page_id
-    return browser.show_page(loc=0, view_tokens=VIEW_TOKENS, artifact=artifact)
 
 
 def resolve_execution_root(url: str) -> PageContents | None:

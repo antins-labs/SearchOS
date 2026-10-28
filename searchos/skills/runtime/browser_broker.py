@@ -9,6 +9,50 @@ from urllib.parse import urlencode, urlsplit
 
 from searchos.skills.runtime.browser_auth import AuthRequired, browser_options, require_state, revoke, start_login
 
+BROWSER_RESOURCE_CLEANUP_S = .35
+
+
+class BrowserCleanupError(RuntimeError):
+    def __init__(self, errors):
+        self.cleanup_error = 'browser_cleanup_failed: ' + '; '.join(errors)
+        super().__init__(self.cleanup_error)
+
+
+async def _close_resources(resources, *, budget_s=BROWSER_RESOURCE_CLEANUP_S):
+    """逐项释放资源，为后创建资源保留同一段清理预算。"""
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + budget_s
+    resource_deadline = deadline - budget_s * .15
+    errors, pending = [], []
+    for index, (name, close) in enumerate(reversed(resources)):
+        remaining = resource_deadline - loop.time()
+        budget = max(.001, remaining / (len(resources) - index))
+        try:
+            task = asyncio.create_task(close())
+            done, _ = await asyncio.wait({task}, timeout=budget * .8)
+            if not done:
+                task.cancel()
+                done, _ = await asyncio.wait({task}, timeout=budget * .2)
+                errors.append(name + ': TimeoutError')
+            if done:
+                task.result()
+            else:
+                pending.append(task)
+        except (Exception, asyncio.CancelledError) as exc:
+            errors.append(name + ': ' + type(exc).__name__)
+    if pending:
+        for task in pending:
+            task.cancel()
+        done, pending = await asyncio.wait(pending, timeout=max(0, deadline - loop.time()))
+        for task in done:
+            if not task.cancelled():
+                task.exception()
+        for task in pending:
+            errors.append('resource cleanup did not respond to cancellation')
+            task.add_done_callback(lambda completed: None if completed.cancelled()
+                                   else completed.exception())
+    return errors
+
 
 class XSearchBrowser:
     def __init__(self, context):
@@ -110,33 +154,77 @@ async def serve_search(adapter, *, proxy_mode: str = 'inherit'):
                 return web.json_response({'error': 'search_unavailable', 'records': []}, status=502)
     app = web.Application(client_max_size=8192)
     app.router.add_post('/search', search)
-    runner = web.AppRunner(app, access_log=None)
-    await runner.setup()
+    runner = web.AppRunner(app, access_log=None, shutdown_timeout=.1)
+    primary = None
     try:
+        await runner.setup()
         site = web.TCPSite(runner, '127.0.0.1', 0)
         await site.start()
         port = runner.addresses[0][1]
         yield {'SEARCHOS_BROWSER_URL': f'http://127.0.0.1:{port}/search', 'SEARCHOS_BROWSER_TOKEN': token}
+    except BaseException as exc:
+        primary = exc
+        raise
     finally:
-        await runner.cleanup()
+        cleanup = asyncio.create_task(_close_resources([('server', runner.cleanup)], budget_s=.1))
+        cancelled = None
+        while not cleanup.done():
+            try:
+                await asyncio.shield(cleanup)
+            except asyncio.CancelledError as exc:
+                cancelled = exc
+        errors = cleanup.result()
+        if errors:
+            error = BrowserCleanupError(errors)
+            target = cancelled or primary
+            if target is None:
+                raise error
+            target.cleanup_error = '; '.join(filter(None,
+                [getattr(target, 'cleanup_error', None), error.cleanup_error]))
+        if cancelled:
+            raise cancelled
 
 
 @asynccontextmanager
 async def browser_bridge(profile: str, *, proxy_mode: str = 'inherit'):
     state = require_state(profile, proxy_mode=proxy_mode)
     from playwright.async_api import async_playwright
-    async with async_playwright() as p:
+    manager = async_playwright()
+    resources = [('playwright', lambda: manager.__aexit__(None, None, None))]
+    primary = None
+    try:
+        p = await manager.__aenter__()
         browser = await p.chromium.launch(**browser_options(headless=True, proxy_mode=proxy_mode))
-        try:
-            context = await browser.new_context(storage_state=state, service_workers='block')
-            async def route(request_route):
-                hostname = (urlsplit(request_route.request.url).hostname or '').lower()
-                if any(hostname == domain or hostname.endswith('.'+domain) for domain in ('x.com', 'twitter.com', 'twimg.com')):
-                    await request_route.continue_()
-                else:
-                    await request_route.abort()
-            await context.route('**/*', route)
-            async with serve_search(XSearchBrowser(context), proxy_mode=proxy_mode) as env:
-                yield env
-        finally:
-            await browser.close()
+        resources.append(('browser', browser.close))
+        context = await browser.new_context(storage_state=state, service_workers='block')
+        resources.append(('context', context.close))
+        async def route(request_route):
+            hostname = (urlsplit(request_route.request.url).hostname or '').lower()
+            if any(hostname == domain or hostname.endswith('.'+domain) for domain in ('x.com', 'twitter.com', 'twimg.com')):
+                await request_route.continue_()
+            else:
+                await request_route.abort()
+        await context.route('**/*', route)
+        async with serve_search(XSearchBrowser(context), proxy_mode=proxy_mode) as env:
+            yield env
+    except BaseException as exc:
+        primary = exc
+        raise
+    finally:
+        cleanup = asyncio.create_task(_close_resources(resources))
+        cancelled = None
+        while not cleanup.done():
+            try:
+                await asyncio.shield(cleanup)
+            except asyncio.CancelledError as exc:
+                cancelled = exc
+        errors = cleanup.result()
+        if errors:
+            error = BrowserCleanupError(errors)
+            target = cancelled or primary
+            if target is None:
+                raise error
+            target.cleanup_error = '; '.join(filter(None,
+                [getattr(target, 'cleanup_error', None), error.cleanup_error]))
+        if cancelled:
+            raise cancelled
