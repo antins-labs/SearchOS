@@ -20,6 +20,35 @@ def generation(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_independent_validation_and_repair_remain_running(tmp_path, monkeypatch):
+    workspace, job = generation(tmp_path)
+    request = SkillRequest('access', 'example-com', '读取公开记录', host='example.com',
+                           probe_urls=('https://example.com/',))
+    observed = []
+
+    async def infer(*args, **kwargs):
+        return [request]
+
+    async def pipeline(selected, *, on_stage, **kwargs):
+        for stage in ('access_validation', 'pipeline', 'access_validation'):
+            await on_stage(stage)
+            saved = load_generation(workspace, job.id)
+            observed.append(saved['stage'])
+            assert saved['status'] == 'running'
+            assert saved['items'][0]['status'] == 'running'
+        return PipelineResult(selected, 'validation_failed', error='来源验证失败',
+                              failure_stage='access_validation')
+
+    monkeypatch.setattr(skills, 'infer_requests', infer)
+    monkeypatch.setattr(skills, 'run_pipeline', pipeline)
+    await job.run(library_path=tmp_path / 'skills')
+    assert observed == ['access_validation', 'pipeline', 'access_validation']
+    saved = load_generation(workspace, job.id)
+    assert saved['items'][0]['status'] == 'validation_failed'
+    assert saved['items'][0]['failure_stage'] == 'access_validation'
+
+
+@pytest.mark.asyncio
 async def test_changes_persist_progress_actions_failures_and_installed_version(
     tmp_path, monkeypatch
 ):

@@ -24,7 +24,8 @@ from searchos.skills.pipeline.access.tools.files import (
 )
 from searchos.skills.pipeline.access.tools.web import TOOL_DEFINITIONS as BROWSER_TOOLS
 
-SEND_MESSAGE_TOOL = _tool('send_message', '向指定角色交接任务或返回结果。宿主保存消息并顺序执行接收角色。', {
+SEND_MESSAGE_TOOL = _tool('send_message', '向 validator 提交当前候选；调用方式、参数和输出说明写入 SKILL.md，Validator 自主阅读并验收。'
+    '向 planner 澄清业务范围或研究依据。宿主保存消息并顺序执行接收角色。', {
     'role': {'type': 'string', 'enum': ['planner', 'builder', 'validator']},
     'content': {'oneOf': [{'type': 'string'}, {'type': 'object'}]},
 }, ['role', 'content'])
@@ -56,6 +57,12 @@ class AccessBuilderAgent:
         budgeted_round = workspace.validation.validation_rounds
         repair_budget, budget_source, phase_start = None, None, 0
         while True:
+            current = workspace.validation.current_validation_report()
+            if (workspace.validation.validation_rounds and workspace.validation.package_preflight()['preflight_valid']
+                    and current.get('next_actions')
+                    and all(item['action'] == 'wait_external' for item in current['next_actions'])):
+                diagnostics['exit_reason'] = 'wait_external'
+                break
             if budgeted_round < workspace.validation.validation_rounds < workspace.validation.max_repair_attempts + 1:
                 failed_report = workspace.validation.last_validation
                 try:
@@ -77,7 +84,7 @@ class AccessBuilderAgent:
                 unfinished = (report.get('stage') == 'pending' or not report.get('report_complete', True)
                               or any(item.get('status') == 'incomplete'
                                      for item in report.get('capability_results', {}).values()))
-                if (workspace.package.files and workspace.validation.examples and unfinished
+                if (workspace.package.files and workspace.validation.package_preflight()['preflight_valid'] and unfinished
                         and workspace.validation.validation_rounds < workspace.validation.max_repair_attempts + 1):
                     record.event('validation_handoff_fallback', reason='max_turns',
                                  candidate_version=workspace.validation.validation_fingerprint())

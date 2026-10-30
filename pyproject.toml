@@ -75,7 +75,7 @@ searchos = "searchos.cli:main"
 [project.optional-dependencies]
 mobile = ["pywebpush>=2.5.0,<3", "cryptography>=46.0.0"]
 tavily = ["tavily-python>=0.5.0"]
-browser = ["playwright>=1.40.0"]
+browser = ["playwright>=1.40.0", "cryptography>=46.0.0"]
 crawl4ai = ["crawl4ai>=0.4.0"]
 anthropic = ["langchain-anthropic>=0.3.0"]  # 已进核心依赖；保留 extra 向后兼容
 observability = ["langsmith>=0.2.0"]
@@ -88,6 +88,7 @@ access = [
     "pandas>=2.0",
     "pillow>=10.0.0",
     "playwright>=1.40.0",
+    "cryptography>=46.0.0",
     "scrapy>=2.13,<3",
     "scrapy-playwright>=0.0.44,<1",
     "PyPDF2>=3.0.0",

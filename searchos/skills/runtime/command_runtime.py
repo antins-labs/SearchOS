@@ -115,7 +115,14 @@ def _read_only_paths(paths) -> tuple[Path, ...]:
 
 
 def _backend(command: list[str], skill: Path, work: Path, network: bool,
-             read_only_paths: tuple[Path, ...] = ()) -> tuple[list[str], str]:
+             read_only_paths: tuple[Path, ...] = (), *, browser_profile: Path | None = None,
+             desktop: bool = False, network_ports: tuple[int, ...] | None = None,
+             listen_loopback: bool = False) -> tuple[list[str], str]:
+    if network_ports is not None and (not network or not network_ports or
+            any(type(port) is not int or not 1 <= port <= 65535 for port in network_ports)):
+        raise ValueError('invalid browser network capability')
+    if network_ports is not None and sys.platform != 'darwin':
+        raise ValueError('browser network isolation is unavailable on this platform')
     # Read only system runtimes, the selected Python environment and the package.
     roots = [Path(p) for p in ("/usr", "/bin", "/sbin", "/lib", "/lib64", "/System", "/Library/Frameworks", "/Library/Apple", "/opt/homebrew", sys.prefix, sys.base_prefix, sys.exec_prefix, sys.base_exec_prefix)]
     if cache := _browser_cache():
@@ -141,15 +148,52 @@ def _backend(command: list[str], skill: Path, work: Path, network: bool,
                    f'(allow file-read* file-write* (subpath {json.dumps(str(work))}))'
                    '(allow file-read* file-write* (literal "/dev/null") (literal "/dev/urandom") (literal "/dev/random"))')
         # Headless Chromium uses power monitoring and a PID-named rendezvous port.
-        if _browser_cache():
+        if _browser_cache() or browser_profile is not None:
             profile += (
                 '(allow iokit-open (iokit-user-client-class "RootDomainUserClient"))'
                 '(allow mach-register mach-lookup (global-name-regex '
-                '#"^org[.]chromium[.]Chromium[.]MachPortRendezvousServer[.][0-9]+$"))'
+                '#"^(org[.]chromium[.]Chromium|com[.]google[.]chrome[.]for[.]testing|com[.]google[.]Chrome)[.]MachPortRendezvousServer[.][0-9]+$"))'
                 '(allow signal (target self) (target children))'
             )
-        if network:
+        if network and network_ports is not None:
+            profile += ''.join(f'(allow network-outbound (remote ip "localhost:{port}"))'
+                               for port in network_ports)
+            if listen_loopback:
+                profile += '(allow network-inbound (local ip "localhost:*"))(allow network-bind (local ip "localhost:*"))'
+                profile += (f'(allow network-bind network-inbound (local unix-socket (subpath {json.dumps(str(work))})))'
+                            f'(allow network-outbound (remote unix-socket (subpath {json.dumps(str(work))})))')
+            profile += ('(deny mach-lookup (global-name "com.apple.securityd")'
+                        ' (global-name "com.apple.securityd.xpc") (global-name "com.apple.security.agent")'
+                        ' (global-name "com.apple.SecurityServer"))')
+        elif network:
             profile += '(allow network*)(allow mach-lookup (global-name "com.apple.mDNSResponder"))(allow file-read* (literal "/private/etc/resolv.conf") (literal "/private/etc/hosts") (subpath "/private/etc/ssl"))'
+        if browser_profile is not None:
+            profile += f'(allow file-read* file-write* (subpath {json.dumps(str(browser_profile))}))'
+            profile += ('(deny mach-lookup (global-name "com.apple.securityd")'
+                        ' (global-name "com.apple.securityd.xpc") (global-name "com.apple.security.agent")'
+                        ' (global-name "com.apple.SecurityServer"))')
+        if desktop:
+            profile += ('(allow mach-lookup (global-name "com.apple.windowserver.active")'
+                        ' (global-name "com.apple.CARenderServer")'
+                        ' (global-name "com.apple.cfprefsd.agent") (global-name "com.apple.cfprefsd.daemon")'
+                        ' (global-name "com.apple.dock.server") (global-name "com.apple.dock.fullscreen")'
+                        ' (global-name "com.apple.windowmanager.server") (global-name "com.apple.tsm.portname"))'
+                        '(allow mach-lookup (global-name "com.apple.coreservices.launchservicesd")'
+                        ' (global-name "com.apple.lsd.mapdb") (global-name "com.apple.pasteboard.1")'
+                        ' (global-name "com.apple.windowserver.session"))'
+                        '(allow iokit-open (iokit-user-client-class "IOHIDParamUserClient")'
+                        ' (iokit-user-client-class "IOSurfaceRootUserClient"))'
+                        '(allow file-read* (subpath "/Library/Fonts"))'
+                        '(allow mach-register (local-name-prefix "")'
+                        ' (global-name-prefix "com.google.Chrome.apps.")'
+                        ' (global-name-prefix "com.google.chrome.for.testing.apps."))'
+                        '(allow ipc-posix-shm-read* (ipc-posix-name "apple.shm.notification_center")'
+                        ' (ipc-posix-name-prefix "apple.cfprefs."))'
+                        '(allow mach-lookup (global-name "com.apple.CodeSigningHelper")'
+                        ' (global-name "com.apple.tccd") (global-name "com.apple.tccd.system")'
+                        ' (global-name "com.apple.SafariPlatformSupport.Helper")'
+                        ' (xpc-service-name "com.apple.SafariPlatformSupport.Helper")'
+                        ' (xpc-service-name "com.apple.ViewBridgeAuxiliary"))')
         return [sandbox, '-p', profile, *command], 'sandbox-exec'
     if sys.platform.startswith('linux'):
         bwrap = shutil.which('bwrap')
@@ -164,6 +208,16 @@ def _backend(command: list[str], skill: Path, work: Path, network: bool,
             if Path(filename).exists():
                 args += ['--ro-bind', filename, filename]
         args += ['--proc', '/proc', '--dev', '/dev', '--bind', str(work), str(work), '--chdir', str(work), '--', *command]
+        extra = []
+        if browser_profile is not None:
+            extra += ['--bind', str(browser_profile), str(browser_profile)]
+        if desktop and Path('/tmp/.X11-unix').is_dir():
+            extra += ['--ro-bind', '/tmp/.X11-unix', '/tmp/.X11-unix']
+        if desktop and os.environ.get('XDG_RUNTIME_DIR') and os.environ.get('WAYLAND_DISPLAY'):
+            socket = Path(os.environ['XDG_RUNTIME_DIR']) / os.environ['WAYLAND_DISPLAY']
+            if socket.exists():
+                extra += ['--ro-bind', str(socket), str(socket)]
+        args[1:1] = extra
         return args, 'bubblewrap'
     raise ValueError('no supported OS isolation backend')
 
@@ -281,158 +335,115 @@ async def run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
                       execution_dir: Path, stdin: str = '', timeout_s: float = 60,
                       network: bool = True, execution_id: str | None = None,
                       proxy_mode: str = 'inherit', diagnostic_network_override: bool = False,
-                      network_audit: bool = False, read_only_paths=(), trace_functions: bool = False) -> dict:
-    """认证浏览器由宿主提供有限能力；命令始终在原沙箱内执行。"""
-    from searchos.skills.runtime.browser_auth import command_network_mode, command_profile, AuthRequired
-    started_at = asyncio.get_running_loop().time()
+                      network_audit: bool = False, read_only_paths=(), trace_functions: bool = False,
+                      browser: bool = False, browser_request: dict | None = None) -> dict:
+    """创建任务持有浏览器；确认后探测返回调用方，CLI 至多重试一次。"""
+    from searchos.skills.runtime.browser_session import BrowserSession, command_profile, current_session
+    from searchos.skills.runtime.network import command_network_mode, proxy_environment, validate_proxy_mode
+    session, owned = current_session.get(), False
     kwargs = dict(work_dir=work_dir, execution_dir=execution_dir, stdin=stdin,
                   timeout_s=timeout_s, network=network, execution_id=execution_id, proxy_mode=proxy_mode)
-    if diagnostic_network_override:
-        kwargs['diagnostic_network_override'] = True
-    if network_audit:
-        kwargs['network_audit'] = True
-    if trace_functions:
-        kwargs['trace_functions'] = True
-    # Invalid commands must not open a login window or launch a browser.
+    for key, value in [('diagnostic_network_override', diagnostic_network_override),
+                       ('network_audit', network_audit), ('trace_functions', trace_functions)]:
+        if value:
+            kwargs[key] = value
     try:
-        from searchos.skills.runtime.network import validate_proxy_mode, proxy_environment
-        if (not isinstance(timeout_s, (int, float)) or not math.isfinite(timeout_s)
-                or not 0 < timeout_s <= 300):
+        if not isinstance(timeout_s, (int, float)) or not math.isfinite(timeout_s) or not 0 < timeout_s <= 300:
             raise ValueError('timeout must be between 0 and 300 seconds')
         validate_proxy_mode(proxy_mode)
         if network:
-            proxy_environment(proxy_mode)  # Fail before opening a browser if no proxy exists.
+            proxy_environment(proxy_mode)
         _entry(Path(skill_dir).resolve(), argv)
-        allowed_reads = _read_only_paths(read_only_paths)
-        if allowed_reads:
+        reads = _read_only_paths(read_only_paths)
+        if reads:
             work, records = (Path(path).resolve() for path in (work_dir, execution_dir))
-            if any(_inside(a, b) or _inside(b, a)
-                   for a in allowed_reads for b in (work, records)):
+            if any(_inside(a, b) or _inside(b, a) for a in reads for b in (work, records)):
                 raise ValueError('read-only paths must be separate from work and execution directories')
-            kwargs['read_only_paths'] = allowed_reads
-        profile = command_profile(Path(skill_dir), argv) if network else None
-        browser_mode = proxy_mode
-        if profile and not diagnostic_network_override:
-            browser_mode = command_network_mode(Path(skill_dir), argv)
-            proxy_environment(browser_mode)
+            kwargs['read_only_paths'] = reads
+        site = command_profile(Path(skill_dir), argv)
+        if browser and not session:
+            raise ValueError('browser probe requires a host-bound creation session')
+        if (site or browser) and not network:
+            raise ValueError('browser execution requires network access')
+        if site and session and site != session.site:
+            raise ValueError('browser profile host does not match this task')
+        if site and session is None:
+            session, owned = BrowserSession(site), True
+        mode = (command_network_mode(Path(skill_dir), argv)
+                if site and not diagnostic_network_override else proxy_mode)
+        if site or browser:
+            proxy_environment(mode)
     except (ValueError, OSError, TypeError) as exc:
         return {'status': 'blocked', 'error': str(exc), 'started': False,
                 'exit_code': None, 'artifacts': [], 'stdout': '', 'stderr': ''}
-    if not profile:
+    if not site and not browser:
         return await _run_command(skill_dir, argv, **kwargs)
-    execution_id = execution_id or ('exec-' + uuid.uuid4().hex)
-    if (not isinstance(execution_id, str) or not execution_id or len(execution_id) > 100
-            or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-'
-                   for c in execution_id)):
-        return {'status': 'blocked', 'error': 'invalid execution id', 'started': False,
-                'exit_code': None, 'artifacts': [], 'stdout': '', 'stderr': ''}
-    kwargs['execution_id'] = execution_id
-    record = Path(execution_dir).resolve() / execution_id / 'record.json'
-    if record.parent.exists() or record.parent.is_symlink():
-        return {'status': 'blocked', 'error': 'execution record already exists', 'started': False,
-                'execution_id': execution_id, 'exit_code': None, 'artifacts': [],
-                'stdout': '', 'stderr': ''}
-    from searchos.skills.runtime.browser_broker import browser_bridge
-
-    loop = asyncio.get_running_loop()
-    deadline = started_at + timeout_s
-    phase, receipt, owns_record = 'browser_prepare', None, False
-
-    def observe_receipt(result, owned):
-        nonlocal receipt, owns_record
-        receipt, owns_record = result, owned
-
-    async def lifecycle():
-        nonlocal phase, receipt
-        async with browser_bridge(profile, proxy_mode=browser_mode) as env:
-            phase = 'command'
-            remaining = deadline - loop.time()
-            if remaining <= 0:
-                raise TimeoutError
-            receipt = await _run_command(skill_dir, argv,
-                **{**kwargs, 'timeout_s': remaining}, browser_env=env,
-                _receipt_callback=observe_receipt)
-            phase = 'browser_cleanup'
-
-    task = asyncio.create_task(lifecycle())
-    cancelled = timed_out = False
-    timeout_phase = None
+    history = []
+    request = browser_request or {'argv': argv, 'stdin': stdin}
     try:
-        done, _ = await asyncio.wait({task}, timeout=max(0, deadline - loop.time()))
-        if not done:
-            timed_out, timeout_phase = True, phase
-            task.cancel()
-    except asyncio.CancelledError:
-        cancelled = True
-        task.cancel()
-
-    # 正常阶段共用期限；取消和超时后的资源释放最多再使用半秒。
-    if not task.done():
-        async def drain():
-            grace_end = loop.time() + BROWSER_CLEANUP_GRACE_S
-            done, _ = await asyncio.wait({task}, timeout=BROWSER_CLEANUP_GRACE_S * .8)
-            if not done:
-                task.cancel()
-                await asyncio.wait({task}, timeout=max(0, grace_end - loop.time()))
-        draining = asyncio.create_task(drain())
-        while not draining.done():
+        cached = session.blocked_requests.get(session.request_key(request))
+        if cached:
+            return {**{key: value for key, value in cached.items() if key != 'execution_id'},
+                    'started': False, 'blocked_execution_id': cached.get('execution_id'),
+                    'cached_external_block': True}
+        while True:
+            started = asyncio.get_running_loop().time()
             try:
-                await asyncio.shield(draining)
-            except asyncio.CancelledError:
-                cancelled = True
-        draining.result()
-    failure = None
-    if task.done():
-        try:
-            task.result()
-        except BaseException as exc:
-            failure = exc
-    else:
-        # 原生资源关闭有自己的取消边界；记录未完成清理，避免隐藏任务异常。
-        task.add_done_callback(lambda completed: None if completed.cancelled()
-                               else completed.exception())
+                env = await asyncio.wait_for(session.ensure(mode), timeout_s)
+                remaining = timeout_s - (asyncio.get_running_loop().time() - started)
+                if remaining <= 0:
+                    raise TimeoutError
+                result = await _run_command(skill_dir, argv,
+                    **{**kwargs, 'timeout_s': remaining}, browser_env=env, browser_session=session)
+            except TimeoutError:
+                result = {'status': 'timed_out', 'timed_out': True, 'started': False,
+                          'exit_code': None, 'stdout': '', 'stderr': '', 'artifacts': []}
+            except (ValueError, OSError) as exc:
+                result = {'status': 'blocked', 'error': session.clean(str(exc)), 'external_blocked': True,
+                          'next_action': 'wait_external', 'started': False, 'exit_code': None,
+                          'stdout': '', 'stderr': '', 'artifacts': []}
+            retry, resolved = await session.resolve(result, request, after_confirmation=bool(history))
+            if result.get('execution_id'):
+                receipt = Path(execution_dir) / result['execution_id'] / 'record.json'
+                receipt.write_text(json.dumps(resolved, ensure_ascii=False, indent=2))
+            if not retry:
+                return {**resolved, **({'previous_executions': history} if history else {})}
+            history.append(resolved)
+            kwargs['execution_id'] = None
+    finally:
+        if owned:
+            cleanup = asyncio.create_task(session.close())
+            while not cleanup.done():
+                try:
+                    await asyncio.shield(cleanup)
+                except asyncio.CancelledError:
+                    continue
+            cleanup.result()
 
-    had_receipt = receipt is not None
-    if receipt is None:
-        receipt = {'execution_id': execution_id, 'status': 'blocked', 'started': False,
-                   'exit_code': None, 'artifacts': [], 'stdout': '', 'stderr': ''}
-        if isinstance(failure, AuthRequired):
-            receipt.update(auth_required=True, error=str(failure))
-        elif failure is not None and not isinstance(failure, asyncio.CancelledError):
-            receipt['error'] = 'browser_unavailable: ' + type(failure).__name__
 
-    cleanup_error = getattr(failure, 'cleanup_error', None)
-    if had_receipt and failure is not None and not isinstance(failure, asyncio.CancelledError):
-        cleanup_error = cleanup_error or 'browser_cleanup_failed: ' + type(failure).__name__
-    if not task.done():
-        cleanup_error = 'browser_cleanup_timeout: lifecycle did not stop within cleanup grace'
-    if timed_out:
-        receipt.update(timed_out=True, timeout_phase=timeout_phase)
-        if receipt.get('status') not in {'completed', 'failed', 'timed_out'}:
-            receipt['status'] = 'timed_out'
-        if timeout_phase == 'browser_cleanup':
-            cleanup_error = cleanup_error or 'browser_cleanup_timeout: call deadline exceeded'
-    elif receipt.get('timed_out'):
-        receipt.setdefault('timeout_phase', 'command')
-    if isinstance(failure, asyncio.CancelledError) and not timed_out:
-        cancelled = True
-    if cancelled:
-        receipt['cancelled'] = True
-    if cleanup_error:
-        receipt['cleanup_error'] = '; '.join(filter(None,
-            [receipt.get('cleanup_error'), cleanup_error]))
-    if owns_record and record.parent.is_dir() and not record.parent.is_symlink() and not record.is_symlink():
-        temporary = record.with_name('record-browser-' + uuid.uuid4().hex + '.tmp')
-        try:
-            temporary.write_text(json.dumps(receipt, ensure_ascii=False, indent=2), encoding='utf-8')
-            temporary.replace(record)
-        except OSError as exc:
-            receipt['record_error'] = type(exc).__name__
-        finally:
-            temporary.unlink(missing_ok=True)
-    if cancelled:
-        raise asyncio.CancelledError
-    return receipt
+def _redact_browser_execution(result, session, execution_dir, work_dir):
+    """在回执、日志与分发产物可见前清除会话信息。"""
+    roots = [Path(work_dir)]
+    if result.get('execution_id'):
+        roots.append(Path(execution_dir) / result['execution_id'])
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for path in root.rglob('*'):
+            if not path.is_file() or path.is_symlink():
+                continue
+            data = path.read_bytes()
+            try:
+                value = data.decode('utf-8')
+            except UnicodeError:
+                if any(secret.encode() in data for secret in session.secrets if len(secret) >= 4):
+                    path.unlink()
+                continue
+            cleaned = session.clean(value)
+            if cleaned != value:
+                path.write_text(cleaned, encoding='utf-8')
+    result = session.clean(result)
+    return result
 
 
 async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
@@ -440,7 +451,8 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
                       network: bool = True, execution_id: str | None = None,
                       browser_env: dict | None = None, proxy_mode: str = 'inherit',
                       diagnostic_network_override: bool = False, network_audit: bool = False,
-                      _receipt_callback=None, read_only_paths=(), trace_functions: bool = False) -> dict:
+                      _receipt_callback=None, read_only_paths=(), trace_functions: bool = False,
+                      browser_session=None) -> dict:
     """返回一次命令记录；取消时保存 cancelled 记录并重新抛出 CancelledError。
 
     execution_dir/<execution_id>/record.json、非空日志及 artifacts/。
@@ -468,9 +480,11 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
                            diagnostic_network_override=diagnostic_network_override,
                            network_audit=network_audit)
         if browser_env:
-            if set(browser_env) != {'SEARCHOS_BROWSER_URL', 'SEARCHOS_BROWSER_TOKEN'}:
+            if set(browser_env) != {'BROWSER_CDP_URL'}:
                 raise ValueError('unexpected browser capability environment')
             env.update(browser_env)
+            bypass = ','.join(filter(None, [env.get('NO_PROXY', ''), 'localhost', '127.0.0.1', '::1']))
+            env['NO_PROXY'] = env['no_proxy'] = bypass
         allowed_reads = _read_only_paths(read_only_paths)
         trace_path = None
         if trace_functions and argv[0] in {'python', 'python3'}:
@@ -482,6 +496,12 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
             raise ValueError('read-only paths must be separate from work and execution directories')
         marker = execution_id
         backend_options = {'read_only_paths': allowed_reads} if allowed_reads else {}
+        if browser_env:
+            from urllib.parse import urlsplit
+            endpoint = urlsplit(browser_env['BROWSER_CDP_URL'])
+            if endpoint.scheme != 'ws' or endpoint.hostname != '127.0.0.1' or not endpoint.port or len(endpoint.path) < 32:
+                raise ValueError('browser capability requires an authenticated local gateway')
+            backend_options['network_ports'] = (endpoint.port,)
         command, backend = _backend([sys.executable, '-I', str(_LAUNCHER), str(marker), str(timeout_s), *command], skill, work, network, **backend_options)
         work.mkdir(parents=True, exist_ok=True)
         list(_files(work))
@@ -596,6 +616,14 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
                     result['function_trace'] = {'complete': False, 'calls': []}
                 finally:
                     trace_path.unlink(missing_ok=True)
+            if browser_session:
+                try:
+                    await browser_session.refresh_secrets()
+                except Exception:
+                    result['cleanup_error'] = 'browser_state_unavailable'
+                clean = _redact_browser_execution(result, browser_session, execution_dir, work_dir)
+                result.clear()
+                result.update(clean)
             try:
                 result['artifacts'] = _snapshot(work, record / 'artifacts')
             except (OSError, ValueError) as exc:

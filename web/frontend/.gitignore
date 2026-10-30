@@ -15,6 +15,7 @@
 
 # next.js
 /.next/
+/.next-browser-acceptance/
 /out/
 
 # production

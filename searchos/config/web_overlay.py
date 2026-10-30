@@ -21,7 +21,7 @@ import os
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, Field, model_validator, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from searchos.config.middleware import MiddlewareOverlay
 
@@ -43,7 +43,9 @@ class EffortOverlay(BaseModel, extra="forbid"):
 
 
 class SkillsOverlay(BaseModel, extra="forbid"):
-    @field_validator("access_only", "access_deny", "strategy_deny", "orchestrator_deny", mode="before")
+    @field_validator(
+        "access_only", "access_deny", "strategy_deny", "orchestrator_deny", mode="before"
+    )
     @classmethod
     def migrate_skill_names(cls, values):
         from searchos.skills.names import canonical_skill_name
@@ -164,8 +166,8 @@ class AdvancedOverlay(BaseModel, extra="forbid"):
     """First-class runtime knobs that ``effort`` does not cover. Sparse: None =
     no override, env/code default wins.
 
-    ``https_proxy`` is not a ``settings`` field — the HTTP libraries read it from
-    ``os.environ``, so ``apply_to_runtime`` exports it there (and to ``HTTP_PROXY``).
+    ``https_proxy`` 通过进程环境控制 HTTP 客户端。None 保留环境，空字符串
+    清除大小写 HTTP(S)_PROXY 与 ALL_PROXY，地址同时应用于大小写 HTTP(S)_PROXY。
     ``browser_disk_cache_dir`` / ``llm_max_retries`` map straight onto ``settings``.
     Concurrency / iteration / wall-clock time stay in ``effort`` (see
     ``config.effort.EFFORT_KEYS``) — duplicating them here would re-create the
@@ -174,7 +176,7 @@ class AdvancedOverlay(BaseModel, extra="forbid"):
     llm_max_retries: int | None = None
     orch_coverage_stall_rounds: int | None = None
     browser_disk_cache_dir: str | None = None
-    https_proxy: str | None = None  # applied to both HTTP_PROXY and HTTPS_PROXY
+    https_proxy: str | None = None  # None 沿用环境，空字符串关闭应用代理。
     use_layered_context: bool | None = None
 
 
@@ -450,9 +452,7 @@ def apply_to_runtime() -> None:
     if store.skills.access_skill_max_per_run is not None:
         settings.access_skill_max_per_run = store.skills.access_skill_max_per_run
 
-    # Advanced knobs. Proxy is not a settings field — the HTTP stack reads it
-    # from the environment, so export it there (and to HTTP_PROXY); clearing the
-    # override removes the env vars so a bare os.environ base can show through.
+    # HTTP 客户端从环境读取代理；显式配置统一覆盖大小写并清理旧 fallback。
     adv = store.advanced
     if adv.llm_max_retries is not None:
         settings.llm_max_retries = adv.llm_max_retries
@@ -467,11 +467,12 @@ def apply_to_runtime() -> None:
         **{key: list(value) for key, value in store.middleware.pipelines.items()},
     }
     if adv.https_proxy is not None:
-        for var in ("HTTP_PROXY", "HTTPS_PROXY"):
-            if adv.https_proxy:
+        for var in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY",
+                    "http_proxy", "https_proxy", "all_proxy"):
+            os.environ.pop(var, None)
+        if adv.https_proxy:
+            for var in ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy"):
                 os.environ[var] = adv.https_proxy
-            else:
-                os.environ.pop(var, None)
 
 
 __all__ = [

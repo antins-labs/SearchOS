@@ -27,6 +27,7 @@ class PipelineResult:
     capability_results: dict[str, dict] = field(default_factory=dict)
     validation_status: str = ''
     artifact_path: Path | None = None
+    package_hash: str = ''
 
     def to_report(self) -> dict[str, Any]:
         report = {'category': self.request.category.value, 'name': self.request.name,
@@ -49,6 +50,8 @@ class PipelineResult:
             report['validation_status'] = self.validation_status
         if self.artifact_path:
             report['artifact_path'] = str(self.artifact_path)
+        if self.package_hash:
+            report['package_hash'] = self.package_hash
         return report
 
 
@@ -66,7 +69,10 @@ async def run_pipeline(request: SkillRequest, *, library_path: str | Path,
                        access_planner_max_turns: int = 50,
                        access_validation_model: Any = None,
                        access_validation_max_turns: int = 50,
-                       access_site_session: Path | None = None) -> PipelineResult:
+                       access_site_session: Path | None = None,
+                       allow_interaction: bool = False, on_user_action: Any = None,
+                       access_revalidate: Path | None = None, expected_base_hash: str | None = None,
+                       access_resume_input: dict | None = None) -> PipelineResult:
     """一个请求对应一次生成；不解析用户问题或轨迹，也不进行运行时选择。"""
     library = Path(library_path)
     category_root = library / request.category.value
@@ -89,6 +95,8 @@ async def run_pipeline(request: SkillRequest, *, library_path: str | Path,
         if old_host and request.host and old_host != request.host:
             raise ValueError('update cannot change the target host')
         original_hash = package_fingerprint(final) if existing else None
+        if expected_base_hash is not None and original_hash != expected_base_hash:
+            raise ValueError('installed skill changed since original validation; start a new update')
         from dataclasses import asdict
         from uuid import uuid4
 
@@ -136,6 +144,9 @@ async def run_pipeline(request: SkillRequest, *, library_path: str | Path,
                                           validation_examples=access_validation_examples,
                                           site_intent=bool(access_site_intent), intent_model=access_intent_model,
                                           site_session_path=access_site_session, on_stage=on_stage,
+                                          allow_interaction=allow_interaction, on_user_action=on_user_action,
+                                          revalidate_from=access_revalidate,
+                                          resume_input=access_resume_input,
                                           existing_package=final if existing else None, resume_draft=resume_draft)
             else:
                 if on_stage is not None:
@@ -192,6 +203,7 @@ async def run_pipeline(request: SkillRequest, *, library_path: str | Path,
                 from searchos.skills.pipeline.strategy.trial import save_record
                 save_record(trial_path, {'status': 'installed', 'path': str(final), 'diagnostics': diagnostics})
             return PipelineResult(request, 'installed', path=final, trial_path=trial_path,
+                                  package_hash=package_fingerprint(final),
                                   capability_results=diagnostics.get('capability_results', {}),
                                   validation_status=diagnostics.get('validation_status', ''),
                                   artifact_path=Path(diagnostics['artifact_path'])

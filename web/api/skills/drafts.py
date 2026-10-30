@@ -41,6 +41,7 @@ def detail(job, root, index):
                 except ValueError:
                     continue  # 运行中最后一个事件可能尚未写完。
     return {'name': data['name'], 'revision': data['package'], 'files': list(data['files']),
+            'contract_version': data.get('contract_version'),
             'examples': data['examples'], 'validation': data['validation'],
             'diagnostics': json.loads(diagnostics.read_text()) if diagnostics.exists() else {},
             'events': recent}
@@ -77,6 +78,7 @@ def edit_file(job, root, index, *, path, content, revision):
         shutil.copytree(package, edited)
         (edited / relative).write_text(content, encoding='utf-8')
         save_draft(pointer.parent, edited, data['files'], name=data['name'], examples=data['examples'],
-                   require_host=data['require_host'], validation={'valid': False, 'stage': 'edited',
+                   require_host=data['require_host'], contract_version=data.get('contract_version'),
+                   validation={'valid': False, 'stage': 'edited',
                    'error': '草稿已手动编辑，继续修复时将重新验证。', 'previous': data['validation']})
     return detail(job, root, index)

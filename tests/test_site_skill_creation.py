@@ -1,131 +1,75 @@
-"""站点能力集合、双 Agent 交互、完整能力验收与草稿保留。"""
+"""站点研究计划、角色交接、完整能力验收与草稿保留。"""
 import json
 from copy import deepcopy
 
 import pytest
 from langchain_core.messages import AIMessage
 
-from searchos.skills.intent.site import validate_plan, capability_examples
+from searchos.skills.pipeline.access import CONTRACT_VERSION
+from searchos.skills.pipeline.access.agents.planner import validate_plan
+
+pytestmark = pytest.mark.usefixtures('deterministic_validation_agent')
 
 
 def plan():
-    return {'capabilities': [dict(id=name, purpose=purpose, inputs={'query': '查询词'},
-        required_fields=['title', 'source_url'], examples=[{'query': 'alpha'}, {'query': 'beta'}],
-        evidence_ids=['obs-1'], depends_on=[])
+    return {'capabilities': [dict(id=name, purpose=purpose, evidence_ids=['obs-1'], depends_on=[])
         for name, purpose in [('search', '搜索记录'), ('detail', '读取实体')]], 'limitations': []}
 
 
-def boundary_case(**updates):
-    return dict({'input': {'query': 'observed-empty'}, 'expected_status': 'empty',
-                 'reason': '已读取的原生结果页明确显示无匹配记录。', 'evidence_ids': ['obs-1']}, **updates)
+def examples():
+    return [{'capability_id': name, 'required_fields': ['title', 'source_url'],
+             'argv': ['python', 'scripts/access.py', name, '--input', json.dumps({'query': query})],
+             'output': '', 'records_key': 'records', 'source_key': 'source_url'}
+            for name in ('search', 'detail') for query in ('alpha', 'beta')]
 
 
-@pytest.mark.parametrize('cases', [
-    [boundary_case(input={'query': 'alpha'})],
-    [boundary_case(), boundary_case(expected_status='ok')],
+@pytest.mark.parametrize('capability_count', [6, 20])
+def test_site_plan_accepts_all_discovered_capabilities(capability_count):
+    value = plan()
+    template = value['capabilities'][0]
+    value['capabilities'] = [
+        {**deepcopy(template), 'id': f'cap_{index}',
+         'depends_on': [f'cap_{index - 1}'] if index else []}
+        for index in range(capability_count)
+    ]
+    assert validate_plan(value, [{'id': 'obs-1', 'tool': 'web_open', 'usable': True}]) == value
+
+
+def test_plan_ignores_interface_declarations_and_preserves_research():
+    value = plan()
+    value['capabilities'][0].update(inputs={'q': '查询'}, required_fields=['forced'],
+        examples=[{'q': 'alpha'}], boundary_cases=[{'input': {'q': ''}}],
+        acceptance=['覆盖文章与回答'], implementation='已观察接口返回 article 和 answer 类型')
+    original = deepcopy(value)
+    result = validate_plan(value, [{'id': 'obs-1', 'tool': 'web_open', 'usable': True}])
+    cap = result['capabilities'][0]
+    assert not {'inputs', 'required_fields', 'examples', 'boundary_cases'} & cap.keys()
+    assert cap['acceptance'] == ['覆盖文章与回答'] and cap['implementation']
+    assert value == original
+
+
+@pytest.mark.parametrize('change', [
+    {'purpose': ''}, {'acceptance': '字段名'}, {'depends_on': ['missing']},
+    {'depends_on': ['search']}, {'evidence_ids': ['missing']},
 ])
-def test_boundary_inputs_cannot_duplicate_or_contradict_locked_cases(cases):
-    value = plan(); value['capabilities'][0]['boundary_cases'] = cases
-    with pytest.raises(ValueError, match='distinct'):
+def test_plan_still_checks_goals_dependencies_and_evidence(change):
+    value = plan()
+    value['capabilities'][0].update(change)
+    with pytest.raises(ValueError):
         validate_plan(value, [{'id': 'obs-1', 'tool': 'web_open', 'usable': True}])
 
 
-@pytest.mark.asyncio
-@pytest.mark.parametrize('fresh', [False, True])
-async def test_intent_can_only_add_boundary_cases_with_fresh_page_evidence(tmp_path, fresh):
-    from searchos.skills.intent.site import SiteIntentSession
-    from searchos.skills.pipeline.access.records import BuildRecord
-    from searchos.skills.pipeline.access.tools import BuilderWorkspace
-    workspace = BuilderWorkspace(tmp_path/'package')
-    try:
-        session = SiteIntentSession(None, workspace, BuildRecord(tmp_path/'record'))
-        session.state.update(plan=plan(), observations=[{'id': 'obs-1', 'tool': 'web_open', 'usable': True}])
-        workspace.set_validation_examples(capability_examples(session.state['plan']))
-        initial = deepcopy(session.state['plan'])
-        async def converse(*args, **kwargs):
-            oid = session.observe('web_open', {'id_or_url': 'https://example.com/no-match'},
-                {'content': 'No matching records', 'live_evidence': True}, 'intent') if fresh else 'obs-1'
-            return kwargs['response_validator']({
-                'status': 'clarified', 'guidance': '新增已核实的无匹配边界，保留原能力。',
-                'evidence_ids': [oid], 'boundary_additions': [boundary_case(evidence_ids=[oid])]})
-        session.converse = converse
-        if not fresh:
-            with pytest.raises(ValueError, match='newly opened'):
-                await session.advise('search', '无匹配结果也应纳入验收', ['obs-1'])
-            assert session.state['plan'] == initial
-            assert workspace.examples == capability_examples(initial)
-        else:
-            result = await session.advise('search', '无匹配结果也应纳入验收', ['obs-1'])
-            assert len(workspace.examples) == len(capability_examples(initial)) + 1
-            assert result['contract_revision'] == 1 and result['requirements_unchanged']
-            assert session.state['initial_plan'] == initial
-            assert session.state['plan']['capabilities'][0]['examples'] == initial['capabilities'][0]['examples']
-            assert session.state['plan']['capabilities'][0]['required_fields'] == initial['capabilities'][0]['required_fields']
-            assert session.state['revisions'][0]['boundary_additions'][0]['expected_status'] == 'empty'
-            assert workspace.examples[-1]['check_kind'] == 'boundary'
-            assert json.loads(session.path.read_text())['plan'] == session.state['plan']
-    finally:
-        workspace.close()
-
-
-def test_optional_boundary_cases_compile_without_changing_old_positive_examples():
-    original = plan()
-    positives = capability_examples(original)
-    value = deepcopy(original)
-    value['capabilities'][0]['boundary_cases'] = [boundary_case(),
-        boundary_case(input={'query': None}, expected_status='invalid_input', reason='接口要求查询词为非空字符串。')]
-    validated = validate_plan(value, [{'id': 'obs-1', 'usable': True, 'tool': 'web_open'}])
-    compiled = capability_examples(validated)
-    assert compiled[:len(positives)] == positives
-    boundaries = compiled[len(positives):]
-    assert [case['expected_status'] for case in boundaries] == ['empty', 'invalid_input']
-    assert all(case['check_kind'] == 'boundary' and case['capability_id'] == 'search' for case in boundaries)
-    assert json.loads(boundaries[0]['argv'][-1]) == {'query': 'observed-empty'}
-    assert capability_examples(validate_plan(original, [{'id': 'obs-1', 'usable': True}])) == positives
-
-
-@pytest.mark.parametrize('cases', [
-    [boundary_case()] * 4,
-    [boundary_case(input={'undeclared': 'x'})], [boundary_case(input=None)],
-    [boundary_case(expected_status='error')], [boundary_case(expected_status=None)],
-    [boundary_case(reason='  ')], [boundary_case(evidence_ids=[])],
-    [boundary_case(evidence_ids=['unknown'])], [boundary_case(evidence_ids=['obs-search'])],
-])
-def test_boundary_cases_require_bounded_declared_inputs_and_page_evidence(cases):
-    value = plan(); value['capabilities'][0]['boundary_cases'] = cases
-    with pytest.raises(ValueError, match='boundary_cases'):
-        validate_plan(value, [{'id': 'obs-1', 'tool': 'web_open', 'usable': True},
-                              {'id': 'obs-search', 'tool': 'web_search', 'usable': True}])
-
-
-def test_new_boundary_cannot_claim_legacy_observation_without_a_page_tool():
-    value = plan(); value['capabilities'][0]['boundary_cases'] = [boundary_case()]
-    with pytest.raises(ValueError, match='boundary_cases'):
-        validate_plan(value, [{'id': 'obs-1', 'usable': True}])
-
-
-def test_builder_receives_boundary_page_evidence_with_the_locked_plan(tmp_path):
+def test_builder_receives_referenced_research_without_fixed_interface(tmp_path):
     from types import SimpleNamespace
-    from searchos.skills.intent.site import SiteIntentSession
-    session = SiteIntentSession(None, None, SimpleNamespace(root=tmp_path))
+    from searchos.skills.pipeline.access.agents.planner import SitePlannerAgent
+    session = SitePlannerAgent(None, None, SimpleNamespace(root=tmp_path))
     session.state['plan'] = plan()
-    session.state['plan']['capabilities'][0]['boundary_cases'] = [boundary_case(evidence_ids=['obs-2'])]
     session.state['observations'] = [
-        {'id': 'obs-1', 'tool': 'web_open', 'result': {'content': 'normal page'}},
-        {'id': 'obs-2', 'tool': 'web_open', 'result': {'content': 'boundary page explicitly confirms no matches'}},
+        {'id': 'obs-1', 'tool': 'web_open', 'result': {'content': 'Observed authors and full text'}},
     ]
-    assert 'boundary page explicitly confirms no matches' in session.builder_notes()
-
-
-@pytest.mark.parametrize('examples', [[{}], [{}, {}]])
-def test_no_argument_feed_does_not_require_invented_inputs(examples):
-    value = plan()
-    value['capabilities'][0].update(id='get_live_alerts', inputs={}, examples=examples)
-    original = deepcopy(value)
-    result = validate_plan(value, [{'id': 'obs-1', 'usable': True}])
-    assert result['capabilities'][0]['examples'] == [{}]
-    assert len(capability_examples(result)) == 3
-    assert value == original
+    notes = session.builder_notes()
+    assert 'Observed authors and full text' in notes
+    assert 'python scripts/access.py' not in notes and '"status":"ok"' not in notes
 
 
 @pytest.mark.parametrize('result', [
@@ -151,17 +95,17 @@ def test_search_results_without_a_read_page_cannot_lock_a_capability(observation
 
 @pytest.mark.asyncio
 async def test_structured_submission_storage_error_stops_after_one_model_call(tmp_path, monkeypatch):
-    from searchos.skills.intent.site import SiteIntentSession
-    from searchos.skills.pipeline.access.records import BuildRecord
+    from searchos.skills.pipeline.access.agents.planner import SitePlannerAgent
+    from searchos.skills.pipeline.access.artifacts import BuildRecord
     from types import SimpleNamespace
     class Intent:
         calls = 0
         def bind_tools(self, definitions): return self
         async def ainvoke(self, messages):
             self.calls += 1
-            return AIMessage(content='', tool_calls=[dict(id='plan', name='submit_site_plan', args=plan())])
+            return AIMessage(content=json.dumps(plan()))
     model = Intent()
-    session = SiteIntentSession(model, SimpleNamespace(), BuildRecord(tmp_path / 'record'))
+    session = SitePlannerAgent(model, SimpleNamespace(), BuildRecord(tmp_path / 'record'))
     session.state['observations'] = [{'id': 'obs-1', 'usable': True}]
     save = session.save
     def fail_proposal_save():
@@ -178,8 +122,8 @@ async def test_structured_submission_storage_error_stops_after_one_model_call(tm
 
 @pytest.mark.asyncio
 async def test_intent_can_research_and_correct_submission_within_regular_calls(tmp_path):
-    from searchos.skills.intent.site import SiteIntentSession
-    from searchos.skills.pipeline.access.records import BuildRecord
+    from searchos.skills.pipeline.access.agents.planner import SitePlannerAgent
+    from searchos.skills.pipeline.access.artifacts import BuildRecord
     from types import SimpleNamespace
     requests = []
     class Browser:
@@ -194,16 +138,16 @@ async def test_intent_can_research_and_correct_submission_within_regular_calls(t
         async def ainvoke(self, messages):
             self.calls += 1
             if self.calls <= 5:
-                return AIMessage(content='', tool_calls=[dict(id=str(self.calls), name='web_search', args={'query':'docs'})])
-            assert {'submit_site_plan', 'web_search', 'web_open', 'web_find'} == self.tools
+                return AIMessage(content='', tool_calls=[dict(id=str(self.calls), name='search', args={'query':'docs'})])
+            assert {'search', 'open', 'find', 'exec'} == self.tools
             proposal = plan()
             if self.calls == 6:
-                proposal['capabilities'][0]['inputs'] = ['query']
+                proposal['capabilities'][0]['acceptance'] = 'invalid'
             else:
-                assert 'search.inputs' in messages[-1].content
-            return AIMessage(content='', tool_calls=[dict(id=str(self.calls), name='submit_site_plan', args=proposal)])
+                assert 'search.acceptance' in messages[-1].content
+            return AIMessage(content=json.dumps(proposal))
     model = Intent()
-    session = SiteIntentSession(model, SimpleNamespace(browser=Browser()), BuildRecord(tmp_path/'record'))
+    session = SitePlannerAgent(model, SimpleNamespace(browser=Browser()), BuildRecord(tmp_path/'record'))
     result = await session.prepare('example.com', ['https://example.com'], '获取信息')
     assert result == plan() and model.calls == 7
     assert len(requests) == 6  # 一次预读 + 五次研究；提交不执行网页工具。
@@ -212,10 +156,10 @@ async def test_intent_can_research_and_correct_submission_within_regular_calls(t
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('final_response', ['plan', 'malformed', 'tool'])
-async def test_intent_adds_one_final_json_call_only_after_regular_budget(tmp_path, final_response):
+async def test_advice_reserves_final_json_repair_calls_within_total_budget(tmp_path, final_response):
     from types import SimpleNamespace
-    from searchos.skills.intent.site import SiteIntentSession
-    from searchos.skills.pipeline.access.records import BuildRecord
+    from searchos.skills.pipeline.access.agents.planner import SitePlannerAgent
+    from searchos.skills.pipeline.access.artifacts import BuildRecord
     reads = []
     class Browser:
         async def dispatch(self, name, args):
@@ -226,51 +170,59 @@ async def test_intent_adds_one_final_json_call_only_after_regular_budget(tmp_pat
         bindings = 0
         def bind_tools(self, definitions):
             self.bindings += 1
-            assert 'web_open' in {tool['function']['name'] for tool in definitions}
+            assert {'search', 'find', 'open', 'exec'} == {tool['function']['name'] for tool in definitions}
             owner = self
             class Bound:
                 async def ainvoke(self, messages):
-                    owner.calls += 1
-                    return AIMessage(content='', tool_calls=[dict(id=str(owner.calls), name='web_open',
-                        args={'id_or_url': 'https://example.com/docs'})])
+                    return await owner.respond(messages)
             return Bound()
         async def ainvoke(self, messages):
+            raise AssertionError('所有阶段均使用已绑定的四工具目录。')
+        async def respond(self, messages):
             self.calls += 1
-            assert self.calls == 3 and '唯一一次额外收尾' in messages[-1].content
+            if self.calls == 1:
+                return AIMessage(content='', tool_calls=[dict(id='research', name='open',
+                    args={'id_or_url': 'https://example.com/docs'})])
+            assert self.calls in (2, 3) and '最终整理阶段' in messages[-1].content
+            assert '最终 JSON' in messages[-1].content
             if final_response == 'tool':
-                return AIMessage(content='', tool_calls=[dict(id='late', name='web_open',
+                return AIMessage(content='', tool_calls=[dict(id='late', name='open',
                     args={'id_or_url': 'https://example.com/late'})])
             return AIMessage(content=json.dumps(plan()) if final_response == 'plan' else '{}')
     model = Model()
-    session = SiteIntentSession(model, SimpleNamespace(browser=Browser()), BuildRecord(tmp_path / 'record'))
-    invoke = lambda: session.converse([], 2, validator=lambda value: validate_plan(value, session.state['observations']))
+    session = SitePlannerAgent(model, SimpleNamespace(browser=Browser()), BuildRecord(tmp_path / 'record'))
+    invoke = lambda: session.converse([], 2, response_validator=lambda value: validate_plan(value, session.state['observations']))
     if final_response == 'plan':
         assert await invoke() == plan()
     else:
         with pytest.raises(ValueError, match='budget exhausted'):
             await invoke()
-    assert model.calls == session.state['calls'] == 3 and model.bindings == 2
-    assert len(reads) == 2  # 额外收尾轮不会执行研究工具，也没有第二次收尾。
+    expected_calls = 2 if final_response == 'plan' else 3
+    assert model.calls == session.state['calls'] == expected_calls and model.bindings == 1
+    assert len(reads) == 1  # 收尾与修正轮拦截研究调用，保留正常研究结果。
+    if final_response == 'tool':
+        assert all('finalization_tool_blocked' in item['result']['error']
+                   for item in session.state['observations'][1:])
 
 
 @pytest.mark.asyncio
 async def test_invalid_unlocked_proposal_resumes_with_repair_and_preserves_history(tmp_path):
-    from searchos.skills.intent.site import SiteIntentSession
-    from searchos.skills.pipeline.access.records import BuildRecord
+    from searchos.skills.pipeline.access.agents.planner import SitePlannerAgent
+    from searchos.skills.pipeline.access.artifacts import BuildRecord
     from types import SimpleNamespace
     invalid = plan()
-    invalid['capabilities'][0]['inputs'] = ['query']
-    original = {'version':1, 'host':'example.com', 'plan':None, 'last_proposal':invalid,
-        'calls':8, 'dialogues':[], 'observations':[{'id':'obs-1','usable':True}]}
+    invalid['capabilities'][0]['acceptance'] = 'invalid'
+    original = {'version':CONTRACT_VERSION, 'host':'example.com', 'plan':None, 'last_proposal':invalid,
+        'calls':8, 'dialogues':[], 'observations':[{'id':'obs-1','tool':'web_open','usable':True}]}
     prior = tmp_path/'prior.json'; prior.write_text(json.dumps(original))
     class Intent:
         def bind_tools(self, definitions):
-            assert 'submit_site_plan' in {t['function']['name'] for t in definitions}
+            assert 'open' in {t['function']['name'] for t in definitions}
             return self
         async def ainvoke(self, messages):
-            assert 'search.inputs' in str(messages)
+            assert 'previous_proposal' in str(messages)
             return AIMessage(content=json.dumps(plan()))
-    session = SiteIntentSession(Intent(), SimpleNamespace(), BuildRecord(tmp_path/'resumed'))
+    session = SitePlannerAgent(Intent(), SimpleNamespace(), BuildRecord(tmp_path/'resumed'))
     assert await session.prepare('example.com', [], '', resume=prior) == plan()
     assert session.state['calls'] == 9
     assert json.loads(prior.read_text()) == original
@@ -279,14 +231,14 @@ async def test_invalid_unlocked_proposal_resumes_with_repair_and_preserves_histo
 
 @pytest.mark.asyncio
 async def test_unlocked_proposal_is_recalibrated_even_when_its_schema_now_passes(tmp_path):
-    from searchos.skills.intent.site import SiteIntentSession
-    from searchos.skills.pipeline.access.records import BuildRecord
+    from searchos.skills.pipeline.access.agents.planner import SitePlannerAgent
+    from searchos.skills.pipeline.access.artifacts import BuildRecord
     from types import SimpleNamespace
-    original = {'version': 1, 'host': 'example.com', 'plan': None, 'last_proposal': plan(),
+    original = {'version': CONTRACT_VERSION, 'host': 'example.com', 'plan': None, 'last_proposal': plan(),
                 'calls': 8, 'dialogues': [], 'observations': [{'id': 'obs-1', 'usable': True}]}
     prior = tmp_path / 'prior.json'; prior.write_text(json.dumps(original))
     revised = plan(); revised['capabilities'] = revised['capabilities'][:1]
-    revised['capabilities'][0].update(inputs={}, examples=[{}], evidence_ids=['obs-2'])
+    revised['capabilities'][0].update(evidence_ids=['obs-2'])
     reads = []
     class Browser:
         async def dispatch(self, name, args):
@@ -297,10 +249,10 @@ async def test_unlocked_proposal_is_recalibrated_even_when_its_schema_now_passes
         def bind_tools(self, definitions): return self
         async def ainvoke(self, messages):
             self.calls += 1
-            assert '原提案尚未锁定' in str(messages) and 'current feed only' in str(messages)
-            return AIMessage(content='', tool_calls=[dict(id='plan', name='submit_site_plan', args=revised)])
+            assert 'previous_proposal' in str(messages) and 'current feed only' in str(messages)
+            return AIMessage(content=json.dumps(revised))
     model = Intent()
-    session = SiteIntentSession(model, SimpleNamespace(browser=Browser()), BuildRecord(tmp_path / 'resumed'))
+    session = SitePlannerAgent(model, SimpleNamespace(browser=Browser()), BuildRecord(tmp_path / 'resumed'))
     assert await session.prepare('example.com', ['https://example.com/news'], '读取入口新闻', resume=prior) == revised
     assert model.calls == 1 and session.state['calls'] == 9
     assert reads == [('web_open', {'id_or_url': 'https://example.com/news'})]
@@ -310,23 +262,24 @@ async def test_unlocked_proposal_is_recalibrated_even_when_its_schema_now_passes
 
 @pytest.mark.asyncio
 async def test_locked_plan_resume_neither_researches_nor_replans(tmp_path):
-    from searchos.skills.intent.site import SiteIntentSession
-    from searchos.skills.pipeline.access.records import BuildRecord
+    from searchos.skills.pipeline.access.agents.planner import SitePlannerAgent
+    from searchos.skills.pipeline.access.artifacts import BuildRecord
     from types import SimpleNamespace
-    original = {'version': 1, 'host': 'example.com', 'plan': plan(), 'last_proposal': {'capabilities': []},
-                'calls': 8, 'dialogues': [], 'observations': [{'id': 'obs-1', 'usable': True}]}
+    original = {'version': CONTRACT_VERSION, 'host': 'example.com', 'plan': plan(), 'last_proposal': {'capabilities': []},
+                'calls': 8, 'dialogues': [], 'observations': [
+                    {'id': 'obs-1', 'tool': 'web_open', 'usable': True}]}
     prior = tmp_path / 'prior.json'; prior.write_text(json.dumps(original))
-    session = SiteIntentSession(None, SimpleNamespace(), BuildRecord(tmp_path / 'resumed'))
+    session = SitePlannerAgent(None, SimpleNamespace(), BuildRecord(tmp_path / 'resumed'))
     assert await session.prepare('example.com', ['https://example.com/news'], '', resume=prior) == plan()
     assert session.state['calls'] == 8 and session.state['observations'] == original['observations']
 
 
 @pytest.mark.asyncio
-async def test_unlocked_resume_allows_five_regular_calls_and_one_final_response(tmp_path):
-    from searchos.skills.intent.site import SiteIntentSession
-    from searchos.skills.pipeline.access.records import BuildRecord
+async def test_unlocked_resume_uses_configured_planning_budget(tmp_path):
+    from searchos.skills.pipeline.access.agents.planner import SitePlannerAgent
+    from searchos.skills.pipeline.access.artifacts import BuildRecord
     from types import SimpleNamespace
-    original = {'version': 1, 'host': 'example.com', 'plan': None, 'last_proposal': plan(),
+    original = {'version': CONTRACT_VERSION, 'host': 'example.com', 'plan': None, 'last_proposal': plan(),
                 'calls': 8, 'dialogues': [], 'observations': [{'id': 'obs-1', 'usable': True}]}
     prior = tmp_path / 'prior.json'; prior.write_text(json.dumps(original))
     reads = []
@@ -342,15 +295,15 @@ async def test_unlocked_resume_allows_five_regular_calls_and_one_final_response(
         async def ainvoke(self, messages):
             self.calls += 1
             if self.calls <= 5:
-                return AIMessage(content='', tool_calls=[dict(id=str(self.calls), name='web_search', args={'query': 'docs'})])
-            assert {'submit_site_plan', 'web_search', 'web_open', 'web_find'} == self.tools
+                return AIMessage(content='', tool_calls=[dict(id=str(self.calls), name='search', args={'query': 'docs'})])
+            assert {'search', 'open', 'find', 'exec'} == self.tools
             return AIMessage(content='invalid JSON')
     model = Intent()
-    session = SiteIntentSession(model, SimpleNamespace(browser=Browser()), BuildRecord(tmp_path / 'resumed'))
+    session = SitePlannerAgent(model, SimpleNamespace(browser=Browser()), BuildRecord(tmp_path / 'resumed'), max_turns=5)
     with pytest.raises(ValueError, match='budget exhausted'):
         await session.prepare('example.com', ['https://example.com/news'], '', resume=prior)
     assert model.calls == 6 and session.state['calls'] == 14
-    assert len(reads) == 6  # 一次入口刷新、五次常规研究，最后额外一次仅输出。
+    assert len(reads) == 4  # 一次入口刷新与三次研究，末三轮用于整理和纠错。
     assert json.loads(session.path.read_text())['calls'] == 14
     assert json.loads(prior.read_text()) == original
 
@@ -358,7 +311,7 @@ async def test_unlocked_resume_allows_five_regular_calls_and_one_final_response(
 @pytest.mark.asyncio
 async def test_planning_failure_persists_its_stage_without_starting_builder(tmp_path, monkeypatch):
     from searchos.skills import SkillRequest, run_pipeline
-    from searchos.skills.pipeline.access.browser import ResearchBrowser
+    from searchos.skills.pipeline.access.tools.web import ResearchBrowser
     async def research(self, name, args):
         return {'content': 'public documentation', 'live_evidence': True}
     monkeypatch.setattr(ResearchBrowser, 'dispatch', research)
@@ -377,7 +330,7 @@ async def test_planning_failure_persists_its_stage_without_starting_builder(tmp_
     intent, builder = Intent(), Builder()
     result = await run_pipeline(SkillRequest('access', 'example-com', '获取站点信息', host='example.com',
         probe_urls=('https://example.com/',)), library_path=tmp_path / 'library', trial_root=tmp_path / 'trials',
-        model=builder, access_site_intent=True, access_intent_model=intent)
+        model=builder, access_site_intent=True, access_intent_model=intent, access_planner_max_turns=8)
     assert result.status == 'error' and result.failure_stage == 'site_intent'
     assert result.to_report()['failure_stage'] == 'site_intent'
     saved = json.loads(result.trial_path.read_text())
@@ -386,15 +339,14 @@ async def test_planning_failure_persists_its_stage_without_starting_builder(tmp_
     assert intent.calls == 9 and builder.calls == 0
 
 
-@pytest.mark.parametrize('bad', ['evidence', 'duplicate', 'cycle', 'identical_examples'])
+@pytest.mark.parametrize('bad', ['evidence', 'duplicate', 'cycle'])
 def test_plan_rejects_unfounded_or_inconsistent_contract(bad):
     value = plan()
     if bad == 'evidence': value['capabilities'][0]['evidence_ids'] = ['invented']
     if bad == 'duplicate': value['capabilities'][1]['id'] = 'search'
     if bad == 'cycle': value['capabilities'][0]['depends_on'] = ['search']
-    if bad == 'identical_examples': value['capabilities'][0]['examples'][1] = {'query': 'alpha'}
     with pytest.raises(ValueError):
-        validate_plan(value, [{'id': 'obs-1', 'usable': True}])
+        validate_plan(value, [{'id': 'obs-1', 'tool': 'web_open', 'usable': True}])
 
 
 @pytest.fixture
@@ -422,7 +374,7 @@ def capability_source():
 @pytest.mark.asyncio
 async def test_site_entry_uses_intent_dialogue_and_builds_one_multicapability_package(tmp_path, monkeypatch, capability_source):
     from searchos.skills import generate_skills, SkillSignal
-    from searchos.skills.pipeline.access.browser import ResearchBrowser
+    from searchos.skills.pipeline.access.tools.web import ResearchBrowser
 
     async def research(self, name, args):
         return {'content': 'Public documentation: search records and read entity details. '
@@ -430,12 +382,11 @@ async def test_site_entry_uses_intent_dialogue_and_builds_one_multicapability_pa
                 'live_evidence': True, 'content_source': 'page'}
     monkeypatch.setattr(ResearchBrowser, 'dispatch', research)
     site_plan = plan()
-    site_plan['capabilities'][0].update(inputs={}, examples=[{}])
 
     class Intent:
         calls = 0
         def bind_tools(self, definitions):
-            assert {'web_search', 'web_open', 'web_find'} <= {t['function']['name'] for t in definitions}
+            assert {'search', 'open', 'find', 'exec'} == {t['function']['name'] for t in definitions}
             return self
         async def ainvoke(self, messages):
             self.calls += 1
@@ -448,19 +399,19 @@ async def test_site_entry_uses_intent_dialogue_and_builds_one_multicapability_pa
     class Builder:
         calls = 0
         def bind_tools(self, definitions):
-            assert 'ask_intent_agent' in {t['function']['name'] for t in definitions}
+            assert 'send_message' in {t['function']['name'] for t in definitions}
             return self
         async def ainvoke(self, messages):
             self.calls += 1
             if self.calls == 1:
-                assert '站点能力集合' in messages[1].content
-                return AIMessage(content='', tool_calls=[dict(id='question', name='ask_intent_agent', args={
-                    'capability_id': 'detail', 'question': '详情操作应读取实体还是列表？', 'evidence_ids': ['obs-1']})])
+                assert '站点开发计划' in messages[1].content
+                return AIMessage(content='', tool_calls=[dict(id='question', name='send_message', args={'role': 'planner', 'content': {
+                    'capability_id': 'detail', 'question': '详情操作应读取实体还是列表？', 'evidence_ids': ['obs-1']}})])
             if self.calls == 2:
                 advice = next(message for message in reversed(messages)
                               if getattr(message, 'tool_call_id', None) == 'question')
                 assert '不能返回搜索列表' in advice.content
-                assert '2/45' in messages[-1].content
+                assert '2/50' in messages[-1].content
                 script = 'SOURCE = ' + repr(capability_source) + '\n' + '''import argparse,json,sys,urllib.request
 p=argparse.ArgumentParser();p.add_argument('operation');p.add_argument('--input');a=p.parse_args()
 inputs=json.loads(a.input)
@@ -477,6 +428,9 @@ except OSError as error:
                 return AIMessage(content='', tool_calls=[
                     dict(id='doc', name='write_file', args={'path':'SKILL.md', 'content':'---\nname: example-com\ndescription: 搜索与详情\nmetadata:\n  searchos-category: access\n  host: example.com\n---\npython scripts/access.py search --input JSON\npython scripts/access.py detail --input JSON\n'}),
                     dict(id='code', name='write_file', args={'path':'scripts/access.py','content':script})])
+            if self.calls == 3:
+                return AIMessage(content='', tool_calls=[dict(id='validate', name='send_message',
+                    args={'role': 'validator', 'content': {'examples': examples()}})])
             return AIMessage(content='完成')
     intent = Intent()
     results = await generate_skills(SkillSignal('site', host='example.com', text='搜索和实体详情'),
@@ -486,15 +440,16 @@ except OSError as error:
     assert len(session['plan']['capabilities']) == 2 and len(session['dialogues']) == 1
     assert intent.calls == 2
     draft = json.loads((results[0].trial_path.parent/'draft.json').read_text())
-    assert len(draft['examples']) == 3
-    assert {e['capability_id'] for e in draft['examples']} == {'search', 'detail'}
+    assert draft['examples'] == []
+    assert draft['validation']['valid']
+    assert set(draft['validation']['capability_results']) == {'search', 'detail'}
     assert len(list((tmp_path/'library/access').iterdir())) == 1
 
 
 @pytest.mark.asyncio
 async def test_capability_gate_checks_every_operation_and_required_field(tmp_path, monkeypatch):
     from searchos.skills.runtime import command_runtime
-    from searchos.skills.pipeline.access.valid import validate_examples
+    from searchos.skills.pipeline.access.validation.checks import validate_examples
     seen = []
     async def execute(package, argv, **kwargs):
         if '--help' in argv: return {'exit_code': 0}
@@ -503,114 +458,80 @@ async def test_capability_gate_checks_every_operation_and_required_field(tmp_pat
         if argv[2] == 'search': row['title'] = 'ok'
         return {'exit_code': 0, 'stdout': json.dumps({'status': 'ok', 'records': [row]})}
     monkeypatch.setattr(command_runtime, 'run_command', execute)
-    result = await validate_examples(tmp_path, capability_examples(plan()))
+    result = await validate_examples(tmp_path, examples())
     assert not result['valid'] and result['capability_id'] == 'detail'
     assert 'title' in result['error']
-    assert seen == ['search', 'search', 'detail']
+    assert seen == ['search', 'search', 'detail', 'detail']
+    assert len(result['case_results']) == 4
+    assert result['capability_results']['search']['deterministic'] == 'passed'
+    assert result['capability_results']['detail']['status'] == 'unavailable'
 
 
 @pytest.mark.asyncio
-async def test_advice_cannot_change_locked_plan_and_budget_survives_resume(tmp_path):
-    from searchos.skills.intent.site import SiteIntentSession
-    from searchos.skills.pipeline.access.records import BuildRecord
-    from searchos.skills.pipeline.access.tools import BuilderWorkspace
+async def test_message_history_and_plan_survive_resume(tmp_path):
+    from searchos.skills.pipeline.access.agents.planner import SitePlannerAgent
+    from searchos.skills.pipeline.access.artifacts import BuildRecord
+    from searchos.skills.pipeline.access.pipeline import AccessPipeline
     class Intent:
         def bind_tools(self, definitions): return self
         async def ainvoke(self, messages):
             return AIMessage(content=json.dumps({'status':'blocked','guidance':'需要认证',
-                'evidence_ids':['obs-1'], 'capabilities':[]}))
-    workspace = BuilderWorkspace(tmp_path/'package')
+                'evidence_ids':['obs-1']}))
+    workspace = AccessPipeline(tmp_path/'package')
     try:
-        a = SiteIntentSession(Intent(), workspace, BuildRecord(tmp_path/'first'))
-        a.state.update(host='example.com', plan=plan(), observations=[{'id':'obs-1','usable':True}])
-        frozen = deepcopy(a.state['plan'])
-        response = await a.advise('detail', '发现登录阻塞', ['obs-1'])
-        assert 'capabilities' not in response and a.state['plan'] == frozen
-        b = SiteIntentSession(Intent(), workspace, BuildRecord(tmp_path/'resumed'))
-        await b.prepare('example.com', [], '', resume=a.path)
-        await b.advise('detail', '再次确认', ['obs-1'])
-        assert (await b.advise('detail', '重复', ['obs-1']))['error'] == 'intent_dialogue_budget_exhausted'
-        assert b.state['plan'] == frozen and b.state['calls'] == 2
+        first = SitePlannerAgent(Intent(), workspace, BuildRecord(tmp_path/'first'))
+        first.state.update(host='example.com', plan=plan(), observations=[
+            {'id':'obs-1','tool':'web_open','usable':True}])
+        await first.receive_message('发现登录阻碍')
+        resumed = SitePlannerAgent(Intent(), workspace, BuildRecord(tmp_path/'resumed'))
+        await resumed.prepare('example.com', [], '', resume=first.path)
+        await resumed.receive_message({'question': '再次确认访问条件'})
+        assert (await resumed.receive_message('请说明下一步'))['status'] == 'blocked'
+        assert resumed.state['plan'] == plan()
+        assert resumed.state['calls'] == len(resumed.state['dialogues']) == 3
     finally:
         workspace.close()
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('malformed', ['output_fields', 'nested_input'])
 @pytest.mark.parametrize('corrected', [True, False])
-async def test_advice_repairs_its_own_contract_within_existing_call_budget(tmp_path, malformed, corrected):
-    from searchos.skills.intent.site import SiteIntentSession
-    from searchos.skills.pipeline.access.records import BuildRecord
-    from searchos.skills.pipeline.access.tools import BuilderWorkspace
-
+async def test_message_plan_revision_is_validated_before_commit(tmp_path, corrected):
+    from searchos.skills.pipeline.access.agents.planner import SitePlannerAgent
+    from searchos.skills.pipeline.access.artifacts import BuildRecord
+    from searchos.skills.pipeline.access.pipeline import AccessPipeline
     original = plan()
-    replacement = [{'query': 'real-alpha'}, {'query': 'real-beta'}]
-    checkpoints = []
-    class Browser:
-        async def dispatch(self, name, args):
-            return {'content': 'Verified identifiers real-alpha and real-beta; observed-empty has no records.',
-                    'live_evidence': True, 'content_source': 'page'}
     class Intent:
         calls = 0
         def bind_tools(self, definitions): return self
         async def ainvoke(self, messages):
             self.calls += 1
             assert session.state['plan'] == original
-            assert workspace.examples == capability_examples(original)
-            assert not session.state.get('revisions') and not checkpoints
-            if self.calls == 1:
-                return AIMessage(content='', tool_calls=[dict(id='evidence', name='web_open',
-                    args={'id_or_url': 'https://example.com/identifiers'})])
-            if self.calls == 3:
-                feedback = '\n'.join(str(message.content) for message in messages[-2:])
-                assert 'search.examples' in feedback and '需求 Agent' in feedback
-            examples = deepcopy(replacement)
-            if self.calls == 2 or not corrected:
-                examples = ([{**item, 'title': 'output field', 'source_url': 'https://example.com/a'}
-                             for item in examples] if malformed == 'output_fields' else
-                            [{'input': item, 'expected_status': 'ok', 'reason': 'valid identifier'}
-                             for item in examples])
-            return AIMessage(content=json.dumps({
-                'status': 'clarified', 'guidance': '修正已核实的错误标识并保留原能力。',
-                'evidence_ids': ['obs-2'],
-                'example_replacement': {'reason': '原标识无效，已读取真实标识。', 'examples': examples},
-                'boundary_additions': [boundary_case(evidence_ids=['obs-2'])]}))
-
-    workspace = BuilderWorkspace(tmp_path/'package')
+            revised = deepcopy(original)
+            revised['capabilities'][0]['acceptance'] = ['保留文章与回答']
+            if self.calls == 1 or not corrected:
+                revised['capabilities'][0]['acceptance'] = 'invalid'
+            return AIMessage(content=json.dumps({'status': 'clarified', 'guidance': '修正已核实的标识。',
+                'evidence_ids': ['obs-1'], 'plan': revised}))
+    workspace = AccessPipeline(tmp_path/'package')
     try:
-        workspace.browser = Browser()
-        workspace.checkpoint = lambda: checkpoints.append(deepcopy(workspace.examples))
         model = Intent()
-        session = SiteIntentSession(model, workspace, BuildRecord(tmp_path/'record'))
-        session.state.update(plan=deepcopy(original), calls=8, observations=[
+        session = SitePlannerAgent(model, workspace, BuildRecord(tmp_path/'record'), max_turns=2)
+        session.state.update(plan=deepcopy(original), observations=[
             {'id': 'obs-1', 'tool': 'web_open', 'usable': True}])
-        workspace.set_validation_examples(capability_examples(original))
+        workspace.validation.set_validation_examples(examples())
         if corrected:
-            answer = await session.advise('search', '开发标识无效，请核实并修正。', ['obs-1'])
-            assert answer['contract_revision'] == 1
+            result = await session.receive_message('请核实开发输入')
+            assert result['plan'] == session.state['plan']
             assert session.state['initial_plan'] == original
-            assert len(session.state['revisions']) == len(checkpoints) == 1
-            revised = session.state['plan']
-            assert revised['capabilities'][0]['examples'] == replacement
-            assert revised['capabilities'][0]['required_fields'] == original['capabilities'][0]['required_fields']
-            assert revised['capabilities'][1] == original['capabilities'][1]
-            assert workspace.examples == capability_examples(revised)
+            assert len(session.state['revisions']) == 1 and model.calls == 2
         else:
-            with pytest.raises(ValueError, match='site intent agent advice.*search.examples'):
-                await session.advise('search', '开发标识无效，请核实并修正。', ['obs-1'])
-            assert session.state['plan'] == original
-            assert workspace.examples == capability_examples(original)
-            assert not session.state.get('revisions') and not session.state.get('initial_plan')
-            assert not checkpoints
-            assert 'site intent agent advice' in session.state['dialogues'][0]['error']
-        assert model.calls == (3 if corrected else 4)
-        assert session.state['calls'] == 8 + model.calls
+            with pytest.raises(ValueError, match='site planner message.*search.acceptance'):
+                await session.receive_message('请核实开发输入')
+            assert session.state['plan'] == original and not session.state.get('revisions')
+            assert model.calls == 3
+        assert workspace.validation.examples == examples()
         assert len(session.state['dialogues']) == 1
-        assert not session.state.get('last_proposal')  # 建议不覆盖原规划草案。
-        saved = json.loads(session.path.read_text())
-        assert saved['plan'] == session.state['plan'] and saved['calls'] == 8 + model.calls
-        assert all(item['kind'] == 'advice_validation' for item in saved['validation_errors'])
-        assert len(saved['validation_errors']) == (1 if corrected else 3)
+        assert all(item['kind'] == 'advice_validation' for item in session.state['validation_errors'])
     finally:
         workspace.close()
 
@@ -635,9 +556,11 @@ def test_draft_checkpoints_are_bounded_and_identical_files_are_reused(tmp_path):
     '```\n{}\n```',
     '根据已观察的页面内容，直接输出站点能力计划：\n\n```json\n{}\n```',
     '站点能力计划：\n```JSON\n{}\n```\n以上为已观察范围。',
+    '根据已观察的页面内容，站点能力计划如下：\n{}\n以上为已观察范围。',
+    'URL 使用 {{city_id}}，另一个未配平的 {{ 是说明文字。\n{}',
 ])
 def test_parse_object_accepts_one_explicit_json_payload(wrapper):
-    from searchos.skills.intent.site import parse_object
+    from searchos.skills.pipeline.access.agents.planner import parse_object
     expected = plan()
     content = wrapper.format(json.dumps(expected, ensure_ascii=False))
     assert parse_object(AIMessage(content=content)) == expected
@@ -645,7 +568,6 @@ def test_parse_object_accepts_one_explicit_json_payload(wrapper):
 
 
 @pytest.mark.parametrize('content', [
-    '说明：{"a":1}',
     '{"a":1}\n{"b":2}',
     '```json\n{"a":1}\n{"b":2}\n```',
     '```json\n{"a":1}\n```\n```json\n{"b":2}\n```',
@@ -656,9 +578,11 @@ def test_parse_object_accepts_one_explicit_json_payload(wrapper):
     '说明\n```json\n{"a":1\n```',
     '说明\n```json\n[{"a":1}]\n```',
     '```python\n{"a":1}\n```',
+    '说明：{"outer":{"a":1}',
+    '{"a":1}\n{"outer":{"b":2}',
 ])
 def test_parse_object_rejects_ambiguous_or_incomplete_payloads(content):
-    from searchos.skills.intent.site import parse_object
+    from searchos.skills.pipeline.access.agents.planner import parse_object
     with pytest.raises(ValueError):
         parse_object(AIMessage(content=content))
 
@@ -666,26 +590,27 @@ def test_parse_object_rejects_ambiguous_or_incomplete_payloads(content):
 def resumed_pipeline_fixture(tmp_path, monkeypatch, *, draft=False):
     from dataclasses import asdict
     from searchos.skills import SkillRequest
-    from searchos.skills.pipeline.access import run
-    from searchos.skills.pipeline.access.browser import ResearchBrowser
+    from searchos.skills.pipeline.access.tools.web import ResearchBrowser
     from searchos.skills.pipeline.drafts import save_draft
     saved = tmp_path/'saved'; saved.mkdir()
     original = validate_plan(plan(), [{'id': 'obs-1', 'tool': 'web_open', 'usable': True}])
-    state = {'version': 1, 'host': 'example.com', 'plan': original,
+    state = {'version': CONTRACT_VERSION, 'host': 'example.com', 'plan': original,
              'observations': [{'id': 'obs-1', 'tool': 'web_open', 'usable': True,
                                'result': {'content': 'Original public source', 'live_evidence': True}}],
              'calls': 9, 'dialogues': [{'capability_id': 'search', 'question': 'previous', 'answer': {'status': 'clarified'}}]}
     session = saved/'site-session.json'; session.write_text(json.dumps(state))
     request = SkillRequest('access', 'example-com', '读取站点记录', host='example.com', probe_urls=('https://example.com/',))
     episodes = []
-    async def episode(workspace, final_dir, host, urls, notes, model, *args):
-        episodes.append({'examples': deepcopy(workspace.examples), 'locked': workspace.examples_locked,
+    async def episode(self):
+        workspace = self.workspace
+        episodes.append({'examples': deepcopy(workspace.validation.examples), 'locked': workspace.validation.examples_locked,
+                         'files': sorted(workspace.package.files),
                          'plan': deepcopy(workspace.site_intent.state['plan'])})
         return None
     async def browser(self, name, args):
         assert name == 'web_open'
         return {'content': 'Public documentation.', 'live_evidence': True, 'content_source': 'page'}
-    monkeypatch.setattr(run, '_build_episode', episode)
+    monkeypatch.setattr('searchos.skills.pipeline.access.agents.builder.AccessBuilderAgent.run', episode)
     monkeypatch.setattr(ResearchBrowser, 'dispatch', browser)
     class Intent:
         calls = 0
@@ -700,7 +625,7 @@ def resumed_pipeline_fixture(tmp_path, monkeypatch, *, draft=False):
         source = tmp_path/'draft-source'; source.mkdir()
         (source/'SKILL.md').write_text('unfinished original draft')
         pointer = save_draft(saved, source, ['SKILL.md'], name='example-com',
-                             examples=capability_examples(original), require_host=True)
+                             examples=[], require_host=True, contract_version=CONTRACT_VERSION)
         (saved/'request.json').write_text(json.dumps({'request': asdict(request), 'base_hash': None,
                                                      'access_site_intent': True}))
         kwargs['resume_draft'] = pointer
@@ -713,14 +638,36 @@ async def test_locked_plan_pipeline_resume_adds_no_intent_calls(tmp_path, monkey
     request, kwargs, model, episodes, original = resumed_pipeline_fixture(tmp_path, monkeypatch)
     result = await run_pipeline(request, **kwargs)
     assert len(episodes) == 1 and model.calls == 0
-    assert episodes[0]['examples'] == capability_examples(original['plan'])
+    assert episodes[0]['examples'] == []
     saved = json.loads((result.trial_path.parent/'site-session.json').read_text())
     assert saved['calls'] == 9 and saved['dialogues'] == original['dialogues']
 
 
 @pytest.mark.asyncio
+async def test_current_draft_resume_preserves_code_without_builder_declarations(tmp_path, monkeypatch):
+    import hashlib
+
+    from searchos.skills import run_pipeline
+    request, kwargs, model, episodes, original = resumed_pipeline_fixture(
+        tmp_path, monkeypatch, draft=True)
+    pointer = kwargs['resume_draft']
+    draft = json.loads(pointer.read_text())
+    source = pointer.parent / draft['package'] / 'scripts/access.py'
+    source.parent.mkdir()
+    source.write_text('def search(params):\n    return []\n'
+                      'def detail(params):\n    return []\n'
+                      'HANDLERS = {"search": search, "detail": detail}\n')
+    draft['files']['scripts/access.py'] = hashlib.sha256(source.read_bytes()).hexdigest()
+    pointer.write_text(json.dumps(draft))
+    await run_pipeline(request, **kwargs)
+    assert len(episodes) == 1 and model.calls == 0
+    assert episodes[0]['examples'] == [] and not episodes[0]['locked']
+    assert episodes[0]['files'] == ['SKILL.md', 'scripts/access.py']
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize('plan_locked', [False, True])
-async def test_resume_before_examples_checkpoint_compiles_plan_without_rewriting_history(tmp_path, monkeypatch, plan_locked):
+async def test_resume_before_examples_checkpoint_waits_for_builder_without_rewriting_history(tmp_path, monkeypatch, plan_locked):
     from searchos.skills import run_pipeline
     request, kwargs, _, episodes, original = resumed_pipeline_fixture(tmp_path, monkeypatch, draft=True)
     pointer = kwargs['resume_draft']
@@ -744,8 +691,8 @@ async def test_resume_before_examples_checkpoint_compiles_plan_without_rewriting
     intent = Intent()
     kwargs['access_intent_model'] = intent
     result = await run_pipeline(request, **kwargs)
-    assert len(episodes) == 1 and episodes[0]['locked'], result.error
-    assert episodes[0]['examples'] == capability_examples(original_plan)
+    assert len(episodes) == 1 and not episodes[0]['locked'], result.error
+    assert episodes[0]['examples'] == []
     assert intent.calls == (0 if plan_locked else 1)
     saved = json.loads((result.trial_path.parent/'site-session.json').read_text())
     assert saved['plan'] == original_plan

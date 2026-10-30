@@ -96,12 +96,14 @@ class ValidationAgent:
         if args.get("expected_status", "ok") not in {"ok", "empty", "invalid_input"}:
             raise ValueError("exec expected_status must be ok, empty or invalid_input")
         business = args.get("argv") is not None and not {"--help", "-h"}.intersection(args["argv"])
+        if args.get('regression_of') and not business:
+            raise ValueError('regression_of requires a business CLI execution')
         example = self.review.execution_example(args) if business else None
         work = self.workspace.executor.work_dir or self.workspace.runtime_dir / "work"
         before = _output_identity(work, example.get("output", "")) if example else None
         result = await self.workspace.executor.execute(**{key: value for key, value in args.items()
-            if key not in {"capability_id", "check_kind", "expected_status"}},
-            package_dir=self.candidate_dir, trace_functions=business)
+            if key not in {"capability_id", "check_kind", "expected_status", "regression_of", "output"}},
+            package_dir=self.candidate_dir, trace_functions=business, browser_request={'role': 'validator', **args})
         if example is not None:
             if before is not None and before == _output_identity(work, example.get("output", "")):
                 result["output_unchanged"] = True
@@ -110,7 +112,8 @@ class ValidationAgent:
                 work_dir=Path(result.get("work_dir") or self.workspace.executor.work_dir
                               or self.workspace.runtime_dir / "work"),
                 execution_dir=self.workspace.runtime_dir / "executions",
-                artifact_store=self.workspace.package.result_store, example_index=index)
+                artifact_store=self.workspace.package.result_store, example_index=index,
+                check_records=self.review.state.get('examples_locked', False))
         return result
 
 
@@ -129,7 +132,7 @@ class ValidationAgent:
         gate = self.review.start(candidate_dir=self.candidate_dir, candidate_version=candidate_version,
             deterministic=deterministic, host=self.host, notes=self.notes, plan=plan, examples=examples,
             resume=resume, function_index=function_index, validation_scope=validation_scope,
-            previous_report=previous_report)
+            previous_report=previous_report, examples_locked=self.workspace.validation.examples_locked)
         if self.on_stage is not None:
             await self.on_stage("access_validation")
         if not deterministic.get("package_valid"):
@@ -137,8 +140,10 @@ class ValidationAgent:
         definitions = [deepcopy(READ_FILE_TOOL), deepcopy(EXEC_TOOL), deepcopy(SEND_MESSAGE_TOOL)]
         messages = [SystemMessage(content=SYSTEM_PROMPT), HumanMessage(content=json.dumps({
             "host": self.host, "user_need": self.notes, "plan": plan,
+            "research_observations": self.workspace.package.result_store.present(
+                self.workspace.site_intent.state.get('observations', [])) if self.workspace.site_intent else [],
             "candidate_version": candidate_version, "package_files": self.review.state["files"],
-            "suggested_examples": self.review.state["examples"],
+            "host_examples": self.review.state["examples"],
             "function_index": self.workspace.package.result_store.present(function_index) if function_index else None,
             "validation_scope": validation_scope,
             "builder_budget": deepcopy(getattr(self.workspace, 'builder_budget', {})),
@@ -147,6 +152,15 @@ class ValidationAgent:
             "accepted_checks": self.review.state.get("accepted_checks", []),
             "package_validation": self.workspace.package.result_store.present(gate),
         }, ensure_ascii=False))]
+        if original := getattr(self, 'resume_input', None):
+            result = await self._tool('exec', original)
+            shown = self.review.observe('exec', original, result)
+            self.resume_input = None
+            messages.append(HumanMessage(content='已独立重放中断前的原输入：' + json.dumps(
+                self.workspace.package.result_store.present(shown), ensure_ascii=False)))
+            progress = self.review.progress()
+            if progress.get('wait_external') and not progress['pending_capabilities'] and not progress['pending_regressions']:
+                return self._finish()
         last_error = ""
         try:
             model = self.model.bind_tools(definitions)
@@ -221,6 +235,9 @@ class ValidationAgent:
                                                 tool_call_id=call["id"]))
                 if submitted and self.review.state.get("report_complete"):
                     return self._finish()
+                progress = self.review.progress()
+                if progress.get('wait_external') and not progress['pending_capabilities'] and not progress['pending_regressions']:
+                    return self._finish()
                 last_error = "请根据 send_message 回执修正待提交能力；已接收结论会保留。"
         except asyncio.CancelledError:
             result = self.review.result()
@@ -242,8 +259,11 @@ SEND_MESSAGE_TOOL = {
             "to submit capability verdicts. For failures or unfinished checks, specify 1–50 Builder "
             "LLM calls for reading, investigation, fixes, testing and resubmission. "
             "Or send a question "
-            "to planner to clarify the locked requirements. Checks use capability_id, status "
-            "(passed/failed/uncertain), reason and intent_question when needed. The host attaches "
+            "to planner to clarify business scope or research evidence. Checks use capability_id, status "
+            "(passed/failed/uncertain), reason, optional warnings (an array of strings) and "
+            "intent_question when needed. Ordinary invalid input, error classification and "
+            "exploratory boundary observations belong in warnings and do not require repairs. "
+            "Passed and failed require normal business CLI evidence. The host attaches "
             "real CLI executions from this candidate session."
         ),
         "parameters": {

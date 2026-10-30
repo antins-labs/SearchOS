@@ -30,11 +30,15 @@ def clamp_access_timeout(value=ACCESS_TIMEOUT_S):
 async def execute_command(package_dir, argv, *, work_dir, execution_dir, stdin="",
                           timeout_s=ACCESS_TIMEOUT_S, proxy_mode="inherit",
                           diagnostic_network_override=False, result_store=None, read_only_paths=(),
-                          trace_functions=False) -> dict:
+                          trace_functions=False, browser=False, browser_request=None) -> dict:
     """复用正式执行，完整日志保存为持久脱敏文件。"""
     from searchos.skills.runtime.command_runtime import run_command
 
     options = {'diagnostic_network_override': True} if diagnostic_network_override else {}
+    if browser:
+        options['browser'] = True
+    if browser_request is not None:
+        options['browser_request'] = browser_request
     if trace_functions:
         options['trace_functions'] = True
     if not isinstance(read_only_paths, (tuple, list)):
@@ -195,7 +199,7 @@ PLANNER_EXEC_TOOL = {
         "name": "exec",
         "description": (
             "Run Python code to investigate website behavior through HTTP, APIs or "
-            "Playwright with explicit headless=True using installed runtime libraries. Print actual response URLs, "
+            "Playwright using the managed browser with browser=true. Print actual response URLs, "
             "status and relevant output supporting the capability plan. Code runs in an "
             "isolated persistent planning work directory; it has no candidate package "
             "or SKILL_DIR. Use relative paths for probe artifacts and sys.executable "
@@ -205,6 +209,7 @@ PLANNER_EXEC_TOOL = {
             "type": "object",
             "properties": {
                 "code": {"type": "string", "description": "Python website investigation code."},
+                "browser": {"type": "boolean", "default": False},
                 "timeout_s": dict(TIMEOUT_SCHEMA),
             },
             "required": ["code"],
@@ -219,12 +224,21 @@ VALIDATOR_EXEC_TOOL = {
         "name": "exec",
         "description": (
             "Run a candidate CLI with argv, or run Python verification code with code. "
-            "Use exactly one mode. First rerun every pending_regressions command with its original "
+            "Use exactly one mode. First rerun pending normal-business regressions with their original "
             "argv, expected_status and check_kind, then complete normal business calls for each capability. "
-            "Keep its entry and capability route; --input business values may vary, such as page=3. "
-            "Mark boundary tests with check_kind=boundary. Help, empty, invalid-input and failed calls "
-            "cannot support passed. The host attaches actual execution evidence automatically. "
-            "Each business call returns validation with JSON, field and source URL checks from this same execution. "
+            "Read SKILL.md and independently choose its package script, options, positional arguments or stdin. "
+            "For file output, specify output as the documented relative JSON path; otherwise stdout is parsed. "
+            "When an interface changes, use regression_of with the original failed execution ID "
+            "for an equivalent business input and explain its equivalence in the verdict. "
+            "If source evidence corrects an old expectation, rerun that input with regression_of, "
+            "check_kind=boundary and expected_status=empty/invalid_input; explain the source evidence "
+            "in the verdict and independently verify a normal positive input for the capability. "
+            "Mark optional boundary probes with check_kind=boundary. Boundary, empty and invalid-input "
+            "observations only support warnings and never require regression. Help and failed calls cannot "
+            "support passed. Reproduce core problems with a normal in-scope business CLI before failed. "
+            "The host attaches actual execution evidence automatically. "
+            "Each business call returns validation with completion and JSON checks from this same execution. "
+            "Independently check actual business data, fields and sources against the user requirements. "
             "Code receives the Python Path variable SKILL_DIR, a read-only candidate snapshot, "
             "and shares the working directory with CLI calls. SKILL_DIR is a Python variable. "
             "Code may read authorized saved-result absolute paths and working-directory files; "
@@ -241,15 +255,20 @@ VALIDATOR_EXEC_TOOL = {
                     "description": "Capability being verified. Required for a candidate CLI argv call.",
                 },
                 "argv": {"type": "array", "items": {"type": "string"}},
+                "output": {"type": "string", "default": "", "description":
+                    "CLI JSON output location from SKILL.md: empty for stdout, or a relative file in the work directory."},
+                "regression_of": {"type": "string", "description":
+                    "Original failed execution ID covered by this equivalent CLI call after an interface change."},
                 "check_kind": {
                     "type": "string", "enum": ["positive", "boundary"], "default": "positive",
-                    "description": "Mark empty, invalid-input and other boundary probes as boundary.",
+                    "description": "Mark optional empty, invalid-input and other auxiliary probes as boundary; report findings as warnings.",
                 },
                 "expected_status": {
                     "type": "string", "enum": ["ok", "empty", "invalid_input"], "default": "ok",
-                    "description": "Declare the expected business result before execution; registered boundary examples supply their expectation.",
+                    "description": "Declare the expected business result before execution; empty and invalid_input are auxiliary observations only.",
                 },
                 "code": {"type": "string", "description": "Python verification code."},
+                "browser": {"type": "boolean", "default": False},
                 "stdin": {"type": "string"},
                 "timeout_s": dict(TIMEOUT_SCHEMA),
             },
@@ -259,7 +278,7 @@ VALIDATOR_EXEC_TOOL = {
 }
 
 
-async def execute_research(workspace, *, code, timeout_s=ACCESS_TIMEOUT_S) -> dict:
+async def execute_research(workspace, *, code, timeout_s=ACCESS_TIMEOUT_S, browser=False) -> dict:
     """保存探测的执行来源、退出状态与实际输出。"""
     root = workspace.runtime_dir / "planner"
     root.mkdir(exist_ok=True)
@@ -269,6 +288,7 @@ async def execute_research(workspace, *, code, timeout_s=ACCESS_TIMEOUT_S) -> di
             package_dir, argv, work_dir=root / "work", execution_dir=root / "executions",
             stdin=stdin, timeout_s=timeout_s,
             result_store=workspace.package.result_store,
+            browser=browser, browser_request={'role': 'planner', 'code': code, 'browser': browser, 'timeout_s': timeout_s},
         )
 
     result = await execute_python(
@@ -283,6 +303,7 @@ from searchos.skills.pipeline.access.tools.files import _tool
 BUILDER_EXEC_TOOL = _tool('exec', '执行候选 CLI 或临时 Python。每次选择 argv 或 code；网络访问由代码配置，完整输出保存文件。', {
     'argv': {'type': 'array', 'items': {'type': 'string'}},
     'code': {'type': 'string'}, 'stdin': {'type': 'string'}, 'timeout_s': dict(TIMEOUT_SCHEMA),
+    'browser': {'type': 'boolean', 'default': False},
 })
 
 
@@ -304,7 +325,7 @@ class ExecutionTools:
             self.work_dir = previous
 
     async def execute(self, argv=None, stdin='', timeout_s=ACCESS_TIMEOUT_S, *, code=None, package_dir=None,
-                   trace_functions=False):
+                   trace_functions=False, browser=False, browser_request=None):
         from searchos.skills.packaging import package_files
         if (argv is None) == (code is None):
             raise ValueError('provide exactly one of argv or code')
@@ -318,6 +339,7 @@ class ExecutionTools:
                 return await execute_command(package_dir, args, work_dir=work,
                     execution_dir=root / 'executions', stdin=input_text, timeout_s=timeout,
                     result_store=self.package.result_store,
+                    browser=browser, browser_request=browser_request or {'code': code, 'stdin': stdin, 'browser': browser, 'timeout_s': timeout_s},
                     read_only_paths=tuple(source / name for name in names))
             result = await execute_python(code, command, package_parent=root,
                 candidate_files={str(name): source / name for name in names},
@@ -326,4 +348,6 @@ class ExecutionTools:
                 result.update(status='failed', error='candidate_changed_during_execution')
             return result
         return await execute_command(source, argv, work_dir=work, execution_dir=root / 'executions',
-            stdin=stdin, timeout_s=timeout_s, result_store=self.package.result_store, trace_functions=trace_functions)
+            stdin=stdin, timeout_s=timeout_s, result_store=self.package.result_store, trace_functions=trace_functions,
+            browser=browser, browser_request=browser_request or {'argv': argv, 'stdin': stdin,
+                'timeout_s': timeout_s, 'browser': browser})

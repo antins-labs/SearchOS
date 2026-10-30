@@ -14,6 +14,7 @@ from typing import Any
 
 from searchos.skills.core.capabilities import annotate_package
 from searchos.skills.intent.models import name_for_host
+from searchos.skills.pipeline.access import CONTRACT_VERSION
 from searchos.skills.pipeline.access.agents.builder import TOOL_DEFINITIONS
 from searchos.skills.pipeline.access.agents.planner import research_observation_index
 from searchos.skills.pipeline.access.artifacts import ToolResultStore
@@ -100,17 +101,10 @@ class AccessPipeline:
                 raise ValueError('this build has no site planner')
             response = await self.site_intent.receive_message(content)
             if response.get('plan') is not None:
-                from searchos.skills.pipeline.access.agents.planner import capability_examples
-                self.validation.set_validation_examples(capability_examples(response['plan']))
                 self.checkpoint()
             return response
         if sender != 'builder':
             raise ValueError('only Builder submits candidates for validation')
-        if isinstance(content, dict) and content.get('examples') is not None:
-            if self.validation.examples_locked:
-                raise ValueError('planned validation examples are fixed; ask Planner to revise them')
-            self.validation.validate_example_definitions(content['examples'])
-            self.validation.examples = deepcopy(content['examples'])
         report = await self.validate()
         if self.site_intent is not None:
             oid = self.site_intent.observe('send_message', {'role': 'validator'}, report, 'validation')
@@ -140,7 +134,8 @@ class AccessPipeline:
         with self.package.snapshot() as candidate, self.executor.validation_work(progress.validation_rounds):
             try:
                 gate = validate_access_preflight(candidate, self.package.expected_name, self.validation.examples,
-                    require_host=self.validation.require_host, expected_host=self.validation.expected_host)
+                    require_host=self.validation.require_host, expected_host=self.validation.expected_host,
+                    capability_ids=progress.capability_ids, require_examples=progress.examples_locked)
                 progress.checkpoint_validation_progress({**gate, 'candidate_version': fingerprint, 'report_complete': False})
                 if self.record:
                     self.record.event('validation_preflight', version=fingerprint, report=self.package.result_store.present(gate))
@@ -211,7 +206,7 @@ def publication_report(workspace):
     valid = bool(states) and all(status == 'available' for status in states) and not report.get('cancelled')
     overall = ('passed' if valid else 'partial' if 'available' in states else
                'unavailable' if states and all(status == 'unavailable' for status in states) else 'incomplete')
-    return {**report, 'valid': valid, 'package_valid': True,
+    return {**report, 'contract_version': CONTRACT_VERSION, 'valid': valid, 'package_valid': True,
             'capability_results': results, 'validation_status': overall}
 
 
@@ -282,6 +277,10 @@ async def build_skill(
     validation_max_turns: int = 50,
     site_session_path: Path | None = None,
     on_stage: Any = None,
+    allow_interaction: bool = False,
+    on_user_action: Any = None,
+    revalidate_from: Path | None = None,
+    resume_input: dict | None = None,
 ) -> Path | None:
     """实现并验收 Access 技能，返回附逐能力状态的包目录。
 
@@ -297,6 +296,7 @@ async def build_skill(
         raise ValueError('planner_max_turns must be a positive integer')
     if validation_max_turns < 1:
         raise ValueError('validation_max_turns must be positive')
+    user_need = notes
     from uuid import uuid4
 
     from searchos.skills.pipeline.access.artifacts import BuildRecord
@@ -307,7 +307,7 @@ async def build_skill(
                        max_repair_attempts=max_repair_attempts,
                        turns_attempted=0, turns_completed=0,
                        exit_reason='running', record_dir=str(record.root))
-    diagnostics['example_source'] = 'host' if validation_examples is not None else 'builder'
+    diagnostics['example_source'] = 'host' if validation_examples is not None else 'validator'
     diagnostics['model_usage'] = {}
     record.summary(diagnostics)
     if builder_model is None:
@@ -349,14 +349,20 @@ async def build_skill(
         from searchos.skills.pipeline.drafts import save_draft
         pointer = save_draft(record.root, staging, workspace.package.files, name=final_dir.name,
                              examples=workspace.validation.examples, require_host=workspace.validation.require_host,
-                             validation=workspace.validation.last_validation)
+                             validation=workspace.validation.last_validation, contract_version=CONTRACT_VERSION)
         if pointer:
             diagnostics['draft_path'] = str(pointer)
     workspace.checkpoint = checkpoint
+    from searchos.skills.runtime.browser_session import BrowserSession, current_session
+    browser_session = BrowserSession(host, allow_interaction=allow_interaction,
+        on_action=on_user_action, checkpoint=checkpoint)
+    browser_token = current_session.set(browser_session)
     try:
         if resume_draft is not None:
             from searchos.skills.pipeline.drafts import load_draft
             source, saved = load_draft(resume_draft)
+            if saved.get('contract_version') != CONTRACT_VERSION:
+                raise ValueError('旧版 Access 草稿仅供查看，请重新创建任务以使用新的角色契约。')
             if saved['name'] != final_dir.name:
                 raise ValueError('draft name does not match request')
             for relative in saved['files']:
@@ -365,6 +371,7 @@ async def build_skill(
                 shutil.copy2(source / relative, target)
                 workspace.package.files.add(relative)
             workspace.validation.examples = saved['examples']
+            workspace.validation.examples_locked = bool(saved['examples'])
             workspace.validation.require_host = saved['require_host']
             workspace.validation.last_validation = saved['validation']
             workspace.validation.validation_rounds = int(saved['validation'].get('validation_rounds', 0))
@@ -380,10 +387,8 @@ async def build_skill(
             notes += '\n## 续建状态\n基于已保存草稿继续修复，当前包版本须重新验收。文件：' + ', '.join(sorted(workspace.package.files))
             notes += '\n上一轮验证结果：' + json.dumps(
                 workspace.package.result_store.present(saved['validation']), ensure_ascii=False)
-            notes += '\n已恢复的完整验证样例（索引从 0 开始）：' + json.dumps(
-                [{'index': index, **example} for index, example in enumerate(workspace.validation.examples)], ensure_ascii=False)
-            if validation_examples is None and not site_intent:
-                notes += '\n修订实际 CLI 样例时，通过 send_message(role=validator, content={examples:[...]}) 交付完整样例。'
+            if workspace.validation.examples:
+                notes += '\n已恢复的宿主固定验收样例：' + json.dumps(workspace.validation.examples, ensure_ascii=False)
             notes += '\n围绕原需求修复输出格式、参数或依赖问题并重新验证；登录或访问受阻时，记录具体观察和下一步。'
             record.event('resumed', draft=str(resume_draft), files=saved['files'], examples=workspace.validation.examples)
             checkpoint()
@@ -398,7 +403,7 @@ async def build_skill(
                 workspace.package.files.add(relative.as_posix())
             workspace.package.update_base = workspace.package.package_state()
             notes += "\nExisting package files are seeded in the workspace: " + ", ".join(sorted(workspace.package.files))
-            notes += "\nRead and extend this package. Preserve existing capabilities and submit their regression examples together with examples of new commands."
+            notes += "\n读取并扩展现有包，保留已有能力；在 SKILL.md 更新旧能力与新增能力的调用说明和真实示例。"
             if not workspace.validation.require_host:
                 notes += '\n该包覆盖多个来源。沿用现有范围，从已有脚本和 references 确认入口；本次更新的 metadata.host 为可选。'
             checkpoint()
@@ -411,44 +416,68 @@ async def build_skill(
                 raise ValueError('site capability plan cannot replace explicit host examples')
             from searchos.skills.pipeline.access.agents.planner import (
                 SitePlannerAgent,
-                capability_examples,
             )
             session = SitePlannerAgent(intent_model or builder_model, workspace, record,
                                        max_turns=planner_max_turns)
             workspace.site_intent = session
-            previous_session = resume_draft.parent / 'site-session.json' if resume_draft is not None else site_session_path
+            previous_session = (revalidate_from.parent / 'site-session.json' if revalidate_from is not None else
+                                resume_draft.parent / 'site-session.json' if resume_draft is not None else site_session_path)
             if on_stage is not None:
                 await on_stage('site_intent')
             try:
-                plan = await session.prepare(host, probe_urls, notes, resume=previous_session)
+                planner_resume = (resume_input or {}).get('input') if (resume_input or {}).get('stage') == 'site_intent' else None
+                plan = await session.prepare(host, probe_urls, notes, resume=previous_session,
+                                             **({'resume_input': planner_resume} if planner_resume else {}))
             except Exception:
                 diagnostics['failure_stage'] = 'site_intent'
                 raise
-            planned_examples = capability_examples(plan)
-            # 需求阶段中断时，草稿可能已有文件但尚未保存验收样例。
-            # 从恢复的计划编译首次样例；已有样例仍必须逐项匹配。
-            saved_targets = [{key: value for key, value in example.items() if key != 'proxy_mode'}
-                             for example in workspace.validation.examples]
-            planned_targets = [{key: value for key, value in example.items() if key != 'proxy_mode'}
-                               for example in planned_examples]
-            if resume_draft is not None and workspace.validation.examples and saved_targets != planned_targets:
-                raise ValueError('saved capability plan no longer matches draft examples')
-            workspace.validation.set_validation_examples(planned_examples)
             notes += session.builder_notes()
-            diagnostics['example_source'] = 'site_intent'
+            diagnostics['example_source'] = 'builder'
             diagnostics['capabilities'] = [c['id'] for c in plan['capabilities']]
-            record.event('site_plan_locked', plan=plan)
+            record.event('site_plan_ready', plan=plan, contract_version=CONTRACT_VERSION)
             checkpoint()
+        if revalidate_from is not None:
+            previous = json.loads(revalidate_from.read_text())
+            if previous.get('contract_version') != CONTRACT_VERSION:
+                raise ValueError('旧版 Access 验收记录仅供查看，请重新创建任务以使用新的角色契约。')
+            workspace.validation.last_validation = previous['validation']
+            workspace.validation.examples = previous['examples']
+            workspace.validation.examples_locked = bool(previous['examples'])
+            workspace.validation.validation_rounds = 0
+            # 新建补验任务重新观察外部条件；旧执行证据继续保存在报告中。
+            for item in workspace.validation.last_validation.get('capability_results', {}).values():
+                item.pop('external_blocked', None)
+                item.pop('next_action', None)
+            workspace.validation.last_validation.pop('candidate_fingerprint', None)
+            workspace.validation.last_validation['function_index'] = workspace.validation.function_index()
+            workspace.validation.last_validation['regression_commands'] = [
+                *workspace.validation.last_validation.get('regression_commands', []),
+                *workspace.validation.last_validation.get('external_commands', [])]
+            workspace.package.update_base = None
+            notes += '\n本次补验原受阻能力，沿用原计划和成功能力；先运行原受阻输入，再按实际结果交付。'
         if on_stage is not None:
             await on_stage('pipeline')
         from searchos.skills.pipeline.access.agents.validator import ValidationAgent
         workspace.validation_agent = ValidationAgent(
-            validation_model or builder_model, workspace, record, host=host, notes=notes,
+            validation_model or builder_model, workspace, record, host=host, notes=user_need,
             on_stage=on_stage, max_turns=validation_max_turns,
         )
+        if resume_input and resume_input['stage'] != 'site_intent':
+            if resume_input['stage'] == 'access_validation':
+                workspace.validation_agent.resume_input = resume_input['input']
+            else:
+                replayed = await workspace.executor.execute(**resume_input['input'])
+                record.event('interrupted_input_replayed', stage='builder', result=replayed)
+                if workspace.site_intent:
+                    workspace.site_intent.observe('exec', resume_input['input'], replayed, 'builder')
+                notes += '\n已重放中断前的原输入：' + json.dumps(record.clean(replayed), ensure_ascii=False)
         from searchos.skills.pipeline.access.agents.builder import AccessBuilderAgent
-        await AccessBuilderAgent(workspace, final_dir, host, probe_urls, notes,
-                                 tool_model, max_turns, diagnostics, record, context_model=builder_model).run()
+        if revalidate_from is not None:
+            await workspace.send_message('validator', {'request': 'validate'})
+            diagnostics['exit_reason'] = 'revalidation_completed'
+        else:
+            await AccessBuilderAgent(workspace, final_dir, host, probe_urls, notes,
+                                     tool_model, max_turns, diagnostics, record, context_model=builder_model).run()
 
         return publish_current(workspace, final_dir, diagnostics, record)
     except asyncio.CancelledError:
@@ -486,8 +515,18 @@ async def build_skill(
                 diagnostics['validation_model_usage'] = workspace.validation_agent.usage
             record.summary(diagnostics)
         finally:
-            workspace.close()
-            shutil.rmtree(staging, ignore_errors=True)
+            cleanup = asyncio.create_task(browser_session.close())
+            try:
+                while not cleanup.done():
+                    try:
+                        await asyncio.shield(cleanup)
+                    except asyncio.CancelledError:
+                        continue
+                cleanup.result()
+            finally:
+                current_session.reset(browser_token)
+                workspace.close()
+                shutil.rmtree(staging, ignore_errors=True)
 
 
 def main(argv: list[str] | None = None) -> int:

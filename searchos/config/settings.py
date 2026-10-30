@@ -198,6 +198,10 @@ class Settings(BaseSettings):
     enable_skills: bool = True
     skill_library_path: str = "searchos/skills/library"
     browser_auth_dir: str = '.searchos/browser-auth'
+    # 宿主维护站点依赖域名；技能包不能扩展联网权限。
+    browser_allowed_domains: dict[str, list[str]] = {
+        'www.xiaohongshu.com': ['xiaohongshu.com', 'xhscdn.com'],
+    }
     # 按需目录查询使用 skill_router 做语义匹配；关闭后保留名称/关键词查找。
     enable_skill_router: bool = True
     skill_router_top_k: int = 40  # 每次查询的候选上限，工具分页返回。

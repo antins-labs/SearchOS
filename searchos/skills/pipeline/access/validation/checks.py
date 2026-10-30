@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import hashlib
 import io
 import json
 import os
@@ -151,8 +152,14 @@ def _example_contract(example: dict) -> None:
     if not isinstance(example.get("output", ""), str):
         raise ValueError("output must be a relative JSON file path or empty")
     if not isinstance(example.get("required_fields", []), list) or any(
-            not isinstance(field, str) for field in example.get("required_fields", [])):
+            not isinstance(field, str) or not field for field in example.get("required_fields", [])):
         raise ValueError("required_fields must contain field names")
+    for key in ('records_key', 'source_key'):
+        value = example.get(key, '')
+        if not isinstance(value, str) or (value and any(not part for part in value.split('.'))):
+            raise ValueError(f'{key} must be a dot path with optional array indexes')
+    if not isinstance(example.get('stdin', ''), str):
+        raise ValueError('stdin must be a string')
 
 
 def _documented_entries(output_dir: Path) -> set[str]:
@@ -174,12 +181,19 @@ def _ordinary_positive(example: dict) -> bool:
 
 
 def validate_access_preflight(output_dir: Path, expected_name: str, examples: list[dict], *,
-                              require_host: bool = True, expected_host: str | None = None) -> dict:
-    """静态检查结构和样例登记；业务目标保留未执行状态。"""
+                              require_host: bool = True, expected_host: str | None = None,
+                              capability_ids=(), require_examples: bool = True) -> dict:
+    """检查包结构与可选的宿主固定样例；业务目标保留未执行状态。"""
     structure = validate_access_structure(output_dir, expected_name, require_host=require_host,
                                           expected_host=expected_host)
     if not structure["package_valid"]:
         return structure
+    if not require_examples:
+        return {"valid": False, "package_valid": True, "stage": "preflight", "examples": 0,
+                "case_results": [], "capability_results": {
+                    cap: {"status": "incomplete", "deterministic": "incomplete", "semantic": "incomplete",
+                          "reason": "请根据 SKILL.md 独立执行业务 CLI 并核验需求。", "case_indexes": []}
+                    for cap in capability_ids or ('package',)}}
     positives = {example.get("capability_id") or "package" for example in examples
                  if _ordinary_positive(example)}
     cases, capabilities, registered = [], {}, set()
@@ -212,11 +226,19 @@ def validate_access_preflight(output_dir: Path, expected_name: str, examples: li
         cases.append({"capability_id": "package", "example": index, "status": "incomplete",
             "valid": False, "argv": [], "entry_path": entry, "check_kind": "contract",
             "error": "register real-data examples for all documented commands"})
-    if missing or not capabilities:
+    if missing or (not capabilities and not capability_ids):
         capabilities["package"] = {"status": "incomplete", "deterministic": "incomplete",
             "semantic": "incomplete", "reason": (cases[-1]["error"] if cases else
                 "register at least one complete real-data CLI example"),
             "case_indexes": [case["example"] for case in cases if case["capability_id"] == "package"]}
+    for cap in capability_ids:
+        if cap in positives or cap in capabilities:
+            continue
+        index = len(cases)
+        cases.append({'capability_id': cap, 'example': index, 'status': 'incomplete', 'valid': False,
+                      'argv': [], 'check_kind': 'contract', 'error': '为计划能力登记正常业务 CLI 调用。'})
+        capabilities[cap] = {'status': 'incomplete', 'deterministic': 'incomplete', 'semantic': 'incomplete',
+                             'reason': cases[-1]['error'], 'case_indexes': [index]}
     report = {"valid": False, "package_valid": True, "stage": "preflight", "examples": len(examples),
               "case_results": cases, "capability_results": capabilities}
     if missing:
@@ -407,8 +429,18 @@ def _http_source_url(value) -> bool:
         return False
 
 
+def is_advisory_case(case: dict) -> bool:
+    """边界与空结果探测保留观察，契约检查继续约束能力状态。"""
+    return case.get("check_kind") != "contract" and (
+        case.get("check_kind") == "boundary"
+        or case.get("expected_status") in ("empty", "invalid_input")
+    )
+
+
 def _summarize_cases(cases: list[dict]) -> dict:
     capabilities = {}
+    required_cases = []
+    checked_capabilities = set()
     for case in cases:
         key = case["capability_id"]
         result = capabilities.setdefault(
@@ -419,19 +451,31 @@ def _summarize_cases(cases: list[dict]) -> dict:
                 "semantic": "incomplete",
                 "reason": "",
                 "case_indexes": [],
+                "warnings": [],
             },
         )
         result["case_indexes"].append(case["example"])
+        if is_advisory_case(case):
+            if not case["valid"]:
+                result["warnings"].append(case.get("error") or "边界探测尚未通过。")
+            continue
+        required_cases.append(case)
+        checked_capabilities.add(key)
+        if case.get('external_blocked'):
+            result.update(external_blocked=True, next_action='wait_external')
         if case["status"] == "failed" or (
             case["status"] == "incomplete" and result["deterministic"] != "failed"
         ):
             result["deterministic"] = case["status"]
             result["reason"] = case.get("error", "")
-    for result in capabilities.values():
+    for key, result in capabilities.items():
+        if key not in checked_capabilities:
+            result.update(deterministic="incomplete", reason="尚无正常业务调用通过机器检查。")
         result["status"] = "unavailable" if result["deterministic"] == "failed" else "incomplete"
         if result["deterministic"] == "passed":
             result["reason"] = "固定样例通过；语义验收尚未完成。"
-    valid = bool(cases) and all(case["valid"] for case in cases)
+    valid = (bool(required_cases) and all(case["valid"] for case in required_cases)
+             and all(result["deterministic"] == "passed" for result in capabilities.values()))
     report = {
         "valid": valid,
         "package_valid": True,
@@ -450,7 +494,10 @@ def _summarize_cases(cases: list[dict]) -> dict:
             "case_indexes": [],
         }
     elif not valid:
-        first = next(case for case in cases if not case["valid"])
+        first = next((case for case in required_cases if not case["valid"]), None)
+        if first is None:
+            report["error"] = "each capability requires an ordinary positive example"
+            return report
         # 保留旧的首个错误定位字段；逐项成果由两个 results 字段完整保存。
         report.update(
             {
@@ -507,9 +554,38 @@ def _record_field_paths(record: dict) -> set[str]:
     return paths
 
 
+def _path_value(value, path):
+    """读取声明的对象路径或数组下标；空路径返回根节点。"""
+    for part in path.split('.') if path else ():
+        try:
+            value = value[int(part)] if isinstance(value, list) and part.isdecimal() else value[part]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise ValueError(f'declared output path missing: {path}') from exc
+    return value
+
+
+def _record_source(record, example):
+    if example.get('source_key'):
+        return _path_value(record, example['source_key'])
+    if 'source_url' in example.get('required_fields', []):
+        return record.get('source_url')
+    return record.get('url') or record.get('source_url')
+
+
+def _record_summary(records: list[dict], example: dict) -> dict:
+    """在长输出压缩前保存业务记录指纹与来源样例。"""
+    def fingerprint(value):
+        return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True,
+                                         separators=(',', ':')).encode()).hexdigest()
+
+    sources = sorted({_record_source(record, example) for record in records})
+    return {'count': len(records), 'records_sha256': fingerprint(records),
+            'sources_sha256': fingerprint(sources), 'source_sample': sources[:5]}
+
+
 def validate_execution_result(example: dict, result: dict, *, work_dir: Path,
                               execution_dir: Path | None = None, artifact_store=None,
-                              example_index: int = 0) -> dict:
+                              example_index: int = 0, check_records: bool = True) -> dict:
     """检查同一次命令回执和完整产物，不启动或重跑 CLI。"""
     case = _case(example, example_index)
     execution = _execution_feedback(result, execution_root=execution_dir, artifact_store=artifact_store)
@@ -519,6 +595,10 @@ def validate_execution_result(example: dict, result: dict, *, work_dir: Path,
     try:
         _example_contract(example)
         expected_status = example.get("expected_status", "ok")
+        if result.get('external_blocked'):
+            case.update(stage='external', external_blocked=True, next_action='wait_external',
+                        user_action=deepcopy(result.get('user_action')))
+            raise ValueError(result.get('error') or '等待站点外部条件恢复')
         if result.get("auth_required"):
             case.update(stage="authentication", auth_required=True)
             raise ValueError("authentication required: " + _failure_reason(execution))
@@ -554,31 +634,35 @@ def validate_execution_result(example: dict, result: dict, *, work_dir: Path,
                 "keep logs on stderr, select the correct JSON output file, "
                 "and check for HTML/login/error responses") from exc
         case["payload"] = data
-        if expected_status in {"empty", "invalid_input"}:
-            if (not isinstance(data, dict) or data.get("status") != expected_status
-                    or data.get("records") != []):
-                raise ValueError(f"expected status={expected_status} and records=[]")
+        if not check_records:
+            case.update(status="passed", valid=True)
+            return _persist_case(case, artifact_store)
+        if expected_status == 'invalid_input':
+            # 非法输入的实际错误内容交给 Validator 核对，标签格式由 Builder 决定。
+            records = None
         else:
-            if (example.get("capability_id") or "expected_status" in example) and (
-                    not isinstance(data, dict) or data.get("status") != "ok"):
-                raise ValueError("capability success example must return status=ok")
-            records = data[example["records_key"]] if example.get("records_key") else data
+            records = _path_value(data, example.get('records_key', ''))
+        if expected_status == 'empty':
+            if records not in ([], {}, None):
+                raise ValueError('expected an empty business result')
+        elif expected_status != 'invalid_input':
+            if isinstance(records, dict) and records:
+                records = [records]
             if not isinstance(records, list) or not records:
-                raise ValueError("example must return a nonempty records array")
+                raise ValueError("example must return a nonempty business object or records array")
             for record in records:
                 if not isinstance(record, dict):
                     raise ValueError("each record must be an object")
-                requires_source = "source_url" in example.get("required_fields", [])
-                source = (record.get("source_url") if requires_source
-                          else record.get("url") or record.get("source_url"))
+                source = _record_source(record, example)
                 if not _http_source_url(source):
-                    raise ValueError("each record must retain a valid HTTP source_url" if requires_source
-                                     else "each record must retain a valid HTTP source URL")
+                    raise ValueError('each record must retain a valid HTTP source URL at '
+                                     + (example.get('source_key') or 'source_url/url'))
                 required = example.get("required_fields", [])
                 fields = _record_field_paths(record) if required else set()
                 missing = [field for field in required if field not in fields]
                 if missing:
                     raise ValueError("capability required fields missing: " + ", ".join(missing))
+            case['record_summary'] = _record_summary(records, example)
         case.update(status="passed", valid=True)
     except Exception as exc:
         case.update(status=_failure_status(execution, str(exc)), error=str(exc)[:4000])

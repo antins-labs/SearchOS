@@ -17,6 +17,42 @@ async def list_creations():
     return jobs.list()
 
 
+@router.get('/browser-sessions')
+async def browser_sessions():
+    from searchos.skills.runtime.browser_session import list_sessions
+    return list_sessions()
+
+
+@router.delete('/browser-sessions/{site}')
+async def delete_browser_session(site: str):
+    from searchos.skills.runtime.browser_session import clear_session
+    try:
+        clear_session(site)
+        return {'cleared': site}
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
+
+
+@router.post('/{job_id}/actions/{operation_id}/{action}')
+async def respond_to_browser(job_id: str, operation_id: str, action: Literal['open', 'continue', 'skip']):
+    try:
+        return await jobs.respond(job_id, operation_id, action)
+    except FileNotFoundError:
+        raise HTTPException(404, '创建记录不存在')
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
+
+
+@router.post('/{job_id}/requests/{index}/revalidate', status_code=202)
+async def revalidate_creation(job_id: str, index: int):
+    try:
+        return jobs.revalidate(job_id, index)
+    except FileNotFoundError:
+        raise HTTPException(404, '创建记录不存在')
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
+
+
 class DeleteCreations(BaseModel, extra='forbid'):
     ids: list[str] = Field(min_length=1, max_length=100)
 
@@ -52,6 +88,17 @@ async def get_creation(job_id: str):
         return jobs.read(job_id)
     except (ValueError, FileNotFoundError):
         raise HTTPException(404, '创建作业不存在')
+
+
+@router.get('/{job_id}/progress')
+async def get_creation_progress(job_id: str, index: int = Query(default=0, ge=0)):
+    from api.skills.progress import creation_progress
+    try:
+        return creation_progress(jobs.read(job_id), jobs.root, index)
+    except FileNotFoundError:
+        raise HTTPException(404, '创建作业不存在')
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
 
 
 @router.post('/{job_id}/requests/{index}/resume', status_code=202)

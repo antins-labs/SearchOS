@@ -12,7 +12,9 @@ from uuid import uuid4
 
 from searchos.skills.pipeline.access.session import validate_repair_budget
 from searchos.skills.pipeline.access.validation.checks import (
+    _example_contract,
     _summarize_cases,
+    is_advisory_case,
     validate_access_preflight,
 )
 
@@ -99,6 +101,8 @@ def function_bindings(index, cases, retained=None):
     functions = index['functions']
     bindings = {}
     for case in cases:
+        if is_advisory_case(case):
+            continue
         cap = case.get('capability_id', 'package')
         trace = case.get('function_trace') or case.get('execution', {}).get('function_trace', {})
         if trace.get('trace_file'):
@@ -155,7 +159,18 @@ def function_bindings(index, cases, retained=None):
     return bindings
 
 
+def plan_requirements(plan):
+    """研究补充独立保存；业务目标参与验收版本。"""
+    if plan is None:
+        return None
+    return {'capabilities': [{key: deepcopy(cap[key]) for key in
+                ('id', 'purpose', 'acceptance', 'depends_on') if key in cap}
+                for cap in plan.get('capabilities', [])],
+            'limitations': deepcopy(plan.get('limitations', []))}
+
+
 def contracts(capabilities, examples, plan, package_contract):
+    plan = plan_requirements(plan)
     shared = {key: value for key, value in (plan or {}).items() if key != 'capabilities'}
     return {cap: digest({'package': package_contract, 'plan': shared,
         'capability': [item for item in (plan or {}).get('capabilities', []) if item['id'] == cap],
@@ -176,9 +191,19 @@ def validation_scope(index, current_contracts, previous):
     for cap, contract in current_contracts.items():
         item = previous.get('capability_results', {}).get(cap, {})
         binding = bindings.get(cap, {})
-        if item.get('status') != 'available':
+        blocked_cases = [case for case in previous.get('case_results', [])
+                         if case.get('capability_id', 'package') == cap and case.get('external_blocked')]
+        advisory_block = bool(blocked_cases) and all(is_advisory_case(case) for case in blocked_cases)
+        if (item.get('external_blocked') and not advisory_block
+                and previous.get('function_contracts', {}).get(cap) == contract):
+            reused.append(cap)
+            continue
+        if item.get('external_blocked') and advisory_block:
+            reason = 'advisory_external_block'
+        elif item.get('status') != 'available':
             reason = 'not_passed'
-        elif any(command.get('capability_id') == cap for command in previous.get('regression_commands', [])):
+        elif any(command.get('capability_id') == cap and not is_advisory_case(command)
+                 for command in previous.get('regression_commands', [])):
             reason = 'pending_regressions'
         elif previous.get('cancelled') or shared_changed:
             reason = 'shared_content_changed'
@@ -231,12 +256,13 @@ def normalized(argv, *, route=False):
     values = list(argv)
     if values and values[0] in {'python', 'python3'}:
         values[0] = 'python'
+    if route:
+        return values[:2]
     for index, value in enumerate(argv[:-1]):
         if value == '--input':
             try:
                 payload = json.loads(argv[index + 1])
-                values[index + 1] = ('<business-input>' if route else
-                    json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False))
+                values[index + 1] = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
             except (ValueError, TypeError):
                 pass
     return values
@@ -249,21 +275,29 @@ def identity(command):
 def contract(command):
     return {key: deepcopy(command.get(key, default)) for key, default in {
         'capability_id': 'package', 'argv': [], 'expected_status': 'ok', 'check_kind': 'positive',
-        'stdin': '', 'output': '', 'records_key': 'records', 'required_fields': []}.items()}
+        'stdin': '', 'output': '', 'records_key': '', 'source_key': '', 'required_fields': [],
+        'regression_of': ''}.items()}
 
 
 def pending_commands(previous, cases, checks):
-    pending = {identity(item): deepcopy(item) for item in previous}
+    pending = {identity(item): deepcopy(item) for item in previous if not is_advisory_case(item)}
     failed = {check['capability_id']: check for check in checks if check['status'] == 'failed'}
+    passed = {check['capability_id']: check for check in checks if check.get('status') == 'passed'}
     for case in cases:
-        if case.get('check_kind') == 'contract' or not case.get('argv'):
+        if case.get('check_kind') == 'contract' or is_advisory_case(case) or not case.get('argv'):
             continue
         item = contract(case.get('contract', case))
         key = identity(item)
+        if case.get('external_blocked'):
+            pending.pop(key, None)
+            continue
         if case.get('valid') and case.get('status') == 'passed':
             old = pending.get(key)
-            if old and all(item[field] == contract(old)[field] for field in
-                           ('expected_status', 'check_kind', 'output', 'records_key', 'required_fields')):
+            eid = case.get('execution', {}).get('execution_id')
+            if (old and eid != old.get('execution_id')
+                    and eid in passed.get(item['capability_id'], {}).get('execution_ids', [])
+                    and all(item[field] == contract(old)[field] for field in
+                            ('expected_status', 'check_kind', 'output', 'records_key', 'source_key', 'required_fields'))):
                 pending.pop(key)
         elif case.get('status') == 'failed':
             pending[key] = {**item, 'reason': case.get('error', '原输入的机器检查失败'),
@@ -274,11 +308,21 @@ def pending_commands(previous, cases, checks):
             pending[key] = {**item, 'reason': check['reason'],
                             'candidate_version': case.get('candidate_version'),
                             'execution_id': case.get('execution', {}).get('execution_id')}
+    # 等价调用须有当前执行和独立语义确认；修改样例本身不会清掉原失败。
+    for case in cases:
+        ref = case.get('contract', {}).get('regression_of')
+        check = passed.get(case.get('capability_id'), {})
+        if (ref and case.get('valid') and case.get('status') == 'passed'
+                and case.get('execution', {}).get('execution_id') != ref
+                and case.get('execution', {}).get('execution_id') in [
+                    *check.get('execution_ids', []), *check.get('regression_execution_ids', [])]):
+            pending = {key: item for key, item in pending.items()
+                       if item.get('execution_id') != ref or item.get('capability_id') != case.get('capability_id')}
     return list(pending.values())
 
 
-def prepare_commands(previous, examples, plan, previous_cases=()):
-    """兼容旧记录；仅接受 Planner 对同输入、有依据的边界预期修订。"""
+def prepare_commands(previous, examples, plan=None, previous_cases=()):
+    """保留原业务失败；显式宿主样例提供固定的输出检查条件。"""
     prepared, revisions = [], []
     commands = deepcopy(previous)
     # 旧版本会在语义 passed 时清掉失败队列，从持久用例恢复遗漏的机器失败。
@@ -287,7 +331,8 @@ def prepare_commands(previous, examples, plan, previous_cases=()):
                 and not any(identity(item) == identity(case.get('contract', case)) for item in commands)):
             saved = case.get('contract', {key: case[key] for key in
                 ('capability_id', 'argv', 'expected_status', 'check_kind') if key in case})
-            commands.append({**deepcopy(saved), 'reason': case.get('error', '原输入的机器检查失败')})
+            commands.append({**deepcopy(saved), 'reason': case.get('error', '原输入的机器检查失败'),
+                             'execution_id': case.get('execution', {}).get('execution_id')})
     for old in commands:
         same_route = [example for example in examples if example.get('capability_id', 'package') == old.get('capability_id')
                       and normalized(example['argv'], route=True) == normalized(old['argv'], route=True)]
@@ -297,29 +342,17 @@ def prepare_commands(previous, examples, plan, previous_cases=()):
         prior_contract = prior.get('contract', {key: prior[key] for key in
             ('expected_status', 'check_kind') if key in prior})
         item = {**contract({**base, **prior_contract, **old}), **deepcopy(old)}
-        # 原输入继续遵守当前能力新增的字段要求，保留历史字段和原状态预期。
-        item['required_fields'] = list(dict.fromkeys([*item['required_fields'],
-            *(field for example in same_route for field in example.get('required_fields', []))]))
-        for example in same_route:
-            if identity(example) != identity(old) or not example.get('reason') or not example.get('evidence_ids'):
-                continue
-            try:
-                inputs = json.loads(example['argv'][example['argv'].index('--input') + 1])
-            except (ValueError, IndexError):
-                continue
-            registered = any(boundary.get('input') == inputs
-                and boundary.get('expected_status') == example.get('expected_status')
-                and boundary.get('reason') == example['reason']
-                and boundary.get('evidence_ids') == example['evidence_ids']
-                for cap in (plan or {}).get('capabilities', []) if cap['id'] == item['capability_id']
-                for boundary in cap.get('boundary_cases', []))
-            if registered and any(contract(item)[key] != contract(example)[key]
-                                  for key in ('expected_status', 'check_kind')):
-                revision = {'previous_contract': contract(item), 'revised_contract': contract(example),
-                            'reason': example['reason'], 'evidence_ids': deepcopy(example['evidence_ids'])}
-                revisions.append(revision)
-                item = {**item, **contract(example), 'contract_revision': revision}
-        prepared.append(item)
+        previous_contract = contract(item)
+        if base:
+            for field in ('output', 'records_key', 'source_key', 'required_fields'):
+                item[field] = contract(base)[field]
+        if contract(item) != previous_contract:
+            revision = {'previous_contract': previous_contract, 'revised_contract': contract(item),
+                        'reason': '采用宿主固定输出条件补验原业务输入'}
+            revisions.append(revision)
+            item['contract_revision'] = revision
+        if not is_advisory_case(item):
+            prepared.append(item)
     return prepared, revisions
 
 
@@ -406,7 +439,9 @@ class ValidationProgress:
 
 
     def validation_fingerprint(self):
-        raw = json.dumps(self.validation_state(), ensure_ascii=False, sort_keys=True).encode()
+        state = list(self.validation_state())
+        state[5] = plan_requirements(state[5])
+        raw = json.dumps(state, ensure_ascii=False, sort_keys=True).encode()
         return hashlib.sha256(raw).hexdigest()
 
 
@@ -417,6 +452,11 @@ class ValidationProgress:
         for example in examples:
             if not isinstance(example, dict):
                 raise ValueError('each validation example must be an object')
+            if 'capability_id' in example and (not isinstance(example['capability_id'], str)
+                                               or not example['capability_id'].strip()):
+                raise ValueError('example capability_id must be a nonempty string')
+            if 'regression_of' in example:
+                raise ValueError('regression_of is assigned by Validator when independently rerunning a failed input')
             argv = example.get('argv')
             if (not isinstance(argv, list) or len(argv) < 2
                     or not all(isinstance(arg, str) for arg in argv)):
@@ -433,6 +473,7 @@ class ValidationProgress:
                 raise ValueError('example records_key must be a string')
             if 'proxy_mode' in example or any(arg == '--proxy-mode' or arg.startswith('--proxy-mode=') for arg in argv):
                 raise ValueError('network configuration belongs in package functions; submit business arguments')
+            _example_contract(example)
 
 
     def set_validation_examples(self, examples):
@@ -473,13 +514,19 @@ class ValidationProgress:
             return report
         index, definitions, scope, previous = self.active.index, self.active.contracts, self.active.scope, self.active.previous
         report = deepcopy(report)
-        report.setdefault('regression_commands', deepcopy(previous.get('regression_commands', [])))
+        report['regression_commands'] = [deepcopy(command) for command in
+            report.get('regression_commands', previous.get('regression_commands', []))
+            if not is_advisory_case(command)]
         reused = set(scope['reused_capability_ids'])
         report['case_results'] = [case for case in report.get('case_results', [])
                                   if case.get('capability_id', 'package') not in reused]
         bindings = function_bindings(index, report.get('case_results', []), retained={
-            cap: previous['function_bindings'][cap] for cap in scope['reused_capability_ids']})
-        return {**merge_reused(report, previous, scope['reused_capability_ids']),
+            cap: previous.get('function_bindings', {})[cap] for cap in scope['reused_capability_ids']
+            if cap in previous.get('function_bindings', {})})
+        merged = merge_reused(report, previous, scope['reused_capability_ids'])
+        merged['external_commands'] = [contract(case.get('contract', case)) for case in merged.get('case_results', [])
+                                       if case.get('external_blocked') and not is_advisory_case(case)]
+        return {**merged,
                 'function_index': index, 'function_contracts': definitions,
                 'function_bindings': bindings, 'validation_scope': scope}
 
@@ -500,6 +547,8 @@ class ValidationProgress:
 
     def validation_feedback(self, report):
         report = deepcopy(report)
+        report['regression_commands'] = [command for command in report.get('regression_commands', [])
+                                         if not is_advisory_case(command)]
         for command in report.get('regression_commands', []):
             item = report.get('capability_results', {}).get(command.get('capability_id'), {})
             if item.get('status') == 'available':
@@ -513,6 +562,9 @@ class ValidationProgress:
         for cap, item in report.get('capability_results', {}).items():
             if item.get('status') == 'available':
                 continue
+            if item.get('external_blocked'):
+                tasks.append({'capability_id': cap, 'action': 'wait_external', 'reason': item.get('reason', '')})
+                continue
             contract = next((case for case in report.get('case_results', [])
                              if case.get('capability_id', 'package') == cap
                              and case.get('check_kind') == 'contract'), {})
@@ -521,7 +573,8 @@ class ValidationProgress:
                       'repair_package' if not report.get('package_valid') else
                       'repair_code' if item.get('status') == 'unavailable' else 'complete_validation')
             failed = next((case for case in report.get('case_results', [])
-                           if case.get('capability_id', 'package') == cap and case.get('status') == 'failed'), {})
+                           if case.get('capability_id', 'package') == cap and case.get('status') == 'failed'
+                           and not is_advisory_case(case)), {})
             example = next((case for case in self.examples
                             if case.get('capability_id', 'package') == cap
                             and case.get('expected_status', 'ok') == 'ok'
@@ -544,8 +597,6 @@ class ValidationProgress:
             tasks[-1]['regression_commands'] = [deepcopy(command) for command in
                 report.get('regression_commands', self.last_validation.get('regression_commands', []))
                 if command.get('capability_id') == cap]
-        if not self.examples:
-            tasks.append({'action': 'provide_examples', 'reason': '提交完整业务 CLI 样例后启动独立验收。'})
         report['next_actions'] = tasks
         report['package_files'] = sorted(self.package.package_state())
         report['function_index_file'] = index['index_file']
@@ -558,7 +609,8 @@ class ValidationProgress:
         if self._package_preflight is not None and self._package_preflight[0] == fingerprint:
             return deepcopy(self._package_preflight[1])
         gate = validate_access_preflight(self.package.output_dir, self.package.expected_name, self.examples,
-            require_host=self.require_host, expected_host=self.expected_host)
+            require_host=self.require_host, expected_host=self.expected_host, capability_ids=self.capability_ids,
+            require_examples=self.examples_locked)
         report = self.validation_feedback({**gate, 'candidate_fingerprint': fingerprint,
             'preflight_valid': bool(gate.get('package_valid') and not gate.get('error'))})
         self._package_preflight = (fingerprint, report)
@@ -584,7 +636,7 @@ class ValidationReview:
 
     def start(self, *, candidate_dir, candidate_version, deterministic, host, notes,
               plan=None, examples=None, resume=None, function_index=None, validation_scope=None,
-              previous_report=None):
+              previous_report=None, examples_locked=False):
         """冻结本轮输入，恢复同版本证据，并登记静态检查观察。"""
         previous_report = previous_report or {}
         self.previous_regression_commands = deepcopy(previous_report.get("regression_commands", []))
@@ -597,7 +649,8 @@ class ValidationReview:
                       "function_index": deepcopy(function_index), "validation_scope": deepcopy(validation_scope),
                       "files": sorted(path.relative_to(candidate_dir).as_posix()
                                       for path in candidate_dir.rglob("*") if path.is_file()),
-                      "examples": deepcopy(examples or []), "static_validation": deepcopy(deterministic),
+                      "examples": deepcopy(examples or []), "examples_locked": examples_locked,
+                      "static_validation": deepcopy(deterministic),
                       "deterministic": deepcopy(deterministic),
                       "case_results": deepcopy(deterministic.get("case_results", [])),
                       "observations": [], "responses": [], "usage": {}, "calls": 0}
@@ -616,8 +669,13 @@ class ValidationReview:
         gate = self.observe("static_checks", {}, deterministic)
         self.state["gate_observation_id"] = gate["observation_id"]
         if self.state.get("resumed_from"):
-            checks = [{key: deepcopy(check[key]) for key in ("capability_id", "status", "reason")}
-                      for check in resume.get("accepted_checks", []) if check.get("status") in {"passed", "failed"}]
+            advisory_executions = {case.get('execution', {}).get('execution_id')
+                                   for case in self.state['case_results'] if is_advisory_case(case)}
+            checks = [{key: deepcopy(check[key]) for key in ("capability_id", "status", "reason", "warnings")
+                       if key in check}
+                      for check in resume.get("accepted_checks", []) if check.get("status") in {"passed", "failed"}
+                      and not (check['status'] == 'failed'
+                               and advisory_executions.intersection(check.get('execution_ids', [])))]
             if checks:
                 self.submit({"checks": checks})
         self.on_progress(self.result())
@@ -638,8 +696,16 @@ class ValidationReview:
         case = result.get("validation") if name == "exec" else None
         reopen = False
         if case is not None:
+            self.previous_regression_commands = self._regression_commands()
             case = deepcopy(case)
             case.update(observation_id=oid, candidate_version=self.state["candidate_version"])
+            if ref := case.get('contract', {}).get('regression_of'):
+                original = next((item for item in self._regression_commands() if item.get('execution_id') == ref), None)
+                if original:
+                    self.state['regression_contract_revisions'].append({
+                        'previous_contract': deepcopy(original), 'revised_contract': deepcopy(case['contract']),
+                        'execution_id': case.get('execution', {}).get('execution_id'),
+                        'reason': 'Validator 按当前接口复验原业务输入，语义结论决定是否解除回归义务。'})
             key = (identity(case.get('contract', case)), case["check_kind"])
             previous = next((index for index, item in enumerate(self.state["case_results"])
                              if (identity(item.get('contract', item)), item["check_kind"]) == key), None)
@@ -653,6 +719,9 @@ class ValidationReview:
                 case["example"] = self.state["case_results"][previous]["example"]
                 self.state["case_results"][previous] = case
             result = {**result, "validation": case}
+            comparisons = self._parameter_comparisons(case)
+            if comparisons:
+                result['parameter_comparisons'] = comparisons
         self.state["observations"].append(
             {"id": oid, "tool": name, "args": deepcopy(args), "result": deepcopy(result)}
         )
@@ -668,6 +737,46 @@ class ValidationReview:
         if case is not None:
             self.on_progress(self.result())
         return {"observation_id": oid, **result}
+
+
+    def _parameter_comparisons(self, current):
+        """对同一能力的正常调用展示实际记录对照，语义由 Validator 核验。"""
+        if is_advisory_case(current) or not current.get('valid') or not current.get('record_summary'):
+            return []
+
+        def inputs(case):
+            argv = case.get('argv', [])
+            try:
+                value = json.loads(argv[argv.index('--input') + 1])
+                return value if isinstance(value, dict) else {'argv': argv[2:], 'stdin': case.get('contract', {}).get('stdin', '')}
+            except (ValueError, IndexError):
+                return {'argv': argv[2:], 'stdin': case.get('contract', {}).get('stdin', '')}
+
+        after = inputs(current)
+        if after is None:
+            return []
+        comparisons = []
+        for previous in self.state['case_results']:
+            if (previous.get('capability_id') != current['capability_id']
+                    or previous.get('candidate_version') != current['candidate_version']
+                    or is_advisory_case(previous) or not previous.get('valid')
+                    or not previous.get('record_summary')
+                    or normalized(previous.get('argv', []), route=True) != normalized(current['argv'], route=True)):
+                continue
+            before = inputs(previous)
+            if before is None or before == after:
+                continue
+            first, second = previous['record_summary'], current['record_summary']
+            comparisons.append({
+                'previous_execution_id': previous['execution']['execution_id'],
+                'current_execution_id': current['execution']['execution_id'],
+                'changed_inputs': sorted(key for key in before.keys() | after.keys()
+                                         if key not in before or key not in after or before[key] != after[key]),
+                'previous_count': first['count'], 'current_count': second['count'],
+                'same_records': first['records_sha256'] == second['records_sha256'],
+                'same_sources': first['sources_sha256'] == second['sources_sha256'],
+            })
+        return comparisons
 
 
     def _refresh_deterministic(self):
@@ -707,7 +816,8 @@ class ValidationReview:
             fixed = gate.get("capability_results", {}).get(capability, {})
             cases = [case for case in self.state["case_results"]
                      if (case.get("capability_id") or "package") == capability]
-            states = [case.get("status", "passed" if case.get("valid") else "failed") for case in cases]
+            business_cases = [case for case in cases if not is_advisory_case(case)]
+            states = [case.get("status", "passed" if case.get("valid") else "failed") for case in business_cases]
             det = fixed.get("deterministic")
             if det not in {"passed", "failed", "incomplete"}:
                 det = ("failed" if "failed" in states else "passed"
@@ -726,9 +836,18 @@ class ValidationReview:
                     status, reason = 'incomplete', '原失败输入尚未完成补验。'
             if gate.get("package_valid") and det != "passed":
                 reason = fixed.get("reason") or next(
-                    (case.get("error") for case in cases if case.get("error")), "业务执行的机器检查尚未完成。")
+                    (case.get("error") for case in business_cases if case.get("error")), "业务执行的机器检查尚未完成。")
             item = {"status": status, "deterministic": det, "semantic": sem, "reason": reason,
                     "case_indexes": fixed.get("case_indexes", [case["example"] for case in cases])}
+            warnings = list(dict.fromkeys([*fixed.get('warnings', []), *(check or {}).get('warnings', [])]))
+            if warnings:
+                item['warnings'] = warnings
+            blocked = next((case for case in business_cases if case.get('external_blocked')), None)
+            if blocked:
+                item.update(status='incomplete', deterministic='incomplete', semantic='incomplete',
+                            external_blocked=True, next_action='wait_external', reason=blocked.get('error', '等待外部条件'))
+                results[capability] = item
+                continue
             if gate.get("package_valid") and check is None:
                 item["protocol_error"] = self.state.get("protocol_errors", {}).get(
                     capability, "尚未通过 send_message 向 builder 提交本能力的有效结论")
@@ -740,34 +859,57 @@ class ValidationReview:
 
     def execution_example(self, args):
         capability, argv = args["capability_id"], args["argv"]
-        regression = next((item for item in self._regression_commands() if identity(item) == identity(args)), None)
+        pending = self._regression_commands()
+        ref = args.get('regression_of')
+        regression = next((item for item in pending if
+            (item.get('execution_id') == ref if ref else identity(item) == identity(args))), None)
+        if ref and (regression is None or regression['capability_id'] != capability):
+            raise ValueError('regression_of must reference a pending failed execution of this capability')
+        boundary_revision = bool(ref and args.get('check_kind') == 'boundary'
+                                 and args.get('expected_status') in {'empty', 'invalid_input'})
         if regression:
             for field in ('expected_status', 'check_kind'):
-                if field in args and args[field] != regression[field]:
-                    raise ValueError(f'regression {field} must retain the original expectation; ask planner to revise it')
-            return {**contract(regression), 'argv': deepcopy(argv)}
+                if field in args and args[field] != regression[field] and not boundary_revision:
+                    raise ValueError(f'regression {field} must retain the original business expectation')
+        if not self.state.get('examples_locked'):
+            selected = {key: deepcopy(args[key]) for key in
+                        ('capability_id', 'argv', 'stdin', 'output', 'regression_of') if key in args}
+            selected['expected_status'] = (regression['expected_status'] if regression and not boundary_revision
+                                           else args.get('expected_status', 'ok'))
+            selected['check_kind'] = (regression['check_kind'] if regression and not boundary_revision
+                                     else args.get('check_kind', 'positive'))
+            _example_contract(selected)
+            return selected
         own = [item for item in self.state["examples"]
                if (item.get("capability_id") or "package") == capability
                and normalized(item["argv"], route=True) == normalized(argv, route=True)]
-        other = [item for item in self.state["examples"]
-                 if (item.get("capability_id") or "package") != capability
-                 and normalized(item["argv"], route=True) == normalized(argv, route=True)]
-        if not own or other and not any(normalized(item["argv"]) == normalized(argv) for item in own):
-            raise ValueError("CLI argv must use this capability's normal business route; use its suggested command")
+        if not own:
+            raise ValueError("CLI argv must use this capability's registered script entry; use its current declaration")
+        if not any(identity(item) == identity(args) for item in own) and any(
+                (item.get('capability_id') or 'package') != capability
+                and normalized(item['argv']) == normalized(argv)
+                and item.get('stdin', '') == args.get('stdin', '') for item in self.state['examples']):
+            raise ValueError('CLI command is registered to another capability; check its documented business operation')
         boundary = next((item for item in own if normalized(item["argv"]) == normalized(argv)
                          and (item.get("check_kind") == "boundary" or item.get("expected_status", "ok") != "ok")), None)
         positives = [item for item in own if item.get("check_kind") != "boundary"
                      and item.get("expected_status", "ok") == "ok"]
         exact = next((item for item in positives if normalized(item["argv"]) == normalized(argv)), None)
         selected = deepcopy(boundary or exact or (positives or own)[0])
-        expected = args.get("expected_status", selected.get("expected_status", "ok") if boundary else "ok")
+        selected.pop('regression_of', None)
+        expected = (args['expected_status'] if boundary_revision else regression['expected_status'] if regression else
+                    args.get("expected_status", selected.get("expected_status", "ok") if boundary else "ok"))
         if boundary and expected != boundary.get("expected_status", "ok"):
             raise ValueError("expected_status conflicts with this registered boundary example")
-        kind = "boundary" if boundary or expected != "ok" else args.get("check_kind", "positive")
+        kind = ('boundary' if boundary_revision else regression['check_kind'] if regression else
+                "boundary" if boundary or expected != "ok" else args.get("check_kind", "positive"))
         selected.update(capability_id=capability, argv=deepcopy(argv), expected_status=expected,
                         check_kind=kind, stdin=args.get('stdin', ''))
-        selected["required_fields"] = list(dict.fromkeys(
-            field for item in positives or [selected] for field in item.get("required_fields", [])))
+        if self.state.get('examples_locked'):
+            selected['required_fields'] = list(dict.fromkeys(
+                field for item in positives or [selected] for field in item.get('required_fields', [])))
+        if ref:
+            selected['regression_of'] = ref
         return selected
 
 
@@ -778,7 +920,7 @@ class ValidationReview:
             observation = observations.get(case.get("observation_id"), {})
             args, result = observation.get("args", {}), observation.get("result", {})
             eid, argv = result.get("execution_id"), args.get("argv")
-            if (case.get("capability_id") != capability or observation.get("tool") != "exec"
+            if (is_advisory_case(case) or case.get("capability_id") != capability or observation.get("tool") != "exec"
                     or args.get("capability_id") != capability or not isinstance(argv, list) or not argv
                     or result.get("started") is False or not eid or {"--help", "-h"}.intersection(argv)
                     or identity(case.get('contract', case)) != identity(args)
@@ -798,7 +940,8 @@ class ValidationReview:
 
     def progress(self):
         accepted = {check["capability_id"]: check["status"] for check in self.state.get("accepted_checks", [])}
-        pending = [cap for cap in self.capabilities() if accepted.get(cap) not in {"passed", "failed"}]
+        blocked = {cap for cap, item in self._capability_results().items() if item.get('external_blocked')}
+        pending = [cap for cap in self.capabilities() if cap not in blocked and accepted.get(cap) not in {"passed", "failed"}]
         missing = [cap for cap in pending if not self._cli_evidence(cap, successful=True)]
         commands = []
         for cap in missing:
@@ -809,6 +952,7 @@ class ValidationReview:
             if example is not None:
                 commands.append({"capability_id": cap, "argv": deepcopy(example["argv"])})
         return {"accepted_capabilities": accepted, "pending_capabilities": pending,
+                "wait_external": sorted(blocked),
                 "pending_regressions": self._regression_instructions(),
                 "missing_independent_cli": missing, "suggested_commands": commands,
                 "validation_scope": self.state.get('validation_scope'),
@@ -837,6 +981,7 @@ class ValidationReview:
             raise ValueError("builder content requires checks, an array of capability verdicts, and optional repair_budget")
         if "repair_budget" in content:
             self.state["repair_budget"] = validate_repair_budget(content["repair_budget"])
+        self.previous_regression_commands = self._regression_commands()
         accepted = {check["capability_id"]: deepcopy(check) for check in self.state.get("accepted_checks", [])}
         errors, protocol_errors = [], self.state.setdefault("protocol_errors", {})
         ids = [check.get("capability_id") for check in content["checks"] if isinstance(check, dict)]
@@ -850,32 +995,44 @@ class ValidationReview:
                     raise ValueError(f"checks[{index}].capability_id must identify an existing capability")
                 if capability in duplicates:
                     raise ValueError(f"{capability}: submit one verdict per capability")
-                if set(check) - {"capability_id", "status", "reason", "intent_question", "execution_ids"}:
+                if set(check) - {"capability_id", "status", "reason", "intent_question", "execution_ids", "warnings"}:
                     raise ValueError(f"{capability}: unknown capability verdict fields")
                 status = check.get("status")
                 if status not in {"passed", "failed", "uncertain"}:
                     raise ValueError(f"{capability}: status must be passed, failed or uncertain")
                 if not isinstance(check.get("reason"), str) or not check["reason"].strip():
                     raise ValueError(f"{capability}: reason must explain the observed result or unverified scope")
+                warnings = check.get('warnings', [])
+                if not isinstance(warnings, list) or any(not isinstance(value, str) or not value.strip() for value in warnings):
+                    raise ValueError(f"{capability}: warnings must contain nonempty strings")
                 question = check.get("intent_question")
                 if question is not None and (status != "uncertain" or not isinstance(question, str) or not question.strip()):
                     raise ValueError(f"{capability}: intent_question requires uncertain and nonempty text")
                 evidence = self._cli_evidence(capability, successful=status == "passed")
-                if status == 'passed' and any(item['capability_id'] == capability for item in self._regression_commands()):
-                    raise ValueError(f'{capability}: pending regression inputs require successful CLI reruns with their original expectations')
                 # 旧报告中的 execution_ids 由当前会话的真实证据覆盖。
                 if status in {"passed", "failed"} and not evidence:
                     raise ValueError(f"{capability}: {status} requires an independent "
                                      + ("successful " if status == "passed" else "")
                                      + "CLI argv execution"
                                      + (" using this capability's normal business route" if status == "passed"
-                                        else " with a recorded machine check"))
+                                        else " using normal business input with a recorded machine check; report boundary observations in warnings"))
                 purpose = next((cap.get("purpose", capability)
                                 for cap in (self.state.get("plan") or {}).get("capabilities", [])
                                 if cap["id"] == capability), capability)
-                accepted[capability] = {**deepcopy(check), "requirement": purpose,
-                                       "execution_ids": list(dict.fromkeys(eid for eid, _ in evidence)),
-                                       "evidence_ids": list(dict.fromkeys(oid for _, oid in evidence))}
+                verdict = {**deepcopy(check), "requirement": purpose,
+                           "execution_ids": list(dict.fromkeys(eid for eid, _ in evidence)),
+                           "evidence_ids": list(dict.fromkeys(oid for _, oid in evidence))}
+                if status == 'passed':
+                    verdict['regression_execution_ids'] = [case['execution']['execution_id']
+                        for case in self.state['case_results']
+                        if case.get('capability_id') == capability and case.get('valid')
+                        and case.get('contract', {}).get('regression_of')
+                        and case.get('candidate_version') == self.state['candidate_version']]
+                prospective = [value for key, value in accepted.items() if key != capability] + [verdict]
+                if status == 'passed' and any(item['capability_id'] == capability
+                                             for item in self._regression_commands(prospective)):
+                    raise ValueError(f'{capability}: pending regression inputs require successful CLI reruns with their original expectations')
+                accepted[capability] = verdict
                 protocol_errors.pop(capability, None)
             except (ValueError, TypeError) as exc:
                 message = str(exc)
@@ -902,14 +1059,17 @@ class ValidationReview:
         return receipt
 
 
-    def _regression_commands(self):
-        return pending_commands(self.previous_regression_commands, self.state['case_results'],
-                                self.state.get('accepted_checks', []))
+    def _regression_commands(self, checks=None):
+        blocked = {case['capability_id'] for case in self.state['case_results']
+                   if case.get('external_blocked') and not is_advisory_case(case)}
+        return [item for item in pending_commands(self.previous_regression_commands, self.state['case_results'],
+                                self.state.get('accepted_checks', []) if checks is None else checks)
+                if item['capability_id'] not in blocked]
 
 
     def _regression_instructions(self):
         return [{**item, 'exec': {key: deepcopy(item[key]) for key in
-            ('capability_id', 'argv', 'stdin', 'expected_status', 'check_kind')}}
+            ('capability_id', 'argv', 'stdin', 'output', 'expected_status', 'check_kind')}}
             for item in self._regression_commands()]
 
 
@@ -923,6 +1083,10 @@ class ValidationReview:
                   "validation_usage": deepcopy(self.state["usage"]),
                   "report_complete": not gate.get("package_valid") or bool(self.state.get("report_complete")),
                   "regression_commands": self._regression_commands()}
+        result['external_commands'] = [contract(case.get('contract', case)) for case in self.state['case_results']
+                                       if case.get('external_blocked') and not is_advisory_case(case)]
+        if all(item.get('external_blocked') or item['status'] == 'available' for item in capabilities.values()):
+            result['report_complete'] = True
         result['regression_contract_revisions'] = deepcopy(self.state.get('regression_contract_revisions', []))
         if not passed and "repair_budget" in self.state:
             result["repair_budget"] = deepcopy(self.state["repair_budget"])

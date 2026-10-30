@@ -15,7 +15,8 @@ async def generate_skills(signal: SkillSignal, *, library_path: str | Path | Non
                           categories: tuple[str, ...] = ('access', 'strategy', 'orchestrator'),
                           max_requests: int | None = None, min_opens: int = 3, obs_chars: int = 800,
                           subtask_runner: Any = None, judge_model: Any = None,
-                          trial_root: str | Path | None = None, on_progress: Any = None) -> list[PipelineResult]:
+                          trial_root: str | Path | None = None, on_progress: Any = None,
+                          allow_interaction: bool = False, on_user_action: Any = None) -> list[PipelineResult]:
     """外部信号 → 生成请求 → 对应 pipeline；单个请求失败不影响后续请求。"""
     if library_path is None:
         from searchos.config.settings import settings
@@ -43,6 +44,7 @@ async def generate_skills(signal: SkillSignal, *, library_path: str | Path | Non
                                     model_name=model_name, subtask_runner=subtask_runner,
                                     access_site_intent=signal.kind == 'site', access_intent_model=intent_model,
                                     access_validation_model=validation_model,
+                                    allow_interaction=allow_interaction, on_user_action=on_user_action,
                                     subtask=request.subtask if signal.kind == 'trace' else None,
                                     judge_model=judge_model, trial_root=trial_root, on_draft=on_draft, on_stage=on_stage)
         results.append(result)

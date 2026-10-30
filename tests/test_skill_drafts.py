@@ -5,8 +5,11 @@ import json
 import pytest
 from langchain_core.messages import AIMessage
 
-from searchos.skills.pipeline.access.run import build_skill
+from searchos.skills.pipeline.access.pipeline import build_skill
 from searchos.skills.pipeline.drafts import load_draft, save_draft
+from tests.access_pipeline_helpers import execution_result
+
+pytestmark = pytest.mark.usefixtures('deterministic_validation_agent')
 
 
 DOCUMENT = '---\nname: example-com\ndescription: 查询数据\nmetadata:\n  searchos-category: access\n  host: example.com\n---\npython scripts/search.py\n'
@@ -17,7 +20,9 @@ async def test_exhaustion_saves_complete_draft_and_resume_repairs_it(tmp_path, m
     from searchos.skills.runtime import command_runtime
     async def command(package, *args, **kwargs):
         fixed = (package / 'scripts/search.py').read_text() == 'print(2)'
-        return {'exit_code': 0, 'stdout': json.dumps({'records': [{'url': 'https://example.com/item', 'title': 'data'}]}) if fixed else 'human readable text'}
+        stdout = (json.dumps({'status': 'ok', 'records': [
+            {'url': 'https://example.com/item', 'title': 'data'}]}) if fixed else 'human readable text')
+        return execution_result(stdout, kwargs['execution_dir'])
     monkeypatch.setattr(command_runtime, 'run_command', command)
     class Initial:
         turn = 0
@@ -26,17 +31,21 @@ async def test_exhaustion_saves_complete_draft_and_resume_repairs_it(tmp_path, m
             self.turn += 1
             calls = [dict(id='doc', name='write_file', args=dict(path='SKILL.md', content=DOCUMENT)),
                      dict(id='script', name='write_file', args=dict(path='scripts/search.py', content='print(1)')),
-                     dict(id='sample', name='register_example', args=dict(argv=['python3', 'scripts/search.py'], output='', records_key='records'))]
+                     dict(id='sample', name='send_message', args={'role':'validator', 'content':{
+                         'examples':[dict(argv=['python3', 'scripts/search.py'], output='', records_key='records')]}})]
             return AIMessage(content='', tool_calls=calls if self.turn == 1 else [])
     target = tmp_path / 'example-com'
     first = tmp_path / 'first'
     assert await build_skill('example.com', [], builder_model=Initial(), output_dir=target,
-                             record_dir=first, max_turns=2) is None
+                             record_dir=first, max_turns=2) == target
     package, saved = load_draft(first / 'draft.json')
-    assert not target.exists() and not list(tmp_path.glob('.staging*'))
+    assert target.exists() and not list(tmp_path.glob('.staging*'))
     assert (package / 'scripts/search.py').read_text() == 'print(1)'
-    assert saved['examples'][0]['records_key'] == 'records'
-    assert saved['validation']['stage'] == 'examples'
+    assert saved['examples'] == []
+    assert saved['validation']['stage'] == 'semantic_validation'
+    assert 'valid JSON' in saved['validation']['case_results'][0]['error']
+    assert not saved['validation']['valid']
+    assert saved['validation']['capability_results']['package']['status'] == 'unavailable'
     class Repair:
         turn = 0
         def bind_tools(self, tools): return self
@@ -44,13 +53,19 @@ async def test_exhaustion_saves_complete_draft_and_resume_repairs_it(tmp_path, m
             self.turn += 1
             assert 'scripts/search.py' in messages[1].content
             assert '上一轮验证结果' in messages[1].content
-            assert '"index": 0' in messages[1].content and 'replace_index' in messages[1].content
+            assert '围绕原需求修复' in messages[1].content
             return AIMessage(content='', tool_calls=[dict(id='fix', name='edit_file', args=dict(
-                path='scripts/search.py', old_text='print(1)', new_text='print(2)'))] if self.turn == 1 else [])
+                path='scripts/search.py', old_text='print(1)', new_text='print(2)')),
+                dict(id='submit', name='send_message', args={'role':'validator', 'content':{'request':'validate'}})]
+                if self.turn == 1 else [])
     second = tmp_path / 'second'
     assert await build_skill('example.com', [], builder_model=Repair(), output_dir=target,
         record_dir=second, max_turns=2, resume_draft=first / 'draft.json') == target
-    assert (target / 'SKILL.md').read_text() == DOCUMENT
+    from searchos.skills.core.capabilities import read_capability_results
+    from searchos.skills.core.schema import parse_skill_file
+    installed = parse_skill_file(target / 'SKILL.md')
+    assert 'python scripts/search.py' in installed.body
+    assert read_capability_results(installed)['package']['status'] == 'available'
     assert (target / 'scripts/search.py').read_text() == 'print(2)'
     assert load_draft(second / 'draft.json')[1]['validation']['valid']
     assert (package / 'scripts/search.py').read_text() == 'print(1)'

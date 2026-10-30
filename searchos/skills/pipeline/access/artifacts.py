@@ -137,6 +137,9 @@ _EXECUTION_STATUS_FIELDS = (
     "timed_out",
     "cancelled",
     "auth_required",
+    "external_blocked",
+    "next_action",
+    "cached_external_block",
     "truncated",
     "timeout_phase",
     "error",
@@ -184,7 +187,8 @@ class ToolResultStore:
             if isinstance(value.get("case_results"), list):
                 receipt["case_count"] = len(value["case_results"])
             for key in ("repair_budget", "package_files", "function_index_file", "next_actions",
-                        "pending_regressions", "capability_results", "repair_attempts", "validation_scope", "recovery"):
+                        "pending_regressions", "capability_results", "repair_attempts", "validation_scope", "recovery",
+                        "parameter_comparisons"):
                 if key in value and json_fits({**receipt, key: value[key]}, MAX_RECEIPT_BYTES - 2000):
                     receipt[key] = value[key]
                 elif key in {'next_actions', 'pending_regressions'} and isinstance(value.get(key), list):
@@ -362,6 +366,9 @@ class BuildRecord:
 
     def clean(self, value, *, max_string_chars: int | None = None):
         """递归脱敏；研究状态保留全文，日志调用显式指定字符串上限。"""
+        from searchos.skills.runtime.browser_session import current_session, clean_private
+        session = current_session.get()
+        value = clean_private(value, [*self.secrets, *(session.secrets if session else ())])
         if isinstance(value, dict):
             return {key: ('[REDACTED]' if re.search(r'^(authorization|cookie|set-cookie|password|api[_-]?key|access_token|auth_token|secret)$', key, re.I)
                           else self.clean(item, max_string_chars=max_string_chars)) for key, item in value.items()}

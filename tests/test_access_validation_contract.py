@@ -3,7 +3,10 @@ import json
 
 import pytest
 
-from searchos.skills.pipeline.access.valid import validate_access_package, validate_examples
+from searchos.skills.pipeline.access.validation.checks import validate_access_package, validate_examples
+from tests.access_pipeline_helpers import execution_result
+
+pytestmark = pytest.mark.usefixtures('deterministic_validation_agent')
 
 
 def example(capability='search', query='alpha'):
@@ -12,9 +15,8 @@ def example(capability='search', query='alpha'):
             'output': '', 'records_key': 'records'}
 
 
-def response(payload, exit_code=0):
-    return {'exit_code': exit_code, 'status': 'completed' if exit_code == 0 else 'failed',
-            'started': True, 'stdout': json.dumps(payload), 'stderr': ''}
+def response(payload, exit_code=0, execution_dir=None):
+    return execution_result(json.dumps(payload), execution_dir, exit_code=exit_code)
 
 
 def runner(monkeypatch, record=None, *, records=None):
@@ -22,10 +24,10 @@ def runner(monkeypatch, record=None, *, records=None):
     async def command(package, argv, **kwargs):
         calls.append((argv, kwargs))
         if argv[-1] == '--help':
-            return response({'usage': 'access CLI'})
+            return response({'usage': 'access CLI'}, execution_dir=kwargs['execution_dir'])
         return response({'status': 'ok', 'records': records if records is not None else [
                             record or {'title': 'record', 'source_url': 'https://example.com/a'}],
-                         'warnings': []})
+                         'warnings': []}, execution_dir=kwargs['execution_dir'])
     monkeypatch.setattr('searchos.skills.runtime.command_runtime.run_command', command)
     return calls
 
@@ -115,11 +117,11 @@ async def test_legacy_examples_keep_url_alias(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize('expected', ['error', None, [], ''])
 def test_host_examples_reject_unknown_expected_status(tmp_path, expected):
-    from searchos.skills.pipeline.access.tools import BuilderWorkspace
-    workspace = BuilderWorkspace(tmp_path/'example-com')
+    from searchos.skills.pipeline.access.pipeline import AccessPipeline
+    workspace = AccessPipeline(tmp_path/'example-com')
     try:
         with pytest.raises(ValueError, match='expected_status'):
-            workspace.set_validation_examples([dict(example(), expected_status=expected, check_kind='boundary')])
+            workspace.validation.set_validation_examples([dict(example(), expected_status=expected, check_kind='boundary')])
     finally:
         workspace.close()
 
@@ -158,7 +160,7 @@ async def test_boundary_expectations_use_full_stdout_and_run_only_declared_input
     ('invalid_input', {'exit_code': 71, 'status': 'blocked', 'started': False,
                        'stdout': json.dumps({'status': 'invalid_input', 'records': [], 'warnings': []})}),
 ])
-async def test_boundary_expectation_rejects_mismatched_protocol(tmp_path, monkeypatch, expected, bad):
+async def test_boundary_protocol_mismatch_is_advisory(tmp_path, monkeypatch, expected, bad):
     async def command(package, argv, **kwargs):
         if argv[-1] == '--help': return response({'usage': 'access'})
         if json.loads(argv[-1]) == {'query': 'alpha'}:
@@ -166,8 +168,17 @@ async def test_boundary_expectation_rejects_mismatched_protocol(tmp_path, monkey
         return bad
     monkeypatch.setattr('searchos.skills.runtime.command_runtime.run_command', command)
     result = await validate_examples(tmp_path, [example(), dict(example(query='boundary'), expected_status=expected, check_kind='boundary')])
-    assert not result['valid'] and result['check_kind'] == 'boundary'
-    assert result['expected_status'] == expected and result['execution']['stdout'] == bad['stdout']
+    assert result['valid']
+    state = result['capability_results']['search']
+    assert state['deterministic'] == 'passed'
+    boundary = result['case_results'][1]
+    assert boundary['check_kind'] == 'boundary'
+    assert boundary['expected_status'] == expected and boundary['execution']['stdout'] == bad['stdout']
+    if not boundary['valid']:
+        assert boundary['error'] in state['warnings']
+    else:
+        assert (expected == 'empty' and json.loads(bad['stdout'])['records'] == []) or (
+            expected == 'invalid_input' and bad['exit_code'] != 0)
 
 
 @pytest.mark.asyncio
@@ -195,7 +206,10 @@ async def test_each_capability_still_requires_its_own_positive_example(tmp_path,
     calls = runner(monkeypatch)
     result = await validate_examples(tmp_path, [example('search'),
         dict(example('detail'), expected_status='empty', check_kind='boundary')])
-    assert not result['valid'] and result['capability_id'] == 'detail' and not calls
+    assert not result['valid'] and result['capability_id'] == 'detail'
+    assert [argv for argv, _ in calls] == [['python', 'scripts/access.py', '--help'], example('search')['argv']]
+    assert result['capability_results']['search']['deterministic'] == 'passed'
+    assert result['capability_results']['detail']['deterministic'] == 'incomplete'
 
 
 @pytest.mark.asyncio
@@ -214,15 +228,14 @@ async def test_invalid_boundary_preserves_structured_error_details(tmp_path, mon
 
 @pytest.mark.asyncio
 async def test_compiled_boundary_expectations_are_copied_and_locked(tmp_path):
-    from searchos.skills.pipeline.access.tools import BuilderWorkspace
-    workspace = BuilderWorkspace(tmp_path/'example-com')
+    from searchos.skills.pipeline.access.pipeline import AccessPipeline
+    workspace = AccessPipeline(tmp_path/'example-com')
     cases = [example(), dict(example(query='boundary'), expected_status='empty', check_kind='boundary')]
     try:
-        workspace.set_validation_examples(cases)
+        workspace.validation.set_validation_examples(cases)
         cases[1]['expected_status'] = 'ok'
-        result = await workspace.dispatch('register_example', {'argv': example()['argv'], 'replace_index': 1})
-        assert result['error'] == 'host_validation_examples_locked'
-        assert workspace.examples[1]['expected_status'] == 'empty'
+        await workspace.dispatch('send_message', {'role': 'validator', 'content': {'examples': [example()]}})
+        assert workspace.validation.examples[1]['expected_status'] == 'empty'
     finally:
         workspace.close()
 
@@ -254,31 +267,35 @@ async def test_request_metadata_checks_fail_before_cli_execution(
 
 @pytest.mark.asyncio
 async def test_workspace_expected_host_changes_invalidate_successful_validation(tmp_path, monkeypatch):
-    from searchos.skills.pipeline.access.tools import BuilderWorkspace
+    from searchos.skills.pipeline.access.pipeline import AccessPipeline
     from searchos.skills.pipeline.valid import validate_request_package
     from searchos.skills.intent.models import SkillRequest
 
-    workspace = BuilderWorkspace(tmp_path/'example-com')
+    workspace = AccessPipeline(tmp_path/'example-com')
     try:
-        assert workspace.expected_host is None
-        await workspace.write_file('SKILL.md',
+        assert workspace.validation.expected_host is None
+        await workspace.package.write_file('SKILL.md',
             '---\nname: example-com\ndescription: 查询记录\nmetadata:\n'
             '  searchos-category: access\n  host: EXAMPLE.COM\n---\npython scripts/access.py\n')
-        await workspace.write_file('scripts/access.py', 'print("unit test command stub")\n')
-        workspace.set_validation_examples([example()])
-        workspace.expected_host = 'example.com'
-        runner(monkeypatch)
-        assert (await workspace.validate())['valid']
-        accepted = workspace.checked_state
-        assert accepted == workspace.validation_state()
-        validate_request_package(workspace.output_dir,
+        await workspace.package.write_file('scripts/access.py', 'print("unit test command stub")\n')
+        workspace.validation.set_validation_examples([example()])
+        workspace.validation.expected_host = 'example.com'
+        calls = runner(monkeypatch)
+        initial = await workspace.validate()
+        assert initial['package_valid']
+        assert calls == []
+        assert initial['capability_results']['search']['deterministic'] == 'incomplete'
+        assert initial['capability_results']['search']['semantic'] == 'incomplete'
+        accepted = workspace.validation.checked_state
+        assert accepted == workspace.validation.validation_state()
+        validate_request_package(workspace.package.output_dir,
             SkillRequest('access', 'example-com', '查询记录', host='example.com',
                          probe_urls=('https://example.com',)))
-        workspace.expected_host = 'other.example'
-        assert workspace.validation_state() != accepted
+        workspace.validation.expected_host = 'other.example'
+        assert workspace.validation.validation_state() != accepted
         report = await workspace.validate()
         assert not report['valid'] and 'expected other.example' in report['error']
-        assert not workspace.last_validation['valid']
+        assert not workspace.validation.last_validation['valid']
     finally:
         workspace.close()
 
@@ -291,7 +308,7 @@ async def test_workspace_expected_host_changes_invalidate_successful_validation(
 ])
 async def test_builder_repairs_request_metadata_within_its_call_budget(tmp_path, monkeypatch, defect, error):
     from langchain_core.messages import AIMessage, ToolMessage
-    from searchos.skills.pipeline.access.run import build_skill
+    from searchos.skills.pipeline.access.pipeline import build_skill
     from searchos.skills.pipeline.valid import validate_request_package
     from searchos.skills.intent.models import SkillRequest
 
@@ -311,7 +328,7 @@ async def test_builder_repairs_request_metadata_within_its_call_budget(tmp_path,
                 operations = [
                     ('write_file', {'path': 'SKILL.md', 'content': malformed}),
                     ('write_file', {'path': 'scripts/access.py', 'content': 'print("stub")\n'}),
-                    ('validate_skill', {}),
+                    ('send_message', {'role': 'validator', 'content': {'request': 'validate'}}),
                 ]
             else:
                 assert self.calls == 2
@@ -320,7 +337,7 @@ async def test_builder_repairs_request_metadata_within_its_call_budget(tmp_path,
                 assert feedback['stage'] == 'package' and error in feedback['error']
                 operations = [
                     ('write_file', {'path': 'SKILL.md', 'content': correct}),
-                    ('validate_skill', {}),
+                    ('send_message', {'role': 'validator', 'content': {'request': 'validate'}}),
                 ]
             return AIMessage(content='', tool_calls=[
                 {'id': f'{self.calls}-{index}', 'name': name, 'args': args}

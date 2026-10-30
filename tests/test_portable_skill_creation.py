@@ -8,8 +8,10 @@ import sys
 import pytest
 
 from searchos.skills.intent.trace import _existing_skill_dir
-from searchos.skills.pipeline.access.tools import BuilderWorkspace
-from searchos.skills.pipeline.access.valid import package_is_complete as _portable_skill_is_complete, validate_examples
+from searchos.skills.pipeline.access.pipeline import AccessPipeline
+from searchos.skills.pipeline.access.validation.checks import package_is_complete as _portable_skill_is_complete, validate_examples
+
+pytestmark = pytest.mark.usefixtures('deterministic_validation_agent')
 
 EXAMPLE = Path(__file__).resolve().parents[1] / "searchos/skills/library/access/arxiv-search"
 
@@ -24,7 +26,7 @@ def test_portable_package_and_source_discovery(tmp_path):
     legacy = tmp_path / "example_com"
     legacy.mkdir()
     (legacy / "manifest.yaml").write_text("description: Legacy\n")
-    assert _existing_skill_dir(tmp_path, "example.com") == legacy
+    assert _existing_skill_dir(tmp_path, "example.com") is None
 
 
 def test_example_cli_runs_without_searchos_or_network(tmp_path):
@@ -49,12 +51,12 @@ def test_example_cli_runs_without_searchos_or_network(tmp_path):
 
 @pytest.mark.asyncio
 async def test_example_registration_rejects_output_escape(tmp_path):
-    workspace = BuilderWorkspace(tmp_path)
+    workspace = AccessPipeline(tmp_path)
     with pytest.raises(ValueError):
-        await workspace.dispatch("register_example", {
+        await workspace.dispatch("send_message", {"role": "validator", "content": {"examples": [{
             "argv": ["python", "scripts/search.py"], "output": "../escape.json", "records_key": "records",
-        })
-    assert workspace.examples == []
+        }]}})
+    assert workspace.validation.examples == []
 
 
 @pytest.mark.asyncio
@@ -98,7 +100,7 @@ async def test_portable_gate_rejects_execution_failure(tmp_path, monkeypatch):
 @pytest.mark.asyncio
 async def test_builder_installs_standard_package_after_valid_example(tmp_path, monkeypatch):
     from langchain_core.messages import AIMessage
-    from searchos.skills.pipeline.access.run import build_skill
+    from searchos.skills.pipeline.access.pipeline import build_skill
     from searchos.skills.runtime import command_runtime
 
     class Model:
@@ -115,7 +117,7 @@ async def test_builder_installs_standard_package_after_valid_example(tmp_path, m
                 {"id": "1", "name": "write_file", "args": {"path": "SKILL.md", "content":
                     "---\nname: example-com\ndescription: Retrieve example records.\nmetadata:\n  searchos-category: access\n  host: example.com\n---\nRun scripts/search.py.\n"}},
                 {"id": "2", "name": "write_file", "args": {"path": "scripts/search.py", "content": "print('example')\n"}},
-                {"id": "3", "name": "register_example", "args": {"argv": ["python", "scripts/search.py"], "output": "", "records_key": "records"}},
+                {"id": "3", "name": "send_message", "args": {"role": "validator", "content": {"examples": [{"argv": ["python", "scripts/search.py"], "output": "", "records_key": "records"}]}}},
             ])
 
     async def fake_run(*args, **kwargs):

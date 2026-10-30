@@ -109,8 +109,6 @@ def validate_plan(value, observations):
         return (' Cited artifact/history read IDs: ' + ', '.join(artifacts)
                 + '. Cite the original research observation IDs inside that content; '
                 'see research_observations for eligible original IDs.') if artifacts else ''
-    boundary_pages = {o['id'] for o in observations if o['id'] in research
-                      and o.get('tool') in {'open', 'find', 'web_open', 'web_find', 'exec'}}
     for cap in caps:
         if not isinstance(cap, dict):
             raise ValueError('capability must be an object')
@@ -120,48 +118,19 @@ def validate_plan(value, observations):
         ids.add(name)
         if not isinstance(cap.get('purpose'), str) or not cap['purpose'].strip():
             raise ValueError('capability purpose is required')
-        inputs = cap.get('inputs')
-        if not isinstance(inputs, dict) or not all(isinstance(k, str) and k.strip() and isinstance(v, str) and v.strip() for k, v in inputs.items()):
-            raise ValueError(f'{name}.inputs must map parameter names to descriptions; use {{}} for no arguments')
-        fields = cap.get('required_fields')
-        if not isinstance(fields, list) or 'source_url' not in fields or not all(isinstance(f, str) and f for f in fields):
-            raise ValueError('required_fields must include source_url')
-        examples = cap.get('examples')
-        if not isinstance(examples, list) or not 1 <= len(examples) <= 2 or not all(isinstance(e, dict) and set(e) <= set(inputs) for e in examples):
-            raise ValueError(f'{name}.examples must contain input objects using declared parameters')
-        if not inputs:
-            cap['examples'] = [{}]  # 兼容旧的 [{}, {}]，不重复计为两个测试输入。
-        elif len(examples) != 2 or examples[0] == examples[1]:
-            raise ValueError(f'{name}.examples requires two distinct development inputs for parameterized capabilities')
+        acceptance = cap.get('acceptance', [])
+        if not isinstance(acceptance, list) or any(not isinstance(item, str) or not item.strip() for item in acceptance):
+            raise ValueError(f'{name}.acceptance must contain business outcomes')
+        if 'implementation' in cap and not isinstance(cap['implementation'], str):
+            raise ValueError(f'{name}.implementation must be research notes')
+        # 实际接口由 Builder 声明；研究样本保留在 implementation 和原始观察中。
+        for key in set(cap) - {'id', 'purpose', 'acceptance', 'implementation', 'evidence_ids', 'depends_on'}:
+            cap.pop(key)
         refs = cap.get('evidence_ids')
         if not isinstance(refs, list) or not refs or not all(isinstance(ref, str) and ref in known for ref in refs):
             raise ValueError(f'{name}.evidence_ids must cite usable observed research evidence' + artifact_hint(refs))
         if not research.intersection(refs):
             raise ValueError(f'{name}.evidence_ids must include a successfully read page or successful research execution; search snippets alone cannot lock a capability' + artifact_hint(refs))
-        if 'boundary_cases' in cap:
-            boundaries = cap['boundary_cases']
-            if not isinstance(boundaries, list) or len(boundaries) > 3:
-                raise ValueError(f'{name}.boundary_cases must contain at most three cases')
-            seen_inputs = {json.dumps(item, sort_keys=True, ensure_ascii=False) for item in cap['examples']}
-            for index, case in enumerate(boundaries):
-                label = f'{name}.boundary_cases[{index}]'
-                if not isinstance(case, dict):
-                    raise ValueError(f'{label} must be an object')
-                if not isinstance(case.get('input'), dict) or not set(case['input']) <= set(inputs):
-                    raise ValueError(f'{label}.input must use declared parameters')
-                fingerprint = json.dumps(case['input'], sort_keys=True, ensure_ascii=False)
-                if fingerprint in seen_inputs:
-                    raise ValueError(f'{label}.input must be distinct from other locked cases')
-                seen_inputs.add(fingerprint)
-                if case.get('expected_status') not in ('ok', 'empty', 'invalid_input'):
-                    raise ValueError(f'{label}.expected_status must be ok, empty or invalid_input')
-                if not isinstance(case.get('reason'), str) or not case['reason'].strip():
-                    raise ValueError(f'{label}.reason is required')
-                evidence = case.get('evidence_ids')
-                if (not isinstance(evidence, list) or not evidence
-                        or not all(isinstance(ref, str) and ref in known for ref in evidence)
-                        or not boundary_pages.intersection(evidence)):
-                    raise ValueError(f'{label}.evidence_ids must cite valid observations including a successfully read page or successful research execution' + artifact_hint(evidence))
         dependencies = cap.setdefault('depends_on', [])
         if not isinstance(dependencies, list) or not all(isinstance(d, str) for d in dependencies):
             raise ValueError('depends_on must contain capability IDs')
@@ -179,19 +148,6 @@ def validate_plan(value, observations):
     return deepcopy({'capabilities': caps, 'limitations': limitations})
 
 
-def capability_examples(plan):
-    examples = [{'capability_id': cap['id'], 'required_fields': cap['required_fields'],
-             'argv': ['python', 'scripts/access.py', cap['id'], '--input', json.dumps(inputs, ensure_ascii=False)],
-             'output': '', 'records_key': 'records'}
-            for cap in plan['capabilities'] for inputs in cap['examples']]
-    examples.extend({'capability_id': cap['id'], 'required_fields': cap['required_fields'],
-                     'argv': ['python', 'scripts/access.py', cap['id'], '--input', json.dumps(case['input'], ensure_ascii=False)],
-                     'output': '', 'records_key': 'records', 'expected_status': case['expected_status'],
-                     'check_kind': 'boundary', 'reason': case['reason'], 'evidence_ids': case['evidence_ids']}
-                    for cap in plan['capabilities'] for case in cap.get('boundary_cases', []))
-    return examples
-
-
 class SitePlannerAgent:
     def __init__(self, model, workspace, record, *, max_turns=50):
         if type(max_turns) is not int or max_turns < 1:
@@ -200,7 +156,8 @@ class SitePlannerAgent:
         self.max_turns = max_turns
         self.result_store = getattr(getattr(workspace, 'package', None), 'result_store', None) or ToolResultStore(
             record.root / 'tool-results', clean=getattr(record, 'clean', None))
-        self.state = {'version': 1, 'plan': None, 'observations': [], 'dialogues': [], 'calls': 0}
+        from searchos.skills.pipeline.access import CONTRACT_VERSION
+        self.state = {'version': CONTRACT_VERSION, 'plan': None, 'observations': [], 'dialogues': [], 'calls': 0}
         self.path = record.root / 'site-session.json'
 
     def save(self):
@@ -345,13 +302,17 @@ class SitePlannerAgent:
         self.state.setdefault('validation_errors', []).append({'call': self.state['calls'], 'kind': kind, 'error': str(error)})
         self.save()
 
-    async def prepare(self, host, urls, notes, resume=None):
+    async def prepare(self, host, urls, notes, resume=None, resume_input=None):
         if resume is not None:
             self.state = json.loads(Path(resume).read_text())
-            if self.state.get('version') != 1:
-                raise ValueError('unsupported site session version')
+            from searchos.skills.pipeline.access import CONTRACT_VERSION
+            if self.state.get('version') != CONTRACT_VERSION:
+                raise ValueError('旧版站点计划仅供查看，请重新创建任务以使用新的角色契约。')
             if self.state.get('host') != host:
                 raise ValueError('site session host does not match request')
+            if resume_input:
+                replayed = await self.dispatch('exec', resume_input)
+                self.observe('exec', resume_input, replayed, 'planner')
             if self.state.get('plan') is not None:
                 self.state['plan'] = validate_plan(self.state['plan'], self.state['observations'])
                 self.save()
@@ -401,12 +362,12 @@ class SitePlannerAgent:
         item = {'content': deepcopy(content)}
         self.state['dialogues'].append(item)
         self.save()
-        context = {'plan': self.state['plan'], 'message': content,
-                   'observations': self.state['observations']}
+        context = {'message': content, 'plan': self.state['plan'],
+                   'observations': self.result_store.present(self.state['observations'])}
         try:
             reply = await self.converse([
                 SystemMessage(content=ADVICE_PROMPT),
-                HumanMessage(content=json.dumps(self.result_store.present(context), ensure_ascii=False))],
+                HumanMessage(content=json.dumps(context, ensure_ascii=False))],
                 self.max_turns, response_validator=self.validate_reply)
             revised = reply.get('plan')
             if revised is not None and revised != self.state['plan']:
@@ -429,13 +390,10 @@ class SitePlannerAgent:
     def builder_notes(self):
         plan = self.state['plan']
         refs = {ref for cap in plan['capabilities'] for ref in cap['evidence_ids']}
-        refs.update(ref for cap in plan['capabilities'] for case in cap.get('boundary_cases', [])
-                    for ref in case['evidence_ids'])
         evidence = [o for o in self.state['observations'] if o['id'] in refs]
-        return ('\n## 站点开发计划\n在一个技能包内实现计划中的能力，共享访问、解析和错误处理。'
-                '\nCLI：python scripts/access.py <capability_id> --input JSON；--help 离线成功。'
-                '\nstdout 输出 {"status":"ok","records":[...],"warnings":[]}。输入是 JSON 对象，业务字段缺失可为 null 或原始空值。'
-                '\n来源确认无匹配时返回 status=empty、空 records 和零退出码；非法输入返回 status=invalid_input、空 records、warnings 和非零退出码。'
-                '访问或解析失败返回对应错误状态、空 records、warnings 和非零退出码。声明 limit 时，按其约定范围限制记录数。'
+        return ('\n## 站点开发计划\n在一个技能包内实现计划中的能力，按任务选择实现与验证方式。'
+                '\nBuilder 自主设计 CLI、参数、字段与 JSON 结构，并向 Validator 提交实际执行声明。--help 离线成功。'
+                '\n无匹配或非法输入可返回空结果或明确失败，建议附状态与诊断；错误标签及退出码形式差异只作提示。'
+                '边界观察按需进行，验收检查声明范围内正常输入的可用性、参数效果、数据真实性和来源。'
                 + '\n能力计划：\n' + json.dumps(plan, ensure_ascii=False)
                 + '\n## 研究观察\n' + json.dumps(self.result_store.present({'observations': evidence}), ensure_ascii=False))

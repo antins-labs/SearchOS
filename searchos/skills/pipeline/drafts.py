@@ -19,7 +19,7 @@ def package_path(value: str) -> Path:
 
 
 def save_draft(root: Path, source: Path, files, *, name: str, examples: list, require_host: bool,
-               validation: dict | None = None) -> Path | None:
+               validation: dict | None = None, contract_version: int | None = None) -> Path | None:
     if not files:
         return None
     root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -45,6 +45,8 @@ def save_draft(root: Path, source: Path, files, *, name: str, examples: list, re
             manifest[str(relative)] = hashlib.sha256(target.read_bytes()).hexdigest()
         data = dict(version=1, name=name, package=str(package.relative_to(root)), files=manifest,
                     examples=examples, require_host=require_host, validation=validation or {})
+        if contract_version is not None:
+            data['contract_version'] = contract_version
         if previous and previous['name'] == name and previous['files'] == manifest:
             # 验证报告变化不复制整包；只更新当前指针中的诊断。
             data['package'] = previous['package']

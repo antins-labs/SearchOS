@@ -1,9 +1,11 @@
-"""验收拒绝候选时，保留可定位错误的有界执行输出。"""
+"""验收逐项保留完整执行输出，摘要提供可定位的错误。"""
 import json
 
 import pytest
 
-from searchos.skills.pipeline.access.valid import validate_examples
+from searchos.skills.pipeline.access.validation.checks import validate_examples
+
+pytestmark = pytest.mark.usefixtures('deterministic_validation_agent')
 
 
 @pytest.mark.asyncio
@@ -14,7 +16,7 @@ from searchos.skills.pipeline.access.valid import validate_examples
         'warnings':['页面没有可解析的结果']}),'stderr':''},
     {'exit_code':1,'status':'failed','stdout':'x'*10000,'stderr':'y'*10000},
 ])
-async def test_rejected_example_keeps_bounded_execution_evidence(tmp_path,monkeypatch,execution):
+async def test_rejected_example_keeps_complete_execution_evidence(tmp_path,monkeypatch,execution):
     from searchos.skills.runtime import command_runtime
     async def command(package,argv,**kwargs):
         if argv[-1]=='--help':
@@ -26,10 +28,9 @@ async def test_rejected_example_keeps_bounded_execution_evidence(tmp_path,monkey
     assert result['valid'] is False
     assert result['execution']['exit_code']==execution['exit_code']
     assert result['execution']['status']==execution['status']
-    assert result['execution']['stdout']==execution['stdout'][:2000]
-    assert result['execution']['stderr']==execution['stderr'][:2000]
-    assert len(result['execution']['stdout'])<=2000
-    assert len(result['execution']['stderr'])<=2000
+    assert result['execution']['stdout']==execution['stdout']
+    assert result['execution']['stderr']==execution['stderr']
+    assert len(result['error'])<=4000
 
 
 @pytest.mark.asyncio
@@ -74,13 +75,15 @@ async def test_builder_receives_real_cli_failure_and_repairs_it(tmp_path):
                        'scripts/access.py':broken}
                 return AIMessage(content='',tool_calls=[{'id':str(i),'name':'write_file','args':{'path':p,'content':c}} for i,(p,c) in enumerate(files.items())])
             if self.turn==2:
-                return AIMessage(content='',tool_calls=[{'id':'validate','name':'validate_skill','args':{}}])
+                return AIMessage(content='',tool_calls=[{'id':'validate','name':'send_message','args':{'role':'validator','content':{'request':'validate'}}}])
             if self.turn==3:
                 self.received=json.loads(next(m.content for m in reversed(messages) if isinstance(m,ToolMessage) and m.tool_call_id=='validate'))
                 assert cause in self.received['error']
                 assert cause in self.received['execution']['stdout']
                 assert self.received['execution']['exit_code']==1
                 return AIMessage(content='',tool_calls=[{'id':'repair','name':'write_file','args':{'path':'scripts/access.py','content':repaired}}])
+            if self.turn==4:
+                return AIMessage(content='',tool_calls=[{'id':'revalidate','name':'send_message','args':{'role':'validator','content':{'request':'validate'}}}])
             return AIMessage(content='完成')
     model=Model()
     result=await run_pipeline(SkillRequest('access','example-com','验证错误反馈与修复',host='example.com',probe_urls=('https://example.com/',)),
@@ -88,5 +91,5 @@ async def test_builder_receives_real_cli_failure_and_repairs_it(tmp_path):
         access_validation_examples=[{'argv':['python','scripts/access.py','--input','{}'],'output':'','records_key':'records'}])
     assert result.status=='installed' and model.received is not None
     events=[json.loads(line) for line in (result.trial_path.parent/'events.jsonl').read_text().splitlines()]
-    feedback=json.loads(next(e['content'] for e in events if e['event']=='tool_result' and e.get('name')=='validate_skill'))
+    feedback=json.loads(next(e['content'] for e in events if e['event']=='tool_result' and e.get('name')=='send_message'))
     assert cause in feedback['error']

@@ -1,18 +1,19 @@
 """通用 Access Builder 的生成、修复与发布契约。"""
-from pathlib import Path
 import json
 
 import pytest
 from langchain_core.messages import AIMessage
-from searchos.skills.pipeline.access.tools import BuilderWorkspace
-from searchos.skills.pipeline.access.run import build_skill
-from searchos.skills.pipeline.access.valid import package_is_complete as _portable_skill_is_complete
+from searchos.skills.pipeline.access.pipeline import AccessPipeline
+from searchos.skills.pipeline.access.pipeline import build_skill
+from searchos.skills.pipeline.access.validation.checks import package_is_complete as _portable_skill_is_complete
+
+pytestmark = pytest.mark.usefixtures('deterministic_validation_agent')
 
 
 @pytest.mark.asyncio
 async def test_builder_exec_uses_agent_runtime_and_separate_workdir(tmp_path, monkeypatch):
     from searchos.skills.runtime import command_runtime
-    workspace = BuilderWorkspace(tmp_path / 'example-com')
+    workspace = AccessPipeline(tmp_path / 'example-com')
     calls = []
     async def run(package, argv, **kwargs):
         calls.append((package, argv, kwargs))
@@ -22,7 +23,7 @@ async def test_builder_exec_uses_agent_runtime_and_separate_workdir(tmp_path, mo
         await workspace.dispatch('exec', {'argv': ['python', 'scripts/search.py']})
         await workspace.dispatch('exec', {'argv': ['python', 'scripts/parse.py']})
         assert calls[0][2]['work_dir'] == calls[1][2]['work_dir']
-        assert not calls[0][2]['work_dir'].is_relative_to(workspace.output_dir)
+        assert not calls[0][2]['work_dir'].is_relative_to(workspace.package.output_dir)
     finally:
         workspace.close()
 
@@ -34,7 +35,8 @@ async def test_builder_repairs_failed_validation_and_publishes_only_package(tmp_
     class Model:
         count = 0
         def bind_tools(self, tools):
-            assert {'exec', 'validate_skill', 'register_example'} <= {t['function']['name'] for t in tools}
+            assert {'exec', 'send_message', 'read_file'} <= {t['function']['name'] for t in tools}
+            assert not {'submit_for_validation', 'register_example', 'configure_network'} & {t['function']['name'] for t in tools}
             return self
         async def ainvoke(self, messages):
             self.count += 1
@@ -43,10 +45,13 @@ async def test_builder_repairs_failed_validation_and_publishes_only_package(tmp_
                 return AIMessage(content='', tool_calls=[
                     {'id': '1', 'name': 'write_file', 'args': {'path': 'SKILL.md', 'content': '---\nname: example-com\ndescription: 查询记录\nmetadata:\n  searchos-category: access\n  host: example.com\n---\n运行 scripts/search.py。'}},
                     {'id': '2', 'name': 'write_file', 'args': {'path': 'scripts/search.py', 'content': 'print(1)'}},
+                    {'id': 'initial', 'name': 'send_message', 'args': {'role': 'validator', 'content': {'request': 'validate'}}},
                 ])
-            if self.count == 3:
+            if self.count == 2:
                 assert any('register at least one' in message.content for message in messages)
-                return AIMessage(content='', tool_calls=[{'id': '3', 'name': 'register_example', 'args': {'argv': ['python', 'scripts/search.py'], 'output': '', 'records_key': 'records'}}])
+                return AIMessage(content='', tool_calls=[{'id': '3', 'name': 'send_message', 'args': {
+                    'role': 'validator', 'content': {'examples': [{'argv': ['python', 'scripts/search.py'],
+                                                               'output': '', 'records_key': 'records'}]}}}])
             return AIMessage(content='完成')
     async def run(package, argv, **kwargs):
         # A probe/execution byproduct must not contaminate the installed package.
@@ -75,13 +80,13 @@ async def test_failed_build_preserves_existing_package(tmp_path, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_builder_rejects_legacy_files_and_framework_imports(tmp_path):
-    workspace = BuilderWorkspace(tmp_path / 'example-com')
+    workspace = AccessPipeline(tmp_path / 'example-com')
     try:
         with pytest.raises(ValueError):
-            await workspace.write_file('executor.py', 'pass')
-        await workspace.write_file('SKILL.md', '---\nname: example-com\ndescription: 查询记录\nmetadata:\n  searchos-category: access\n  host: example.com\n---\n说明')
-        await workspace.write_file('scripts/search.py', 'import searchos\n')
-        assert not _portable_skill_is_complete(workspace.output_dir, 'example-com')
+            await workspace.package.write_file('executor.py', 'pass')
+        await workspace.package.write_file('SKILL.md', '---\nname: example-com\ndescription: 查询记录\nmetadata:\n  searchos-category: access\n  host: example.com\n---\n说明')
+        await workspace.package.write_file('scripts/search.py', 'import searchos\n')
+        assert not _portable_skill_is_complete(workspace.package.output_dir, 'example-com')
     finally:
         workspace.close()
 
@@ -123,7 +128,9 @@ with urllib.request.urlopen(args.url, timeout=5) as response:
             return AIMessage(content='', tool_calls=[
                 {'id': '1', 'name': 'write_file', 'args': {'path': 'SKILL.md', 'content': '---\nname: example-com\ndescription: 查询指定来源记录\nmetadata:\n  searchos-category: access\n  host: example.com\n---\n执行 python scripts/search.py --url URL，结果为 JSON。'}},
                 {'id': '2', 'name': 'write_file', 'args': {'path': 'scripts/search.py', 'content': script}},
-                {'id': '3', 'name': 'register_example', 'args': {'argv': ['python', 'scripts/search.py', '--url', url], 'output': '', 'records_key': 'records'}},
+                {'id': '3', 'name': 'send_message', 'args': {'role': 'validator', 'content': {
+                    'examples': [{'argv': ['python', 'scripts/search.py', '--url', url],
+                                  'output': '', 'records_key': 'records'}]}}},
             ])
     try:
         target = tmp_path / 'library/example-com'
@@ -140,10 +147,10 @@ with urllib.request.urlopen(args.url, timeout=5) as response:
 
 @pytest.mark.asyncio
 async def test_access_validation_reports_misplaced_host_metadata(tmp_path):
-    workspace = BuilderWorkspace(tmp_path / 'example-com')
+    workspace = AccessPipeline(tmp_path / 'example-com')
     try:
-        await workspace.write_file('SKILL.md', '---\nname: example-com\ndescription: 查询记录\nsearchos-category: access\nhost: example.com\n---\n说明')
-        await workspace.write_file('scripts/search.py', 'print(1)')
+        await workspace.package.write_file('SKILL.md', '---\nname: example-com\ndescription: 查询记录\nsearchos-category: access\nhost: example.com\n---\n说明')
+        await workspace.package.write_file('scripts/search.py', 'print(1)')
         report = await workspace.validate()
         assert report['stage'] == 'package'
         assert 'metadata.searchos-category' in report['error']

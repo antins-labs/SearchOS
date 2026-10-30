@@ -5,8 +5,11 @@ import { ArrowRight, Check, ChevronDown, Globe2, ListTree, Loader2, Route, Slide
 import SkillCreationHistory from "./SkillCreationHistory";
 import { createSkills, listSkillCreations, resumeSkillCreation, deleteSkillCreations, cancelSkillCreation, type SkillCreationInput, type SkillCreationJob } from "@/lib/api";
 import { useSettings } from "@/components/settings/SettingsProvider";
+import { revalidateSkillCreation } from "@/lib/api";
+import SkillBrowserSessions from "./SkillBrowserSessions";
+import SkillCreationProgress from "./SkillCreationProgress";
 
-const active = (job: SkillCreationJob) => ["queued", "running"].includes(job.status);
+const active = (job: SkillCreationJob) => ["queued", "running", "waiting_user"].includes(job.status);
 
 export default function SkillCreationPanel({ disabled, zh }: { disabled: boolean; zh: boolean }) {
   const { refresh } = useSettings();
@@ -15,7 +18,10 @@ export default function SkillCreationPanel({ disabled, zh }: { disabled: boolean
   const [text, setText] = useState("");
   const [categories, setCategories] = useState(["access", "strategy", "orchestrator"]);
   const [max, setMax] = useState(3);
+  const [allowInteraction, setAllowInteraction] = useState(false);
   const [jobs, setJobs] = useState<SkillCreationJob[]>([]);
+  const [inspectedId, setInspectedId] = useState("");
+  const monitor = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -60,6 +66,7 @@ export default function SkillCreationPanel({ disabled, zh }: { disabled: boolean
       const job = await createSkills(input);
       revision.current += 1;
       setJobs((previous) => [job, ...previous.filter((j) => j.id !== job.id)]);
+      setInspectedId(job.id);
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
     finally { submitting.current = false; setBusy(false); }
   }
@@ -68,9 +75,11 @@ export default function SkillCreationPanel({ disabled, zh }: { disabled: boolean
     submitting.current = true;
     setBusy(true); setError("");
     try {
-      const job = await resumeSkillCreation(id, index);
+      const revalidate = jobs.find((item) => item.id === id)?.requests[index]?.can_revalidate;
+      const job = await (revalidate ? revalidateSkillCreation(id, index) : resumeSkillCreation(id, index));
       revision.current += 1;
       setJobs((previous) => [job, ...previous.filter((j) => j.id !== job.id)]);
+      setInspectedId(job.id);
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
     finally { submitting.current = false; setBusy(false); }
   }
@@ -90,11 +99,12 @@ export default function SkillCreationPanel({ disabled, zh }: { disabled: boolean
     { id: "trace" as const, icon: ListTree, title: zh ? "从轨迹" : "Trace", description: zh ? "补齐失败能力" : "Learn from failures" },
   ];
   const inputClass = "w-full rounded-xl border border-line bg-paper/40 px-4 py-3 text-[14px] leading-6 text-ink outline-none transition focus:border-accent/50 focus:bg-surface focus:ring-3 focus:ring-accent/5 placeholder:text-ink-faint";
-  return <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_320px] xl:gap-14">
-    <section className="min-w-0 rounded-[24px] border border-line bg-surface p-5 shadow-[0_8px_40px_-20px_rgba(21,34,56,0.12)] sm:p-8" aria-label={zh ? "新建技能" : "New skill"}>
+  const inspected = jobs.find((job) => job.id === inspectedId) ?? jobs.find(active) ?? jobs[0];
+  return <div className="grid items-start gap-6 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
+    <section className="min-w-0 rounded-3xl border border-line bg-surface p-5 sm:p-6" aria-label={zh ? "新建技能" : "New skill"}>
       <fieldset className="mb-7">
         <legend className="mb-4 text-[13px] font-medium text-ink">{zh ? "从什么开始？" : "Where would you like to start?"}</legend>
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">{modes.map(({ id, icon: Icon, title, description }) => <label key={id} className={`relative cursor-pointer rounded-xl border p-3 transition sm:p-4 ${kind === id ? "border-accent/50 bg-accent/5" : "border-line hover:border-line-strong hover:bg-paper"}`}>
+        <div className="grid grid-cols-3 gap-2">{modes.map(({ id, icon: Icon, title, description }) => <label key={id} className={`relative cursor-pointer rounded-xl border p-3 transition ${kind === id ? "border-accent/50 bg-accent/5" : "border-line hover:border-line-strong hover:bg-paper"}`}>
           <input type="radio" name="skill-source" value={id} checked={kind === id} onChange={() => setKind(id)} className="peer sr-only" />
           <span className="pointer-events-none absolute inset-0 rounded-xl peer-focus-visible:ring-2 peer-focus-visible:ring-accent" />
           <Icon size={19} className={`mb-3 ${kind === id ? "text-accent-ink" : "text-ink-faint"}`} />
@@ -106,7 +116,8 @@ export default function SkillCreationPanel({ disabled, zh }: { disabled: boolean
       <form className="space-y-6" onSubmit={(e) => {
         e.preventDefault();
         void submit({ kind, site: kind === "site" ? site : undefined, text,
-          categories: kind === "site" ? ["access"] : categories, max_requests: kind === "site" ? 1 : max });
+          categories: kind === "site" ? ["access"] : categories, max_requests: kind === "site" ? 1 : max,
+          allow_interaction: kind === "site" && allowInteraction });
       }}>
         {kind === "site" && <label className="block">
           <span className="mb-2.5 block text-[13px] font-medium text-ink">{zh ? "站点地址" : "Website URL"}</span>
@@ -116,6 +127,10 @@ export default function SkillCreationPanel({ disabled, zh }: { disabled: boolean
           <span className="mb-2.5 flex items-center gap-2 text-[13px] font-medium text-ink">{kind === "site" ? (zh ? "希望它学会什么？" : "What should it learn?") : kind === "trace" ? (zh ? "发生了什么问题？" : "What went wrong?") : (zh ? "你想完成什么任务？" : "What would you like to accomplish?")}{kind === "site" && <span className="text-[11px] font-normal text-ink-faint">{zh ? "选填" : "Optional"}</span>}</span>
           <textarea className={`${inputClass} min-h-36 resize-y`} rows={kind === "site" ? 5 : 7} maxLength={64000} required={kind !== "site"} value={text} onChange={(e) => setText(e.target.value)} placeholder={kind === "site" ? (zh ? "例如：搜索仓库、读取 Issue 和讨论，并保留原始链接。" : "For example: search repositories, read issues and discussions, and preserve source links.") : kind === "task" ? (zh ? "描述具体目标，以及你希望得到的结果。" : "Describe your goal and the result you need.") : (zh ? "粘贴失败的执行记录，补充当时的目标与上下文。" : "Paste the failed run, its objective, and relevant context.")} />
         </label>
+        {kind === "site" && <label className="block text-[12px] leading-6 text-ink-dim">
+          <span className="flex items-center gap-2"><input type="checkbox" checked={allowInteraction} onChange={(e) => setAllowInteraction(e.target.checked)} className="accent-accent" />{zh ? "允许登录与验证交互" : "Allow login and verification interaction"}</span>
+          <span className="mt-1 block text-[11px] text-ink-faint">{zh ? "需要时打开运行 SearchOS 的本机专用浏览器。登录态在本机按站点保存，供后续复用；单次等待15分钟。" : "Opens a dedicated browser on the SearchOS computer when needed. Sessions are saved locally per site. Each action allows 15 minutes."}</span>
+        </label>}
         {kind !== "site" && <details className="group border-t border-line pt-4">
           <summary className="flex cursor-pointer list-none items-center gap-2 text-[12px] text-ink-dim [&::-webkit-details-marker]:hidden"><SlidersHorizontal size={14} />{zh ? "生成选项" : "Generation options"}<ChevronDown size={13} className="ml-auto transition-transform group-open:rotate-180" /></summary>
           <div className="space-y-4 pt-4"><fieldset className="flex flex-wrap gap-2"><legend className="mb-2 text-[11px] text-ink-faint">{zh ? "允许生成的类别" : "Allowed categories"}</legend>
@@ -125,10 +140,16 @@ export default function SkillCreationPanel({ disabled, zh }: { disabled: boolean
         {error && <p role="alert" className="rounded-xl bg-err/5 p-3 text-[12px] text-err">{error}</p>}
         <div className="border-t border-line pt-5">
           <button type="submit" disabled={disabled || busy || (kind !== "site" && categories.length === 0)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3.5 text-[14px] font-medium text-white shadow-[0_4px_12px_-4px_rgba(37,99,235,0.4)] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-40">{busy ? <Loader2 size={16} className="animate-spin" /> : null}{busy ? (zh ? "正在提交…" : "Submitting…") : (zh ? "创建技能" : "Create skill")}{!busy && <ArrowRight size={16} />}</button>
-          <p className="mt-3 text-center text-[11px] leading-5 text-ink-faint">{zh ? "自动分析需求，验证通过后保存至技能库。" : "Requirements are analyzed automatically. Validated skills are saved to your library."}</p>
+          <p className="mt-3 text-center text-[11px] leading-5 text-ink-faint">{zh ? "自动分析需求，逐项验证能力并保存成果。" : "Requirements are analyzed, capabilities checked, and results saved."}</p>
         </div>
       </form>
+      <SkillBrowserSessions zh={zh} />
     </section>
-    <SkillCreationHistory jobs={jobs} zh={zh} loading={loading} error={pollError} disabled={disabled || busy} onRetry={(input) => void submit(input)} onResume={(id, index) => void resume(id, index)} onDelete={remove} onCancel={cancel} />
+    <div ref={monitor} tabIndex={-1} className="min-w-0 scroll-mt-6 outline-none">
+      <SkillCreationProgress key={inspected?.id ?? "empty"} job={inspected} zh={zh} />
+    </div>
+    <div className="min-w-0 border-t border-line pt-6 lg:col-span-2">
+      <SkillCreationHistory jobs={jobs} zh={zh} loading={loading} error={pollError} disabled={disabled || busy} inspectedId={inspected?.id} onInspect={(id) => { setInspectedId(id); monitor.current?.scrollIntoView({ block: "start" }); monitor.current?.focus({ preventScroll: true }); }} onRetry={(input) => void submit(input)} onResume={(id, index) => void resume(id, index)} onDelete={remove} onCancel={cancel} />
+    </div>
   </div>;
 }

@@ -13,17 +13,17 @@ export default function SkillCreationPage() {
   const zh = uiPrefs.language === "zh";
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-[1120px] px-5 py-6 sm:px-8 sm:py-8">
-      <Link href={`${base}/skills`} className="mb-10 inline-flex items-center gap-1.5 rounded-lg py-2 text-[13px] text-ink-dim hover:text-ink">
+    <main className="mx-auto min-h-screen w-full max-w-[1360px] px-4 py-6 sm:px-8 sm:py-8">
+      <Link href={`${base}/skills`} className="mb-6 inline-flex items-center gap-1.5 rounded-lg py-2 text-[13px] text-ink-dim hover:text-ink">
         <ArrowLeft size={14} />{zh ? "返回技能库" : "Back to skills"}
       </Link>
-      <header className="mb-9">
+      <header className="mb-7">
         <div className="mb-4 flex items-center gap-2 text-[11px] font-semibold tracking-[0.16em] text-accent-ink"><Blocks size={14} /> SEARCHOS SKILLS</div>
         <div className="mb-3 text-ink">
-          <h1 className="text-[28px] font-semibold tracking-tight sm:text-[32px]">{zh ? "让下一次搜索，更进一步。" : "Make your next search better."}</h1>
+          <h1 className="text-[28px] font-semibold tracking-tight sm:text-[32px]">{zh ? "技能创建" : "Create a skill"}</h1>
         </div>
         <p className="text-[13px] text-ink-dim">
-          {zh ? "把网站访问能力、搜索方法和运行经验，变成可复用的技能。" : "Build reusable skills from sites, tasks, or traces. Track validation and results."}
+          {zh ? "从一个需求出发，跟踪研究、开发与独立验收，让每次修复都有迹可循。" : "Turn a request into a reusable skill. Follow research, development, verification and every repair."}
         </p>
       </header>
       {status === "offline" && (

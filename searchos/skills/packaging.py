@@ -10,8 +10,9 @@ import shutil
 import tempfile
 from pathlib import Path
 
-_EXCLUDED_DIRS = {"__pycache__", "node_modules", ".git", ".venv", "venv", ".cache", "runs", "logs"}
-_EXCLUDED_FILES = {".env", "credentials", "credentials.json", "secrets.json", "execution.json", ".DS_Store"}
+_EXCLUDED_DIRS = {"__pycache__", "node_modules", ".git", ".venv", "venv", ".cache", "runs", "logs", "profiles"}
+_EXCLUDED_FILES = {".env", "credentials", "credentials.json", "secrets.json", "execution.json", ".DS_Store",
+                   "Cookies", "Login Data", "Local State", "DevToolsActivePort", "storage_state.json"}
 
 
 def package_files(skill_dir: str | Path) -> list[Path]:
@@ -90,7 +91,16 @@ def validate_package(skill_dir: str | Path, *, expected_name: str | None = None)
     entry = find_skill_entry(root)
     if entry.name != 'SKILL.md':
         raise ValueError('Portable packages require SKILL.md; legacy packages must be migrated')
-    return parse_skill_file(entry, expected_name=expected_name)
+    skill = parse_skill_file(entry, expected_name=expected_name)
+    from searchos.skills.runtime.browser_session import validate_metadata, current_session
+    validate_metadata(skill.meta.metadata)
+    session = current_session.get()
+    if session:
+        for relative in package_files(root):
+            data = (root / relative).read_bytes()
+            if any(value.encode() in data for value in session.secrets if len(value) >= 4):
+                raise ValueError(f'package contains private browser state: {relative}')
+    return skill
 
 
 def install_package(skill_dir: str | Path, library_dir: str | Path) -> Path:

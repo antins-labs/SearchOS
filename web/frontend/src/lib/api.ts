@@ -720,19 +720,36 @@ export type SkillCreationInput = {
   text: string;
   categories: string[];
   max_requests: number;
+  allow_interaction?: boolean;
+};
+export type SkillCapabilityResult = {
+  status: "available" | "unavailable" | "incomplete";
+  deterministic: "passed" | "failed" | "incomplete";
+  semantic: "passed" | "failed" | "incomplete";
+  reason: string;
+  case_indexes?: number[];
+  external_blocked?: boolean;
+  next_action?: "wait_external";
+};
+export type SkillCreationResult = {
+  name: string; category: string; status: string; error?: string; failure_stage?: string;
+  path?: string; trial_path?: string; action?: "create" | "update";
+  validation_status?: string;
+  capability_results?: Record<string, SkillCapabilityResult>;
 };
 export type SkillCreationJob = {
   id: string;
   input: SkillCreationInput;
-  status: "queued" | "running" | "completed" | "partial" | "failed" | "interrupted";
+  status: "queued" | "running" | "waiting_user" | "completed" | "partial" | "failed" | "interrupted";
   stage: string;
   current_index: number | null;
-  requests: { name: string; category: string; description: string; subtask?: string; action?: "create" | "update"; has_draft?: boolean; has_site_session?: boolean; can_resume?: boolean }[];
-  results: { name: string; category: string; status: string; error?: string; failure_stage?: string; path?: string; trial_path?: string; action?: "create" | "update" }[];
+  requests: { name: string; category: string; description: string; subtask?: string; action?: "create" | "update"; has_draft?: boolean; has_site_session?: boolean; can_resume?: boolean; can_revalidate?: boolean }[];
+  results: SkillCreationResult[];
   error: string;
   created_at: string;
   resume_of?: { job_id: string; index: number };
-  resume_kind?: "draft" | "site_session";
+  resume_kind?: "draft" | "site_session" | "revalidate";
+  user_action?: { id: string; kind: "login" | "verification"; message: string; url: string; state: string; request_index: number; sequence: number };
 };
 export const createSkills = (input: SkillCreationInput) =>
   putJson<SkillCreationJob>("/api/skills/creations", input, "POST");
@@ -740,6 +757,18 @@ export const listSkillCreations = () =>
   request<SkillCreationJob[]>("/api/skills/creations", { cache: "no-store" });
 export const getSkillCreation = (id: string) =>
   request<SkillCreationJob>(`/api/skills/creations/${encodeURIComponent(id)}`, { cache: "no-store" });
+export type SkillCreationProgress = {
+  job_id: string; request_index: number;
+  phase: "queued" | "research" | "build" | "validate" | "repair" | "complete";
+  last_activity: string | null;
+  validation_rounds: number; execution_count: number; files: string[];
+  calls: { planner: number; builder: number; validator: number };
+  capabilities: (SkillCapabilityResult & { id: string; purpose: string; executions: number })[];
+  regressions: { capability_id: string; reason: string }[];
+  events: { at: string; role: "planner" | "builder" | "validator" | null; action: string }[];
+};
+export const getSkillCreationProgress = (id: string, index = 0) =>
+  request<SkillCreationProgress>(`/api/skills/creations/${encodeURIComponent(id)}/progress?index=${index}`, { cache: "no-store" });
 export const deleteSkillCreations = (ids: string[]) =>
   putJson<{ deleted: string[] }>("/api/skills/creations/delete", { ids }, "POST");
 export const cancelSkillCreation = (id: string) =>
@@ -754,6 +783,13 @@ export const saveSkillDraftFile = (id: string, index: number, edit: { path: stri
   putJson<SkillDraft>(`${draftUrl(id, index)}/file`, edit);
 export const resumeSkillCreation = (id: string, index: number) =>
   putJson<SkillCreationJob>(`/api/skills/creations/${encodeURIComponent(id)}/requests/${index}/resume`, {}, "POST");
+export const revalidateSkillCreation = (id: string, index: number) =>
+  putJson<SkillCreationJob>(`/api/skills/creations/${encodeURIComponent(id)}/requests/${index}/revalidate`, {}, "POST");
+export const respondSkillAction = (id: string, operation: string, action: "open" | "continue" | "skip") =>
+  putJson<SkillCreationJob>(`/api/skills/creations/${encodeURIComponent(id)}/actions/${encodeURIComponent(operation)}/${action}`, {}, "POST");
+export type SkillBrowserSession = { site: string; busy: boolean; updated_at: number };
+export const listSkillBrowserSessions = () => request<SkillBrowserSession[]>("/api/skills/creations/browser-sessions", { cache: "no-store" });
+export const clearSkillBrowserSession = (site: string) => request<{ cleared: string }>(`/api/skills/creations/browser-sessions/${encodeURIComponent(site)}`, { method: "DELETE" });
 
 export type SkillLibraryItem = {
   name: string; category: string; description: string; availability: string;

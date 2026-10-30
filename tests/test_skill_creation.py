@@ -2,15 +2,17 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+
 from langchain_core.messages import AIMessage
 
 from searchos.skills import SkillSignal, SkillRequest, infer_requests, run_pipeline, generate_skills
 from searchos.skills.intent.trace import _existing_skill_dir
 from searchos.skills.packaging import validate_package
+
+pytestmark = pytest.mark.usefixtures('deterministic_validation_agent')
 
 
 def trace(tmp_path):
@@ -85,7 +87,7 @@ async def test_text_pipeline_validates_then_installs(category,tmp_path):
 
 @pytest.mark.asyncio
 async def test_access_pipeline_receives_request_and_checks_host(tmp_path,monkeypatch):
-    from searchos.skills.pipeline.access import run as access
+    from searchos.skills.pipeline.access import pipeline as access
     request=SkillRequest('access','example-com','来源检索',reason='多次访问失败',host='example.com',probe_urls=('https://example.com/a',))
     calls=[]
     async def builder(**kwargs):
@@ -104,7 +106,7 @@ async def test_access_pipeline_receives_request_and_checks_host(tmp_path,monkeyp
 
 @pytest.mark.asyncio
 async def test_invalid_build_does_not_replace_installed_skill(tmp_path,monkeypatch):
-    from searchos.skills.pipeline.access import run as access
+    from searchos.skills.pipeline.access import pipeline as access
     request=SkillRequest('access','example-com','来源检索',host='example.com',probe_urls=('https://example.com/a',))
     previous=tmp_path/'access/example-com';previous.mkdir(parents=True)
     (previous/'SKILL.md').write_text(markdown(request,'已安装的方法'))
@@ -120,7 +122,7 @@ async def test_invalid_build_does_not_replace_installed_skill(tmp_path,monkeypat
 
 @pytest.mark.asyncio
 async def test_generate_routes_batch_and_continues_after_one_failure(tmp_path,monkeypatch):
-    from searchos.skills.pipeline.access import run as access
+    from searchos.skills.pipeline.access import pipeline as access
     async def failed(**kwargs):return None
     monkeypatch.setattr(access,'build_skill',failed)
     requests=[{'category':'access','name':'example-com','description':'来源获取','host':'example.com','probe_urls':['https://example.com/a']},
@@ -155,12 +157,13 @@ async def test_site_intent_creates_access_request_without_selection_model(tmp_pa
 @pytest.mark.asyncio
 @pytest.mark.parametrize('planning_fails', [False, True])
 async def test_site_progress_tracks_planning_before_builder_starts(tmp_path, monkeypatch, planning_fails):
-    from searchos.skills.pipeline.access import run as access
     events = []
     class Model:
         def bind_tools(self, definitions): return self
     class Session:
-        def __init__(self, *args): self.state = {'calls': 0, 'dialogues': []}
+        def __init__(self, *args, max_turns):
+            assert max_turns == 50
+            self.state = {'calls': 0, 'dialogues': []}
         async def prepare(self, *args, **kwargs):
             assert events[-1] == 'site_intent'
             events.append('prepare')
@@ -169,13 +172,13 @@ async def test_site_progress_tracks_planning_before_builder_starts(tmp_path, mon
             return {'capabilities': [{'id': 'latest', 'inputs': {}, 'examples': [{}],
                                       'required_fields': ['title', 'source_url']}], 'limitations': []}
         def builder_notes(self): return ''
-    async def build(*args, **kwargs):
+    async def build(self):
         assert events[-1] == 'pipeline'
         events.append('build')
         return None
     async def progress(event): events.append(event['stage'])
-    monkeypatch.setattr('searchos.skills.intent.site.SiteIntentSession', Session)
-    monkeypatch.setattr(access, '_build_episode', build)
+    monkeypatch.setattr('searchos.skills.pipeline.access.agents.planner.SitePlannerAgent', Session)
+    monkeypatch.setattr('searchos.skills.pipeline.access.agents.builder.AccessBuilderAgent.run', build)
     results = await generate_skills(SkillSignal('site', host='example.com'), library_path=tmp_path/'library',
                                    builder_model=Model(), on_progress=progress)
     assert events[:2] == ['intent', 'planned']
@@ -188,7 +191,10 @@ async def test_site_progress_tracks_planning_before_builder_starts(tmp_path, mon
 
 
 @pytest.mark.asyncio
-async def test_task_intent_covers_all_needed_requests_by_default_and_reuses_existing(tmp_path):
+async def test_task_intent_covers_all_needed_requests_by_default_and_reuses_existing(tmp_path, monkeypatch):
+    for name in ('SEARCHOS_SKILLS_DISABLED', 'SEARCHOS_SKILL_LAYERS_DISABLED',
+                 'SEARCHOS_SKILL_ONLY', 'SEARCHOS_SKILL_EXCLUDE'):
+        monkeypatch.delenv(name, raising=False)
     existing=SkillRequest('strategy','existing-method','已有的记录核验能力')
     package=tmp_path/'strategy/existing-method';package.mkdir(parents=True)
     (package/'SKILL.md').write_text(markdown(existing))

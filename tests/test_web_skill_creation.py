@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import httpx
 import pytest
 from langchain_core.messages import AIMessage
+from searchos.skills.pipeline.access import CONTRACT_VERSION
 
 
 @pytest.fixture
@@ -214,7 +215,7 @@ async def test_standalone_requires_real_source_quotes(monkeypatch):
 @pytest.mark.asyncio
 async def test_access_failure_keeps_diagnostics_without_publication(tmp_path, monkeypatch):
     from searchos.skills import SkillRequest, run_pipeline
-    from searchos.skills.pipeline.access import run
+    from searchos.skills.pipeline.access import pipeline as run
     async def blocked(**kwargs):
         kwargs['diagnostics'].update(valid=False, stage='authentication', auth_required=True,
                                      error='需要手动登录')
@@ -241,7 +242,7 @@ async def test_draft_editor_and_resume_skip_intent(modules, monkeypatch, tmp_pat
     (source / 'SKILL.md').write_text('original draft')
     record = jobs.root / 'trials' / job_id / request.name / 'first'
     pointer = save_draft(record, source, ['SKILL.md'], name=request.name, examples=[], require_host=True,
-                         validation={'valid': False, 'stage': 'package', 'error': 'missing metadata'})
+                         validation={'valid': False, 'stage': 'package', 'error': 'missing metadata'}, contract_version=CONTRACT_VERSION)
     (record / 'request.json').write_text(json.dumps(dict(request=asdict(request), base_hash=None)))
     parent = dict(id=job_id, input=module.CreationInput(kind='site', site='example.com').model_dump(),
                   requests=[asdict(request)], results=[], status='failed', stage='done', error='',
@@ -255,7 +256,7 @@ async def test_draft_editor_and_resume_skip_intent(modules, monkeypatch, tmp_pat
         package, data = load_draft(resume_draft)
         assert (package / 'SKILL.md').read_text() == 'edited draft'
         new_pointer = save_draft(trial_root / selected.name / 'next', package, data['files'],
-            name=selected.name, examples=[], require_host=True, validation={'valid': False, 'stage': 'examples'})
+            name=selected.name, examples=[], require_host=True, validation={'valid': False, 'stage': 'examples'}, contract_version=CONTRACT_VERSION)
         await on_draft(new_pointer)
         started.set(); await finish.wait()
         return PipelineResult(selected, 'build_failed', error='authentication needed', draft_path=new_pointer)
@@ -299,7 +300,7 @@ def seed_site_session(module, jobs, identifier='a' * 32):
     record.mkdir(parents=True)
     (record / 'request.json').write_text(json.dumps(dict(request=asdict(request), base_hash=None,
                                                        access_site_intent=True)))
-    session = dict(version=1, host=request.host, calls=8, plan=None, dialogues=[],
+    session = dict(version=CONTRACT_VERSION, host=request.host, calls=8, plan=None, dialogues=[],
                    observations=[dict(id='obs-1', usable=True, result={'content': '已有站点研究'})],
                    last_proposal={'capabilities': [{'id': 'news', 'inputs': {}}]})
     (record / 'site-session.json').write_text(json.dumps(session))
@@ -312,12 +313,39 @@ def seed_site_session(module, jobs, identifier='a' * 32):
     return job, request, record, session
 
 
+@pytest.mark.parametrize('kind', ['draft', 'session'])
+def test_old_contract_is_readable_and_rejected_before_queueing(modules, tmp_path, kind):
+    from api.skills.drafts import detail
+    from searchos.skills.pipeline.drafts import save_draft
+    module, jobs, _ = modules
+    parent, request, record, session = seed_site_session(module, jobs)
+    if kind == 'draft':
+        source = tmp_path / 'old-source'
+        source.mkdir()
+        (source / 'SKILL.md').write_text('旧草稿')
+        save_draft(record, source, ['SKILL.md'], name=request.name, examples=[], require_host=True)
+        assert detail(parent, jobs.root, 0)['files'] == ['SKILL.md']
+    else:
+        session['version'] = 1
+        (record / 'site-session.json').write_text(json.dumps(session))
+        assert jobs.read(parent['id'])['requests'][0]['has_site_session']
+    before = {path.name for path in jobs.root.glob('*.json')}
+    with pytest.raises(ValueError, match='旧版.*重新创建'):
+        jobs.resume(parent['id'], 0)
+    assert not jobs.tasks and {path.name for path in jobs.root.glob('*.json')} == before
+
+
 @pytest.mark.asyncio
-async def test_site_session_resume_preserves_research_without_draft(modules, monkeypatch):
+@pytest.mark.parametrize('interrupted_input', [None, {'code': 'original_probe()', 'browser': True, 'timeout_s': 30}])
+async def test_site_session_resume_preserves_research_without_draft(modules, monkeypatch, interrupted_input):
     from fastapi import FastAPI
     from searchos.skills.pipeline.run import PipelineResult
     module, jobs, routes = modules
     parent, request, record, session = seed_site_session(module, jobs)
+    if interrupted_input is not None:
+        parent['user_action'] = {'id': 'original-operation', 'state': 'interrupted',
+            'request_index': 0, 'stage': 'site_intent', 'input': interrupted_input}
+        jobs.write(parent)
     original = jobs.path(parent['id']).read_bytes()
     async def forbidden(*args, **kwargs):
         raise AssertionError('恢复研究不能重新分析原始创建信号')
@@ -325,6 +353,8 @@ async def test_site_session_resume_preserves_research_without_draft(modules, mon
     started, finish = asyncio.Event(), asyncio.Event()
     async def pipeline(selected, *, access_site_intent, access_site_session, trial_root, on_draft, on_stage, **kwargs):
         assert selected == request and access_site_intent is True
+        assert kwargs.get('access_resume_input') == (
+            {'stage': 'site_intent', 'input': interrupted_input} if interrupted_input is not None else None)
         assert 'resume_draft' not in kwargs
         assert access_site_session.is_relative_to(trial_root)
         assert json.loads(access_site_session.read_text()) == session
