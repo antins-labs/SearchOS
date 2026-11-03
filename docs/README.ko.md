@@ -245,7 +245,7 @@ JINA_API_KEY=xxx              # 선택 사항: Jina 가져오기 할당량 확�
 | --- | --- |
 | `SF_MODEL` / `SF_FAST_MODEL` | 프리셋의 메인 / 경량 모델 덮어쓰기 |
 | `SF_API_BASE` | 엔드포인트 덮어쓰기 (국제판 도메인 전환 등) |
-| `SF_SEARCH_PROVIDER` | 검색 백엔드: `serper` \| `tavily` \| `ragflow` (미설정 시 보유 키로 추론) |
+| `SF_SEARCH_PROVIDER` | 검색 백엔드: `serper` \| `tavily` \| `keenable` \| `ragflow` (미설정 시 보유 키로 추론) |
 | `SF_BROWSER_BACKEND` | 페칭 백엔드: `jina` \| `aiohttp` \| `crawl4ai` \| `search_engine` |
 | `SF_ROLES__JUDGE=main` | 특정 롤의 모델 프로파일만 교체 (고급 / 어블레이션) |
 | `SF_PROFILES__MAIN__TEMPERATURE=0.3` | 단일 프로파일의 필드 레벨 덮어쓰기 (고급 / 어블레이션) |
@@ -282,7 +282,7 @@ JINA_API_KEY=xxx              # 선택 사항: Jina 가져오기 할당량 확�
 | `/effort [low\|medium\|high\|max]` | — | 투입 레벨: 이터레이션 상한·동시 실행 수·에이전트당 검색 예산·실행 시간 제한·스킬 라우팅 top-k를 한 번에 조정. 인자 없이 실행하면 인터랙티브 선택기가 열리며, 실행 중 변경은 다음 라운드부터 적용 |
 | `/skill` | — | 스킬 관리: 인자 없이 실행하면 그룹화된 다중 선택 대화상자 표시. 서브커맨드 `list`(목록), `only <이름…>`(화이트리스트, 접두어 매칭), `on` / `off <이름…>`(켜기/끄기), `all`(라우터에 반환)로 활성 세트를 세밀하게 제어 |
 | `/model` | — | Provider 연결, 모델 카드, 역할, 속도 제한 공유 설정 |
-| `/search [auto\|serper\|tavily\|ragflow]` | — | 검색 백엔드 확인·전환 |
+| `/search [auto\|serper\|tavily\|keenable\|ragflow]` | — | 검색 백엔드 확인·전환 |
 | `/config [key value]` | `/set` | 공유 설정 화면 또는 실행 기본값 빠른 변경 |
 | `/verbose` | `/detail` · `Ctrl-T` | 간략 / 상세 도구 스트림 전환 |
 | `/stop` | `/cancel` · `Esc` | 현재 실행 중단 (대기 중 Esc는 프로그램 종료) |

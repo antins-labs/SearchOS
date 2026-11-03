@@ -107,7 +107,7 @@ are otherwise inactive in the Web UI.
 | Configuration | Read behavior | Effect of changing the environment at runtime |
 |---|---|---|
 | Model API key (`profile.api_key_env`) | `get_model_for()` reads `os.environ` for each call | Applies to new sessions immediately |
-| `SERPER_API_KEY`, `TAVILY_API_KEY`, and `RAGFLOW_*` | Read whenever a search provider is constructed | Applies to the next search |
+| `SERPER_API_KEY`, `TAVILY_API_KEY`, `KEENABLE_API_KEY`, and `RAGFLOW_*` | Read whenever a search provider is constructed | Applies to the next search |
 | `SF_PROVIDER`, `SF_MODEL`, `SF_API_BASE`, `SF_JINA_API_KEY`, and other `SF_*` values | The module-level `settings = Settings()` is an import-time snapshot | Requires `reload_settings_in_place()` |
 
 Web settings endpoints update environment-backed configuration through the

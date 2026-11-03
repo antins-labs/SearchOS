@@ -186,10 +186,11 @@ the model provider.
 |---|---|---|---|
 | `serper` | Serper.dev | `SERPER_API_KEY` | Recommended Google results backend |
 | `tavily` | Tavily | `TAVILY_API_KEY` | Requires `pip install 'searchos[tavily]'` |
+| `keenable` | Keenable | `KEENABLE_API_KEY` (optional) | Works without a key via the public endpoint (rate-limited per IP); a key raises the limit |
 | `ragflow` | RagFlow | — | Ant Group internal backend; unavailable to external users |
 
-Without `SF_SEARCH_PROVIDER`, SearchOS infers Serper and then Tavily from the
-available keys. If neither key exists, it falls back to RagFlow for backward
+Without `SF_SEARCH_PROVIDER`, SearchOS infers Serper, then Tavily, then Keenable
+from the available keys. If none of these keys exists, it falls back to RagFlow for backward
 compatibility. Page retrieval is configured separately through
 `SF_BROWSER_BACKEND`; the default is `jina`, and `SF_JINA_API_KEY` is
 recommended to avoid low unauthenticated rate limits.

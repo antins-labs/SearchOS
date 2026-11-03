@@ -16,6 +16,11 @@ SEARCH_PROVIDER_INFO: dict[str, dict[str, str]] = {
         "api_key_env": "TAVILY_API_KEY",
         "doc_url": "https://tavily.com",
     },
+    "keenable": {
+        "label": "Keenable（无需 key 即可使用；KEENABLE_API_KEY 可选，提高额度）",
+        "api_key_env": "KEENABLE_API_KEY",
+        "doc_url": "https://keenable.ai",
+    },
     "ragflow": {
         "label": "RagFlow（蚂蚁内网接口，外部不可用）",
         "api_key_env": "RAGFLOW_USER_ID",
@@ -42,6 +47,8 @@ def resolve_search_provider_name(name: str = "") -> str:
         return "serper"
     if os.environ.get("TAVILY_API_KEY") or settings.tavily_api_key:
         return "tavily"
+    if os.environ.get("KEENABLE_API_KEY") or settings.keenable_api_key:
+        return "keenable"
     return "ragflow"
 
 
@@ -63,6 +70,12 @@ def build_search_provider(name: str = "") -> SearchProvider:
 
         return TavilyProvider(
             api_key=os.environ.get("TAVILY_API_KEY", "") or settings.tavily_api_key,
+        )
+    if name == "keenable":
+        from searchos.tools.simple_browser.search.keenable import KeenableProvider
+
+        return KeenableProvider(
+            api_key=os.environ.get("KEENABLE_API_KEY", "") or settings.keenable_api_key,
         )
     from searchos.tools.simple_browser.search.ragflow import RagFlowProvider
 

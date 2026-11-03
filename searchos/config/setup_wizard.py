@@ -33,6 +33,7 @@ _SEARCH_BACKENDS: list[tuple[str, str, str]] = [
     # (SF_SEARCH_PROVIDER 值, 说明, key 环境变量；空 = 无需 key)
     ("serper", "Serper.dev（Google 结果，推荐；serper.dev 注册）", "SERPER_API_KEY"),
     ("tavily", "Tavily（tavily.com；需 pip install 'searchos[tavily]'）", "TAVILY_API_KEY"),
+    ("keenable", "Keenable（无需 key；可选 KEENABLE_API_KEY 提高额度，keenable.ai）", ""),
     ("ragflow", "RagFlow（蚂蚁内网接口，外部不可用）", "RAGFLOW_USER_ID"),
 ]
 

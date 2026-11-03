@@ -110,7 +110,7 @@ Web 设置页按“连接模型服务 → 添加模型配置 → 分配模型用
 | 配置 | 读取方式 | 运行时改 env 后 |
 |---|---|---|
 | 模型 API key（`profile.api_key_env`） | `get_model_for()` 每次调用现读 `os.environ` | 新 session 立即生效 |
-| `SERPER_API_KEY` / `TAVILY_API_KEY` / `RAGFLOW_*` | 每次构造搜索 provider 时现读 | 下次搜索立即生效 |
+| `SERPER_API_KEY` / `TAVILY_API_KEY` / `KEENABLE_API_KEY` / `RAGFLOW_*` | 每次构造搜索 provider 时现读 | 下次搜索立即生效 |
 | `SF_PROVIDER` / `SF_MODEL` / `SF_API_BASE` / `SF_JINA_API_KEY` 等 `SF_*` | `settings = Settings()` **import 时快照** | 需 `reload_settings_in_place()` |
 
 Web 端点改 env 后统一走 `settings_store.update_env()` 事务：

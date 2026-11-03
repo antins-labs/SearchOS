@@ -26,7 +26,7 @@ def init_search_provider(name: str | None = None):
     # SearchOS binds search + page-fetch onto one shared browser provider.
     # An explicit ``name`` (from web settings) wins; otherwise same resolution
     # as the CLI: SF_SEARCH_PROVIDER, else infer from available keys
-    # (serper → tavily), else the ragflow fallback.
+    # (serper → tavily → keenable), else the ragflow fallback.
     from searchos.tools.simple_browser.search import build_search_provider
     from searchos.tools.simple_browser.state import set_browser_provider
 

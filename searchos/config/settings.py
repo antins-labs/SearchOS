@@ -219,6 +219,7 @@ class Settings(BaseSettings):
     search_max_results: int = 10
     tavily_api_key: str = ""
     serper_api_key: str = ""
+    keenable_api_key: str = ""
 
     # --- Browser ---
     browser_view_tokens: int = Field(default=4096, ge=1, le=8192)
