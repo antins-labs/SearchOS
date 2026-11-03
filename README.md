@@ -245,7 +245,7 @@ Slash commands are available during a run; configuration changes apply as descri
 | `/effort [low\|medium\|high\|max]` | — | Effort tier: adjusts iteration cap, task and tool budgets, wall-clock limit, and skill-routing top-k in one go; with no argument it opens an interactive picker; mid-run changes take effect next round |
 | `/skill` | — | Skill management: no argument opens a grouped multi-select dialog; subcommands `list`, `only <names…>` (whitelist, fuzzy prefix match), `on` / `off <names…>`, `all` (reset to router control) for fine-grained control |
 | `/model` | — | Open shared model settings: provider connections, model cards, model purpose assignments, and per-profile limits |
-| `/search [auto\|serper\|tavily\|ragflow]` | — | Inspect or switch the shared search backend |
+| `/search [auto\|serper\|tavily\|keenable\|ragflow]` | — | Inspect or switch the shared search backend |
 | `/config [key value]` | `/set` | Open the shared settings panel or quickly change supported run defaults |
 | `/verbose` | `/detail` · `Ctrl-T` | Toggle compact / detailed tool stream |
 | `/stop` | `/cancel` · `Esc` | Interrupt the current run (Esc exits the program when idle) |
@@ -312,7 +312,7 @@ Provider presets and environment-only configuration are documented in [providers
 | --- | --- |
 | `SF_MODEL` / `SF_FAST_MODEL` | Override the preset's main / lightweight model |
 | `SF_API_BASE` | Override the model endpoint |
-| `SF_SEARCH_PROVIDER` | Search backend: `serper` \| `tavily` \| `ragflow` |
+| `SF_SEARCH_PROVIDER` | Search backend: `serper` \| `tavily` \| `keenable` \| `ragflow` |
 | `SF_BROWSER_BACKEND` | Fetch backend: `jina` \| `aiohttp` \| `crawl4ai` \| `search_engine` |
 | `SF_ROLES__JUDGE=main` | Assign a profile to a model purpose; `ROLES` remains the configuration key |
 | `SF_PROFILES__MAIN__RPM=60` / `SF_PROFILES__MAIN__TPM=100000` | Per-profile request/token limits; `0` disables a limit |

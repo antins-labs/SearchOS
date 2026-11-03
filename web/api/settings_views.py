@@ -112,6 +112,7 @@ def models_view() -> dict:
     search_key_fallbacks = {
         "serper": settings.serper_api_key,
         "tavily": settings.tavily_api_key,
+        "keenable": settings.keenable_api_key,
     }
     providers = [
         {

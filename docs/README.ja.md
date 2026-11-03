@@ -247,7 +247,7 @@ JINA_API_KEY=xxx              # オプション：Jina の取得クォータを�
 | --- | --- |
 | `SF_MODEL` / `SF_FAST_MODEL` | プリセットのメイン / 軽量モデルを上書き |
 | `SF_API_BASE` | エンドポイントを上書き（国際版ドメインへの切替など） |
-| `SF_SEARCH_PROVIDER` | 検索バックエンド：`serper` \| `tavily` \| `ragflow`（未設定なら既存キーから推定） |
+| `SF_SEARCH_PROVIDER` | 検索バックエンド：`serper` \| `tavily` \| `keenable` \| `ragflow`（未設定なら既存キーから推定） |
 | `SF_BROWSER_BACKEND` | フェッチバックエンド：`jina` \| `aiohttp` \| `crawl4ai` \| `search_engine` |
 | `SF_ROLES__JUDGE=main` | 特定ロールのモデルプロファイルだけ付け替え（上級 / アブレーション） |
 | `SF_PROFILES__MAIN__TEMPERATURE=0.3` | 単一プロファイルのフィールドレベル上書き（上級 / アブレーション） |
@@ -284,7 +284,7 @@ JINA_API_KEY=xxx              # オプション：Jina の取得クォータを�
 | `/effort [low\|medium\|high\|max]` | — | 投入レベル：イテレーション上限・並列数・エージェントごとの検索予算・実行時間制限・スキルルーティング top-k を一括調整。引数なしでインタラクティブセレクタが開き、実行中の変更は次ラウンドから有効 |
 | `/skill` | — | スキル管理：引数なしでグループ化されたマルチセレクトダイアログを表示。サブコマンド `list`（一覧）、`only <名前…>`（ホワイトリスト、前方一致）、`on` / `off <名前…>`（有効/無効）、`all`（ルーターに戻す）で有効セットを細かく制御 |
 | `/model` | — | Provider 接続、モデルカード、ロール、レート制限の共有設定 |
-| `/search [auto\|serper\|tavily\|ragflow]` | — | 検索バックエンドの確認・切替 |
+| `/search [auto\|serper\|tavily\|keenable\|ragflow]` | — | 検索バックエンドの確認・切替 |
 | `/config [key value]` | `/set` | 共有設定画面、または実行デフォルトの簡易変更 |
 | `/verbose` | `/detail` · `Ctrl-T` | 簡易 / 詳細ツールストリームの切替 |
 | `/stop` | `/cancel` · `Esc` | 現在の実行を中断（アイドル時の Esc はプログラム終了） |

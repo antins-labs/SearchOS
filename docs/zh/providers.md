@@ -147,8 +147,9 @@ SF_ROLES__SKILL_ROUTER=myprof
 |---|---|---|---|
 | `serper` | Serper.dev | `SERPER_API_KEY` | Google 结果，推荐；serper.dev 注册 |
 | `tavily` | Tavily | `TAVILY_API_KEY` | 需 `pip install 'searchos[tavily]'` |
+| `keenable` | Keenable | `KEENABLE_API_KEY`（可选） | 不填 key 也能用免 key 公共端点（按 IP 限流）；填 key 提高额度 |
 | `ragflow` | RagFlow | — | 蚂蚁内网接口，外部不可用 |
 
-不设 `SF_SEARCH_PROVIDER` 时按已有 key 自动推断（serper → tavily），都没有则回落 ragflow（向后兼容内部用法）。页面抓取后端另由 `SF_BROWSER_BACKEND` 控制（默认 `jina`，建议配 `SF_JINA_API_KEY`）。
+不设 `SF_SEARCH_PROVIDER` 时按已有 key 自动推断（serper → tavily → keenable），都没有则回落 ragflow（向后兼容内部用法）。页面抓取后端另由 `SF_BROWSER_BACKEND` 控制（默认 `jina`，建议配 `SF_JINA_API_KEY`）。
 
 各端点与模型 id 核实于 2026-07 各厂商官方文档（`searchos/config/providers.py` 每个预设附 `doc_url`）。厂商迭代快，如遇 404/模型下线，用 `SF_API_BASE` / `SF_MODEL` 覆盖并提 issue。

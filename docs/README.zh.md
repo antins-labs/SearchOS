@@ -246,7 +246,7 @@ Agent 先通过目录定位资料，再在相关章节查找并按需读取原�
 | `/effort [low\|medium\|high\|max]` | — | 投入档位：一次性调整迭代上限、任务与工具预算、墙钟时限、技能路由 top-k；无参数弹出交互选择器，运行中修改下一轮生效 |
 | `/skill` | — | 技能管理：无参数打开分组勾选弹窗；子命令 `list`（列出）、`only <名字…>`（白名单，前缀模糊匹配）、`on` / `off <名字…>`（启停）、`all`（重置交回路由）精细控制启用集 |
 | `/model` | — | 打开共享模型设置：Provider 连接、模型卡、模型用途分配与 profile 限速 |
-| `/search [auto\|serper\|tavily\|ragflow]` | — | 查看或切换共享搜索后端 |
+| `/search [auto\|serper\|tavily\|keenable\|ragflow]` | — | 查看或切换共享搜索后端 |
 | `/config [key value]` | `/set` | 打开共享设置面板，或快速修改支持的运行默认值 |
 | `/verbose` | `/detail` · `Ctrl-T` | 切换精简 / 详细工具流 |
 | `/stop` | `/cancel` · `Esc` | 中断当前运行（空闲时 Esc 退出程序） |
@@ -313,7 +313,7 @@ Web 设置统一管理服务连接、模型配置、搜索、技能和预算。�
 | --- | --- |
 | `SF_MODEL` / `SF_FAST_MODEL` | 覆盖预设的主力 / 轻量模型 |
 | `SF_API_BASE` | 覆盖模型端点 |
-| `SF_SEARCH_PROVIDER` | 搜索后端：`serper` \| `tavily` \| `ragflow` |
+| `SF_SEARCH_PROVIDER` | 搜索后端：`serper` \| `tavily` \| `keenable` \| `ragflow` |
 | `SF_BROWSER_BACKEND` | 抓取后端：`jina` \| `aiohttp` \| `crawl4ai` \| `search_engine` |
 | `SF_ROLES__JUDGE=main` | 为某项模型用途绑定配置；`ROLES` 沿用现有配置键名 |
 | `SF_PROFILES__MAIN__RPM=60` / `SF_PROFILES__MAIN__TPM=100000` | 每份配置的请求 / Token 限速，`0` 表示关闭 |

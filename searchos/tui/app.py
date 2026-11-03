@@ -81,7 +81,7 @@ _COMMAND_SPECS = (
     ("effort",  (),          "_cmd_effort",  "投入档位 low/medium/high/max",     ""),
     ("skill",   (),          "_cmd_skill",   "选择 access 技能 list/only/off/on/all", ""),
     ("model",   (),          "_cmd_model",   "模型设置：角色绑定 / 模型卡 / Provider 连接", ""),
-    ("search",  (),          "_cmd_search",  "搜索后端 serper/tavily/ragflow/auto", ""),
+    ("search",  (),          "_cmd_search",  "搜索后端 serper/tavily/keenable/ragflow/auto", ""),
     ("config",  ("set",),    "_cmd_config",  "设置面板；/config <项> <值> 可快改", ""),
     ("after",   (),          "_cmd_after",   "当前工具返回后加入追问：/after <内容>", ""),
     ("stop",    ("cancel",), "_cmd_stop",    "中断当前运行",                     "Esc"),
@@ -823,7 +823,7 @@ class SearchOSApp(App):
             elif cmd == "skill":
                 self._cmd_hint = "子指令： list · only <名> · off <名> · on <名> · all"
             elif cmd == "search":
-                self._cmd_hint = "后端： serper · tavily · ragflow · auto"
+                self._cmd_hint = "后端： serper · tavily · keenable · ragflow · auto"
             elif cmd in ("config", "set"):
                 self._cmd_hint = ("项： retries · cache · proxy · results · "
                                   "maxtime · skills on|off · role <角色> <卡>")
@@ -1351,7 +1351,7 @@ class SearchOSApp(App):
 
     # ----- /search -----
 
-    _SEARCH_BACKENDS = ("serper", "tavily", "ragflow")
+    _SEARCH_BACKENDS = ("serper", "tavily", "keenable", "ragflow")
 
     def _cmd_search(self, arg: str) -> None:
         from searchos.config.web_overlay import save_overlay, store
