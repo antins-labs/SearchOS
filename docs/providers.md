@@ -72,6 +72,7 @@ Important notes:
 | `volcengine` (aliases `doubao`, `ark`) | Volcengine Ark | `ark.cn-beijing.volces.com/api/v3` | `ARK_API_KEY` | doubao-seed-2.0-pro |
 | `openai` | OpenAI API | `api.openai.com/v1` | `OPENAI_API_KEY` | gpt-5.5 |
 | `openrouter` | OpenRouter | `openrouter.ai/api/v1` | `OPENROUTER_API_KEY` | anthropic/claude-sonnet-4.5 |
+| `synap` | Synap | `pool.linkrra.com/v1` | `SYNAP_API_KEY` | meta/muse-glimmer-30b / qwen/qwen3-30b-a3b-instruct-2507 |
 | `siliconflow` | SiliconFlow (China) | `api.siliconflow.cn/v1` | `SILICONFLOW_API_KEY` | deepseek-ai/DeepSeek-V3.2 |
 | `gemini` | Google Gemini OpenAI compatibility layer | `generativelanguage.googleapis.com/v1beta/openai/` | `GEMINI_API_KEY` | gemini-3.5-flash |
 | `xai` | xAI | `api.x.ai/v1` | `XAI_API_KEY` | grok-4.3 |
@@ -134,6 +135,7 @@ not suitable.
 | OpenAI | `gpt-5.4-mini` | The 5.5 generation has no mini/nano model |
 | Gemini | `gemini-3.1-flash-lite` | `gemini-3.5-flash-lite` does not exist |
 | OpenRouter | `google/gemini-3.5-flash` | — |
+| Synap | `qwen/qwen3-30b-a3b-instruct-2507` | Same model family already used by the SiliconFlow preset; OpenAI-compatible endpoint |
 | Moonshot, DeepSeek, xAI, Volcengine, and coding-plan presets | Primary-model fallback | Override `SF_FAST_MODEL` when your account exposes a suitable light model |
 
 ## Fine-grained overrides
