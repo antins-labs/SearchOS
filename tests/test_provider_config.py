@@ -134,6 +134,17 @@ def test_light_tier_goes_to_fast_model_only(monkeypatch):
     assert s.profiles[s.roles["orchestrator"]].model == "qwen3.7-plus"
 
 
+def test_synap_preset_routes_existing_qwen_fast_model(monkeypatch):
+    s = _fresh_settings(monkeypatch, SF_PROVIDER="synap")
+    main = s.profiles[s.roles["orchestrator"]]
+    fast = s.profiles[s.roles["extraction"]]
+
+    assert main.api_base == "https://pool.linkrra.com/v1"
+    assert main.api_key_env == "SYNAP_API_KEY"
+    assert main.model == "meta/muse-glimmer-30b"
+    assert fast.model == "qwen/qwen3-30b-a3b-instruct-2507"
+
+
 def test_fast_model_env_override(monkeypatch):
     s = _fresh_settings(
         monkeypatch, SF_PROVIDER="zhipu", SF_FAST_MODEL="glm-4.7-flashx",

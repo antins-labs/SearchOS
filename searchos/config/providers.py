@@ -222,6 +222,19 @@ PRESETS: dict[str, ProviderPreset] = {
         doc_url="https://openrouter.ai/docs",
         notes="模型 id 为 vendor/model 格式；免费档带 :free 后缀。",
     ),
+    "synap": ProviderPreset(
+        label="Synap OpenAI-compatible API",
+        provider="openai_compatible", api_base="https://pool.linkrra.com/v1",
+        api_key_env="SYNAP_API_KEY",
+        main_model="meta/muse-glimmer-30b",
+        fast_model="qwen/qwen3-30b-a3b-instruct-2507",
+        max_output=65536,
+        doc_url="https://synap402.com/docs",
+        notes=(
+            "Zero-data-retention endpoint. The fast model is the same Qwen3 30B "
+            "preset already used through SiliconFlow."
+        ),
+    ),
     "antchat": ProviderPreset(
         label="AntChat 聚合网关",
         provider="openai_compatible", api_base="https://antchat.alipay.com/v1",
@@ -284,7 +297,7 @@ PRESET_GROUPS: list[tuple[str, list[str]]] = [
     ("pay_as_you_go", [
         "deepseek", "zhipu", "zai", "moonshot", "minimax", "dashscope",
         "volcengine", "moonshot-anthropic", "deepseek-anthropic",
-        "openai", "anthropic", "openrouter", "antchat", "siliconflow", "gemini", "xai",
+        "openai", "anthropic", "openrouter", "synap", "antchat", "siliconflow", "gemini", "xai",
     ]),
     ("local", ["ollama", "vllm"]),
 ]

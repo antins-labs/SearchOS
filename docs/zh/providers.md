@@ -52,6 +52,7 @@ ZHIPU_API_KEY=xxx
 | `volcengine`（别名 `doubao`/`ark`） | 火山方舟 | `ark.cn-beijing.volces.com/api/v3` | `ARK_API_KEY` | doubao-seed-2.0-pro |
 | `openai` | OpenAI 官方 | `api.openai.com/v1` | `OPENAI_API_KEY` | gpt-5.5 |
 | `openrouter` | OpenRouter 聚合 | `openrouter.ai/api/v1` | `OPENROUTER_API_KEY` | anthropic/claude-sonnet-4.5 |
+| `synap` | Synap | `pool.linkrra.com/v1` | `SYNAP_API_KEY` | meta/muse-glimmer-30b / qwen/qwen3-30b-a3b-instruct-2507 |
 | `siliconflow` | 硅基流动（中国站） | `api.siliconflow.cn/v1` | `SILICONFLOW_API_KEY` | deepseek-ai/DeepSeek-V3.2 |
 | `gemini` | Google Gemini 兼容层 | `generativelanguage.googleapis.com/v1beta/openai/` | `GEMINI_API_KEY` | gemini-3.5-flash |
 | `xai` | xAI Grok | `api.x.ai/v1` | `XAI_API_KEY` | grok-4.3 |
@@ -100,6 +101,7 @@ SF_MODEL=Qwen/Qwen3-32B     # 必填；端口非 8000 时用 SF_API_BASE 覆盖
 | OpenAI | `gpt-5.4-mini` | 5.5 世代无 mini/nano，轻量档在 5.4 世代 |
 | Gemini | `gemini-3.1-flash-lite` | `gemini-3.5-flash-lite` 不存在 |
 | OpenRouter | `google/gemini-3.5-flash` | |
+| Synap | `qwen/qwen3-30b-a3b-instruct-2507` | 与 SiliconFlow 预设已使用的模型系列相同；OpenAI 兼容端点 |
 | Moonshot / DeepSeek / xAI / 火山 / coding plan 系 | 回落主力 | Moonshot turbo 已下线、火山 lite/mini id 需在控制台确认后用 `SF_FAST_MODEL` 指定；DeepSeek v4-flash 本身即便宜档 |
 
 ## 精细覆写
