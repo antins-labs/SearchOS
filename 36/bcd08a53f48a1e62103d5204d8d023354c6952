@@ -1,0 +1,1396 @@
+searchos/harness/telemetry/conversation.py
+  s_f05c063d37cdfe::t_9f3a42514625ed 24,26-28,33-45
+  s_2b1bda2a5249f7::t_b7deab73a4d182 309-310
+  s_f05c063d37cdfe::t_87e6d9a090db64 358-460
+  s_aae55e1cf05e0d::t_71ee043c35fbb1 333
+  s_f05c063d37cdfe::t_28bd2b218f5d1a 46-47
+  s_90d25df6455814::t_f09f99e5b86fe0 307,318-322
+searchos/agents/orchestrator/reuse.py
+  s_f05c063d37cdfe::t_5a7658a42db62e 23
+searchos/tools/socm_read/frontier.py
+  s_90d25df6455814::t_202ba1b9a46936 11,24,84
+  s_2b1bda2a5249f7::t_6d52692f86f8f3 37,62
+  s_77546fd4f660bf::t_63b2d45650a003 20,80-81
+  s_2b1bda2a5249f7::t_a220e9edaeeb4d 38-39,63-67
+  s_2b1bda2a5249f7::t_e9e3978d9a1c1a 35,42-44,60,70
+tests/test_extracted_urls.py
+  s_77546fd4f660bf::t_0daa568385867f 16,88,133-134
+web/frontend/tests/agent-status.test.cjs
+  s_f05c063d37cdfe::t_33fce062220fe3 53,61
+searchos/utils/json_extract.py
+  s_f05c063d37cdfe::t_4358dc4534805e 1,147-158
+tests/test_socm_stop_priority.py
+  s_f05c063d37cdfe::t_384d82e589a6f7 13
+  s_f05c063d37cdfe::t_c414ab96ed4dac 15
+  s_f05c063d37cdfe::t_a36a14a3bb549d 28
+searchos/tools/simple_browser/search_providers/base.py
+  s_f05c063d37cdfe::t_4358dc4534805e 7
+tests/test_skill_drafts.py
+  s_f05c063d37cdfe::t_70e65237b7b20a 65
+searchos/tools/simple_browser/fetchers/crawl4ai.py
+  s_f05c063d37cdfe::t_dfec60ae73cc41 10,177
+  s_f05c063d37cdfe::t_34b2e34163e3d0 168
+  s_f05c063d37cdfe::t_1c0dc103a7982b 11-12
+tests/test_tool_output_projection.py
+  s_90d25df6455814::t_d287ac25d391c8 1,181,234
+  s_2b1bda2a5249f7::t_4b95e95ea55222 189,216,218,225-227
+  s_77546fd4f660bf::t_57be80009dedc4 198
+  s_f05c063d37cdfe::t_a565a49716fd32 135,165
+  s_2b1bda2a5249f7::t_f01a7c14a6ec6d 224,239
+  s_90d25df6455814::t_3c05e2025c03ed 90-91,104
+  s_f05c063d37cdfe::t_5a7658a42db62e 127
+tests/test_search_routing.py
+  s_2b1bda2a5249f7::t_16cf2b8f3e536b 77-84
+  s_90d25df6455814::t_ad70e88b5857ad 131,154,161,165,175,180-181
+  s_90d25df6455814::t_0670647b010fd1 156
+  s_77546fd4f660bf::t_d3f3f2e8093a59 1,11,119,127
+  s_f05c063d37cdfe::t_2d64768f02f661 182
+  s_2b1bda2a5249f7::t_be707863dd2fdf 76
+searchos/skills/pipeline/text.py
+  s_f05c063d37cdfe::t_ced9cb52b885e6 1-12,42-68,71-76,78-106
+  s_f05c063d37cdfe::t_e447429a3909f6 69-70,77
+searchos/harness/middleware/sensor/progress_middleware.py
+  s_77546fd4f660bf::t_5e35f3f11c6b7a 106-108
+  s_f05c063d37cdfe::t_34b2e34163e3d0 14-15
+  s_f05c063d37cdfe::t_384d82e589a6f7 12-13
+searchos/tools/simple_browser/search_providers/ragflow.py
+  s_f05c063d37cdfe::t_dfec60ae73cc41 12,62
+  s_f05c063d37cdfe::t_1c0dc103a7982b 13
+web/frontend/tests/evidence-source-save.test.cjs
+  s_90d25df6455814::t_979396bfe5abae 8-9,33
+  s_77546fd4f660bf::t_7947d3b98df3f0 10-11,31,78,82
+eval/run.py
+  s_f05c063d37cdfe::t_1c0dc103a7982b 44-45
+web/api/routes/local_search.py
+  s_f05c063d37cdfe::t_6277ddea347f0c 574
+  s_f05c063d37cdfe::t_ec8e2aab0cfd3a 22-27,38,595
+  s_f05c063d37cdfe::t_1c0dc103a7982b 36,268,614-616
+searchos/local/recap/service.py
+  s_f05c063d37cdfe::t_4358dc4534805e 29
+searchos/harness/middleware/utils/messages.py
+  s_f05c063d37cdfe::t_c2f9d7af03c6d6 94-95
+  s_f05c063d37cdfe::t_1116b2da360de3 13
+  s_90d25df6455814::t_3393b3fabd3623 11,128-129,136-137,139,141
+  s_f05c063d37cdfe::t_1ebdf26511cb2b 14-32
+  s_90d25df6455814::t_f09f99e5b86fe0 114
+searchos/skills/migrate_library.py
+  s_f05c063d37cdfe::t_70e65237b7b20a 16
+eval/runner.py
+  s_77546fd4f660bf::t_47a0176ca3f690 528
+searchos/harness/middleware/extraction/local_middleware.py
+  s_f05c063d37cdfe::t_aaa0722ded74ba 33-34
+  s_f05c063d37cdfe::t_a565a49716fd32 10,36-38
+searchos/tools/simple_browser/fetchers/cache.py
+  s_f05c063d37cdfe::t_5335689eb47acf 18
+  s_f05c063d37cdfe::t_a17ad27722c88d 1,10-11,13,16-17,19-39,42-83
+web/frontend/tests/resource-panel.test.cjs
+  s_f05c063d37cdfe::t_33fce062220fe3 15,22
+  s_aae55e1cf05e0d::t_1050c36d37cb43 11-14,17
+  s_90d25df6455814::t_e888d46af25d3d 10,16,25-34,37,52-65
+  s_77546fd4f660bf::t_afbb029d25c8b5 24,35-36
+searchos/harness/middleware/extraction/core/tables/evidence.py
+  s_f05c063d37cdfe::t_f606793507dc61 9
+  s_f05c063d37cdfe::t_2bee6f3cd64a6c 188
+  s_f05c063d37cdfe::t_99f293882fc22c 1,6,11-150
+  s_f05c063d37cdfe::t_0895f913cf548c 179,186,200,209,213,215,218-220,245-247,251-252,262,266,278-287,289-290,323,359,375-384,389-392,396-398,400
+tests/test_context_boundaries.py
+  s_90d25df6455814::t_e845b659ee8649 41
+  s_90d25df6455814::t_24b9793d152b68 42-55
+web/api/routes/settings.py
+  s_f05c063d37cdfe::t_8d36d04f2bec2f 99
+  s_f05c063d37cdfe::t_1c0dc103a7982b 20-21,30,71,75,80-85,97-98,100-122,296,319-320
+searchos/skills/runtime/command_runtime.py
+  s_90d25df6455814::t_b84aca5f396cfa 401,403-404,406-408,413,475-476,549,622,668-669
+  s_90d25df6455814::t_82d6e6a1d30bee 346,356-357,463,493,533-535,667
+  s_90d25df6455814::t_153a0f138de705 17-18,36-41,43-48,51,70-71,78-79,120,170-172,215-216,339,343-345,351-355,358-359,378,395,461,477-479,492,494-501,510-512,521-525,531-532,538-539,547-548,550-554,656-663,679
+web/api/deps.py
+  s_f05c063d37cdfe::t_1c0dc103a7982b 24-25
+searchos/agents/orchestrator/prompts/AUDIT.md
+  s_90d25df6455814::t_e7b6e220f4a333 50
+  s_f05c063d37cdfe::t_011a70a541b622 61
+  s_77546fd4f660bf::t_d3f3f2e8093a59 21,24
+  s_f05c063d37cdfe::t_88416c003aa880 60
+  s_90d25df6455814::t_76c24a0fba091a 35
+searchos/agents/orchestrator/prompts/research.py
+  s_77546fd4f660bf::t_63b2d45650a003 107,122,124,134
+  s_90d25df6455814::t_b47691de1b4ed8 3-59,61-81
+  s_90d25df6455814::t_8451f9daaa6fae 112-114
+  s_77546fd4f660bf::t_4525935613cab9 145,153
+  s_2b1bda2a5249f7::t_2e697517e639b5 92
+  s_77546fd4f660bf::t_b800a77ffee66f 91
+  s_90d25df6455814::t_9d676305ea6032 83-90,93-94,97,99-106,109,111,115-121,123,125-129,131-133,135-140,146,163
+  s_2b1bda2a5249f7::t_c9db72b28048c9 141
+  s_90d25df6455814::t_aa2f1329071c9c 82
+  s_2b1bda2a5249f7::t_172bef2b7cbf00 60
+  s_77546fd4f660bf::t_646cd03f20ed37 95-96,130
+  s_2b1bda2a5249f7::t_a270ab903c90ad 98
+  s_90d25df6455814::t_edc4b61b57de4a 108,110
+tests/test_research_plan.py
+  s_90d25df6455814::t_6b782904c411fa 8,29,39,42-43,65
+  s_90d25df6455814::t_c5263a5e008179 162
+  s_77546fd4f660bf::t_a4afc1c565e457 93,143
+web/api/skills/creation_jobs.py
+  s_f05c063d37cdfe::t_7866ae4e08cee7 139
+  s_f05c063d37cdfe::t_34b2e34163e3d0 11-12,18,163
+searchos/tools/simple_browser/fetchers/base.py
+  s_f05c063d37cdfe::t_1c0dc103a7982b 272-275,336,342,353,356
+  s_f05c063d37cdfe::t_a17ad27722c88d 105,143,149
+web/frontend/src/components/settings/models/ProfileCard.tsx
+  s_77546fd4f660bf::t_89ddf8dbd84fd0 38,66,91-92,114-115,129,205-210
+  s_77546fd4f660bf::t_f03e5b4e247a7b 256
+docs/tools-architecture-20261017.zh.md
+  s_f05c063d37cdfe::t_43f0e064c3534e 5-6
+searchos/skills/pipeline/access/README.md
+  s_90d25df6455814::t_c328625325408d 81
+  s_419101b56cf4ac::t_06cf7d26538243 36-37,44,46-50,56,77,83,89
+searchos/harness/middleware/sensor/budget_middleware.py
+  s_90d25df6455814::t_3393b3fabd3623 102,271
+  s_77546fd4f660bf::t_a3940c254ceb57 177-178,265-266,370-372,400-402,404-408,410-416,421-447,451,468,475-476
+  s_90d25df6455814::t_ec2bc285251b4b 26,327-329
+  s_90d25df6455814::t_d28b9d7932e2bc 6,48,67,101,211,214-215,223-232,273-275,359-360
+  s_90d25df6455814::t_67a8294ddf05e6 68,270,276
+  s_f05c063d37cdfe::t_34b2e34163e3d0 20
+  s_77546fd4f660bf::t_5e35f3f11c6b7a 409,417-420
+  s_f05c063d37cdfe::t_c6fccc03e47c93 403
+  s_90d25df6455814::t_7f2c1b9d17fb60 218-222,269,272
+  s_f05c063d37cdfe::t_384d82e589a6f7 15
+searchos/utils/__init__.py
+  s_f05c063d37cdfe::t_4358dc4534805e 1
+web/frontend/src/components/local/KnowledgeGraphView.tsx
+  s_f05c063d37cdfe::t_a814a063561afe 3,7,495-544
+searchos/config/profiles.py
+  s_77546fd4f660bf::t_1f1d0405777a52 53
+  s_77546fd4f660bf::t_796da1317bf693 50-51
+  s_f05c063d37cdfe::t_4358dc4534805e 16
+  s_77546fd4f660bf::t_2ddb68e478dc4e 31,46-49,52
+searchos/tools/schema/cells.py
+  s_f05c063d37cdfe::t_f606793507dc61 64
+  s_f05c063d37cdfe::t_f2b9d2e8bbb35e 13
+  s_f05c063d37cdfe::t_09a074d8d8077d 1,9-10,12,14-15,17-54,57-58,68,77,79,84-85,93,103-105,150,155,164-165,187,193-196
+  s_f05c063d37cdfe::t_6af7b2df1e86c3 11,72
+  s_f05c063d37cdfe::t_34b2e34163e3d0 16,180-181
+  s_f05c063d37cdfe::t_edcd8a368df98e 70
+searchos/harness/telemetry/recording.py
+  s_90d25df6455814::t_7f2c1b9d17fb60 278
+  s_aae55e1cf05e0d::t_71ee043c35fbb1 102
+  s_f05c063d37cdfe::t_7bd8198192cb66 9-58
+  s_90d25df6455814::t_338d5c4606902a 149-164
+  s_f05c063d37cdfe::t_9f3a42514625ed 273
+  s_aae55e1cf05e0d::t_1050c36d37cb43 86-96,101
+web/frontend/tests/mobile-merge-regressions.test.cjs
+  s_f05c063d37cdfe::t_3664f592221428 44
+  s_f05c063d37cdfe::t_569c6608e17b7a 153
+  s_f05c063d37cdfe::t_bd95549fc0027c 9-11,34,45-46,128-152,154-156
+  s_77546fd4f660bf::t_7947d3b98df3f0 12-13,47,116,125
+  s_f05c063d37cdfe::t_e35db4c5055c88 157
+searchos/harness/middleware/extraction/core/replay.py
+  s_77546fd4f660bf::t_c6c7fa0610b10a 101-102,104
+  s_77546fd4f660bf::t_772259a6ed9ba2 77
+searchos/tools/tasks/__init__.py
+  s_77546fd4f660bf::t_4525935613cab9 1,9
+  s_2b1bda2a5249f7::t_654621232c5c41 8,15
+  s_2b1bda2a5249f7::t_172bef2b7cbf00 14
+web/frontend/src/lib/runState.ts
+  s_f05c063d37cdfe::t_44e55e65927e78 5,88,121,127-157,159-160,162-166,168
+  s_f05c063d37cdfe::t_422ae57f261f19 197,199-228,232-235,237-244
+web/frontend/src/lib/coverageDiff.ts
+  s_90d25df6455814::t_0e2d966a1718d4 2,29-30,32,38
+searchos/tui/app.py
+  s_f05c063d37cdfe::t_87e6d9a090db64 30,963,1004
+  s_90d25df6455814::t_31f84c82654c31 1442-1446,1503,1534,1536-1537,1558,1562,1570
+  s_f05c063d37cdfe::t_8d36d04f2bec2f 499,1116,1316,1357,1411,1441,1487
+  s_77546fd4f660bf::t_70d39d9963f5ba 136,1140
+  s_f05c063d37cdfe::t_1c0dc103a7982b 1358,1362,1488
+searchos/skills/pipeline/access/tools/execute.py
+  s_2b1bda2a5249f7::t_3aaebced896767 5,12,14-15,20-21,26,30,34,39,58,60-64,69-78,106,113-117,158,178,181,189,205,210-212,217-221,224-225,231,234,238-241,243,248,251-258,290
+searchos/socm/planning/retry_routes.py
+  s_f05c063d37cdfe::t_1c0dc103a7982b 41,52,174,185
+tests/test_search_agent_reuse.py
+  s_77546fd4f660bf::t_6f11bb4766ecc9 102,270
+  s_f05c063d37cdfe::t_70e65237b7b20a 340
+  s_90d25df6455814::t_3c05e2025c03ed 342-343,357-359,374,383
+  s_77546fd4f660bf::t_a4afc1c565e457 90,103,271,422,504
+  s_2b1bda2a5249f7::t_d1202ae4f2d1dc 511-514
+  s_2b1bda2a5249f7::t_4b95e95ea55222 479-482,485
+  s_2b1bda2a5249f7::t_f01a7c14a6ec6d 466-467,488,493-494,510,518
+  s_77546fd4f660bf::t_57be80009dedc4 58
+web/frontend/tests/skill-changes.test.cjs
+  s_f05c063d37cdfe::t_ba281b64b034fb 19-26
+  s_f05c063d37cdfe::t_d1ee5f9d9dc89f 72-162
+searchos/socm/failure_memory/models.py
+  s_f05c063d37cdfe::t_4358dc4534805e 14
+web/api/skills/library.py
+  s_f05c063d37cdfe::t_70e65237b7b20a 9
+tests/test_orchestrator_dispatch_prompt.py
+  s_90d25df6455814::t_e7b6e220f4a333 228
+  s_90d25df6455814::t_76c24a0fba091a 7-8,13-23,25-27
+  s_2b1bda2a5249f7::t_d1ed71f2e90f2e 230
+  s_2b1bda2a5249f7::t_f01a7c14a6ec6d 94,202
+  s_f05c063d37cdfe::t_f7fe0ec001856d 91,273
+  s_2b1bda2a5249f7::t_2e697517e639b5 119
+  s_77546fd4f660bf::t_f58c1b43552100 24,160,162-164
+  s_f05c063d37cdfe::t_cb87c56860afbe 12
+  s_77546fd4f660bf::t_d3f3f2e8093a59 124,180-181,184-185
+searchos/network/__init__.py
+  s_90d25df6455814::t_46680eeff0e321 120
+  s_90d25df6455814::t_902cb97c62385f 8-9
+  s_90d25df6455814::t_2bd071247d6e8d 2-4
+  s_90d25df6455814::t_b65d5f7f8ad725 176
+  s_90d25df6455814::t_33d3f979fadbde 138-139
+  s_90d25df6455814::t_b84aca5f396cfa 1,5-7,10-119,121-125,128-137,140-160,163-175,177,179-331,334-338,340-341,343-346,348-362,366-373,375-399
+  s_90d25df6455814::t_a6049f12e73692 126-127,332,363-365,374
+  s_90d25df6455814::t_8a26d08033c32f 161-162
+  s_90d25df6455814::t_c328625325408d 333,339,342,347
+  s_90d25df6455814::t_c200ccfbfb0cc6 178
+searchos/socm/coverage/models.py
+  s_2b1bda2a5249f7::t_709a5d300c86ab 29,33
+  s_90d25df6455814::t_9ff6513f4658ce 449
+  s_90d25df6455814::t_60893d9a3c44c8 587
+  s_f05c063d37cdfe::t_f2b9d2e8bbb35e 764
+  s_90d25df6455814::t_8ac133ce71bb28 164,167-169,171,225,229,325-342,377,393,662-665,690,695-697,710-715,721
+  s_2b1bda2a5249f7::t_c83193ff312d7b 80,98,155-158,567-568
+  s_f05c063d37cdfe::t_4358dc4534805e 13
+  s_90d25df6455814::t_4949c38a050a7b 163
+  s_90d25df6455814::t_5f32e3f296d1e3 12,165-166,170,227,324,345-349,351,354-365,370,412,414-418,424,430,437,451,685-686
+  s_90d25df6455814::t_528def43f4f1d5 161-162
+  s_90d25df6455814::t_48efc4654170c4 9,138-143,446-448
+  s_2b1bda2a5249f7::t_cb29369a54f1f2 259-266,274-275,282,286-292,305,307-318
+  s_90d25df6455814::t_49624856a22263 23-28,30-32,34-38
+  s_2b1bda2a5249f7::t_d16ad163f0471c 283-285
+searchos/tools/tasks/evidence.py
+  s_2b1bda2a5249f7::t_a220e9edaeeb4d 16,21-22,45,47-48,53
+  s_2b1bda2a5249f7::t_6d52692f86f8f3 15,44
+  s_2b1bda2a5249f7::t_cae81d7579c423 49
+  s_2b1bda2a5249f7::t_a430ce1dc50592 13,17-20,40,46,50-52,54
+searchos/tools/socm_read/evidence.py
+  s_2b1bda2a5249f7::t_6d52692f86f8f3 82,182
+  s_2b1bda2a5249f7::t_a220e9edaeeb4d 83,85-89,97-98,183,185-187,190-191
+  s_90d25df6455814::t_20dee6d32a5ff0 18,42,46,74,76,137,141,179
+  s_77546fd4f660bf::t_38b6ab98946e9c 16,34,57,60,113-116
+  s_2b1bda2a5249f7::t_e9e3978d9a1c1a 72,92-96,99,177,192-193
+  s_90d25df6455814::t_48efc4654170c4 102-103,198
+  s_90d25df6455814::t_a7fd84b26bc088 208-212
+  s_f05c063d37cdfe::t_2bee6f3cd64a6c 17
+web/frontend/src/components/workbench/ToolCallDetailDialog.tsx
+  s_90d25df6455814::t_e31a0fcdb14fea 8,17-18,67,71,76-78,89-103,127,145-157,167,170
+tests/test_final_citation_delivery.py
+  s_90d25df6455814::t_42c9378540a571 322-323
+  s_f05c063d37cdfe::t_87e6d9a090db64 202
+  s_90d25df6455814::t_0670647b010fd1 314-316
+searchos/harness/middleware/extraction/core/coordinator.py
+  s_77546fd4f660bf::t_c704c5b62f99f9 639,642-645
+  s_77546fd4f660bf::t_51e0c4e815b5b1 447
+  s_77546fd4f660bf::t_bb638cf65cb72e 255-256
+  s_77546fd4f660bf::t_b493fe9b66c0ca 155-156,185-201,204-208,246-253,258
+  s_77546fd4f660bf::t_01fcf0ce46903c 295,527
+  s_f05c063d37cdfe::t_f606793507dc61 21,29
+  s_f05c063d37cdfe::t_34b2e34163e3d0 26-28,32
+  s_77546fd4f660bf::t_dfd3e9a1e11bf2 166-168,173-174
+  s_77546fd4f660bf::t_c6c7fa0610b10a 571
+  s_77546fd4f660bf::t_1409d8c91838e6 9,137-138,409-412,416-422,431-437,450
+  s_90d25df6455814::t_4a576d76ed2144 754,756,762-763,773
+  s_77546fd4f660bf::t_86e1ab841e402d 244-245,254,257,259,413,430,440-446,474
+  s_77546fd4f660bf::t_db32006dfad601 35,117-119,162,164-165,482-483,607-608,611,638,641
+tests/test_compaction_context.py
+  s_f05c063d37cdfe::t_d849ed654b2b73 14
+tests/test_quick_batch_search.py
+  s_90d25df6455814::t_f4940dcce0da30 138,140,146,153,162
+  s_f05c063d37cdfe::t_fdc96e3a738123 12
+  s_f05c063d37cdfe::t_1c0dc103a7982b 13-14
+  s_90d25df6455814::t_ad70e88b5857ad 158
+searchos/tools/skills/__init__.py
+  s_90d25df6455814::t_deb5e2b9069adb 4,8-9,14
+searchos/tools/simple_browser/search_providers/serper.py
+  s_f05c063d37cdfe::t_34b2e34163e3d0 9
+  s_f05c063d37cdfe::t_dfec60ae73cc41 8,30
+tests/test_web_skill_creation.py
+  s_f05c063d37cdfe::t_7b409414ba0f91 18,317-318,327-328,331
+searchos/agents/toolset_render.py
+  s_2b1bda2a5249f7::t_8f52c160d096a4 11,26-28,54-58
+searchos/skills/pipeline/access/agents/prompts/builder.py
+  s_90d25df6455814::t_c328625325408d 14-15,20-22,36,65-69,110
+searchos/harness/middleware/README.md
+  s_f05c063d37cdfe::t_1a60385082c18c 18,23,30-31,38-39,43
+  s_f05c063d37cdfe::t_baee3b84e6fbaa 10,13-14,22,26
+  s_f05c063d37cdfe::t_6f3e7caf308a9a 27
+  s_f05c063d37cdfe::t_f0f8541a6b5920 28-29
+searchos/socm/refs.py
+  s_90d25df6455814::t_5f32e3f296d1e3 1,9,12-47,53,55,57,60-64,66-68,73-74,76-89,92-94
+  s_2b1bda2a5249f7::t_dc33e882f2e9ab 7,50-51,75
+  s_90d25df6455814::t_fc9aaeae4fa232 69-72
+searchos/harness/middleware/sensor/__init__.py
+  s_f05c063d37cdfe::t_8df7f058c93e93 9-14
+searchos/tools/simple_browser/fetchers/search_engine.py
+  s_f05c063d37cdfe::t_1c0dc103a7982b 10
+web/api/routes/search.py
+  s_90d25df6455814::t_338d5c4606902a 765
+  s_90d25df6455814::t_48efc4654170c4 179-180,187,189,219-220,222,228
+  s_f05c063d37cdfe::t_87e6d9a090db64 45,458
+  s_2b1bda2a5249f7::t_662fe001f4f0ce 601-602
+  s_f05c063d37cdfe::t_f2b9d2e8bbb35e 858
+  s_2b1bda2a5249f7::t_e56067ca4b2ced 598,689
+  s_90d25df6455814::t_beba0f1d336160 158
+  s_90d25df6455814::t_0e2d966a1718d4 351,369,399,410,421,432-433,471,519,547
+  s_90d25df6455814::t_31f84c82654c31 139,143,162,242,253,304,474,476,483
+searchos/harness/middleware/context/COMPACTION_CONTEXT.md
+  s_f05c063d37cdfe::t_d849ed654b2b73 3
+searchos/skills/pipeline/access/agents/prompts/validator.py
+  s_90d25df6455814::t_c328625325408d 1-57,61
+tests/test_middleware_runtime.py
+  s_f05c063d37cdfe::t_9f3a42514625ed 369,482
+  s_77546fd4f660bf::t_d1a3ae7fe6d6f9 7,76,210,485
+  s_77546fd4f660bf::t_57be80009dedc4 238,242
+  s_f05c063d37cdfe::t_07ab17fd41b4be 428
+tests/test_usage_persistence.py
+  s_f05c063d37cdfe::t_47eb2f52fceb29 1,5-6,8-17,19-39,41-107,109-151
+  s_f05c063d37cdfe::t_26ecf635e57a42 18
+searchos/harness/simple_search.py
+  s_77546fd4f660bf::t_47a0176ca3f690 36
+  s_90d25df6455814::t_b191539df2b9b0 1,63-64,66,89,99,101,103,126
+  s_90d25df6455814::t_aa3a5fab56ed36 51-53
+searchos/skills/pipeline/access/agents/planner.py
+  s_f05c063d37cdfe::t_4358dc4534805e 23,183-184,188,215,247-249,280-281,402
+  s_f05c063d37cdfe::t_ce72a36592087b 21
+web/frontend/src/components/conversation/SkillChanges.tsx
+  s_f05c063d37cdfe::t_ba281b64b034fb 4-5,11,75-108
+  s_f05c063d37cdfe::t_079bf4386f466a 109
+web/frontend/src/components/mobile/MobileReport.tsx
+  s_77546fd4f660bf::t_71d39ace86d5c5 8,40
+  s_f05c063d37cdfe::t_acb1b897de3f31 3-6,56-154
+web/frontend/src/components/settings/models/NewProfileCard.tsx
+  s_77546fd4f660bf::t_89ddf8dbd84fd0 31,56-57,62,76,140-145
+searchos/tui/config_modal.py
+  s_f05c063d37cdfe::t_8d36d04f2bec2f 89,101,173,183,343,494,608,613
+  s_f05c063d37cdfe::t_1c0dc103a7982b 568,579-580,588,609-610,614-623,646,648-651
+tests/test_extraction_task_scope.py
+  s_77546fd4f660bf::t_57be80009dedc4 34
+  s_90d25df6455814::t_c3447b39f435fd 17,31,68-70,73,76-77,79,86,89,95,97-98,104,107-108,115,117,123,127,129,136,138-139,142,144-145,147-148
+searchos/socm/storage/workspace.py
+  s_f05c063d37cdfe::t_f2b9d2e8bbb35e 30
+  s_90d25df6455814::t_202ba1b9a46936 101-102
+searchos/tui/dashboard.py
+  s_90d25df6455814::t_f35b17bee19069 450
+  s_90d25df6455814::t_fc9aaeae4fa232 12-13,417,449,459-460,464
+web/frontend/tests/orchestration-timeline.test.cjs
+  s_aae55e1cf05e0d::t_9327517e9a43e6 22
+  s_2b1bda2a5249f7::t_fcc99736c5917f 39-48
+  s_aae55e1cf05e0d::t_a4d9676d28ee09 86-94
+  s_2b1bda2a5249f7::t_6e492d43a95a37 49-60
+  s_2b1bda2a5249f7::t_fa209c5b0302ab 62-64,67-76,84-85
+  s_90d25df6455814::t_e994509c5353d0 165-173,175,177,180-184,190-213,215-220
+  s_f05c063d37cdfe::t_33fce062220fe3 130,176,214
+  s_77546fd4f660bf::t_afbb029d25c8b5 174,178-179,185-187,189
+  s_2b1bda2a5249f7::t_712e71adaf62e0 61,65-66,77-83
+  s_77546fd4f660bf::t_4d3b6e7d1f5845 188
+web/frontend/tests/mobile-sources.test.cjs
+  s_f05c063d37cdfe::t_3664f592221428 9
+searchos/skills/pipeline/access/tools/files.py
+  s_2b1bda2a5249f7::t_a5fc606aecdde6 18
+  s_2b1bda2a5249f7::t_3aaebced896767 17,19,24-27,41-49
+searchos/agents/orchestrator/lifecycle.py
+  s_90d25df6455814::t_bdb9987e4d72e7 1038-1041,1044,1052,1153
+  s_f05c063d37cdfe::t_4fd9d0cc71e6f8 1086
+  s_2b1bda2a5249f7::t_45254e9007f6e1 286
+  s_2b1bda2a5249f7::t_d18a04e67fd828 139,246,273,1575,1603
+  s_f05c063d37cdfe::t_02f06ba4880694 321
+  s_77546fd4f660bf::t_63b2d45650a003 1144,1146-1149
+  s_90d25df6455814::t_deb5e2b9069adb 1138-1139
+  s_90d25df6455814::t_d9171202db34b3 1636,1641
+  s_90d25df6455814::t_60893d9a3c44c8 383,389-391,396,407,409,412-413
+  s_f05c063d37cdfe::t_384d82e589a6f7 954
+searchos/harness/middleware/extraction/core/sources/web.py
+  s_f05c063d37cdfe::t_5a7658a42db62e 18
+  s_f05c063d37cdfe::t_1c0dc103a7982b 90,186,300
+  s_f05c063d37cdfe::t_6e5f7f5663814e 1-9,14-17,19,21-55,65-82,86,91-98,111-115,119-120,130-139,146-149,162-164,169-171,175-185,187-210,214-228,231-232,236-237,243-245,248-270,280-299,301-303
+  s_f05c063d37cdfe::t_34b2e34163e3d0 10-13,20,211-213
+  s_f05c063d37cdfe::t_aaa0722ded74ba 56-64,83-85,87-89,99-110,116-118,121-129,140-145,150-161,165-168,172-174,229-230,233-235,238-242,246-247,271-279
+tests/test_access_validation_contract.py
+  s_f05c063d37cdfe::t_d4017c0427c742 271,312
+searchos/tools/simple_browser/fetchers/jina.py
+  s_f05c063d37cdfe::t_dfec60ae73cc41 81,113
+  s_f05c063d37cdfe::t_a17ad27722c88d 13
+  s_f05c063d37cdfe::t_1c0dc103a7982b 12
+  s_f05c063d37cdfe::t_34b2e34163e3d0 11
+searchos/socm/coverage/commit.py
+  s_f05c063d37cdfe::t_f2b9d2e8bbb35e 26,230
+  s_2b1bda2a5249f7::t_c83193ff312d7b 210-211
+  s_90d25df6455814::t_647f420558ff42 41,199-200
+searchos/harness/middleware/extraction/core/models.py
+  s_77546fd4f660bf::t_dfd3e9a1e11bf2 68
+searchos/skills/pipeline/strategy/judge.py
+  s_f05c063d37cdfe::t_08bbc3418db0a0 3,7-19,33
+searchos/harness/telemetry/trajectory.py
+  s_f05c063d37cdfe::t_7168f8436e3227 14
+  s_f05c063d37cdfe::t_9f3a42514625ed 1,5-9,15,72-176
+  s_f05c063d37cdfe::t_4358dc4534805e 13
+tests/test_conversation_logging.py
+  s_f05c063d37cdfe::t_6277ddea347f0c 7
+searchos/harness/telemetry/__init__.py
+  s_f05c063d37cdfe::t_9f3a42514625ed 4
+  s_f05c063d37cdfe::t_87e6d9a090db64 3
+  s_f05c063d37cdfe::t_47eb2f52fceb29 1,5
+web/frontend/src/components/workbench/trace.tsx
+  s_f05c063d37cdfe::t_33fce062220fe3 6
+  s_90d25df6455814::t_11d0de6725eeb2 212
+tests/test_socm_extraction_barrier.py
+  s_f05c063d37cdfe::t_87f3b9f247790f 23,48,54,98-99,126,169,217,223,277
+searchos/harness/middleware/sensor/detection_middleware.py
+  s_f05c063d37cdfe::t_384d82e589a6f7 15-16
+  s_f05c063d37cdfe::t_8df7f058c93e93 112,130
+searchos/socm/coverage/conflicts.py
+  s_90d25df6455814::t_11f92073d8a643 14,64,105
+  s_f05c063d37cdfe::t_f2b9d2e8bbb35e 13
+  s_90d25df6455814::t_d48b2c3c0d3f17 106-116
+web/frontend/src/lib/sourceSelection.ts
+  s_f05c063d37cdfe::t_00aaa8ae9a81e7 53
+  s_f05c063d37cdfe::t_3664f592221428 1,41-52
+docs/zh/configuration.md
+  s_f05c063d37cdfe::t_8d36d04f2bec2f 163
+searchos/tools/tasks/reports.py
+  s_2b1bda2a5249f7::t_f22e0a959fc9e7 192,194,201,216,238,250-263,268-270,272,295
+  s_2b1bda2a5249f7::t_68a4a336d5c9cc 264,271,292,294
+  s_2b1bda2a5249f7::t_172bef2b7cbf00 71,191,198,230,235-236,285,296
+  s_77546fd4f660bf::t_adfc66069c104e 103-104
+  s_77546fd4f660bf::t_5b4cddeb4c7cb3 57
+  s_2b1bda2a5249f7::t_a430ce1dc50592 170,172
+  s_2b1bda2a5249f7::t_a220e9edaeeb4d 180-181
+  s_90d25df6455814::t_d287ac25d391c8 38
+  s_2b1bda2a5249f7::t_62381be8d2ff67 126-128,131-164
+  s_2b1bda2a5249f7::t_782fd73245ef9c 7,200,202-215,241
+  s_2b1bda2a5249f7::t_3b728c867ec3d6 189
+  s_2b1bda2a5249f7::t_73e44897aadba3 174-177
+  s_2b1bda2a5249f7::t_a464de2bd88783 8,167,169,184-188,223-226,286-287
+searchos/harness/middleware/sensor/core/dispatch.py
+  s_f05c063d37cdfe::t_72e4200faecc14 1,8,14,18-60,102,206-284
+searchos/tools/skills/execution.py
+  s_90d25df6455814::t_deb5e2b9069adb 12,15,152,202,269-270,272,274,282,315,320,325,328-329,332,337
+  s_2b1bda2a5249f7::t_a220e9edaeeb4d 193,218
+  s_90d25df6455814::t_a79c5946a1f235 151
+  s_90d25df6455814::t_ef113bc5b5e708 290-291,308
+  s_2b1bda2a5249f7::t_03a827872c1c56 190,194-197,212,220-224
+  s_f05c063d37cdfe::t_5a7658a42db62e 334
+  s_2b1bda2a5249f7::t_0f5e39a46f8926 219
+  s_2b1bda2a5249f7::t_6d52692f86f8f3 192,217
+tests/test_failure_post_mortem.py
+  s_f05c063d37cdfe::t_1116b2da360de3 931
+  s_f05c063d37cdfe::t_1c0dc103a7982b 949-950,979-980,1021-1022,1063-1064
+  s_f05c063d37cdfe::t_c2f9d7af03c6d6 930
+tests/test_usage_journal.py
+  s_f05c063d37cdfe::t_521b283809a3b1 12
+  s_f05c063d37cdfe::t_af71df6d7bb9f6 1,6-7,9,11,14-20,22,24-51,53-56,58-62,64-69,71,74-90,92-126,128-129,131-137
+  s_f05c063d37cdfe::t_0cf1086f90fd0d 21,23
+  s_f05c063d37cdfe::t_bf7731752f0c31 130
+  s_f05c063d37cdfe::t_40072a00cf95f9 127
+  s_f05c063d37cdfe::t_4a9077067dd461 2
+  s_f05c063d37cdfe::t_b2d668b3e2330d 10
+  s_f05c063d37cdfe::t_47eb2f52fceb29 13
+  s_f05c063d37cdfe::t_a57cdef8146539 70
+searchos/tools/simple_browser/fetchers/__init__.py
+  s_f05c063d37cdfe::t_1c0dc103a7982b 7,12
+searchos/agents/explore/agent_legacy.md
+  s_77546fd4f660bf::t_5627581c7b21c9 44
+  s_77546fd4f660bf::t_2e469fa1ab8750 37,46-47
+searchos/skills/intent/__init__.py
+  s_f05c063d37cdfe::t_fd892fb3b4ccdb 48
+searchos/harness/middleware/sensor/utils/tool_outcomes.py
+  s_f05c063d37cdfe::t_d3357b87578ec4 57-59
+docs/search-agent-reuse.zh.md
+  s_77546fd4f660bf::t_b800a77ffee66f 15,20
+  s_2b1bda2a5249f7::t_662fe001f4f0ce 5,29
+  s_2b1bda2a5249f7::t_680abb87abae26 9
+  s_77546fd4f660bf::t_f58c1b43552100 16
+searchos/socm/state.py
+  s_77546fd4f660bf::t_47a0176ca3f690 236
+  s_90d25df6455814::t_5b409d21b52c30 143
+  s_90d25df6455814::t_202ba1b9a46936 188-189
+  s_f05c063d37cdfe::t_4358dc4534805e 20
+web/frontend/src/components/conversation/Conversation.tsx
+  s_90d25df6455814::t_23d26a0a63f039 3,276,280,374
+  s_90d25df6455814::t_37fbeefdae5b5f 4-5
+  s_77546fd4f660bf::t_71d39ace86d5c5 19,189
+  s_90d25df6455814::t_ccb2f576c52033 348,376-377
+web/frontend/src/components/coverage/CellEvidencePopover.tsx
+  s_77546fd4f660bf::t_71d39ace86d5c5 9,167
+  s_90d25df6455814::t_ccb2f576c52033 3-4,134
+  s_2b1bda2a5249f7::t_e56067ca4b2ced 150
+searchos/harness/middleware/context/core/__init__.py
+  s_f05c063d37cdfe::t_8e7ec160048145 1
+searchos/agents/orchestrator/prompt.py
+  s_77546fd4f660bf::t_63b2d45650a003 76
+  s_f05c063d37cdfe::t_4fd9d0cc71e6f8 5
+  s_77546fd4f660bf::t_800d5973c53951 50-51
+  s_90d25df6455814::t_42c9378540a571 60
+  s_77546fd4f660bf::t_b800a77ffee66f 61-62
+  s_90d25df6455814::t_edc4b61b57de4a 74
+web/api/routes/workspace.py
+  s_aae55e1cf05e0d::t_71ee043c35fbb1 14-33
+searchos/tools/exec/skill_bridge.py
+  s_f05c063d37cdfe::t_f7fe0ec001856d 96,98-99
+  s_f05c063d37cdfe::t_d763925ab352ef 1,6-61,63-78,80-86,88-91,93-95,97,100-107,109-158,160-170,172-185
+  s_f05c063d37cdfe::t_34b2e34163e3d0 108
+searchos/tools/exec/__init__.py
+  s_90d25df6455814::t_153a0f138de705 1
+web/frontend/tests/use-search.test.cjs
+  s_aae55e1cf05e0d::t_29e1f60b71312b 18
+  s_f05c063d37cdfe::t_422ae57f261f19 28,98,365
+  s_f05c063d37cdfe::t_33fce062220fe3 27
+  s_90d25df6455814::t_4e0fc8dfd40d89 313-314,318,323,326
+  s_f05c063d37cdfe::t_3079f6426f5b20 432-482
+searchos/local/__main__.py
+  s_f05c063d37cdfe::t_8d36d04f2bec2f 29
+web/frontend/src/components/shell/Composer.tsx
+  s_90d25df6455814::t_291284a70c7c59 40,48,272,380-381,383
+web/frontend/src/components/mobile/MobileAssistant.tsx
+  s_f05c063d37cdfe::t_3664f592221428 11
+searchos/harness/middleware/extraction/summary_middleware.py
+  s_f05c063d37cdfe::t_d586fc0c2a1821 13,17-44,53,55
+searchos/skills/core/models.py
+  s_f05c063d37cdfe::t_4358dc4534805e 10
+web/frontend/src/components/settings/sections/BudgetSection.tsx
+  s_77546fd4f660bf::t_4a503157d5c45d 21,34
+  s_77546fd4f660bf::t_8bd12afa40835d 17,30
+web/api/routes/models.py
+  s_f05c063d37cdfe::t_1c0dc103a7982b 36,482
+  s_77546fd4f660bf::t_2ddb68e478dc4e 99,116,288-289,311,354
+searchos/tools/exec/artifacts.py
+  s_f05c063d37cdfe::t_d763925ab352ef 1,7,10-78,80-104,106-191
+  s_f05c063d37cdfe::t_5a7658a42db62e 79
+searchos/agents/search/__init__.py
+  s_90d25df6455814::t_88021c29327a1b 1,9,13,21
+tests/test_citable_evidence.py
+  s_90d25df6455814::t_d287ac25d391c8 40,57-58
+  s_77546fd4f660bf::t_646cd03f20ed37 114-123
+  s_90d25df6455814::t_fbafad2eb066ab 10,101,105,107,113,140
+  s_f05c063d37cdfe::t_96c5372eab9a57 111-112
+searchos/socm/evidence/missing_values.py
+  s_f05c063d37cdfe::t_99f293882fc22c 6-7
+docs/configuration.md
+  s_f05c063d37cdfe::t_8d36d04f2bec2f 155
+searchos/tools/tasks/queue.py
+  s_2b1bda2a5249f7::t_73e44897aadba3 138
+  s_2b1bda2a5249f7::t_95d9d145458e5f 140-150,383-384
+  s_f05c063d37cdfe::t_e1214b3eff8141 116
+  s_2b1bda2a5249f7::t_662fe001f4f0ce 440
+  s_77546fd4f660bf::t_646cd03f20ed37 264-265
+  s_90d25df6455814::t_9a3cef91755863 190,221,232,304
+  s_2b1bda2a5249f7::t_172bef2b7cbf00 338
+  s_2b1bda2a5249f7::t_a430ce1dc50592 372
+  s_2b1bda2a5249f7::t_e6b91a2170fc01 238-245
+  s_2b1bda2a5249f7::t_6d52692f86f8f3 374
+  s_77546fd4f660bf::t_6f11bb4766ecc9 269
+  s_90d25df6455814::t_d9171202db34b3 229-231,233-235,237,291-303,305-323
+  s_77546fd4f660bf::t_adfc66069c104e 184-185
+  s_2b1bda2a5249f7::t_680abb87abae26 151-152
+  s_2b1bda2a5249f7::t_a220e9edaeeb4d 375,377-380,385-386
+  s_2b1bda2a5249f7::t_9930132d63ec67 382
+  s_2b1bda2a5249f7::t_d18a04e67fd828 454
+  s_f05c063d37cdfe::t_cb87c56860afbe 10,13-20,28,33-115
+  s_2b1bda2a5249f7::t_dc02e5b5aa4862 470,473-474
+searchos/tools/exec/tool.py
+  s_90d25df6455814::t_fe32843c459ff2 91
+  s_2b1bda2a5249f7::t_6d52692f86f8f3 108
+  s_90d25df6455814::t_29281b9c3ad0b7 1,6-7,9,11,14-15,17,19,26,45,92,96,139-141,149,155,157,169,172,179,183-184,197-199,205-206,210,212,217-218,226,228,236-238,242-243,259,261-262,272,284-285,339
+  s_90d25df6455814::t_82d6e6a1d30bee 260,340,342,345-346
+  s_f05c063d37cdfe::t_34b2e34163e3d0 20
+  s_90d25df6455814::t_d04864c0eff4a2 99,127-128
+  s_90d25df6455814::t_6a20be70758843 12,63,71-78,81-86
+  s_f05c063d37cdfe::t_f7fe0ec001856d 22,164-167,251
+  s_90d25df6455814::t_03b827821d4f08 47-59,67,79-80,304-310,312-313,315,325-329
+  s_2b1bda2a5249f7::t_73e44897aadba3 118-119
+  s_f05c063d37cdfe::t_4422de064b3e07 220,291,311,324,331
+  s_90d25df6455814::t_6859a7c0e85667 330,332-333
+  s_2b1bda2a5249f7::t_a220e9edaeeb4d 109,111-114,116-117,120-125,129-135,137-138
+  s_90d25df6455814::t_a3b4cd2d74c54e 37-38
+  s_f05c063d37cdfe::t_5a7658a42db62e 343
+  s_90d25df6455814::t_189c7bd6ddffc8 273,290,334
+  s_90d25df6455814::t_7e405bec0da2a8 90,182,185-186,195
+  s_2b1bda2a5249f7::t_03a827872c1c56 136
+  s_90d25df6455814::t_04cd70a46b5541 23,27-36,39-40,42-44,46,60,65-66,89,93-95,100-107,142-148,150-154,156,158-163,168,171,173-176,178,180,187-194,200-201,208-209,211,213-215,219,221-225,227,229-235,239-241,244-250,252-258,263-270,274-283,286-288,292-303,314,316-323,335-338
+  s_90d25df6455814::t_46ac91b1e42f5d 61-62,64,68-70,87-88
+  s_f05c063d37cdfe::t_c6fccc03e47c93 21
+web/frontend/tests/large-table-export.test.cjs
+  s_90d25df6455814::t_7d6f67c6a59a94 13,20,22,32,34,56-57,66,71-73
+  s_90d25df6455814::t_2fa99a5bf62602 63-65,67-70,74-80
+  s_90d25df6455814::t_e10b7713ac359c 1-12,14-19,21,23-31,33,35-55,58-62
+searchos/harness/middleware/extraction/web_middleware.py
+  s_f05c063d37cdfe::t_a565a49716fd32 10,28,32-33,36,40-42
+  s_77546fd4f660bf::t_01fcf0ce46903c 34-35,37-38
+searchos/socm/__init__.py
+  s_f05c063d37cdfe::t_2bee6f3cd64a6c 28
+searchos/harness/middleware/pipelines.py
+  s_f05c063d37cdfe::t_384d82e589a6f7 24,41,87,500
+  s_2b1bda2a5249f7::t_2e697517e639b5 466-472,476
+  s_f05c063d37cdfe::t_f7fe0ec001856d 50
+  s_2b1bda2a5249f7::t_b7deab73a4d182 82,89,487,501-504,548
+  s_2b1bda2a5249f7::t_e56067ca4b2ced 547
+  s_90d25df6455814::t_41ece7c74ec79b 459-462
+  s_90d25df6455814::t_88021c29327a1b 261-263
+  s_90d25df6455814::t_7f2c1b9d17fb60 454-458,463-465,473-475,477-478,485,546
+tests/test_skill_execution_concurrency.py
+  s_f05c063d37cdfe::t_70e65237b7b20a 17
+  s_f05c063d37cdfe::t_c6fccc03e47c93 12
+  s_f05c063d37cdfe::t_07ab17fd41b4be 19
+  s_90d25df6455814::t_9a2e60293f62be 11,41,152,155,159
+  s_f05c063d37cdfe::t_384d82e589a6f7 15
+  s_77546fd4f660bf::t_718f5f0bd851ae 13-14,315-322,361-366,368,373-375
+searchos/harness/middleware/context/tool_history_middleware.py
+  s_2b1bda2a5249f7::t_d567babf70170c 29,32-34
+searchos/socm/failure_memory/projection.py
+  s_90d25df6455814::t_f7c817237f7cd1 11,27,75,78
+  s_90d25df6455814::t_8374370f35fbeb 154,177
+web/frontend/src/components/evidence/EvidenceList.tsx
+  s_77546fd4f660bf::t_71d39ace86d5c5 21
+  s_90d25df6455814::t_10176eb0d416df 3,513-514,712
+  s_90d25df6455814::t_0e2d966a1718d4 184,197-198,200,213,570
+  s_90d25df6455814::t_ded26867b6ba87 4
+web/frontend/src/components/drawer/ResourcePanel.tsx
+  s_90d25df6455814::t_9c211873438ed2 43-44,46,48-50,73-74,115-117,140-142,156,162
+  s_f05c063d37cdfe::t_33fce062220fe3 8
+  s_90d25df6455814::t_57d8f662cc328a 47
+  s_77546fd4f660bf::t_8bd12afa40835d 212
+web/api/routes/skills.py
+  s_f05c063d37cdfe::t_4c0802faed134f 5,104-108
+  s_f05c063d37cdfe::t_95fd03b93baf26 109-111
+  s_f05c063d37cdfe::t_6ac513a6c87922 112-114
+searchos/tools/simple_browser/fetchers/aiohttp.py
+  s_f05c063d37cdfe::t_dfec60ae73cc41 15,30-31,56
+  s_f05c063d37cdfe::t_1c0dc103a7982b 16,29,161
+web/frontend/src/components/research/ResearchWorkspace.tsx
+  s_90d25df6455814::t_276f6831482e68 245,334
+  s_90d25df6455814::t_257a4d9e1fa17a 3,297
+  s_90d25df6455814::t_62c8cf7347256e 475,484,486
+  s_90d25df6455814::t_029eb038b3b945 485
+  s_f05c063d37cdfe::t_33fce062220fe3 14
+  s_90d25df6455814::t_67cb5ddc79ed69 338
+  s_90d25df6455814::t_7847d93b6b559c 4-5
+web/frontend/src/components/workbench/TraceDrawer.tsx
+  s_90d25df6455814::t_11d0de6725eeb2 3,7,20,24,68-70,72-73
+  s_90d25df6455814::t_f4ed4df82b516f 71
+searchos/skills/post_run.py
+  s_f05c063d37cdfe::t_70e65237b7b20a 76
+searchos/harness/middleware/sensor/core/loops.py
+  s_f05c063d37cdfe::t_34b2e34163e3d0 12-13
+  s_f05c063d37cdfe::t_384d82e589a6f7 11
+  s_f05c063d37cdfe::t_d3357b87578ec4 5,14-15
+searchos/harness/middleware/sensor/core/run_state.py
+  s_f05c063d37cdfe::t_d3357b87578ec4 7,19-20,35-48,57
+searchos/agents/explore/policy.py
+  s_f05c063d37cdfe::t_384d82e589a6f7 6
+web/frontend/tests/coverage-table.test.cjs
+  s_90d25df6455814::t_5de98e8ea5ba36 15-16,43,57,86
+  s_90d25df6455814::t_dea3478a3286ae 66
+  s_aae55e1cf05e0d::t_3063b6ded06811 74
+web/frontend/tests/mobile-report-preview.test.cjs
+  s_90d25df6455814::t_72b2733ee05e78 9-10,34,38-40,42-43
+  s_90d25df6455814::t_1e6ef2089f43e7 59-62
+  s_f05c063d37cdfe::t_acb1b897de3f31 11-18
+web/api/README.md
+  s_f05c063d37cdfe::t_4c0802faed134f 14
+  s_f05c063d37cdfe::t_88416c003aa880 3,8
+searchos/tools/simple_browser/session.py
+  s_f05c063d37cdfe::t_2233acf099b8f1 1,6,11,18,371-372,380-382,454,456-570
+  s_f05c063d37cdfe::t_dfec60ae73cc41 19,62,97-98,243,287,291-296,320,323-327,330-332,335-336,339-341,344-350,353-368
+  s_f05c063d37cdfe::t_0cea448fd88a3b 26
+  s_f05c063d37cdfe::t_1c0dc103a7982b 15,21,178
+web/api/research/events.py
+  s_f05c063d37cdfe::t_02f17a552aee58 1,5,9,67-126
+web/frontend/src/components/coverage/CoverageTable.tsx
+  s_2b1bda2a5249f7::t_e56067ca4b2ced 73
+  s_90d25df6455814::t_562ac4713c4656 4-5,187,402,407,572,662
+  s_90d25df6455814::t_528def43f4f1d5 182-183
+  s_2b1bda2a5249f7::t_662fe001f4f0ce 388
+  s_90d25df6455814::t_0c38e96051e28d 421,574,585
+  s_aae55e1cf05e0d::t_1dee52ab4e8f69 3,242
+searchos/harness/middleware/context/agent_report_middleware.py
+  s_f05c063d37cdfe::t_876d5328a16517 52
+  s_f05c063d37cdfe::t_a911e5bd6d4cdf 46
+  s_f05c063d37cdfe::t_9fe30c0e112a0c 42
+  s_f05c063d37cdfe::t_d3357b87578ec4 1,5-6,8-11,14-20,22-24,27-34,36-41,43-45,47-51,53-71,73-76,78-80,82-99
+  s_f05c063d37cdfe::t_416741bf0a3576 81
+searchos/agents/orchestrator/policy.py
+  s_f05c063d37cdfe::t_384d82e589a6f7 9
+  s_2b1bda2a5249f7::t_654621232c5c41 61
+eval/probe_hybrid_source_planning.py
+  s_f05c063d37cdfe::t_8d36d04f2bec2f 50
+  s_77546fd4f660bf::t_b800a77ffee66f 84,130-131,157
+  s_2b1bda2a5249f7::t_eb36d40283bd8e 126,129,133-134,144-149
+searchos/cli.py
+  s_f05c063d37cdfe::t_1c0dc103a7982b 34-35
+  s_f05c063d37cdfe::t_8d36d04f2bec2f 33,174
+web/api/research/contracts.py
+  s_90d25df6455814::t_0670647b010fd1 22
+  s_90d25df6455814::t_48efc4654170c4 8,45,60
+  s_90d25df6455814::t_0e2d966a1718d4 83-84
+web/frontend/src/components/drawer/VersionsPanel.tsx
+  s_90d25df6455814::t_ccb2f576c52033 3-4,54-55
+searchos/harness/report/eval_table_export.py
+  s_90d25df6455814::t_e1ac2298720b1f 269
+  s_90d25df6455814::t_f35b17bee19069 75,111-112,164,267
+  s_2b1bda2a5249f7::t_e6b91a2170fc01 60-61,171-172
+searchos/agents/execution.py
+  s_90d25df6455814::t_3393b3fabd3623 256,314
+  s_90d25df6455814::t_189c7bd6ddffc8 353,356-357,362,371-372,381-383
+  s_f05c063d37cdfe::t_c6fccc03e47c93 355
+  s_90d25df6455814::t_d28b9d7932e2bc 11,220-222,234,242,251-255,257-258,268-270,310-313,315-316
+  s_90d25df6455814::t_1f96ebe4bd73fc 354
+  s_90d25df6455814::t_338d5c4606902a 358-361,363-370
+  s_f05c063d37cdfe::t_1ebdf26511cb2b 12,20,25-59
+  s_f05c063d37cdfe::t_384d82e589a6f7 15
+web/frontend/src/lib/socmRefs.ts
+  s_90d25df6455814::t_e751c63ff4efc5 1-31
+web/frontend/tests/layout-regressions.test.cjs
+  s_90d25df6455814::t_0d42ea6e371a8a 33
+searchos/harness/middleware/sensor/retry_route_middleware.py
+  s_f05c063d37cdfe::t_34b2e34163e3d0 10-14
+  s_f05c063d37cdfe::t_384d82e589a6f7 8
+searchos/harness/middleware/context/core/history.py
+  s_f05c063d37cdfe::t_d849ed654b2b73 1,5-121,134-142,147,149-158,175-182
+searchos/harness/middleware/context/socm_middleware.py
+  s_f05c063d37cdfe::t_384d82e589a6f7 13,15
+  s_90d25df6455814::t_f09f99e5b86fe0 88,100
+  s_f05c063d37cdfe::t_34b2e34163e3d0 11
+tests/test_socm_persistence.py
+  s_90d25df6455814::t_0670647b010fd1 39-45,92,108-109,134,139,150-151,162-163,190-191,236,252,258-260,271,321,330,363,367,381,397,410
+  s_77546fd4f660bf::t_57be80009dedc4 84,87,339,375
+  s_90d25df6455814::t_0011eebbd54153 115,118,279-280
+  s_f05c063d37cdfe::t_9f3a42514625ed 202
+  s_90d25df6455814::t_d9b93b739bdb89 21,48,54,105,110,131-132,210
+  s_90d25df6455814::t_c8b4c7043956a3 411
+searchos/skills/pipeline/access/agents/builder.py
+  s_2b1bda2a5249f7::t_73e44897aadba3 33
+  s_2b1bda2a5249f7::t_3aaebced896767 19,28-32,36,161
+web/frontend/tests/local-citations.test.cjs
+  s_90d25df6455814::t_ac25729e6d579d 8-9,36,56-57,66,79,229-230,261
+web/api/routes/history.py
+  s_90d25df6455814::t_338d5c4606902a 175,298
+  s_f05c063d37cdfe::t_02f17a552aee58 22
+  s_f05c063d37cdfe::t_99adb11ab93ecf 21,23
+  s_f05c063d37cdfe::t_87e6d9a090db64 439,520
+  s_2b1bda2a5249f7::t_7545e8bdf1d131 200-201,431
+web/frontend/src/lib/localCitations.ts
+  s_77546fd4f660bf::t_71d39ace86d5c5 3-13
+searchos/harness/middleware/sensor/core/base.py
+  s_2b1bda2a5249f7::t_b7deab73a4d182 48,51,53-56,58
+  s_f05c063d37cdfe::t_384d82e589a6f7 15
+web/api/routes/diagnostics.py
+  s_f05c063d37cdfe::t_1c0dc103a7982b 6,21-30,77,129,132,190-191,206-230,232,236
+searchos/agents/orchestrator/prompts/tables.py
+  s_90d25df6455814::t_00dbe276332984 31,34-35,66
+  s_2b1bda2a5249f7::t_9ab22aaa33ad94 61-62,65
+  s_2b1bda2a5249f7::t_172bef2b7cbf00 135
+  s_2b1bda2a5249f7::t_e6b91a2170fc01 63-64,106-108
+  s_2b1bda2a5249f7::t_251b44b20bd3f0 67-70
+  s_77546fd4f660bf::t_63b2d45650a003 6,103-105,124-127,141,144
+  s_77546fd4f660bf::t_646cd03f20ed37 32-33,102,110-111,136
+searchos/agents/local_search/__init__.py
+  s_2b1bda2a5249f7::t_03a827872c1c56 28,30-34
+web/frontend/src/components/drawer/FrontierPanel.tsx
+  s_90d25df6455814::t_528def43f4f1d5 15,74
+searchos/skills/packaging.py
+  s_f05c063d37cdfe::t_d4017c0427c742 1,86,93,115-133
+searchos/socm/migrate_refs.py
+  s_90d25df6455814::t_9ba79850f89817 216-226,228-234,242,245
+  s_90d25df6455814::t_11f92073d8a643 153-156,158
+  s_90d25df6455814::t_5f1e77a1e235a5 1-2,6,8,11-12,14-19,21-25,31-83,100-116,123-132,146-152,157,159-203,206-215,239-241,243-244,246-249,252
+  s_90d25df6455814::t_10176eb0d416df 117-122
+  s_90d25df6455814::t_f24f4fcfc109d9 20,26-30,85-99,205
+  s_90d25df6455814::t_3899270be3f107 13,133-145
+searchos/tools/writer.py
+  s_f05c063d37cdfe::t_c2acbae64f9043 55,57-58,61-64,98,100-105,108-109,167,173-174,177-180,226,233-234,237-243,293,295-296,299-300
+searchos/tools/simple_browser/images.py
+  s_f05c063d37cdfe::t_34b2e34163e3d0 28
+  s_f05c063d37cdfe::t_dfec60ae73cc41 19,27,70-79,132,137,166-169,175-184,186-203,378,380,431,452-454,463-465
+searchos/agents/search/README.md
+  s_90d25df6455814::t_a522b6f2e8a1f2 6
+  s_90d25df6455814::t_a8b5dc5be67904 22
+  s_90d25df6455814::t_5f98e7fbb9f2f7 5,11,15-16
+  s_77546fd4f660bf::t_70d39d9963f5ba 31-33
+  s_90d25df6455814::t_2f3b67aa74c339 20
+  s_90d25df6455814::t_d4c33f8108f4a3 3,8,17,37
+  s_90d25df6455814::t_6e2eb97f4a4f56 4
+  s_90d25df6455814::t_080a0863fc99a6 2
+  s_90d25df6455814::t_eb4d575d3b471d 7,9-10,12,14,18-19,21,23-27,29-30,34,36
+  s_90d25df6455814::t_5b2ff9c77af18f 1,13,28,35
+web/frontend/src/components/workbench/AgentCard.tsx
+  s_90d25df6455814::t_11d0de6725eeb2 41,44
+  s_f05c063d37cdfe::t_33fce062220fe3 6
+  s_77546fd4f660bf::t_8bd12afa40835d 100
+docs/portable-skills.md
+  s_90d25df6455814::t_6a20be70758843 206
+  s_90d25df6455814::t_a522b6f2e8a1f2 192
+  s_90d25df6455814::t_3c05e2025c03ed 84,88,92,94-98,152,154,158,160,189,194,196,231,279-280,282
+  s_90d25df6455814::t_890dbd690a580b 202-203
+  s_90d25df6455814::t_03b827821d4f08 204
+  s_90d25df6455814::t_c47ce052e58651 205
+  s_90d25df6455814::t_c328625325408d 90
+searchos/tools/simple_browser/search_providers/tavily.py
+  s_f05c063d37cdfe::t_dfec60ae73cc41 7,16-17,33-40
+  s_f05c063d37cdfe::t_34b2e34163e3d0 8
+searchos/harness/telemetry/usage.py
+  s_f05c063d37cdfe::t_47eb2f52fceb29 1,5-7,9-11,13-22,24,26-27,32-41,44-56,59-72,74-75,78-546,549-566,569-571,574-586,590,596,599-600,609-612,616,621-907
+searchos/skills/catalog/registry.py
+  s_f05c063d37cdfe::t_70e65237b7b20a 15
+  s_77546fd4f660bf::t_da555bf65f0fee 320-321,347
+searchos/tools/schema/tables.py
+  s_f05c063d37cdfe::t_6af7b2df1e86c3 123,368,458,468,479,482,484,550,635,640
+  s_f05c063d37cdfe::t_1ca7530798ad91 1,5,8,16,18,75-85,87-88,90-91,93-102,105-121,127-128,130,143,147,150,157,161-162,166,170-173,183,187,198,200-202,207,216,225,227,233,240,247,255-257,261,264-271,273-274,286,294,298,300,303,308,311,338,347-349,433,444,523-524,528,530-544,557,559-560,564,566-579,594-596,599-600,602-603,605-634,636-639,641-736
+  s_f05c063d37cdfe::t_34b2e34163e3d0 13,15
+web/frontend/src/components/mobile/MaterialPicker.tsx
+  s_f05c063d37cdfe::t_3664f592221428 5
+README.md
+  s_77546fd4f660bf::t_f58c1b43552100 377
+searchos/skills/intent/trace.py
+  s_f05c063d37cdfe::t_fd892fb3b4ccdb 1,8,292-348
+searchos/tools/socm_read/coverage.py
+  s_90d25df6455814::t_a7fd84b26bc088 110-113
+  s_2b1bda2a5249f7::t_6d52692f86f8f3 64
+  s_2b1bda2a5249f7::t_a220e9edaeeb4d 65,68-75
+  s_2b1bda2a5249f7::t_e9e3978d9a1c1a 55,76-78
+  s_90d25df6455814::t_8d3d97882df3a0 6,34-41,43-46,48,50-51,85-87,89-96
+  s_90d25df6455814::t_20dee6d32a5ff0 12,20,47,49,59,88
+searchos/agents/explore/agent.md
+  s_77546fd4f660bf::t_2e469fa1ab8750 39,48-49
+  s_77546fd4f660bf::t_5627581c7b21c9 46
+  s_90d25df6455814::t_42c9378540a571 5-6
+  s_90d25df6455814::t_a522b6f2e8a1f2 56
+tests/test_simple_search.py
+  s_90d25df6455814::t_aa3a5fab56ed36 108,123,138,174,180
+  s_90d25df6455814::t_41ece7c74ec79b 133,185,230,235,245-251,258,266-267,274,277-278,284,289,293,295-296,309,324,359,388,418,426-427,438,440-442,488
+  s_77546fd4f660bf::t_119757fdb899ae 175,177,179
+  s_77546fd4f660bf::t_f44b304e6a6d04 139
+searchos/harness/repair_planner.py
+  s_90d25df6455814::t_f7c817237f7cd1 150
+  s_f05c063d37cdfe::t_ce72a36592087b 15
+  s_f05c063d37cdfe::t_4358dc4534805e 16
+  s_90d25df6455814::t_fc9aaeae4fa232 21-22,25,44,46,55,75,156
+searchos/socm/views/render.py
+  s_2b1bda2a5249f7::t_709a5d300c86ab 170,320-321
+  s_90d25df6455814::t_88583484fe47f9 55-57,60-68,102,122,168,176,184-187,189-191,220,230-234
+  s_90d25df6455814::t_3aa6b4a8f7e369 115
+  s_2b1bda2a5249f7::t_662fe001f4f0ce 221-222,263,266
+  s_90d25df6455814::t_94b9008e953ee9 116,123,228-229,270,274,276,281-282,286,289,309,311,317,323,327-336,349,351,353,356
+  s_2b1bda2a5249f7::t_e6b91a2170fc01 36-37,108-109,164-165
+  s_77546fd4f660bf::t_646cd03f20ed37 15,27-35,38-54,59
+  s_90d25df6455814::t_137da1ac2a56fb 98
+  s_90d25df6455814::t_4a576d76ed2144 255-257,269,295-297,303,318-319,322,324
+  s_90d25df6455814::t_a489c05b3d9ea4 325-326
+  s_90d25df6455814::t_ec5df7304aba23 13,169,188,423
+  s_90d25df6455814::t_8374370f35fbeb 81,85,182-183,193,197-201,399-400,410-411,413-422,424-425
+  s_90d25df6455814::t_239cce34c5b5c1 94-96,315-316
+  s_90d25df6455814::t_d48b2c3c0d3f17 58,350
+  s_77546fd4f660bf::t_63b2d45650a003 412
+  s_90d25df6455814::t_b2303da043b866 10-12,24,107,110-114,117-121,171-173,179,227,377,383,401-408
+searchos/skills/pipeline/access/agents/prompts/browser.py
+  s_90d25df6455814::t_c328625325408d 10-12
+  s_419101b56cf4ac::t_f03264480ce5c5 4-9,13-15,20,34-36,45-46,55
+searchos/tools/simple_browser/__init__.py
+  s_f05c063d37cdfe::t_fdc96e3a738123 1,13
+  s_f05c063d37cdfe::t_1c0dc103a7982b 3-4
+searchos/skills/pipeline/access/agents/prompts/planner.py
+  s_90d25df6455814::t_c328625325408d 8,18-19,23-27,32-33,57
+searchos/harness/routing.py
+  s_90d25df6455814::t_b191539df2b9b0 41-42
+  s_2b1bda2a5249f7::t_79ad1e4e0dcd70 57-65,71-85,88-90,92-95,102-108,138-140
+  s_2b1bda2a5249f7::t_d486dbb416d06f 120
+  s_2b1bda2a5249f7::t_020e17f5e107b8 67-68,86-87
+  s_f05c063d37cdfe::t_4358dc4534805e 15
+  s_2b1bda2a5249f7::t_7967f89c3780ef 66,69-70,91,96-101
+searchos/harness/middleware/extraction/core/source_windows.py
+  s_f05c063d37cdfe::t_0895f913cf548c 17,57-59,72,95,98,104,167,567
+web/frontend/src/hooks/useSearch.ts
+  s_f05c063d37cdfe::t_422ae57f261f19 5
+searchos/harness/middleware/extraction/core/tables/targets.py
+  s_f05c063d37cdfe::t_0895f913cf548c 30,36-37,47-53,83-103
+  s_f05c063d37cdfe::t_f2b9d2e8bbb35e 8
+tests/test_socm_task_projection.py
+  s_90d25df6455814::t_521603f1f04e98 272,355,357-358,375,414
+  s_90d25df6455814::t_0670647b010fd1 65-66
+  s_90d25df6455814::t_a253265bea9c03 217-223,225,240,251,271,289,297,311,318,329-332,338,346-347,399,407,431
+  s_90d25df6455814::t_6df7d94619ea66 83,143,150,152,205,274,296,298,377,395,415-422,424-430,432,434-439,441-448,450-452,454-455
+  s_90d25df6455814::t_5f6a28dc125e70 77-78,80,94,114-116,124,132-133,137,200,210,227-229,231,433,440,456
+  s_90d25df6455814::t_137da1ac2a56fb 151
+  s_90d25df6455814::t_f35a7e9ebbff7b 135-136
+  s_90d25df6455814::t_259a1d131edf76 13,22,75-76,81-82,90-93,101,107,121,126,129,186,202,280,423,449,453
+searchos/harness/middleware/extraction/core/tables/prompts.py
+  s_f05c063d37cdfe::t_0895f913cf548c 92-93,99-101,106-134,162,171,181,187,201,214,220-221,231-233,237
+searchos/local/index/catalog.py
+  s_f05c063d37cdfe::t_4358dc4534805e 21
+searchos/agents/orchestrator/catalog.py
+  s_90d25df6455814::t_42c9378540a571 39,41-44,46,49-55
+searchos/harness/middleware/extraction/core/tables/__init__.py
+  s_f05c063d37cdfe::t_2253e4aeef130b 1
+searchos/socm/evidence/provenance.py
+  s_77546fd4f660bf::t_9e54bb1e8c127d 69,73
+  s_77546fd4f660bf::t_7a3808bb9b2d53 80
+  s_77546fd4f660bf::t_dfd3e9a1e11bf2 54,72
+  s_77546fd4f660bf::t_347f695555b63e 64-66
+  s_f05c063d37cdfe::t_fd2c0733a4124a 1,6,9-15,150-273
+searchos/harness/middleware/context/core/task_view.py
+  s_f05c063d37cdfe::t_34b2e34163e3d0 9
+  s_f05c063d37cdfe::t_0e2e691456ce52 8
+  s_f05c063d37cdfe::t_d3357b87578ec4 66,70,78,80,85,88,135-136
+searchos/socm/coverage/projection.py
+  s_77546fd4f660bf::t_c0272b97ba5266 84-95
+searchos/skills/catalog/discovery.py
+  s_f05c063d37cdfe::t_45c0c4a4a00156 8-10,18-112,138
+web/frontend/src/lib/types.ts
+  s_2b1bda2a5249f7::t_662fe001f4f0ce 457
+  s_90d25df6455814::t_0e2d966a1718d4 209,486
+  s_2b1bda2a5249f7::t_e56067ca4b2ced 445
+  s_90d25df6455814::t_62c8cf7347256e 599
+  s_77546fd4f660bf::t_c0272b97ba5266 513
+  s_90d25df6455814::t_276f6831482e68 47,220,348,358-378,386,634-636,643-644
+  s_90d25df6455814::t_48efc4654170c4 14,31
+  s_77546fd4f660bf::t_2ddb68e478dc4e 289
+  s_90d25df6455814::t_11d0de6725eeb2 676
+tests/test_failure_memory.py
+  s_f05c063d37cdfe::t_514fd2769b94d4 80-81,114,118,123
+  s_f05c063d37cdfe::t_5579fa567a5451 18
+searchos/harness/middleware/context/utils/token_counts.py
+  s_f05c063d37cdfe::t_c2f9d7af03c6d6 11-13
+web/api/settings/views.py
+  s_f05c063d37cdfe::t_8d36d04f2bec2f 192
+  s_f05c063d37cdfe::t_1c0dc103a7982b 62,150
+  s_77546fd4f660bf::t_2ddb68e478dc4e 84,93,170,178,184,191,193-204,215
+docs/middleware-composition.md
+  s_77546fd4f660bf::t_f58c1b43552100 83
+  s_f05c063d37cdfe::t_3bc33235505ead 133-137
+searchos/socm/planning/frontier.py
+  s_90d25df6455814::t_b080a2476b96a0 11,18-19,289
+  s_90d25df6455814::t_f7c817237f7cd1 148,157
+  s_f05c063d37cdfe::t_02f06ba4880694 15,20-45
+  s_f05c063d37cdfe::t_4358dc4534805e 16
+  s_77546fd4f660bf::t_adfc66069c104e 132
+  s_90d25df6455814::t_49624856a22263 288,290-301
+web/api/main.py
+  s_f05c063d37cdfe::t_4c0802faed134f 46,62-63
+tests/test_failure_lifecycle.py
+  s_2b1bda2a5249f7::t_2e697517e639b5 66,120
+searchos/agents/local_search/agent.md
+  s_90d25df6455814::t_a79c5946a1f235 26
+web/frontend/src/components/conversation/OrchestrationCard.tsx
+  s_f05c063d37cdfe::t_33fce062220fe3 6
+  s_90d25df6455814::t_e31a0fcdb14fea 24,37-38,63,67-68,70,134,184-185
+  s_90d25df6455814::t_11d0de6725eeb2 69
+searchos/harness/middleware/extraction/core/sources/__init__.py
+  s_f05c063d37cdfe::t_399f342086be61 1
+searchos/config/settings.py
+  s_77546fd4f660bf::t_800d5973c53951 36-37,39,55,66-76,181-182,216,218-219
+searchos/harness/middleware/context/search_episode_middleware.py
+  s_f05c063d37cdfe::t_d3357b87578ec4 1,24,29-30,34-37
+  s_f05c063d37cdfe::t_34b2e34163e3d0 11-12
+  s_f05c063d37cdfe::t_aaa0722ded74ba 22
+web/api/routes/stream.py
+  s_f05c063d37cdfe::t_99adb11ab93ecf 13
+  s_2b1bda2a5249f7::t_7545e8bdf1d131 43,57-58,128-129
+  s_90d25df6455814::t_338d5c4606902a 99
+searchos/harness/report/grounding.py
+  s_f05c063d37cdfe::t_edcd8a368df98e 12
+searchos/tools/skills/catalog.py
+  s_2b1bda2a5249f7::t_03a827872c1c56 30,40,45-46,98,104
+  s_f05c063d37cdfe::t_097ac3d6b4ca90 71
+  s_2b1bda2a5249f7::t_6d52692f86f8f3 32,100
+  s_2b1bda2a5249f7::t_a220e9edaeeb4d 33-34,36-37,41-44,101,105-106
+tests/test_failure_recording.py
+  s_90d25df6455814::t_a225ab2a152656 400,403,405-407,409-411,413-418,421,423-427,431-433,435,437-438,441-444,446-447,449-450,453
+  s_f05c063d37cdfe::t_1c0dc103a7982b 231,360
+  s_f05c063d37cdfe::t_07ab17fd41b4be 359,408
+  s_f05c063d37cdfe::t_70e65237b7b20a 404
+web/frontend/src/components/conversation/TurnActivity.tsx
+  s_f05c063d37cdfe::t_33fce062220fe3 5
+  s_90d25df6455814::t_11d0de6725eeb2 37
+web/frontend/src/components/workbench/OrchestratorTimeline.tsx
+  s_90d25df6455814::t_e137afaba9d4f2 158,162,166-168,199-220,223-225,235,259,266,276,288,290-291,294-299,344-356,360,364-365,367,369-370,426,447
+  s_77546fd4f660bf::t_afbb029d25c8b5 432-441
+  s_77546fd4f660bf::t_887b31c6c5ffc2 444
+  s_2b1bda2a5249f7::t_adeb913c053808 32,309-310,316-325,327,330,423-425
+  s_77546fd4f660bf::t_8bd12afa40835d 427-428,430-431,442-443
+  s_2b1bda2a5249f7::t_ffcc10225c4a55 99,101-106,108-109,113-120,260-261,263-264,378
+  s_aae55e1cf05e0d::t_a4d9676d28ee09 11,379,381
+  s_aae55e1cf05e0d::t_f9308af0185208 12,97,121-143,221-222,380
+  s_77546fd4f660bf::t_4d3b6e7d1f5845 145-148,429
+  s_2b1bda2a5249f7::t_dee4659f26a68c 311-315,326
+  s_2b1bda2a5249f7::t_712e71adaf62e0 87-96,98,100,107,110-112,262
+  s_f05c063d37cdfe::t_33fce062220fe3 9
+searchos/agents/orchestrator/scheduler.py
+  s_90d25df6455814::t_3f5d43d83d7819 453-456
+  s_90d25df6455814::t_f35a96d9e66471 13
+  s_2b1bda2a5249f7::t_782fd73245ef9c 361-362,369
+  s_90d25df6455814::t_528def43f4f1d5 194,296,299
+  s_2b1bda2a5249f7::t_dc02e5b5aa4862 280-281
+  s_f05c063d37cdfe::t_f606793507dc61 150-151
+  s_f05c063d37cdfe::t_8df7f058c93e93 34
+tests/test_access_builder_research.py
+  s_f05c063d37cdfe::t_07ab17fd41b4be 350
+  s_f05c063d37cdfe::t_1c0dc103a7982b 15,22-23,27-29,44-46,49-50,80-83,107-108,157,167,184,196-198,205,209,213,226-227,234,243-244,267-269,306-308,324,351-352
+searchos/tools/README.md
+  s_f05c063d37cdfe::t_9cfd9a64bb5bcf 17,33
+  s_2b1bda2a5249f7::t_8f52c160d096a4 22-28
+  s_2b1bda2a5249f7::t_6a80f1b7600dcd 29
+  s_f05c063d37cdfe::t_c578488811c80a 7-9
+  s_f05c063d37cdfe::t_88416c003aa880 3,12,14
+  s_f05c063d37cdfe::t_fcb400c04cdde3 37
+searchos/harness/middleware/extraction/core/sources/local.py
+  s_f05c063d37cdfe::t_34b2e34163e3d0 9-12
+  s_f05c063d37cdfe::t_aaa0722ded74ba 77-78,97-99,105-107,110-115
+  s_f05c063d37cdfe::t_9efd410782651a 68
+  s_f05c063d37cdfe::t_11fda714bc7ff8 70
+  s_f05c063d37cdfe::t_8bd387388624e4 1,6,13,16-19,22-24,26-55,58-67,69,71-76,79-81,84-94,100-104,108-109,116-117
+searchos/config/setup_wizard.py
+  s_f05c063d37cdfe::t_8d36d04f2bec2f 52,140
+  s_f05c063d37cdfe::t_1c0dc103a7982b 30,35
+searchos/skills/pipeline/access/tools/web.py
+  s_f05c063d37cdfe::t_5a7658a42db62e 83,109
+  s_2b1bda2a5249f7::t_64fd9e6540262c 11,14-15,17,160,164-166
+  s_f05c063d37cdfe::t_efae7f1f7c2c34 106-107
+  s_90d25df6455814::t_a800efbcb8d385 46,90,95
+  s_f05c063d37cdfe::t_1c0dc103a7982b 24,65-66,80-82,117
+  s_f05c063d37cdfe::t_29cc9b4b7cb82f 108,123,127
+searchos/socm/evidence/graph.py
+  s_77546fd4f660bf::t_c0272b97ba5266 25,173,180-181
+  s_77546fd4f660bf::t_772259a6ed9ba2 109,113-114,123-124,133
+  s_f05c063d37cdfe::t_4358dc4534805e 14
+searchos/tools/simple_browser/tools.py
+  s_2b1bda2a5249f7::t_a220e9edaeeb4d 48,85,89-95,187,195-197,214
+  s_2b1bda2a5249f7::t_03a827872c1c56 45,51,81,88,183,185,211,217-219
+  s_f05c063d37cdfe::t_5a7658a42db62e 146
+  s_90d25df6455814::t_70fecd5e9371c4 236-242
+  s_f05c063d37cdfe::t_c2f9d7af03c6d6 481-486
+  s_f05c063d37cdfe::t_34b2e34163e3d0 18-19
+  s_f05c063d37cdfe::t_1c0dc103a7982b 68,224
+  s_f05c063d37cdfe::t_fdc96e3a738123 1,5,13,16,20,22,354-480,487-591
+  s_2b1bda2a5249f7::t_dc33e882f2e9ab 189-192
+  s_2b1bda2a5249f7::t_6d52692f86f8f3 47,84,186,213
+  s_f05c063d37cdfe::t_ef7255d2b26f1a 7-11,250-353
+searchos/agents/local_search/qa.py
+  s_f05c063d37cdfe::t_384d82e589a6f7 17
+searchos/harness/middleware/context/steering_middleware.py
+  s_90d25df6455814::t_f09f99e5b86fe0 26
+searchos/skills/pipeline/access/tools/network.py
+  s_2b1bda2a5249f7::t_3aaebced896767 7,10,12
+  s_90d25df6455814::t_b84aca5f396cfa 1-6,8-9,11,13-21
+  s_90d25df6455814::t_7dff239b69ba1b 22
+searchos/harness/middleware/extraction/core/findings.py
+  s_77546fd4f660bf::t_dfd3e9a1e11bf2 69,117-119
+  s_77546fd4f660bf::t_9fabbd637ebb9e 25-32,34,73,114,120-121,125-126
+  s_77546fd4f660bf::t_d6f27db42d0db5 11,151-152,159-160
+  s_77546fd4f660bf::t_5d8cd2bddf2505 35-36
+  s_f05c063d37cdfe::t_4358dc4534805e 19
+  s_77546fd4f660bf::t_e88e14d467a9c3 7,21,23-24,33,37
+  s_77546fd4f660bf::t_772259a6ed9ba2 62
+  s_77546fd4f660bf::t_9e54bb1e8c127d 104
+  s_f05c063d37cdfe::t_2bee6f3cd64a6c 18
+tests/test_token_usage_records.py
+  s_f05c063d37cdfe::t_0cf1086f90fd0d 283
+  s_f05c063d37cdfe::t_a4c403ff525552 491-493,495,503-504
+  s_f05c063d37cdfe::t_af71df6d7bb9f6 163
+  s_f05c063d37cdfe::t_47eb2f52fceb29 15,494
+  s_f05c063d37cdfe::t_fe272edb3d3ce5 7,13,299-304,374-377,385-396,405-410,412,419,427-432,447-448,456-462,469-473,482-485,487-490
+  s_f05c063d37cdfe::t_ac581840f0977b 1-6,8-12,14,16-18,32-42,74-86,98-107,112-120,132,134-142,153-162,173-177,188-194,196-206,208-219,231-245,247-255,269,274-282,284-296,298
+  s_f05c063d37cdfe::t_0a609447048311 496-502,506-511
+  s_f05c063d37cdfe::t_d71e96ec48bfa6 19-31,43-73,87-97,108-111,121-131,133,143-152,164-172,178-187,195,207,220-230,246,256-268,270-273,297,305-373,378-384,397-404,411,413-418,420-426,433-446,449-455,463-468,474-481,486
+  s_f05c063d37cdfe::t_efbad03a253cad 505
+searchos/harness/report/synthesis.py
+  s_2b1bda2a5249f7::t_e6b91a2170fc01 203-204,219-220
+  s_90d25df6455814::t_d5c1d5ff002b46 256
+  s_90d25df6455814::t_f35b17bee19069 238,254,314-315
+tests/test_batch_output_budget.py
+  s_f05c063d37cdfe::t_fdc96e3a738123 14
+  s_f05c063d37cdfe::t_c2f9d7af03c6d6 8-12
+  s_f05c063d37cdfe::t_384d82e589a6f7 13
+  s_f05c063d37cdfe::t_1c0dc103a7982b 15-16
+searchos/skills/runtime/browser_session.py
+  s_90d25df6455814::t_ef113bc5b5e708 62-73,76,134-140,181-182,184,188-190,196-197,201-241,243-249,252,258-259,272-274,281-283,286,295-296,300,309-310,317-319,333-334,339,353-355,357,359-361,363,366-368
+searchos/harness/middleware/context/tool_results_middleware.py
+  s_f05c063d37cdfe::t_c2f9d7af03c6d6 7,15,17-22,26-33
+  s_f05c063d37cdfe::t_005a3aede8bc81 34-35
+searchos/harness/middleware/USAGE.md
+  s_f05c063d37cdfe::t_3bc33235505ead 407-411
+  s_90d25df6455814::t_a5b017f84c5341 123
+  s_90d25df6455814::t_3420e2e6d9a094 261
+  s_90d25df6455814::t_afe28d80f65a15 110
+  s_90d25df6455814::t_570963d134eda1 124-125
+  s_2b1bda2a5249f7::t_d1ed71f2e90f2e 311,315,385
+  s_90d25df6455814::t_8d3d97882df3a0 118-119,121-122
+  s_90d25df6455814::t_33f715a0537b2d 3,202,204,209-210,227,246,249,252-260
+  s_77546fd4f660bf::t_f58c1b43552100 53
+  s_77546fd4f660bf::t_646cd03f20ed37 120
+searchos/skills/__init__.py
+  s_f05c063d37cdfe::t_70e65237b7b20a 6
+tests/test_failure_projection.py
+  s_f05c063d37cdfe::t_109c72cfa7b5bc 25,28,33,82,123,126,129,132,135,190
+  s_f05c063d37cdfe::t_386c948d1c0dec 17
+  s_90d25df6455814::t_6df7d94619ea66 59,210
+  s_90d25df6455814::t_137da1ac2a56fb 18,71,77-78,160
+  s_90d25df6455814::t_afe28d80f65a15 218,245-248
+tests/test_temporal_grounding.py
+  s_f05c063d37cdfe::t_f606793507dc61 5
+  s_f05c063d37cdfe::t_4fd9d0cc71e6f8 4
+web/frontend/src/components/drawer/ExecutionDrawer.tsx
+  s_90d25df6455814::t_11d0de6725eeb2 285
+searchos/harness/middleware/context/dynamic_trim_middleware.py
+  s_f05c063d37cdfe::t_34b2e34163e3d0 20
+  s_f05c063d37cdfe::t_d849ed654b2b73 19
+  s_f05c063d37cdfe::t_c2f9d7af03c6d6 21
+searchos/agents/orchestrator/prompts/evidence.py
+  s_77546fd4f660bf::t_646cd03f20ed37 19-21,101-103
+  s_f05c063d37cdfe::t_f7fe0ec001856d 26,31-32
+  s_90d25df6455814::t_e7b6e220f4a333 35-41
+  s_2b1bda2a5249f7::t_e56067ca4b2ced 34,69-70
+searchos/agents/runtime.py
+  s_2b1bda2a5249f7::t_45254e9007f6e1 243
+  s_2b1bda2a5249f7::t_d18a04e67fd828 19,262,359-369,440
+  s_2b1bda2a5249f7::t_662fe001f4f0ce 448
+searchos/agents/orchestrator/prompts/README.md
+  s_77546fd4f660bf::t_d3f3f2e8093a59 18
+searchos/agents/writer/agent.md
+  s_90d25df6455814::t_a79c5946a1f235 10-13
+  s_90d25df6455814::t_8d3d97882df3a0 29-30
+searchos/socm/planning/research_plan.py
+  s_90d25df6455814::t_3899270be3f107 8-10,19,23-33,60,79,81
+searchos/tools/exec/cli.py
+  s_90d25df6455814::t_a522b6f2e8a1f2 15-16,19-27,29-30,32-34,37,39-48,50,54
+  s_90d25df6455814::t_153a0f138de705 1,6-8,10,13-14,17,28,31,35-36,38,49,51,55
+  s_90d25df6455814::t_5afbccb07a8d2d 52-53
+searchos/skills/pipeline/access/session.py
+  s_f05c063d37cdfe::t_d849ed654b2b73 11,15
+  s_f05c063d37cdfe::t_384d82e589a6f7 17
+searchos/config/settings_overlay.py
+  s_f05c063d37cdfe::t_bf08bdf2288f06 23,28,115,134,181,185-227,236,292,304-344,346-347,358-361,424-426,428,483,508-509,554-555,562-574,587,595-596
+web/api/local/import_jobs.py
+  s_f05c063d37cdfe::t_1c0dc103a7982b 22,24,165,183,188,282-287
+tests/test_eval_explore_policy.py
+  s_90d25df6455814::t_42c9378540a571 39
+tests/test_token_tracking.py
+  s_f05c063d37cdfe::t_af71df6d7bb9f6 1-5,7-175,177,179,181,183-293
+  s_f05c063d37cdfe::t_47eb2f52fceb29 6
+  s_f05c063d37cdfe::t_0cf1086f90fd0d 176,178,180,182
+searchos/socm/views/snapshot.py
+  s_2b1bda2a5249f7::t_e6b91a2170fc01 31-32,59,72,163,176-177,202
+  s_90d25df6455814::t_88583484fe47f9 39,186-187
+  s_90d25df6455814::t_49624856a22263 15-16,30,43,47,55,71,90-120,142,168,183,201,230-231
+  s_90d25df6455814::t_8374370f35fbeb 227-229
+web/api/settings/store.py
+  s_f05c063d37cdfe::t_8d36d04f2bec2f 4,23,30,127
+searchos/local/reader/tools.py
+  s_2b1bda2a5249f7::t_a220e9edaeeb4d 815,818-821,865,868-872,874-875,947,950-954
+  s_2b1bda2a5249f7::t_03a827872c1c56 812,856,873,876,940
+  s_2b1bda2a5249f7::t_6d52692f86f8f3 814,864,946
+searchos/harness/report/tables.py
+  s_90d25df6455814::t_f35b17bee19069 18-19
+searchos/tools/schema/__init__.py
+  s_f05c063d37cdfe::t_67174a84417da5 3
+  s_f05c063d37cdfe::t_34b2e34163e3d0 4-5
+tests/test_enqueue_task_arguments.py
+  s_77546fd4f660bf::t_a4afc1c565e457 65,235,278-279
+  s_f05c063d37cdfe::t_f606793507dc61 115
+  s_77546fd4f660bf::t_f8d22a5f962043 84
+  s_2b1bda2a5249f7::t_709a5d300c86ab 114,116-135
+  s_90d25df6455814::t_38810e523417b3 15,143,148,151,156,160,164,167,172,183-184,191-192,195,199,207
+  s_90d25df6455814::t_5bf8e9aae79775 68,136-142,144-147,149-150,152-155,157-159,161-163,165-166,168-171,173-174
+  s_77546fd4f660bf::t_79aaad0a218c50 69-83,85-87,292-296,372-375
+  s_77546fd4f660bf::t_eafbd069669769 88-113
+.gitignore
+  s_59b0a28da7127e::t_3c1ca126c8ca86 63
+searchos/skills/pipeline/access/agents/validator.py
+  s_2b1bda2a5249f7::t_64fd9e6540262c 264-265,271-284
+  s_2b1bda2a5249f7::t_3aaebced896767 269-270
+  s_90d25df6455814::t_b84aca5f396cfa 22,28,31,62-63,65,69,76-108,113-123,142-143,183,185-186,213,239-240
+searchos/harness/middleware/extraction/core/tables/conflicts.py
+  s_f05c063d37cdfe::t_34b2e34163e3d0 12-17
+web/frontend/src/components/settings/RunOverridesPopover.tsx
+  s_f05c063d37cdfe::t_77da0a117d4a68 484-508
+tests/test_local_simple_routing.py
+  s_f05c063d37cdfe::t_1f518245e5ad40 162-167
+  s_f05c063d37cdfe::t_0d9accbfc9a4e5 168
+  s_77546fd4f660bf::t_6f11bb4766ecc9 159
+  s_f05c063d37cdfe::t_87e6d9a090db64 119
+  s_77546fd4f660bf::t_57be80009dedc4 62
+  s_f05c063d37cdfe::t_cad9695793fc18 149-150
+  s_90d25df6455814::t_33f715a0537b2d 193
+  s_90d25df6455814::t_ad70e88b5857ad 1,42,44,77,88,90,92,98,108
+searchos/agents/orchestrator/__init__.py
+  s_f05c063d37cdfe::t_406e4d1a4d1063 17
+  s_f05c063d37cdfe::t_f7fe0ec001856d 37
+searchos/harness/middleware/tool_costs.py
+  s_f05c063d37cdfe::t_d3357b87578ec4 22
+tests/test_reused_agent_task_scope.py
+  s_f05c063d37cdfe::t_0db3edc4178a80 31,43,68,86
+  s_f05c063d37cdfe::t_fd05e19b043321 15
+searchos/tools/simple_browser/pages.py
+  s_f05c063d37cdfe::t_dfec60ae73cc41 5,137,142-146,151-176,231,249-257,283-442
+  s_f05c063d37cdfe::t_2233acf099b8f1 1,6,10,443-474
+  s_f05c063d37cdfe::t_34b2e34163e3d0 17
+searchos/harness/middleware/extraction/core/tables/rows.py
+  s_f05c063d37cdfe::t_f606793507dc61 11,39
+  s_f05c063d37cdfe::t_edcd8a368df98e 246
+  s_f05c063d37cdfe::t_0895f913cf548c 17,35-38,40-42,44-68,76-80,90,110,118,122,143,153-154,159-164,172-203,224-226,268-270,275,278-281,368-371
+  s_f05c063d37cdfe::t_4358dc4534805e 18
+  s_f05c063d37cdfe::t_0153f4206d3ed8 16
+searchos/socm/README.md
+  s_90d25df6455814::t_00dbe276332984 53-58,64-66,69-75
+  s_90d25df6455814::t_9ba79850f89817 77-78
+  s_90d25df6455814::t_e7b6e220f4a333 60-63
+  s_77546fd4f660bf::t_646cd03f20ed37 47,59
+  s_90d25df6455814::t_570963d134eda1 51-52,76
+  s_90d25df6455814::t_3a6d03da02bfaa 67-68
+  s_90d25df6455814::t_60893d9a3c44c8 15-16,43-46,48-50,81-91
+searchos/skills/core/skill_markdown.py
+  s_f05c063d37cdfe::t_34b2e34163e3d0 6
+searchos/harness/middleware/context/core/search_episodes.py
+  s_f05c063d37cdfe::t_baee3b84e6fbaa 102
+  s_f05c063d37cdfe::t_aaa0722ded74ba 66
+  s_f05c063d37cdfe::t_d3357b87578ec4 9-10,65,67-101,103-178
+searchos/tools/schema/rows.py
+  s_f05c063d37cdfe::t_34b2e34163e3d0 11,13-17
+  s_f05c063d37cdfe::t_3a92cd017478ed 1,9,12,18-19,21,23,27-28,30-41,45-51,54-55,58,60-69,71-77,79-83,85-105,108-110,113,115-176,179-183,186,188,190-191,193-196,198-205,207-215,217-226,228-248,250-267
+  s_f05c063d37cdfe::t_f2b9d2e8bbb35e 20
+  s_f05c063d37cdfe::t_6af7b2df1e86c3 57,112,185
+searchos/config/models.py
+  s_f05c063d37cdfe::t_886747e719eb66 32
+  s_77546fd4f660bf::t_2ddb68e478dc4e 282-297,299,318-338
+  s_f05c063d37cdfe::t_47eb2f52fceb29 30,242,301
+  s_f05c063d37cdfe::t_774da3876c5b29 17,19-21,24,26-27,33-136
+  s_f05c063d37cdfe::t_26ecf635e57a42 31
+web/frontend/src/lib/api.ts
+  s_77546fd4f660bf::t_2ddb68e478dc4e 657,672
+  s_aae55e1cf05e0d::t_71ee043c35fbb1 300-304
+  s_90d25df6455814::t_11d0de6725eeb2 22-24,229,607,696-706,792-800
+searchos/agents/search/agent.md
+  s_90d25df6455814::t_d6104afa069928 40
+  s_90d25df6455814::t_1311494b880331 28,30,32
+  s_90d25df6455814::t_6a20be70758843 37
+  s_90d25df6455814::t_d04864c0eff4a2 41-42,44,49-56,58,60-64,67-78,80,83-85,88-93,95-97,99,101-108,111-119,125-127,130-132
+  s_90d25df6455814::t_7476a5ca5fdcf9 27
+  s_90d25df6455814::t_890dbd690a580b 45,57,66,98,110
+  s_77546fd4f660bf::t_70d39d9963f5ba 43
+  s_90d25df6455814::t_5f98e7fbb9f2f7 38-39
+  s_90d25df6455814::t_3625fe12c31bae 26
+  s_90d25df6455814::t_9988f10ce5bf75 34
+  s_90d25df6455814::t_03b827821d4f08 35
+  s_90d25df6455814::t_9876cb9322af9f 36
+  s_90d25df6455814::t_41d86e0fa02ef5 46-48,59,65,79,81-82,86-87,94,100,109,120-124,128-129
+  s_90d25df6455814::t_6df7d94619ea66 9-10
+  s_90d25df6455814::t_a79c5946a1f235 25,29,31,33
+searchos/harness/session.py
+  s_f05c063d37cdfe::t_1c0dc103a7982b 141,535
+  s_90d25df6455814::t_202ba1b9a46936 706-707
+  s_f05c063d37cdfe::t_9f3a42514625ed 484,622,1480
+  s_90d25df6455814::t_338d5c4606902a 1098,1112,1135,1988
+  s_90d25df6455814::t_722fadbd8249ee 585,688-691,693,697,735-741
+  s_2b1bda2a5249f7::t_662fe001f4f0ce 963
+  s_f05c063d37cdfe::t_384d82e589a6f7 561
+  s_90d25df6455814::t_b732be7ef8e39d 241,244,435-438,441-443,1082-1085
+  s_f05c063d37cdfe::t_097ac3d6b4ca90 287
+  s_90d25df6455814::t_31f84c82654c31 91-93,252,320,387,403-404,612,618,653,686-687,692,694-696,701,712-715,836-839,1005,1395,1410,1437-1441,1443,1446,1448
+  s_2b1bda2a5249f7::t_b7deab73a4d182 408,709,907
+  s_77546fd4f660bf::t_5b4cddeb4c7cb3 1068
+  s_f05c063d37cdfe::t_47eb2f52fceb29 440
+  s_f05c063d37cdfe::t_4973cb5d788b40 450
+  s_90d25df6455814::t_41ece7c74ec79b 616
+  s_90d25df6455814::t_b191539df2b9b0 636,644-645,648,799,801,850,987,1000
+  s_90d25df6455814::t_00dbe276332984 699-700
+  s_f05c063d37cdfe::t_a17ad27722c88d 444
+  s_2b1bda2a5249f7::t_413571582c1150 747-749
+  s_f05c063d37cdfe::t_1ebdf26511cb2b 1445
+tests/test_model_raw_usage.py
+  s_f05c063d37cdfe::t_c7f98b88f622bd 1,6-9,11-17,19-23,27,29-55,57-58,60-81,84-96,98-111,113-117,119-144,146-162,164-174,176-230,233-235,238-258,260-265,267-282,284-294,296-313,316-317,320-365,367-385,387-392,394-397,403-405,407-411,413
+  s_f05c063d37cdfe::t_2440667a53c68b 59
+  s_f05c063d37cdfe::t_68268e61b101f9 231-232
+  s_f05c063d37cdfe::t_47eb2f52fceb29 97,112,118,145,163,236,259,266,319,366
+  s_f05c063d37cdfe::t_46582900a43a8a 82-83
+  s_f05c063d37cdfe::t_bc7ec767687981 412
+  s_f05c063d37cdfe::t_f55ae968f9a46b 318
+  s_f05c063d37cdfe::t_26ecf635e57a42 398-401
+  s_f05c063d37cdfe::t_239b300c12ad70 237
+  s_f05c063d37cdfe::t_a87c0d8ade6a5d 406
+  s_f05c063d37cdfe::t_222925093f928c 314-315
+searchos/tools/simple_browser/search_providers/__init__.py
+  s_f05c063d37cdfe::t_1c0dc103a7982b 5,56,62,67
+  s_f05c063d37cdfe::t_dfec60ae73cc41 15
+tests/test_findings_limits.py
+  s_77546fd4f660bf::t_5771f6922ff20e 6-29
+  s_77546fd4f660bf::t_557e9b464b5d25 30-55
+searchos/harness/middleware/context/compaction_context_middleware.py
+  s_f05c063d37cdfe::t_34b2e34163e3d0 10,19
+  s_f05c063d37cdfe::t_d849ed654b2b73 13
+  s_f05c063d37cdfe::t_384d82e589a6f7 21
+  s_90d25df6455814::t_f09f99e5b86fe0 107-108
+searchos/skills/pipeline/access/pipeline.py
+  s_f05c063d37cdfe::t_8d36d04f2bec2f 121-122,183-185,263,564
+  s_f05c063d37cdfe::t_d4017c0427c742 15,18
+searchos/skills/pipeline/run.py
+  s_f05c063d37cdfe::t_d4017c0427c742 12,17-31
+  s_f05c063d37cdfe::t_ced9cb52b885e6 172
+  s_f05c063d37cdfe::t_9940244a14b66d 32-33
+web/frontend/src/lib/resultExport.ts
+  s_90d25df6455814::t_1e81c0414d132e 38,57
+  s_90d25df6455814::t_f35b17bee19069 34,40,54
+  s_90d25df6455814::t_6a11a80ef0b2bc 1,36-37,39
+searchos/harness/middleware/__init__.py
+  s_f05c063d37cdfe::t_384d82e589a6f7 28,45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "36bcd08a53f48a1e62103d5204d8d023354c6952",
+  "prompts": {},
+  "sessions": {
+    "s_2b1bda2a5249f7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1aa93-2dd3-7a40-986e-9ea69f2fe956",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Jeff Zhang <1328091175@qq.com>"
+    },
+    "s_419101b56cf4ac": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a195f4-ba8d-74e3-bcbf-b3a3073bc283",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jeff Zhang <1328091175@qq.com>"
+    },
+    "s_59b0a28da7127e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a21d-c8f0-7093-a4d5-0400f44b3c6e",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Jeff Zhang <1328091175@qq.com>"
+    },
+    "s_77546fd4f660bf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a553-59a1-7c92-9166-21f99fc75966",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jeff Zhang <1328091175@qq.com>"
+    },
+    "s_90d25df6455814": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a197eb-8ada-7370-9756-d0581edf9bca",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Jeff Zhang <1328091175@qq.com>"
+    },
+    "s_aae55e1cf05e0d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a9b5-a868-7350-899c-07484433e4a5",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jeff Zhang <1328091175@qq.com>"
+    },
+    "s_f05c063d37cdfe": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ac73-3cea-71f2-84dd-af5ab56940bb",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jeff Zhang <1328091175@qq.com>"
+    }
+  }
+}
