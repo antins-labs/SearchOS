@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_pyramid_detail": "proxy",
+    "list_egyptian_pyramids": "direct",
+    "search_pyramids": "direct"
+  },
+  "aliases": {
+    "list_egyptian_pyramids": "list_egyptian_pyramids",
+    "get_pyramid_detail": "get_pyramid_detail",
+    "search_pyramids": "search_pyramids",
+    "run": "search_pyramids"
+  }
+}

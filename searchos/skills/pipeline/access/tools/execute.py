@@ -2,39 +2,41 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 import os
 import stat
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
+from uuid import uuid4
 
-ACCESS_TIMEOUT_S = 30
+ACCESS_TIMEOUT_S = 60
+MAX_ACCESS_TIMEOUT_S = 300
 
 
 TIMEOUT_SCHEMA = {
     "type": "number", "default": ACCESS_TIMEOUT_S, "minimum": .1,
-    "maximum": ACCESS_TIMEOUT_S,
-    "description": "执行墙钟秒数，默认30秒；大于30秒的值按30秒执行。",
+    "maximum": MAX_ACCESS_TIMEOUT_S,
+    "description": "执行墙钟秒数，默认60秒，最大300秒。",
 }
 
 
 def clamp_access_timeout(value=ACCESS_TIMEOUT_S):
-    """Access执行统一限制在0.1到30秒，保留更短预算。"""
+    """执行预算默认60秒，调用方可选择0.1到300秒。"""
     selected = float(ACCESS_TIMEOUT_S if value is None else value)
     if not math.isfinite(selected):
         raise ValueError("timeout must be a finite number")
-    return min(ACCESS_TIMEOUT_S, max(.1, selected))
+    return min(MAX_ACCESS_TIMEOUT_S, max(.1, selected))
 
 
 async def execute_command(package_dir, argv, *, work_dir, execution_dir, stdin="",
-                          timeout_s=ACCESS_TIMEOUT_S, proxy_mode="inherit",
-                          diagnostic_network_override=False, result_store=None, read_only_paths=(),
+                          timeout_s=ACCESS_TIMEOUT_S, result_store=None, read_only_paths=(),
                           trace_functions=False, browser=False, browser_request=None) -> dict:
     """复用正式执行，完整日志保存为持久脱敏文件。"""
     from searchos.skills.runtime.command_runtime import run_command
 
-    options = {'diagnostic_network_override': True} if diagnostic_network_override else {}
+    options = {}
     if browser:
         options['browser'] = True
     if browser_request is not None:
@@ -53,12 +55,27 @@ async def execute_command(package_dir, argv, *, work_dir, execution_dir, stdin="
     result = await run_command(
         package_dir, argv, work_dir=work_dir, execution_dir=execution_dir,
         stdin=stdin, timeout_s=clamp_access_timeout(timeout_s),
-        network=True, proxy_mode=proxy_mode, **options,
+        network=True, **options,
     )
+    if not result.get('execution_id') and result.get('started') is False:
+        result['execution_id'] = 'attempt-' + uuid4().hex
+        record = Path(execution_dir) / result['execution_id']
+        record.mkdir(parents=True)
+        (record / 'record.json').write_text(json.dumps(result, ensure_ascii=False), encoding='utf-8')
     execution_id = result.get("execution_id", "")
     if isinstance(execution_id, str) and execution_id and all(
         character.isalnum() or character in "_-" for character in execution_id
     ):
+        if result_store is not None:
+            result['artifact_files'] = {}
+            for artifact in result.get('artifacts', []):
+                relative = Path(artifact['path'])
+                if (relative.is_absolute() or '..' in relative.parts
+                        or relative.as_posix() not in result.get('updated_files', [])):
+                    continue
+                source = Path(execution_dir) / execution_id / 'artifacts' / relative
+                if source.is_file() and not source.is_symlink():
+                    result['artifact_files'][relative.as_posix()] = result_store.save_text_file(source)['path']
         trace = result.get('function_trace')
         trace_log = Path(execution_dir) / execution_id / 'function-trace.json'
         if result_store is not None and isinstance(trace, dict) and trace_log.is_file() and not trace_log.is_symlink():
@@ -86,28 +103,21 @@ async def execute_command(package_dir, argv, *, work_dir, execution_dir, stdin="
 
 
 _RUNNER = """\
+import os
 import runpy
 import sys
 from pathlib import Path
-from contextlib import contextmanager
 
 root = Path(__file__).resolve().parent
 candidate = root / "candidate"
-sys.path.insert(0, str(root / "scripts"))
-runpy.run_path(str(root / "scripts" / "check.executed.py"),
+if candidate.is_dir():
+    os.environ['SKILL_DIR'] = str(candidate)
+    os.environ['PYTHONPATH'] = str(candidate)
+    sys.path.insert(0, str(candidate))
+runpy.run_path(str(root / "probe.py"),
               init_globals={"SKILL_DIR": candidate} if candidate.is_dir() else {},
               run_name="__main__")
 """
-
-
-def _prepare_probe(package: Path, code: str) -> str:
-    """原样保存探测代码及执行副本。"""
-    (package / "check.py").write_text(code, encoding="utf-8")
-    scripts = package / "scripts"
-    scripts.mkdir()
-    executed = scripts / "check.executed.py"
-    executed.write_text(code, encoding="utf-8")
-    return code
 
 
 def _copy_candidate_file(source: Path, target: Path | None = None) -> str:
@@ -145,7 +155,7 @@ def _copy_candidate_file(source: Path, target: Path | None = None) -> str:
 
 
 async def execute_python(code, execute, *, package_parent, candidate_files=None,
-                         stdin="", timeout_s=ACCESS_TIMEOUT_S, proxy_mode="inherit") -> dict:
+                         stdin="", timeout_s=ACCESS_TIMEOUT_S) -> dict:
     """在临时只读代码包运行 Python，可提供候选文件快照供验收读取。"""
     if not isinstance(code, str) or not code.strip():
         raise ValueError("code must be nonempty Python text")
@@ -165,10 +175,10 @@ async def execute_python(code, execute, *, package_parent, candidate_files=None,
                 target.parent.mkdir(parents=True, exist_ok=True)
                 fingerprints[relative.as_posix()] = _copy_candidate_file(Path(source), target)
                 source_paths[relative.as_posix()] = Path(source)
-        transformed = _prepare_probe(package, code)
+        (package / "probe.py").write_text(code, encoding="utf-8")
         (package / "runner.py").write_text(_RUNNER, encoding="utf-8")
         result = await execute(
-            ["python", "runner.py"], stdin, timeout_s, proxy_mode, package_dir=package
+            ["python", "runner.py"], stdin, timeout_s, package_dir=package
         )
         execution_id = result.get("execution_id", "")
         if isinstance(execution_id, str) and execution_id and all(
@@ -176,8 +186,7 @@ async def execute_python(code, execute, *, package_parent, candidate_files=None,
         ):
             record = Path(package_parent) / "executions" / execution_id
             if record.is_dir() and not record.is_symlink():
-                (record / "probe.original.py").write_text(code, encoding="utf-8")
-                (record / "probe.executed.py").write_text(transformed, encoding="utf-8")
+                (record / "probe.py").write_text(code, encoding="utf-8")
         changed = []
         for relative, fingerprint in fingerprints.items():
             try:
@@ -193,118 +202,61 @@ async def execute_python(code, execute, *, package_parent, candidate_files=None,
         return result
 
 
-PLANNER_EXEC_TOOL = {
+EXEC_TOOL = {
     "type": "function",
     "function": {
         "name": "exec",
         "description": (
-            "Run Python code to investigate website behavior through HTTP, APIs or "
-            "Playwright using the managed browser with browser=true. Print actual response URLs, "
-            "status and relevant output supporting the capability plan. Code runs in an "
-            "isolated persistent planning work directory; it has no candidate package "
-            "or SKILL_DIR. Use relative paths for probe artifacts and sys.executable "
-            "for Python subprocesses."
+            "在独立进程中执行一条命令或一段 Python，工作目录跨调用保留。每次提供 argv 或 code 其中一项。"
+            "开发和验收角色可通过 SKILL_DIR 访问候选包，Planner 使用探测工作目录。"
+            "返回 execution_id、退出状态、输出和产物。按返回路径读取完整日志，在验收报告中提交执行归属、输出位置与回归关系。"
         ),
         "parameters": {
             "type": "object",
             "properties": {
-                "code": {"type": "string", "description": "Python website investigation code."},
-                "browser": {"type": "boolean", "default": False},
-                "timeout_s": dict(TIMEOUT_SCHEMA),
-            },
-            "required": ["code"],
-        },
-    },
-}
-
-
-VALIDATOR_EXEC_TOOL = {
-    "type": "function",
-    "function": {
-        "name": "exec",
-        "description": (
-            "Run a candidate CLI with argv, or run Python verification code with code. "
-            "Use exactly one mode. First rerun pending normal-business regressions with their original "
-            "argv, expected_status and check_kind, then complete normal business calls for each capability. "
-            "Read SKILL.md and independently choose its package script, options, positional arguments or stdin. "
-            "For file output, specify output as the documented relative JSON path; otherwise stdout is parsed. "
-            "When an interface changes, use regression_of with the original failed execution ID "
-            "for an equivalent business input and explain its equivalence in the verdict. "
-            "If source evidence corrects an old expectation, rerun that input with regression_of, "
-            "check_kind=boundary and expected_status=empty/invalid_input; explain the source evidence "
-            "in the verdict and independently verify a normal positive input for the capability. "
-            "Mark optional boundary probes with check_kind=boundary. Boundary, empty and invalid-input "
-            "observations only support warnings and never require regression. Help and failed calls cannot "
-            "support passed. Reproduce core problems with a normal in-scope business CLI before failed. "
-            "The host attaches actual execution evidence automatically. "
-            "Each business call returns validation with completion and JSON checks from this same execution. "
-            "Independently check actual business data, fields and sources against the user requirements. "
-            "Code receives the Python Path variable SKILL_DIR, a read-only candidate snapshot, "
-            "and shares the working directory with CLI calls. SKILL_DIR is a Python variable. "
-            "Code may read authorized saved-result absolute paths and working-directory files; "
-            "read_file supports paging. Compare "
-            "results and assert behavior; print the observations supporting your conclusion. "
-            "Use sys.executable for Python subprocesses. Candidate CLI calls use package "
-            "function defaults and business arguments. Code may use library-native network options for diagnostics."
-        ),
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "capability_id": {
-                    "type": "string",
-                    "description": "Capability being verified. Required for a candidate CLI argv call.",
-                },
-                "argv": {"type": "array", "items": {"type": "string"}},
-                "output": {"type": "string", "default": "", "description":
-                    "CLI JSON output location from SKILL.md: empty for stdout, or a relative file in the work directory."},
-                "regression_of": {"type": "string", "description":
-                    "Original failed execution ID covered by this equivalent CLI call after an interface change."},
-                "check_kind": {
-                    "type": "string", "enum": ["positive", "boundary"], "default": "positive",
-                    "description": "Mark optional empty, invalid-input and other auxiliary probes as boundary; report findings as warnings.",
-                },
-                "expected_status": {
-                    "type": "string", "enum": ["ok", "empty", "invalid_input"], "default": "ok",
-                    "description": "Declare the expected business result before execution; empty and invalid_input are auxiliary observations only.",
-                },
-                "code": {"type": "string", "description": "Python verification code."},
-                "browser": {"type": "boolean", "default": False},
-                "stdin": {"type": "string"},
+                "argv": {"type": "array", "items": {"type": "string"}, "minItems": 1,
+                         "description": "按顺序传入命令及各个参数，支持解释器选项和模块运行。"},
+                "code": {"type": "string", "description": "原样执行的 Python 代码。"},
+                "stdin": {"type": "string", "default": "", "description": "写入进程标准输入的文本。"},
+                "browser": {"type": "boolean", "default": False, "description": "需要连接 SearchOS 管理的站点浏览器时设为 true。"},
                 "timeout_s": dict(TIMEOUT_SCHEMA),
             },
             "oneOf": [{"required": ["argv"]}, {"required": ["code"]}],
+            "additionalProperties": False,
         },
     },
 }
 
 
-async def execute_research(workspace, *, code, timeout_s=ACCESS_TIMEOUT_S, browser=False) -> dict:
+PLANNER_EXEC_TOOL = BUILDER_EXEC_TOOL = VALIDATOR_EXEC_TOOL = EXEC_TOOL
+
+
+async def execute_research(workspace, *, argv=None, code=None, stdin='', timeout_s=ACCESS_TIMEOUT_S, browser=False) -> dict:
     """保存探测的执行来源、退出状态与实际输出。"""
     root = workspace.runtime_dir / "planner"
     root.mkdir(exist_ok=True)
+    if (argv is None) == (code is None):
+        raise ValueError('provide exactly one of argv or code')
+    request = {'role': 'planner', 'browser': browser, 'timeout_s': timeout_s, 'stdin': stdin,
+               **({'code': code} if code is not None else {'argv': argv})}
 
-    async def command(argv, stdin, timeout_s, _mode, *, package_dir):
+    async def command(argv, stdin, timeout_s, *, package_dir):
         return await execute_command(
             package_dir, argv, work_dir=root / "work", execution_dir=root / "executions",
             stdin=stdin, timeout_s=timeout_s,
             result_store=workspace.package.result_store,
-            browser=browser, browser_request={'role': 'planner', 'code': code, 'browser': browser, 'timeout_s': timeout_s},
+            browser=browser, browser_request=request,
         )
 
-    result = await execute_python(
-        code, command, package_parent=root,
-        timeout_s=timeout_s,
-    )
+    if argv is not None:
+        package = root / 'probe'
+        package.mkdir(exist_ok=True)
+        result = await command(argv, stdin, timeout_s, package_dir=package)
+    else:
+        result = await execute_python(
+            code, command, package_parent=root,
+            stdin=stdin, timeout_s=timeout_s)
     return {**result, "content_source": "execution", "live_evidence": False}
-
-
-from searchos.skills.pipeline.access.tools.files import _tool
-
-BUILDER_EXEC_TOOL = _tool('exec', '执行候选 CLI 或临时 Python。每次选择 argv 或 code；网络访问由代码配置，完整输出保存文件。', {
-    'argv': {'type': 'array', 'items': {'type': 'string'}},
-    'code': {'type': 'string'}, 'stdin': {'type': 'string'}, 'timeout_s': dict(TIMEOUT_SCHEMA),
-    'browser': {'type': 'boolean', 'default': False},
-})
 
 
 class ExecutionTools:
@@ -335,7 +287,7 @@ class ExecutionTools:
         if code is not None:
             fingerprint = self.candidate_version()
             names = list(package_files(source) if package_dir is not None else self.package.files)
-            async def command(args, input_text, timeout, _mode, *, package_dir):
+            async def command(args, input_text, timeout, *, package_dir):
                 return await execute_command(package_dir, args, work_dir=work,
                     execution_dir=root / 'executions', stdin=input_text, timeout_s=timeout,
                     result_store=self.package.result_store,

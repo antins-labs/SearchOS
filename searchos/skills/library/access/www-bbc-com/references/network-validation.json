@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c5e3a4ad5190ab4b39ed642ae57e26d1b75a1bc521fd3a1aab372fa1c9ce5047",
+  "capabilities": {
+    "get_medal_table": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_medal_table\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.954673+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bbc.com/sport/olympics/paris-2024/medals",
+          "status": 200
+        }
+      ]
+    },
+    "get_country_medals": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country_medals\", \"country_code\": \"US\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.955255+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_top_countries": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_top_countries\", \"limit\": 3, \"sort_by\": \"total\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.955933+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bbc.com/sport/olympics/paris-2024/medals",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

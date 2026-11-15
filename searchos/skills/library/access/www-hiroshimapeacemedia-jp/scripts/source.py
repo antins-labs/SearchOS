@@ -5,6 +5,9 @@ Access skill for www.hiroshimapeacemedia.jp/mediacenter_d/w_museum/
 This skill provides access to the structured directory of peace museums worldwide,
 organized by region (Japan, Asia, Africa, Europe, Americas, Oceania).
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -262,7 +265,7 @@ async def list_museums(params: dict) -> dict:
     """List all peace museums organized by region."""
     url = urljoin(BASE_URL, "list_en.html")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_html(session, url)
             data = parse_museum_list(html)
@@ -325,7 +328,7 @@ async def get_museum(params: dict) -> dict:
             slug = slug + '_en'
         url = urljoin(BASE_URL, f"{slug}.html")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_html(session, url)
             data = parse_museum_detail(html)
@@ -354,7 +357,7 @@ async def search_museums(params: dict) -> dict:
     
     url = urljoin(BASE_URL, "list_en.html")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_html(session, url)
             data = parse_museum_list(html)
@@ -394,7 +397,7 @@ async def get_regions(params: dict) -> dict:
     """Get list of all regions with museum counts."""
     url = urljoin(BASE_URL, "list_en.html")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_html(session, url)
             data = parse_museum_list(html)
@@ -421,6 +424,7 @@ async def get_regions(params: dict) -> dict:
             }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the skill.

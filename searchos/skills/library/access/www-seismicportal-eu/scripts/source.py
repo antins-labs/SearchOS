@@ -9,6 +9,9 @@ API Documentation: https://www.seismicportal.eu/fdsnws/event/1/
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from typing import Any
@@ -17,6 +20,7 @@ BASE_URL = "https://www.seismicportal.eu/fdsnws/event/1/query"
 REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=60)
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Seismic Portal API queries.
@@ -161,7 +165,7 @@ async def _fetch_events(query_params: dict[str, str], function_name: str) -> dic
     Fetch multiple events from the API and parse the GeoJSON response.
     """
     try:
-        async with aiohttp.ClientSession(timeout=REQUEST_TIMEOUT) as session:
+        async with _skill_network.aiohttp_session(timeout=REQUEST_TIMEOUT) as session:
             async with session.get(BASE_URL, params=query_params) as resp:
                 if resp.status == 204:
                     # No content - no matching events
@@ -223,7 +227,7 @@ async def _fetch_single_event(query_params: dict[str, str]) -> dict[str, Any]:
     Fetch a single event by ID (returns a Feature, not FeatureCollection).
     """
     try:
-        async with aiohttp.ClientSession(timeout=REQUEST_TIMEOUT) as session:
+        async with _skill_network.aiohttp_session(timeout=REQUEST_TIMEOUT) as session:
             async with session.get(BASE_URL, params=query_params) as resp:
                 if resp.status == 204:
                     # No content - event not found

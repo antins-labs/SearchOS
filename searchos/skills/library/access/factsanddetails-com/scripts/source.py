@@ -2,6 +2,9 @@
 Facts and Details - SearchOS Access Skill
 Extracts structured content from factsanddetails.com articles and navigation pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -20,7 +23,7 @@ HEADERS = {
 
 async def fetch_page(url: str) -> str:
     """Fetch HTML content from a URL."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, headers=HEADERS, timeout=aiohttp.ClientTimeout(total=30)) as response:
             response.raise_for_status()
             return await response.text()
@@ -358,6 +361,7 @@ def detect_page_type(url: str) -> str:
             return 'category'
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the Facts and Details skill.

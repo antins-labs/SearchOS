@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2321d7a97aade411e88c8ebc721d69f53a010a6c346dbfc84cffa967810de5cd",
+  "capabilities": {
+    "list_products": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_products\", \"category\": \"moutai_series\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.188591+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.moutaichina.com/mtgf/cpzx/mtjxl/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_product": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_product\", \"url\": \"https://www.moutaichina.com/mtgf/2023-10/31/article_2023103117423682414.html\", \"category\": \"all\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.189611+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.moutaichina.com/mtgf/2023-10/31/article_2023103117423682414.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_categories": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_categories\", \"category\": \"all\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.189724+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.moutaichina.com/mtgf/cpzx/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"飞天\", \"category\": \"moutai_series\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.189827+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.moutaichina.com/mtgf/cpzx/mtjxl/index.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.moutaichina.com/mtgf/cpzx/mtjxl/2773c66d-2.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

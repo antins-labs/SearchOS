@@ -1,0 +1,215 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1c257803cafb2ef3fce987f40a2814cb2f0fba08e2fc846858f95047558079f7",
+  "capabilities": {
+    "get_gazetted_holidays": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_gazetted_holidays\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.866161+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://staffnews.in/2024/07/gazetted-holidays-year-2025.html",
+          "status": 301
+        },
+        {
+          "url": "https://www.staffnews.in/2024/07/gazetted-holidays-year-2025.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/themes/magone/style.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/2022/01/logo-staffnews.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/2024/07/list-of-holidays-2025.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-includes/js/jquery/ui/core.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-includes/js/jquery/jquery.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-includes/js/jquery/ui/accordion.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/themes/magone/assets/js/lib.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/themes/magone/assets/js/owl.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-includes/js/jquery/ui/tabs.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/400/italic.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/staffnews-fonts/fa-solid-staffnews-single.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/300/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin-ext/400/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/symbols/700/normal.woff2",
+          "status": 200
+        }
+      ]
+    },
+    "get_restricted_holidays": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_restricted_holidays\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.020274+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://staffnews.in/2024/07/restricted-holidays-year-2025.html",
+          "status": 301
+        },
+        {
+          "url": "https://www.staffnews.in/2024/07/restricted-holidays-year-2025.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/2024/07/list-of-holidays-2025.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/themes/magone/style.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/2022/01/logo-staffnews.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-includes/js/jquery/jquery.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-includes/js/jquery/ui/tabs.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-includes/js/jquery/ui/core.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin-ext/400/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/700/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/symbols/400/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/500/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-includes/js/jquery/ui/accordion.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/symbols/900/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/staffnews-fonts/fa-solid-staffnews-single.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/staffnews-fonts/fa-brands-staffnews.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/staffnews-fonts/fa-regular-staffnews-v2.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/400/normal.woff2",
+          "status": 200
+        }
+      ]
+    },
+    "get_all_holidays": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_holidays\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:31.514020+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://staffnews.in/2024/07/gazetted-holidays-year-2025.html",
+          "status": 307
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "29cbdd5591a9742f4c11bf40e064a1d046af716480879f4d329e989752a69e73",
+  "capabilities": {
+    "get_rankings": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rankings\", \"country\": \"usa\", \"university_slug\": \"the-university-of-texas-at-austin\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.256605+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.shiksha.com/",
+          "status": 403
+        },
+        {
+          "url": "https://www.shiksha.com/studyabroad/usa/universities/[redacted]/ranking",
+          "status": 200
+        }
+      ]
+    },
+    "get_university_info": {
+      "status": "timed_out",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_university_info\", \"country\": \"uk\", \"university_slug\": \"university-of-oxford\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.257145+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

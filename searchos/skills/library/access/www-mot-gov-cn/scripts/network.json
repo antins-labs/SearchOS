@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_article": "direct",
+    "list_latest": "proxy",
+    "list_articles": "direct",
+    "get_image": "direct",
+    "search_by_month": "direct"
+  },
+  "aliases": {
+    "list_articles": "list_articles",
+    "get_article": "get_article",
+    "get_image": "get_image",
+    "search_by_month": "search_by_month",
+    "list_latest": "list_latest",
+    "run": "list_latest"
+  }
+}

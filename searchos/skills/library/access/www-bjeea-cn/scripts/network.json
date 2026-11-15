@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_announcements": "inherit",
+    "fetch_announcement": "inherit"
+  },
+  "aliases": {
+    "fetch_announcement": "fetch_announcement",
+    "search_announcements": "search_announcements",
+    "run": "search_announcements"
+  }
+}

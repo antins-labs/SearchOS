@@ -50,7 +50,7 @@ test('失败卡片显示真实原因和重新排队状态，工具失败不冒�
 });
 
 test('子代理输出最终文本后仍等待证据收尾，再以完成事件结束', () => {
-  const { foldWorkers } = load('lib/derive.ts');
+  const { foldWorkers } = load('lib/runState.ts');
   const events = [event({type:'dispatch',agent:'search_agent'}),event({type:'agent_final',agent:'search_agent',reasoning:'已找到资料'})];
   assert.equal(foldWorkers(events)[0].status,'running');
   assert.equal(foldWorkers([...events,event({type:'agent_complete',agent:'search_agent'})])[0].status,'completed');
@@ -58,7 +58,7 @@ test('子代理输出最终文本后仍等待证据收尾，再以完成事件�
 });
 
 test('单次工具报错不会把整个代理标为失败', () => {
-  const { foldWorkers } = load('lib/derive.ts');
+  const { foldWorkers } = load('lib/runState.ts');
   const events = [event({type:'dispatch',agent:'search_agent'}), event({type:'step',agent:'search_agent',status:'error'})];
   assert.equal(foldWorkers(events)[0].status,'running');
 });

@@ -3,6 +3,9 @@ Ancient Egypt Online - Access Skill
 Fetches encyclopedia articles about Egyptian monuments, pharaohs, and historical figures
 from ancientegyptonline.co.uk
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -226,7 +229,7 @@ async def get_article(session: aiohttp.ClientSession, slug: str) -> dict[str, An
 
 async def get_multiple_articles(slugs: list[str]) -> dict[str, Any]:
     """Fetch multiple articles by slug"""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         tasks = [get_article(session, slug) for slug in slugs]
         results = await asyncio.gather(*tasks)
     
@@ -244,7 +247,7 @@ async def get_multiple_articles(slugs: list[str]) -> dict[str, Any]:
 
 async def get_navigation() -> dict[str, Any]:
     """Fetch the main navigation menu"""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, BASE_URL + "/")
         
         if status != 200:
@@ -281,7 +284,7 @@ async def search_by_text(text: str) -> dict[str, Any]:
         }
     
     # Try to fetch the article with proper session management
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await get_article(session, slug)
     
     if result.get("success"):
@@ -303,6 +306,7 @@ async def search_by_text(text: str) -> dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the skill.
@@ -323,7 +327,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
                 "error": "Missing required parameter: slug",
             }
         
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             return await get_article(session, slug)
     
     elif function == "get_articles":

@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d99bb87e43d93c5867a4f26adf5c0e3c369b08f61f659207e45574e6a18db55c",
+  "capabilities": {
+    "list_states": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_states\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.782193+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/locations-wendys-com/scripts/source.py",
+        "line": 133,
+        "end_line": 144,
+        "implementation": "list_states",
+        "source_sha256": "5c4ef73cf72919e81852a527d1118b60ea946e53df11a8d75dee6679f9155575",
+        "implementation_sha256": "6c7d3e8fca70348b8c840ffbeab0aac94d7aa9e3df1b4f2467aa973719830eb2"
+      }
+    },
+    "list_cities": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_cities\", \"state\": \"NY\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.782920+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://locations.wendys.com/united-states/ny",
+          "status": 200
+        }
+      ]
+    },
+    "list_locations": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_locations\", \"state\": \"NY\", \"city\": \"new-york\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.782999+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://locations.wendys.com/united-states/ny/new-york",
+          "status": 200
+        }
+      ]
+    },
+    "get_location": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_location\", \"state\": \"NY\", \"city\": \"new-york\", \"location\": \"111-fulton-street\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.783089+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://locations.wendys.com/united-states/ny/new-york/111-fulton-street",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"Albany\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.783157+00:00",
+      "reason": "Direct search not implemented. Use list_cities with state code, or list_locations with state and city.",
+      "source_responses": []
+    }
+  }
+}

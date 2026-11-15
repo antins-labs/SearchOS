@@ -4,6 +4,9 @@ CNN Heroes Profile Extractor
 Extracts biographical information and profile data from CNN Hero pages.
 Supports both modern CNN articles with JSON-LD and legacy specials pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -236,7 +239,7 @@ async def extract_hero_profile(url: str) -> dict:
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             status, html = await fetch_page(url, session)
             
             if status != 200:
@@ -372,7 +375,7 @@ async def extract_hero_profile(url: str) -> dict:
 
 async def fetch_multiple_urls(urls: list[str]) -> list[dict]:
     """Fetch multiple URLs concurrently."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         tasks = []
         for url in urls:
             tasks.append(fetch_page(url, session))
@@ -385,6 +388,7 @@ async def fetch_multiple_urls(urls: list[str]) -> list[dict]:
         ]
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the CNN Heroes profile extractor.

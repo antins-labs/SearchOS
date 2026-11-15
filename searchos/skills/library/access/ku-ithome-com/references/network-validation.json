@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "6360abac97e0647f160364a7703b18c9930c5edf49aee29e1b4edf9fb5b6599a",
+  "capabilities": {
+    "get_item_specs": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_item_specs\", \"item_id\": \"11168\", \"category\": \"手机\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.764542+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ku.ithome.com/item/11168/canshu.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_item_overview": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_item_overview\", \"item_id\": \"11168\", \"category\": \"手机\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.765209+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ku.ithome.com/item/11168.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_items": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_items\", \"category\": \"手机\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.765283+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ku.ithome.com/search/c3_s1_p1.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

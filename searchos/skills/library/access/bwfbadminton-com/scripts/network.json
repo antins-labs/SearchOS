@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_player_previous_matches": "direct",
+    "get_player_summary": "direct",
+    "search_player_by_id": "direct",
+    "get_player_gallery": "direct",
+    "get_player_bio": "direct",
+    "get_player_news": "direct",
+    "get_player_full_profile": "direct",
+    "get_player_next_match": "direct"
+  },
+  "aliases": {
+    "get_player_summary": "get_player_summary",
+    "get_player_bio": "get_player_bio",
+    "get_player_previous_matches": "get_player_previous_matches",
+    "get_player_next_match": "get_player_next_match",
+    "get_player_gallery": "get_player_gallery",
+    "get_player_news": "get_player_news",
+    "get_player_full_profile": "get_player_full_profile",
+    "search_player_by_id": "search_player_by_id",
+    "run": "search_player_by_id"
+  }
+}

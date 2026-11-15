@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_cruise": "direct"
+  },
+  "aliases": {
+    "get_cruise": "get_cruise",
+    "run": "get_cruise"
+  }
+}

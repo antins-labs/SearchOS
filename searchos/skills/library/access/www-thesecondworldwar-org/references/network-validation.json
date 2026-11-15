@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c5ba13cab419adc74645ec096951b142e985ce406fe80a07f53aad30f9099a57",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"/the-axis-powers/state-of-burma\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.332008+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.thesecondworldwar.org/the-axis-powers/state-of-burma",
+          "status": 200
+        }
+      ]
+    },
+    "get_category": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_category\", \"url\": \"/the-axis-powers/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.341600+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.thesecondworldwar.org/the-axis-powers",
+          "status": 200
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"query\": \"Germany\", \"category\": \"/the-axis-powers/\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.345872+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.thesecondworldwar.org/the-axis-powers",
+          "status": 200
+        }
+      ]
+    },
+    "get_breadcrumbs": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_breadcrumbs\", \"url\": \"/the-axis-powers/germany-2\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.354756+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.thesecondworldwar.org/the-axis-powers/germany-2",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_transfer_categories": "direct",
+    "list_category_documents": "direct",
+    "get_article": "direct",
+    "search_site": "direct",
+    "list_news": "direct"
+  },
+  "aliases": {
+    "list_transfer_categories": "list_transfer_categories",
+    "list_category_documents": "list_category_documents",
+    "list_news": "list_news",
+    "get_article": "get_article",
+    "search_site": "search_site",
+    "run": "search_site"
+  }
+}

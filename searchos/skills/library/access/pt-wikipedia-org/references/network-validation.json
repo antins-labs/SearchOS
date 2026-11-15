@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "0eff88529e4b8eb2f1ac2e8f0dfc358ac5c2ff22f4af6084d74bac54b9a1eba6",
+  "capabilities": {
+    "get_page": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"title\": \"São Paulo\", \"table_index\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.844571+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://pt.wikipedia.org/wiki/S%C3%A3o_Paulo",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/w/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-fr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/static/images/icons/wikipedia.png",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-pt.svg",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/w/extensions/WikimediaBadges/resources/images/badge-silver-star.png",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/w/skins/Vector/resources/skins.vector.styles/images/arrow-down-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/w/resources/src/mediawiki.skinning/images/magnify-clip-ltr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/w/extensions/Kartographer/styles/images/mapPin-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/w/skins/Vector/resources/skins.vector.styles/images/link-external-small-ltr-progressive.svg",
+          "status": 200
+        }
+      ]
+    },
+    "extract_infobox": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_infobox\", \"url\": \"https://pt.wikipedia.org/wiki/Palmelo\", \"table_index\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.754128+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://pt.wikipedia.org/wiki/Palmelo",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/w/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-fr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-pt.svg",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/static/images/icons/wikipedia.png",
+          "status": 200
+        },
+        {
+          "url": "https://maps.wikimedia.org/img/osm-intl,12,-17.323888888889,-48.423888888889,300x150.png",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/99/Question_book-new.svg/60px-Question_book-new.svg.png",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/61/Searchtool.svg/40px-Searchtool.svg.png",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/91/Bandeira_de_Palmelo_%28Goi%C3%A1s%29.jpg/120px-Bandeira_de_Palmelo_%28Goi%C3%A1s%29.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/23/Bras%C3%A3o_de_Palmelo.jpg/120px-Bras%C3%A3o_de_Palmelo.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/w/skins/Vector/resources/skins.vector.styles/images/arrow-down-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/w/resources/src/mediawiki.skinning/images/magnify-clip-ltr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/w/extensions/Kartographer/styles/images/mapPin-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/w/skins/Vector/resources/skins.vector.styles/images/link-external-small-ltr-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/static/images/footer/wikimedia-button.svg",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/w/resources/assets/poweredby_mediawiki.svg",
+          "status": 200
+        },
+        {
+          "url": "https://pt.wikipedia.org/wiki/Special:CentralAutoLogin/start",
+          "status": 302
+        },
+        {
+          "url": "https://auth.wikimedia.org/metawiki/wiki/Special:CentralAutoLogin/checkLoggedIn",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1a/Brazil_location_map.svg/330px-Brazil_location_map.svg.png",
+          "status": 200
+        },
+        {
+          "url": "https://meta.wikimedia.org/w/index.php",
+          "status": 200
+        }
+      ]
+    },
+    "extract_table": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_table\", \"title\": \"Lista de municípios de Goiás por área\", \"max_rows\": 10, \"table_index\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:23:31.102231+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://pt.wikipedia.org/wiki/Lista_de_munic%C3%ADpios_de_Goi%C3%A1s_por_%C3%A1rea",
+          "status": 429
+        },
+        {
+          "url": "https://www.wikimedia.org/static/images/wmf-logo.png",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

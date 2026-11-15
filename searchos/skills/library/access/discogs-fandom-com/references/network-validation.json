@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "00ca071f7af75f3d2c58a8d174a28fb2bb4495520e09f99e566c6b51ef7bcbb2",
+  "capabilities": {
+    "get_page": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"title\": \"跨时代 (周杰伦专辑)\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.588354+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://discogs.fandom.com/zh/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_album": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_album\", \"title\": \"跨时代 (周杰伦专辑)\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.588904+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://discogs.fandom.com/zh/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "search": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"周杰伦\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.589002+00:00",
+      "reason": "results is empty",
+      "source_responses": [
+        {
+          "url": "https://discogs.fandom.com/zh/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "list_pages": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_pages\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.589075+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://discogs.fandom.com/zh/api.php",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

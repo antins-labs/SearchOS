@@ -4,6 +4,9 @@ Apple App Store Access Skill
 Fetches app metadata from Apple's iTunes Search API.
 Supports app lookup by ID/bundle ID and search functionality.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import json
@@ -115,7 +118,7 @@ async def lookup_app(params: dict, ctx: Any = None) -> dict:
         "country": country,
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch(session, ITUNES_LOOKUP_URL, query_params)
     
     if "error" in data:
@@ -169,7 +172,7 @@ async def lookup_by_bundle_id(params: dict, ctx: Any = None) -> dict:
         "country": country,
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch(session, ITUNES_LOOKUP_URL, query_params)
     
     if "error" in data:
@@ -221,7 +224,7 @@ async def search_apps(params: dict, ctx: Any = None) -> dict:
         "offset": offset,
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch(session, ITUNES_SEARCH_URL, query_params)
     
     if "error" in data:
@@ -240,6 +243,7 @@ async def search_apps(params: dict, ctx: Any = None) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute skill function based on params.

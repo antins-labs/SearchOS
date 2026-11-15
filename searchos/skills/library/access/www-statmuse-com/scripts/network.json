@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "ask": "direct",
+    "get_standings": "direct",
+    "search_player_stats": "direct",
+    "head_to_head": "direct"
+  },
+  "aliases": {
+    "ask": "ask",
+    "search_player_stats": "search_player_stats",
+    "get_standings": "get_standings",
+    "head_to_head": "head_to_head",
+    "run": "head_to_head"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b564db7080fb6845b7f4c35b706fd42bea9a630fd6f799deff2ff4ce08737f22",
+  "capabilities": {
+    "get_monument": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_monument\", \"slug\": \"the-step-pyramid-complex-of-djoser\", \"lang\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.598129+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://egymonuments.gov.eg/en/monuments/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "get_multiple_monuments": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_multiple_monuments\", \"slugs\": [\"the-step-pyramid-complex-of-djoser\", \"the-pyramid-of-meidum\", \"pyramid-complex-of-teti\"], \"lang\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.599196+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://egymonuments.gov.eg/en/monuments/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://egymonuments.gov.eg/en/monuments/the-pyramid-of-meidum",
+          "status": 200
+        },
+        {
+          "url": "https://egymonuments.gov.eg/en/monuments/pyramid-complex-of-teti",
+          "status": 200
+        }
+      ]
+    },
+    "search_monuments": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_monuments\", \"query\": \"pyramid\", \"lang\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.599369+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

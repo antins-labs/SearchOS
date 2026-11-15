@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_available_countries": "direct",
+    "get_country_voting_info": "direct"
+  },
+  "aliases": {
+    "get_country_voting_info": "get_country_voting_info",
+    "list_available_countries": "list_available_countries",
+    "run": "list_available_countries"
+  }
+}

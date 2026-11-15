@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "financial_reports": "direct",
+    "financial_results": "direct"
+  },
+  "aliases": {
+    "financial_reports": "financial_reports",
+    "financial_results": "financial_results",
+    "run": "financial_results"
+  }
+}

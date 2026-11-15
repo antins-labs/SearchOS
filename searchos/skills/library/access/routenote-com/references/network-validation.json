@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "32639d6559f82e4d3c76f1b789bac828ed51016deeafa0d298efc76c13d86144",
+  "capabilities": {
+    "get_post": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_post\", \"slug\": \"2024-spotify-wrapped-top-lists\", \"per_page\": 3, \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.852796+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://routenote.com/blog/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    },
+    "list_posts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_posts\", \"per_page\": 3, \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.853353+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://routenote.com/blog/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    },
+    "extract_lists": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_lists\", \"slug\": \"2024-spotify-wrapped-top-lists\", \"per_page\": 3, \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.853421+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://routenote.com/blog/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    },
+    "search_posts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_posts\", \"search\": \"spotify wrapped\", \"per_page\": 3, \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.853481+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://routenote.com/blog/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

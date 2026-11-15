@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "a9c02a888b8572d29aeb487e17fd20f39868137bf30d74b4969e157369b14507",
+  "capabilities": {
+    "get_config": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_config\", \"url\": \"https://car.autohome.com.cn/config/series/7806.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.477594+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://car.autohome.com.cn/config/series/7806.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_multiple": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_multiple\", \"series_ids\": [\"7806\", \"5769\", \"6762\"]}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.478541+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://car.autohome.com.cn/config/series/7806.html",
+          "status": 200
+        },
+        {
+          "url": "https://car.autohome.com.cn/config/series/5769.html",
+          "status": 200
+        },
+        {
+          "url": "https://car.autohome.com.cn/config/series/6762.html",
+          "status": 200
+        }
+      ]
+    },
+    "compare": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"compare\", \"series_id\": \"7806\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.479305+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://car.autohome.com.cn/config/series/7806.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

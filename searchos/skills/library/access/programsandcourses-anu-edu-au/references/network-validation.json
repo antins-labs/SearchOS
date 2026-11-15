@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "97e78c3ee0d97454cbad6c36f26b23d741827d579bcd612ef0e3a4ada77124bc",
+  "capabilities": {
+    "get_program": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_program\", \"code\": \"NELENG\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.843593+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://programsandcourses.anu.edu.au/program/NELENG",
+          "status": 200
+        }
+      ]
+    },
+    "get_course": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_course\", \"code\": \"COMP6670\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.844411+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://programsandcourses.anu.edu.au/course/COMP6670",
+          "status": 200
+        }
+      ]
+    },
+    "search_programs": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_programs\", \"year\": \"2024\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.844496+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/programsandcourses-anu-edu-au/scripts/source.py",
+        "line": 397,
+        "end_line": 424,
+        "implementation": "search_programs",
+        "source_sha256": "68e8b04ca666ac19260dfe34a39db5e6d2e58d4b2cd6028e955ae5a5428e1773",
+        "implementation_sha256": "c51e5c5986129bf101a0238840abe02436b12beb7df4ddc36ffcb13c15921eeb"
+      }
+    }
+  }
+}

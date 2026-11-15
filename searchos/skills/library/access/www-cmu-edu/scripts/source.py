@@ -4,6 +4,9 @@ CMU Statistics & Data Science Faculty Profile Access Skill
 Fetches faculty profile data from Carnegie Mellon University's 
 Statistics & Data Science department website.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -162,7 +165,7 @@ async def get_faculty_list(last_initial: str = None) -> dict[str, Any]:
     url = 'https://www.cmu.edu/dietrich/statistics-datascience/people/faculty/index.html'
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_html(session, url)
         
         faculty_list = parse_faculty_list(html, url)
@@ -215,7 +218,7 @@ async def get_faculty_profile(url: str) -> dict[str, Any]:
             url = f"https://www.cmu.edu/dietrich/statistics-datascience/people/faculty/{url}.html"
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_html(session, url)
         
         profile = parse_faculty_profile(html, url)
@@ -278,6 +281,7 @@ async def search_faculty(query: str) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the CMU faculty access skill.

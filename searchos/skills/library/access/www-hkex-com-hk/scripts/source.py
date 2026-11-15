@@ -7,6 +7,9 @@ https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly
 The site uses GUIDs to select different months via the 'select' query parameter.
 Data is embedded in HTML tables.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -27,12 +30,12 @@ except ImportError:
 async def _fetch_html(url: str, timeout: int = 30) -> str:
     """Fetch HTML content from URL."""
     if aiohttp:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
                 resp.raise_for_status()
                 return await resp.text()
     elif httpx:
-        async with httpx.AsyncClient(timeout=timeout) as client:
+        async with _skill_network.httpx_async_client(timeout=timeout) as client:
             resp = await client.get(url)
             resp.raise_for_status()
             return resp.text
@@ -203,6 +206,7 @@ def _extract_month_from_tables(tables: list[dict]) -> Optional[str]:
     return None
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute HKEX market highlights query.

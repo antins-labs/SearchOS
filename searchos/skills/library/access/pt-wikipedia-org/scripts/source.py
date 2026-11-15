@@ -8,12 +8,16 @@ Extracts structured data from pt.wikipedia.org including:
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 import asyncio
 import re
 from typing import Any
 from playwright.async_api import async_playwright, Error as PlaywrightError
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Wikipedia data extraction.
@@ -80,13 +84,13 @@ async def get_page(params: dict[str, Any]) -> dict[str, Any]:
     result = {}
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 locale='pt-BR',
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             loaded = await _load_page(page, url)
             if not loaded:
@@ -176,13 +180,13 @@ async def extract_infobox(params: dict[str, Any]) -> dict[str, Any]:
     result = {"url": url, "data": {}, "raw_fields": []}
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 locale='pt-BR',
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             loaded = await _load_page(page, url)
             if not loaded:
@@ -290,13 +294,13 @@ async def extract_table(params: dict[str, Any]) -> dict[str, Any]:
     result = {"url": url, "headers": [], "rows": [], "row_count": 0}
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 locale='pt-BR',
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             loaded = await _load_page(page, url)
             if not loaded:

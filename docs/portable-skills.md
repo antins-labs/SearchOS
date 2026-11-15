@@ -81,17 +81,21 @@ Builder 的 search/open/find 同时用于开发知识检索。实现方法、库
 
 `required_fields` 支持记录顶层字段、对象点路径（如 `location.id`）和数组下标路径（如 `readings.0.temperature`）。框架对每条记录生成扁平字段索引，同时保留容器字段名，随后核对字段存在性；业务 JSON 保留原结构。来源中的 null 和空容器保留原值，缺失子字段或数组元素会报告对应路径。`source_url` 继续要求位于记录顶层并为有效 HTTP(S) URL。
 
-包内 CLI 使用普通库完成这些操作，并在 `requirements.txt` 或 `package.json` 中声明实际依赖，在 `SKILL.md` 中说明版本、安装和浏览器要求。每个业务函数封装数据获取方法、已验收的网络策略和失败处理；多个函数可复用包内网络 helper。代理地址、端口与凭据由部署环境提供，函数按自身策略读取。Scrapy 支持通过脚本启动爬取，Playwright 需要同时准备 Python 库与浏览器引擎，参见 [Scrapy 脚本入口](https://docs.scrapy.org/en/latest/topics/practices.html)与 [Playwright 安装说明](https://playwright.dev/python/docs/library)。
+包内 CLI 使用普通库完成这些操作，并在 `requirements.txt` 或 `package.json` 中声明实际依赖，在 `SKILL.md` 中说明版本、安装和浏览器要求。业务函数封装数据获取、超时和失败处理。代理地址与选线由宿主管理，脚本通过客户端原生代理支持接入标准环境变量，aiohttp 显式设置 `trust_env=True`。新包无需线路文件、代理 helper 或 SearchOS 导入。Scrapy 支持通过脚本启动爬取，Playwright 需要同时准备 Python 库与浏览器引擎，参见 [Scrapy 脚本入口](https://docs.scrapy.org/en/latest/topics/practices.html)与 [Playwright 安装说明](https://playwright.dev/python/docs/library)。
 
 SearchOS 的 `access` 可选依赖组包含 Scrapy、Playwright 和 scrapy-playwright。宿主环境可用 `python -m pip install -e '.[access]'` 和 `python -m playwright install chromium` 准备；迁移到其他 Harness 时按具体技能包的依赖安装。写入依赖文件不会自动安装库。
 
-Planner、Builder 与 Validator 通过 `exec(code=...)` 执行临时 Python 探测；Builder 与 Validator 也可通过 `exec(argv=[...])` 运行候选 CLI，每次选择一种模式。代码探测使用 `execute_python → execute_command`，与正式 CLI 共用系统隔离后端、网络环境和输出限制，支持已安装的 HTTP、Scrapy 与 Playwright 库及其子进程。浏览器代理通过 CLI 和浏览器自身的代理选项配置。爬取和交互应设置时间、页数、并发与结果数量上限，并在结束时关闭浏览器；验收样例使用有代表性的小规模操作。
+Planner、Builder 与 Validator 共用 `exec(argv|code, stdin?, browser?, timeout_s?)`，每次选择命令或 Python 代码。命令支持解释器选项、模块、普通程序与 shell；代码使用 `execute_python → execute_command`，共用系统隔离后端、任务网络配置和输出限制，支持已安装的 HTTP、Scrapy 与 Playwright 库及其子进程。宿主为脚本和浏览器配置同一网络上下文中的本地入口，按 Execution Policy 限制可访问的目标。爬取和交互设置时间、页数、并发与结果数量上限；验收使用有代表性的小规模操作。
 
-Builder 在探测代码中通过网络库原生参数比较访问路线，记录相同 URL 与输入下的实际响应，再把适用策略写入业务函数。函数可以读取环境代理地址并显式传入客户端，也可以按库的行为使用环境配置或应用层直连。操作系统继续管理 VPN/TUN 路由。最终调用只传查询、分页和输出等业务参数。
+三个角色先使用宿主当前线路执行正常业务请求；连接失败或有证据表明出口导致业务访问失败时，通过 `network_check(url)` 检查连接，可追加 `route="direct"` 或 `route="proxy"` 在当前任务试用候选线路。确认 `selected_route` 后，以新建客户端连接复验原业务输入。候选线路在业务验收前仅供当前任务使用，Validator 根据通过报告引用的真实正常业务执行确认线路，宿主保存对应主机、端口和代理配置，后续执行自动复用。人工规则和关闭自动选线的设置继续生效；使用代理前需由宿主配置可用代理。访问权限拒绝、登录、限流与解析错误分别处理。脚本和正式调用只传查询、分页和输出等业务参数，原失败输入保留回归义务。
 
-全局代理设置为空字符串时，宿主清理大小写 `HTTP_PROXY`、`HTTPS_PROXY` 和 `ALL_PROXY`；指定地址时统一设置大小写 HTTP(S) 变量并清理旧 ALL 代理；设置为 `None` 时保留当前环境。三种情况都保留 `NO_PROXY/no_proxy`。
+项目 `network` 配置统一指定代理与自动选线。配置代理时默认走代理，留空时默认直连。每个任务固定配置快照，设置变更用于新任务，恢复任务采用当前配置并复验。子进程的大小写 `HTTP_PROXY`、`HTTPS_PROXY` 和 `ALL_PROXY` 只指向本地入口，`NO_PROXY` 仅绕过本地控制连接；上游代理凭据留在宿主。实际连接的配置指纹、线路与失败阶段随执行记录保存，业务请求和认证信息不进入连接日志。
 
-Access 的 Planner 代码探测、Builder 探测与 CLI 调试、Validator 代码／argv 验证和每条固定验收命令均受宿主 30 秒执行上限约束，调用方可以指定更短期限。整次操作的连接、读取、重试、退避、浏览器启动与渲染共用总预算；函数应使用 monotonic deadline 分配各阶段期限，并预留解析、输出与资源关闭时间。浏览器显式配置所需代理，优先按目标响应或元素就绪结束等待。超过总期限时执行后端终止命令并保留已产生的输出；其他类别的 CLI 沿用各自的执行配置。
+明确配置的本地模型和其他回环 API 默认直连。公网目标由宿主解析、校验并连接固定 IP，使用上游代理时继续保留这项检查；DNS 校验失败会返回诊断。自动线路仅记录实际主机与端口，有效期 24 小时，代理配置改变后失效。人工域名规则优先，关闭自动选线后使用人工规则或默认线路。清除自动记录会使未完成请求中的旧线路确认失效。
+
+网关只在转发业务字节前自动更换连接。读取客户端可对尚未获得响应的安全读取尝试一次备用线路，登录、写入、未知 CLI 和已开始的流式输出由调用方处理。普通脚本通过原生代理支持接入，发布验收核对真实连接记录；浏览器额外受系统端口隔离约束。诊断中的连接成功仍需后续业务调用验证，HTTPS 隧道不解密页面内容。
+
+Access 三个角色的执行默认 60 秒，可通过 `timeout_s` 指定 0.1–300 秒。连接、读取、重试、退避、浏览器启动与渲染共用总预算；函数使用 monotonic deadline 分配各阶段期限，并预留解析、输出与资源关闭时间。浏览器按目标响应或元素就绪结束等待。超过总期限时执行后端终止命令并保留已产生的输出；其他类别的 CLI 沿用各自的执行配置。
 
 ### 构建结果与长文本读取
 
@@ -145,15 +149,15 @@ flowchart TD
 
 `send_message(role, content)` 使用进程内顺序交接。Builder 向 `validator` 提交时暂停，宿主复制不可变候选并冻结当前计划和样例；Validator 返回报告后恢复 Builder。Builder 和 Validator 都可以向 `planner` 提问。Planner 返回完整修订计划时，宿主更新固定目标，历史计划与依据继续保留。
 
-Builder 与 Validator 的 `exec` 每次选择 `argv` 或 `code`。代码通过 Python `Path` 变量 `SKILL_DIR` 读取当前候选的只读快照，也可只读打开宿主授权的当前会话结果路径与已登记源文件。`read_file` 支持候选相对路径、`SKILL_DIR/` 前缀及结果绝对路径，并按字符分页。宿主按会话授权读取路径，代码输出写入角色工作目录。Planner 的探测使用独立研究工作目录。探测代码原样执行，网络库原生参数由代码设置。函数封装访问方式、代理选择、超时和重试；代理地址及凭据从部署环境读取，Agent 仅调用业务命令。
+三个角色的 `exec` 每次选择 `argv` 或 `code`。Builder 与 Validator 的代码通过 Python `Path` 变量 `SKILL_DIR` 读取当前候选的只读快照，子进程通过同名环境变量访问；宿主授权当前会话结果路径与已登记源文件只读。`read_file` 支持候选相对路径、`SKILL_DIR/` 前缀及结果绝对路径，并按字符分页。执行输出写入角色工作目录；Planner 使用独立研究目录。探测代码原样执行，通过原生客户端接入宿主代理环境。函数封装访问方式、超时和必要的业务重试，登录凭据由宿主托管会话保护。
 
-Builder 每轮调用 LLM 前，框架按候选版本进行静态预检，反馈包结构、host、入口登记及正常调用契约的缺项，文件或计划改变后重新检查。静态预检只读取文件，不执行 CLI，也不消耗独立验收轮次；空的逐能力结果仍返回包级 repair_package 待办。正式交验时再次检查不可变候选。业务命令统一由 Validator 通过 `exec(argv=...)` 发起；框架复用该次执行的完整 stdout 或声明的 JSON 输出文件，检查退出状态、JSON、records、必需字段与来源 URL 格式，再把检查结果及持久文件引用返回 Validator。Validator 阅读同一份输出核验业务语义，按需追加分页、边界和来源检查。`exec(code=...)` 用于来源访问、比较和断言，结果作为辅助依据。`--help` 由 Validator 按需要调用。
+Builder 每轮调用 LLM 前，框架按候选版本进行静态预检，反馈包结构和 host 等缺项；文件或计划改变后重新检查。静态预检只读取文件，不消耗独立验收轮次。正式交验时再次检查不可变候选。Validator 使用 `exec(argv=...)` 或 `exec(code=...)` 自主调用，读取原始输出、核对内容并提交报告。报告引用已有执行编号，框架复用完整 stdout 或冻结的 JSON 产物检查退出状态与可解析性；宿主固定样例还检查结果路径、必需字段和来源 URL。Python 包装调用可通过断言核验业务结果。`--help`、来源探测及边界观察按需执行。
 
 正式验收先扫描包内 Python 函数并保存内容索引，包含异步函数、类方法和嵌套函数。独立业务 CLI 在同一次执行中记录包内调用函数；框架结合正文中的包内函数引用记录每项能力的函数范围。下一次交验仅派发未通过、相关函数内容变化或本能力契约变化的能力。已通过且相关内容未变的能力保留原执行 ID、候选版本及验收会话，并与本轮结果合并。共享函数修改会使使用者进入复验；导入、全局配置、依赖、正文和参考资源变化时扩大复验。无法解析、缺少完整调用记录、子进程取数及非 Python 入口采用完整复验。工具集合和单次执行规则保持原约定。
 
-Validator 使用 `send_message(role="builder", content={"checks":[...],"repair_budget":{"max_turns":20,"reason":"修复映射并补测边界"}})` 提交报告。每项包含 `capability_id`、`status`（`passed/failed/uncertain`）和具体 `reason`。仍需修复或补验时，由 Validator 根据阅读、探查、修改、自测与重交的工作量指定 `repair_budget.max_turns`（整数 1–50）及原因；全部通过时省略。分批报告与同版本补验保留有效预算，字段错误返回当前会话纠正。业务 `exec(argv=...)` 显式标记能力，宿主从当前会话记录自动关联真实执行 ID 并核验候选身份。通过结论需要同能力正常业务入口的独立成功调用；保持脚本、子命令和操作路由，允许修改 `--input` 中的查询或分页值。多个能力共用路由且仅靠 JSON 区分时，使用固定输入确认归属。边界、空结果、非法输入、失败调用和代码探测提供辅助依据。每次调用都显示已接收能力、缺失调用与建议命令，上下文归档后继续保留这些进度。协议字段有误时在当前验收会话修正，Builder 根据有效反馈修改实现。
+Validator 使用 `send_message(role="builder", content={"checks":[...],"repair_budget":{"max_turns":20,"reason":"修复映射并补测边界"}})` 提交报告。每项包含 `capability_id`、`status`（`passed/failed/uncertain`）、具体 `reason` 与 `executions`。执行引用示例为 `{"execution_id":"exec-…","output":"result.json","regression_of":"exec-旧失败"}`。省略 `output` 时由 Validator 核对原始输出或断言；`output=""` 要求 stdout 为 JSON，相对路径指定本次生成的 JSON 文件。`regression_of` 关联原失败，`check_kind` 与 `expected_status` 可记录边界分类。上述元数据全部在报告阶段提交。框架核对实际执行、当前候选版本和文件更新，Validator 核对业务归属、普通参数、位置参数及 stdin 的效果。同一次执行可支撑多项能力。仍需修复或补验时，Validator 指定 1–50 次 Builder 调用及原因，分批报告保留有效预算。
 
-计划中的调用样例作为 Validator 的建议清单，约束入口、能力归属和输出契约。每项可用能力至少有一次通过机器检查的正常业务调用；分页、边界和来源等具体需求由 Validator 核验，未完成范围写入原因。框架按当前版本的真实执行记录关联报告，保留 `deterministic` 与 `semantic` 字段，分别记录同一次执行的机器检查和模型判断。
+Planner 提供业务目标与研究依据，Builder 将实际接口写入 SKILL.md。每项可用能力需要正常业务执行和语义确认；分页、边界和来源等具体需求由 Validator 核验。调用方显式提供的固定样例保留原约束。框架按当前候选的真实记录关联报告，保留 `deterministic` 与 `semantic` 字段，分别记录同一次执行的机器检查和模型判断。原失败输入持续进入回归队列，改查询或删除样例仍需复验原问题。
 
 候选文件、计划或验收目标变化后生成新版本，按函数内容、调用范围和能力契约计算待验能力。相同版本全部通过且没有待补验原输入时复用报告；失败、`incomplete` 或语义调用错误继续进入验收。同一构建会话内补验保留实际执行用例、观察及有效结论，继续处理缺项与需要重试的命令。同能力、同类型、同参数命令的重试更新当前用例，历史执行仍保存在观察记录中；取消后重新确认。报告附逐能力待办，分别要求修复代码、补齐验收或提交新候选。Builder 在同一主循环处理开发、交验与修复，新失败交验返回后立即按 Validator 指定额度开启修复阶段；相同报告只分配一次。静态拒收或旧报告缺少预算时，后备额度为 50。阶段额度耗尽且当前候选遗漏交接时，框架在剩余验收轮数内补一次交接。`max_repair_attempts` 配置本次构建最多追加的验收轮数，默认初验一次加最多三轮。
 
@@ -182,20 +186,24 @@ Agent 通过固定工具接口使用技能。技能推荐帮助它选择候选�
 | `list_skills` | 按类别和关键词发现技能 |
 | `load_skill` | 读取说明，并为当前任务保存包快照 |
 | `read_skill_file` | 分页阅读包内参考资料 |
-| `exec` | 执行已加载包中的 CLI 脚本 |
+| `exec` | 执行代码或命令，通过 SearchAnything 编排已加载技能 |
 | `open` / `find` | 阅读保存的结果页面并定位内容 |
 
-执行参数使用数组，例如 `argv=["python", "scripts/search.py", "--query", "all:retrieval"]`。首项为支持的解释器，第二项为包内脚本，其余传入脚本文档中的业务参数。最终 `exec` 工具接收 `skill`、`argv`、`stdin` 与 `timeout_s`；函数负责选择网络路线、读取部署配置和返回失败诊断。支持 Python、Shell 和 Node，不接受内联代码或任意 shell 命令字符串。
+通用 `exec` 接收 `argv` 或 Python `code`，以及 `inputs`、`stdin` 和 `timeout_s`。`load_skill` 返回 `command_prefix`，例如 `["searchanything", "run", "arxiv-search", "--"]`；将前缀与文档中的命令、包内脚本和业务参数拼接后交给 `exec(argv=...)`。多步任务在 `exec(code=...)` 内通过 subprocess 调用技能，解析 stdout、筛选记录并保存文件。宿主统一选择网络路线，脚本使用客户端原生代理支持并返回业务数据或错误。Search、Explore 根据失败回执决定等待、调整查询、改用授权来源或报告缺口；技能重试依据包内文档和执行结果，并遵守请求间隔、限流退避与部分结果保存要求。连接诊断保留在宿主、管理页和技能创建流程，正式检索工具集与 SearchAnything CLI 移除诊断入口。
 
-同一任务的调用串行执行并共享可写工作目录，前一步输出可以作为后一步输入。同轮并发提交的调用由宿主等待工作目录锁，等待可取消，上限为 300 秒；等待超时的调用未启动脚本，不计执行预算。执行超时从获得锁后单独计算。包快照只读，不同任务的工作目录相互隔离并可并行执行；未绑定任务时按 Agent 隔离。Python 使用宿主解释器，其他解释器及依赖按包声明准备。macOS 执行后端为 `sandbox-exec`，Linux 为 `bubblewrap`；后端不可用时返回 `blocked`，由宿主报告执行状态。
+同一任务复用 Exec 工作目录，技能子调用共享独立的任务技能目录，通过 stdin/stdout 与父程序交换数据。并发访问同一工作目录时由宿主排队，等待和执行均受父 Exec 时限约束。包快照只读，不同任务的工作目录相互隔离并可并行执行；未绑定任务时按 Agent 隔离。Python 使用宿主解释器，其他解释器及依赖按包声明准备。macOS 执行后端为 `sandbox-exec`，Linux 为 `bubblewrap`；后端不可用时返回 `blocked`，由宿主报告执行状态。
 
-托管浏览器跨创建任务内的多条命令和三个角色存活。包通过 `searchos-browser-profile: managed` 与 `searchos-browser-entries` 声明入口；脚本连接执行环境中的 `BROWSER_CDP_URL`，宿主负责关闭和保存站点 profile。每条命令仍按30秒执行，用户等待单独计时；外部条件阻塞保留 `incomplete / wait_external`，结构有效的包继续部分交付。详见[本机站点浏览器会话](/Users/jeffzhang/Desktop/SearchForge/SearchOS-pub/docs/skill_browser_auth.md)。
+托管浏览器跨创建任务内的多条命令和三个角色存活。包通过 `searchos-browser-profile: managed` 与 `searchos-browser-entries` 声明入口；脚本连接执行环境中的 `BROWSER_CDP_URL`，宿主负责关闭和保存站点 profile。命令默认 60 秒、最高 300 秒，用户等待单独计时；外部条件阻塞保留 `incomplete / wait_external`，结构有效的包继续部分交付。详见[本机站点浏览器会话](/Users/jeffzhang/Desktop/SearchForge/SearchOS-pub/docs/skill_browser_auth.md)。
 
 普通 CLI 执行直接运行包内脚本；模型用于技能选择、创建及后续推理。Local 文档问答使用本地阅读工具，Access 技能用于允许相应来源访问的研究任务。
 
 ### 从脚本结果到研究证据
 
-`exec` 返回执行状态、退出码、stdout/stderr 摘要和保存页面链接，并在工作区保存命令产物的快照及文件哈希。同一 tool-call ID 的回放使用已有回执，避免重复启动程序。
+同一站点或账号的远程请求顺序执行；技能或服务未指定间隔时，每次请求前重新从 0–1 秒均匀随机采样等待时间，使用 `time.sleep(random.uniform(0.0, 1.0))`。已明确的服务间隔、`Retry-After` 和限流退避规则优先。编排时将等待时间计入批量大小和执行预算。
+
+`exec` 返回执行状态、退出码、stdout/stderr 预览和保存页面链接。`streams.stdout` 与 `streams.stderr` 分别提供 `shown_chars`（本次展示字符数）、`total_chars`（保存文本总字符数）、`truncated`（预览是否截断），有保存文本时提供各自的 `page_url`。字符数按 Unicode 字符计算，经过回执总大小裁剪后重新统计；总长度无法取得时为 `null`。`log_truncated=true` 表示执行输出超过捕获上限，保存文本也有缺失。Agent 通过对应的 `page_url` 和原 `open/find` 续读所需字段，对未读到的内容保留未知。工作区保存命令产物的快照及文件哈希。同一 tool-call ID 的回放使用已有回执，避免重复启动程序。
+
+父 Exec 的 `child_results.items` 保存技能子调用的名称、参数、执行状态，以及 stdout/stderr 各自开头最多 512 个 Unicode 字符的原始预览。每项的 `streams` 提供 `shown_chars`、`total_chars`、`truncated` 与读取 URL。整个回执超过 24,000 字节时，先缩短 stdout/stderr 预览，再减少内联子调用条目，并按实际展示内容更新字符数和截断标记；保存的原始输出和索引保持完整。`child_results` 的 `shown`、`total`、`truncated` 描述回执中的条目窗口。完整索引始终通过 `child_results.page_url` 提供，沿用 `open/find` 阅读。索引覆盖失败、预算拒绝和中断调用，有保存输出时提供读取入口。聚合结果为空或缺少判断所需字段时，Agent 可先根据预览定位子调用，再读取其完整结果，并将其 URL 通过 `inputs` 传给下一次 Exec 处理。索引和中断日志保留执行信息，成功技能结果复用原页面与证据身份。
 
 成功执行产生的 JSON 和文本结果可以自动转为稳定的 `skill://` 页面。普通 JSON 记录即可使用，脚本也可以显式保存来源正文，例如：
 
@@ -220,7 +228,7 @@ Access 能力的交付粒度由用户用途和站点实际信息共同确定。�
 
 交付只整理已生成文件，不追加模型、网站或 CLI 验收，也不吞掉取消异常。`CancelledError` 继续向调用者传播，显式整站超时继续抛出 `TimeoutError`。站点实验默认 `timeout_s=None`，不设整站墙钟期限；需要限制时传入正数，各工具自身的执行时限仍然生效。
 
-Agent 收到 `page_url` 后，通过 `open` 和 `find` 阅读结果。页面元数据保留包版本、执行 ID、文件哈希和生产任务；阅读窗口沿用 Web 证据抽取与核验流程，能够从结论追溯到执行产物与来源内容。实际打开的结果内容进入阅读和抽取流程，执行回执仅记录命令与产物。
+技能子调用的成功业务 JSON stdout 直接提交证据抽取，后续打开同一结果页时去重。输出预览不足时，Agent 通过 `page_url` 和原 `open/find` 阅读完整文本。页面元数据保留包版本、执行 ID、文件哈希和生产任务。普通代码产物供后续计算与阅读，结论仍须结合原始来源核验。
 
 执行索引、日志、错误输出以及带 fixture 标记的示例数据作为非证据页面处理。结果页面在会话工作区中保存，后续读取可以恢复保存的页面内容，无需重新执行脚本。
 
@@ -268,9 +276,10 @@ Intent 会结合轨迹与已有包内容判断是否需要更新。若产生 `up
 ```text
 list_skills(query="arxiv", limit=20)
 load_skill(skill_name="arxiv-search")
-exec(skill="arxiv-search", argv=[
+exec(argv=[
+  "searchanything", "run", "arxiv-search", "--",
   "python", "scripts/search.py",
-  "--query", "all:retrieval", "--limit", "5", "--output", "papers.json"
+  "--query", "all:retrieval", "--limit", "5"
 ])
 open(id_or_url="<page_url>")
 find(pattern="retrieval")

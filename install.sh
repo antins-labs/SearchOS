@@ -15,7 +15,7 @@ usage() {
     "用法：./install.sh [选项]" \
     "" \
     "  --core           只安装 CLI/TUI 与 Web 后端的基础 Python 依赖" \
-    "  --all            安装评测、可选搜索/浏览后端与可观测性依赖" \
+    "  --all            安装评测、可选浏览后端与可观测性依赖" \
     "  --dev            额外安装 pytest、pytest-asyncio 与 Ruff" \
     "  --no-web         跳过 Web 前端 npm 依赖" \
     "  --no-browser     跳过 Playwright Chromium 下载" \

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_posts": "direct",
+    "list_posts": "direct",
+    "get_post": "direct",
+    "extract_lists": "direct"
+  },
+  "aliases": {
+    "get_post": "get_post",
+    "list_posts": "list_posts",
+    "extract_lists": "extract_lists",
+    "search_posts": "search_posts",
+    "run": "search_posts"
+  }
+}

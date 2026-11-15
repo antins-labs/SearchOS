@@ -4,6 +4,9 @@ SNK Corporation KOF XIV Access Skill
 Fetches character, team, and story data from the official SNK KOF XIV website.
 The site uses JavaScript for dynamic content loading, so Playwright is required.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -45,13 +48,13 @@ TEAM_URLS = {
 async def fetch_with_browser(url: str, timeout: int = 12000, wait_time: float = 1.5):
     """Fetch page content using Playwright browser automation."""
     p = await async_playwright().start()
-    browser = await p.chromium.launch(headless=True)
+    browser = await _skill_network.browser_launch(p.chromium, headless=True)
     try:
-        context = await browser.new_context(
+        context = await _skill_network.browser_new_context(browser, 
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             locale="en-US"
         )
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=timeout)
@@ -312,6 +315,7 @@ async def get_story(params: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the SNK KOF XIV skill.

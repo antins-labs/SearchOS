@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_place": "direct",
+    "get_place_by_url": "direct"
+  },
+  "aliases": {
+    "get_place": "get_place",
+    "get_place_by_url": "get_place_by_url",
+    "run": "get_place_by_url"
+  }
+}

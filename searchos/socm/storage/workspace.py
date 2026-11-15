@@ -27,7 +27,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from searchos.config.settings import settings
-from searchos.socm.storage.persistence import read_snapshot
+from searchos.socm.storage.file_snapshots import read_snapshot
 from searchos.socm.state import SearchState
 
 logger = logging.getLogger(__name__)
@@ -98,6 +98,8 @@ class WorkspaceManager:
         except FileNotFoundError:
             self._state = SearchState()
         else:
+            if json.loads(snapshot.content).get("format_version") != 2:
+                raise ValueError("Legacy SOCM workspace: run python -m searchos.socm.migrate_refs before resuming")
             self._state = SearchState.model_validate_json(snapshot.content)
         return self._state
 

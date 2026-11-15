@@ -5,6 +5,9 @@ Fetches article/news content from League of Legends China official site.
 Target: https://lol.qq.com/news/detail_m.html?docid=...
 API: https://apps.game.qq.com/cmc/zmMcnContentInfo (JSONP)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -98,7 +101,7 @@ async def fetch_article_detail(docid: str) -> dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(api_url, params=params, headers=headers, timeout=aiohttp.ClientTimeout(total=15)) as resp:
                 if resp.status != 200:
                     return {
@@ -184,6 +187,7 @@ async def fetch_article_detail(docid: str) -> dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for SearchOS skill execution.

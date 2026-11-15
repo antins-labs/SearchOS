@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "9d278d5c48e373881c99714936a92f00270503ca1284d677d30b95ca5e10db90",
+  "capabilities": {
+    "get_home_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_home_page\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.817455+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://nagasakipeace.jp/en/",
+          "status": 200
+        }
+      ]
+    },
+    "get_museum_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_museum_info\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.818072+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://nagasakipeace.jp/en/visit/abm/",
+          "status": 200
+        }
+      ]
+    },
+    "get_records_page": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_records_page\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.818138+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://nagasakipeace.jp/en/search/record/",
+          "status": 200
+        }
+      ]
+    },
+    "get_photo_gallery": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_photo_gallery\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.818205+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://nagasakipeace.jp/en/search/record/photo/",
+          "status": 200
+        }
+      ]
+    },
+    "get_survivors_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_survivors_page\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.818272+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://nagasakipeace.jp/en/search/survivors/",
+          "status": 200
+        }
+      ]
+    },
+    "get_survivor_story": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_survivor_story\", \"story_id\": \"sakue_shimohira.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.818328+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://nagasakipeace.jp/en/search/survivors/sakue_shimohira.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_reference_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_reference_page\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.818391+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://nagasakipeace.jp/en/reference/",
+          "status": 200
+        }
+      ]
+    },
+    "get_about_atomic_bomb": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_about_atomic_bomb\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.818457+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://nagasakipeace.jp/en/search/record/about.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"path\": \"/en/search/record/photo/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.818527+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://nagasakipeace.jp/en/search/record/photo/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

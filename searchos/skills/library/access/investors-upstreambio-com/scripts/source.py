@@ -2,6 +2,9 @@
 SearchOS Access Skill for investors.upstreambio.com
 Extracts SEC filing data from Upstream Bio investor relations site.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -23,7 +26,7 @@ class UpstreamBioSECExtractor:
         """Initialize browser with stealth configuration"""
         if self.browser is None:
             p = await async_playwright().start()
-            self.browser = await p.chromium.launch(
+            self.browser = await _skill_network.browser_launch(p.chromium, 
                 headless=True,
                 args=[
                     '--disable-blink-features=AutomationControlled',
@@ -36,7 +39,7 @@ class UpstreamBioSECExtractor:
     
     async def _create_context(self) -> BrowserContext:
         """Create a browser context with stealth settings"""
-        context = await self.browser.new_context(
+        context = await _skill_network.browser_new_context(self.browser, 
             viewport={'width': 1920, 'height': 1080},
             user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             locale='en-US',
@@ -60,7 +63,7 @@ class UpstreamBioSECExtractor:
             page = None
             try:
                 context = await self._create_context()
-                page = await context.new_page()
+                page = await _skill_network.browser_new_page(context)
                 
                 # Navigate with extended timeout
                 await page.goto(url, wait_until='domcontentloaded', timeout=90000)
@@ -374,6 +377,7 @@ class UpstreamBioSECExtractor:
 _extractor: Optional[UpstreamBioSECExtractor] = None
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Execute SEC filing extraction from investors.upstreambio.com

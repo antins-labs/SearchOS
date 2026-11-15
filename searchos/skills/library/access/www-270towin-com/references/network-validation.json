@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ee1416a8fcf97e7178c9ae4a8306cda0e24d59cff821365ec094a9db5595b016",
+  "capabilities": {
+    "get_election": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_election\", \"year\": 1824}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.939111+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.270towin.com/1824-election/",
+          "status": 200
+        }
+      ]
+    },
+    "list_elections": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_elections\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.941823+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.270towin.com/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "search_elections": {
+      "status": "offline_business_passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_elections\", \"query\": \"fdr\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.942002+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-270towin-com/scripts/source.py",
+        "line": 393,
+        "end_line": 532,
+        "implementation": "search_elections",
+        "source_sha256": "01a4ba366d324918c7978b5d0761b67b936ed1df686ccff7db526aa741d5ae0e",
+        "implementation_sha256": "c412f77d01f25464295da7157b44ff2fbfa5a256bb2e4383f4f9f427a3eaec10"
+      }
+    }
+  }
+}

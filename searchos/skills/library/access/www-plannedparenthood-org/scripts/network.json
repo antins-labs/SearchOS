@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "hours": "direct",
+    "services": "direct",
+    "search": "direct"
+  },
+  "aliases": {
+    "search": "search",
+    "hours": "hours",
+    "services": "services",
+    "run": "services"
+  }
+}

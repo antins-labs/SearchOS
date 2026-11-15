@@ -105,17 +105,8 @@ def setup(tmp_path, monkeypatch):
     search_state._source_scope_var.reset(token)
 
 
-@pytest.fixture(params=[False, True], ids=["search", "explore"])
+@pytest.fixture(params=[False, True], ids=["explore-disabled", "explore-enabled"])
 def retrieval_mode(setup, request, monkeypatch):
-    from searchos.agents import explore
-
-    original_tools = explore.get_tools
-    # 保留真实 pipeline 和工具集合，只把原文获取替换为本文件的离线页面。
-    def offline_tools(*args, **kwargs):
-        original_open = next(t for t in search.get_tools() if t.name == "open")
-        return [original_open if t.name == "open" else t for t in original_tools(*args, **kwargs)]
-
-    monkeypatch.setattr(explore, "get_tools", offline_tools)
     monkeypatch.setattr(settings, "enable_explore", request.param)
     yield request.param
 
@@ -129,7 +120,7 @@ async def run(workspace, **kwargs):
 
 
 @pytest.mark.asyncio
-async def test_simple_path_uses_real_extraction_and_preserves_original_url(setup):
+async def test_simple_path_uses_real_extraction_and_preserves_original_url(setup, retrieval_mode):
     async def handler(count, messages):
         return (call("open", {"url": URL}) if count == 1
                 else AIMessage(content=ANSWER))
@@ -137,15 +128,15 @@ async def test_simple_path_uses_real_extraction_and_preserves_original_url(setup
     workspace, model, extraction = setup(handler)
     before_agent = search_state._current_agent_var.get()
     outcome = await run(workspace)
-    assert not outcome.escalate, outcome.reason
     assert outcome.answer == ANSWER
     assert len(model.calls) == 2 and extraction.calls
-    assert "escalate_to_research" in model.tool_names
+    assert "escalate_to_research" not in model.tool_names
     assert not {"enqueue_tasks", "create_schema", "explore_web"} & set(model.tool_names)
     state = workspace.load_state()
     assert not state.coverage_map.tables
     task = state.frontier.questions[0]
-    assert task.status.value == "completed" and task.result_mode == "findings"
+    assert task.agent_type == "search_agent"
+    assert task.status.value == "completed"
     nodes = state.evidence_graph.nodes
     assert any(node.source == URL and node.source_excerpt == FACT for node in nodes)
     assert any(o.source == URL for o in state.evidence_graph.observations)
@@ -180,18 +171,18 @@ async def test_quick_search_collects_failure_and_projects_it_on_next_model_call(
     monkeypatch.setattr(search, "get_tools", lambda *args: [browser_tools.search, original_open])
 
     async def handler(count, messages):
-        snapshots = [message for message in messages
-                     if message.additional_kwargs.get("sf_kind") == "socm_update"]
+        assert messages[0].type == "system"
+        context = "\n".join(message.content for message in messages if message.type == "system")
         if count == 1:
-            assert all("Search failure memory" not in message.content for message in snapshots)
+            assert "Failure memory:" not in context
             return call("search", {"query": query})
-        assert len(snapshots) == 1 and "Search failure memory" in snapshots[0].content
-        assert query in snapshots[0].content and "offline-empty" in snapshots[0].content
+        assert context.count("Failure memory:") == 1
+        assert query in context and "offline-empty" in context
         return call("open", {"url": URL}, number=2) if count == 2 else AIMessage(content=ANSWER)
 
     workspace, model, _ = setup(handler)
     outcome = await run(workspace)
-    assert outcome.answer == ANSWER and not outcome.escalate and len(model.calls) == 3
+    assert outcome.answer == ANSWER and len(model.calls) == 3
     state = workspace.load_state()
     assert state.evidence_graph.observations
     assert len(state.failure_memory.records) == 1
@@ -221,7 +212,6 @@ async def test_answer_format_and_citations_do_not_trigger_research(setup, answer
 
     workspace, _, _ = setup(handler)
     outcome = await run(workspace)
-    assert not outcome.escalate and not outcome.reason
     assert outcome.answer == answer
     state = workspace.load_state()
     assert state.evidence_graph.nodes and state.frontier.questions[0].status.value == "completed"
@@ -237,50 +227,35 @@ async def test_missing_committed_evidence_does_not_automatically_escalate(setup)
     # Even when the normal summary extractor accepts this text, it must not
     # create original-source support out of an unread source.
     outcome = await run(workspace)
-    assert not outcome.escalate
+    assert outcome.answer == ANSWER
     assert not any(o.source == URL for o in workspace.load_state().evidence_graph.observations)
 
 
 @pytest.mark.asyncio
-async def test_explicit_upgrade_after_deadline_preserves_evidence_and_runtime(
+async def test_deadline_injects_one_user_summary_and_preserves_evidence_and_runtime(
     setup, retrieval_mode, monkeypatch,
 ):
     import time
-
-    from searchos.harness import simple_search
-
-    now = [0.0]
-    model_waiting, deadline_expired = asyncio.Event(), asyncio.Event()
-
-    async def expire_after_reading(tasks, *, timeout):
-        # 原文读取完成后才触发 deadline，避免把进程初始化速度当作测试条件。
-        await model_waiting.wait()
-        now[0] = 60.0
-        deadline_expired.set()
-        return set(), tasks
-
-    monkeypatch.setattr(simple_search, "time", SimpleNamespace(time=time.time, monotonic=lambda: now[0]))
-    monkeypatch.setattr(simple_search, "asyncio", SimpleNamespace(
-        wait=expire_after_reading, wait_for=asyncio.wait_for, gather=asyncio.gather,
-        CancelledError=asyncio.CancelledError,
-    ))
 
     async def handler(count, messages):
         if count == 1:
             return call("open", {"url": URL})
         if count == 2:
-            model_waiting.set()
-            await deadline_expired.wait()
             info = next(iter(runtime._ctx.agent_graphs.values()))
-            assert info["control"].reason == "time_budget_exhausted"
-            return call("escalate_to_research", {"reason": "Need all related releases"}, number=2)
+            budget = next(m.budget for m in info["graph"].middleware if isinstance(m, BudgetMiddleware))
+            budget._start_ts = time.time() - 61
+            return AIMessage(content="I have partial findings.")
+        summaries = [m for m in messages if m.additional_kwargs.get("sf_kind") == "budget_summary"]
+        assert len(summaries) == 1 and summaries[0].type == "human"
+        assert messages[-1] == summaries[0]
+        assert any(m.type == "tool" for m in messages)
         return AIMessage(content=ANSWER + " Need to enumerate the other releases.")
 
     workspace, _, _ = setup(handler)
     registry = runtime._ctx.agent_graphs
     counter = runtime._session_search_count_var.get()
     outcome = await run(workspace, remaining_time_s=60)
-    assert outcome.escalate and outcome.reason == "Need all related releases"
+    assert outcome.answer == ANSWER + " Need to enumerate the other releases."
     assert runtime._ctx.agent_graphs is registry
     assert runtime._session_search_count_var.get() is counter
     assert workspace.load_state().evidence_graph.observations
@@ -288,45 +263,37 @@ async def test_explicit_upgrade_after_deadline_preserves_evidence_and_runtime(
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("handoff", [False, True], ids=["answer", "handoff"])
-async def test_late_retrieval_is_blocked_without_replacing_agent_decision(
-    setup, retrieval_mode, handoff,
+async def test_current_tool_round_finishes_before_summary(
+    setup, retrieval_mode,
 ):
     async def handler(count, messages):
         if count == 1:
             return call("open", {"url": URL})
         if count == 2:
             await asyncio.sleep(.2)
-            # The real tool rejects this URL if the expired request reaches it.
-            return call("open", {"url": "https://example.org/must-not-fetch"}, number=2)
+            return call("open", {"url": URL}, number=2)
         if count == 3:
             assert any(getattr(message, "tool_call_id", "") == "call-2"
-                       and "blocked" in message.content for message in messages)
-            if handoff:
-                return call("escalate_to_research", {"reason": "Need release month"}, number=3)
+                       and FACT in message.content for message in messages)
+            assert messages[-1].additional_kwargs.get("sf_kind") == "budget_summary"
         return AIMessage(content=ANSWER)
 
     workspace, model, _ = setup(handler)
     outcome = await run(workspace, remaining_time_s=.15)
     assert outcome.answer == ANSWER
-    assert outcome.escalate is handoff
-    assert outcome.reason == ("Need release month" if handoff else "")
-    assert len(model.calls) == (4 if handoff else 3)
+    assert len(model.calls) == 3
     assert not runtime._ctx.task_pool
 
 
 @pytest.mark.asyncio
-async def test_early_handoff_is_rejected_without_starting_research(setup, retrieval_mode):
+async def test_no_handoff_tool_is_exposed(setup, retrieval_mode):
     async def handler(count, messages):
-        if count == 1:
-            return call("escalate_to_research", {"reason": "Need another source"})
-        assert any(getattr(message, "name", "") == "escalate_to_research"
-                   and "Search time remains" in message.content for message in messages)
         return AIMessage(content=ANSWER)
 
-    workspace, _, _ = setup(handler)
+    workspace, model, _ = setup(handler)
     outcome = await run(workspace)
-    assert not outcome.escalate and outcome.answer == ANSWER
+    assert outcome.answer == ANSWER
+    assert "escalate_to_research" not in model.tool_names
 
 
 @pytest.mark.asyncio
@@ -339,7 +306,7 @@ async def test_complete_answer_after_deadline_does_not_escalate(setup, retrieval
 
     workspace, _, _ = setup(handler)
     outcome = await run(workspace, remaining_time_s=.15)
-    assert not outcome.escalate and outcome.answer == ANSWER
+    assert outcome.answer == ANSWER
 
 
 @pytest.mark.asyncio
@@ -354,7 +321,7 @@ async def test_extraction_retry_buffer_does_not_escalate(setup, monkeypatch):
 
     monkeypatch.setattr(extraction, "ainvoke", malformed)
     outcome = await run(workspace)
-    assert not outcome.escalate and outcome.answer == ANSWER
+    assert outcome.answer == ANSWER
     resources = next(iter(runtime._ctx.agent_graphs.values()))["extractions"]
     assert any(resource.summary().buffered for resource in resources)
 
@@ -389,7 +356,7 @@ async def test_active_conflict_does_not_automatically_escalate(setup):
 
     workspace, _, _ = setup(handler)
     outcome = await run(workspace)
-    assert not outcome.escalate
+    assert outcome.answer == ANSWER
 
 
 @pytest.mark.asyncio
@@ -418,7 +385,7 @@ async def test_live_follow_up_is_consumed_once_without_automatic_upgrade(
     inbox.put_nowait(follow_up)
     release.set()
     outcome = await asyncio.wait_for(pending, timeout=5)
-    assert not outcome.escalate
+    assert outcome.answer == ANSWER
     assert outcome.delivered == ["List every release"]
     assert inbox.empty()
     assert len(delivered) == 1
@@ -448,7 +415,7 @@ async def test_steering_callback_is_ready_before_worker_starts(setup, retrieval_
 
     workspace, _, _ = setup(handler)
     outcome = await run(workspace, steer_queue=inbox, on_steer_delivery=record)
-    assert not outcome.escalate
+    assert outcome.answer == ANSWER
     assert outcome.delivered == [follow_up.text]
     assert conversation[0].metadata["steer_id"] == follow_up.id
     assert conversation[0].metadata["steer_mode"] == follow_up.mode
@@ -456,9 +423,8 @@ async def test_steering_callback_is_ready_before_worker_starts(setup, retrieval_
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("stop", ["cancel", "timeout"])
-async def test_cancel_and_timeout_cleanup_worker_without_erasing_evidence(
-    setup, stop, retrieval_mode,
+async def test_user_cancel_cleans_up_worker_without_erasing_evidence(
+    setup, retrieval_mode,
 ):
     entered = asyncio.Event()
 
@@ -469,15 +435,11 @@ async def test_cancel_and_timeout_cleanup_worker_without_erasing_evidence(
         await asyncio.Event().wait()
 
     workspace, _, _ = setup(handler)
-    pending = asyncio.create_task(run(workspace, remaining_time_s=.2 if stop == "timeout" else 10))
+    pending = asyncio.create_task(run(workspace))
     await asyncio.wait_for(entered.wait(), timeout=5)
-    if stop == "cancel":
-        pending.cancel()
-        with pytest.raises(asyncio.CancelledError):
-            await pending
-    else:
-        with pytest.raises(TimeoutError):
-            await asyncio.wait_for(pending, timeout=5)
+    pending.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await pending
     assert workspace.load_state().evidence_graph.nodes
     assert workspace.load_state().frontier.questions[0].status.value == "cancelled"
     assert not runtime._ctx.task_pool
@@ -523,6 +485,6 @@ async def test_direct_worker_has_no_separate_eight_turn_limit(setup, monkeypatch
     monkeypatch.setattr(search, "get_tools", lambda *args: [open_page])
     monkeypatch.setattr(settings, "middleware_pipelines", {"web_search": ["BudgetMiddleware"]})
     outcome = await run(workspace)
-    assert not outcome.escalate
+    assert outcome.answer == "The requested search is complete."
     assert len(executed) == 9
     assert len(model.calls) == 10

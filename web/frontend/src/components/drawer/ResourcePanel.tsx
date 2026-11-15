@@ -5,6 +5,7 @@ import { Bot, Clock3, DatabaseZap, Search, Sparkles, Workflow } from "lucide-rea
 
 import type { Turn } from "@/lib/conversation";
 import type { WSEvent } from "@/lib/types";
+import { skillExecutionInfo } from "@/lib/runState";
 
 const compactNumber = (value: number) => new Intl.NumberFormat("en", {
   notation: value >= 1000 ? "compact" : "standard",
@@ -39,10 +40,14 @@ function actionName(record: Record<string, unknown>): string {
 
 function eventToolCounts(events: WSEvent[]) {
   const counts: Record<string, number> = {};
-  for (const event of events) {
+  const seen = new Set<string>();
+  for (const [index, event] of events.entries()) {
     const record = recordOf(event);
-    if (record.type !== "step") continue;
-    const name = actionName(record);
+    if (skillExecutionInfo(record) || !["step", "tool_call_started", "tool_call_failed"].includes(String(record.type))) continue;
+    const id = `${record.agent}:${record.tool_call_id || (record.step_index ?? index)}`;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const name = actionName(record) || String(record.tool ?? "");
     if (name) counts[name] = (counts[name] ?? 0) + 1;
   }
   return counts;
@@ -65,6 +70,8 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
   const calls = usage?.llm_calls ?? 0;
   const cacheRate = usage && usage.prompt_tokens > 0
     ? (usage.cached_prompt_tokens ?? 0) / usage.prompt_tokens : 0;
+  const cacheIncomplete = (usage?.cache_unreported_calls ?? 0) > 0
+    || (usage?.usage_unreported_calls ?? 0) > 0;
   const elapsed = turn.meta.elapsed ?? 0;
   const byRole = Object.entries(usage?.by_role ?? {}).sort((a, b) => (
     (b[1].prompt_tokens + b[1].completion_tokens) - (a[1].prompt_tokens + a[1].completion_tokens)
@@ -105,9 +112,9 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <span>Prompt <b className="font-medium text-ink">{compactNumber(usage.prompt_tokens)}</b></span>
             <span>Completion <b className="font-medium text-ink">{compactNumber(usage.completion_tokens)}</b></span>
-            <span>Cached <b className="font-medium text-ink">{compactNumber(usage.cached_prompt_tokens ?? 0)}</b></span>
-            {usage.prompt_tokens > 0 && (
-              <span title="Cached input tokens divided by input tokens across all roles">Input cache hit <b className="font-medium text-ink">{Math.round(cacheRate * 100)}%</b></span>
+            <span>{cacheIncomplete ? "Known cached" : "Cached"} <b className="font-medium text-ink">{compactNumber(usage.cached_prompt_tokens ?? 0)}</b></span>
+            {(usage.prompt_tokens > 0 || cacheIncomplete) && (
+              <span title={cacheIncomplete ? "Cache usage is unavailable for some calls" : "Cached input tokens divided by input tokens across all roles"}>Input cache hit <b className="font-medium text-ink">{cacheIncomplete ? "Unknown" : `${Math.round(cacheRate * 100)}%`}</b></span>
             )}
           </div>
         </div>
@@ -130,6 +137,9 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
               const roleTokens = roleUsage.prompt_tokens + roleUsage.completion_tokens;
               const cachedTokens = Math.min(roleUsage.cached_prompt_tokens ?? 0, roleUsage.prompt_tokens, roleTokens);
               const cacheRate = roleUsage.prompt_tokens > 0 ? cachedTokens / roleUsage.prompt_tokens : 0;
+              const cacheIncomplete = (roleUsage.cache_unreported_calls ?? 0) > 0
+                || (roleUsage.usage_unreported_calls ?? 0) > 0;
+              const cacheLabel = cacheIncomplete ? "Cache unknown" : `${Math.round(cacheRate * 100)}% cached`;
               const model = turn.meta.modelDistribution?.[role];
               const width = totalTokens ? Math.min(100, (roleTokens / totalTokens) * 100) : 0;
               const cachedWidth = roleTokens ? (cachedTokens / roleTokens) * 100 : 0;
@@ -143,13 +153,13 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
                     <div className="shrink-0 text-right tabular-nums text-ink-dim">
                       <div>{compactNumber(roleTokens)} tokens</div>
                       <div className="text-[10px] text-ink-faint">
-                        {roleUsage.llm_calls} calls · <span title={`${compactNumber(cachedTokens)} cached prompt tokens`}>{Math.round(cacheRate * 100)}% cached</span>
+                        {roleUsage.llm_calls} calls · <span title={`${compactNumber(cachedTokens)} known cached prompt tokens`}>{cacheLabel}</span>
                       </div>
                     </div>
                   </div>
                   <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2"
                     role="img"
-                    aria-label={`${role.replaceAll("_", " ")}: ${compactNumber(roleTokens)} total tokens, ${compactNumber(cachedTokens)} cached, ${Math.round(cacheRate * 100)} percent cache hit`}>
+                    aria-label={`${role.replaceAll("_", " ")}: ${compactNumber(roleTokens)} total tokens, ${compactNumber(cachedTokens)} known cached, ${cacheIncomplete ? "cache rate unavailable" : `${Math.round(cacheRate * 100)} percent cache hit`}`}>
                     <div className="flex h-full overflow-hidden rounded-full" style={{ width: `${width}%` }}>
                       <div className="h-full bg-ok" style={{ width: `${cachedWidth}%` }} />
                       <div className="h-full bg-accent" style={{ width: `${100 - cachedWidth}%` }} />
@@ -199,7 +209,7 @@ export default function ResourcePanel({ turn }: { turn: Turn }) {
                 </div>
                 <div className="shrink-0 text-right tabular-nums text-ink-dim">
                   <div>{agent.searches} search/catalog · {agent.opens} open · {agent.finds} find</div>
-                  <div className="text-[10px] text-ink-faint">{agent.steps} tool steps</div>
+                  <div className="text-[10px] text-ink-faint">{agent.steps} 次工具调用</div>
                 </div>
               </div>
             ))}

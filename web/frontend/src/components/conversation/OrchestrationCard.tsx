@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Check, ChevronDown, ArrowRight, Ban, ShieldCheck, Sparkles, Compass, FileSearch, Files, MessageSquareText, TriangleAlert, X } from "lucide-react";
 import type { SearchState, WSEvent } from "@/lib/types";
-import { deriveCoverage, deriveLocalRunProgress, deriveStepCount } from "@/lib/derive";
+import { deriveCoverage, deriveLocalRunProgress, deriveStepCount, skillExecutionInfo } from "@/lib/runState";
 import OrchestratorTimeline from "@/components/workbench/OrchestratorTimeline";
 import { deriveExploreProgress, type ExploreProgress } from "@/lib/exploreProgress";
 
@@ -21,6 +21,7 @@ interface Props {
   workers: WorkerLite[];
   sourceMode?: "web" | "local" | "hybrid";
   onOpen: () => void;
+  sessionId?: string | null;
 }
 
 function deriveRunDetails(events: WSEvent[]) {
@@ -33,6 +34,8 @@ function deriveRunDetails(events: WSEvent[]) {
       ? event.data as Record<string, unknown>
       : event;
     const type = String(data.type ?? "");
+    const execution = skillExecutionInfo(data as Record<string, unknown>);
+    if (execution?.skill) skills.add(execution.skill);
     if (type === "run_config") {
       trustedDomains = Array.isArray(data.trusted_domains)
         ? data.trusted_domains.filter((value): value is string => typeof value === "string")
@@ -57,10 +60,14 @@ function deriveRunDetails(events: WSEvent[]) {
 /** The orchestrator's run, as one collapsible card in the conversation: its
  *  think→action trajectory inside, auto-collapsing on completion so the final
  *  answer is what you see. "View agents & evidence" opens the detail drawer. */
-export default function OrchestrationCard({ events, priorEvents = [], continued = false, searchState, status, workers, sourceMode, onOpen }: Props) {
+export default function OrchestrationCard({ events, priorEvents = [], continued = false, searchState, status, workers, sourceMode, onOpen, sessionId }: Props) {
   const running = status === "running";
   const { filled, total } = deriveCoverage(searchState);
   const steps = deriveStepCount(events);
+  const simple = [...priorEvents, ...events].some(event => {
+    const data = event.data as Record<string, unknown> | undefined;
+    return data?.kind === "search_route" && data.path === "simple";
+  });
   const active = workers.filter((w) => w.status === "running").length;
   const doneAgents = workers.filter((w) => w.status === "completed").length;
   const runDetails = deriveRunDetails(events);
@@ -124,7 +131,7 @@ export default function OrchestrationCard({ events, priorEvents = [], continued 
         <span className="ml-auto text-[12px] text-ink-dim">
           <b className="font-semibold text-ink">{displayedAgents}</b> {displayedAgents === 1 ? "agent" : "agents"}
           <span className="px-1 text-ink-faint">·</span>
-          <b className="font-semibold text-ink">{steps}</b> {steps === 1 ? "step" : "steps"}
+          <b className="font-semibold text-ink">{steps}</b> 次工具调用
           {total > 0 && (
             <>
               <span className="px-1 text-ink-faint">·</span>
@@ -174,7 +181,8 @@ export default function OrchestrationCard({ events, priorEvents = [], continued 
       {open && (
         <div className="border-t border-line bg-paper/40">
           {explore.present && <ExploreProgressPanel progress={explore} />}
-          <OrchestratorTimeline events={events} status={status} priorEvents={priorEvents} />
+          <OrchestratorTimeline events={events} status={status} priorEvents={priorEvents}
+            agentName={simple && workers.length === 1 ? workers[0].name : "orchestrator"} sessionId={sessionId} />
         </div>
       )}
 

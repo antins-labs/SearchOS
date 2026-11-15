@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7aac0027694c6e1c7831d7bd3fc9aecf703cee8927749c3782280d45dce6eed2",
+  "capabilities": {
+    "get_player_statistics": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player_statistics\", \"tournament\": \"LPL/2025_Season/Split_3\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.783230+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://lol.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_tournament_info": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tournament_info\", \"tournament\": \"LPL/2025_Season/Split_3\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.783834+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://lol.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_standings": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_standings\", \"tournament\": \"LPL/2025_Season/Split_3\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.783892+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://lol.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_team_rosters": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_team_rosters\", \"tournament\": \"LPL/2025_Season/Split_3\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.783957+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://lol.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_match_schedule": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_match_schedule\", \"tournament\": \"LPL/2025_Season/Split_3\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.784020+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://lol.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_awards": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_awards\", \"tournament\": \"LPL/2025_Season/Split_3\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.784076+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search_pages": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_pages\", \"prefix\": \"LPL/2025\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.784242+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://lol.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

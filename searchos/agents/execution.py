@@ -8,17 +8,53 @@ from contextlib import aclosing, asynccontextmanager
 from dataclasses import replace
 from typing import Any
 
-from langchain.agents.middleware.types import AgentMiddleware
-from langchain_core.messages import AIMessage
+from langchain.agents.middleware.types import AgentMiddleware, hook_config
+from langchain_core.messages import AIMessage, SystemMessage
 from langchain_core.runnables import Runnable, RunnableConfig
 
-from searchos.harness.middleware.sensor.core.models import ControlState
+from searchos.harness.middleware.sensor.core.run_state import ControlState
 from searchos.harness.middleware.utils.messages import (
     blocked_result,
     call_with_context,
     extract_tool_name,
+    merge_system_messages,
     unwrap_ai_message,
 )
+
+
+async def call_model(request: Any, handler: Callable, *, image_fallback: bool = True) -> Any:
+    if any(isinstance(message, SystemMessage) for message in request.messages):
+        messages = merge_system_messages([
+            *([request.system_message] if request.system_message is not None else []),
+            *request.messages,
+        ])
+        request = replace(request, system_message=messages[0], messages=messages[1:])
+    if not image_fallback:
+        return await handler(request)
+    try:
+        return await handler(request)
+    except Exception as exc:
+        from searchos.tools.simple_browser.images import (
+            is_explicitly_unsupported,
+            mark_native_unsupported,
+            replace_native_image_tool_results,
+        )
+
+        has_image = any(
+            isinstance(message.content, list)
+            and any(
+                isinstance(block, dict) and block.get("type") in {"image", "image_url"}
+                for block in message.content
+            )
+            for message in request.messages
+        )
+        if not has_image or not is_explicitly_unsupported(exc):
+            raise
+        model = getattr(request, "model", None)
+        if model is not None:
+            mark_native_unsupported(model, str(exc))
+        messages = await replace_native_image_tool_results(list(request.messages))
+        return await handler(replace(request, messages=messages))
 
 
 class _BeforeModel(AgentMiddleware):
@@ -181,7 +217,9 @@ class ControlExecutor:
 
     async def call_tool(self, request: Any, handler: Callable) -> Any:
         name = extract_tool_name(request)
-        if self.control.blocks(name) or (self.control.forced and name not in self.drain_tools):
+        if self.control.blocks(name) or (
+            self.control.forced and not self.control.summarizing and name not in self.drain_tools
+        ):
             return blocked_result(
                 request,
                 (
@@ -193,6 +231,7 @@ class ControlExecutor:
         return await handler(request)
 
     async def call_model(self, request: Any, handler: Callable) -> Any:
+        summarizing = self.control.summarizing
         signals = list(self.control.messages)
         self.control.messages.clear()
         if self.control.strategy_switch:
@@ -200,7 +239,7 @@ class ControlExecutor:
                 "[Harness STRATEGY_SWITCH] Change queries, sources or retrieval strategy."
             )
             self.control.strategy_switch = False
-        if self.control.forced:
+        if self.control.forced and not summarizing:
             signals.append(
                 self.control.stop_message
                 or (
@@ -209,7 +248,14 @@ class ControlExecutor:
                     "Summarize supported findings and gaps; do not resume retrieval."
                 )
             )
-        if signals:
+        if summarizing:
+            # 保留历史调用的工具定义，本轮只生成最终回答。
+            response = await call_with_context(
+                replace(request, tool_choice="none"), handler,
+                content=self.control.stop_message, kind="budget_summary", user=True,
+                message_id=self.control.summary_id,
+            )
+        elif signals:
             response = await call_with_context(
                 request, handler, content="\n\n".join(signals), kind="harness_control",
             )
@@ -219,7 +265,9 @@ class ControlExecutor:
         calls = getattr(message, "tool_calls", None) or (
             getattr(message, "additional_kwargs", {}) or {}
         ).get("tool_calls")
-        if self.control.forced and self.finish_without_tools and calls:
+        if calls and (summarizing or (
+            self.control.forced and not self.control.summarizing and self.finish_without_tools
+        )):
             content = (
                 f"Search stopped by harness ({self.control.reason}). "
                 "No further tool calls were executed. "
@@ -259,9 +307,15 @@ class _ExecutionHooks(AgentMiddleware):
         self.policy = policy
         self.image_fallback = image_fallback
 
-    async def awrap_model_call(self, request, handler):
-        from searchos.agents.model_call import call_model
+    @hook_config(can_jump_to=["model"])
+    async def aafter_model(self, state, runtime):
+        if (self.executor.control.summarizing
+                and not getattr(state["messages"][-1], "tool_calls", None)
+                and not any(m.id == self.executor.control.summary_id
+                            for m in state["messages"])):
+            return {"jump_to": "model"}
 
+    async def awrap_model_call(self, request, handler):
         async def invoke_model(request):
             if self.recorder is not None:
                 self.recorder.model_received(request)
@@ -296,6 +350,26 @@ class _RecordingHooks(AgentMiddleware):
 
     async def awrap_tool_call(self, request, handler):
         started = self.recorder.tool_started(request)
+        token = None
+        if extract_tool_name(request) == "exec":
+            from searchos.tools.exec.skill_bridge import nested_recording
+
+            async def record_child(identifier, arguments, parent_id, invoke):
+                fields = dict(execution_id=identifier, skill=arguments['skill'], argv=arguments['argv'],
+                              parent_execution_id=parent_id, parent_tool_call_id=request.tool_call['id'])
+                self.recorder.skill_execution(**fields, status="running")
+                try:
+                    result = await invoke()
+                except asyncio.CancelledError:
+                    self.recorder.skill_execution(**fields, status="cancelled", error="技能执行已取消")
+                    raise
+                except Exception as error:
+                    self.recorder.skill_execution(**fields, status="error", error=str(error))
+                    raise
+                self.recorder.skill_execution(**fields, status=result['status'], result=result)
+                return result
+
+            token = nested_recording.set(record_child)
         try:
             result = await handler(request)
         except asyncio.CancelledError as error:
@@ -304,5 +378,8 @@ class _RecordingHooks(AgentMiddleware):
         except Exception as error:
             self.recorder.tool_failed(request, error, started)
             raise
+        finally:
+            if token is not None:
+                nested_recording.reset(token)
         self.recorder.tool_completed(request, result, started)
         return result

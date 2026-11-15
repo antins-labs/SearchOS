@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_projects": "direct",
+    "get_project": "direct",
+    "list_projects": "direct"
+  },
+  "aliases": {
+    "get_project": "get_project",
+    "list_projects": "list_projects",
+    "search_projects": "search_projects",
+    "run": "search_projects"
+  }
+}

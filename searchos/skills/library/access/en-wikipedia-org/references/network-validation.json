@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "cea8432462de753d2e1ff978d565e8ca3da23f56c05bf57bee5b23b2064b7f84",
+  "capabilities": {
+    "get_billionaires": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_billionaires\", \"year\": \"2024\", \"rank_limit\": 3, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.609096+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.wikipedia.org/wiki/The_World%27s_Billionaires",
+          "status": 200
+        }
+      ]
+    },
+    "search_billionaire": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_billionaire\", \"name\": \"musk\", \"rank_limit\": 3, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.610453+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.wikipedia.org/wiki/The_World%27s_Billionaires",
+          "status": 200
+        }
+      ]
+    },
+    "get_years": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_years\", \"rank_limit\": 3, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.610785+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://en.wikipedia.org/wiki/The_World%27s_Billionaires",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

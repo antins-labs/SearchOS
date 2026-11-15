@@ -1,6 +1,9 @@
 """
 SearchOS access skill for www.lzljglobal.com - 泸州老窖国际发展（香港）有限公司 product catalog.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 from typing import Any
 import aiohttp
@@ -20,7 +23,7 @@ CATEGORIES = {
 
 async def fetch_html(url: str, timeout: int = 30) -> str:
     """Fetch HTML content from URL."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as response:
             response.raise_for_status()
             return await response.text()
@@ -290,6 +293,7 @@ async def get_categories() -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute API calls for www.lzljglobal.com product catalog.

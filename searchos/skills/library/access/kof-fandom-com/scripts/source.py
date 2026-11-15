@@ -4,6 +4,9 @@ KOF Wiki (kof.fandom.com) Access Skill
 Retrieves structured information about King of Fighters characters, bosses,
 teams, and games from the KOF Wiki using the MediaWiki API.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -423,6 +426,7 @@ async def get_page(session: aiohttp.ClientSession, title: str) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute KOF Wiki skill functions.
@@ -438,7 +442,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     function = params.get("function", "")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "get_bosses":
             saga = params.get("saga")
             return await get_bosses(session, saga)

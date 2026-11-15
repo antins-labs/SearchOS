@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_seasons": "direct",
+    "get_by_url": "direct",
+    "get_movie": "direct",
+    "get_tv_show": "direct"
+  },
+  "aliases": {
+    "get_movie": "get_movie",
+    "get_tv_show": "get_tv_show",
+    "get_seasons": "get_seasons",
+    "get_by_url": "get_by_url",
+    "run": "get_by_url"
+  }
+}

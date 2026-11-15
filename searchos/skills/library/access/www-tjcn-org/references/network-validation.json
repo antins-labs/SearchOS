@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "214fdf11b19ea2aa77572a300edfa1c1a5ac1343a12f8ac3f1366f7aca24a4a0",
+  "capabilities": {
+    "get_report": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_report\", \"url\": \"http://www.tjcn.org/tjgb/11zj/37664.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.365859+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.tjcn.org/tjgb/11zj/37664.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_list": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_list\", \"url\": \"http://www.tjcn.org/tjgb/11zj/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.366571+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.tjcn.org/tjgb/11zj/",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "empty_result",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"浙江\", \"year\": 2023}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.368099+00:00",
+      "reason": "results is empty",
+      "source_responses": []
+    }
+  }
+}

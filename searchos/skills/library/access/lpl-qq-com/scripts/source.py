@@ -6,6 +6,9 @@ This skill fetches data from lpl.qq.com including:
 - Team list and details
 - Rank data (team, player, hero statistics) - when available
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -15,6 +18,7 @@ import aiohttp
 from playwright.async_api import async_playwright
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx=None) -> Dict[str, Any]:
     """
     Execute LPL data retrieval
@@ -58,7 +62,7 @@ async def fetch_js_data(url: str, var_name: str = None) -> Dict[str, Any]:
         'Accept': '*/*',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             async with session.get(url, headers=headers, timeout=15) as resp:
                 if resp.status != 200:
@@ -186,15 +190,15 @@ async def get_team_detail(team_id: str) -> Dict[str, Any]:
     url = f"https://lpl.qq.com/web202301/team-detail.html?tid={team_id}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 locale='zh-CN',
                 timezone_id='Asia/Shanghai'
             )
             
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until='networkidle', timeout=30000)
             await page.wait_for_timeout(3000)
@@ -299,7 +303,7 @@ async def get_rank_data(season_id: str, data_type: str = "player", stage_ids: st
         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             async with session.get(endpoint, params=params, headers=headers, timeout=15) as resp:
                 if resp.status == 404:
@@ -344,15 +348,15 @@ async def get_rank_page_content(season_id: str = "237", stage_ids: str = None) -
         url += f"&stageIds={stage_ids}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 locale='zh-CN',
                 timezone_id='Asia/Shanghai'
             )
             
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Track network requests
             api_requests = []

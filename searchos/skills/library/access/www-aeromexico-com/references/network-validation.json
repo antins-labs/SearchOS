@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "99a0816d92367ba8a3dee7648f0660b6e1502a044922b7ea9fc856c8b9770087",
+  "capabilities": {
+    "get_carry_on_english": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_carry_on_english\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.943786+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.aeromexico.com/en-us/travel-information/baggage/carry-on-baggage",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]/e/65257_1825202523.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]/e/65319_1825172608.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]/e/65226_747628217.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]/e/64885_1825202492.js",
+          "status": 200
+        },
+        {
+          "url": "https://s.go-mpulse.net/boomerang/TSJXB-CVPRJ-WGXC4-ZSE84-5LEM7",
+          "status": 200
+        }
+      ]
+    },
+    "get_carry_on_spanish": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_carry_on_spanish\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.466174+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.aeromexico.com/es-us/informacion-de-vuelos/equipaje/equipaje-de-mano",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]/e/65319_1825172608.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]/e/65257_1825202523.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]/e/65226_747628217.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]/e/64885_1825202492.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_url": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_url\", \"url\": \"https://www.aeromexico.com/en-us/travel-information/baggage/checked-baggage\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:32.432009+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.aeromexico.com/en-us/travel-information/baggage/checked-baggage",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]/e/64885_1825202492.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]/e/65226_747628217.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]/e/65257_1825202523.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.aeromexico.com/assets/[redacted]/e/65319_1825172608.js",
+          "status": 200
+        }
+      ]
+    },
+    "check_status": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"check_status\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:32.438855+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.aeromexico.com/en-us",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

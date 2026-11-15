@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7941d6c743f80879f2eb4e6245363a20d8a168fc609b01f40e4356d3b7b02e9b",
+  "capabilities": {
+    "get_senators_by_state": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_senators_by_state\", \"state_code\": \"OK\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.250310+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.senate.gov/states/OK/intro.htm",
+          "status": 200
+        }
+      ]
+    },
+    "list_all_states": {
+      "status": "business_failure",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_all_states\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.250958+00:00",
+      "reason": "http_error",
+      "source_responses": [
+        {
+          "url": "https://www.senate.gov/states/OK/intro.htm",
+          "status": 403
+        }
+      ]
+    },
+    "get_state_history": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_state_history\", \"state_code\": \"WV\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.251289+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.senate.gov/states/WV/intro.htm",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

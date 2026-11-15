@@ -4,6 +4,9 @@ History.State.Gov Access Skill
 Provides access to the U.S. State Department Office of the Historian biographical
 database. Supports retrieving person profiles, searching, and listing Secretaries of State.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 from datetime import datetime
@@ -29,7 +32,7 @@ async def _fetch(url: str, client: httpx.AsyncClient | None = None) -> dict:
     """Fetch a URL and return status info with HTML content."""
     should_close = False
     if client is None:
-        client = httpx.AsyncClient(
+        client = _skill_network.httpx_async_client(
             headers=DEFAULT_HEADERS,
             verify=True,
             timeout=30.0,
@@ -741,6 +744,7 @@ FUNCTIONS = {
 }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute a function from the History.State.Gov skill.

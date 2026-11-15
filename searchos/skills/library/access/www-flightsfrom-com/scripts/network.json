@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_airport_routes": "direct",
+    "get_airport_info": "direct",
+    "search_destinations": "direct",
+    "get_route_details": "direct"
+  },
+  "aliases": {
+    "get_airport_routes": "get_airport_routes",
+    "get_airport_info": "get_airport_info",
+    "search_destinations": "search_destinations",
+    "get_route_details": "get_route_details",
+    "run": "get_route_details"
+  }
+}

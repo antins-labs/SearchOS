@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5561f35a58b5a4580f5299fee4a2b74c099a616752179adf7b84f038b0216794",
+  "capabilities": {
+    "get_profile": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_profile\", \"url\": \"https://gsai.ruc.edu.cn/chenxu\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.698897+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://gsai.ruc.edu.cn/chenxu",
+          "status": 302
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/login/index",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/js/jquery-3.5.1.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/layui/css/layui.css",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/layui/layui.js",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/dingding/ddLogin.js",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/weixin/wwLogin-1.2.5.js",
+          "status": 200
+        },
+        {
+          "url": "https://rucfd.ruc.edu.cn/css/bootstrap.css",
+          "status": 200
+        },
+        {
+          "url": "https://rucfd.ruc.edu.cn/imgs/10001_252302_logo.png",
+          "status": 200
+        },
+        {
+          "url": "https://rucfd.ruc.edu.cn/imgs/img.png",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/layui/css/modules/laydate/default/laydate.css",
+          "status": 200
+        },
+        {
+          "url": "https://rucfd.ruc.edu.cn/imgs/line-bg.png",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/layui/css/modules/code.css",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/layui/css/modules/layer/default/layer.css",
+          "status": 200
+        }
+      ]
+    },
+    "get_profile_english": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_profile_english\", \"url\": \"chenxu\"}"
+      ],
+      "checked_at": "2026-10-23T07:18:59.662156+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://gsai.ruc.edu.cn/english/chenxu",
+          "status": 302
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/login/index",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/js/jquery-3.5.1.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/layui/css/layui.css",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/weixin/wwLogin-1.2.5.js",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/layui/layui.js",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/dingding/ddLogin.js",
+          "status": 200
+        },
+        {
+          "url": "https://rucfd.ruc.edu.cn/imgs/10001_252302_logo.png",
+          "status": 200
+        },
+        {
+          "url": "https://rucfd.ruc.edu.cn/imgs/img.png",
+          "status": 200
+        },
+        {
+          "url": "https://rucfd.ruc.edu.cn/css/bootstrap.css",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/layui/css/modules/laydate/default/laydate.css",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/layui/css/modules/code.css",
+          "status": 200
+        },
+        {
+          "url": "https://wvpn.ruc.edu.cn/public/static/layui/css/modules/layer/default/layer.css",
+          "status": 200
+        },
+        {
+          "url": "https://rucfd.ruc.edu.cn/imgs/line-bg.png",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

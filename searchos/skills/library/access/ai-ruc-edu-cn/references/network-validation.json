@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b6c500de1f363ffb74a3017ca6857ebda355dbc72db06710d7418916f07c3321",
+  "capabilities": {
+    "get_profile": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_profile\", \"url\": \"http://ai.ruc.edu.cn/english/FACULTYn/QiQi/index.htm\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.586592+00:00",
+      "reason": "404, message='Not Found', url='http://ai.ruc.edu.cn/english/FACULTYn/QiQi/index.htm'",
+      "source_responses": [
+        {
+          "url": "http://ai.ruc.edu.cn/english/FACULTYn/QiQi/index.htm",
+          "status": 404
+        }
+      ]
+    },
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.598734+00:00",
+      "reason": "Faculty directory search not available. Please provide direct faculty profile URLs.",
+      "source_responses": []
+    }
+  }
+}

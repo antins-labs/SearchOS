@@ -4,6 +4,9 @@ Sina Finance VIP Stock Bulletin Access Skill
 Fetches detailed company bulletin reports from Sina Finance's VIP stock portal.
 Supports both individual bulletin detail retrieval and listing bulletins for a stock.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -150,7 +153,7 @@ async def get_bulletin_detail(stockid: str, bulletin_id: str, include_html: bool
     """
     url = f"{BASE_URL}/corp/view/vCB_AllBulletinDetail.php?stockid={stockid}&id={bulletin_id}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html = await _fetch_html(session, url)
     
     result = _parse_bulletin_detail(html)
@@ -188,7 +191,7 @@ async def list_bulletins(stockid: str, page: int = 1) -> dict[str, Any]:
     else:
         url = f"{BASE_URL}/corp/view/vCB_AllBulletin.php?stockid={stockid}&Page={page}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html = await _fetch_html(session, url)
     
     bulletins = _parse_bulletin_list(html)
@@ -220,7 +223,7 @@ async def list_annual_reports(stockid: str) -> dict[str, Any]:
     """
     url = f"{BASE_URL}/corp/go.php/vCB_Bulletin/stockid/{stockid}/page_type/ndbg.phtml"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html = await _fetch_html(session, url)
     
     bulletins = _parse_bulletin_list(html)
@@ -262,7 +265,7 @@ async def list_quarterly_reports(stockid: str, report_type: str = None) -> dict[
     else:
         url = f"{BASE_URL}/corp/go.php/vCB_AllBulletin/stockid/{stockid}.phtml"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html = await _fetch_html(session, url)
     
     bulletins = _parse_bulletin_list(html)
@@ -290,7 +293,7 @@ async def search_bulletins(stockid: str, keyword: str = None, limit: int = 10) -
     """
     url = f"{BASE_URL}/corp/go.php/vCB_AllBulletin/stockid/{stockid}.phtml"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html = await _fetch_html(session, url)
     
     bulletins = _parse_bulletin_list(html)
@@ -311,6 +314,7 @@ async def search_bulletins(stockid: str, keyword: str = None, limit: int = 10) -
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Sina Finance VIP Stock Bulletin skill.

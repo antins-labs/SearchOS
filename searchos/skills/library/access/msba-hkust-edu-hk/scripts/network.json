@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_class_profile": "direct",
+    "get_application_schedule": "direct",
+    "get_program_fees": "direct",
+    "get_all_info": "direct",
+    "search_all": "direct",
+    "get_curriculum": "direct",
+    "get_program_overview": "direct",
+    "get_admission_requirements": "direct",
+    "get_scholarships": "direct"
+  },
+  "aliases": {
+    "get_program_fees": "get_program_fees",
+    "get_admission_requirements": "get_admission_requirements",
+    "get_application_schedule": "get_application_schedule",
+    "get_scholarships": "get_scholarships",
+    "get_curriculum": "get_curriculum",
+    "get_program_overview": "get_program_overview",
+    "get_class_profile": "get_class_profile",
+    "search_all": "search_all",
+    "get_all_info": "get_all_info",
+    "run": "get_all_info"
+  }
+}

@@ -9,6 +9,9 @@ API Endpoints discovered:
 - Bracket data: /api/brackets/volley/{competitionSlug}/{tournamentNo}/{startDate}/{endDate}
 - Live matches: https://en-live.volleyballworld.com/api/v1/live/matches/bytournaments/{tournamentNo}/{startDate}/{endDate}
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -165,7 +168,7 @@ async def get_matches(params: dict) -> dict:
     if not tournament_no:
         return {"error": f"Tournament number not found for {params.get('competition', 'unknown')} {params.get('year', 'unknown')} {gender}"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await get_tournament_data(session, tournament_no, start_date, end_date)
         
         if 'error' in data:
@@ -197,7 +200,7 @@ async def get_teams(params: dict) -> dict:
     if not tournament_no:
         return {"error": f"Tournament number not found for {params.get('competition', 'unknown')} {params.get('year', 'unknown')} {gender}"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await get_tournament_data(session, tournament_no, start_date, end_date)
         
         if 'error' in data:
@@ -225,7 +228,7 @@ async def get_standings(params: dict) -> dict:
     if not tournament_no:
         return {"error": f"Tournament number not found for {params.get('competition', 'unknown')} {params.get('year', 'unknown')} {gender}"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Get tournament data first
         data = await get_tournament_data(session, tournament_no, start_date, end_date)
         
@@ -301,7 +304,7 @@ async def get_tournament_info(params: dict) -> dict:
     if not tournament_no:
         return {"error": f"Tournament number not found for {params.get('competition', 'unknown')} {params.get('year', 'unknown')} {gender}"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await get_tournament_data(session, tournament_no, start_date, end_date)
         
         if 'error' in data:
@@ -352,6 +355,7 @@ async def list_competitions(params: dict) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the Volleyball World competition data skill.

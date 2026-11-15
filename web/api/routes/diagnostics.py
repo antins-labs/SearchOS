@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+from functools import wraps
 import ipaddress
-import os
 import re
 from time import perf_counter
 from typing import Any
@@ -16,6 +16,16 @@ from pydantic import BaseModel, Field
 from api.settings.store import store
 
 router = APIRouter(prefix="/api/diagnostics")
+
+
+def _network_scope(function):
+    """一次诊断固定配置快照，并在结束时释放本地监听。"""
+    @wraps(function)
+    async def wrapped(*args, **kwargs):
+        from searchos.network import network_context
+        with network_context(reuse=False):
+            return await function(*args, **kwargs)
+    return wrapped
 
 
 class ProviderTestRequest(BaseModel, extra="forbid"):
@@ -64,6 +74,7 @@ def _thinking_observed(response: Any) -> bool:
 
 
 @router.post("/provider")
+@_network_scope
 async def test_provider(req: ProviderTestRequest):
     """Send a minimal request through the model bound to one runtime role."""
     from searchos.config.models import get_model_for, resolve_profile
@@ -115,9 +126,10 @@ async def test_provider(req: ProviderTestRequest):
 
 
 @router.post("/search")
+@_network_scope
 async def test_search_backend(req: SearchTestRequest):
     """Run a small real query through the configured search provider."""
-    from searchos.tools.simple_browser.search import (
+    from searchos.tools.simple_browser.search_providers import (
         build_search_provider,
         resolve_search_provider_name,
     )
@@ -175,9 +187,8 @@ def _validate_public_url(raw_url: str) -> str:
 
 
 def _proxy_summary() -> dict[str, Any]:
-    raw = store.advanced.https_proxy
-    if raw is None:
-        raw = os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY") or ""
+    from searchos.network import current_context
+    raw = current_context().config.snapshot()["proxy_url"]
     if not raw:
         return {"configured": False, "endpoint": "Direct connection"}
     parsed = urlparse(raw)
@@ -192,11 +203,37 @@ def _proxy_summary() -> dict[str, Any]:
     return {"configured": True, "endpoint": endpoint}
 
 
+@router.post("/network")
+@_network_scope
+async def test_network(req: BrowserTestRequest):
+    from searchos.network import network_check
+
+    try:
+        url = _validate_public_url(req.url)
+        return await asyncio.wait_for(network_check(url), timeout=req.timeout_s)
+    except Exception as exc:
+        return {"ok": False, "error": _safe_error(exc)}
+
+
+@router.get("/network/routes")
+async def get_network_routes():
+    from searchos.network import learned_routes
+    return {"routes": learned_routes()}
+
+
+@router.delete("/network/routes")
+async def delete_network_routes(host: str | None = None):
+    from searchos.network import clear_learned_routes, learned_routes
+    clear_learned_routes(host)
+    return {"routes": learned_routes()}
+
+
 @router.post("/browser")
+@_network_scope
 async def test_browser_backend(req: BrowserTestRequest):
     """Fetch one public URL through the configured page backend and proxy."""
     from searchos.config.settings import settings
-    from searchos.tools.simple_browser.backend.base import _build_default_backend
+    from searchos.tools.simple_browser.fetchers.base import _build_default_backend
 
     started = perf_counter()
     backend = None

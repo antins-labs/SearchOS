@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5a402c686ae04e91a3754d18c5ff4a95a5695991f96640a7021ec07d820b4cbb",
+  "capabilities": {
+    "get_news_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_news_article\", \"url\": \"https://www.mfa.gov.az/en/news/no28022\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.172669+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "list_news": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_news\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.173404+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_bilateral_relations": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_bilateral_relations\", \"url\": \"https://www.mfa.gov.az/en/category/africa/chad\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.173609+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

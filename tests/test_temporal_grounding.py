@@ -1,8 +1,8 @@
 """Temporal grounding stays consistent across planning, research, and extraction."""
 
 from searchos.agents.orchestrator.prompt import build_orchestrator_prompt
-from searchos.agents.temporal import render_temporal_grounding
-from searchos.harness.middleware.extraction.core.prompts import build_fill_row_prompt
+from searchos.agents.date_context import render_temporal_grounding
+from searchos.harness.middleware.extraction.core.tables.prompts import build_fill_row_prompt
 
 
 def test_orchestrator_receives_explicit_temporal_contract():

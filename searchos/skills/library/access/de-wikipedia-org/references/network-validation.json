@@ -1,0 +1,273 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c6ccc3e80135bd95a4a4b0de2a6241a18ff3b3f60d14f7e7281621424194b14d",
+  "capabilities": {
+    "search": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"page_title\": \"Grammy Awards\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.585840+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://de.wikipedia.org/wiki/Grammy_Awards",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/w/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-en.svg",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/static/images/icons/wikipedia.png",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-de.svg",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/w/skins/Vector/resources/skins.vector.styles/images/arrow-down-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/w/resources/src/jquery.tablesorter.styles/images/sort_both.svg",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/w/skins/Vector/resources/skins.vector.styles/images/link-external-small-ltr-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/9/91/Wikipedia-logo-v2-25-alt.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/9/96/Link-external-small-ltr-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Wikipedia-tagline-de-25.svg",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d5/2003_Technical_Grammy_award.jpg/250px-2003_Technical_Grammy_award.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/wiki/Special:CentralAutoLogin/start",
+          "status": 302
+        },
+        {
+          "url": "https://auth.wikimedia.org/metawiki/wiki/Special:CentralAutoLogin/checkLoggedIn",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b7/Qsicon_Quelle.svg/40px-Qsicon_Quelle.svg.png",
+          "status": 200
+        },
+        {
+          "url": "https://meta.wikimedia.org/w/index.php",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ca/Wiki_Loves_Monuments_Logo_notext.svg/60px-Wiki_Loves_Monuments_Logo_notext.svg.png",
+          "status": 200
+        }
+      ]
+    },
+    "extract_tables": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_tables\", \"url\": \"https://de.wikipedia.org/wiki/Liste_der_Grammy-Gewinner\"}"
+      ],
+      "checked_at": "2026-10-23T07:18:58.764523+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://de.wikipedia.org/wiki/Liste_der_Grammy-Gewinner",
+          "status": 404
+        },
+        {
+          "url": "https://de.wikipedia.org/w/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-en.svg",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/static/images/icons/wikipedia.png",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-de.svg",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/static/images/footer/wikimedia-button.svg",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/w/resources/assets/poweredby_mediawiki.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/9/91/Wikipedia-logo-v2-25-alt.svg",
+          "status": 200
+        },
+        {
+          "url": "https://meta.wikimedia.org/w/index.php",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/wiki/Special:CentralAutoLogin/start",
+          "status": 302
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ca/Wiki_Loves_Monuments_Logo_notext.svg/60px-Wiki_Loves_Monuments_Logo_notext.svg.png",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Wikipedia-tagline-de-25.svg",
+          "status": 200
+        },
+        {
+          "url": "https://auth.wikimedia.org/metawiki/wiki/Special:CentralAutoLogin/checkLoggedIn",
+          "status": 200
+        }
+      ]
+    },
+    "extract_awards": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_awards\", \"url\": \"https://de.wikipedia.org/wiki/Grammy_Award_for_Best_Rap_Performance_by_a_Duo_or_Group\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:26.013271+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://de.wikipedia.org/wiki/[redacted]",
+          "status": 429
+        },
+        {
+          "url": "https://www.wikimedia.org/static/images/wmf-logo.png",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_page": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_page\", \"url\": \"https://de.wikipedia.org/wiki/Grammy_Award_for_Best_Rap_Performance_by_a_Duo_or_Group\"}"
+      ],
+      "checked_at": "2026-10-23T07:39:54.795716+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://de.wikipedia.org/wiki/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/w/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/static/images/icons/wikipedia.png",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-de.svg",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-en.svg",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/w/skins/Vector/resources/skins.vector.styles/images/arrow-down-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/w/resources/src/mediawiki.skinning/images/magnify-clip-ltr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/w/resources/src/jquery.tablesorter.styles/images/sort_both.svg",
+          "status": 200
+        },
+        {
+          "url": "https://de.wikipedia.org/w/skins/Vector/resources/skins.vector.styles/images/link-external-small-ltr-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/9/91/Wikipedia-logo-v2-25-alt.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Wikipedia-tagline-de-25.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/9/96/Link-external-small-ltr-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/da/Dr._Dre_at_Coachella_2012_cropped.jpg/250px-Dr._Dre_at_Coachella_2012_cropped.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/Flag_of_the_United_States.svg/20px-Flag_of_the_United_States.svg.png",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/22/171_Digable_Planets_%285251694375%29.jpg/120px-171_Digable_Planets_%285251694375%29.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2a/Arrested_development_2_erdoedy.jpg/120px-Arrested_development_2_erdoedy.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fd/Big_Daddy_Kane_at_Hip_Hop_Kemp_2013_%28cropped%29.jpg/120px-Big_Daddy_Kane_at_Hip_Hop_Kemp_2013_%28cropped%29.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/18/WillSmithMay10.jpg/120px-WillSmithMay10.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9f/Mary_J._Blige_jul2007.jpg/120px-Mary_J._Blige_jul2007.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://meta.wikimedia.org/w/index.php",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

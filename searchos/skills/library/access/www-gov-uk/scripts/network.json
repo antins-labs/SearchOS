@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_hpi_data": "direct",
+    "get_collection_items": "direct",
+    "download_csv": "direct",
+    "get_data_downloads": "direct",
+    "get_latest_hpi_release": "direct"
+  },
+  "aliases": {
+    "get_collection_items": "get_collection_items",
+    "get_data_downloads": "get_data_downloads",
+    "download_csv": "download_csv",
+    "search_hpi_data": "search_hpi_data",
+    "get_latest_hpi_release": "get_latest_hpi_release",
+    "run": "get_latest_hpi_release"
+  }
+}

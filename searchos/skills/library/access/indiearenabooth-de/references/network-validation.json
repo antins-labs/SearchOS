@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "98b66e9d872c4e2e8a33b85ca07bae2ed916e6fed242b18e9229decbeb66ee1a",
+  "capabilities": {
+    "list_games": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_games\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.710052+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_game": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_game\", \"game_id\": \"19001\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.711125+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search_games": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_games\", \"query\": \"adventure\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.711322+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c8978548758c47d96828085a309ef3f7a41bc49d850860687aadb76a20232bd3",
+  "capabilities": {
+    "get_page": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"title\": \"Jon Snow\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.635471+00:00",
+      "reason": "Network error: 403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://gameofthrones.fandom.com/api.php?action=query&titles=Jon+Snow&prop=revisions%7Cinfo%7Ccategories&rvprop=content&inprop=url%7Cdisplaytitle&cllimit=50&format=json&formatversion=2'",
+      "source_responses": [
+        {
+          "url": "https://gameofthrones.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"White Walkers\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.641650+00:00",
+      "reason": "Network error: 403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://gameofthrones.fandom.com/api.php?action=query&list=search&srsearch=White+Walkers&srlimit=3&srprop=size%7Cwordcount%7Ctimestamp%7Csnippet&format=json&formatversion=2'",
+      "source_responses": [
+        {
+          "url": "https://gameofthrones.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_character": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_character\", \"name\": \"Sansa Stark\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.642207+00:00",
+      "reason": "Network error: 403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://gameofthrones.fandom.com/api.php?action=query&titles=Sansa+Stark&prop=revisions%7Cinfo%7Ccategories&rvprop=content&inprop=url%7Cdisplaytitle&cllimit=50&format=json&formatversion=2'",
+      "source_responses": [
+        {
+          "url": "https://gameofthrones.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_episode": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_episode\", \"title\": \"The Iron Throne\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.642432+00:00",
+      "reason": "Network error: 403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://gameofthrones.fandom.com/api.php?action=query&titles=The+Iron+Throne&prop=revisions%7Cinfo%7Ccategories&rvprop=content&inprop=url%7Cdisplaytitle&cllimit=50&format=json&formatversion=2'",
+      "source_responses": [
+        {
+          "url": "https://gameofthrones.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_house": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_house\", \"name\": \"House Stark\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.642554+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_section": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_section\", \"title\": \"Jon Snow\", \"section\": \"Biography\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.642641+00:00",
+      "reason": "Network error: 403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://gameofthrones.fandom.com/api.php?action=query&titles=Jon+Snow&prop=revisions&rvprop=content&format=json&formatversion=2'",
+      "source_responses": [
+        {
+          "url": "https://gameofthrones.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

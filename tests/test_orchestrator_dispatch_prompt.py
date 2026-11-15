@@ -4,9 +4,27 @@
 这些契约检查不替代真实模型行为评估。
 """
 
+import re
+
 import pytest
 
 from searchos.agents.orchestrator.prompt import build_orchestrator_prompt
+from searchos.tools.tasks.queue import EnqueueTasksInput
+
+
+@pytest.mark.parametrize("mode,role", [
+    ("web", "search_agent"), ("local", "local_search_agent"), ("hybrid", "search_agent"),
+])
+def test_dispatch_examples_use_available_roles_and_valid_task_scopes(mode, role):
+    prompt = build_orchestrator_prompt("agents", "", source_mode=mode)
+    examples = re.findall(r"`enqueue_tasks`\n```json\n(.*?)\n```", prompt, re.DOTALL)
+    collection, lookup = [EnqueueTasksInput.model_validate_json(example).items for example in examples]
+    assert all(task.agent_type == role for task in [*collection, *lookup])
+    discover, fill = collection
+    assert "result_mode" not in prompt
+    assert discover.target_table == fill.target_table and not discover.target_cells
+    assert fill.target_cells and all(cell.table_id == fill.target_table for cell in fill.target_cells)
+    assert len(lookup) == 1 and lookup[0].target_cells
 
 
 @pytest.mark.parametrize("mode", ["web", "local", "hybrid"])
@@ -47,13 +65,6 @@ def test_exploration_policy_matches_active_configuration(mode, enabled, initial,
         assert "Exploration ends when the blocking question is resolved" in prompt
 
 
-@pytest.mark.parametrize("enabled", [False, True])
-def test_plan_instructions_match_tool_availability(enabled):
-    prompt = build_orchestrator_prompt("agents", "skills", enable_research_plan_tool=enabled)
-    assert ("`set_research_plan`" in prompt) == enabled
-    assert "source-backed inventory" in prompt
-
-
 @pytest.mark.parametrize("mode", ["web", "local", "hybrid"])
 def test_fixed_schema_has_no_schema_creation_workflow(mode):
     prompt = build_orchestrator_prompt("agents", "skills", source_mode=mode, fixed_schema=True)
@@ -77,10 +88,10 @@ def test_repair_instructions_use_only_repair_tools(mode):
     assert "selected cells" in prompt
     for absent in (
         "set_research_plan", "explore_agent", "add_entities", "edit_entities", "read_evidence",
-        "`python`", "list_frontier", "unrelated-guidance", "## Fixed schema",
+        "`exec`", "list_frontier", "unrelated-guidance", "## Fixed schema", "### Dispatch for a collection",
     ):
         assert absent not in prompt
-    for tool in ("check_agents", "inspect_table", "stop_task"):
+    for tool in ("inspect_table", "stop_task"):
         assert f"`{tool}`" in prompt
 
 
@@ -105,16 +116,14 @@ def test_positive_resource_limits_and_live_updates_remain_visible():
     assert "Retrieval agents created per session: 12" in prompt
     assert "Apply user updates to the active objective" in prompt
     assert "Acknowledge a changed requirement once" in prompt
-    assert "default wait" in prompt
+    assert "each worker report triggers its own model turn" in prompt
 
 
 @pytest.mark.parametrize("mode", ["web", "local", "hybrid"])
 @pytest.mark.parametrize("explore", [False, True])
-@pytest.mark.parametrize("plan_tool", [False, True])
-def test_schema_rules_do_not_depend_on_optional_tools(mode, explore, plan_tool):
+def test_schema_rules_do_not_depend_on_optional_tools(mode, explore):
     prompt = build_orchestrator_prompt(
         "agents", "", source_mode=mode, enable_explore=explore,
-        enable_research_plan_tool=plan_tool,
     )
     for rule in (
         "primary keys, foreign keys, and attributes determined by its primary key",
@@ -148,10 +157,11 @@ def test_schema_rules_do_not_depend_on_optional_tools(mode, explore, plan_tool):
 def test_member_and_backfill_rules_apply_to_mutable_and_fixed_schemas(mode, fixed):
     prompt = build_orchestrator_prompt("agents", "", source_mode=mode, fixed_schema=fixed)
     for rule in (
-        "use `add_entities` before the next table-bound dispatch",
+        "established in-scope row keys still missing from the table",
         "exact `target_cells` for targeted fill or backfill",
-        "leave cell targets open only for discovery",
-        "Table-bound tasks require a declared schema",
+        "Leave cell targets open when discovering new members",
+        "An empty declared table is ready for discovery",
+        "Without a schema, it records independent findings",
         "Missing attributes do not justify removal",
         "absence from a complete official inventory",
         "Check both missing and extra members",
@@ -167,18 +177,12 @@ def test_member_and_backfill_rules_apply_to_mutable_and_fixed_schemas(mode, fixe
     assert suggests_design == (not fixed and mode != "local")
 
 
-@pytest.mark.parametrize("plan_tool", [False, True])
-def test_unknown_membership_stays_explicit_with_or_without_plan_tool(plan_tool):
-    prompt = build_orchestrator_prompt("agents", "", enable_research_plan_tool=plan_tool)
+def test_conversation_planning_preserves_unknown_membership():
+    prompt = build_orchestrator_prompt("agents", "")
     assert "even while members and counts are unknown" in prompt
     assert "a plan cannot grant access or increase a budget" in prompt
-    if plan_tool:
-        for field in ("evidence_obligations", "stop_rule", "set_scope",
-                      "expected_members", "basis_evidence_ids", "table_policy=none"):
-            assert f"`{field}`" in prompt
-    else:
-        assert "Keep the plan in the working conversation" in prompt
-        assert "set_research_plan" not in prompt
+    assert "Keep the plan in the working conversation" in prompt
+    assert "set_research_plan" not in prompt
 
 
 @pytest.mark.parametrize("initial", [False, True])
@@ -195,7 +199,7 @@ def test_explore_preserves_scope_exclusions_and_dependency_order(initial):
     if initial:
         first_call = "The first tool call must be `enqueue_tasks` containing only `explore_agent`"
         assert first_call in prompt
-        assert "Collect their briefs with `check_agents`, then plan dependent work" in prompt
+        assert "Use their automatically delivered briefs to plan dependent work" in prompt
     else:
         assert "before fixing the dependent schema or retrieval tasks" in prompt
 
@@ -221,9 +225,9 @@ def test_evidence_and_attribution_rules_survive_including_repair(mode, repair):
             "a nearby value cannot substitute for a required input",
             "reference period, and population",
             "persist it with `edit_entities`, and verify the affected cells",
-            "Separate edits when sources differ",
+            "Each field supplies its own IDs",
             "Sufficient support and exhaustive coverage are different stopping conditions",
-            "Never fill missing facts from parametric knowledge",
+            "Keep source-required facts without support empty",
         ):
             assert rule in prompt, rule
 
@@ -266,5 +270,5 @@ def test_follow_up_reuses_values_without_restarting_or_overriding_repair(mode, f
     assert "## Selected-cell repair" in repair_prompt
     assert "what new members to include" not in repair_prompt
     for unavailable in ("create_schema", "add_columns", "add_entities", "remove_entities",
-                        "read_evidence", "edit_entities", "python", "list_frontier"):
+                        "read_evidence", "edit_entities", "exec", "list_frontier"):
         assert f"`{unavailable}`" not in repair_prompt

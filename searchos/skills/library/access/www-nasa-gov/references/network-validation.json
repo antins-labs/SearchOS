@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "6284653f42d0c8f9e93dc9666fb1fbac57e567228208d0ffc6e4dac9ceb33c52",
+  "capabilities": {
+    "fetch_mission_details": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_mission_details\", \"url\": \"https://www.nasa.gov/missions/apollo/apollo-8-mission-details/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.193739+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nasa.gov/missions/apollo/apollo-8-mission-details/",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_history_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_history_article\", \"url\": \"https://www.nasa.gov/history/50-years-ago-nasa-names-apollo-13-and-14-crews/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.198615+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nasa.gov/history/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_page_auto": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_page_auto\", \"url\": \"https://www.nasa.gov/missions/apollo/apollo-11-mission-details/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.199271+00:00",
+      "reason": "HTTP error: 404",
+      "source_responses": [
+        {
+          "url": "https://www.nasa.gov/missions/apollo/apollo-11-mission-details/",
+          "status": 404
+        }
+      ]
+    }
+  }
+}

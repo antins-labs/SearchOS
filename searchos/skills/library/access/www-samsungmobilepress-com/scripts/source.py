@@ -7,6 +7,9 @@ Supports individual device specs extraction and device search.
 The site uses server-side rendering with Next.js. Specs are embedded
 in HTML tables within the page content.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -40,8 +43,8 @@ async def fetch_device_specs(slug: str) -> dict[str, Any]:
     url = f"{BASE_URL}{MEDIA_ASSETS_PATH}/{slug}?tab=specs"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        page = await browser.new_page()
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
+        page = await _skill_network.browser_new_page(browser)
         
         try:
             await page.goto(url, wait_until='networkidle', timeout=60000)
@@ -158,8 +161,8 @@ async def search_devices(query: str, limit: int = 20) -> dict[str, Any]:
         return {"error": "playwright not installed", "query": query}
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        page = await browser.new_page()
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
+        page = await _skill_network.browser_new_page(browser)
         
         try:
             # Navigate to media assets page
@@ -262,6 +265,7 @@ async def list_galaxy_devices() -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Samsung Mobile Press skill functions.

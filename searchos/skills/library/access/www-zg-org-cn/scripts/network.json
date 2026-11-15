@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_current_leadership": "direct",
+    "get_central_news": "direct",
+    "get_term_leadership": "direct",
+    "get_article": "direct",
+    "get_leader_profile": "direct",
+    "get_leadership_history": "direct"
+  },
+  "aliases": {
+    "get_current_leadership": "get_current_leadership",
+    "get_leader_profile": "get_leader_profile",
+    "get_central_news": "get_central_news",
+    "get_article": "get_article",
+    "get_leadership_history": "get_leadership_history",
+    "get_term_leadership": "get_term_leadership",
+    "run": "get_term_leadership"
+  }
+}

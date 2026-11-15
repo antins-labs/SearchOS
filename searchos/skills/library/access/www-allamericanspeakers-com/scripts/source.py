@@ -2,6 +2,9 @@
 All American Speakers Bureau - Celebrity/Speaker Access Skill
 Extracts speaker profiles, biographies, booking fees, and category listings.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -204,7 +207,7 @@ async def get_speaker_profile(params: dict, ctx: Any = None) -> dict:
     if not url:
         return {"error": "Missing required parameter: 'url' or 'speaker_id'", "success": False}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, url)
         
         if status != 200:
@@ -251,7 +254,7 @@ async def get_category_speakers(params: dict, ctx: Any = None) -> dict:
     if not url:
         return {"error": "Missing required parameter: 'url' or 'category'", "success": False}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, url)
         
         if status != 200:
@@ -292,7 +295,7 @@ async def search_speakers_by_id(params: dict, ctx: Any = None) -> dict:
     # Try the speakers endpoint
     url = f"{BASE_URL}/speakers/{speaker_id}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, url)
         
         if status == 200:
@@ -328,7 +331,7 @@ async def list_categories(params: dict, ctx: Any = None) -> dict:
     """
     url = f"{BASE_URL}/"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, url)
         
         if status != 200:
@@ -386,6 +389,7 @@ async def list_categories(params: dict, ctx: Any = None) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the All American Speakers access skill.

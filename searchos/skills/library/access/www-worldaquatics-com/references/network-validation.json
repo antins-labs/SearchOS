@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "197d8e39e50f52401d824e72d298bab1f8ad489f6c88b198611271a957bd149c",
+  "capabilities": {
+    "get_athlete": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_athlete\", \"athlete_id\": 1001621, \"limit\": 3, \"page\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.390319+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldaquatics.com/fina/athletes/1001621",
+          "status": 200
+        }
+      ]
+    },
+    "get_athlete_medals": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_athlete_medals\", \"athlete_id\": 1001621, \"limit\": 3, \"page\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.391170+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldaquatics.com/fina/athletes/1001621/medals",
+          "status": 200
+        }
+      ]
+    },
+    "get_athlete_results": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_athlete_results\", \"athlete_id\": 1001621, \"limit\": 3, \"page\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.391237+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldaquatics.com/fina/athletes/1001621/results",
+          "status": 200
+        }
+      ]
+    },
+    "search_athletes": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_athletes\", \"name\": \"Phelps\", \"limit\": 3, \"page\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.391294+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldaquatics.com/fina/athletes",
+          "status": 200
+        }
+      ]
+    },
+    "get_competition": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_competition\", \"competition_id\": 816, \"limit\": 3, \"page\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.391357+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldaquatics.com/fina/competitions/816",
+          "status": 200
+        }
+      ]
+    },
+    "get_competition_events": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_competition_events\", \"competition_id\": 816, \"limit\": 3, \"page\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.391421+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldaquatics.com/fina/competitions/816/events",
+          "status": 200
+        }
+      ]
+    },
+    "get_competition_medals": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_competition_medals\", \"competition_id\": 816, \"limit\": 3, \"page\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.391476+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldaquatics.com/fina/competitions/816/medals",
+          "status": 200
+        }
+      ]
+    },
+    "list_competitions": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_competitions\", \"limit\": 3, \"page\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.391533+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldaquatics.com/fina/competitions",
+          "status": 200
+        }
+      ]
+    },
+    "get_live_results": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_live_results\", \"date_from\": \"2024-02-01T00:00:00Z\", \"date_to\": \"2024-02-10T23:59:59Z\", \"limit\": 3, \"page\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.391588+00:00",
+      "reason": "API error: 500",
+      "source_responses": [
+        {
+          "url": "https://api.worldaquatics.com/fina/results/live",
+          "status": 500
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_page": "inherit"
+  },
+  "aliases": {
+    "get_page": "get_page",
+    "run": "get_page"
+  }
+}

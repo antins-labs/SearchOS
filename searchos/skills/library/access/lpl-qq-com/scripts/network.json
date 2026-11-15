@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_teams": "direct",
+    "get_seasons": "direct",
+    "get_team_detail": "direct",
+    "get_rank_data": "direct",
+    "get_rank_page_content": "direct"
+  },
+  "aliases": {
+    "get_seasons": "get_seasons",
+    "get_teams": "get_teams",
+    "get_team_detail": "get_team_detail",
+    "get_rank_data": "get_rank_data",
+    "get_rank_page_content": "get_rank_page_content",
+    "run": "get_rank_page_content"
+  }
+}

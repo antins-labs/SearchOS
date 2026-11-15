@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "f99a8e5f303482c3f58c2225f16823ae6c9ae62a00802a24b0d7ceb7b77328e5",
+  "capabilities": {
+    "list_transfer_categories": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_transfer_categories\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.183609+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.mof.gov.cn/zhuantihuigu/cczqzyzfglbf/",
+          "status": 200
+        }
+      ]
+    },
+    "list_category_documents": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_category_documents\", \"category_url\": \"http://www.mof.gov.cn/zhuantihuigu/cczqzyzfglbf/ybxzyzf_7774/jhxxyzf/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.184389+00:00",
+      "reason": "Failed to fetch category page (status: 404)",
+      "source_responses": [
+        {
+          "url": "http://www.mof.gov.cn/zhuantihuigu/cczqzyzfglbf/ybxzyzf_7774/jhxxyzf/",
+          "status": 404
+        }
+      ]
+    },
+    "list_news": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_news\", \"page\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.184543+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.mof.gov.cn/zhengwuxinxi/caizhengxinwen/",
+          "status": 200
+        }
+      ]
+    },
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"http://www.mof.gov.cn/zhengwuxinxi/caizhengxinwen/202309/t20230904_3905364.htm\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.184704+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.mof.gov.cn/zhengwuxinxi/caizhengxinwen/202309/t20230904_3905364.htm",
+          "status": 200
+        }
+      ]
+    },
+    "search_site": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_site\", \"category\": \"均衡性\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.184889+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.mof.gov.cn/zhuantihuigu/cczqzyzfglbf/",
+          "status": 200
+        },
+        {
+          "url": "http://www.mof.gov.cn/zhuantihuigu/cczqzyzfglbf/ybxzyzf_7774/jhxzyzf/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

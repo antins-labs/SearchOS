@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_posts": "direct",
+    "get_post": "direct"
+  },
+  "aliases": {
+    "get_post": "get_post",
+    "get_posts": "get_posts",
+    "run": "get_posts"
+  }
+}

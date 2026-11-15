@@ -33,7 +33,7 @@ searchos
 ```bash
 ./install.sh --core          # 仅安装 CLI/TUI 与 Web 后端的基础 Python 依赖
 ./install.sh                 # 默认：基础依赖 + 全部 Access Skill + Chromium + Web 前端
-./install.sh --all           # 再加入评测、可选搜索/浏览后端与可观测性依赖
+./install.sh --all           # 再加入评测、可选浏览后端与可观测性依赖
 ./install.sh --dev           # 默认安装基础上加入 pytest 与 Ruff
 ./install.sh --all --dev     # 完整开发环境
 ./install.sh --no-web        # 不安装 Web 前端依赖

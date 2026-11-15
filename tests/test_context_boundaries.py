@@ -39,6 +39,21 @@ class Request:
 
 
 @pytest.mark.asyncio
+async def test_runtime_state_is_system_context_and_user_text_is_unchanged():
+    from tests.test_socm_persistence import Model, graph_for, turn, workspace
+
+    model = Model(responses=[AIMessage("The recorded value is available.")])
+    graph, _ = graph_for(workspace(), model=model)
+    history, _ = await turn(graph, text="直接用search agent。")
+    messages = model.received[-1]
+    assert [m.content for m in messages if isinstance(m, HumanMessage)] == ["直接用search agent。"]
+    assert len([m for m in messages if isinstance(m, SystemMessage)]) == 1
+    assert "Current date" in str(messages[0].content)
+    assert "AUTOMATED HARNESS" not in str(messages[0].content)
+    assert all(m.type == "system" for m in history if m.additional_kwargs.get("sf_synthetic"))
+
+
+@pytest.mark.asyncio
 async def test_trim_counts_large_arguments_and_pins_latest_context():
     mw = DynamicTrimMiddleware(max_tokens=600)
     snapshot = HumanMessage(

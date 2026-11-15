@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_by_id": "direct",
+    "list_by_prefecture": "direct",
+    "list_all": "direct",
+    "search": "direct"
+  },
+  "aliases": {
+    "list_all": "list_all",
+    "search": "search",
+    "get_by_id": "get_by_id",
+    "list_by_prefecture": "list_by_prefecture",
+    "run": "list_by_prefecture"
+  }
+}

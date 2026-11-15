@@ -4,6 +4,9 @@ Arcade Quartermaster KOF Boss Data Scraper
 Fetches character profiles and move lists for King of Fighters boss characters
 from arcadequartermaster.com.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -186,7 +189,7 @@ def parse_stages_from_html(html: str) -> list:
 
 async def fetch_boss_data(url: str) -> dict:
     """Fetch and parse boss character data from a URL."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html = await fetch_page(url, session)
     
     soup = BeautifulSoup(html, 'html.parser')
@@ -218,7 +221,7 @@ async def fetch_all_boss_pages() -> dict:
     ]
     
     results = {}
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for url in urls:
             try:
                 html = await fetch_page(url, session)
@@ -246,6 +249,7 @@ async def fetch_all_boss_pages() -> dict:
     return results
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the skill.

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_member_details": "direct",
+    "get_committee_members": "direct"
+  },
+  "aliases": {
+    "get_committee_members": "get_committee_members",
+    "get_member_details": "get_member_details",
+    "run": "get_member_details"
+  }
+}

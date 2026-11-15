@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "489dff5964fbf647d491aa9c5b3cc2588f685d6e19036d8b3a4ee28b96f99a06",
+  "capabilities": {
+    "list_tables": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_tables\", \"return_content\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.388680+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.whitehouse.gov/omb/information-resources/budget/historical-tables/",
+          "status": 200
+        }
+      ]
+    },
+    "get_table_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_table_info\", \"table_number\": \"7.1\", \"return_content\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.389131+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.whitehouse.gov/omb/information-resources/budget/historical-tables/",
+          "status": 200
+        }
+      ]
+    },
+    "download_table": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"download_table\", \"table_number\": \"1.1\", \"return_content\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.389189+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.whitehouse.gov/omb/information-resources/budget/historical-tables/",
+          "status": 200
+        },
+        {
+          "url": "https://www.whitehouse.gov/wp-content/uploads/2026/04/hist01z1_fy2027.xlsx",
+          "status": 200
+        }
+      ]
+    },
+    "search_tables": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_tables\", \"query\": \"debt\", \"return_content\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.389246+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.whitehouse.gov/omb/information-resources/budget/historical-tables/",
+          "status": 200
+        }
+      ]
+    },
+    "get_tables_by_section": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tables_by_section\", \"section\": \"07\", \"return_content\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.389339+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.whitehouse.gov/omb/information-resources/budget/historical-tables/",
+          "status": 200
+        }
+      ]
+    },
+    "get_sections": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sections\", \"return_content\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.389416+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.whitehouse.gov/omb/information-resources/budget/historical-tables/",
+          "status": 200
+        }
+      ]
+    },
+    "get_intro_pdf": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_intro_pdf\", \"return_content\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.389489+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.whitehouse.gov/omb/information-resources/budget/historical-tables/",
+          "status": 200
+        },
+        {
+          "url": "https://www.whitehouse.gov/wp-content/uploads/2026/04/hist_intro_fy2027.pdf",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

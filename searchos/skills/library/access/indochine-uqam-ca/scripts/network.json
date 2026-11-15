@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_entry": "direct"
+  },
+  "aliases": {
+    "get_entry": "get_entry",
+    "run": "get_entry"
+  }
+}

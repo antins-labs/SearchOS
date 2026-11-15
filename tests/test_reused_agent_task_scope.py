@@ -12,6 +12,7 @@ from searchos.socm.planning.retry_routes import (
     record_route_outcome,
     route_signature,
 )
+from searchos.socm.refs import cell_key, row_key
 from searchos.tools.search_state import _current_task_id_var
 
 
@@ -27,7 +28,7 @@ def task_context():
 def reused_agent_store():
     state = SearchState()
     state.coverage_map.add_table(
-        "papers", ["Name", "Method"], primary_key=["Name"], entities=["Old", "New"]
+        "papers", ["Name", "Method"], primary_key=["Name"], entities=[row_key(["Old"]), row_key(["New"])]
     )
     for task_id, entity, status in (
         ("old", "Old", FrontierTaskStatus.COMPLETED),
@@ -39,7 +40,7 @@ def reused_agent_store():
             assigned_agent_id="reader",
             status=status,
             table_id="papers",
-            target_cells=[f"papers/{entity}.Method"],
+            target_cells=[cell_key("papers", row_key([entity]), "Method")],
         ))
         state.evidence_graph.nodes.append(EvidenceNode(
             id=f"e_{task_id}",
@@ -64,7 +65,7 @@ def test_reused_agent_projection_uses_current_targets(task_id):
     projection = middleware._projection
     assert [task.id for task in projection._assigned_tasks(store.state)] == ["new"]
     assert projection._resolve_agent_target_cells(store.state) == (
-        {"papers/New.Method"}, {"New"}, "papers",
+        {cell_key("papers", row_key(["New"]), "Method")}, {row_key(["New"])}, "papers",
     )
     assert "New" in text
     assert "Old" not in text
@@ -82,7 +83,7 @@ def test_explicit_projection_task_wins_over_another_running_assignment():
     projection = middleware._projection
     assert [task.id for task in projection._assigned_tasks(store.state)] == ["old"]
     assert projection._resolve_agent_target_cells(store.state) == (
-        {"papers/Old.Method"}, {"Old"}, "papers",
+        {cell_key("papers", row_key(["Old"]), "Method")}, {row_key(["Old"])}, "papers",
     )
     assert "Old" in text
     assert "New" not in text

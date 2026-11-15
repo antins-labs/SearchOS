@@ -3,6 +3,9 @@ Hong Kong Transport Department - Tunnels and Bridges Access Skill
 
 Fetches toll information and tunnel/bridge details from the Hong Kong Transport Department website.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -318,6 +321,7 @@ def filter_tunnels_by_toll(tunnels: list, toll_type: str) -> list:
     return tunnels
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the HK Transport Department skill.
@@ -329,7 +333,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     function = params.get('function', '')
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_time_varying_tolls':
             try:
                 html = await fetch_html(TVT_URL, session)

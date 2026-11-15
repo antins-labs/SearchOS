@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_checklist": "direct",
+    "get_quiz_results": "direct",
+    "get_article": "direct"
+  },
+  "aliases": {
+    "get_article": "get_article",
+    "run": "get_quiz_results",
+    "get_checklist": "get_checklist",
+    "get_quiz_results": "get_quiz_results"
+  }
+}

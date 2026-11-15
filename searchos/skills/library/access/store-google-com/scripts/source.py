@@ -4,6 +4,9 @@ Google Store Product Specs Access Skill
 Extracts detailed product specifications from the Google Store spec pages.
 Uses Playwright to render JavaScript-heavy pages and extract structured spec data.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -25,11 +28,11 @@ async def fetch_product_specs(product_slug: str) -> dict[str, Any]:
     async with async_playwright() as p:
         browser = None
         try:
-            browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context(
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             url = f"https://store.google.com/product/{product_slug}"
             
@@ -215,6 +218,7 @@ async def search_products(query: str) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Google Store access skill.

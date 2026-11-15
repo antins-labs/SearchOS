@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_punk_details": "direct",
+    "get_punk_transactions": "direct"
+  },
+  "aliases": {
+    "get_punk_details": "get_punk_details",
+    "get_punk_transactions": "get_punk_transactions",
+    "run": "get_punk_transactions"
+  }
+}

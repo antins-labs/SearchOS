@@ -4,6 +4,9 @@ Art Gallery of NSW - Prizes Access Skill
 Fetches artwork and artist data from the Art Gallery of NSW prize competitions
 (Archibald, Wynne, Sulman prizes).
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import re
@@ -138,7 +141,7 @@ async def get_prize_year(params: dict) -> dict:
     
     url = f"{BASE_URL}/prizes/{prize}/{year}/"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_html(session, url)
         
         if status != 200:
@@ -195,7 +198,7 @@ async def get_artwork(params: dict) -> dict:
     
     url = f"{BASE_URL}/prizes/{prize}/{year}/{artwork_id}/simple/"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_html(session, url)
         
         if status != 200:
@@ -276,7 +279,7 @@ async def get_gallery_labels(params: dict) -> dict:
     # URL format for in-gallery labels
     url = f"{BASE_URL}/in-gallery/aws{str(year)[-2:]}-labels/{prize}-{year}/"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_html(session, url)
         
         if status != 200:
@@ -321,7 +324,7 @@ async def list_prize_years(params: dict) -> dict:
     
     url = f"{BASE_URL}/prizes/{prize}/"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_html(session, url)
         
         if status != 200:
@@ -370,6 +373,7 @@ async def list_prize_years(params: dict) -> dict:
         return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the Art Gallery of NSW prizes skill.

@@ -26,7 +26,7 @@ from searchos.local.recap.prompts import (
     build_section_prompt,
     build_single_segment_prompt,
 )
-from searchos.util.json_extract import extract_json_object
+from searchos.utils.json_extract import extract_json_object
 
 
 class RecapClient(Protocol):

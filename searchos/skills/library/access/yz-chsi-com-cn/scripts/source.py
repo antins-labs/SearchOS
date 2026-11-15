@@ -8,6 +8,9 @@ This skill provides access to Chinese graduate admission score line data includi
 - Schools by province with score query capabilities
 - Score line detail pages (images and PDF downloads)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 import json
@@ -66,7 +69,7 @@ DEFAULT_HEADERS = {
 
 def _make_client() -> httpx.AsyncClient:
     """Create an async HTTP client with proper configuration."""
-    return httpx.AsyncClient(
+    return _skill_network.httpx_async_client(
         timeout=httpx.Timeout(30.0),
         follow_redirects=True,
         limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
@@ -537,6 +540,7 @@ async def search_universities(params: dict[str, Any], ctx: Any = None) -> dict[s
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Graduate Admission Score Lines skill.

@@ -12,6 +12,9 @@ Provides:
 - Biographical directory links
 - State historical information
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -394,6 +397,7 @@ async def get_state_history(client: httpx.AsyncClient, state_code: str) -> dict[
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Senate.gov access skill.
@@ -416,7 +420,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             "message": "Parameter 'function' is required. Available functions: get_senators_by_state, list_all_states, get_state_history"
         }
     
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         timeout=30.0,
         follow_redirects=True,
         headers={

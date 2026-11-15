@@ -19,7 +19,7 @@ function load(name) {
   } }).outputText, context);
   return context.exports;
 }
-const View = load('SkillCreationProgress').CreationProgressView;
+const { CreationProgressView: View, AgentRoundsView } = load('SkillCreationProgress');
 const job = { id: 'job', status: 'running', stage: 'access_validation', input: { site: 'https://example.com' },
   requests: [{ name: 'example', category: 'access' }], results: [] };
 const progress = { job_id: 'job', request_index: 0, phase: 'validate', validation_rounds: 2, execution_count: 5,
@@ -37,6 +37,15 @@ test('展示全部计划能力、执行与内容结论，未完成能力保留�
     '保留作者与正文', '智答及引用关系', '缺少作者', '执行检查', '内容核验', 'scripts/run.py']) assert.ok(html.includes(text), text);
   assert.match(html, /aria-current="step"/);
   assert.doesNotMatch(html, /全部能力已通过验收/);
+});
+
+test('逐轮展示三个角色的模型回复、工具参数与结果', () => {
+  const turns = { planner: [{ number: 1, at: null, content: '先研究入口', reasoning: null,
+    tool_calls: [{ name: 'search', id: 'a', args: { query: 'science' }, result: { content: '真实结果' } }] }],
+  builder: [{ number: 1, at: null, content: '编写脚本', reasoning: '核对字段', tool_calls: [] }], validator: [] };
+  const html = renderToStaticMarkup(React.createElement(AgentRoundsView, { zh: true, rounds: { roles: turns } }));
+  for (const text of ['Planner', 'Builder', 'Validator', '第 1 轮', '先研究入口', '核对字段',
+    '模型回复', 'search', 'science', '真实结果', '暂无轮次记录']) assert.ok(html.includes(text), text);
 });
 
 test('修复时显示反馈闭环和原失败输入，停止后使用静态状态', () => {

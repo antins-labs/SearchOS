@@ -8,6 +8,9 @@ Supports:
 - List locations within a city
 - Get details for a specific location
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -153,7 +156,7 @@ async def list_cities(params: dict, ctx: Any) -> dict:
     
     url = f"{BASE_URL}/united-states/{state.lower()}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, url)
         
         if status != 200:
@@ -222,7 +225,7 @@ async def list_locations(params: dict, ctx: Any) -> dict:
     
     url = f"{BASE_URL}/united-states/{state.lower()}/{city}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, url)
         
         if status != 200:
@@ -337,7 +340,7 @@ async def get_location(params: dict, ctx: Any) -> dict:
     
     url = f"{BASE_URL}/united-states/{state.lower()}/{city}/{location_slug}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, url)
         
         if status != 200:
@@ -436,6 +439,7 @@ async def search(params: dict, ctx: Any) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict, ctx: Any = None) -> dict:
     """
     Main entry point for the Wendy's location finder skill.

@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "28e1405ed13a297c82512009035e5f69cf14cbcbaf572d06c3b21350144190e3",
+  "capabilities": {
+    "list_terms": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_terms\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.243379+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://pito4za5.api.sanity.io/v1/data/query/production",
+          "status": 200
+        }
+      ]
+    },
+    "get_term_cases": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_term_cases\", \"term\": \"ot2024\", \"status\": \"decided\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.243832+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://pito4za5.api.sanity.io/v1/data/query/production",
+          "status": 200
+        }
+      ]
+    },
+    "get_term_stats": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_term_stats\", \"term\": \"ot2024\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.243892+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_case": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_case\", \"slug\": \"dewberry-group-inc-v-dewberry-engineers-inc\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.243952+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://pito4za5.api.sanity.io/v1/data/query/production",
+          "status": 200
+        }
+      ]
+    },
+    "search_cases": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_cases\", \"query\": \"Dewberry\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.244021+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "list_opinion_authors": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_opinion_authors\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.244086+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://pito4za5.api.sanity.io/v1/data/query/production",
+          "status": 200
+        }
+      ]
+    },
+    "get_cases_by_author": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_cases_by_author\", \"author\": \"Kagan\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.244156+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://pito4za5.api.sanity.io/v1/data/query/production",
+          "status": 200
+        }
+      ]
+    },
+    "get_recent_decisions": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_recent_decisions\", \"limit\": 3, \"term\": \"ot2024\", \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.244242+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://pito4za5.api.sanity.io/v1/data/query/production",
+          "status": 200
+        }
+      ]
+    },
+    "get_upcoming_arguments": {
+      "status": "empty_result",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_upcoming_arguments\", \"term\": \"ot2025\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.244306+00:00",
+      "reason": "no business data in result",
+      "source_responses": [
+        {
+          "url": "https://pito4za5.api.sanity.io/v1/data/query/production",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

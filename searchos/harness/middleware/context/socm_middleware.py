@@ -8,11 +8,11 @@ from datetime import date
 from typing import Any, Literal
 
 from langchain.agents.middleware.types import AgentMiddleware, ModelResponse
-from langchain_core.messages import HumanMessage, RemoveMessage
+from langchain_core.messages import RemoveMessage, SystemMessage
 
-from searchos.harness.middleware.context.utils.projection import TaskProjection
+from searchos.harness.middleware.context.core.task_view import TaskProjection
 from searchos.harness.middleware.models import TaskContext
-from searchos.harness.middleware.sensor.core.models import ControlState
+from searchos.harness.middleware.sensor.core.run_state import ControlState
 from searchos.socm.failure_memory.projection import render_failure_memory
 from searchos.socm.planning.research_plan import render_research_plan
 from searchos.socm.views.render import render_compact_summary, render_orchestrator_view
@@ -85,7 +85,7 @@ class SOCMContextMiddleware(AgentMiddleware):
         text = self.render()
         if self.control is not None:
             self.control.context_snapshot = text
-        content = f"[AUTOMATED HARNESS — state snapshot]\n{text}" if text else ""
+        content = text
         previous = next(
             (m for m in request.messages if m.additional_kwargs.get("sf_kind") == "socm_update"),
             None,
@@ -97,7 +97,7 @@ class SOCMContextMiddleware(AgentMiddleware):
         if content:
             changed = previous is None or previous.content != content
             snapshot = (
-                HumanMessage(
+                SystemMessage(
                     content=content,
                     id="socm-current",
                     additional_kwargs={"sf_synthetic": True, "sf_kind": "socm_update"},

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_profile": "direct"
+  },
+  "aliases": {
+    "get_profile": "get_profile",
+    "run": "get_profile"
+  }
+}

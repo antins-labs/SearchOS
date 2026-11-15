@@ -4,6 +4,9 @@ IMDB Movie/TV Show Data Extractor
 Extracts structured metadata from IMDB title pages using JSON-LD structured data.
 Handles both m.imdb.com and www.imdb.com URLs, with automatic redirect handling.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -71,12 +74,12 @@ async def fetch_imdb_page(url: str, timeout_ms: int = 60000) -> dict:
         dict with success status and either data or error
     """
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate with commit strategy (faster, doesn't wait for full load)
             try:
@@ -222,6 +225,7 @@ def transform_movie_data(data: dict) -> dict:
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute IMDB data extraction.

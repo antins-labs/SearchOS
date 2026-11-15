@@ -7,6 +7,9 @@ Fetches train line information from nswtrains.fandom.com wiki including:
 - Wiki search
 - Categories and related pages
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -410,6 +413,7 @@ async def _list_train_lines(
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Execute NSW Trains Fandom wiki query.
@@ -442,7 +446,7 @@ async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
             "details": "Function parameter required: search, get_line, get_stations, list_lines"
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'search':
             query = params.get('query', '')
             if not query:

@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "df4b6ef3dfa9d6366df2c529af616fd58daba140c0e18cb5616cdadcd4abca85",
+  "capabilities": {
+    "list_museums": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_museums\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.102982+00:00",
+      "reason": "503, message='Service Temporarily Unavailable', url='https://www.hiroshimapeacemedia.jp/mediacenter_d/w_museum/list_en.html'",
+      "source_responses": [
+        {
+          "url": "https://www.hiroshimapeacemedia.jp/mediacenter_d/w_museum/list_en.html",
+          "status": 503
+        }
+      ]
+    },
+    "get_museum": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_museum\", \"slug\": \"20080526231943237_en\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.105190+00:00",
+      "reason": "503, message='Service Temporarily Unavailable', url='https://www.hiroshimapeacemedia.jp/mediacenter_d/w_museum/20080526231943237_en.html'",
+      "source_responses": [
+        {
+          "url": "https://www.hiroshimapeacemedia.jp/mediacenter_d/w_museum/20080526231943237_en.html",
+          "status": 503
+        }
+      ]
+    },
+    "search_museums": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_museums\", \"query\": \"atomic\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.105341+00:00",
+      "reason": "503, message='Service Temporarily Unavailable', url='https://www.hiroshimapeacemedia.jp/mediacenter_d/w_museum/list_en.html'",
+      "source_responses": [
+        {
+          "url": "https://www.hiroshimapeacemedia.jp/mediacenter_d/w_museum/list_en.html",
+          "status": 503
+        }
+      ]
+    },
+    "get_regions": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_regions\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.105422+00:00",
+      "reason": "503, message='Service Temporarily Unavailable', url='https://www.hiroshimapeacemedia.jp/mediacenter_d/w_museum/list_en.html'",
+      "source_responses": [
+        {
+          "url": "https://www.hiroshimapeacemedia.jp/mediacenter_d/w_museum/list_en.html",
+          "status": 503
+        }
+      ]
+    }
+  }
+}

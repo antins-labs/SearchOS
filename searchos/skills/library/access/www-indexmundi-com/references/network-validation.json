@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "051260ddf59af9467ca00af39618b8dd8f3d7843058b5f4352b05492dccbe450",
+  "capabilities": {
+    "list_profile_types": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_profile_types\", \"country\": \"canada\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.127861+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-indexmundi-com/scripts/source.py",
+        "line": 239,
+        "end_line": 244,
+        "implementation": "execute branch",
+        "source_sha256": "aa116b7020f75b3bb4fbb1a8df6e3d6c7458bc6bed6f26b9669d3c08b557efa1",
+        "implementation_sha256": "3bae9b5ec393568aceaebbc60f9dfb55748a1e157d8cecc13100d35f731b77ab"
+      }
+    },
+    "get_profile": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_profile\", \"country\": \"japan\", \"profile_type\": \"economy_profile\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.126771+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.indexmundi.com/japan/economy_profile.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_all_profiles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_profiles\", \"country\": \"australia\", \"profile_types\": [\"geography_profile\", \"demographics_profile\", \"economy_profile\"]}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.127763+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.indexmundi.com/australia/geography_profile.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.indexmundi.com/australia/demographics_profile.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.indexmundi.com/australia/economy_profile.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

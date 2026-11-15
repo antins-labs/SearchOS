@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "35407e9c0716f948d5d8045b53284d45dd05f39d7c6e899f6563973ef52565cd",
+  "capabilities": {
+    "fetch_pdf": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_pdf\", \"url\": \"https://archive.podaac.earthdata.nasa.gov/podaac-ops-cumulus-docs/web-misc/nasa-ssh/NASA-SSH_V1_UserGuide.pdf\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.826869+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://deotb6e7tfubr.cloudfront.net/[redacted]/podaac-ops-cumulus-docs.s3.us-west-2.amazonaws.com/web-misc/nasa-ssh/NASA-SSH_V1_UserGuide.pdf",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_text_data": {
+      "status": "invalid_output",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_text_data\", \"url\": \"https://archive.podaac.earthdata.nasa.gov/podaac-ops-cumulus-docs/nasa-ssh/NASA_SSH_GMSL_INDICATOR.txt\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.864802+00:00",
+      "reason": "TypeError: Object of type bytes is not JSON serializable\n",
+      "source_responses": [
+        {
+          "url": "https://archive.podaac.earthdata.nasa.gov/podaac-ops-cumulus-docs/nasa-ssh/NASA_SSH_GMSL_INDICATOR.txt",
+          "status": 404
+        }
+      ]
+    },
+    "check_url": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"check_url\", \"url\": \"https://archive.podaac.earthdata.nasa.gov/podaac-ops-cumulus-docs/web-misc/nasa-ssh/NASA-SSH_V1_UserGuide.pdf\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.865476+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://deotb6e7tfubr.cloudfront.net/[redacted]/podaac-ops-cumulus-docs.s3.us-west-2.amazonaws.com/web-misc/nasa-ssh/NASA-SSH_V1_UserGuide.pdf",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_file": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_file\", \"url\": \"https://archive.podaac.earthdata.nasa.gov/podaac-ops-cumulus-docs/web-misc/nasa-ssh/NASA-SSH_V1_UserGuide.pdf\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.865965+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://deotb6e7tfubr.cloudfront.net/[redacted]/podaac-ops-cumulus-docs.s3.us-west-2.amazonaws.com/web-misc/nasa-ssh/NASA-SSH_V1_UserGuide.pdf",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -3,6 +3,9 @@ Harvard GSAS Programs Access Skill
 
 Provides access to graduate programs from the Harvard Kenneth C. Griffin Graduate School of Arts and Sciences.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -425,6 +428,7 @@ async def get_applying_info(
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the GSAS Harvard access skill.
@@ -448,7 +452,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             "available_functions": ["list_programs", "get_program", "get_applying_info"],
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "list_programs":
             return await list_programs(
                 session,

@@ -2,6 +2,9 @@
 SearchOS Access Skill for www.thesecondworldwar.org
 Extracts structured historical articles about WWII from the Second World War website.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -10,6 +13,7 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin, urlparse
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute function for thesecondworldwar.org access skill.
@@ -76,7 +80,7 @@ async def get_article(params: dict[str, Any]) -> dict[str, Any]:
     
     url = normalize_url(url_path)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, status = await fetch_page(url, session)
         
         if status != 200 or not html:
@@ -191,7 +195,7 @@ async def get_category(params: dict[str, Any]) -> dict[str, Any]:
     
     url = normalize_url(url_path)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, status = await fetch_page(url, session)
         
         if status != 200 or not html:
@@ -310,7 +314,7 @@ async def search_articles(params: dict[str, Any]) -> dict[str, Any]:
     
     url = normalize_url(category)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, status = await fetch_page(url, session)
         
         if status != 200 or not html:
@@ -379,7 +383,7 @@ async def get_breadcrumbs(params: dict[str, Any]) -> dict[str, Any]:
     
     url = normalize_url(url_path)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, status = await fetch_page(url, session)
         
         if status != 200 or not html:

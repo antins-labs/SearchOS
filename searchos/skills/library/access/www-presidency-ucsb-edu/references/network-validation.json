@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e710e392e2a640875ab9649c9fdcbef1c659373f26732c3c11d4b1c12caff64d",
+  "capabilities": {
+    "get_election": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_election\", \"year\": 2000}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.233302+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.presidency.ucsb.edu/statistics/elections/2000",
+          "status": 200
+        }
+      ]
+    },
+    "get_state_results": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_state_results\", \"year\": 2008, \"state\": \"California\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.233939+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.presidency.ucsb.edu/statistics/elections/2008",
+          "status": 200
+        }
+      ]
+    },
+    "list_elections": {
+      "status": "offline_business_passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_elections\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.234374+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-presidency-ucsb-edu/scripts/source.py",
+        "line": 225,
+        "end_line": 238,
+        "implementation": "list_elections",
+        "source_sha256": "c5ef4a9d916817341765c55151392d8d174b39eaffd4a2d2fcb5a96cb79eae0e",
+        "implementation_sha256": "44ac8221652d85883dd34b97510554a7076f07c0f2d93ec3e5d0f855e15a0192"
+      }
+    }
+  }
+}

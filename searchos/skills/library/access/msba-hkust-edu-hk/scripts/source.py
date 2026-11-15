@@ -4,6 +4,9 @@ HKUST MSBA (Master of Science in Business Analytics) Access Skill
 This skill provides structured access to admission information, program details,
 fees, curriculum, and other relevant data from the HKUST MSBA program website.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -75,7 +78,7 @@ class HKUSTMSBAScraper:
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.9',
             }
-            self.session = aiohttp.ClientSession(headers=headers)
+            self.session = _skill_network.aiohttp_session(headers=headers)
         return self.session
     
     async def _fetch_page(self, path: str) -> str:
@@ -681,6 +684,7 @@ class HKUSTMSBAScraper:
 _scraper: Optional[HKUSTMSBAScraper] = None
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute HKUST MSBA skill functions.

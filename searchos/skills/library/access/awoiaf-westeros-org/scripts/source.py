@@ -4,6 +4,9 @@ SearchOS Access Skill for A Wiki of Ice and Fire (awoiaf.westeros.org)
 This skill extracts structured character and entity data from the A Wiki of Ice and Fire,
 a MediaWiki-based encyclopedia for George R.R. Martin's A Song of Ice and Fire series.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -13,6 +16,7 @@ from typing import Any, Optional
 from urllib.parse import quote
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the skill based on the function parameter.
@@ -62,7 +66,7 @@ async def get_character(params: dict[str, Any]) -> dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession(headers=headers) as session:
+        async with _skill_network.aiohttp_session(headers=headers) as session:
             async with session.get(url, allow_redirects=True) as resp:
                 if resp.status == 404:
                     return {
@@ -132,7 +136,7 @@ async def search_characters(params: dict[str, Any]) -> dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession(headers=headers) as session:
+        async with _skill_network.aiohttp_session(headers=headers) as session:
             async with session.get(url, allow_redirects=True) as resp:
                 if resp.status == 200:
                     # Found the page directly

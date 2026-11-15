@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_routes": "direct",
+    "get_route_details": "proxy"
+  },
+  "aliases": {
+    "get_route_details": "get_route_details",
+    "search_routes": "search_routes",
+    "run": "search_routes"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_ipo_list": "direct",
+    "get_rights_issue_info": "direct",
+    "get_financing_info": "direct",
+    "get_ipo_inquiry_info": "direct",
+    "get_dividend_info": "direct",
+    "get_ipo_process_status": "direct"
+  },
+  "aliases": {
+    "get_ipo_inquiry_info": "get_ipo_inquiry_info",
+    "get_ipo_process_status": "get_ipo_process_status",
+    "get_ipo_list": "get_ipo_list",
+    "get_financing_info": "get_financing_info",
+    "get_dividend_info": "get_dividend_info",
+    "get_rights_issue_info": "get_rights_issue_info",
+    "run": "get_rights_issue_info"
+  }
+}

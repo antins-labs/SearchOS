@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3333dfeff4ba5f47cbcb6d91c02f23a201660641210657b1023a8bddb18dcb9f",
+  "capabilities": {
+    "get_results": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_results\", \"year\": \"2020\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.949540+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.archives.gov/electoral-college/2020",
+          "status": 200
+        }
+      ]
+    },
+    "list_years": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_years\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.950068+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.archives.gov/electoral-college/results",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

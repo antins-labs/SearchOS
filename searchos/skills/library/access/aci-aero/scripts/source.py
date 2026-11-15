@@ -3,6 +3,9 @@ ACI World Airport Rankings Access Skill
 
 Provides access to ACI World's airport traffic rankings and press releases.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -14,6 +17,7 @@ from datetime import datetime
 import io
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for ACI World data access.
@@ -187,7 +191,7 @@ async def get_press_release(params: Dict[str, Any], ctx: Any = None) -> Dict[str
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html = await _fetch_page(session, url, headers)
         if not html:
             return {
@@ -224,7 +228,7 @@ async def list_press_releases(params: Dict[str, Any], ctx: Any = None) -> Dict[s
     articles = []
     seen_urls = set()
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for url in urls_to_check:
             html = await _fetch_page(session, url, headers)
             if not html:
@@ -346,7 +350,7 @@ async def download_preview(params: Dict[str, Any], ctx: Any = None) -> Dict[str,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Get store page to find preview download link
         store_url = 'https://store.aci.aero/product/annual-world-airport-traffic-dataset-2025/'
         html = await _fetch_page(session, store_url, headers)
@@ -427,7 +431,7 @@ async def search_news(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]
     results = []
     seen_urls = set()
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for url in search_urls:
             html = await _fetch_page(session, url, headers)
             if not html:

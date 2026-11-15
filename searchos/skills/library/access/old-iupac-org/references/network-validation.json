@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5b9e85b3c4666fa568e667e3be6898ab181640e36b400097b71b7f27f02cea06",
+  "capabilities": {
+    "get_article": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://old.iupac.org/news/archives/2003/naming110.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.827711+00:00",
+      "reason": "HTTP error: 403, message='Forbidden', url='https://old.iupac.org/news/archives/2003/naming110.html'",
+      "source_responses": [
+        {
+          "url": "https://old.iupac.org/news/archives/2003/naming110.html",
+          "status": 403
+        }
+      ]
+    },
+    "get_archive_listing": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_archive_listing\", \"url\": \"https://old.iupac.org/news/archives-notes.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.828588+00:00",
+      "reason": "HTTP error: 403, message='Forbidden', url='https://old.iupac.org/news/archives-notes.html'",
+      "source_responses": [
+        {
+          "url": "https://old.iupac.org/news/archives-notes.html",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

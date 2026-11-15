@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2629574e2c0d5ccaa4622488605e30edb246136f13f639e6468d1f8435800fdd",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://factsanddetails.com/southeast-asia/Laos/sub5_3a/entry-2936.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.617753+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://factsanddetails.com/southeast-asia/Laos/sub5_3a/entry-2936.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_category": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_category\", \"url\": \"https://factsanddetails.com/southeast-asia/Laos/sub5_3a/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.618607+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://factsanddetails.com/southeast-asia/Laos/sub5_3a/",
+          "status": 200
+        }
+      ]
+    },
+    "get_region": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_region\", \"url\": \"https://factsanddetails.com/southeast-asia/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.618718+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://factsanddetails.com/southeast-asia/",
+          "status": 200
+        }
+      ]
+    },
+    "get_homepage": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_homepage\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.618791+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://factsanddetails.com",
+          "status": 200
+        }
+      ]
+    },
+    "get_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"url\": \"https://factsanddetails.com/southeast-asia/Laos/sub5_3a/entry-2936.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.618871+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://factsanddetails.com/southeast-asia/Laos/sub5_3a/entry-2936.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

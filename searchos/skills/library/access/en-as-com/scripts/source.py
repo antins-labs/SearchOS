@@ -7,6 +7,9 @@ This skill provides access to AS English sports news, specifically:
 
 Target site: https://en.as.com
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -17,6 +20,7 @@ from typing import Any, Optional
 from urllib.parse import urljoin, urlparse
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the AS English skill.
@@ -261,7 +265,7 @@ async def get_article(params: dict[str, Any]) -> dict[str, Any]:
     include_rosters = params.get("include_rosters", "true").lower() != "false"
     include_body = params.get("include_body", "true").lower() != "false"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, error = await _fetch_html(url, session)
         if error:
             return {"error": f"Failed to fetch article: {error}"}
@@ -310,7 +314,7 @@ async def list_articles(params: dict[str, Any]) -> dict[str, Any]:
     limit = min(int(params.get("limit", 20)), 50)
     url = "https://en.as.com/nba/"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, error = await _fetch_html(url, session)
         if error:
             return {"error": f"Failed to fetch NBA section: {error}"}

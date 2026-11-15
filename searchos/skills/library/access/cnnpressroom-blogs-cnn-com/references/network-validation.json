@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d7eb8cf721d8c1739f2b2d20e7bc34b3e9535a797e98b1721653560f8ed36543",
+  "capabilities": {
+    "get_post": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_post\", \"post_id\": 51401}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.560125+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cnnpressroom.blogs.cnn.com/wp-json/wp/v2/posts/51401",
+          "status": 200
+        }
+      ]
+    },
+    "list_posts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_posts\", \"per_page\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.572343+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cnnpressroom.blogs.cnn.com/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    },
+    "search_posts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_posts\", \"query\": \"CNN Hero of the Year\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.572424+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cnnpressroom.blogs.cnn.com/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    },
+    "list_categories": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_categories\", \"orderby\": \"count\", \"per_page\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.572489+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cnnpressroom.blogs.cnn.com/wp-json/wp/v2/categories",
+          "status": 200
+        }
+      ]
+    },
+    "get_category": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_category\", \"slug\": \"cnn-heroes\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.572672+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cnnpressroom.blogs.cnn.com/wp-json/wp/v2/categories",
+          "status": 200
+        }
+      ]
+    },
+    "extract_announcement": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_announcement\", \"post_id\": 51401}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.572737+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cnnpressroom.blogs.cnn.com/wp-json/wp/v2/posts/51401",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

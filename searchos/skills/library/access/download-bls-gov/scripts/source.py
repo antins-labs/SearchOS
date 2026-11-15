@@ -6,6 +6,9 @@ Hours, and Earnings (SM) data files from the BLS public download server.
 
 Data files are tab-delimited with headers and fixed-width column semantics.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -60,7 +63,7 @@ async def fetch_url(
     for attempt in range(retry_count):
         try:
             timeout_config = aiohttp.ClientTimeout(total=timeout)
-            async with aiohttp.ClientSession(timeout=timeout_config) as session:
+            async with _skill_network.aiohttp_session(timeout=timeout_config) as session:
                 async with session.get(url, headers=headers, allow_redirects=True) as response:
                     if response.status == 200:
                         content = await response.text()
@@ -501,6 +504,7 @@ async def handle_parse_series_id(params: dict[str, Any]) -> dict[str, Any]:
     return parse_series_id(series_id)
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for BLS data access skill.

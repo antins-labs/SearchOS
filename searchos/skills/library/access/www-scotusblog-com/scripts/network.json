@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_upcoming_arguments": "inherit",
+    "get_term_stats": "inherit",
+    "list_terms": "direct",
+    "get_recent_decisions": "inherit",
+    "list_opinion_authors": "inherit",
+    "search_cases": "inherit",
+    "get_cases_by_author": "inherit",
+    "get_term_cases": "direct",
+    "get_case": "direct"
+  },
+  "aliases": {
+    "list_terms": "list_terms",
+    "get_term_cases": "get_term_cases",
+    "get_term_stats": "get_term_stats",
+    "get_case": "get_case",
+    "search_cases": "search_cases",
+    "list_opinion_authors": "list_opinion_authors",
+    "get_cases_by_author": "get_cases_by_author",
+    "get_recent_decisions": "get_recent_decisions",
+    "get_upcoming_arguments": "get_upcoming_arguments",
+    "run": "get_upcoming_arguments"
+  }
+}

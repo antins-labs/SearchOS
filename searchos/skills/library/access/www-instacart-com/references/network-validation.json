@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1e91eb33474ea26b9660ea3c21c6865f119ab446a5a39727f487f3f81f679ede",
+  "capabilities": {
+    "get_product": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_product\", \"product_id\": \"20248583\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.127928+00:00",
+      "reason": "HTTP 403: Failed to fetch product page",
+      "source_responses": [
+        {
+          "url": "https://www.instacart.com/store/products/20248583",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

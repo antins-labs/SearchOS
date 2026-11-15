@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e02df5db0833178163b16fc4ccaaaa7dfcddcdde3d8bc13b2400354b8ba04a2b",
+  "capabilities": {
+    "get_airport_routes": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_airport_routes\", \"airport_code\": \"HIA\", \"include_airlines\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.054479+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.flightsfrom.com/HIA",
+          "status": 200
+        }
+      ]
+    },
+    "get_airport_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_airport_info\", \"airport_code\": \"BPL\", \"include_airlines\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.055640+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.flightsfrom.com/BPL",
+          "status": 200
+        }
+      ]
+    },
+    "search_destinations": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_destinations\", \"airport_code\": \"HIA\", \"country\": \"China\", \"include_airlines\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.055777+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.flightsfrom.com/HIA",
+          "status": 200
+        }
+      ]
+    },
+    "get_route_details": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_route_details\", \"from_airport\": \"HIA\", \"to_airport\": \"SZX\", \"include_airlines\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.055981+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.flightsfrom.com/HIA",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

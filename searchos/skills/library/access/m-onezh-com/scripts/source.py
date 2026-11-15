@@ -2,6 +2,9 @@
 SearchOS Access Skill for m.onezh.com (第一展会网)
 Exhibition information portal for Chinese trade shows and exhibitions
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -419,6 +422,7 @@ async def search_by_date_range(params: dict[str, Any], client: httpx.AsyncClient
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the access skill
@@ -443,7 +447,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             'error_code': 'MISSING_FUNCTION'
         }
     
-    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0, follow_redirects=True) as client:
         if function == 'get_detail':
             return await get_exhibition_detail(params, client)
         elif function == 'search':

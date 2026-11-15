@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "975be59e991dd46c69785c990c35cfbcb2f38b6776248195d2a88022579c4cf5",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.history.com/articles/burma-campaign-wwii-road-china\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.105500+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.history.com/articles/burma-campaign-wwii-road-china",
+          "status": 200
+        }
+      ]
+    },
+    "get_topic": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_topic\", \"url\": \"https://www.history.com/topics/world-war-ii\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.107638+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.history.com/topics/world-war-ii",
+          "status": 200
+        }
+      ]
+    },
+    "get_this_day": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_this_day\", \"url\": \"https://www.history.com/this-day-in-history/july-22\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.107916+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.history.com/this-day-in-history/july-22",
+          "status": 200
+        }
+      ]
+    },
+    "get_topics_list": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_topics_list\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.108152+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.history.com",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

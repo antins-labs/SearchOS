@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "fc6ffb5be9ccb12eb3098288faf7d3d9a51b366273549c267a746f5b7fc7f658",
+  "capabilities": {
+    "get_rating": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rating\", \"movie_id\": \"27199894\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.790214+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://m.douban.com/rexxar/api/v2/movie/27199894/rating",
+          "status": 200
+        }
+      ]
+    },
+    "get_credits": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_credits\", \"movie_id\": \"27199894\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.790304+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://m.douban.com/rexxar/api/v2/movie/27199894/credits",
+          "status": 200
+        }
+      ]
+    },
+    "get_detail": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_detail\", \"movie_id\": \"27199894\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.789502+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://m.douban.com/rexxar/api/v2/movie/27199894",
+          "status": 200
+        }
+      ]
+    },
+    "get_reviews": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_reviews\", \"movie_id\": \"27199894\", \"count\": 20, \"order_by\": \"hot\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.790390+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://m.douban.com/rexxar/api/v2/movie/27199894/interests",
+          "status": 200
+        }
+      ]
+    },
+    "get_full": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_full\", \"movie_id\": \"https://m.douban.com/movie/subject/26258779/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.790475+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://m.douban.com/rexxar/api/v2/movie/26258779/rating",
+          "status": 200
+        },
+        {
+          "url": "https://m.douban.com/rexxar/api/v2/movie/26258779/credits",
+          "status": 200
+        },
+        {
+          "url": "https://m.douban.com/rexxar/api/v2/movie/26258779",
+          "status": 200
+        },
+        {
+          "url": "https://m.douban.com/rexxar/api/v2/movie/26258779/interests",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

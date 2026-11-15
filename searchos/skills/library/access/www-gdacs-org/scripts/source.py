@@ -12,6 +12,9 @@ Data sources:
 - GeoJSON: https://www.gdacs.org/contentdata/resources/{type}/{id}/geojson_{id}_{episode}.geojson
 - Event RSS: https://www.gdacs.org/contentdata/resources/{type}/{id}/rss_{id}_{episode}.xml
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -333,11 +336,12 @@ async def search_events(session: aiohttp.ClientSession, query: str = None, event
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """Main entry point for GDACS skill"""
     function = params.get('function', '')
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_event_report':
             event_type = params.get('event_type', 'EQ')
             event_id = params.get('event_id')

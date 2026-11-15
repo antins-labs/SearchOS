@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_available_tables": "direct",
+    "extract_table": "direct",
+    "extract_tables": "direct"
+  },
+  "aliases": {
+    "extract_table": "extract_table",
+    "extract_tables": "extract_tables",
+    "list_available_tables": "list_available_tables",
+    "run": "list_available_tables"
+  }
+}

@@ -6,6 +6,10 @@ Note: ZoomInfo employs aggressive bot detection (PerimeterX + Cloudflare),
 so company profile pages (/c/) are typically blocked.
 Uses httpx which handles TLS/HTTP2 better than aiohttp for this site.
 """
+import contextvars as _skill_contextvars
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -159,7 +163,7 @@ def get_company_profile(params: dict, ctx: Any = None) -> dict:
     
     headers = DEFAULT_HEADERS.copy()
     
-    with httpx.Client(follow_redirects=True) as client:
+    with _skill_network.httpx_client(follow_redirects=True) as client:
         # Try multiple user agents
         user_agents = [
             'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
@@ -213,7 +217,7 @@ def get_public_page(params: dict, ctx: Any = None) -> dict:
             'suggestion': 'Use get_public_page for pages like /about, /blog, etc.'
         }
     
-    with httpx.Client(follow_redirects=True) as client:
+    with _skill_network.httpx_client(follow_redirects=True) as client:
         result = fetch_page_sync(client, url, DEFAULT_HEADERS)
         
         if result.get('status') == 200:
@@ -283,7 +287,7 @@ def get_sitemap(params: dict, ctx: Any = None) -> dict:
     """
     Retrieve ZoomInfo sitemap to discover publicly listed URLs.
     """
-    with httpx.Client(follow_redirects=True) as client:
+    with _skill_network.httpx_client(follow_redirects=True) as client:
         try:
             response = client.get(SITEMAP_URL, headers=DEFAULT_HEADERS, timeout=30.0)
             
@@ -337,6 +341,7 @@ def get_sitemap(params: dict, ctx: Any = None) -> dict:
             return {'error': type(e).__name__, 'message': str(e)}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main executor function for ZoomInfo access skill.
@@ -379,7 +384,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     else:
         # Run sync function in thread pool
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, handler, params, ctx)
+        return await loop.run_in_executor(None, _skill_contextvars.copy_context().run, handler, params, ctx)
 
 
 # For testing

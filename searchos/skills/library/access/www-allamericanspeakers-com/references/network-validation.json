@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1c1863e5305ea7bc3818511b5f018ba6bb0001123ea2dba5dfd9527413ff80db",
+  "capabilities": {
+    "get_profile": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_profile\", \"url\": \"https://www.allamericanspeakers.com/celebritytalentbios/Nelly+Cheboi/464943\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.946969+00:00",
+      "reason": "Failed to fetch speaker profile (HTTP 403)",
+      "source_responses": [
+        {
+          "url": "https://www.allamericanspeakers.com/speakers/464943/Nelly+Cheboi",
+          "status": 403
+        }
+      ]
+    },
+    "get_category": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_category\", \"category\": \"Technology/Artificial-Intelligence\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.948080+00:00",
+      "reason": "Failed to fetch category page (HTTP 403)",
+      "source_responses": [
+        {
+          "url": "https://www.allamericanspeakers.com/category/Technology/Artificial-Intelligence",
+          "status": 403
+        }
+      ]
+    },
+    "search_by_id": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_id\", \"speaker_id\": \"418752\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.948243+00:00",
+      "reason": "Speaker not found (HTTP 403)",
+      "source_responses": [
+        {
+          "url": "https://www.allamericanspeakers.com/speakers/418752",
+          "status": 403
+        }
+      ]
+    },
+    "list_categories": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_categories\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.948314+00:00",
+      "reason": "Failed to fetch main page (HTTP 403)",
+      "source_responses": [
+        {
+          "url": "https://www.allamericanspeakers.com/",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

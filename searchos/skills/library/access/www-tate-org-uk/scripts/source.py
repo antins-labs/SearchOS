@@ -2,12 +2,16 @@
 SearchOS Access Skill for Tate Turner Prize
 Extracts Turner Prize winners, nominees, and bursary recipients from tate.org.uk
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
 from typing import Any, Dict, List, Optional
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx=None) -> Dict[str, Any]:
     """
     Execute Turner Prize data extraction.
@@ -54,12 +58,12 @@ async def get_turner_prize_years(params: Dict[str, Any]) -> Dict[str, Any]:
     from playwright.async_api import async_playwright
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate to Turner Prize page
             try:
@@ -176,12 +180,12 @@ async def get_winners_grid(params: Dict[str, Any]) -> Dict[str, Any]:
     from playwright.async_api import async_playwright
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate to Turner Prize page
             try:
@@ -248,12 +252,12 @@ async def get_bursary_recipients(params: Dict[str, Any]) -> Dict[str, Any]:
     from playwright.async_api import async_playwright
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate to bursaries page
             try:

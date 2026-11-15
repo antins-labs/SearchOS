@@ -10,6 +10,9 @@ but the Open Graph metadata is still available and contains key GPU specs:
 - Memory size, type, and bus width
 - Image URL
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -226,6 +229,7 @@ async def search_gpu_by_id(gpu_id: str, client: httpx.AsyncClient) -> dict[str, 
     return await fetch_gpu_specs(url, client)
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the TechPowerUp GPU Specs skill.
@@ -252,7 +256,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     function = params.get('function', 'fetch_gpu')
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0) as client:
         if function == 'fetch_gpu':
             url = params.get('url')
             if not url:

@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "13796b98ed6a2e62de222ca5fefc252aa00504a2e1787a61ed4cdff5add5541f",
+  "capabilities": {
+    "get_attraction_by_id": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_attraction_by_id\", \"poi_id\": 131183999, \"locale\": \"en-XX\", \"currency\": \"USD\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.816243+00:00",
+      "reason": "Could not extract attraction data from page",
+      "source_responses": [
+        {
+          "url": "https://verify.trip.com/static/tripVerify.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_attraction_by_url": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_attraction_by_url\", \"url\": \"https://my.trip.com/travel-guide/attraction/lintan/yeliguan-scenic-area-131183999\", \"locale\": \"en-XX\", \"currency\": \"USD\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.817323+00:00",
+      "reason": "Could not extract attraction data from page",
+      "source_responses": [
+        {
+          "url": "https://verify.trip.com/static/tripVerify.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_attractions": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_attractions\", \"locale\": \"en-XX\", \"currency\": \"USD\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.817390+00:00",
+      "reason": "Search is not available. Trip.com does not provide a public search API. Please use get_attraction_by_url or get_attraction_by_id with known attraction URLs/IDs.",
+      "source_responses": []
+    }
+  }
+}

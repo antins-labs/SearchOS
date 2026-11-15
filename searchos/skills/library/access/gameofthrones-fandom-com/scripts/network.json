@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_house": "direct",
+    "search": "direct",
+    "get_episode": "direct",
+    "get_page": "direct",
+    "get_character": "direct",
+    "get_section": "direct"
+  },
+  "aliases": {
+    "get_page": "get_page",
+    "search": "search",
+    "get_character": "get_character",
+    "get_episode": "get_episode",
+    "get_house": "get_house",
+    "get_section": "get_section",
+    "run": "get_section"
+  }
+}

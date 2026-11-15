@@ -37,7 +37,7 @@ import {
 
 export interface SubmitOpts {
   sources?: SourceSelection;
-  entities?: string[];
+  entities?: Record<string, string>[];
   attrs?: string[];
   tableLabel?: string;
   primaryKey?: string[];
@@ -45,7 +45,7 @@ export interface SubmitOpts {
   tables?: {
     table_id: string;
     table_label?: string;
-    entities?: string[];
+    entities?: Record<string, string>[];
     attrs: string[];
     primary_key?: string[];
     row_label?: string;
@@ -269,7 +269,7 @@ export default function Composer({
     ? tableMetas.map((meta) => ({
       table_id: meta.tableId,
       table_label: meta.label,
-      entities: cleanList(meta.draft.rows),
+      entities: cleanList(meta.draft.rows)?.map(value => ({ [meta.primaryKey]: value })),
       attrs: meta.attrs,
       primary_key: [meta.primaryKey],
       row_label: meta.label,
@@ -377,10 +377,10 @@ export default function Composer({
     if (localLibrary.mode === "local" && !localLibrary.selection) return;
     onSubmit(body, {
       sources: localLibrary.selection,
-      entities: pinnedRows,
-      attrs: pinnedCols,
+      entities: pinnedRows?.map(value => ({ [resolvedPrimaryKey]: value })),
+      attrs: schemaPinned ? [...new Set([resolvedPrimaryKey, ...pinnedCols ?? []])] : undefined,
       tableLabel: hasDraftTables ? resolvedEntityName || undefined : undefined,
-      primaryKey: hasDraftTables ? [resolvedPrimaryKey] : undefined,
+      primaryKey: schemaPinned ? [resolvedPrimaryKey] : undefined,
       rowLabel: hasDraftTables ? resolvedEntityName || undefined : undefined,
       tables: schemaTables,
       relations: schemaRelations,

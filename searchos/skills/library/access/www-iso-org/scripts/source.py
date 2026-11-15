@@ -8,6 +8,9 @@ wait for the Vaadin JavaScript application to fully load the country data.
 Supports:
 - get_country: Retrieve detailed country code information by 2-letter code
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 from typing import Any
 import asyncio
@@ -39,19 +42,19 @@ async def _extract_country_data(country_code: str) -> dict:
     url = f"https://www.iso.org/obp/ui/#iso:code:3166:{country_code}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
             # Retry logic for reliability
             max_retries = 2
             text_content = ""
             
             for attempt in range(max_retries + 1):
-                context = await browser.new_context(
+                context = await _skill_network.browser_new_context(browser, 
                     user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                     locale='en-US',
                     viewport={'width': 1920, 'height': 1080}
                 )
-                page = await context.new_page()
+                page = await _skill_network.browser_new_page(context)
                 
                 try:
                     # Load page
@@ -183,6 +186,7 @@ def _parse_country_data(text: str, country_code: str) -> dict:
     return data
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the ISO country code skill.

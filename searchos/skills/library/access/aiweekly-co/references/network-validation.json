@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c301fe84cc466861d6ca9b4987a1e2789b38a6a57b886da691e76bc346a15c39",
+  "capabilities": {
+    "get_news_by_date": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/access.py",
+        "get_news_by_date",
+        "--input",
+        "{\"date\":\"October 19\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.598845+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://aiweekly.co/ai-news-today/editions",
+          "status": 200
+        },
+        {
+          "url": "https://aiweekly.co/ai-news-today/edition/2026-10-19",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

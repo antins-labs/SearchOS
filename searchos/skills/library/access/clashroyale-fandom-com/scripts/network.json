@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_cards": "direct",
+    "list_cards": "direct",
+    "get_card": "direct"
+  },
+  "aliases": {
+    "get_card": "get_card",
+    "search_cards": "search_cards",
+    "list_cards": "list_cards",
+    "run": "list_cards"
+  }
+}

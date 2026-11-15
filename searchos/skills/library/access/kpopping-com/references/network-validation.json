@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "281afa0c54abbc8934fe77c1e504bfc28039194aa3285968212572484eac955b",
+  "capabilities": {
+    "get_company_profile": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_company_profile\", \"slug\": \"sm-entertainment\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.762934+00:00",
+      "reason": "Failed to fetch page: 403, message='Forbidden', url='https://kpopping.com/companies/sm-entertainment'",
+      "source_responses": [
+        {
+          "url": "https://kpopping.com/companies/sm-entertainment",
+          "status": 403
+        }
+      ]
+    },
+    "list_companies": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_companies\", \"letter\": \"S\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.764390+00:00",
+      "reason": "Failed to fetch page: 403, message='Forbidden', url='https://kpopping.com/companies'",
+      "source_responses": [
+        {
+          "url": "https://kpopping.com/companies",
+          "status": 403
+        }
+      ]
+    },
+    "search_companies": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_companies\", \"query\": \"Cube\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.764473+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://kpopping.com/companies",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

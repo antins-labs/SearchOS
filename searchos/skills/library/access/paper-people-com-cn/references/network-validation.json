@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b0e369e76836d04ca85740df433374f39f6efca387e90ac9bd81654e30c1ee0d",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://paper.people.com.cn/rmrb/pc/content/202601/20/content_30133983.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.833551+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://paper.people.com.cn/rmrb/pc/content/202601/20/content_30133983.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_layout": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_layout\", \"url\": \"http://paper.people.com.cn/rmrb/pc/layout/202601/20/node_11.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.834165+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://paper.people.com.cn/rmrb/pc/layout/202601/20/node_11.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_index": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_index\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.834248+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://paper.people.com.cn/rmrb/pc/layout/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_by_date": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_date\", \"date\": \"2026-01-20\", \"page\": 11}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.834332+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://paper.people.com.cn/rmrb/pc/layout/202601/20/node_11.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

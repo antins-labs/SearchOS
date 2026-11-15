@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "a5a0ef5a520414f67ece743ee4267def2cd4069455932e143a591b5f153ccc78",
+  "capabilities": {
+    "get_country": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country\", \"country_code\": \"US\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.729691+00:00",
+      "reason": "Country code \"US\" not found in ISO 3166-1.",
+      "source_responses": [
+        {
+          "url": "https://www.iso.org/obp/ui/",
+          "status": 307
+        },
+        {
+          "url": "https://www.iso.org/obp/ui/",
+          "status": 403
+        },
+        {
+          "url": "https://www.iso.org/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

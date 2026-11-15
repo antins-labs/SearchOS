@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "72248afae3284459047fa7dad41a6c5f790dfb453cc89d9091ea91b4909358f9",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"handle\": \"bla:ajecsc:v:85:y:2026:i:3:p:303-314\", \"search_field\": \"all\", \"doc_type\": \"all\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.709138+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ideas.repec.org/a/bla/ajecsc/v85y2026i3p303-314.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_serial": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_serial\", \"handle\": \"bla:ajecsc\", \"search_field\": \"all\", \"doc_type\": \"all\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.709796+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ideas.repec.org/s/bla/ajecsc.html",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"foreign direct investment\", \"doc_type\": \"articles\", \"search_field\": \"all\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.709881+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_citations": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_citations\", \"handle\": \"bla:ajecsc:v:85:y:2026:i:3:p:303-314\", \"search_field\": \"all\", \"doc_type\": \"all\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.709964+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://logec.repec.org/scripts/paperstat.pl",
+          "status": 301
+        },
+        {
+          "url": "https://logec.repec.org/scripts/paperstat.pl",
+          "status": 301
+        },
+        {
+          "url": "https://logec.repec.org/scripts/paperstat.pf",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -3,6 +3,9 @@ ESPN Player Stats Access Skill
 
 Fetches athlete information and statistics from ESPN's API for NBA, NFL, and other sports.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -246,6 +249,7 @@ def format_stats_table(stats_data: dict, category_name: str = None) -> list[dict
     return tables
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute ESPN player stats queries.
@@ -259,7 +263,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     function = params.get("function", "")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "search":
             query = params.get("query", "")
             limit = params.get("limit", 10)

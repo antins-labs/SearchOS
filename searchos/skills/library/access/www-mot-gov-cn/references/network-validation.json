@@ -1,0 +1,155 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "08da7309bc07a85440dec06b8553cb9a9e015d06656526b0db0f8270d372d0e4",
+  "capabilities": {
+    "list_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_articles\", \"page\": 1, \"limit\": 3, \"include_base64\": false, \"count\": 5, \"include_details\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.185033+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/",
+          "status": 200
+        }
+      ]
+    },
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.mot.gov.cn/shuju/tongjishuju/tielu/202602/t20260215_4200440.html\", \"page\": 1, \"limit\": 3, \"include_base64\": false, \"count\": 5, \"include_details\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.187025+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/202602/t20260215_4200440.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_image": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_image\", \"url\": \"https://www.mot.gov.cn/shuju/tongjishuju/tielu/202602/t20260215_4200440.html\", \"include_base64\": true, \"page\": 1, \"limit\": 3, \"count\": 5, \"include_details\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.187112+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/202602/t20260215_4200440.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/202602/W020260215375799663996.png",
+          "status": 200
+        }
+      ]
+    },
+    "search_by_month": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_month\", \"year\": 2026, \"month\": 1, \"page\": 1, \"limit\": 3, \"include_base64\": false, \"count\": 5, \"include_details\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.187184+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/",
+          "status": 200
+        },
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/index_1.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/index_2.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/index_3.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/index_4.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/index_5.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/index_6.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/index_7.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/index_8.html",
+          "status": 404
+        }
+      ]
+    },
+    "list_latest": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_latest\", \"count\": 5, \"include_details\": true, \"page\": 1, \"limit\": 3, \"include_base64\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.188074+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/",
+          "status": 200
+        },
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/202610/t20261023_4226515.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/202610/t20261013_4225797.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/202608/t20260820_4222779.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/202607/t20260722_4210205.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.mot.gov.cn/shuju/tongjishuju/tielu/202606/t20260624_4208152.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

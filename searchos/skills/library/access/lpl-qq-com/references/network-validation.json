@@ -1,0 +1,251 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "9610c4946ed1df56ae451ac4cc7060802a30f4c894fe66a2e3fe3051f60414f0",
+  "capabilities": {
+    "get_seasons": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_seasons\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.787421+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://lol.qq.com/act/AutoCMS/publish/LOLWeb/EventdataTab/EventdataTab.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_teams": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_teams\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.106678+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://lpl.qq.com/web201612/data/LOL_MATCH2_TEAM_LIST.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_team_detail": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_team_detail\", \"team_id\": \"1\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:29.526808+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://lpl.qq.com/web202301/team-detail.html",
+          "status": 200
+        },
+        {
+          "url": "https://lpl.qq.com/web202301/css/team-detail.css",
+          "status": 200
+        },
+        {
+          "url": "https://lpl.qq.com/web202301/css/common.css",
+          "status": 200
+        },
+        {
+          "url": "https://lpl.qq.com/web202301/js/common.js",
+          "status": 200
+        },
+        {
+          "url": "https://lpl.qq.com/web201612/data/LOL_MATCH2_GAME_LIST_BRIEF.js",
+          "status": 200
+        },
+        {
+          "url": "https://lpl.qq.com/web201612/data/LOL_MATCH2_TEAM_LIST.js",
+          "status": 200
+        },
+        {
+          "url": "https://lpl.qq.com/web202301/js/echarts.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://lpl.qq.com/web202301/js/team-detail.js",
+          "status": 200
+        },
+        {
+          "url": "https://js.aq.qq.com/js/aq_common.js",
+          "status": 200
+        },
+        {
+          "url": "https://gameact.qq.com/comm-htdocs/js/game_area/lol_server_select.js",
+          "status": 200
+        },
+        {
+          "url": "https://ossweb-img.qq.com/images/js/milo_bundle/milo.js",
+          "status": 200
+        },
+        {
+          "url": "https://ossweb-img.qq.com/images/js/jquery/jquery-1.9.1.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/js/2018foot/foot.js",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/lpl/web202301/nav-line.png",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/lpl/web202301/nav-float-logo-worlds.png",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/lpl/web202301/logo-lol.png",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/js/plugin/report/atReport.js",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/lpl/web202301/logo-rigo.png",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/lpl/web202301/logo-tencent-game.png",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/lpl/web202301/nav-side-img-2026.jpg",
+          "status": 200
+        }
+      ]
+    },
+    "get_rank_data": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rank_data\", \"season_id\": \"237\", \"data_type\": \"player\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:29.601734+00:00",
+      "reason": "Rank API endpoint not accessible (404). The data may require browser rendering or authentication.",
+      "source_responses": [
+        {
+          "url": "https://lpl.qq.com/compound/public/player",
+          "status": 404
+        }
+      ]
+    },
+    "get_rank_page_content": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rank_page_content\", \"season_id\": \"237\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:29.602133+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://lpl.qq.com/web202301/rank.html",
+          "status": 200
+        },
+        {
+          "url": "https://lpl.qq.com/web202301/css/common.css",
+          "status": 200
+        },
+        {
+          "url": "https://lpl.qq.com/web202301/css/rank.css",
+          "status": 200
+        },
+        {
+          "url": "https://lpl.qq.com/web202301/js/rank.js",
+          "status": 200
+        },
+        {
+          "url": "https://lpl.qq.com/web202301/js/common.js",
+          "status": 200
+        },
+        {
+          "url": "https://lpl.qq.com/web201612/data/LOL_MATCH2_TEAM_LIST.js",
+          "status": 200
+        },
+        {
+          "url": "https://lol.qq.com/v3/js/swiper2.7.6-with-scrollbar.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://lol.qq.com/v3/css/swiper2.7.6-with-scrollbar.css",
+          "status": 200
+        },
+        {
+          "url": "https://lol.qq.com/act/AutoCMS/publish/LOLWeb/EventdataTab/EventdataTab.js",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/js/2018foot/foot.js",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/lpl/web202301/nav-side-img-2026.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/js/plugin/report/atReport.js",
+          "status": 200
+        },
+        {
+          "url": "https://js.aq.qq.com/js/aq_common.js",
+          "status": 200
+        },
+        {
+          "url": "https://gameact.qq.com/comm-htdocs/js/game_area/lol_server_select.js",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/lpl/web202301/nav-float-logo-worlds.png",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/lpl/web202301/nav-line.png",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/lpl/web202301/logo-lol.png",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/lpl/web202301/logo-tencent-game.png",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/lpl/web202301/logo-rigo.png",
+          "status": 200
+        },
+        {
+          "url": "https://game.gtimg.cn/images/lpl/web202301/player-pos-spr2.png",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

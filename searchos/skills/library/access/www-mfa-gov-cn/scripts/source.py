@@ -2,12 +2,16 @@
 SearchOS Access Skill for Chinese Ministry of Foreign Affairs (MFA) Visa Agreement Data
 Extracts structured visa exemption agreement table from www.mfa.gov.cn
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 from typing import Any
 from playwright.async_api import async_playwright
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute function for MFA visa agreement skill.
@@ -44,9 +48,9 @@ async def fetch_page_data(url: str = None) -> dict:
         url = "https://www.mfa.gov.cn/wjbzwfwpt/kzx/tzgg/202504/t20250414_11594222.html"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 locale='zh-CN',
                 extra_http_headers={
                     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -54,7 +58,7 @@ async def fetch_page_data(url: str = None) -> dict:
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
                 }
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until='domcontentloaded', timeout=60000)
             await page.wait_for_timeout(2000)

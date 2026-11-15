@@ -4,6 +4,9 @@ Haodf.com Hospital Profile Extractor
 Extracts structured hospital information from haodf.com hospital pages,
 including basic info, ranking, statistics, departments, and more.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import re
@@ -302,7 +305,7 @@ async def get_hospital_basic_info(hospital_id: int, ctx: Any = None) -> Dict[str
         Dictionary with hospital basic information
     """
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_hospital_page(session, hospital_id)
             
             initial_state = parse_initial_state(html)
@@ -332,7 +335,7 @@ async def get_hospital_ranking(hospital_id: int, ctx: Any = None) -> Dict[str, A
         Dictionary with ranking and statistics information
     """
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_hospital_page(session, hospital_id)
             
             initial_state = parse_initial_state(html)
@@ -399,7 +402,7 @@ async def get_hospital_departments(hospital_id: int, ctx: Any = None) -> Dict[st
         Dictionary with department information
     """
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_hospital_page(session, hospital_id)
             
             initial_state = parse_initial_state(html)
@@ -463,7 +466,7 @@ async def get_hospital_campuses(hospital_id: int, ctx: Any = None) -> Dict[str, 
         Dictionary with campus information
     """
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_hospital_page(session, hospital_id)
             
             initial_state = parse_initial_state(html)
@@ -503,6 +506,7 @@ async def get_hospital_campuses(hospital_id: int, ctx: Any = None) -> Dict[str, 
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the haodf.com hospital extractor.

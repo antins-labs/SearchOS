@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d252a5389dfab8f398b1519ab153a739a1304ce75cac524d33e9c1bb4cdaa4d2",
+  "capabilities": {
+    "get_site": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_site\", \"site_slug\": \"grand_canyon_national_park\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.395770+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.worldheritageexplorer.org/sites/grand_canyon_national_park.html",
+          "status": 200
+        }
+      ]
+    },
+    "list_sites": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_sites\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.399941+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.worldheritageexplorer.org/toc.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_sites": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_sites\", \"query\": \"canyon\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.403881+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.worldheritageexplorer.org/toc.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_site_by_wh_id": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_site_by_wh_id\", \"wh_id\": \"75\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.404097+00:00",
+      "reason": "Direct ID lookup not supported. Use search_sites or list_sites to find the site by name first.",
+      "source_responses": []
+    }
+  }
+}

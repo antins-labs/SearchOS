@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5d2db430cdbeb02e84324190e7f0a7890ed23ebe27c5d5a6bc9cc8e6495ed528",
+  "capabilities": {
+    "list_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_articles\", \"page\": 1, \"start_page\": 1, \"end_page\": 1, \"max_articles\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.223611+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/",
+          "status": 200
+        }
+      ]
+    },
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"http://www.nra.gov.cn/xwzx/zlzx/hytj/202204/t20220405_338094.shtml\", \"page\": 1, \"start_page\": 1, \"end_page\": 1, \"max_articles\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.224942+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/202204/t20220405_338094.shtml",
+          "status": 200
+        }
+      ]
+    },
+    "get_article_image": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article_image\", \"url\": \"http://www.nra.gov.cn/xwzx/zlzx/hytj/202605/t20260512_351217.shtml\", \"page\": 1, \"start_page\": 1, \"end_page\": 1, \"max_articles\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.225087+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/202605/t20260512_351217.shtml",
+          "status": 200
+        },
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/202605/W020260512646560621585.jpg",
+          "status": 200
+        }
+      ]
+    },
+    "get_stats_history": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_stats_history\", \"start_page\": 1, \"end_page\": 3, \"max_articles\": 10, \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.225294+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/",
+          "status": 200
+        },
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/202610/t20261019_352192.shtml",
+          "status": 200
+        },
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/202609/t20260918_352059.shtml",
+          "status": 200
+        },
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/202608/t20260818_351816.shtml",
+          "status": 200
+        },
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/202607/t20260714_351658.shtml",
+          "status": 200
+        },
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/202606/t20260615_351434.shtml",
+          "status": 200
+        },
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/202605/t20260529_351347.shtml",
+          "status": 200
+        },
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/202605/t20260512_351217.shtml",
+          "status": 200
+        },
+        {
+          "url": "http://www.nra.gov.cn/zdxx/lxwm/202106/t20210609_188811.shtml",
+          "status": 200
+        },
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/index_1.shtml",
+          "status": 200
+        },
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/202604/t20260413_351055.shtml",
+          "status": 200
+        },
+        {
+          "url": "http://www.nra.gov.cn/xwzx/zlzx/hytj/202603/t20260311_350879.shtml",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

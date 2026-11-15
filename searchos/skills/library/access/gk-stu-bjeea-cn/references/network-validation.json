@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "f77ab0f3cb4b16e6702a27b113bc8fd5cca68fe8aa6b80532fad465213bd43e0",
+  "capabilities": {
+    "query_score_lines": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"query_score_lines\", \"list_batches\": true, \"year\": \"2024\", \"batch\": \"\", \"keywords\": \"\", \"province\": \"\", \"page\": 1, \"page_size\": 3, \"list_years\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.684642+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gk-stu.bjeea.cn/",
+          "status": 200
+        },
+        {
+          "url": "https://gk-stu.bjeea.cn/themis-student-service-api/rpc",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

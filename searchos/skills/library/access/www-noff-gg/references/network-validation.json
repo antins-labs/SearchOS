@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3ccdfa8e7383ff9413861aca6b80bd02450503cdb8e6083c818ac92b1e5cce1e",
+  "capabilities": {
+    "get_card": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_card\", \"card_name\": \"mega-knight\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.300488+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.noff.gg/clash-royale/card/mega-knight",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/css/global.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/css/gdpr.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/clash-royale/res/css/card.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/img/nav/game-crk.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/img/nav/game-overwatch-rush.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/clash-royale/res/img/cards/zap.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/css/announcement-banner.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/img/nav/game-cros.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/img/nav/game-clash-royale.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/img/nav/game-warcraft-rumble.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/clash-royale/res/img/cards/mega_knight.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/img/nav/game-sonic-blitz.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/img/nav/game-moco.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/img/nav/more.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/img/nav/clash-royale/home.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/img/nav/clash-royale/decks.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/img/nav/clash-royale/deck-builder.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.noff.gg/_res/img/nav/clash-royale/cards.svg",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

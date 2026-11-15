@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_chart_data": "direct",
+    "list_forum_topics": "direct",
+    "get_topic_posts": "direct"
+  },
+  "aliases": {
+    "get_chart_data": "get_chart_data",
+    "get_topic_posts": "get_topic_posts",
+    "list_forum_topics": "list_forum_topics",
+    "run": "list_forum_topics"
+  }
+}

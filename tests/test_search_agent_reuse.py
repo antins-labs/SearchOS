@@ -55,7 +55,7 @@ async def harness(tmp_path, monkeypatch):
     workspace.create()
     workspace.save_state(SearchState(
         intent="研究项目 Alpha 和 Beta 的独立来源事实。",
-        research_mode="findings", source_scope={"mode": "web"},
+        source_scope={"mode": "web"},
     ))
     monkeypatch.setattr(settings, "enable_scheduler", True)
     monkeypatch.setattr(settings, "enable_writer_agent", False)
@@ -87,7 +87,7 @@ async def harness(tmp_path, monkeypatch):
         def add(state):
             state.frontier.add(FrontierTask(
                 id=task_id, question=brief, task_prompt=brief,
-                kind="search", agent_type="search_agent", result_mode="findings",
+                kind="search", agent_type="search_agent",
             ))
             return state
 
@@ -99,8 +99,8 @@ async def harness(tmp_path, monkeypatch):
 
     async def enqueue(agent_id, task_id="second", brief="检查 Beta 的资料。", **kwargs):
         return await enqueue_items([{
-            "id": task_id, "agent_type": "search_agent", "task": brief,
-            "result_mode": "findings", "agent_id": agent_id, **kwargs,
+            "task_id": task_id, "agent_type": "search_agent", "task": brief,
+            "agent_id": agent_id, **kwargs,
         }])
 
     yield SimpleNamespace(
@@ -267,8 +267,8 @@ async def test_two_queued_tasks_for_same_agent_execute_serially(harness):
     agent_id = await harness.spawn()
     await runtime._ctx.task_pool[agent_id]
     receipt = await enqueue_items([
-        {"id": task_id, "agent_type": "search_agent", "task": f"Research {task_id}.",
-         "result_mode": "findings", "agent_id": agent_id}
+        {"task_id": task_id, "agent_type": "search_agent", "task": f"Research {task_id}.",
+         "agent_id": agent_id}
         for task_id in ("second", "third")
     ])
     assert receipt["queued"] == ["second", "third"]
@@ -337,8 +337,10 @@ async def test_reuse_does_not_spend_another_agent_creation_slot(harness, monkeyp
 async def test_reuse_executes_loaded_snapshot_without_reloading_and_isolates_work(
     harness, tmp_path, monkeypatch,
 ):
-    from searchos.skills.core.schema import parse_skill_file
+    from searchos.skills.core.skill_markdown import parse_skill_file
     from searchos.tools.skills import execution
+    from searchos.tools.exec import exec_code
+    from searchos.skills.runtime.command_runtime import run_command as real_run_command
 
     package = tmp_path / "sample-skill"
     package.mkdir()
@@ -352,6 +354,9 @@ async def test_reuse_executes_loaded_snapshot_without_reloading_and_isolates_wor
     executions = []
 
     async def run_command(skill_dir, argv, *, work_dir, execution_dir, **kwargs):
+        if kwargs.get('runtime_env'):
+            return await real_run_command(skill_dir, argv, work_dir=work_dir,
+                                          execution_dir=execution_dir, **kwargs)
         executions.append({
             "package": skill_dir, "work": work_dir,
             "script": (skill_dir / "run.py").read_text(),
@@ -366,7 +371,7 @@ async def test_reuse_executes_loaded_snapshot_without_reloading_and_isolates_wor
 
     monkeypatch.setattr("searchos.skills.runtime.command_runtime.run_command", run_command)
     execute = AIMessage(content="", tool_calls=[{
-        "name": "exec", "args": {"skill": "sample-skill", "argv": ["python", "run.py"]},
+        "name": "exec", "args": {"argv": ["searchanything", "run", "sample-skill", "--", "python", "run.py"]},
         "id": "same-call-id-across-tasks",
     }])
     model = harness.configure([
@@ -375,7 +380,7 @@ async def test_reuse_executes_loaded_snapshot_without_reloading_and_isolates_wor
         }]),
         execute, AIMessage("First task checked."),
         execute.model_copy(deep=True), AIMessage("Second task checked."),
-    ], [execution.load_skill, execution.exec_skill])
+    ], [execution.load_skill, exec_code])
     agent_id = await harness.spawn()
     await runtime._ctx.task_pool[agent_id]
     assert len(executions) == 1
@@ -414,7 +419,7 @@ async def test_local_agent_reuse_preserves_authorized_document_context(harness, 
         state.source_scope = scope
         state.frontier.add(FrontierTask(
             id="first", question="检查本地研究目标。", kind="search",
-            agent_type="local_search_agent", result_mode="findings",
+            agent_type="local_search_agent",
         ))
         return state
 
@@ -458,8 +463,8 @@ async def test_reuse_rejects_an_agent_still_running(harness):
 
 
 @pytest.mark.asyncio
-async def test_check_agents_delivers_every_uncollected_reuse_report_once(harness):
-    from searchos.tools.tasks.reports import check_agents
+async def test_report_collection_delivers_every_uncollected_reuse_report_once(harness):
+    from searchos.tools.tasks.reports import collect_agent_reports
 
     harness.configure([
         AIMessage("FIRST RESULT"), AIMessage("SECOND RESULT"), AIMessage("THIRD RESULT"),
@@ -471,21 +476,22 @@ async def test_check_agents_delivers_every_uncollected_reuse_report_once(harness
         assert receipt["queued"] == [task_id]
         await runtime._ctx.task_pool[agent_id]
 
-    collected = json.loads(await check_agents.ainvoke({"timeout": 0.01}))
-    assert [report["task_ids"] for report in collected["reports"]] == [
+    collected = [await collect_agent_reports(timeout=0.01) for _ in range(3)]
+    assert [delivery["pending_report_count"] for delivery in collected] == [2, 1, 0]
+    assert all(len(delivery["reports"]) == 1 and delivery["remaining"] == 0 for delivery in collected)
+    assert [delivery["reports"][0]["task_ids"] for delivery in collected] == [
         ["first"], ["second"], ["third"],
     ]
-    assert [report["agent_report"]["text"] for report in collected["reports"]] == [
+    assert [delivery["reports"][0]["agent_report"]["text"] for delivery in collected] == [
         "FIRST RESULT", "SECOND RESULT", "THIRD RESULT",
     ]
-    assert collected["remaining"] == 0
-    again = json.loads(await check_agents.ainvoke({"timeout": 0.01}))
+    again = await collect_agent_reports(timeout=0.01)
     assert again["reports"] == []
 
 
 @pytest.mark.asyncio
-async def test_check_agents_pre_tick_reuse_keeps_preceding_report(harness):
-    from searchos.tools.tasks.reports import check_agents
+async def test_report_collection_pre_tick_reuse_keeps_preceding_report(harness):
+    from searchos.tools.tasks.reports import collect_agent_reports
 
     harness.configure([AIMessage("FIRST RESULT"), AIMessage("SECOND RESULT")])
     agent_id = await harness.spawn()
@@ -495,19 +501,21 @@ async def test_check_agents_pre_tick_reuse_keeps_preceding_report(harness):
         state.frontier.add(FrontierTask(
             id="second", question="Check the independent Beta experiment.",
             task_prompt="Check the independent Beta experiment.", kind="search",
-            agent_type="search_agent", result_mode="findings", requested_agent_id=agent_id,
+            agent_type="search_agent", requested_agent_id=agent_id,
         ))
         return state
 
     harness.workspace.atomic_update_state(enqueue_without_tick)
     runtime._scheduler().allow_tasks(["second"])
-    collected = json.loads(await check_agents.ainvoke({"timeout": 1}))
-    assert [report["task_ids"] for report in collected["reports"]] == [["first"], ["second"]]
-    assert [report["agent_report"]["text"] for report in collected["reports"]] == [
+    collected = await collect_agent_reports(timeout=1)
+    assert [report["task_ids"] for report in collected["reports"]] == [["first"]]
+    second = await collect_agent_reports(timeout=1)
+    assert [report["task_ids"] for report in second["reports"]] == [["second"]]
+    assert [report["agent_report"]["text"] for report in collected["reports"] + second["reports"]] == [
         "FIRST RESULT", "SECOND RESULT",
     ]
     assert len(runtime._ctx.agent_graphs) == 1
-    again = json.loads(await check_agents.ainvoke({"timeout": 0.01}))
+    again = await collect_agent_reports(timeout=0.01)
     assert again["reports"] == []
 
 

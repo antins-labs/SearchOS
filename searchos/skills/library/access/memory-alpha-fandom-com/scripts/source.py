@@ -2,6 +2,9 @@
 Memory Alpha (Star Trek Wiki) Access Skill
 Fetches structured article data from memory-alpha.fandom.com via MediaWiki API
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -95,7 +98,7 @@ async def get_article(title: str, include_content: bool = True) -> dict:
     Returns:
         Article data with infobox, categories, and optional content
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Query for article data
         params = {
             'action': 'query',
@@ -200,7 +203,7 @@ async def search_articles(query: str, limit: int = 10) -> dict:
     """
     limit = min(max(1, limit), 50)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         params = {
             'action': 'query',
             'list': 'search',
@@ -249,7 +252,7 @@ async def get_category(category: str, limit: int = 20, continue_token: str = Non
     if not category.lower().startswith('category:'):
         category = f'Category:{category}'
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         params = {
             'action': 'query',
             'list': 'categorymembers',
@@ -299,7 +302,7 @@ async def get_random_articles(limit: int = 5) -> dict:
     """
     limit = min(max(1, limit), 10)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         params = {
             'action': 'query',
             'list': 'random',
@@ -323,6 +326,7 @@ async def get_random_articles(limit: int = 5) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Memory Alpha API operations.

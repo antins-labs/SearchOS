@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_releases": "direct",
+    "get_discography": "direct",
+    "get_release": "direct"
+  },
+  "aliases": {
+    "get_discography": "get_discography",
+    "get_release": "get_release",
+    "search_releases": "search_releases",
+    "run": "search_releases"
+  }
+}

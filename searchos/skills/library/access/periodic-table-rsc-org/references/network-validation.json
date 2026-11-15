@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "adfd6659a1aba3acf722a86b2c24f323af4e88cf361462170fe7be4347baa324",
+  "capabilities": {
+    "get_element": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_element\", \"atomic_number\": 109, \"element_name\": \"meitnerium\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.837590+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://periodic-table.rsc.org/element/109/meitnerium",
+          "status": 200
+        }
+      ]
+    },
+    "search_element": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_element\", \"query\": \"Au\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.838100+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://periodic-table.rsc.org/element/79/gold",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

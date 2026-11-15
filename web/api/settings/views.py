@@ -59,7 +59,7 @@ def models_view() -> dict:
     from searchos.config.model_purposes import purpose_groups_view
     from searchos.config.providers import active_provider
     from searchos.config.settings import settings
-    from searchos.tools.simple_browser.search import (
+    from searchos.tools.simple_browser.search_providers import (
         SEARCH_PROVIDER_INFO,
         resolve_search_provider_name,
     )
@@ -81,6 +81,7 @@ def models_view() -> dict:
             "api_key_set": key_set(p.api_key_env, p.api_key_fallback),
             "temperature": p.temperature,
             "max_tokens": p.max_tokens,
+            "max_input_tokens": p.input_budget,
             "rpm": p.rpm,
             "tpm": p.tpm,
             "enable_thinking": p.enable_thinking,
@@ -89,7 +90,7 @@ def models_view() -> dict:
             "provider_ref": provider_ref,
             "overridden": sorted(
                 f for f in ("model", "api_base", "api_key_env", "provider_ref",
-                            "temperature", "enable_thinking", "rpm", "tpm")
+                            "temperature", "enable_thinking", "rpm", "tpm", "max_input_tokens")
                 if ov is not None and getattr(ov, f) is not None
             ),
         }
@@ -146,7 +147,7 @@ def run_defaults_view() -> dict:
 
     rd = store.run_defaults
     from searchos.config.models import resolve_profile
-    from searchos.tools.simple_browser.image_reading import capability_status
+    from searchos.tools.simple_browser.images import capability_status
 
     agent_profile = resolve_profile("sub_agent")
     vision_profile = resolve_profile("local_vision")
@@ -166,29 +167,38 @@ def run_defaults_view() -> dict:
 
 
 def advanced_view() -> dict:
-    """First-class runtime knobs. Proxy / cache dir are NOT secrets — echo the
-    resolved value so the field round-trips. ``overridden`` lists which knobs the
-    overlay currently pins (vs. env/code default)."""
+    """运行参数与当前覆盖项。"""
     from searchos.config.settings import settings
 
     adv = store.advanced
-    proxy = adv.https_proxy if adv.https_proxy is not None else (
-        os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY") or ""
-    )
     return {
         "llm_max_retries": settings.llm_max_retries,
         "orch_coverage_stall_rounds": settings.orch_coverage_stall_rounds,
         "browser_disk_cache_dir": settings.browser_disk_cache_dir,
-        "https_proxy": proxy,
+        "browser_modes": dict(settings.browser_modes),
         "search_max_results": settings.search_max_results,
         "use_layered_context": settings.use_layered_context,
         "overridden": sorted(
             f for f in (
                 "llm_max_retries", "orch_coverage_stall_rounds",
-                "browser_disk_cache_dir", "https_proxy", "use_layered_context",
+                "browser_disk_cache_dir", "browser_modes", "use_layered_context",
             )
             if getattr(adv, f) is not None
         ),
+    }
+
+
+def network_view() -> dict:
+    from searchos.config.settings_overlay import ensure_network_overlay
+
+    ensure_network_overlay()
+    network = store.network
+    return {
+        "proxy_url": network.proxy_url,
+        "auto_route": network.auto_route,
+        "routes": dict(network.routes),
+        "source": network.source,
+        "credential_set": bool(network.proxy_auth_env),
     }
 
 
@@ -202,5 +212,6 @@ def aggregate_view() -> dict:
         "models": models_view(),
         "run_defaults": run_defaults_view(),
         "advanced": advanced_view(),
+        "network": network_view(),
         "middleware": middleware_view(settings),
     }

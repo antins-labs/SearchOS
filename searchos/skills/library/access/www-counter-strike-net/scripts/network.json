@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_news_entry": "direct",
+    "search_updates": "inherit",
+    "list_updates": "proxy"
+  },
+  "aliases": {
+    "list_updates": "list_updates",
+    "get_news_entry": "get_news_entry",
+    "search_updates": "search_updates",
+    "run": "search_updates"
+  }
+}

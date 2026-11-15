@@ -5,6 +5,9 @@ Fetches company data from caat.org.uk/data/companies/ pages.
 Uses both the direct API (data.caat.org.uk) for structured data and
 page scraping for description and additional links.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -98,7 +101,7 @@ def parse_page_html(html: str, base_url: str) -> dict:
 
 async def get_company_data(slug: str) -> dict:
     """Get comprehensive company data from both API and page."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Fetch both API and page data concurrently
         api_task = fetch_api_data(session, slug)
         page_task = fetch_page_data(session, slug)
@@ -200,6 +203,7 @@ async def get_company_by_name(name: str) -> dict:
     return await get_company_data(slug)
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute CAAT company data lookup.

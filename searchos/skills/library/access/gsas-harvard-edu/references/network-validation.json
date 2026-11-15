@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "37af79484efa8f6cc2125491b897e22b2c410158332adea3d3cfae1e6d2e162f",
+  "capabilities": {
+    "list_programs": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_programs\", \"degrees_offered\": \"Doctor of Philosophy (PhD)\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.699493+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gsas.harvard.edu/programs",
+          "status": 200
+        }
+      ]
+    },
+    "get_program": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_program\", \"program_url\": \"computer-science\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.700360+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gsas.harvard.edu/program/computer-science",
+          "status": 200
+        }
+      ]
+    },
+    "get_applying_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_applying_info\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.700435+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gsas.harvard.edu/apply/applying-degree-programs",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

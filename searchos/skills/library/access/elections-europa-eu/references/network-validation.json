@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e241421872c35856545fc8d78e211cd608d07eed6b63abeaa74e5c9ae5c573dd",
+  "capabilities": {
+    "get_country_voting_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country_voting_info\", \"country_code\": \"fr\", \"language\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.599457+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://elections.europa.eu/en/how-to-vote/fr/",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/_next/static/css/914ba894683bc9a9.css",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/_next/static/css/aed0fb379438bcb3.css",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/_next/static/css/09efad22a218f0d4.css",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/assets/img/logos/logo-ep-en.svg",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/_next/static/chunks/webpack-dae975a0ce864c2a.js",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/_next/static/chunks/c35da8bb-c66f024d9970a3e7.js",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/_next/static/chunks/main-app-22e99f621a64b586.js",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/_next/static/chunks/583-050f8b257985cbf4.js",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/_next/static/chunks/app/%5B%5B...slug%5D%5D/layout-e8caf2f7a345858b.js",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/_next/static/chunks/33-185d4b5b165a29b6.js",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/_next/static/chunks/app/%5B%5B...slug%5D%5D/page-8c2cd53375abf936.js",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/_next/static/media/Europea-Regular.78580b83.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/_next/static/media/EuropeaVar.2079dd1f.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/_next/static/media/Europea-Bold.ae58be8c.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://elections.europa.eu/assets/privacy-policy/ati-ee24.js",
+          "status": 200
+        }
+      ]
+    },
+    "list_available_countries": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_available_countries\", \"language\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:18:59.135836+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/elections-europa-eu/scripts/source.py",
+        "line": 202,
+        "end_line": 245,
+        "implementation": "_list_available_countries",
+        "source_sha256": "0f73ecc25ab73fb52c58b1b9f7736d23869612dfbe8fc51ca832da3733f10c92",
+        "implementation_sha256": "12e99b2e610fea76b674b97c50f27d0c0de33db5384dbf34e29910da3666e598"
+      }
+    }
+  }
+}

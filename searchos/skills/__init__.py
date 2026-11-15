@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 
 from searchos.skills.catalog.registry import SkillRegistry
-from searchos.skills.core.schema import parse_skill_file, parse_skill_text
+from searchos.skills.core.skill_markdown import parse_skill_file, parse_skill_text
 from searchos.skills.intent import SkillSignal, SkillRequest, infer_requests
 from searchos.skills.pipeline import PipelineResult, run_pipeline
 

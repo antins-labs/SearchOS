@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "460fbc583c7e1d1187a2bfae3ccb5b11b68e0aec1a46dff7ed432ec6d1cec72c",
+  "capabilities": {
+    "get_apparition": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_apparition\", \"url\": \"https://www.miraclehunter.com/marian_apparitions/approved_apparitions/pontmain/index.html\", \"include_messages\": true, \"category\": \"approved\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.178964+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.miraclehunter.com/marian_apparitions/approved_apparitions/pontmain/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "list_apparitions": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_apparitions\", \"category\": \"approved\", \"include_messages\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.180189+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.miraclehunter.com/marian_apparitions/approved_apparitions/",
+          "status": 200
+        }
+      ]
+    },
+    "search_apparitions": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_apparitions\", \"query\": \"Fatima\", \"include_messages\": false, \"category\": \"approved\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.180272+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.miraclehunter.com/marian_apparitions/approved_apparitions/",
+          "status": 200
+        },
+        {
+          "url": "https://www.miraclehunter.com/marian_apparitions/unapproved_apparitions/",
+          "status": 200
+        }
+      ]
+    },
+    "get_messages": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_messages\", \"url\": \"https://www.miraclehunter.com/marian_apparitions/messages/ruedubac_messages.html\", \"include_messages\": false, \"category\": \"approved\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.180935+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.miraclehunter.com/marian_apparitions/messages/ruedubac_messages.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

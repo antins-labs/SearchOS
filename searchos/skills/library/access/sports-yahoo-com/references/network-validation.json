@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d58410e468901b76bb913368b7aaa2e77b6651a945873716c77c2e549ca3f0b2",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://sports.yahoo.com/report-kings-waiving-rookie-guard-182840265.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.865446+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://sports.yahoo.com/report-kings-waiving-rookie-guard-182840265.html",
+          "status": 200
+        },
+        {
+          "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+          "status": 200
+        },
+        {
+          "url": "https://s.yimg.com/cv/apiv2/sports/css/yahooSans_20220323.css",
+          "status": 200
+        },
+        {
+          "url": "https://s.yimg.com/lo/mysterio/api/[redacted]/lightyear_networkapi/resizefill_h56%3Bquality_80%3Bformat_webp/https%3A%2F%2Fs.yimg.com%2Fos%2Fcreatr-uploaded-images%2F2023-08%2F5d6e8ec0-360f-11ee-9b76-d6e38fe0e238",
+          "status": 200
+        },
+        {
+          "url": "https://s.yimg.com/xe/next-app-sports/_next/static/css/1aa2b17d6a1d.css",
+          "status": 200
+        },
+        {
+          "url": "https://csp.yahoo.com/beacon/csp",
+          "status": 204
+        },
+        {
+          "url": "https://s.yimg.com/xe/next-app-sports/_next/static/css/c8d373747d1c.css",
+          "status": 200
+        },
+        {
+          "url": "https://s.yimg.com/xe/next-app-sports/_next/static/css/be3f283f12be.css",
+          "status": 200
+        },
+        {
+          "url": "https://s.yimg.com/lo/mysterio/api/[redacted]/lightyear_networkapi/resizefill_h56%3Bquality_80%3Bformat_webp/https%3A%2F%2Fs.yimg.com%2Fos%2Fcreatr-uploaded-images%2F2023-08%2F52012480-360f-11ee-8eff-afd53828c5a7",
+          "status": 200
+        },
+        {
+          "url": "https://consent.cmp.oath.com/version/7.0.2/cmp.js",
+          "status": 200
+        },
+        {
+          "url": "https://s.yimg.com/xe/next-app-sports/_next/static/css/969b4f86d331.css",
+          "status": 200
+        },
+        {
+          "url": "https://s.yimg.com/xe/next-app-sports/_next/static/css/9ea5950d99a0.css",
+          "status": 200
+        }
+      ]
+    },
+    "get_nba_news": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_nba_news\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.015055+00:00",
+      "reason": "Error executing get_nba_news: Page.evaluate: Execution context was destroyed, most likely because of a navigation",
+      "source_responses": []
+    },
+    "get_nba_players": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_nba_players\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:31.495706+00:00",
+      "reason": "Error executing get_nba_players: Page.evaluate: Execution context was destroyed, most likely because of a navigation",
+      "source_responses": [
+        {
+          "url": "https://sports.yahoo.com/nba/players/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

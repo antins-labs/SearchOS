@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_earthquake": "direct"
+  },
+  "aliases": {
+    "get_earthquake": "get_earthquake",
+    "run": "get_earthquake"
+  }
+}

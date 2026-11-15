@@ -33,9 +33,10 @@ after changing env vars at runtime call ``reload_settings_in_place()``.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Literal
+import re
+from typing import Annotated, Any, Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import AfterValidator, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from searchos.config.middleware import validate_pipelines
@@ -51,6 +52,7 @@ from searchos.config.profiles import (  # noqa: F401
 
 __all__ = [
     "AGENT_BUDGET_OVERRIDES",
+    "BrowserModes",
     "ModelProfile",
     "ROLE_NAMES",
     "Settings",
@@ -59,6 +61,17 @@ __all__ = [
     "reload_settings_in_place",
     "settings",
 ]
+
+
+def _browser_site(value: str) -> str:
+    host = value.lower().rstrip(".").encode("idna").decode("ascii")
+    label = r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?"
+    if len(host) > 253 or not re.fullmatch(rf"{label}(?:\.{label})*", host):
+        raise ValueError("浏览器模式请填写完整主机名")
+    return host
+
+
+BrowserModes = dict[Annotated[str, AfterValidator(_browser_site)], Literal["headed", "headless"]]
 
 
 def _default_profiles() -> dict[str, Any]:
@@ -165,9 +178,8 @@ class Settings(BaseSettings):
     max_searches_per_sub_agent_ceiling: int = 40
     max_finds_per_sub_agent: int = 20
     max_skills_per_sub_agent: int = 20
-    # Search-agent early stop: consecutive settled extraction batches with
-    # no committed progress. 0 disables. Keep the legacy setting name for
-    # env compatibility; harnesses without Extraction fall back to tool counts.
+    # Each skill orchestration contributes at most one settled empty batch.
+    # 0 disables early stopping. Agents without extraction count tool calls.
     search_agent_no_progress_tool_limit: int = 10
 
     # --- Writer ---
@@ -201,7 +213,10 @@ class Settings(BaseSettings):
     # 宿主维护站点依赖域名；技能包不能扩展联网权限。
     browser_allowed_domains: dict[str, list[str]] = {
         'www.xiaohongshu.com': ['xiaohongshu.com', 'xhscdn.com'],
+        'weixin.sogou.com': ['weixin.sogou.com', 'mp.weixin.qq.com'],
     }
+    # 创建、验收和正式调用按站点共用显示模式；未配置时由宿主使用 headless。
+    browser_modes: BrowserModes = Field(default_factory=dict)
     # 按需目录查询使用 skill_router 做语义匹配；关闭后保留名称/关键词查找。
     enable_skill_router: bool = True
     skill_router_top_k: int = 40  # 每次查询的候选上限，工具分页返回。

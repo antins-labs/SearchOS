@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "18314fdf83ad2642706c565f714733c9b2f0f5673afeea0a29150a3a02f0b0b5",
+  "capabilities": {
+    "get_quote": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_quote\", \"ticker\": \"ZBIO:US\", \"method\": \"auto\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.959606+00:00",
+      "reason": "Blocked by PerimeterX anti-bot protection. Bloomberg.com requires browser session with valid cookies.",
+      "source_responses": [
+        {
+          "url": "https://www.bloomberg.com/quote/ZBIO:US",
+          "status": 403
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtm.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        }
+      ]
+    },
+    "get_quotes": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_quotes\", \"tickers\": [\"ZBIO:US\", \"MGX:US\", \"MBX:US\"], \"method\": \"auto\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.573369+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.bloomberg.com/quote/ZBIO:US",
+          "status": 403
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtm.js",
+          "status": 200
+        }
+      ]
+    },
+    "check_access": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"check_access\", \"method\": \"auto\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:32.604439+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.bloomberg.com/quote/AAPL:US",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

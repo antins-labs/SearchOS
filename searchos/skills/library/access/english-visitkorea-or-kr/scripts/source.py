@@ -4,6 +4,9 @@ Visit Korea Tourist Attraction Extractor
 Fetches detailed information about tourist attractions from english.visitkorea.or.kr
 Supports fetching by vconts_id from two URL patterns.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -126,7 +129,7 @@ async def fetch_attraction(vconts_id: str, url_type: str = 'auto') -> dict[str, 
     else:
         types_to_try = [url_type]
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for t in types_to_try:
             fetch_result = await _fetch_attraction_page(session, vconts_id, t)
             if not fetch_result:
@@ -159,6 +162,7 @@ async def fetch_attraction(vconts_id: str, url_type: str = 'auto') -> dict[str, 
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute the Visit Korea attraction fetcher.

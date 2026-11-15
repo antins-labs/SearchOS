@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable, Mapping
+from contextvars import ContextVar
 from copy import copy
 from typing import Any
 
@@ -11,14 +12,25 @@ from langchain.agents.middleware.types import AgentMiddleware
 from langchain_core.utils.function_calling import convert_to_openai_tool
 
 from searchos.config.settings import settings
-from searchos.harness.middleware.context.utils.messages import model_input_limit
-from searchos.harness.middleware.utils.messages import extract_tool_name
-from searchos.util.tool_output_budget import (
+from searchos.harness.middleware.context.utils.token_counts import (
     DEFAULT_CONTEXT_TOKENS,
-    bounded_text,
-    text_token_bound,
-    tool_output_budget,
+    model_input_limit,
 )
+from searchos.harness.middleware.utils.messages import extract_tool_name
+
+tool_output_budget: ContextVar[int] = ContextVar(
+    "tool_output_budget", default=DEFAULT_CONTEXT_TOKENS,
+)
+
+
+def text_token_bound(text: str) -> int:
+    """按 UTF-8 字节数估算未知 tokenizer 的文本上界。"""
+    return len(text.encode("utf-8"))
+
+
+def bounded_text(text: str, budget: int) -> str:
+    """在预算内保留完整 Unicode 字符。"""
+    return text.encode("utf-8")[:max(0, budget)].decode("utf-8", errors="ignore")
 
 
 def _message_bound(message: Any) -> int:

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch_award_ceremony": "proxy",
+    "fetch_category_details": "direct",
+    "search_awards_by_year": "direct"
+  },
+  "aliases": {
+    "fetch_award_ceremony": "fetch_award_ceremony",
+    "fetch_category_details": "fetch_category_details",
+    "search_awards_by_year": "search_awards_by_year",
+    "run": "search_awards_by_year"
+  }
+}

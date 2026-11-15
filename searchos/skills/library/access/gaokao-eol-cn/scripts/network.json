@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_score_distribution": "direct",
+    "get_admission_lines": "direct",
+    "fetch_page": "direct"
+  },
+  "aliases": {
+    "fetch_page": "fetch_page",
+    "get_admission_lines": "get_admission_lines",
+    "get_score_distribution": "get_score_distribution",
+    "run": "get_score_distribution"
+  }
+}

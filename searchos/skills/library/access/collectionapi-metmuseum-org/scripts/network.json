@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_objects_batch": "direct",
+    "search": "direct",
+    "get_object": "direct",
+    "departments": "direct"
+  },
+  "aliases": {
+    "get_object": "get_object",
+    "search": "search",
+    "departments": "departments",
+    "get_objects_batch": "get_objects_batch",
+    "run": "get_objects_batch"
+  }
+}

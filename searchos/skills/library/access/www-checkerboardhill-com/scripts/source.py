@@ -4,6 +4,9 @@ Checkerboard Hill (checkerboardhill.com) Access Skill
 Fetches structured information about Hong Kong MTR underwater tunnels and related 
 transport articles from the Checkerboard Hill blog.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -12,6 +15,7 @@ import aiohttp
 from bs4 import BeautifulSoup
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the requested function from the Checkerboard Hill skill.
@@ -53,7 +57,7 @@ async def _fetch_html(url: str, timeout: int = 30) -> tuple[int, str]:
         'Accept-Language': 'en-US,en;q=0.5',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, headers=headers, timeout=timeout) as response:
             html = await response.text()
             return response.status, html

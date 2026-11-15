@@ -927,8 +927,8 @@ async def test_two_successful_empty_queries_trigger_path_review_without_report_h
 
 
 def rendered_batch(rows, pages, *, budget=20000, queries=None):
-    from searchos.tools.simple_browser.batch import _render_wave
-    from searchos.util.tool_output_budget import tool_output_budget
+    from searchos.harness.middleware.context.tool_results_middleware import tool_output_budget
+    from searchos.tools.simple_browser.tools import _render_wave
 
     token = tool_output_budget.set(budget)
     try:
@@ -946,8 +946,8 @@ def rendered_batch(rows, pages, *, budget=20000, queries=None):
 
 @pytest.mark.asyncio
 async def test_real_explore_producer_preserves_late_query_candidate_identity():
-    from searchos.tools.simple_browser.render import PageContents
-    from searchos.tools.simple_browser.search.base import SearchResult
+    from searchos.tools.simple_browser.pages import PageContents
+    from searchos.tools.simple_browser.search_providers.base import SearchResult
 
     rows = [
         (
@@ -976,8 +976,8 @@ async def test_real_explore_producer_preserves_late_query_candidate_identity():
 
 @pytest.mark.asyncio
 async def test_real_explore_producer_counts_shown_search_and_read_as_path_operations():
-    from searchos.tools.simple_browser.render import PageContents
-    from searchos.tools.simple_browser.search.base import SearchResult
+    from searchos.tools.simple_browser.pages import PageContents
+    from searchos.tools.simple_browser.search_providers.base import SearchResult
 
     rows = [("Acme founding year", [SearchResult(url="https://example.org/history")], "")]
     messages = rendered_batch(
@@ -1018,8 +1018,8 @@ async def test_real_explore_producer_counts_shown_search_and_read_as_path_operat
 async def test_real_explore_producer_only_counts_completed_shown_or_negative_children(
     case, expected
 ):
-    from searchos.tools.simple_browser.render import PageContents
-    from searchos.tools.simple_browser.search.base import SearchResult
+    from searchos.tools.simple_browser.pages import PageContents
+    from searchos.tools.simple_browser.search_providers.base import SearchResult
 
     rows, pages, queries, budget = [("Acme founding year", [], "")], [], None, 20000
     if case == "two_empty":
@@ -1060,8 +1060,8 @@ async def test_real_search_producer_keeps_candidate_identity_past_trace_excerpt(
     monkeypatch, read_candidate
 ):
     from searchos.tools.simple_browser import tools
-    from searchos.tools.simple_browser.search.base import SearchResult
-    from searchos.tools.simple_browser.state import BrowserState
+    from searchos.tools.simple_browser.search_providers.base import SearchResult
+    from searchos.tools.simple_browser.session import BrowserState
 
     class Provider:
         name = "test-search"

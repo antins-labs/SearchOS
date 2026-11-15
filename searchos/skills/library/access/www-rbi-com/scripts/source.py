@@ -9,6 +9,9 @@ Functions:
 - list_years: Get available report years
 - filter_reports: Filter reports by year or document type
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any
@@ -104,12 +107,12 @@ async def list_reports(params: dict, ctx: Any = None) -> dict:
     include_documents = params.get('include_documents', True)
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Establish session
             if not await _ensure_browser_session(page):
@@ -176,12 +179,12 @@ async def list_years(params: dict, ctx: Any = None) -> dict:
         dict with 'years' list
     """
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Establish session
             if not await _ensure_browser_session(page):
@@ -333,6 +336,7 @@ async def get_document_urls(params: dict, ctx: Any = None) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the RBI Annual Reports skill.

@@ -10,6 +10,9 @@ Data sources:
 - Survey 37 (IDH): Human Development Index
 - Localidades API: Geographic and administrative data
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -197,6 +200,7 @@ async def get_municipality_full_data(session: aiohttp.ClientSession, municipalit
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the IBGE skill.
@@ -214,7 +218,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     connector = aiohttp.TCPConnector(limit=5)
     timeout = aiohttp.ClientTimeout(total=60)
     
-    async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(connector=connector, timeout=timeout) as session:
         
         if function == "search_municipalities":
             query = params.get("query", "").strip()

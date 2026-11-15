@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_news_by_date": "inherit"
+  },
+  "aliases": {
+    "access": "get_news_by_date"
+  }
+}

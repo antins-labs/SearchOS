@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_baggage_faqs": "direct",
+    "get_baggage_overview": "direct",
+    "get_carry_on_info": "direct",
+    "search_baggage_info": "direct"
+  },
+  "aliases": {
+    "get_carry_on_info": "get_carry_on_info",
+    "get_baggage_faqs": "get_baggage_faqs",
+    "get_baggage_overview": "get_baggage_overview",
+    "search_baggage_info": "search_baggage_info",
+    "run": "search_baggage_info"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_event": "direct",
+    "search_events": "direct",
+    "list_recent": "direct"
+  },
+  "aliases": {
+    "search_events": "search_events",
+    "get_event": "get_event",
+    "list_recent": "list_recent",
+    "run": "list_recent"
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "dc82a723ce429fb293cdef98090b0eed62fd4c209ce772308e74bc4231dd3ff7",
+  "capabilities": {
+    "get_app_details": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_app_details\", \"appid\": \"1670540\", \"count\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.867961+00:00",
+      "reason": "Page.goto: net::ERR_EMPTY_RESPONSE at https://store.steampowered.com/app/1670540/\nCall log:\n  - navigating to \"https://store.steampowered.com/app/1670540/\", waiting until \"domcontentloaded\"\n",
+      "source_responses": []
+    },
+    "get_multiple_apps": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_multiple_apps\", \"appids\": [\"1670540\", \"2325832\", \"1145360\"], \"count\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.029991+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://store.steampowered.com/app/1670540/",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/css/motiva_sans.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/css/store_game_shared.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/css/shared_global.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/css/store_background_shared.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/css/buttons.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/css/user_reviews.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/css/v6/recommended.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/css/ui-lightness/jquery-ui-1.7.2.custom.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/css/v6/game_mob.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/css/v6/user_reviews_rewards.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/css/shared_responsive.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/javascript/tooltip.js",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/javascript/auth_refresh.js",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/javascript/shared_global.js",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/css/apphub.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/javascript/main.js",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/javascript/user_reviews.js",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/javascript/gamehighlightplayer.js",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/javascript/dynamicstore.js",
+          "status": 200
+        }
+      ]
+    },
+    "search_apps": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_apps\", \"query\": \"Total War Warhammer\", \"count\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:23:31.540467+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://store.steampowered.com/search/",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/css/buttons.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/css/v6/store.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/css/motiva_sans.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/css/v6/browse.css",
+          "status": 200
+        },
+        {
+          "url": "https://store.akamai.steamstatic.com/public/shared/css/shared_responsive.css",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

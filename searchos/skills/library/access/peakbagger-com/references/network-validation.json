@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "6ca6ec5e1fbfbdbc7b197155a2ebe7cb27496f88827ef101f1b847540e17cd0a",
+  "capabilities": {
+    "get_range": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_range\", \"url\": \"https://peakbagger.com/range.aspx?rid=100\", \"rid\": \"100\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.836483+00:00",
+      "reason": "Access blocked by Cloudflare. The site may be temporarily blocking automated access.",
+      "source_responses": [
+        {
+          "url": "https://peakbagger.com/range.aspx",
+          "status": 307
+        },
+        {
+          "url": "https://peakbagger.com/range.aspx",
+          "status": 403
+        }
+      ]
+    },
+    "search_ranges": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_ranges\", \"url\": \"https://peakbagger.com/range.aspx?rid=100\", \"start_rid\": \"10\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.681415+00:00",
+      "reason": "Access blocked by Cloudflare. The site may be temporarily blocking automated access.",
+      "source_responses": [
+        {
+          "url": "https://peakbagger.com/range.aspx",
+          "status": 307
+        },
+        {
+          "url": "https://peakbagger.com/range.aspx",
+          "status": 403
+        }
+      ]
+    },
+    "get_peak_from_range": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_peak_from_range\", \"url\": \"https://peakbagger.com/range.aspx?rid=100\", \"rid\": \"100\", \"peak_name\": \"Isto\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:30.916872+00:00",
+      "reason": "Access blocked by Cloudflare. The site may be temporarily blocking automated access.",
+      "source_responses": [
+        {
+          "url": "https://peakbagger.com/range.aspx",
+          "status": 307
+        },
+        {
+          "url": "https://peakbagger.com/range.aspx",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_page_content": "direct",
+    "get_latest_report": "direct",
+    "get_pdf_data": "direct",
+    "list_statistics": "direct"
+  },
+  "aliases": {
+    "list_statistics": "list_statistics",
+    "get_pdf_data": "get_pdf_data",
+    "get_latest_report": "get_latest_report",
+    "get_page_content": "get_page_content",
+    "run": "get_page_content"
+  }
+}

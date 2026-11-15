@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_homepage": "direct",
+    "get_article": "direct",
+    "get_category": "direct",
+    "get_region": "direct",
+    "get_page": "direct"
+  },
+  "aliases": {
+    "get_article": "get_article",
+    "get_category": "get_category",
+    "get_region": "get_region",
+    "get_homepage": "get_homepage",
+    "get_page": "get_page",
+    "run": "get_page"
+  }
+}

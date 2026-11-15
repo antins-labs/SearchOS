@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "f5458be12c7f70c9b2f3f22006b203a1883ae29f7b88ab6727602ed38ea99c2e",
+  "capabilities": {
+    "list_press_releases": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_press_releases\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.552409+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://aci.aero/resources/aci-world-newsroom/",
+          "status": 200
+        }
+      ]
+    },
+    "get_press_release": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_press_release\", \"url\": \"https://aci.aero/2026/07/15/worlds-busiest-airports-atlanta-holds-asia-climbs-strong-demand-while-asia-pacific-growth-reshape-the-rankings/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.567950+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://aci.aero/2026/07/15/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "get_ranking_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ranking_data\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.568113+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://aci.aero/resources/aci-world-newsroom/",
+          "status": 200
+        },
+        {
+          "url": "https://aci.aero/2026/07/15/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "download_preview": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"download_preview\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.568234+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://store.aci.aero/product/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "search_news": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_news\", \"keywords\": \"Dubai airport ranking\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.568365+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://aci.aero/resources/aci-world-newsroom/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

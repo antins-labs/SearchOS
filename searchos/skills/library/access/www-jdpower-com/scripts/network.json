@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_ratings": "proxy",
+    "list_studies": "direct",
+    "get_vehicle": "direct"
+  },
+  "aliases": {
+    "list_studies": "list_studies",
+    "get_ratings": "get_ratings",
+    "get_vehicle": "get_vehicle",
+    "run": "get_vehicle"
+  }
+}

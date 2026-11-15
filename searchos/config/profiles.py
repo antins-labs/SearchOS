@@ -13,7 +13,7 @@ from typing import Any, Literal
 from pydantic import Field
 
 from searchos.config.model_purposes import ROLE_NAMES  # noqa: F401
-from searchos.util.base_model import CamelModel
+from searchos.utils.base_model import CamelModel
 
 
 class ModelProfile(CamelModel):
@@ -28,6 +28,7 @@ class ModelProfile(CamelModel):
     api_key_fallback: str = ""
     temperature: float | None = 0.7  # None omits the param (some gateways reject it)
     max_tokens: int = 4096
+    max_input_tokens: int | None = Field(default=None, ge=256)
     enable_thinking: bool = False
     # How the thinking switch is spelled on the wire (openai-compatible only):
     #   chat_template_kwargs → extra_body.chat_template_kwargs.enable_thinking
@@ -41,6 +42,14 @@ class ModelProfile(CamelModel):
     rpm: int = 0  # requests/min over a sliding 60s window; 0 disables
     tpm: int = 0  # tokens/min, post-paid from actual usage; 0 disables
     extra: dict[str, Any] = Field(default_factory=dict)  # forwarded to SDK verbatim
+
+    @property
+    def input_budget(self) -> int | None:
+        if self.max_input_tokens is not None:
+            return self.max_input_tokens
+        if self.model.lower() in {"glm-5", "qwen3.5-35b-a3b"}:
+            return 131_072
+        return None
 
 
 # rpm/tpm limiters are shared process-wide per (api_base, model, api_key_env).

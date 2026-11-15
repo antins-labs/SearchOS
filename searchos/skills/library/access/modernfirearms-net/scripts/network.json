@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_firearm_specifications": "direct",
+    "search_firearms": "direct"
+  },
+  "aliases": {
+    "get_firearm_specifications": "get_firearm_specifications",
+    "search_firearms": "search_firearms",
+    "run": "search_firearms"
+  }
+}

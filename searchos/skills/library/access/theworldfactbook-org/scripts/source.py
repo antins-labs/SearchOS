@@ -4,6 +4,9 @@ The World Factbook - Country Profile Access Skill
 Extracts structured country data from theworldfactbook.org country pages.
 Pages use a consistent template with key-value pairs organized into sections.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -21,7 +24,7 @@ async def _fetch_html(url: str) -> str:
         "Accept-Language": "en-US,en;q=0.5",
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as resp:
             resp.raise_for_status()
             return await resp.text()
@@ -314,6 +317,7 @@ async def get_summary(country: str) -> dict[str, Any]:
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the World Factbook skill.

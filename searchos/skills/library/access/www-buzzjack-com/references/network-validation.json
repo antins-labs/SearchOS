@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5055a32cf6916c70a2ae7eada58737f66a7f7bc6db84f358d4ad09c686c21273",
+  "capabilities": {
+    "get_chart_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_chart_data\", \"url\": \"https://www.buzzjack.com/forums/topic/281197-us-hot-100-08022025/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.973379+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.buzzjack.com/forums/topic/281197-us-hot-100-08022025",
+          "status": 200
+        }
+      ]
+    },
+    "get_topic_posts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_topic_posts\", \"url\": \"https://www.buzzjack.com/forums/topic/281197-us-hot-100-08022025/\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.974186+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.buzzjack.com/forums/topic/281197-us-hot-100-08022025",
+          "status": 200
+        }
+      ]
+    },
+    "list_forum_topics": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_forum_topics\", \"url\": \"https://www.buzzjack.com/forums/forum/8-hot-100/\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.974294+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.buzzjack.com/forums/forum/8-rb-and-hip-hop/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

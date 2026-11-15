@@ -5,6 +5,9 @@ Retrieves artist information from kpop.fandom.com using the MediaWiki API.
 Provides structured data extraction from artist infoboxes including biographical
 details, career information, and social media links.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -232,6 +235,7 @@ async def get_pages_by_ids(session: aiohttp.ClientSession, page_ids: list) -> li
         return results
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute K-pop Fandom wiki lookup.
@@ -250,7 +254,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     
     timeout = aiohttp.ClientTimeout(total=30)
     
-    async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(headers=headers, timeout=timeout) as session:
         
         if function == 'get_artist':
             title = params.get('title', '').strip()

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "14106a973bd507d4bd9fc160e62231a033e0dbddaf1ba94e86429455bb26a100",
+  "capabilities": {
+    "get_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://report.az/en/amp/foreign-politics/representative-of-taiwan-we-want-to-establish-extensive-cooperation-with-azerbaijan-interview\", \"max_wait\": 90}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.851443+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://report.az/en/amp/foreign-politics/[redacted]",
+          "status": 403
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"query\": \"Azerbaijan economy\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.825974+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://report.az/en/search/Azerbaijan%20economy",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

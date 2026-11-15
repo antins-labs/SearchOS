@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_available_files": "direct",
+    "parse_series_id": "direct",
+    "fetch_data_file": "direct",
+    "fetch_industry_codes": "direct",
+    "fetch_area_codes": "direct",
+    "fetch_footnote_codes": "direct",
+    "fetch_data_type_codes": "direct",
+    "fetch_series_file": "direct"
+  },
+  "aliases": {
+    "fetch_data_file": "fetch_data_file",
+    "fetch_series_file": "fetch_series_file",
+    "fetch_area_codes": "fetch_area_codes",
+    "fetch_industry_codes": "fetch_industry_codes",
+    "fetch_data_type_codes": "fetch_data_type_codes",
+    "fetch_footnote_codes": "fetch_footnote_codes",
+    "parse_series_id": "parse_series_id",
+    "list_available_files": "list_available_files",
+    "run": "parse_series_id"
+  }
+}

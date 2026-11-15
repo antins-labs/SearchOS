@@ -3,6 +3,9 @@ Volcano Hotspot WordPress Blog Access Skill
 
 Fetches blog posts and listings from volcanohotspot.wordpress.com
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -193,7 +196,7 @@ def extract_listing_data(soup: BeautifulSoup, base_url: str) -> list[dict]:
 
 async def get_post(url: str) -> dict:
     """Fetch a single blog post."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_html(session, url)
         
         if status != 200:
@@ -226,7 +229,7 @@ async def get_posts(page: int = 1) -> dict:
     else:
         url = f"https://volcanohotspot.wordpress.com/page/{page}/"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_html(session, url)
         
         if status != 200:
@@ -247,6 +250,7 @@ async def get_posts(page: int = 1) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the Volcano Hotspot access skill.

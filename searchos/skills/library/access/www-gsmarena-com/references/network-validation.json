@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "a61cba09891b6f6429335abc485251c4662c1ad935a8e8a8d48f5a6a87020e11",
+  "capabilities": {
+    "get_phone_specs": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_phone_specs\", \"url\": \"https://www.gsmarena.com/samsung_galaxy_s20-10081.php\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.092764+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "parse_specs_structure": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"parse_specs_structure\", \"specs_data\": {\"network\": {\"display_name\": \"Network\", \"specs\": {\"technology\": {\"display_name\": \"Technology\", \"value\": \"GSM / CDMA / HSPA / EVDO / LTE\"}}}}}"
+      ],
+      "checked_at": "2026-10-23T07:35:12.354997+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-gsmarena-com/scripts/source.py",
+        "line": 263,
+        "end_line": 305,
+        "implementation": "parse_specs_structure",
+        "source_sha256": "11683da9801ce735a3a3dbdc82c7bd9538f7bbbfa9cc43a118d25595120afed9",
+        "implementation_sha256": "08bffb11ac5932d062c45ee7cf570e1ebf03d170ef64a9a30f312b4ac7c2c139"
+      }
+    }
+  }
+}

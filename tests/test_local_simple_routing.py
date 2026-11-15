@@ -1,4 +1,4 @@
-"""Exercise local tools and extraction while preserving source permissions on handoff."""
+"""Exercise local tools, extraction, and summary while preserving source permissions."""
 
 import asyncio
 import json
@@ -39,9 +39,9 @@ async def test_local_source_is_a_permission_boundary_not_a_research_shortcut():
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("upgrade", [False, True])
+@pytest.mark.parametrize("expired", [False, True])
 async def test_local_simple_reads_authorized_source_and_retains_evidence(
-    tmp_path, monkeypatch, upgrade,
+    tmp_path, monkeypatch, expired,
 ):
     for name in ("enable_skills", "enable_failure_memory", "enable_writer_agent"):
         monkeypatch.setattr(settings, name, False)
@@ -59,8 +59,7 @@ async def test_local_simple_reads_authorized_source_and_retains_evidence(
              "documents": [record.model_dump(mode="json")]}
     workspace = WorkspaceManager(tmp_path / "runs", "local-simple")
     workspace.create()
-    workspace.save_state(SearchState(intent="How many jobs?", source_scope=scope,
-                                    research_mode="findings"))
+    workspace.save_state(SearchState(intent="How many jobs?", source_scope=scope))
     search_state.set_workspace(workspace)
     scope_token = search_state._source_scope_var.set(scope)
 
@@ -75,9 +74,8 @@ async def test_local_simple_reads_authorized_source_and_retains_evidence(
     async def handler(count, messages):
         if count == 1:
             return call("local_open", {"ref_id": ref})
-        if upgrade and count == 2:
+        if expired and count == 2:
             await asyncio.sleep(.2)
-            return call("escalate_to_research", {"reason": "Compare the other documents"}, number=2)
         return AIMessage(content=f"Two jobs. [Rules]({ref})")
 
     model = OfflineModel(handler=handler)
@@ -87,17 +85,17 @@ async def test_local_simple_reads_authorized_source_and_retains_evidence(
         outcome = await run_simple_search(
             workspace=workspace, query="How many jobs?",
             evidence_obligations=["Read the stated concurrency limit"],
-            remaining_time_s=.15 if upgrade else 10, steer_queue=SteeringQueue(),
+            remaining_time_s=.15 if expired else 10, steer_queue=SteeringQueue(),
         )
-        assert outcome.escalate is upgrade, outcome.reason
+        assert outcome.answer == f"Two jobs. [Rules]({ref})"
         assert set(model.tool_names) == {
-            "local_catalog", "local_open", "local_find", "escalate_to_research",
+            "local_catalog", "local_open", "local_find",
         }
         state = workspace.load_state()
         assert state.source_scope == scope
         task = state.frontier.questions[0]
         assert task.agent_type == "local_search_agent"
-        assert task.status.value == ("cancelled" if upgrade else "completed")
+        assert task.status.value in {"completed", "budget_exhausted"}
         nodes = [node for node in state.evidence_graph.nodes if node.source == ref]
         assert nodes and nodes[0].source_excerpt == FACT
         assert any(binding.task_id == task.id for binding in state.evidence_graph.task_bindings)
@@ -107,7 +105,7 @@ async def test_local_simple_reads_authorized_source_and_retains_evidence(
         budget = next(item.budget for item in graph.middleware
                       if isinstance(item, BudgetMiddleware))
         assert (budget.max_queries, budget.max_iterations, budget.max_time_s) == (
-            15, 0, .15 if upgrade else 10,
+            15, 0, .15 if expired else 10,
         )
     finally:
         search_state._source_scope_var.reset(scope_token)
@@ -118,7 +116,7 @@ async def test_local_simple_reads_authorized_source_and_retains_evidence(
 async def test_local_session_completes_through_real_selected_pipeline(tmp_path, monkeypatch, path):
     from searchos.config import models
     from searchos.harness.session import SearchSession
-    from searchos.harness.telemetry.conversation_context import conversation_turns
+    from searchos.harness.telemetry.conversation import conversation_turns
     from searchos.skills.catalog.registry import SkillRegistry
 
     for name in ("enable_skills", "enable_failure_memory", "enable_writer_agent",
@@ -148,6 +146,8 @@ async def test_local_session_completes_through_real_selected_pipeline(tmp_path, 
             return SimpleNamespace(content=json.dumps(rows))
 
     async def plan_handler(count, messages):
+        if str(messages[0].content).startswith("[FINAL_ANSWER_CHECK]"):
+            return AIMessage(content='{"is_final_answer": true}')
         if count == 1:
             return AIMessage(content=SearchRoute(
                 path=path, reason="Read authorized rules",
@@ -156,12 +156,16 @@ async def test_local_session_completes_through_real_selected_pipeline(tmp_path, 
             ).model_dump_json())
         if count == 2:
             return call("enqueue_tasks", {"items": [{
-                "id": "read-rules", "task": "Read the concurrency limit",
+                "task_id": "read-rules", "task": "Read the concurrency limit",
                 "agent_type": "local_search_agent",
-                "result_mode": "findings",
             }]})
-        if count == 3:
-            return call("check_agents", number=2)
+        reports = []
+        for message in messages:
+            if message.name in {"agent_reports", "check_agents"}:
+                batch, _ = json.JSONDecoder().raw_decode(str(message.content))
+                reports.extend(batch.get("reports", []))
+        if not reports:
+            return call("check_agents", {"timeout": 1})
         state = workspace.load_state()
         node = next(node for node in state.evidence_graph.nodes if node.source == ref)
         return AIMessage(content=f"Two jobs. [Rules](evidence:{node.id})")
@@ -186,7 +190,7 @@ async def test_local_session_completes_through_real_selected_pipeline(tmp_path, 
     assert "Two jobs" in answer and ref in answer
     routing = json.loads((workspace.path / "output/routing.json").read_text())
     assert routing.get("final_path", routing["path"]) == path
-    assert not routing["escalated"]
+    assert "escalated" not in routing
     state = workspace.load_state()
     assert state.source_scope == scope
     assert all(task.agent_type == "local_search_agent" for task in state.frontier.questions)

@@ -7,6 +7,9 @@ of European fine arts (200-1900). It supports:
 - Retrieving detailed artwork information
 - Browsing gallery index pages
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -68,7 +71,7 @@ async def search_artworks(params: dict[str, Any]) -> dict[str, Any]:
     
     url = f"{SEARCH_URL}?{urlencode(search_params)}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             status, html = await fetch_html(session, url)
             
@@ -211,7 +214,7 @@ async def get_artwork(params: dict[str, Any]) -> dict[str, Any]:
     if not url.startswith('http'):
         url = urljoin(BASE_URL, url)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             status, html = await fetch_html(session, url)
             
@@ -364,7 +367,7 @@ async def get_gallery_index(params: dict[str, Any]) -> dict[str, Any]:
     if not url.startswith('http'):
         url = urljoin(BASE_URL, url)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             status, html = await fetch_html(session, url)
             
@@ -465,6 +468,7 @@ async def get_gallery_index(params: dict[str, Any]) -> dict[str, Any]:
             }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute WGA access skill function.

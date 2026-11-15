@@ -8,6 +8,9 @@ API Documentation: https://www.federalregister.gov/developers/api
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -23,6 +26,7 @@ DEFAULT_PER_PAGE = 20
 MAX_PER_PAGE = 100
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Federal Register API requests.
@@ -160,7 +164,7 @@ async def get_document(params: dict[str, Any]) -> dict[str, Any]:
     
     include_full_text = params.get("include_full_text", False)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         url = f"{API_BASE}/documents/{doc_number}.json"
         data = await _fetch(session, url)
         
@@ -259,7 +263,7 @@ async def search_documents(params: dict[str, Any]) -> dict[str, Any]:
     
     search_params["order"] = params.get("order", "newest")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         url = f"{API_BASE}/documents.json"
         data = await _fetch(session, url, search_params)
         
@@ -295,7 +299,7 @@ async def get_agency(params: dict[str, Any]) -> dict[str, Any]:
     if not agency_id and not agency_slug:
         return {"success": False, "error": "Missing required parameter: agency_id or agency_slug"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if agency_id:
             url = f"{API_BASE}/agencies/{agency_id}.json"
         else:
@@ -337,7 +341,7 @@ async def list_agencies(params: dict[str, Any]) -> dict[str, Any]:
     Parameters:
         per_page: Results per page (default: all)
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch(session, f"{API_BASE}/agencies.json")
         
         agencies = [
@@ -367,7 +371,7 @@ async def list_topics(params: dict[str, Any]) -> dict[str, Any]:
     Parameters:
         topic_type: Filter by type ("thesaurus" or "ad_hoc")
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch(session, f"{API_BASE}/topics.json")
         
         results = data.get("results", {})
@@ -417,7 +421,7 @@ async def get_public_inspection(params: dict[str, Any]) -> dict[str, Any]:
     search_params["per_page"] = str(per_page)
     search_params["order"] = params.get("order", "newest")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         url = f"{API_BASE}/public-inspection-documents.json"
         data = await _fetch(session, url, search_params)
         

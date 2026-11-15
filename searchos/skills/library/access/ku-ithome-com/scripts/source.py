@@ -4,6 +4,9 @@ IT Home Product Encyclopedia (ku.ithome.com) Access Skill
 Extracts device specifications, parameters, and product information from 
 IT Home's product encyclopedia database.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -12,6 +15,7 @@ import httpx
 from bs4 import BeautifulSoup
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the skill.
@@ -81,7 +85,7 @@ async def get_item_specs(params: dict[str, Any], ctx: Any = None) -> dict[str, A
         }
     
     try:
-        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        async with _skill_network.httpx_async_client(timeout=30.0, follow_redirects=True) as client:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -240,7 +244,7 @@ async def get_item_overview(params: dict[str, Any], ctx: Any = None) -> dict[str
         }
     
     try:
-        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        async with _skill_network.httpx_async_client(timeout=30.0, follow_redirects=True) as client:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -369,7 +373,7 @@ async def search_items(params: dict[str, Any], ctx: Any = None) -> dict[str, Any
     url = f"https://ku.ithome.com/search/{cat_code}_s1_p{page}.html"
     
     try:
-        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        async with _skill_network.httpx_async_client(timeout=30.0, follow_redirects=True) as client:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             }

@@ -10,6 +10,10 @@ Series ID Format: LAU[AreaType][StateFIPS][AreaCode][Measure]
 
 API Documentation: https://www.bls.gov/developers/api_signature_v2.htm
 """
+import contextvars as _skill_contextvars
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import urllib.request
 import urllib.error
@@ -117,7 +121,7 @@ def _fetch_series_data_sync(
             method='POST'
         )
         
-        with urllib.request.urlopen(req, timeout=30) as response:
+        with _skill_network.urllib_urlopen(req, timeout=30) as response:
             data = json.loads(response.read().decode('utf-8'))
             
             if data.get("status") == "REQUEST_NOT_PROCESSED":
@@ -210,7 +214,7 @@ async def fetch_series_data(
     with ThreadPoolExecutor(max_workers=4) as executor:
         result = await loop.run_in_executor(
             executor,
-            lambda: _fetch_series_data_sync(series_ids, start_year, end_year, registration_key)
+            _skill_contextvars.copy_context().run, lambda: _fetch_series_data_sync(series_ids, start_year, end_year, registration_key)
         )
     return result
 
@@ -493,6 +497,7 @@ async def get_latest_rates(
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for BLS LAUS data access.

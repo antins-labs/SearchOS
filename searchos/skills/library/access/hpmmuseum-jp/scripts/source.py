@@ -9,6 +9,9 @@ Provides structured access to:
 
 Supports multiple languages: English, Japanese, French, German, Italian, Spanish, Chinese
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -17,6 +20,7 @@ from urllib.parse import urljoin, urlparse, parse_qs
 from playwright.async_api import async_playwright
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute function for Hiroshima Peace Memorial Museum access skill.
@@ -88,10 +92,10 @@ async def _fetch_page_with_playwright(url: str, timeout: int = 45000, wait_time:
     Returns dict with 'html', 'title', 'status', or 'error' keys.
     """
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context()
-            page = await context.new_page()
+            context = await _skill_network.browser_new_context(browser)
+            page = await _skill_network.browser_new_page(context)
             
             try:
                 response = await page.goto(url, timeout=timeout, wait_until="domcontentloaded")

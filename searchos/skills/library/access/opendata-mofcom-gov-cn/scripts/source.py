@@ -5,6 +5,9 @@ Ministry of Commerce of China Open Data Portal
 This skill provides access to China's Ministry of Commerce open data portal,
 which hosts datasets including trade statistics, enterprise rankings, and policy documents.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -18,9 +21,9 @@ from playwright.async_api import async_playwright, Browser, Page
 async def fetch_page(url: str, timeout: int = 30000) -> str:
     """Fetch a page using Playwright browser"""
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            page = await browser.new_page()
+            page = await _skill_network.browser_new_page(browser)
             await page.goto(url, wait_until='networkidle', timeout=timeout)
             html = await page.content()
             return html
@@ -264,6 +267,7 @@ async def get_download_urls(dataset_id: str) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the skill

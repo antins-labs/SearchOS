@@ -1,0 +1,291 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "8fcfab74e849889abd6813891502218fa8c0e1f82e1adfbbd4a78b8ea9304784",
+  "capabilities": {
+    "list_hotels": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_hotels\", \"page_num\": 1, \"page_size\": 3, \"hotel_name\": \"希尔顿\", \"province\": \"\", \"query\": \"\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.311110+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://zwfw.mct.gov.cn/wycx/wxjlyfd/",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/layui.all.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/css/layui.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfwV202410_style.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_base.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_pc.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_mobile_base.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_mobile.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-swiper-3.4.2.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/css/modules/laydate/default/laydate.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/css/modules/layer/default/layer.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/css/modules/code.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-mobile_v2020.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-jquery3.7.1.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_tab.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-swiper-3.4.2.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwV202410_common.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/sm4.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/chinese.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-bsdt.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_hotel_detail": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_hotel_detail\", \"uuid\": \"55407\", \"page_num\": 1, \"page_size\": 3, \"hotel_name\": \"\", \"province\": \"\", \"query\": \"\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.313463+00:00",
+      "reason": "API call failed: 查询数据不存在！",
+      "source_responses": [
+        {
+          "url": "https://zwfw.mct.gov.cn/wycx/wxjlyfd/",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/layui.all.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/css/layui.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfwV202410_style.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_base.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_mobile.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_pc.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-swiper-3.4.2.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_mobile_base.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/css/modules/laydate/default/laydate.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/css/modules/code.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/css/modules/layer/default/layer.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwV202410_common.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-mobile_v2020.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_tab.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/chinese.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/sm4.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-swiper-3.4.2.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-jquery3.7.1.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/resource/site/bm23000001zwfw/wza/wza.js",
+          "status": 200
+        }
+      ]
+    },
+    "search_hotels": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_hotels\", \"query\": \"希尔顿\", \"province\": \"北京\", \"max_results\": 3, \"page_num\": 1, \"page_size\": 3, \"hotel_name\": \"\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.313702+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://zwfw.mct.gov.cn/wycx/wxjlyfd/",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/layui.all.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/css/layui.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfwV202410_style.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_base.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_pc.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_mobile.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_mobile_base.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-swiper-3.4.2.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/css/modules/laydate/default/laydate.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/css/modules/layer/default/layer.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/layui/css/modules/code.css",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-mobile_v2020.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-jquery3.7.1.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwV202410_common.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-zwfwmh_tab.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/resource/site/bm23000001zwfw/wza/wza.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/sm4.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/chinese.js",
+          "status": 200
+        },
+        {
+          "url": "https://zwfw.mct.gov.cn/images/zwfw-swiper-3.4.2.min.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

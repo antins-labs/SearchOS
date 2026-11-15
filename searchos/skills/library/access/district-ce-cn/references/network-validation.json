@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d36cd5a492a9dadc9cbb7977c2a937c9de7865d66ba94f1b0b4e0374df5028e7",
+  "capabilities": {
+    "fetch_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_article\", \"url\": \"http://district.ce.cn/newarea/sddy/202303/02/t20230302_38421268.shtml\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.589447+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://district.ce.cn/newarea/sddy/202303/02/t20230302_38421268.shtml",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_leadership_db": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_leadership_db\", \"url\": \"http://district.ce.cn/zt/rwk/sf/xj/ds/201206/14/t20120614_1269253.shtml\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.590501+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://district.ce.cn/zt/rwk/sf/xj/ds/201206/14/t20120614_1269253.shtml",
+          "status": 200
+        }
+      ]
+    },
+    "detect_page_type": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"detect_page_type\", \"url\": \"http://district.ce.cn/newarea/sddy/202303/02/t20230302_38421268.shtml\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.590575+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://district.ce.cn/newarea/sddy/202303/02/t20230302_38421268.shtml",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

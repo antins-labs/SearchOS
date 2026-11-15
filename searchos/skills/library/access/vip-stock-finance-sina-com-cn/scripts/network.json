@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_annual_reports": "direct",
+    "search_bulletins": "direct",
+    "get_bulletin_detail": "direct",
+    "list_bulletins": "direct",
+    "list_quarterly_reports": "direct"
+  },
+  "aliases": {
+    "get_bulletin_detail": "get_bulletin_detail",
+    "list_bulletins": "list_bulletins",
+    "list_annual_reports": "list_annual_reports",
+    "list_quarterly_reports": "list_quarterly_reports",
+    "search_bulletins": "search_bulletins",
+    "run": "search_bulletins"
+  }
+}

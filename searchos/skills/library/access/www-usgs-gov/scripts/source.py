@@ -9,6 +9,9 @@ Extracts structured data from U.S. Geological Survey pages including:
 
 Note: USGS uses AWS WAF protection requiring full browser automation.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -396,7 +399,7 @@ async def scrape_usgs_page(url: str, page_type: str = 'auto') -> dict:
     async with async_playwright() as p:
         browser = None
         try:
-            browser = await p.chromium.launch(
+            browser = await _skill_network.browser_launch(p.chromium, 
                 headless=True,
                 args=[
                     '--disable-blink-features=AutomationControlled',
@@ -405,7 +408,7 @@ async def scrape_usgs_page(url: str, page_type: str = 'auto') -> dict:
                 ]
             )
             
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
                 viewport={'width': 1920, 'height': 1080},
                 locale='en-US',
@@ -418,7 +421,7 @@ async def scrape_usgs_page(url: str, page_type: str = 'auto') -> dict:
                 window.chrome = { runtime: {} };
             """)
             
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Load page
             await page.goto(url, wait_until='domcontentloaded', timeout=60000)
@@ -492,12 +495,12 @@ async def search_usgs(query: str, limit: int = 10) -> dict:
     async with async_playwright() as p:
         browser = None
         try:
-            browser = await p.chromium.launch(
+            browser = await _skill_network.browser_launch(p.chromium, 
                 headless=True,
                 args=['--disable-blink-features=AutomationControlled', '--no-sandbox']
             )
             
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
                 viewport={'width': 1920, 'height': 1080},
                 locale='en-US',
@@ -509,7 +512,7 @@ async def search_usgs(query: str, limit: int = 10) -> dict:
                 });
             """)
             
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             await page.goto(search_url, wait_until='domcontentloaded', timeout=60000)
             await page.wait_for_timeout(3000)
             
@@ -561,6 +564,7 @@ async def search_usgs(query: str, limit: int = 10) -> dict:
                 await browser.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main execution function for USGS.gov access skill.

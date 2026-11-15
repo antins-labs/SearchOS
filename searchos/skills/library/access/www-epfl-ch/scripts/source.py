@@ -6,6 +6,9 @@ This skill provides access to EPFL's public website content including:
 - Campus locations and directions
 - General information pages
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -32,7 +35,7 @@ class EPFLClient:
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client."""
         if self._client is None:
-            self._client = httpx.AsyncClient(
+            self._client = _skill_network.httpx_async_client(
                 headers=self.headers,
                 follow_redirects=True,
                 timeout=30.0,
@@ -587,6 +590,7 @@ class EPFLExtractor:
 _extractor: Optional[EPFLExtractor] = None
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Execute EPFL access skill operations.

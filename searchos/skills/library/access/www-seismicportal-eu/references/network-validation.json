@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1812f4a6b39277cf2d57c794794b0cdcd1a0f7e9ec89d1de30ddbb5ca94c0afa",
+  "capabilities": {
+    "search_events": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_events\", \"starttime\": \"2025-09-01T00:00:00\", \"endtime\": \"2025-09-30T23:59:59\", \"minmagnitude\": 6.0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.249195+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.seismicportal.eu/fdsnws/event/1/query",
+          "status": 200
+        }
+      ]
+    },
+    "get_event": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_event\", \"eventid\": \"20250930_0000258\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.249996+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.seismicportal.eu/fdsnws/event/1/query",
+          "status": 200
+        }
+      ]
+    },
+    "list_recent": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_recent\", \"days_back\": 7, \"minmagnitude\": 5.5, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.250134+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.seismicportal.eu/fdsnws/event/1/query",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

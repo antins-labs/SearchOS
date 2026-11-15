@@ -18,11 +18,10 @@
 | seed_entities；不猜测、空种子与失败探索 | 无已知身份时保留空集合并发现成员；不得用参数知识补种子；重试须有具体新路径或理由。 |
 | column_desc；类型、格式、消歧 | `tables.TABLE_DESIGN`：恢复类型/含义/单位/精度/时期，以及 YYYY、USD with commas、总分线/单科线、最早跨地区发行等例子。字段编码仍由 `create_schema` docstring 负责。 |
 | No Explore；直接从请求建模 | 无 Explore 时仍有完整建模规则和用户指定种子规则；可直接派发 findings；不注入额外禁用口号。 |
-| Research plan；simple/broad/deep 与混合策略 | `research.PLANNING`、`PLAN_TOOL`：恢复机制、前提、例外与冲突调查；围绕请求设 evidence obligations 和 stop rule。 |
+| Research plan；simple/broad/deep 与混合策略 | `research.PLANNING`：恢复机制、前提、例外与冲突调查；围绕请求设 evidence obligations 和 stop rule。 |
 | Research plan；何时记计划 | 首个规划决策记录，可与独立工作同批；强制初始 Explore 后记录，仅需求或证据变化时更新。 |
 | Research plan；未知成员、闭集与开放集 | 即使成员和数量未知也记录 `set_scope`；发现来源清单后更新 `expected_members` 和 `basis_evidence_ids`。估计数量只作线索。 |
-| Research plan；table_policy 与证据元数据 | `PLAN_TOOL` 保留 none/as_needed 的选择；`TABLE_DESIGN` 保留 URL/摘录默认属于证据元数据的边界。 |
-| Research planning without tool | `CONVERSATION_PLAN`：禁用工具时仍在工作对话中规划，保留边界、证据和停止条件。 |
+| Research planning | `PLANNING`：在工作对话中规划，保留边界、证据和停止条件。 |
 | Source permissions / budgets | `PLANNING` 与资源段：运行时决定权限和预算，计划不能扩大；每会话创建预算跨派发轮次累计，并发槽位另计。 |
 | Adaptive Explore；readiness | `ADAPTIVE_EXPLORE`：未知项会改变合格目标、证据要求或任务划分时，先解决再固定依赖它的结构和任务；已可执行则直接检索。 |
 | Initial Explore；首调用与后续自适应 | `INITIAL_EXPLORE`：首调用只派发 Explore，收到简报后再规划依赖工作；明确问题也只做相称的范围与来源核查，后续按新缺口探索。 |
@@ -33,7 +32,7 @@
 | Parallel dispatch | 恢复按来源类别、范围、语言、验证路径并行；按召回风险和实际缺口决定任务数，既不凑槽位，也不因少调用而放弃有用路径。 |
 | Scheduling hints | `DISPATCH` 保留 max_searches 随任务范围调整、priority 表达关键缺口、blocked_by 仅用于真实依赖；类型与范围交给工具 schema。 |
 | Table targeting | `tables.TABLE_WORK` 保留多表显式 target_table、定向回填精确 target_cells、开放发现不预限定单元格、先有 schema 再派发表任务。 |
-| Adaptive dispatch；结果后的决策 | `DISPATCH` 判断回填与冗余任务，`TABLE_WORK` 每轮核对新成员；冲突做定向核验或披露，耗尽路径有新依据才重试，用 stop_task 清理冗余工作。 |
+| Adaptive dispatch；结果后的决策 | `COLLECTION_DISPATCH` 区分未遍历的来源和已有行缺失的字段，用论文集和指定图书馆两个示例说明分派、续查与收尾。定向修复不注入这段。公共 `DISPATCH` 保留 Agent 复用、分页、冲突处理及取消冗余任务的规则。 |
 | Schema mutation / row-key ingestion | `TABLE_WORK` 与 `TABLE_DESIGN`：先加来源确认的新行再做表绑定检索；扩展现有列，修正行键/值，错误值留缺口。 |
 | remove_entities；排除证据 | 恢复权威完整目录排除或明确任务过滤条件；找不到属性不能成为删除成员的理由。 |
 | Progress；fill rate 与成员完整性 | `TABLE_WORK`：比较实际成员身份，既核对遗漏也核对多收；已知行填满、数量相等或猜测清单均不足以证明完整。 |
@@ -48,7 +47,7 @@
 | Schema and extraction contract | `evidence.EVIDENCE` 与 `tables.HYBRID_EXTRACTION`：Extraction 负责验证/绑定；Hybrid 有 schema 时 findings 观察也能填表，无 schema 时记录独立 findings，target_table 聚焦抽取。 |
 | Evidence signals | `EVIDENCE`：恢复 grounded_findings/agent_report 边界；完成数不证明完整性，搜索命中需读原文，一个窗口不证明读完全篇或时效。 |
 | Calculate from available evidence | `CALCULATION`：派发前判断可推导性；读取输入及原始来源，核对公式/口径/时期/总体/单位，不替换操作数；执行、检查、写回并复核，只检索缺失输入。 |
-| Edits and source attribution | 每个非空编辑包含原始 source/source_excerpt，不同来源分项；格式修改保持语义与版本，计算不冒充原文引用。 |
+| Edits and source attribution | 非空字段显式提供 value/evidence_ids，Main 阅读证据并核对语义与版本；格式修改复用原证据，计算携带必要输入证据。空值和 `/` 清空为 missing，缺失说明写入报告。 |
 | Citation IDs / URLs | `CITATION_PROVENANCE`：恢复仅用工具返回引用、原始链接、非空 citation、失败引用处理；不编造 ID/URL，不引用内部 scheme。 |
 | Citation attribution / primary reading | 恢复聚合站归属、用户要求原始资料时实际读取；source_linked、URL 单元格、空 citation_gaps 均不能代替内容支持和覆盖审查。 |
 | Final self-audit / synthesis | `COMPLETION`：重新核对请求、字段、指代、时效和覆盖；不擅加维度、不用参数知识补事实；满足要求或不能继续时给有证据结果和明确限制。 |
@@ -58,8 +57,8 @@
 
 ## 工具契约的归属
 
-- `enqueue_tasks` 的原生 `items` 数组、角色、字段类型、默认值与约束由 `searchos/tools/tasks/arguments.py` 和工具 docstring 声明，不恢复 `items_json` 或二次转义教程。
-- `create_schema` 的 seed 编码、复合键元数、column_desc 字段及 relation 结构由 `searchos/tools/schema/definitions.py` 声明。本次补回数组按 PK 顺序及元数填写、未知分量保留空位置的说明，并区分行对象要求全部 PK 非空的现有行为。主键选择、种子依据、属性归属等决策仍在提示词中。
+- `enqueue_tasks` 的原生 `items` 数组、角色、字段类型、默认值与约束由 `searchos/tools/tasks/queue.py` 和工具 docstring 声明，不恢复 `items_json` 或二次转义教程。
+- `create_schema` 的 seed 编码、复合键元数、column_desc 字段及 relation 结构由 `searchos/tools/schema/tables.py` 声明。本次补回数组按 PK 顺序及元数填写、未知分量保留空位置的说明，并区分行对象要求全部 PK 非空的现有行为。主键选择、种子依据、属性归属等决策仍在提示词中。
 - `edit_entities` 的 rename/set/clear 调用格式由工具声明负责，提示词保留何时编辑及来源要求，不重新定义清除动作对证据图的处理。
 - 原技能提到的 `link_tables` 当前没有工具实现；建表工具提供 relation 契约。按用户要求，技能原文已复原，此处仅记录接口差异，不改写技能。
 

@@ -4,6 +4,9 @@ East Money Fund F10 Data Access Skill
 Fetches fund holdings and trading changes data from fundf10.eastmoney.com
 using the FundArchivesDatas.aspx API endpoint.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -254,7 +257,7 @@ async def get_holdings(code: str, year: str = '', topline: int = 50) -> dict:
     if year:
         params['year'] = year
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             text = await fetch_api_data(session, code, 'jjcc', params)
             parsed = parse_api_response(text)
@@ -283,7 +286,7 @@ async def get_changes(code: str, change_type: str = 'buy', year: str = '') -> di
     if year:
         params['year'] = year
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             text = await fetch_api_data(session, code, 'zdbd', params)
             parsed = parse_api_response(text)
@@ -301,6 +304,7 @@ async def get_changes(code: str, change_type: str = 'buy', year: str = '') -> di
             return {'error': str(e), 'fund_code': code}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the skill.

@@ -19,6 +19,9 @@ Document Types:
 - APP: Application
 - And many others...
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -120,7 +123,7 @@ async def get_case_detail(case_number: str) -> dict:
     Returns:
         dict with case details or error
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await fetch_api(session, "/api/Summary/ByCaseDetail", {"CaseNumber": case_number})
         
         if not result.get("success"):
@@ -153,7 +156,7 @@ async def get_case_documents(case_number: str, language: str = None, doc_type: s
     Returns:
         dict with list of documents or error
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Use language-filtered endpoint if language specified
         if language:
             params = {"CaseNumber": case_number, "Lang": language.upper()}
@@ -211,7 +214,7 @@ async def get_documents_by_category(case_number: str) -> dict:
     Returns:
         dict with documents grouped by category
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await fetch_api(session, "/api/Summary/ByCaseRelatedDocs", {"CaseNumber": case_number}, timeout=60)
         
         if not result.get("success"):
@@ -265,7 +268,7 @@ async def search_documents(case_number: str, query: str = None, date_from: str =
     Returns:
         dict with matching documents
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await fetch_api(session, "/api/Summary/ByCaseRelatedDocs", {"CaseNumber": case_number}, timeout=60)
         
         if not result.get("success"):
@@ -314,6 +317,7 @@ async def search_documents(case_number: str, query: str = None, date_from: str =
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the skill.

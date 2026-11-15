@@ -9,6 +9,9 @@ SearchOS access skill: 北京教育考试院 - 高考录取统计查询
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import json
 from typing import Any
@@ -54,7 +57,7 @@ ART_EXAM_TYPES = [
 
 async def _get_session() -> aiohttp.ClientSession:
     """Create a session, hit the homepage to seed cookies, and run entryVerify."""
-    session = aiohttp.ClientSession()
+    session = _skill_network.aiohttp_session()
     # 1) Hit homepage to get api_sticky cookie
     async with session.get(HOME_URL, headers={"User-Agent": USER_AGENT}) as r:
         await r.read()
@@ -302,6 +305,7 @@ FUNCTIONS = {
 }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any) -> dict[str, Any]:
     fn_name = params.get("function", "")
     if not fn_name:

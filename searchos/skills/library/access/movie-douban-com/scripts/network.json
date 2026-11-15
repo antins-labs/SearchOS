@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_movie_detail": "direct",
+    "get_movie_celebrities": "direct"
+  },
+  "aliases": {
+    "get_movie_detail": "get_movie_detail",
+    "get_movie_celebrities": "get_movie_celebrities",
+    "run": "get_movie_celebrities"
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "413a56582597b94af31117d02a43e300721e5835c464dcd8d451eefff1c93f61",
+  "capabilities": {
+    "get_specs": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_specs\", \"product_slug\": \"pixel_9a_specs\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.866915+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://store.google.com/product/pixel_9a_specs",
+          "status": 302
+        },
+        {
+          "url": "https://store.google.com/regionpicker",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/pr.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/au.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/us.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/my.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/it.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/sk.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/be.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/dk.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/at.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/ca.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/mx.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/pl.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.gstatic.com/store/images/account/region_picker_md.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/jp.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/nz.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/in.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/cz.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.gstatic.com/store/images/regionflags/ie.png",
+          "status": 200
+        }
+      ]
+    },
+    "list_products": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_products\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.025622+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/store-google-com/scripts/source.py",
+        "line": 163,
+        "end_line": 186,
+        "implementation": "list_available_products",
+        "source_sha256": "8111a01a8944487f58f8d44ebf141a605276cc8f2fb8a4fc92e112ef0adb8fd9",
+        "implementation_sha256": "f908cd4d436f149fa8cf43f89f5e09d15ae066f5cd01c6d1a68a9b3f7942c0c7"
+      }
+    },
+    "search_products": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_products\", \"query\": \"pixel 9\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:31.531345+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/store-google-com/scripts/source.py",
+        "line": 189,
+        "end_line": 218,
+        "implementation": "search_products",
+        "source_sha256": "8111a01a8944487f58f8d44ebf141a605276cc8f2fb8a4fc92e112ef0adb8fd9",
+        "implementation_sha256": "439e6b097fae0026234f218aa338ac393c4c63651ab5711834aaa3c315d31494"
+      }
+    }
+  }
+}

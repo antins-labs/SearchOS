@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_infobox": "proxy",
+    "get_tables": "proxy",
+    "search": "proxy",
+    "get_page_info": "direct",
+    "get_section": "proxy"
+  },
+  "aliases": {
+    "get_page_info": "get_page_info",
+    "get_infobox": "get_infobox",
+    "get_tables": "get_tables",
+    "get_section": "get_section",
+    "search": "search",
+    "run": "search"
+  }
+}

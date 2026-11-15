@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search": "inherit",
+    "top": "inherit",
+    "stats": "inherit",
+    "profile": "inherit",
+    "list": "inherit"
+  },
+  "aliases": {
+    "list": "list",
+    "profile": "profile",
+    "search": "search",
+    "top": "top",
+    "stats": "stats",
+    "run": "stats"
+  }
+}

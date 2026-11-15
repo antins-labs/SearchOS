@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_admissions_schedule": "direct",
+    "get_all_programmes": "direct",
+    "search_programme_fees": "direct",
+    "get_tuition_fees": "direct",
+    "get_scholarships": "direct"
+  },
+  "aliases": {
+    "get_tuition_fees": "get_tuition_fees",
+    "get_admissions_schedule": "get_admissions_schedule",
+    "get_scholarships": "get_scholarships",
+    "get_all_programmes": "get_all_programmes",
+    "search_programme_fees": "search_programme_fees",
+    "run": "search_programme_fees"
+  }
+}

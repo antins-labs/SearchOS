@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "53f8ff2d32d4be33a9eb2170a376e364db65b732e31422ceb50e2e4012d7e82a",
+  "capabilities": {
+    "get_page": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"page_title\": \"Ogre Kingdoms\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.878359+00:00",
+      "reason": "API returned status 403",
+      "source_responses": [
+        {
+          "url": "https://totalwarwarhammer.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"Khorne\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.878938+00:00",
+      "reason": "API returned status 403",
+      "source_responses": [
+        {
+          "url": "https://totalwarwarhammer.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_category": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_category\", \"category\": \"Races\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.879037+00:00",
+      "reason": "API returned status 403",
+      "source_responses": [
+        {
+          "url": "https://totalwarwarhammer.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_page_links": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page_links\", \"page_title\": \"Ogre Kingdoms\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.879116+00:00",
+      "reason": "API returned status 403",
+      "source_responses": [
+        {
+          "url": "https://totalwarwarhammer.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_backlinks": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_backlinks\", \"page_title\": \"Greasus Goldtooth\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.879219+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_all_pages": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_pages\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.879298+00:00",
+      "reason": "API returned status 403",
+      "source_responses": [
+        {
+          "url": "https://totalwarwarhammer.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

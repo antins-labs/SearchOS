@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d443c2d47a451e3f7846e0baea71bf9f7ecff7466f9f83cb757dfdf411793767",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"slug\": \"viet-minh\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.608271+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://alphahistory.com/vietnamwar/viet-minh/",
+          "status": 200
+        }
+      ]
+    },
+    "list_topics": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_topics\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.624380+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://alphahistory.com/vietnamwar/vietnam-war-topics/",
+          "status": 200
+        }
+      ]
+    },
+    "list_documents": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_documents\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.624844+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://alphahistory.com/vietnamwar/vietnam-war-documents/",
+          "status": 200
+        }
+      ]
+    },
+    "list_timeline": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_timeline\", \"period\": \"1946-1954\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.625938+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://alphahistory.com/vietnamwar/vietnam-war-timeline-1946-1954/",
+          "status": 200
+        }
+      ]
+    },
+    "list_people": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_people\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.626108+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://alphahistory.com/vietnamwar/vietnam-war-whos-who/",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"keyword\": \"ho chi minh\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.626283+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://alphahistory.com/vietnamwar/vietnam-war-topics/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

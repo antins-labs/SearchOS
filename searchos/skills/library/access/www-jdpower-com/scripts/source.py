@@ -4,6 +4,9 @@ J.D. Power Vehicle Ratings Access Skill
 Extracts vehicle ratings, awards, and specifications from J.D. Power website.
 Supports multiple study types: Dependability, Quality, Performance, etc.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -25,9 +28,9 @@ async def fetch_ratings_study(study_name: str, year: int) -> Dict[str, Any]:
     url = f"https://www.jdpower.com/cars/ratings/{study_name}/{year}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
-        page = await context.new_page()
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
+        context = await _skill_network.browser_new_context(browser)
+        page = await _skill_network.browser_new_page(context)
         
         try:
             await page.goto(url, wait_until='domcontentloaded', timeout=30000)
@@ -175,9 +178,9 @@ async def fetch_vehicle_page(year: int, make: str, model: str) -> Dict[str, Any]
     url = f"https://www.jdpower.com/cars/{year}/{make_slug}/{model_slug}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
-        page = await context.new_page()
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
+        context = await _skill_network.browser_new_context(browser)
+        page = await _skill_network.browser_new_page(context)
         
         try:
             await page.goto(url, wait_until='domcontentloaded', timeout=30000)
@@ -293,6 +296,7 @@ async def list_available_studies() -> Dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for J.D. Power access skill.

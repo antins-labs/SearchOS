@@ -6,6 +6,9 @@ Supports company lookup, filing retrieval, XBRL fact extraction, and table parsi
 
 SEC requires User-Agent header with contact info for automated access.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -61,7 +64,7 @@ async def get_company_by_ticker(ticker: str, user_agent: str = DEFAULT_USER_AGEN
     headers = _get_headers(user_agent)
     ticker = ticker.upper().strip()
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Fetch ticker mapping
         url = "https://www.sec.gov/files/company_tickers.json"
         status, text = await _fetch(url, session, headers)
@@ -94,7 +97,7 @@ async def get_cik_lookup(query: str, user_agent: str = DEFAULT_USER_AGENT) -> di
     headers = _get_headers(user_agent)
     query = query.strip()
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         url = "https://www.sec.gov/files/company_tickers.json"
         status, text = await _fetch(url, session, headers)
         
@@ -153,7 +156,7 @@ async def get_company_info(cik: str, user_agent: str = DEFAULT_USER_AGENT) -> di
     headers = _get_headers(user_agent)
     cik_padded = _pad_cik(cik.lstrip("0"))
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         url = f"{EDGAR_DATA_URL}/submissions/CIK{cik_padded}.json"
         status, text = await _fetch(url, session, headers)
         
@@ -221,7 +224,7 @@ async def get_company_facts(cik: str, user_agent: str = DEFAULT_USER_AGENT) -> d
     headers = _get_headers(user_agent)
     cik_padded = _pad_cik(cik.lstrip("0"))
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         url = f"{EDGAR_DATA_URL}/api/xbrl/companyfacts/CIK{cik_padded}.json"
         status, text = await _fetch(url, session, headers)
         
@@ -298,7 +301,7 @@ async def get_financial_data(
     
     concepts_to_fetch = concepts if concepts else default_concepts
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         url = f"{EDGAR_DATA_URL}/api/xbrl/companyfacts/CIK{cik_padded}.json"
         status, text = await _fetch(url, session, headers)
         
@@ -366,7 +369,7 @@ async def get_concept_history(
     headers = _get_headers(user_agent)
     cik_padded = _pad_cik(cik.lstrip("0"))
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         url = f"{EDGAR_DATA_URL}/api/xbrl/companyconcept/CIK{cik_padded}/{taxonomy}/{concept}.json"
         status, text = await _fetch(url, session, headers)
         
@@ -415,7 +418,7 @@ async def get_filing_document(
     if not url.startswith(SEC_BASE_URL) and not url.startswith("https://www.sec.gov"):
         return {"error": "URL must be from sec.gov domain", "status": "invalid_url"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, text = await _fetch(url, session, headers)
         
         if status != 200:
@@ -571,7 +574,7 @@ async def get_filings_by_type(
     headers = _get_headers(user_agent)
     cik_padded = _pad_cik(cik.lstrip("0"))
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         url = f"{EDGAR_DATA_URL}/submissions/CIK{cik_padded}.json"
         status, text = await _fetch(url, session, headers)
         
@@ -642,6 +645,7 @@ def parse_filing_url(url: str) -> dict:
 # Main Execute Function
 # =============================================================================
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute SEC EDGAR access functions.

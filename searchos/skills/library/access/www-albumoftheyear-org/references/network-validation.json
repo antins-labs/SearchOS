@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2d767ef36695e19abc4604aa70bf40b08e6c4957caedb1e3b2f03a1f7daac1fa",
+  "capabilities": {
+    "get_list": {
+      "status": "live_access_unconfirmed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_list\", \"url\": \"https://www.albumoftheyear.org/user/fnftokyodrift/list/127650/riaa-diamond-certified-albums/\", \"wait_time\": 45}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.945397+00:00",
+      "reason": "business output returned without a confirmed successful source response",
+      "source_responses": [
+        {
+          "url": "https://www.albumoftheyear.org/user/fnftokyodrift/list/127650/riaa-diamond-certified-albums/",
+          "status": 307
+        },
+        {
+          "url": "https://www.albumoftheyear.org/user/fnftokyodrift/list/127650/riaa-diamond-certified-albums/",
+          "status": 403
+        }
+      ]
+    },
+    "get_user": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_user\", \"url\": \"https://www.albumoftheyear.org/user/fnftokyodrift/\", \"wait_time\": 30}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.471872+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.albumoftheyear.org/user/fnftokyodrift/",
+          "status": 307
+        },
+        {
+          "url": "https://www.albumoftheyear.org/user/fnftokyodrift/",
+          "status": 403
+        },
+        {
+          "url": "https://www.albumoftheyear.org/cdn-cgi/speculation",
+          "status": 200
+        },
+        {
+          "url": "https://www.albumoftheyear.org/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://www.albumoftheyear.org/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eefc8bbe15787f/E3GUgnV9xOVrLxAiabkO1PAPc7J8k.pX8X3p9t3E4Gk-1792740102-1.2.1.1-c9nsIuv6gi7iHXXN6vjRKphxpy4DRBHbBE6rde2Go31O0M44tDry9RE4CRfOdrdi",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.albumoftheyear.org/[redacted]",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

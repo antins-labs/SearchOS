@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b1dbbad7a109f5171449104bff1ef396eae4ce5ee48ea1a2ae0485d95c2f9cb3",
+  "capabilities": {
+    "get_recipe": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_recipe\", \"url\": \"https://www.rickbayless.com/recipe/gaspacho-moreliano/\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.239881+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.rickbayless.com/recipe/gaspacho-moreliano/",
+          "status": 200
+        }
+      ]
+    },
+    "list_recipes": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_recipes\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.240319+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.rickbayless.com/recipe/",
+          "status": 200
+        }
+      ]
+    },
+    "search_recipes": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_recipes\", \"query\": \"tacos\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.240394+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.rickbayless.com/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

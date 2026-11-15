@@ -4,6 +4,9 @@ Jeff Huang Best Paper Awards Scraper
 Fetches best paper awards data from jeffhuang.com/best_paper_awards/
 A comprehensive database of 1900+ best paper awards from top CS conferences (1996-2026).
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import re
@@ -18,7 +21,7 @@ async def _fetch_html(url: str) -> str:
         "Accept-Language": "en-US,en;q=0.9",
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, headers=headers, timeout=60) as resp:
             resp.raise_for_status()
             return await resp.text()
@@ -364,6 +367,7 @@ async def get_conferences(params: dict) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the skill function based on the 'function' parameter.

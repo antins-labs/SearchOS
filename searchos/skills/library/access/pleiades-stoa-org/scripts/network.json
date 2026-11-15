@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_relationship_types": "direct",
+    "list_place_types": "direct",
+    "get_place": "direct",
+    "list_time_periods": "direct"
+  },
+  "aliases": {
+    "get_place": "get_place",
+    "list_place_types": "list_place_types",
+    "list_time_periods": "list_time_periods",
+    "list_relationship_types": "list_relationship_types",
+    "run": "list_relationship_types"
+  }
+}

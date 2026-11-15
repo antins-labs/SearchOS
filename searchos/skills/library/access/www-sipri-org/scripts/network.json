@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "download_database": "direct",
+    "get_datawrapper_data": "direct",
+    "get_publication": "direct",
+    "search_publications": "proxy",
+    "list_databases": "direct"
+  },
+  "aliases": {
+    "list_databases": "list_databases",
+    "download_database": "download_database",
+    "get_datawrapper_data": "get_datawrapper_data",
+    "get_publication": "get_publication",
+    "search_publications": "search_publications",
+    "run": "search_publications"
+  }
+}

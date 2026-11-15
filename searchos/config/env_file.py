@@ -70,7 +70,10 @@ def update_env_file(path: Path, updates: Mapping[str, str]) -> None:
         out.extend(f"{k}={v}" for k, v in remaining.items())
 
     tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text("\n".join(out) + "\n")
+    descriptor = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(descriptor, "w") as stream:
+        os.fchmod(stream.fileno(), 0o600)
+        stream.write("\n".join(out) + "\n")
     os.replace(tmp, path)
 
 
@@ -110,7 +113,10 @@ def remove_env_keys(path: Path, keys: Iterable[str]) -> list[str]:
     if not removed:
         return []
     tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text("\n".join(out) + "\n")
+    descriptor = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(descriptor, "w") as stream:
+        os.fchmod(stream.fileno(), 0o600)
+        stream.write("\n".join(out) + "\n")
     os.replace(tmp, path)
     return removed
 

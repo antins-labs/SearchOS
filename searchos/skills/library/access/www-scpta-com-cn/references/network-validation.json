@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b028cac7504983cfbd894970874cb36546bb1bd9e4d24365bf941df85fb3b27b",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"news_id\": \"0a5c2590651844b7a2eaf3ee6e9f23e8\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.244390+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.scpta.com.cn/front/News/info/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "list_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_articles\", \"category_id\": \"33\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.245569+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.scpta.com.cn/front/News/list/33",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

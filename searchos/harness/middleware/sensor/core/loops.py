@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import re
 from collections import deque
 from collections.abc import Callable
 from typing import Any
 
 from searchos.harness.middleware.sensor.core.base import Sensor
-from searchos.harness.middleware.sensor.utils.outcomes import tool_outcome
-from searchos.harness.middleware.sensor.utils.queries import normalize_query
+from searchos.harness.middleware.sensor.utils.tool_outcomes import tool_outcome
+
+
+def normalize_query(query: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"[^\w\s:\-./]", " ", query.lower())).strip()
 
 SEARCH_TOOLS = frozenset(
     {"web_search", "tavily_search", "serper_search", "browser_navigate", "search"}

@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "6aa8dd22098d7355f5d52dbc95c9b31b92f45627c302c47927426702cf92fc8e",
+  "capabilities": {
+    "get_firearm_specifications": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_firearm_specifications\", \"url\": \"https://modernfirearms.net/en/assault-rifles/russia-assault-rifles/ak-47-akm-eng/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.806168+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://modernfirearms.net/en/assault-rifles/russia-assault-rifles/ak-47-akm-eng/",
+          "status": 200
+        }
+      ]
+    },
+    "search_firearms": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_firearms\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.807160+00:00",
+      "reason": "Direct search not available. Please use get_firearm_specifications with a specific firearm page URL.",
+      "source_responses": []
+    }
+  }
+}

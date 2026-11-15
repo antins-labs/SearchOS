@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_case": "inherit",
+    "search_cases": "inherit",
+    "get_volume_cases": "inherit",
+    "get_year_cases": "proxy"
+  },
+  "aliases": {
+    "get_year_cases": "get_year_cases",
+    "get_case": "get_case",
+    "get_volume_cases": "get_volume_cases",
+    "search_cases": "search_cases",
+    "run": "search_cases"
+  }
+}

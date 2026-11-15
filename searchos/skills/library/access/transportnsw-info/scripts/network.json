@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_route": "direct",
+    "search_routes": "direct",
+    "get_alerts": "direct"
+  },
+  "aliases": {
+    "get_route": "get_route",
+    "search_routes": "search_routes",
+    "get_alerts": "get_alerts",
+    "run": "get_alerts"
+  }
+}

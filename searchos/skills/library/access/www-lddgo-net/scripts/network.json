@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_country_by_name": "direct",
+    "get_country": "direct"
+  },
+  "aliases": {
+    "get_country": "get_country",
+    "get_country_by_name": "get_country_by_name",
+    "run": "get_country_by_name"
+  }
+}

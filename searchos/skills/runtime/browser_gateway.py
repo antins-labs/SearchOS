@@ -64,128 +64,6 @@ def redact_headers(value):
     return value
 
 
-class NetworkProxy:
-    """先检查域名和解析地址，再连接固定的公网 IP。"""
-    def __init__(self, policy, upstream=None):
-        self.policy, self.server = policy, None
-        self.upstream = urlsplit(upstream) if upstream else None
-        if self.upstream and self.upstream.scheme not in {'http', 'https', 'socks5', 'socks5h'}:
-            raise ValueError('unsupported browser upstream proxy')
-        self.connections = set()
-
-    async def start(self):
-        self.server = await asyncio.start_server(self.handle, '127.0.0.1', 0, limit=16384)
-        self.port = self.server.sockets[0].getsockname()[1]
-
-    async def addresses(self, host, port):
-        records = await asyncio.get_running_loop().getaddrinfo(host, port, type=socket.SOCK_STREAM)
-        if not records or any(not ipaddress.ip_address(r[4][0]).is_global for r in records):
-            raise ValueError('private network address denied')
-        return records
-
-    async def open_remote(self, address, port, family):
-        if self.upstream is None:
-            return await asyncio.open_connection(address, port, family=family)
-        proxy = self.upstream
-        reader, writer = await asyncio.open_connection(proxy.hostname,
-            proxy.port or (1080 if proxy.scheme.startswith('socks') else 8080),
-            ssl=proxy.scheme == 'https')
-        try:
-            if proxy.scheme.startswith('socks'):
-                writer.write(b'\x05\x01\x00')
-                await writer.drain()
-                if await reader.readexactly(2) != b'\x05\x00':
-                    raise OSError('upstream proxy authentication failed')
-                ip = ipaddress.ip_address(address)
-                writer.write(b'\x05\x01\x00' + (b'\x01' if ip.version == 4 else b'\x04') + ip.packed + port.to_bytes(2, 'big'))
-                await writer.drain()
-                reply = await reader.readexactly(4)
-                if reply[:2] != b'\x05\x00' or reply[3] not in (1, 4):
-                    raise OSError('upstream proxy connection failed')
-                await reader.readexactly(6 if reply[3] == 1 else 18)
-            else:
-                host = f'[{address}]' if ':' in address else address
-                writer.write(f'CONNECT {host}:{port} HTTP/1.1\r\nHost: {host}:{port}\r\n\r\n'.encode())
-                await writer.drain()
-                header = await reader.readuntil(b'\r\n\r\n')
-                if header.split(b' ', 2)[1] != b'200':
-                    raise OSError('upstream proxy connection failed')
-            return reader, writer
-        except BaseException:
-            writer.close()
-            raise
-
-    async def handle(self, reader, writer):
-        task = asyncio.current_task()
-        self.connections.add(task)
-        remote = None
-        try:
-            header = await asyncio.wait_for(reader.readuntil(b'\r\n\r\n'), 10)
-            method, target, _ = header.split(b'\r\n', 1)[0].decode('ascii').split(' ', 2)
-            value = urlsplit('https://' + target if method == 'CONNECT' else target)
-            port = value.port or (443 if method == 'CONNECT' else 80)
-            if (not self.policy.allows_host(value.hostname or '') or value.username or value.password
-                    or port != (443 if method == 'CONNECT' else 80)
-                    or (method != 'CONNECT' and value.scheme != 'http')):
-                raise ValueError('network destination denied')
-            addresses = await self.addresses(value.hostname, port)
-            error = None
-            for family, _, _, _, address in addresses:
-                try:
-                    incoming, remote = await asyncio.wait_for(self.open_remote(address[0], port, family), 10)
-                    break
-                except OSError as exc:
-                    error = exc
-            if remote is None:
-                raise error or OSError('network connection failed')
-            if method == 'CONNECT':
-                writer.write(b'HTTP/1.1 200 Connection Established\r\n\r\n')
-                await writer.drain()
-            else:
-                lines = header.split(b'\r\n')
-                path = value.path or '/'
-                if value.query:
-                    path += '?' + value.query
-                lines[0] = f'{method} {path} HTTP/1.1'.encode()
-                lines = [line for line in lines if not line.lower().startswith((b'proxy-authorization:', b'proxy-connection:'))]
-                remote.write(b'\r\n'.join(lines))
-                await remote.drain()
-
-            async def copy(source, sink):
-                while chunk := await source.read(65536):
-                    sink.write(chunk)
-                    await sink.drain()
-            pumps = [asyncio.create_task(copy(reader, remote)), asyncio.create_task(copy(incoming, writer))]
-            try:
-                await asyncio.wait(pumps, return_when=asyncio.FIRST_COMPLETED)
-            finally:
-                for pump in pumps:
-                    pump.cancel()
-                await asyncio.gather(*pumps, return_exceptions=True)
-        except (ValueError, OSError, asyncio.TimeoutError, asyncio.IncompleteReadError, asyncio.LimitOverrunError):
-            if remote is None:
-                writer.write(b'HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\nConnection: close\r\n\r\n')
-        finally:
-            if remote:
-                remote.close()
-            writer.close()
-            try:
-                await writer.wait_closed()
-            except ConnectionError:
-                pass
-            finally:
-                self.connections.discard(task)
-
-    async def close(self):
-        if self.server:
-            self.server.close()
-            await self.server.wait_closed()
-        tasks = list(self.connections)
-        for task in tasks:
-            task.cancel()
-        await asyncio.gather(*tasks, return_exceptions=True)
-
-
 class BrowserGateway:
     """每个客户端独占一个 browser CDP session；原始 Chrome 只开放管道。"""
     def __init__(self, policy):
@@ -255,12 +133,14 @@ class BrowserGateway:
         identifier = self.sequence
         future = asyncio.get_running_loop().create_future()
         self.pending[identifier] = future
-        self.writer.write(json.dumps({**message, 'id': identifier}).encode() + b'\0')
-        await self.writer.drain()
         try:
-            return await asyncio.wait_for(future, 15)
+            async with asyncio.timeout(15):
+                self.writer.write(json.dumps({**message, 'id': identifier}).encode() + b'\0')
+                await self.writer.drain()
+                return await future
         finally:
             self.pending.pop(identifier, None)
+            future.cancel()
 
     async def read_pipe(self):
         try:
@@ -313,11 +193,19 @@ class BrowserGateway:
                 await client.send_json({'id': message['id'], 'error': {'code': -32000, 'message': 'browser operation denied'},
                                         **({'sessionId': message['sessionId']} if 'sessionId' in message else {})})
                 return
-            result = await self.send({**message, 'sessionId': sid})
+            try:
+                result = await self.send({**message, 'sessionId': sid})
+            except (asyncio.TimeoutError, ConnectionError) as exc:
+                reason = 'browser CDP timeout' if isinstance(exc, asyncio.TimeoutError) else 'browser connection closed'
+                result = {'sessionId': sid, 'error': {'code': -32000,
+                    'message': f"{reason}: {message.get('method', '')}"}}
             result['id'] = message['id']
             if sid == root:
                 result.pop('sessionId', None)
-            await client.send_json(result if owner else redact_headers(result))
+            try:
+                await client.send_json(result if owner else redact_headers(result))
+            except ConnectionError:
+                pass
         try:
             async for event in client:
                 if event.type != WSMsgType.TEXT:

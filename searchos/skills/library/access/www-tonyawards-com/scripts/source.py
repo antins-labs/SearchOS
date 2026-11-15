@@ -6,6 +6,9 @@ Extracts structured data from www.tonyawards.com including:
 - Press releases
 - Nominating committee members
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -265,6 +268,7 @@ def parse_press_release_content(html: str) -> dict:
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Tony Awards data extraction.
@@ -285,7 +289,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     if not function:
         return {'error': 'Missing required parameter: function'}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             if function == 'winners':
                 url = f"{BASE_URL}/winners/"

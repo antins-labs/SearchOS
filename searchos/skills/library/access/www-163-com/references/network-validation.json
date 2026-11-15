@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "bb508c0dafba897888ab422e1733887ff108515b58e5218e8d2d6a26fdaa17a1",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.163.com/dy/article/K6RS1LNS0553WOHP.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.938105+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.163.com/dy/article/K6RS1LNS0553WOHP.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_comments": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_comments\", \"article_id\": \"K6RS1LNS0553WOHP\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.938742+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://comment.api.163.com/api/v1/products/[redacted]/threads/K6RS1LNS0553WOHP",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

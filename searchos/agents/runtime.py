@@ -16,6 +16,7 @@ Paper §Agent: "Model 比静态图更善于决定'下一步做什么'——Harne
 from __future__ import annotations
 
 import logging
+from collections import deque
 from collections.abc import Sequence
 from contextvars import ContextVar
 from typing import Any
@@ -239,7 +240,7 @@ _post_mortem_count_var: ContextVar[list[int] | None] = ContextVar(
     default=None,
 )
 # Live post-mortem coroutine handles. Kept in a list (not task_pool) so they
-# are isolated from the scheduler / check_agents "is the pool empty?" logic,
+# are isolated from the scheduler and report collector's worker pool,
 # but the harness drain phase can still await them so their
 # atomic_update_state writes land before the workspace closes.
 _post_mortem_tasks_var: ContextVar[list[Any] | None] = ContextVar(
@@ -258,11 +259,9 @@ _repair_target_allowlist_var: ContextVar[set[str] | None] = ContextVar(
 
 _task_pool_var: ContextVar[dict[str, Any] | None] = ContextVar("so_orch_task_pool", default=None)
 _completed_var: ContextVar[dict[str, Any] | None] = ContextVar("so_orch_completed", default=None)
+_report_inbox_var: ContextVar[deque | None] = ContextVar("so_orch_report_inbox", default=None)
 _agent_graph_var: ContextVar[dict[str, dict[str, Any]] | None] = ContextVar(
     "so_orch_agent_graphs", default=None
-)
-_check_call_count_var: ContextVar[list[int] | None] = ContextVar(
-    "so_orch_check_call_count", default=None
 )
 _session_search_count_var: ContextVar[list[int] | None] = ContextVar(
     "so_orch_session_search_count", default=None
@@ -358,6 +357,17 @@ class _Ctx:
         return done
 
     @property
+    def report_inbox(self) -> deque:
+        inbox = _report_inbox_var.get()
+        if inbox is None:
+            raise RuntimeError("Orchestrator report inbox not initialized.")
+        return inbox
+
+    def publish_report(self, report: Any) -> None:
+        self.completed[report.agent_id] = report
+        self.report_inbox.append(report)
+
+    @property
     def agent_graphs(self) -> dict[str, dict[str, Any]]:
         graphs = _agent_graph_var.get()
         if graphs is None:
@@ -427,15 +437,15 @@ def set_orchestrator_context(
     )
     _task_pool_var.set({})
     _completed_var.set({})
+    _report_inbox_var.set(deque())
     _agent_graph_var.set({})
-    _check_call_count_var.set([0])
     _post_mortem_count_var.set([0])
     _post_mortem_tasks_var.set([])
     _session_search_count_var.set([0])
     _sub_agent_counter_var.set({})
     # Create the Scheduler EAGERLY in the session's parent context. Lazy
     # creation inside _scheduler() happens in a tool task's ContextVar COPY,
-    # invisible to sibling tool calls — each check_agents would get a fresh
+    # invisible to sibling tool calls — each collector would get a fresh
     # Scheduler (own tick lock, own WriterTriggerSensor stages), defeating
     # both the concurrency cap and the writer trigger memory.
     from searchos.agents.orchestrator.scheduler import Scheduler

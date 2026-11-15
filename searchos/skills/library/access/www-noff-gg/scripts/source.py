@@ -6,6 +6,9 @@ Handles both single-entity and multi-entity cards (e.g., Rascals with Boy and Gi
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any
@@ -26,12 +29,12 @@ async def _fetch_card(card_name: str) -> dict[str, Any]:
     url = f"https://www.noff.gg/clash-royale/card/{card_name}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until='domcontentloaded', timeout=30000)
             await asyncio.sleep(2)  # Wait for JS rendering
@@ -177,6 +180,7 @@ async def _fetch_card(card_name: str) -> dict[str, Any]:
             await browser.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the noff.gg access skill.

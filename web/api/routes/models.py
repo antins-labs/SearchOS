@@ -33,7 +33,7 @@ def _allowed_key_envs() -> set[str]:
     """Env names PUT /keys may write. Computed live, never user-extendable."""
     from searchos.config.providers import PRESETS
     from searchos.config.settings import settings
-    from searchos.tools.simple_browser.search import SEARCH_PROVIDER_INFO
+    from searchos.tools.simple_browser.search_providers import SEARCH_PROVIDER_INFO
 
     allowed = {p.api_key_env for p in PRESETS.values()}
     allowed |= {p.api_key_env for p in settings.profiles.values()}
@@ -96,6 +96,7 @@ class ProfilePatch(BaseModel, extra="forbid"):
     provider: Literal["openai_compatible", "openai", "anthropic"] | None = None
     provider_ref: str | None = None
     temperature: float | None = None
+    max_input_tokens: int | None = Field(default=None, ge=256, strict=True)
     enable_thinking: bool | None = None
     thinking_style: Literal["chat_template_kwargs", "enable_thinking", "none"] | None = None
     rpm: int | None = Field(default=None, ge=0)
@@ -112,6 +113,7 @@ class ProfileCreate(BaseModel, extra="forbid"):
     api_base: str = ""
     api_key_env: str = ""
     temperature: float | None = None
+    max_input_tokens: int | None = Field(default=None, ge=256, strict=True)
     enable_thinking: bool = False
     thinking_style: Literal["chat_template_kwargs", "enable_thinking", "none"] = "none"
     rpm: int = Field(default=0, ge=0)
@@ -283,6 +285,8 @@ async def patch_profile(name: str, req: ProfilePatch):
             # explicit None (temperature None means "omit the param").
             if "temperature" in req.model_fields_set:
                 cp.temperature = req.temperature
+            if "max_input_tokens" in req.model_fields_set:
+                cp.max_input_tokens = req.max_input_tokens
             if req.enable_thinking is not None:
                 cp.enable_thinking = req.enable_thinking
             if req.thinking_style is not None:
@@ -304,7 +308,7 @@ async def patch_profile(name: str, req: ProfilePatch):
                 ov.temperature = req.temperature
             if req.enable_thinking is not None:
                 ov.enable_thinking = req.enable_thinking
-            for field in ("rpm", "tpm"):
+            for field in ("rpm", "tpm", "max_input_tokens"):
                 if field in req.model_fields_set:
                     setattr(ov, field, getattr(req, field))
             if ov == ProfileOverride():
@@ -347,6 +351,7 @@ async def create_profile(req: ProfileCreate):
             api_base=req.api_base.strip(),
             api_key_env=req.api_key_env or "OPENAI_API_KEY",
             temperature=req.temperature, enable_thinking=req.enable_thinking,
+            max_input_tokens=req.max_input_tokens,
             thinking_style=req.thinking_style,
             rpm=req.rpm, tpm=req.tpm,
         )
@@ -474,7 +479,7 @@ async def put_roles(req: RolesUpdate):
 @router.put("/search-backend")
 async def put_search_backend(req: SearchBackendUpdate):
     from searchos.config.settings import settings
-    from searchos.tools.simple_browser.search import SEARCH_PROVIDER_INFO
+    from searchos.tools.simple_browser.search_providers import SEARCH_PROVIDER_INFO
 
     if req.provider is not None:
         if req.provider not in SEARCH_PROVIDER_INFO:

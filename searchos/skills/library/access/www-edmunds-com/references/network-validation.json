@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "fb2c90f17f446023447b6df17fea058772ef1ed68a8092486990fd9c988862f8",
+  "capabilities": {
+    "get_vehicle_data": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_vehicle_data\", \"make\": \"nissan\", \"model\": \"sentra\", \"year\": \"2025\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.218420+00:00",
+      "reason": "Access blocked by Edmunds (403 Forbidden)",
+      "source_responses": [
+        {
+          "url": "https://www.edmunds.com/nissan/sentra/2025/features-specs/",
+          "status": 403
+        }
+      ]
+    },
+    "get_features_specs": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_features_specs\", \"make\": \"nissan\", \"model\": \"sentra\", \"year\": \"2025\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.029065+00:00",
+      "reason": "Access blocked by Edmunds (403 Forbidden)",
+      "source_responses": [
+        {
+          "url": "https://www.edmunds.com/nissan/sentra/2025/features-specs/",
+          "status": 403
+        }
+      ]
+    },
+    "get_trims": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_trims\", \"make\": \"buick\", \"model\": \"envision\", \"year\": \"2025\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:02.222993+00:00",
+      "reason": "Access blocked by Edmunds (403 Forbidden)",
+      "source_responses": [
+        {
+          "url": "https://www.edmunds.com/buick/envision/2025/trims/",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

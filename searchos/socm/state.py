@@ -17,7 +17,7 @@ from searchos.socm.evidence.graph import EvidenceGraph
 from searchos.socm.failure_memory.models import FailureStore, migrate_strategy_log
 from searchos.socm.planning.frontier import FrontierMemory
 from searchos.socm.planning.research_plan import ResearchPlan
-from searchos.util.base_model import CamelModel
+from searchos.utils.base_model import CamelModel
 
 
 class ExploredPath(CamelModel):
@@ -140,7 +140,7 @@ class SearchReport(CamelModel):
     task_ids: list[str] = Field(default_factory=list)
     status: str  # completed | looped | error | cancelled
     result: str = ""  # 1-2 sentence summary
-    cells_filled: list[str] = Field(default_factory=list)  # entity.attribute
+    cells_filled: list[str] = Field(default_factory=list)  # canonical JSON cell keys
     dead_ends: list[str] = Field(default_factory=list)
     discovered_entities: list[str] = Field(default_factory=list)
     # Distinguish "found data but scope mismatched" from "found nothing".
@@ -185,6 +185,8 @@ class SearchState(CamelModel):
     """Top-level search state — single source of truth, persisted as
     workspace/search_state.json."""
 
+    format_version: Literal[2] = 2
+
     @model_validator(mode="before")
     @classmethod
     def migrate_failure_memory(cls, value: Any) -> Any:
@@ -227,11 +229,11 @@ class SearchState(CamelModel):
     research_plan: ResearchPlan | None = None
     # None retains CLI compatibility; WebUI always supplies an explicit scope.
     source_scope: dict[str, Any] | None = None
-    research_mode: Literal["table", "findings"] = "table"
     frontier: FrontierMemory = Field(default_factory=FrontierMemory)
     explored_paths: list[ExploredPath] = Field(default_factory=list)
     evidence_graph: EvidenceGraph = Field(default_factory=EvidenceGraph)
     coverage_map: CoverageMap = Field(default_factory=CoverageMap)
+
     failure_memory: FailureStore = Field(default_factory=FailureStore)
     budget: BudgetState = Field(default_factory=BudgetState)
 

@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "fe7f75c9caecc244a893bbd210d579733b571a12c143db49483457c72ad0d502",
+  "capabilities": {
+    "list_egyptian_pyramids": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_egyptian_pyramids\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.792625+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://madainproject.com/list_of_egyptian_pyramids",
+          "status": 200
+        }
+      ]
+    },
+    "get_pyramid_detail": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_pyramid_detail\", \"slug\": \"great_pyramid_of_giza\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.793386+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://madainproject.com/great_pyramid_of_giza",
+          "status": 200
+        }
+      ]
+    },
+    "search_pyramids": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_pyramids\", \"query\": \"dahshur\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.793454+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://madainproject.com/list_of_egyptian_pyramids",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

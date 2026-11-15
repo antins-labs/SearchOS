@@ -2,6 +2,9 @@
 SearchOS Access Skill for histclo.com
 Extracts structured content from historical essays on the Historical Clothing website.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -10,6 +13,7 @@ from typing import Any
 from urllib.parse import urljoin, urlparse
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute histclo.com access skill.
@@ -56,7 +60,7 @@ async def get_essay(params: dict[str, Any]) -> dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, headers=headers, timeout=30) as resp:
                 if resp.status == 404:
                     return {"error": "Page not found (404)", "url": url}
@@ -261,7 +265,7 @@ async def search_essays(params: dict[str, Any]) -> dict[str, Any]:
     checked_urls = set()
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             for entry_url in urls_to_check:
                 try:
                     async with session.get(entry_url, headers=headers, timeout=20) as resp:

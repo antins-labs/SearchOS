@@ -7,6 +7,9 @@ Fetches track metadata from Spotify using:
 
 No authentication required.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import httpx
 import json
@@ -27,7 +30,7 @@ async def _fetch_track_from_embed(track_id: str) -> dict[str, Any]:
     """
     url = f"https://open.spotify.com/embed/track/{track_id}"
     
-    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0, follow_redirects=True) as client:
         resp = await client.get(url, headers={
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -80,7 +83,7 @@ async def _fetch_track_from_oembed(track_id: str) -> dict[str, Any]:
     """
     url = f"https://open.spotify.com/oembed?url=https://open.spotify.com/track/{track_id}"
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0) as client:
         resp = await client.get(url)
         
         if resp.status_code != 200:
@@ -239,6 +242,7 @@ async def get_track_basic(params: dict[str, Any], ctx: Any = None) -> dict[str, 
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Spotify track lookup.

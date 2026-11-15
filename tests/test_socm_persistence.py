@@ -18,6 +18,7 @@ from searchos.harness.middleware import (
 )
 from searchos.harness.middleware.extraction import InMemoryEvidenceStore
 from searchos.socm import CellStatus, FrontierTask, SearchState
+from searchos.socm.refs import row_key, cell_key
 
 
 class Model(FakeMessagesListChatModel):
@@ -35,15 +36,22 @@ def snapshots(messages):
     return [m for m in messages if m.additional_kwargs.get("sf_kind") == "socm_update"]
 
 
+def system_text(messages):
+    assert messages[0].type == "system"
+    assert not any(m.type == "system" for m in messages[1:])
+    assert not any(m.type == "human" and m.additional_kwargs.get("sf_synthetic") for m in messages)
+    return messages[0].content
+
+
 def workspace():
     state = SearchState()
-    state.coverage_map.add_table("t", ["Name", "Value"], primary_key=["Name"], entities=["A", "B"])
+    state.coverage_map.add_table("t", ["Name", "Value"], primary_key=["Name"], entities=[row_key(["A"]), row_key(["B"])])
     state.frontier.add(
         FrontierTask(
             id="task",
             question="A value",
             assigned_agent_id="reader",
-            target_cells=["t/A.Value"],
+            target_cells=[cell_key("t", row_key(["A"]), "Value")],
         )
     )
     return InMemoryEvidenceStore(state)
@@ -72,17 +80,16 @@ async def turn(graph, thread="socm", text="Continue"):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("view", ["task", "overview", "writing"])
-@pytest.mark.parametrize("research_mode", ["table", "findings"])
 @pytest.mark.parametrize("routed", [False, True])
-async def test_empty_question_has_no_socm(view, research_mode, routed):
+async def test_empty_question_has_no_socm(view, routed):
     from searchos.harness.routing import research_route
 
-    state = SearchState(research_mode=research_mode)
+    state = SearchState()
     if routed:
         state.research_plan = research_route("Question", "research required").plan()
     graph, model = graph_for(InMemoryEvidenceStore(state), view=view)
     history, updates = await turn(graph)
-    assert not snapshots(model.received[-1])
+    assert "Current date (runtime local date)" not in system_text(model.received[-1])
     assert not snapshots(history)
     assert not updates
 
@@ -95,19 +102,20 @@ async def test_only_relevant_changes_write_and_latest_state_stays_visible():
     assert len(writes) == len(snapshots(first)) == 1
     stable_id = writes[0].id
     # 其他实体变化不更新当前任务视图。
-    ws.state.coverage_map.cells["t/B.Value"].status = CellStatus.FILLED
+    ws.state.coverage_map.cells[cell_key("t", row_key(["B"]), "Value")].status = CellStatus.FILLED
     second, writes = await turn(graph)
     assert not writes
-    assert len(snapshots(second)) == len(snapshots(model.received[-1])) == 1
-    cell = ws.state.coverage_map.cells["t/A.Value"]
+    assert len(snapshots(second)) == 1
+    assert system_text(model.received[-1]).count(snapshots(second)[0].content) == 1
+    cell = ws.state.coverage_map.cells[cell_key("t", row_key(["A"]), "Value")]
     cell.status, cell.display_hint = CellStatus.FILLED, "42"
     third, writes = await turn(graph)
     assert len(writes) == len(snapshots(third)) == 1
     assert writes[0].id == stable_id
-    assert '"Value"="42"' in snapshots(model.received[-1])[0].content
+    assert '["A", "42"]' in system_text(model.received[-1])
     _, writes = await turn(graph)
     assert not writes
-    assert '"Value"="42"' in snapshots(model.received[-1])[0].content
+    assert '["A", "42"]' in system_text(model.received[-1])
 
 
 @pytest.mark.asyncio
@@ -120,15 +128,15 @@ async def test_checkpoint_rebuild_and_workspace_only_restore():
     restored, writes = await turn(graph)
     assert not writes
     assert snapshots(restored) == snapshots(original)
-    restored_ws.state.coverage_map.cells["t/A.Value"].display_hint = "new value"
-    restored_ws.state.coverage_map.cells["t/A.Value"].status = CellStatus.FILLED
+    restored_ws.state.coverage_map.cells[cell_key("t", row_key(["A"]), "Value")].display_hint = "new value"
+    restored_ws.state.coverage_map.cells[cell_key("t", row_key(["A"]), "Value")].status = CellStatus.FILLED
     restored, writes = await turn(graph)
-    assert len(writes) == 1 and "new value" in snapshots(model.received[-1])[0].content
+    assert len(writes) == 1 and "new value" in system_text(model.received[-1])
     # 没有旧执行图时，也从持久研究状态重建投影。
     graph, model = graph_for(restored_ws)
     history, writes = await turn(graph)
     assert len(writes) == len(snapshots(history)) == 1
-    assert "new value" in snapshots(model.received[-1])[0].content
+    assert "new value" in system_text(model.received[-1])
 
 
 @pytest.mark.asyncio
@@ -139,7 +147,8 @@ async def test_state_removal_clears_snapshot_and_reappearance_is_visible():
     previous = ws.state
     ws.state = SearchState()
     history, writes = await turn(graph)
-    assert not snapshots(history) and not snapshots(model.received[-1]) and not writes
+    assert not snapshots(history) and not writes
+    assert "Current date (runtime local date)" not in system_text(model.received[-1])
     ws.state = previous
     history, writes = await turn(graph)
     assert len(writes) == len(snapshots(history)) == 1
@@ -150,7 +159,8 @@ async def test_one_graph_keeps_threads_independent():
     graph, model = graph_for(workspace())
     for thread in ("one", "two", "one", "two"):
         history, _ = await turn(graph, thread)
-        assert len(snapshots(history)) == len(snapshots(model.received[-1])) == 1
+        assert len(snapshots(history)) == 1
+        assert system_text(model.received[-1]).count(snapshots(history)[0].content) == 1
 
 
 @pytest.mark.asyncio
@@ -177,7 +187,8 @@ async def test_failed_model_does_not_checkpoint_snapshot(outcome):
     assert not snapshots((await graph.aget_state(config)).values["messages"])
     graph, model = graph_for(ws, checkpointer=checkpoint)
     history, writes = await turn(graph)
-    assert len(writes) == len(snapshots(history)) == len(snapshots(model.received[-1])) == 1
+    assert len(writes) == len(snapshots(history)) == 1
+    assert system_text(model.received[-1]).count(writes[0].content) == 1
 
 
 @pytest.mark.asyncio
@@ -188,7 +199,7 @@ async def test_tool_loop_appends_changed_prompts_at_their_injection_positions(tm
         ConversationLogger,
         langchain_msg_to_conversation_msgs,
     )
-    from searchos.harness.telemetry.episodic import TrajectoryLogger
+    from searchos.harness.telemetry.trajectory import TrajectoryLogger
 
     ws = workspace()
 
@@ -196,7 +207,7 @@ async def test_tool_loop_appends_changed_prompts_at_their_injection_positions(tm
     def record(value: str) -> str:
         """Record a value when provided."""
         if value:
-            cell = ws.state.coverage_map.cells["t/A.Value"]
+            cell = ws.state.coverage_map.cells[cell_key("t", row_key(["A"]), "Value")]
             cell.status, cell.display_hint = CellStatus.FILLED, value
         return "Completed"
 
@@ -222,7 +233,7 @@ async def test_tool_loop_appends_changed_prompts_at_their_injection_positions(tm
     config = {"configurable": {"thread_id": "socm"}}
     previous_count = 0
     writes = []
-    # 与 session 相同：流式记录普通消息，模型边界记录本轮注入的 user prompt。
+    # 普通消息按流记录，系统状态在模型边界记录。
     async for kind, event in graph.astream(
         {"messages": [("user", "Continue")]}, config, stream_mode=["values", "updates"]
     ):
@@ -238,13 +249,15 @@ async def test_tool_loop_appends_changed_prompts_at_their_injection_positions(tm
     history = (await graph.aget_state(config)).values["messages"]
     assert len(writes) == 2
     assert len(snapshots(history)) == 1
-    assert all(len(snapshots(messages)) == 1 for messages in model.received)
-    assert [snapshots(messages)[0].content for messages in model.received] == [
+    expected = [
         writes[0].content,
         writes[0].content,
         writes[1].content,
         writes[1].content,
     ]
+    assert all(system_text(messages).count(content) == 1
+               for messages, content in zip(model.received, expected, strict=True))
+    assert writes[0].content not in system_text(model.received[-1])
     events = [json.loads(line) for line in (tmp_path / "socm.jsonl").read_text().splitlines()]
     assert sum(e.get("kind") == "socm_inject" for e in events) == 2
     assert all("sf_context_changed" not in m.additional_kwargs for m in snapshots(history))
@@ -255,7 +268,7 @@ async def test_tool_loop_appends_changed_prompts_at_their_injection_positions(tm
     )["messages"]
     injected = [m for m in saved if m["metadata"].get("synthetic") == "socm_update"]
     assert [m["content"] for m in injected] == [m.content for m in writes]
-    assert all(m["role"] == "user" for m in injected)
+    assert all(m["role"] == "system" for m in injected)
     # 日志保留两个完整版本，分别位于首轮与产生新值的工具回执之后。
     assert injected[0]["step_index"] == 1
     second_position = injected[1]["step_index"]
@@ -263,8 +276,8 @@ async def test_tool_loop_appends_changed_prompts_at_their_injection_positions(tm
     assert saved[second_position - 1]["tool_call_id"] == "1"
     assert saved[second_position + 1]["role"] == "assistant"
     assert saved[second_position + 2]["tool_call_id"] == "2"
-    assert 'missing "Value"' in injected[0]["content"]
-    assert '"Value"="42"' in injected[1]["content"]
+    assert '["A", null]' in injected[0]["content"]
+    assert '["A", "42"]' in injected[1]["content"]
     # 从追加日志恢复后，历史注入内容和位置不受 checkpoint 原位更新影响。
     restored = ConversationLogger(tmp_path / "conversation.json")
     restored.hydrate()
@@ -305,7 +318,7 @@ async def test_long_history_keeps_snapshot_across_context_reduction_and_restore(
     history, writes = await turn(graph)
     assert not writes
     assert snapshots(history) == [latest]
-    assert snapshots(model.received[-1])[0].content == latest.content
+    assert system_text(model.received[-1]).count(latest.content) == 1
     assert len(str(model.received[-1])) < 7000
     if mode == "compact":
         assert summarizer.received
@@ -314,7 +327,7 @@ async def test_long_history_keeps_snapshot_across_context_reduction_and_restore(
     history, writes = await turn(graph)
     assert not writes
     assert snapshots(history) == [latest]
-    assert snapshots(model.received[-1])[0].content == latest.content
+    assert system_text(model.received[-1]).count(latest.content) == 1
 
 
 @pytest.mark.asyncio
@@ -323,7 +336,7 @@ async def test_findings_without_schema_update_and_retract(view):
     from searchos.socm import EvidenceNode
     from searchos.socm.evidence.graph import EvidenceStatus, TaskEvidenceBinding
 
-    state = SearchState(research_mode="findings")
+    state = SearchState()
     state.frontier.add(FrontierTask(id="mine", question="Research A", assigned_agent_id="reader"))
     state.frontier.add(FrontierTask(id="other", question="Research B", assigned_agent_id="other"))
     for task_id in ["mine", "other"]:
@@ -347,11 +360,11 @@ async def test_findings_without_schema_update_and_retract(view):
     # 证据数量不变的修订也必须更新。
     ws.state.evidence_graph.get_node("mine").finding = "corrected finding"
     history, writes = await turn(graph)
-    assert len(writes) == 1 and "corrected finding" in snapshots(model.received[-1])[0].content
+    assert len(writes) == 1 and "corrected finding" in system_text(model.received[-1])
     ws.state.evidence_graph.get_node("mine").status = EvidenceStatus.REJECTED
     history, writes = await turn(graph)
     assert len(writes) == 1
-    assert "corrected finding" not in snapshots(model.received[-1])[0].content
+    assert "corrected finding" not in system_text(model.received[-1])
 
 
 @pytest.mark.asyncio
@@ -359,13 +372,13 @@ async def test_findings_without_schema_update_and_retract(view):
 async def test_evidence_without_tasks_or_tables_is_visible(view):
     from searchos.socm import EvidenceNode
 
-    state = SearchState(research_mode="findings")
+    state = SearchState()
     state.evidence_graph.add_node(
         EvidenceNode(id="a", finding="A finding", source="https://example.org")
     )
     graph, model = graph_for(InMemoryEvidenceStore(state), view=view)
     history, writes = await turn(graph)
-    assert len(writes) == 1 and "A finding" in snapshots(model.received[-1])[0].content
+    assert len(writes) == 1 and "A finding" in system_text(model.received[-1])
 
 
 @pytest.mark.asyncio
@@ -381,7 +394,7 @@ async def test_disk_workspace_restores_without_checkpoint(tmp_path):
     graph, model = graph_for(restored)
     history, writes = await turn(graph)
     assert len(writes) == 1 and snapshots(history) == snapshots(first)
-    assert snapshots(model.received[-1])[0].content == snapshots(first)[0].content
+    assert system_text(model.received[-1]).count(snapshots(first)[0].content) == 1
 
 
 @pytest.mark.asyncio
@@ -394,6 +407,6 @@ async def test_deleted_assigned_table_keeps_missing_target_visible():
     ws.state.coverage_map = CoverageMap()
     _, writes = await turn(graph)
     assert len(writes) == 1
-    text = snapshots(model.received[-1])[0].content
-    assert "Unmatched assigned targets" in text and "t/A.Value" in text
+    text = system_text(model.received[-1])
+    assert "Unmatched targets" in text and '"key": ["A"], "attribute": "Value"' in text
     assert "actionable gaps: 0" not in text

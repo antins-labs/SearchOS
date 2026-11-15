@@ -5,6 +5,9 @@ Provides access to Apple Music catalog data including albums, artists, songs,
 search, and charts. Uses the amp-api.music.apple.com API with token extraction
 from the web player page.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -34,12 +37,12 @@ async def _fetch_developer_token() -> str:
         return _token_cache['token']
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
+        context = await _skill_network.browser_new_context(browser, 
             user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
             locale='en-US',
         )
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         
         try:
             # Load any Apple Music page to get the token
@@ -96,7 +99,7 @@ async def _make_api_request(
     
     timeout = aiohttp.ClientTimeout(total=30)
     
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(timeout=timeout) as session:
         async with session.get(url, headers=headers, params=params) as resp:
             if resp.status == 200:
                 return await resp.json()
@@ -107,7 +110,7 @@ async def _make_api_request(
                 token = await _fetch_developer_token()
                 headers['Authorization'] = f'Bearer {token}'
                 
-                async with aiohttp.ClientSession(timeout=timeout) as session2:
+                async with _skill_network.aiohttp_session(timeout=timeout) as session2:
                     async with session2.get(url, headers=headers, params=params) as resp2:
                         if resp2.status == 200:
                             return await resp2.json()
@@ -476,6 +479,7 @@ async def get_charts(storefront: str = "us", types: Optional[str] = None, limit:
     return output
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Apple Music API operations.

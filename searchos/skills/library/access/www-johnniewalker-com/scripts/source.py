@@ -4,6 +4,9 @@ Johnnie Walker Product Catalog Access Skill
 This skill provides access to Johnnie Walker's whisky product catalog
 via their public search API.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -27,7 +30,7 @@ class JohnnieWalkerAPI:
     async def _get_session(self) -> aiohttp.ClientSession:
         """Get or create aiohttp session"""
         if self.session is None or self.session.closed:
-            self.session = aiohttp.ClientSession(headers=self.headers)
+            self.session = _skill_network.aiohttp_session(headers=self.headers)
         return self.session
     
     async def close(self):
@@ -208,6 +211,7 @@ def format_product_summary(product: Dict[str, Any]) -> str:
     return '\n'.join(lines)
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the Johnnie Walker product skill

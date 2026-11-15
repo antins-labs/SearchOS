@@ -12,21 +12,21 @@ pytestmark = pytest.mark.usefixtures('deterministic_validation_agent')
 
 @pytest.fixture(autouse=True)
 def block_unconfigured_research_fallback(monkeypatch, request):
-    from searchos.tools.simple_browser.backend.base import FetchResult
+    from searchos.tools.simple_browser.fetchers.base import FetchResult
     async def blocked(self, url, **kwargs):
         return FetchResult(url=url, status=0, error='fixture: HTTP unavailable')
     async def public_url(url):
         if not url.startswith('https://example.com/'):
             raise ValueError('fixture: non-public or disallowed URL')
     if not request.node.originalname.startswith('test_research_http_reader_'):
-        monkeypatch.setattr('searchos.tools.simple_browser.backend.aiohttp.AiohttpBackend.fetch', blocked)
-    monkeypatch.setattr('searchos.tools.simple_browser.image_reading.validate_public_url', public_url)
+        monkeypatch.setattr('searchos.tools.simple_browser.fetchers.aiohttp.AiohttpBackend.fetch', blocked)
+    monkeypatch.setattr('searchos.tools.simple_browser.images.validate_public_url', public_url)
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('trust_env,allow_redirects', [(False, True), (True, False)])
-async def test_research_http_reader_preserves_proxy_and_encoding_options(monkeypatch, trust_env, allow_redirects):
-    from searchos.tools.simple_browser.backend.aiohttp import AiohttpBackend
+@pytest.mark.parametrize('allow_redirects', [True, False])
+async def test_research_http_reader_uses_host_proxy_and_preserves_encoding(monkeypatch, allow_redirects):
+    from searchos.tools.simple_browser.fetchers.aiohttp import AiohttpBackend
     calls = {}
     class Response:
         status = 200
@@ -41,12 +41,13 @@ async def test_research_http_reader_preserves_proxy_and_encoding_options(monkeyp
         def get(self, url, **kwargs):
             calls['request'] = kwargs
             return Response()
-    monkeypatch.setattr('searchos.tools.simple_browser.backend.aiohttp.aiohttp.ClientSession', Session)
-    monkeypatch.setattr('searchos.tools.simple_browser.backend.aiohttp.aiohttp.TCPConnector', lambda **kwargs: None)
-    backend = AiohttpBackend(max_retries=0, trust_env=trust_env, allow_redirects=allow_redirects)
+    monkeypatch.setattr('searchos.tools.simple_browser.fetchers.aiohttp.aiohttp.ClientSession', Session)
+    monkeypatch.setattr('searchos.tools.simple_browser.fetchers.aiohttp.aiohttp.TCPConnector', lambda **kwargs: None)
+    backend = AiohttpBackend(max_retries=0, allow_redirects=allow_redirects)
     result = await backend.fetch('https://example.com/api')
     assert result.ok and 'Public data' in result.markdown
-    assert calls['session']['trust_env'] is trust_env
+    assert calls['session']['trust_env'] is False
+    assert calls['session']['proxy'].startswith('http://127.0.0.1:')
     assert calls['request']['allow_redirects'] is allow_redirects
     assert calls['request']['headers']['Accept-Encoding'] == 'gzip, deflate'
 
@@ -76,10 +77,10 @@ def http_reader_response(monkeypatch):
                 calls['requests'] += 1
                 calls['request'] = kwargs
                 return response
-        monkeypatch.setattr('searchos.tools.simple_browser.backend.aiohttp.aiohttp.ClientSession', Session)
-        monkeypatch.setattr('searchos.tools.simple_browser.backend.aiohttp.aiohttp.TCPConnector', lambda **kwargs: calls.setdefault('connector', kwargs))
-        from searchos.tools.simple_browser.render import PageContents
-        from searchos.tools.simple_browser.state import _format_fetch_error
+        monkeypatch.setattr('searchos.tools.simple_browser.fetchers.aiohttp.aiohttp.ClientSession', Session)
+        monkeypatch.setattr('searchos.tools.simple_browser.fetchers.aiohttp.aiohttp.TCPConnector', lambda **kwargs: calls.setdefault('connector', kwargs))
+        from searchos.tools.simple_browser.pages import PageContents
+        from searchos.tools.simple_browser.session import _format_fetch_error
         async def primary(url, **kwargs):
             return PageContents(url=url, text=_format_fetch_error(url, -2, 'unsupported_content_type'))
         monkeypatch.setattr('searchos.tools.simple_browser.tools._fetch_page', primary)
@@ -103,7 +104,8 @@ async def test_research_http_reader_reads_api_json_as_findable_page(http_reader_
     found = await browser.dispatch('web_find', {'pattern': 'Readable 中文'})
     assert found['live_evidence'] is True and 'Readable 中文' in found['content']
     await browser.dispatch('web_open', {'id_or_url': url})
-    assert calls['requests'] == 1 and calls['session']['trust_env'] is True
+    assert calls['requests'] == 1 and calls['session']['trust_env'] is False
+    assert calls['session']['proxy'].startswith('http://127.0.0.1:')
     assert calls['request']['allow_redirects'] is False
     assert calls['connector']['ssl'].verify_mode == ssl.CERT_REQUIRED
 
@@ -152,7 +154,7 @@ async def test_research_http_reader_does_not_sniff_unapproved_json_types(http_re
 
 @pytest.mark.asyncio
 async def test_research_http_reader_json_does_not_widen_default_html_reader(http_reader_response):
-    from searchos.tools.simple_browser.backend.aiohttp import AiohttpBackend
+    from searchos.tools.simple_browser.fetchers.aiohttp import AiohttpBackend
     calls = http_reader_response('application/json', b'{"items":[]}')
     result = await AiohttpBackend(max_retries=0).fetch('https://example.com/api')
     assert not result.ok and 'unsupported content-type' in result.error
@@ -162,7 +164,7 @@ async def test_research_http_reader_json_does_not_widen_default_html_reader(http
 @pytest.mark.asyncio
 @pytest.mark.parametrize('under_limit', [False, True])
 async def test_research_http_reader_json_limit_counts_utf8_bytes_across_chunks(http_reader_response, under_limit):
-    from searchos.tools.simple_browser.backend.aiohttp import AiohttpBackend
+    from searchos.tools.simple_browser.fetchers.aiohttp import AiohttpBackend
     value = {'title': '中' * 22000, 'count': 0}
     body = json.dumps(value, ensure_ascii=False).encode()
     calls = http_reader_response('application/json', body)
@@ -179,7 +181,7 @@ async def test_research_http_reader_json_limit_counts_utf8_bytes_across_chunks(h
 
 @pytest.mark.asyncio
 async def test_research_http_reader_bounds_json_rendering_expansion(http_reader_response):
-    from searchos.tools.simple_browser.backend.aiohttp import AiohttpBackend
+    from searchos.tools.simple_browser.fetchers.aiohttp import AiohttpBackend
     body = b'[' * 50 + b','.join([b'0'] * 500) + b']' * 50
     http_reader_response('application/json', body)
     result = await AiohttpBackend(max_retries=0, allow_json=True,
@@ -191,24 +193,24 @@ async def test_research_http_reader_bounds_json_rendering_expansion(http_reader_
 @pytest.mark.asyncio
 async def test_research_failed_reader_uses_one_http_fallback_with_inherited_proxy(monkeypatch):
     from searchos.skills.pipeline.access.tools.web import ResearchBrowser
-    from searchos.tools.simple_browser.backend.base import FetchResult
-    from searchos.tools.simple_browser.render import PageContents
-    from searchos.tools.simple_browser.state import _format_fetch_error
+    from searchos.tools.simple_browser.fetchers.base import FetchResult
+    from searchos.tools.simple_browser.pages import PageContents
+    from searchos.tools.simple_browser.session import _format_fetch_error
 
     browser = ResearchBrowser()
     attempts = []
     async def fetch(url, **kwargs):
         return PageContents(url=url, text=_format_fetch_error(url, 0, 'reader unreachable'))
     async def fallback(self, url, **kwargs):
-        assert self._trust_env is True and self._allow_redirects is False
+        assert self._allow_redirects is False
         attempts.append(url)
         return FetchResult(url=url, markdown='Real HTTP content supports pagination.', title='Docs')
     monkeypatch.setattr('searchos.tools.simple_browser.tools._fetch_page', fetch)
-    monkeypatch.setattr('searchos.tools.simple_browser.backend.aiohttp.AiohttpBackend.fetch', fallback)
+    monkeypatch.setattr('searchos.tools.simple_browser.fetchers.aiohttp.AiohttpBackend.fetch', fallback)
 
     opened = await browser.dispatch('web_open', {'id_or_url': 'https://example.com/api'})
     assert opened['live_evidence'] is True and opened['content_source'] == 'page'
-    assert opened['access_method'] == 'http_fallback' and opened['proxy_mode'] == 'inherit'
+    assert opened['access_method'] == 'http_fallback'
     assert opened['reader_failure']['fetch_status'] == 'failed'
     assert not opened.get('error') and 'Real HTTP content' in opened['content']
     found = await browser.dispatch('web_find', {'pattern': 'pagination'})
@@ -221,15 +223,15 @@ async def test_research_failed_reader_uses_one_http_fallback_with_inherited_prox
 @pytest.mark.asyncio
 async def test_research_http_fallback_keeps_public_url_check(monkeypatch):
     from searchos.skills.pipeline.access.tools.web import ResearchBrowser
-    from searchos.tools.simple_browser.render import PageContents
-    from searchos.tools.simple_browser.state import _format_fetch_error
+    from searchos.tools.simple_browser.pages import PageContents
+    from searchos.tools.simple_browser.session import _format_fetch_error
 
     async def fetch(url, **kwargs):
         return PageContents(url=url, text=_format_fetch_error(url, 0, 'reader unavailable'))
     async def fallback(*args, **kwargs):
         pytest.fail('HTTP fallback must not access a rejected URL')
     monkeypatch.setattr('searchos.tools.simple_browser.tools._fetch_page', fetch)
-    monkeypatch.setattr('searchos.tools.simple_browser.backend.aiohttp.AiohttpBackend.fetch', fallback)
+    monkeypatch.setattr('searchos.tools.simple_browser.fetchers.aiohttp.AiohttpBackend.fetch', fallback)
     result = await ResearchBrowser().dispatch('web_open', {'id_or_url': 'http://127.0.0.1/private'})
     assert result['live_evidence'] is False
     assert 'non-public' in result['fallback_error']
@@ -238,8 +240,8 @@ async def test_research_http_fallback_keeps_public_url_check(monkeypatch):
 @pytest.mark.asyncio
 async def test_research_reports_failed_fetch_without_treating_it_as_page_evidence(monkeypatch):
     from searchos.skills.pipeline.access.tools.web import ResearchBrowser
-    from searchos.tools.simple_browser.render import PageContents
-    from searchos.tools.simple_browser.state import _format_fetch_error
+    from searchos.tools.simple_browser.pages import PageContents
+    from searchos.tools.simple_browser.session import _format_fetch_error
 
     browser = ResearchBrowser()
     async def fetch(url, **kwargs):
@@ -262,9 +264,9 @@ async def test_research_reports_failed_fetch_without_treating_it_as_page_evidenc
 @pytest.mark.asyncio
 async def test_research_search_fallback_remains_a_lead_after_open_find_and_scroll(monkeypatch):
     from searchos.skills.pipeline.access.tools.web import ResearchBrowser
-    from searchos.tools.simple_browser.render import PageContents
-    from searchos.tools.simple_browser.search.base import SearchResult
-    from searchos.tools.simple_browser.state import _format_fetch_error
+    from searchos.tools.simple_browser.pages import PageContents
+    from searchos.tools.simple_browser.search_providers.base import SearchResult
+    from searchos.tools.simple_browser.session import _format_fetch_error
 
     browser = ResearchBrowser()
     class Provider:
@@ -301,9 +303,9 @@ async def test_research_search_fallback_remains_a_lead_after_open_find_and_scrol
 async def test_research_search_engine_backend_does_not_claim_a_live_fetch(monkeypatch):
     from types import SimpleNamespace
     from searchos.skills.pipeline.access.tools.web import ResearchBrowser
-    from searchos.tools.simple_browser.backend.base import BrowserService
-    from searchos.tools.simple_browser.backend.search_engine import SearchEngineBackend
-    from searchos.tools.simple_browser.render import PageContents
+    from searchos.tools.simple_browser.fetchers.base import BrowserService
+    from searchos.tools.simple_browser.fetchers.search_engine import SearchEngineBackend
+    from searchos.tools.simple_browser.pages import PageContents
 
     browser = ResearchBrowser()
     async def fetch(url, **kwargs):
@@ -319,7 +321,7 @@ async def test_research_search_engine_backend_does_not_claim_a_live_fetch(monkey
 @pytest.mark.asyncio
 async def test_research_success_and_tool_errors_never_share_stale_page_metadata(monkeypatch):
     from searchos.skills.pipeline.access.tools.web import ResearchBrowser
-    from searchos.tools.simple_browser.render import PageContents
+    from searchos.tools.simple_browser.pages import PageContents
 
     browser = ResearchBrowser()
     async def fetch(url, **kwargs):
@@ -345,9 +347,9 @@ async def test_research_success_and_tool_errors_never_share_stale_page_metadata(
 
 @pytest.mark.asyncio
 async def test_research_search_open_find_keeps_parent_and_other_builders_isolated(tmp_path, monkeypatch):
-    from searchos.tools.simple_browser import state
-    from searchos.tools.simple_browser.search.base import SearchResult
-    from searchos.tools.simple_browser.render import PageContents
+    from searchos.tools.simple_browser import session as state
+    from searchos.tools.simple_browser.search_providers.base import SearchResult
+    from searchos.tools.simple_browser.pages import PageContents
     from searchos.tools.search_state import _workspace_var
 
     parent = state.BrowserState()

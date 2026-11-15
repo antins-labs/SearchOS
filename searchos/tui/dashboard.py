@@ -9,6 +9,8 @@ fullscreen app.
 
 from __future__ import annotations
 
+from searchos.socm.refs import cell_key, cell_parts, row_values
+
 import json
 from collections import deque
 from dataclasses import dataclass, field
@@ -412,8 +414,7 @@ class LiveDashboard:
             attrs = t["attributes"]
             pk = t["primary_key"]
             label = t["table_label"] or tid
-            prefix = f"{tid}/"
-            t_cells = [c for k, c in self._cells.items() if k.startswith(prefix)]
+            t_cells = [c for k, c in self._cells.items() if cell_parts(k)[0] == tid]
             t_total = len(t_cells)
             t_filled = sum(1 for c in t_cells if c.get("status") in ("filled", "resolved"))
             t_pct = (t_filled / t_total) if t_total else 0.0
@@ -445,7 +446,8 @@ class LiveDashboard:
                 matrix.add_column(attr_label, justify="center", no_wrap=True)
             for ent in entities[:12]:
                 if has_keys:
-                    parts = ent.split("|")
+                    parts = [self._cells.get(cell_key(tid, ent, col), {}).get("value", "")
+                             for col in pk_cols]
                     if len(parts) < len(pk_cols):
                         parts = parts + [""] * (len(pk_cols) - len(parts))
                     pk_cells = [
@@ -454,11 +456,12 @@ class LiveDashboard:
                         for p in parts[: len(pk_cols)]
                     ]
                 else:
-                    lbl = ent if len(ent) <= 22 else ent[:21] + "…"
+                    label = " · ".join(row_values(ent))
+                    lbl = label if len(label) <= 22 else label[:21] + "…"
                     pk_cells = [Text(lbl, style="bold white on grey23")]
                 row: list[Any] = list(pk_cells)
                 for attr in data_cols[:6]:
-                    cell = self._cells.get(f"{tid}/{ent}.{attr}")
+                    cell = self._cells.get(cell_key(tid, ent, attr))
                     if cell is None:
                         row.append(Text("--", style="dim"))
                         continue

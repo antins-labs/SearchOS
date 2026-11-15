@@ -35,6 +35,7 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
 
   const [model, setModel] = useState("");
   const [temp, setTemp] = useState("");
+  const [inputLimit, setInputLimit] = useState("");
   const [rpm, setRpm] = useState("0");
   const [tpm, setTpm] = useState("0");
   const [enableThinking, setEnableThinking] = useState(false);
@@ -62,6 +63,7 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
     setModel(p.model);
     setTemp(p.temperature === null ? "" : String(p.temperature));
     setRpm(String(p.rpm));
+    setInputLimit(p.max_input_tokens == null ? "" : String(p.max_input_tokens));
     setTpm(String(p.tpm));
     setEnableThinking(p.enable_thinking);
     setProviderRef(p.provider_ref ?? "");
@@ -86,7 +88,8 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
   const tempValid = temp.trim() === "" || !Number.isNaN(Number(temp));
   const quotaValue = (value: string) => value.trim() === "" ? 0 : Number(value);
   const quotaValid = (value: string) => Number.isSafeInteger(quotaValue(value)) && quotaValue(value) >= 0;
-  const limitsValid = quotaValid(rpm) && quotaValid(tpm);
+  const inputLimitValid = inputLimit === "" || (/^\d+$/.test(inputLimit) && Number.isSafeInteger(Number(inputLimit)) && Number(inputLimit) >= 256);
+  const limitsValid = quotaValid(rpm) && quotaValid(tpm) && inputLimitValid;
 
   const save = async () => {
     const patch: Parameters<typeof patchProfile>[1] = {};
@@ -108,6 +111,8 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
     const newRpm = quotaValue(rpm);
     const newTpm = quotaValue(tpm);
     if (newRpm !== p.rpm) patch.rpm = newRpm;
+    const newInputLimit = inputLimit === "" ? null : Number(inputLimit);
+    if (newInputLimit !== (p.max_input_tokens ?? null)) patch.max_input_tokens = newInputLimit;
     if (newTpm !== p.tpm) patch.tpm = newTpm;
 
     const thinkingOn = thinkingControllable ? enableThinking : p.enable_thinking;
@@ -121,7 +126,7 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
   const reset = () =>
     call(() => patchProfile(name, {
       model: "", api_base: "", api_key_env: "", provider_ref: "", temperature: null,
-      rpm: null, tpm: null,
+      rpm: null, tpm: null, max_input_tokens: null,
     }), zh ? "无法重置模型" : "Couldn't reset model");
 
   const remove = async () => {
@@ -197,6 +202,12 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
           )}
           <input value={model} onChange={(e) => setModel(e.target.value)} disabled={busy}
             placeholder={zh ? "模型标识" : "Model id"} aria-label={zh ? `${name} 的模型标识` : `Model for ${name}`} spellCheck={false} className={inputCls} />
+          <label className="block">
+            <span className="mb-1 block text-[11px] text-ink-faint">{zh ? "最大输入长度（token）" : "Maximum input tokens"}</span>
+            <input value={inputLimit} onChange={(e) => setInputLimit(e.target.value)} disabled={busy}
+              inputMode="numeric" placeholder={zh ? "自动（可填写 256 或更大的整数）" : "Automatic (integer ≥ 256)"}
+              aria-invalid={!inputLimitValid} className={`${inputCls} ${inputLimitValid ? "" : "border-err"}`} />
+          </label>
           <input value={temp} onChange={(e) => setTemp(e.target.value)} disabled={busy}
             placeholder={zh ? "温度（留空不发送）" : "Temperature (empty means omitted)"} aria-label={zh ? `${name} 的温度` : `Temperature for ${name}`}
             inputMode="decimal" spellCheck={false}
@@ -242,6 +253,7 @@ export default function ProfileCard({ name, profile: p, disabled = false }: Prop
         <>
           <div className="mt-1.5 space-y-0.5 text-[11.5px] text-ink-faint">
             <div className="truncate">{zh ? "模型" : "model"}: <span className="text-ink-dim">{p.model}</span></div>
+            <div className="truncate">{zh ? "最大输入长度" : "Maximum input tokens"}: <span className="text-ink-dim">{p.max_input_tokens?.toLocaleString() ?? (zh ? "自动" : "Automatic")}</span></div>
             <div className="truncate">{zh ? "服务" : "provider"}: <span className="font-mono">{refLabel}</span> · {p.provider}</div>
             <div className="truncate">{zh ? "密钥变量" : "key env"}: <span className="font-mono">{p.api_key_env}</span></div>
             <div className="truncate">

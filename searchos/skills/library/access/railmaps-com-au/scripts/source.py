@@ -4,6 +4,9 @@ Rail Maps Australia - Route Details Extractor
 Fetches timetable route information from railmaps.com.au
 Extracts route metadata, station lists, and available timetable data.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import re
@@ -207,7 +210,7 @@ async def get_route_details(table_select: int, include_timetable: bool = True) -
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             # Fetch main page
             html = await fetch_route_page(session, table_select)
             
@@ -309,6 +312,7 @@ async def search_routes(query: str = "") -> Dict[str, Any]:
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute the Rail Maps skill.

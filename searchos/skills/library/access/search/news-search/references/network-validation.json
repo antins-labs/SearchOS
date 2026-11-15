@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "0ceb889334239d56df0dbfd7a546a87ab2d7ba70a2318d0190de7f6f111c1892",
+  "capabilities": {
+    "package": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"query\": \"OpenAI GPT-5 release\", \"num_results\": 3, \"days_back\": 7}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.856153+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://news.google.com/rss/search",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

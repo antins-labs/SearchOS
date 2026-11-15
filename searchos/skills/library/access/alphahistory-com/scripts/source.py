@@ -4,6 +4,9 @@ Alpha History Vietnam War Archive - Access Skill
 Fetches structured historical articles from alphahistory.com/vietnamwar/
 Supports article extraction, topic listings, timelines, documents, and biographical entries.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -423,6 +426,7 @@ def extract_biography_listing(soup: BeautifulSoup, url: str) -> dict:
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the Alpha History Vietnam War archive skill.
@@ -440,7 +444,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     if not function:
         return {"error": "Missing required parameter: function"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "get_article":
             url = params.get("url", "")
             slug = params.get("slug", "")

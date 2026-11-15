@@ -9,8 +9,7 @@ import re
 from dataclasses import asdict, dataclass, field
 
 from searchos.socm.coverage import answer_evidence
-from searchos.socm.evidence.provenance import evidence_citation, evidence_source_urls
-from searchos.util.span_match import find_span
+from searchos.socm.evidence.provenance import evidence_citation, evidence_source_urls, find_span
 
 
 @dataclass

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_programs": "direct",
+    "list_programs": "direct",
+    "get_program": "direct",
+    "get_multiple_programs": "direct"
+  },
+  "aliases": {
+    "list_programs": "list_programs",
+    "get_program": "get_program",
+    "search_programs": "search_programs",
+    "get_multiple_programs": "get_multiple_programs",
+    "run": "get_multiple_programs"
+  }
+}

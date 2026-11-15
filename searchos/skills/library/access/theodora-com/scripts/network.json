@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_geography": "direct",
+    "get_geography_by_url": "direct",
+    "list_sections": "direct",
+    "list_countries": "direct"
+  },
+  "aliases": {
+    "get_geography": "get_geography",
+    "get_geography_by_url": "get_geography_by_url",
+    "list_countries": "list_countries",
+    "list_sections": "list_sections",
+    "run": "list_sections"
+  }
+}

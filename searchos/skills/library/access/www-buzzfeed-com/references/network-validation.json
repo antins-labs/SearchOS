@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "4ab35928197e95b2e3aa3757e5fdec89aa9bbe8f5e566f2c245417f2caa3ab21",
+  "capabilities": {
+    "get_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.buzzfeed.com/hattiesoykan/how-many-of-imdbs-top-100-rated-tv-shows-have-you-seen\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.972538+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.buzzfeed.com/hattiesoykan/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "get_checklist": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_checklist\", \"url\": \"https://www.buzzfeed.com/hattiesoykan/how-many-of-imdbs-top-100-rated-tv-shows-have-you-seen\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.973124+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.buzzfeed.com/hattiesoykan/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "get_quiz_results": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_quiz_results\", \"url\": \"https://www.buzzfeed.com/hattiesoykan/how-many-of-imdbs-top-100-rated-tv-shows-have-you-seen\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.973287+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.buzzfeed.com/hattiesoykan/[redacted]",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

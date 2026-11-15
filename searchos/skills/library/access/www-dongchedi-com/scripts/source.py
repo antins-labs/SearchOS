@@ -5,6 +5,9 @@ Fetches car sales ranking data and articles from www.dongchedi.com
 Uses Next.js SSR data extraction from __NEXT_DATA__ script tag.
 For articles, falls back to Playwright for JavaScript rendering if needed.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -43,11 +46,11 @@ async def fetch_page_with_playwright(url: str, headers: dict) -> Optional[Dict]:
         from playwright.async_api import async_playwright
         
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context(
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent=headers.get('User-Agent', 'Mozilla/5.0')
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until='domcontentloaded', timeout=30000)
             await asyncio.sleep(2)
@@ -185,7 +188,7 @@ async def get_sales_ranking(params: Dict[str, Any], ctx: Any = None) -> Dict[str
         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         page_props = await fetch_page(session, url, headers)
         
         if not page_props:
@@ -231,7 +234,7 @@ async def get_article(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]
     }
     
     # First try with aiohttp (faster)
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         page_props = await fetch_page(session, url, headers)
     
     # If that fails, try with Playwright
@@ -260,6 +263,7 @@ async def get_article(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the Dongchedi access skill

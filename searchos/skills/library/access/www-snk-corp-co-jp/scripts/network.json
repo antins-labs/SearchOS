@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_teams": "direct",
+    "get_character": "direct",
+    "get_story": "direct",
+    "get_team": "direct"
+  },
+  "aliases": {
+    "get_character": "get_character",
+    "get_team": "get_team",
+    "list_teams": "list_teams",
+    "get_story": "get_story",
+    "run": "get_story"
+  }
+}

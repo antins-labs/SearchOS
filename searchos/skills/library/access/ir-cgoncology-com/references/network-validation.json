@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1911c6ed86b4feeac1f964b8f10b771b889c33a21119b87ef85c0191f07ed39d",
+  "capabilities": {
+    "list_press_releases": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_press_releases\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.722591+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_press_release": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_press_release\", \"url\": \"cg-oncology-announces-pricing-upsized-initial-public-offering\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.724479+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

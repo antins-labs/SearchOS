@@ -5,6 +5,9 @@ Accesses biography pages from Britannica.com with robust handling of
 Cloudflare protection. Extracts structured biography data including
 names, dates, nationality, profession, and notable works.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -17,7 +20,7 @@ async def create_browser_context():
     """Create a browser context with anti-fingerprinting measures"""
     p = await async_playwright().start()
     
-    browser = await p.chromium.launch(
+    browser = await _skill_network.browser_launch(p.chromium, 
         headless=True,
         args=[
             '--disable-blink-features=AutomationControlled',
@@ -29,7 +32,7 @@ async def create_browser_context():
         ]
     )
     
-    context = await browser.new_context(
+    context = await _skill_network.browser_new_context(browser, 
         viewport={'width': 1920, 'height': 1080},
         user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
         locale='en-US',
@@ -305,7 +308,7 @@ async def fetch_biography(url: str, max_wait: int = 60) -> dict[str, Any]:
     
     try:
         p, browser, context = await create_browser_context()
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         
         # Navigate to URL
         response = await page.goto(url, timeout=45000, wait_until='domcontentloaded')
@@ -415,7 +418,7 @@ async def search_biography(name: str) -> dict[str, Any]:
     
     try:
         p, browser, context = await create_browser_context()
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         
         # Construct search URL
         search_url = f"https://www.britannica.com/search?query={name.replace(' ', '+')}"
@@ -522,6 +525,7 @@ async def search_biography(name: str) -> dict[str, Any]:
             await p.stop()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Britannica biography access.

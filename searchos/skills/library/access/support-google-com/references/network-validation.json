@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2e7f6d807898b395244194f4d995e3415eb38e4a9dc17d7747660ee48907488f",
+  "capabilities": {
+    "get_all_specs": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_specs\", \"year\": 2024}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.871789+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://support.google.com/pixelphone/answer/7158570",
+          "status": 200
+        }
+      ]
+    },
+    "get_device_details": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_device_details\", \"device_query\": \"Pixel 9\", \"return_all_matches\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.872392+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://support.google.com/pixelphone/answer/7158570",
+          "status": 200
+        }
+      ]
+    },
+    "compare_devices": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"compare_devices\", \"devices\": [\"Pixel 9 phones\", \"Pixel 8 phones\"]}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.872484+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://support.google.com/pixelphone/answer/7158570",
+          "status": 200
+        }
+      ]
+    },
+    "get_spec_summary": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_spec_summary\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.872662+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://support.google.com/pixelphone/answer/7158570",
+          "status": 200
+        }
+      ]
+    },
+    "list_available_devices": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_available_devices\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.872850+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://support.google.com/pixelphone/answer/7158570",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

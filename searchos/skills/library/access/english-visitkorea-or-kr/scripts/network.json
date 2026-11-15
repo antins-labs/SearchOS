@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch_attraction": "direct"
+  },
+  "aliases": {
+    "fetch_attraction": "fetch_attraction",
+    "run": "fetch_attraction"
+  }
+}

@@ -11,7 +11,7 @@ export interface WorkerInfo {
 export interface SchemaTableRequest {
   table_id: string;
   table_label?: string;
-  entities?: string[];
+  entities?: Record<string, string>[];
   attrs: string[];
   primary_key?: string[];
   row_label?: string;
@@ -28,7 +28,7 @@ export interface SchemaRelationRequest {
 
 export interface SearchRequest {
   query: string;
-  entities?: string[];
+  entities?: Record<string, string>[];
   attrs?: string[];
   table_label?: string;
   primary_key?: string[];
@@ -44,7 +44,7 @@ export interface SearchRequest {
   /** Follow-up: extend this prior session (same workspace + coverage table). */
   follow_up_to?: string;
   /** Prior turns echoed back so the orchestrator sees the conversation. */
-  history?: { query: string; answer: string }[];
+  history?: { query: string; answer: string; steers?: string[] }[];
 }
 
 export interface LocalSourceSelection {
@@ -206,7 +206,7 @@ export interface LocalCitation {
 
 export interface RepairCellTarget {
   table_id: string;
-  entity: string;
+  key: string[];
   attribute: string;
 }
 
@@ -217,7 +217,7 @@ export interface RepairRequest {
   skills?: SkillOverrides;
   trusted_domains?: string[];
   excluded_domains?: string[];
-  history?: { query: string; answer: string }[];
+  history?: { query: string; answer: string; steers?: string[] }[];
 }
 
 // ---- Settings (mirrors web/api/routes/settings.py views) ----
@@ -286,6 +286,7 @@ export interface ProfileInfo {
   api_key_set: boolean;
   temperature: number | null;
   max_tokens: number | null;
+  max_input_tokens?: number | null;
   rpm: number;
   tpm: number;
   enable_thinking: boolean;
@@ -344,16 +345,35 @@ export interface RunDefaultsView {
   web_image_vision_model: string;
 }
 
-// First-class runtime knobs not covered by effort. Proxy / cache dir are not
-// secrets, so their resolved values round-trip (unlike API keys).
+// 运行参数。
 export interface AdvancedView {
   llm_max_retries: number;
   orch_coverage_stall_rounds: number;
   browser_disk_cache_dir: string;
-  https_proxy: string;
   search_max_results: number;
   use_layered_context: boolean;
   overridden: string[]; // which knobs the overlay currently pins
+}
+
+export interface NetworkView {
+  proxy_url: string;
+  auto_route: boolean;
+  routes: Record<string, "direct" | "proxy">;
+  source: string;
+  credential_set: boolean;
+}
+
+export interface LearnedNetworkRoute {
+  host: string;
+  port: number;
+  route: "direct" | "proxy";
+  expires_at: number;
+}
+
+export interface NetworkDiagnostic {
+  ok: boolean;
+  error?: string;
+  attempts?: { route: string; ok: boolean; phase?: string; latency_ms?: number; error?: string }[];
 }
 
 export interface SettingsData {
@@ -363,6 +383,7 @@ export interface SettingsData {
   run_defaults: RunDefaultsView;
   advanced: AdvancedView;
   middleware?: MiddlewareView;
+  network: NetworkView;
 }
 
 export interface MiddlewareComponent {
@@ -421,6 +442,7 @@ export interface ProviderSwitchResult {
 }
 
 export interface CoverageCell {
+  inferred?: boolean;
   value: string | string[];
   status: "missing" | "filled" | "uncertain" | "hard_cell";
   source?: string | string[];
@@ -432,6 +454,7 @@ export interface CoverageCell {
 }
 
 export interface TableSchema {
+  column_desc?: Record<string, { requires_search?: boolean }>;
   table_id: string;
   table_label?: string;
   entities: string[];
@@ -460,7 +483,7 @@ export interface CoverageMap {
   tables: Record<string, TableSchema>;
   relations: Relation[];
   active_table: string;
-  // Cell keys: "{table_id}/{entity}.{attribute}"
+  // JSON.stringify([table_id, primary-key values, attribute]).
   cells: Record<string, CoverageCell>;
   evidence_bindings?: Record<string, CellEvidenceBinding[]>;
 }
@@ -487,7 +510,7 @@ export interface EvidenceNode {
   alignment_note?: string;
   source_excerpt?: string;
   source_authority?: "official" | "industry_pr" | "aggregator" | "news" | "blog" | "unclear" | string;
-  status?: "active" | "rejected" | "superseded";
+  status?: "active" | "candidate" | "rejected" | "superseded";
   created_at?: number;
   page_id?: string;
   local_source_metadata?: {
@@ -530,7 +553,6 @@ export interface FrontierTask {
   kind?: "search" | "write" | "explore";
   status: "pending" | "running" | "completed" | "blocked" | "cancelled" | "open" | "exploring" | "resolved";
   priority: number;
-  result_mode?: "findings" | "table";
   blocked_by?: string[];
   target_cells?: string[];
   table_id?: string;
@@ -574,12 +596,12 @@ export interface TaskDAG {
 }
 
 export interface SearchState {
+  format_version?: number;
   intent: string;
   task_type: "wide" | "deep" | "local" | "hybrid";
   frontier: { questions: FrontierTask[] };
   explored_paths: { query: string; useful: boolean }[];
   evidence_graph: { nodes: EvidenceNode[]; edges: EvidenceEdge[]; task_bindings?: TaskEvidenceBinding[] };
-  research_mode?: "table" | "findings";
   source_scope?: { mode: "web" | "local" | "hybrid"; library_id?: string; selection?: "library" | "documents"; document_ids?: string[]; documents: { document_id: string; relative_path?: string }[]; unavailable_sources?: Record<string, string> } | null;
   coverage_map: CoverageMap;
   failure_memory: { records: {
@@ -609,13 +631,17 @@ export interface TokenUsage {
   cached_prompt_tokens?: number;
   llm_calls: number;
   cache_hit_calls?: number;
-  cache_hit_rate?: number;
+  cache_unreported_calls?: number;
+  usage_unreported_calls?: number;
+  cache_hit_rate?: number | null;
   by_role?: Record<string, {
     prompt_tokens: number;
     completion_tokens: number;
     cached_prompt_tokens?: number;
     llm_calls: number;
     cache_hit_calls?: number;
+    cache_unreported_calls?: number;
+    usage_unreported_calls?: number;
   }>;
 }
 
@@ -647,6 +673,7 @@ export interface SearchResult {
   evidence_count?: number;
   total_queries?: number;
   total_steps?: number;
+  skill_execution_count?: number;
   elapsed_s?: number;
   eval_verdict?: string;
   workspace_path?: string;

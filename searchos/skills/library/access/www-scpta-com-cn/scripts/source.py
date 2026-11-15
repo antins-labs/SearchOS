@@ -7,6 +7,9 @@ and related content.
 
 The site serves server-rendered HTML without complex anti-bot protections.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -30,7 +33,7 @@ async def _fetch_html(url: str, session: Optional[aiohttp.ClientSession] = None)
     """Fetch HTML content from URL."""
     own_session = session is None
     if own_session:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
     
     try:
         async with session.get(url, headers=DEFAULT_HEADERS, timeout=aiohttp.ClientTimeout(total=30)) as response:
@@ -323,6 +326,7 @@ async def list_articles(
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the SCPTA skill.

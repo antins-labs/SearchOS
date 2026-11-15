@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "6e54683703db102a355899c6c6fa0ccb14b54392d6060491a99f4c42e136a48b",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://wjw.beijing.gov.cn/zwgk_20040/ylws/202308/t20230802_3212648.html\", \"category\": \"ylws\", \"page\": 1, \"max_pages\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.908513+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://wjw.beijing.gov.cn/zwgk_20040/ylws/202308/t20230802_3212648.html",
+          "status": 200
+        }
+      ]
+    },
+    "list_articles": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_articles\", \"category\": \"ylws\", \"page\": 1, \"max_pages\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.909623+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://wjw.beijing.gov.cn/zwgk_20040/ylws/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_by_keyword": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_keyword\", \"keyword\": \"医院\", \"category\": \"ylws\", \"max_pages\": 2, \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.909790+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://wjw.beijing.gov.cn/zwgk_20040/ylws/index.html",
+          "status": 200
+        },
+        {
+          "url": "https://wjw.beijing.gov.cn/zwgk_20040/ylws/index_2.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_batch_articles": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_batch_articles\", \"urls\": [\"https://wjw.beijing.gov.cn/zwgk_20040/ylws/202308/t20230802_3212648.html\", \"https://wjw.beijing.gov.cn/zwgk_20040/ylws/202107/t20210728_2449992.html\"], \"category\": \"ylws\", \"page\": 1, \"max_pages\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.909955+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://wjw.beijing.gov.cn/zwgk_20040/ylws/202308/t20230802_3212648.html",
+          "status": 200
+        },
+        {
+          "url": "https://wjw.beijing.gov.cn/zwgk_20040/ylws/202107/t20210728_2449992.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

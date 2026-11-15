@@ -11,6 +11,9 @@ Fetches AP News articles and extracts structured content including:
 
 Uses JSON-LD structured data for metadata and HTML parsing for article body.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -22,6 +25,7 @@ import aiohttp
 from bs4 import BeautifulSoup
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute AP News article fetching or search.
@@ -252,7 +256,7 @@ async def get_article(url: str) -> dict[str, Any]:
     if not parsed.netloc or 'apnews.com' not in parsed.netloc:
         return {"error": "Invalid URL. Must be an AP News article URL (apnews.com)"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_html(url, session)
         
         if status != 200:
@@ -331,7 +335,7 @@ async def search_articles(query: str, max_results: int = 10) -> dict[str, Any]:
     # AP News search URL pattern
     search_url = f"https://apnews.com/search?q={quote_plus(query)}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_html(search_url, session)
         
         if status != 200:

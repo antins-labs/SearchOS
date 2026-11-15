@@ -6,6 +6,9 @@ Fetches facility data from Recreation.gov for:
 - Site passes (park entrance passes) 
 - Campgrounds (campsites, availability)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from typing import Any
@@ -338,6 +341,7 @@ async def _get_facility_search(session: aiohttp.ClientSession, facility_id: str)
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Recreation.gov API calls
@@ -367,7 +371,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     if not facility_id:
         return {"error": "Missing required parameter: facility_id"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             if function == "get_ticket_facility":
                 return await _get_ticket_facility(session, facility_id)

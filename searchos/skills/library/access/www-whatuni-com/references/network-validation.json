@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ce33af3600c222260f05406a3beb23f1fad43c6aef87c9e014148c8fe683febd",
+  "capabilities": {
+    "search_courses": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_courses\", \"subject\": \"communication-studies\", \"university\": \"goldsmiths-university-of-london\", \"level\": \"postgraduate\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.387850+00:00",
+      "reason": "HTTP error: Client error '403 Forbidden' for url 'https://www.whatuni.com/postgraduate-courses/csearch?subject=communication-studies&university=goldsmiths-university-of-london'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403",
+      "source_responses": [
+        {
+          "url": "https://www.whatuni.com/postgraduate-courses/csearch",
+          "status": 403
+        }
+      ]
+    },
+    "get_course_detail": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_course_detail\", \"url\": \"https://www.whatuni.com/degrees/pgdip-in-digital-media-theory/goldsmiths-university-of-london/cd/58174070/859\", \"level\": \"postgraduate\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.388311+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.whatuni.com/degrees/pgdip-in-digital-media-theory/goldsmiths-university-of-london/cd/58174070/859/",
+          "status": 403
+        }
+      ]
+    },
+    "search_universities": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_universities\", \"query\": \"london\", \"level\": \"postgraduate\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.388523+00:00",
+      "reason": "Client error '403 Forbidden' for url 'https://www.whatuni.com/degrees/find-university/?search=london'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403",
+      "source_responses": [
+        {
+          "url": "https://www.whatuni.com/degrees/find-university/",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

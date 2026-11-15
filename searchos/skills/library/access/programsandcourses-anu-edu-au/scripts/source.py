@@ -9,6 +9,9 @@ Supports:
 - Course details with learning outcomes, prerequisites, and offerings
 - Year-specific catalogues (optional year parameter)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import re
@@ -295,7 +298,7 @@ async def get_program(code: str, year: Optional[str] = None) -> dict[str, Any]:
         url = f"{BASE_URL}/program/{code}"
     
     try:
-        async with aiohttp.ClientSession(cookie_jar=aiohttp.CookieJar()) as session:
+        async with _skill_network.aiohttp_session(cookie_jar=aiohttp.CookieJar()) as session:
             html, final_url = await _fetch_html(session, url)
             
             # Check if we got a 404/error page
@@ -358,7 +361,7 @@ async def get_course(code: str, year: Optional[str] = None) -> dict[str, Any]:
         url = f"{BASE_URL}/course/{code}"
     
     try:
-        async with aiohttp.ClientSession(cookie_jar=aiohttp.CookieJar()) as session:
+        async with _skill_network.aiohttp_session(cookie_jar=aiohttp.CookieJar()) as session:
             html, final_url = await _fetch_html(session, url)
             
             # Check if we got a 404/error page
@@ -421,6 +424,7 @@ async def search_programs(query: Optional[str] = None, year: Optional[str] = Non
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the ANU Programs and Courses skill.

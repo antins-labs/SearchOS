@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "16bd5cfa0bdf7e4089c38ee1feaf2d97fa33a1933a9ec8670b48e0e3f405dfe3",
+  "capabilities": {
+    "get_profile": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_profile\", \"username\": \"itsmetinx\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.771193+00:00",
+      "reason": "Profile data not found. The profile may not exist or is private.",
+      "source_responses": [
+        {
+          "url": "https://linktr.ee/itsmetinx",
+          "status": 200
+        },
+        {
+          "url": "https://ugc.production.linktr.ee/aba93aa6-b984-4685-9e83-75169090713f_b9d9135f-4247-4b2d-a17c-7bb539c5d51b-channels4-profile--1-.jpeg",
+          "status": 200
+        },
+        {
+          "url": "https://assets.production.linktr.ee/profiles/_next/static/native-bridge-bootstrap.4f5020c0.js",
+          "status": 200
+        },
+        {
+          "url": "https://assets.production.linktr.ee/consent-scripts/geo-consent.js",
+          "status": 200
+        },
+        {
+          "url": "https://assets.production.linktr.ee/profiles/_next/static/css/b1c40cdb0879b8fb.css",
+          "status": 200
+        },
+        {
+          "url": "https://assets.production.linktr.ee/profiles/_next/static/css/88c482322eaefa2f.css",
+          "status": 200
+        },
+        {
+          "url": "https://ugc.production.linktr.ee/d7bdeb2d-92b6-4719-8a94-a183d811b1de_shift.png",
+          "status": 200
+        },
+        {
+          "url": "https://assets.production.linktr.ee/static/avatars/blank-avatar.svg",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

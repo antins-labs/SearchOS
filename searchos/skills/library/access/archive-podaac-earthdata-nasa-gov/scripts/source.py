@@ -8,6 +8,9 @@ Supports:
 - PDF documents: Extracts metadata and text content
 - Text data files: Parses structured data tables and metadata
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -32,7 +35,7 @@ async def fetch_file(url: str, timeout: int = 60) -> dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as response:
                 result["status"] = response.status
                 result["headers"] = dict(response.headers)
@@ -420,7 +423,7 @@ async def check_url_status(url: str) -> dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.head(url, timeout=aiohttp.ClientTimeout(total=15), 
                                    allow_redirects=True) as response:
                 result["status"] = response.status
@@ -436,6 +439,7 @@ async def check_url_status(url: str) -> dict[str, Any]:
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute NASA PO.DAAC archive access functions.

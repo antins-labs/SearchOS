@@ -4,6 +4,9 @@ SearchOS access skill for finance.sina.com.cn stock news articles.
 This module provides access to Sina Finance news articles, extracting structured
 data including article content, metadata, images, and TOP50 ranking information.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -13,6 +16,7 @@ from typing import Any, Optional
 from urllib.parse import urlparse
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute function for Sina Finance article extraction.
@@ -90,7 +94,7 @@ async def get_article(params: dict[str, Any]) -> dict[str, Any]:
     
     try:
         timeout = aiohttp.ClientTimeout(total=30)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with _skill_network.aiohttp_session(timeout=timeout) as session:
             async with session.get(url, headers=headers) as response:
                 if response.status == 404:
                     return {

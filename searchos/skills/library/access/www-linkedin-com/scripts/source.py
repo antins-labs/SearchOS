@@ -6,6 +6,9 @@ Note: LinkedIn enforces strict access controls including geo-restrictions,
 authentication requirements, and bot detection. This skill handles these
 gracefully and provides clear error messages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -15,6 +18,7 @@ from urllib.parse import urlparse, urljoin
 import aiohttp
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute LinkedIn company page access.
@@ -147,7 +151,7 @@ async def fetch_linkedin_page(url: str, slug: str) -> dict[str, Any]:
     last_error = None
     redirect_chain = []
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for strategy in strategies:
             try:
                 timeout = aiohttp.ClientTimeout(total=strategy['timeout'])

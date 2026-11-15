@@ -8,6 +8,9 @@ from place detail pages.
 The website uses server-side rendering with HTML pages containing embedded data in meta tags
 and structured HTML tables. No API endpoints are available - data must be scraped from pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import re
@@ -157,7 +160,7 @@ async def fetch_place(place_id: str, category_id: str = None) -> dict:
         urls.append(f"{BASE_URL}/map-web/place?placeId={place_id}&categoryId={category_id}")
     urls.append(f"{BASE_URL}/map-web/place?placeId={place_id}")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for url in urls:
             try:
                 async with session.get(
@@ -203,6 +206,7 @@ async def fetch_place_by_url(url: str) -> dict:
     return await fetch_place(parsed['place_id'], parsed.get('category_id'))
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the skill.

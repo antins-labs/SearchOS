@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b9f1b58a529c2e9e1c1a46cac063643b07f16f054709d7f05430299decd3e38b",
+  "capabilities": {
+    "list_conferences": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_conferences\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.755055+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://kesen.realtimerendering.com/",
+          "status": 200
+        }
+      ]
+    },
+    "list_papers": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_papers\", \"year\": 2024}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.756184+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://kesen.realtimerendering.com/sig2024.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_paper": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_paper\", \"year\": 2024, \"title\": \"Gaussian Splatting\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.756770+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://kesen.realtimerendering.com/sig2024.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_papers": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_papers\", \"year\": 2024, \"query\": \"neural\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.756921+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://kesen.realtimerendering.com/sig2024.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

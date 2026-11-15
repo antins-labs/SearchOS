@@ -2,6 +2,9 @@
 SearchOS Access Skill for msasoi.in
 Extracts Central Government holiday lists from msasoi.in (DoPT O.M. documents)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -18,7 +21,7 @@ async def fetch_page(url: str) -> str:
         'Accept-Language': 'en-US,en;q=0.9',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as response:
             response.raise_for_status()
             return await response.text()
@@ -219,6 +222,7 @@ async def search_holidays(query: str = None, saka_era: str = None, holiday_type:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the skill.

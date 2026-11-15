@@ -12,6 +12,8 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from searchos.socm.coverage.models import cell_is_actionable, cell_is_complete
+
 if TYPE_CHECKING:
     from searchos.socm.state import SearchState
 
@@ -25,20 +27,24 @@ class CellInfo:
     best_alignment: str  # full | partial | loose | ""
     has_conflict: bool
     conflict_status: str = "clear"
+    active_task_ids: list[str] = field(default_factory=list)
+    requires_search: bool = True
+    inferred: bool = False
 
 
 @dataclass
 class RowStatus:
     entity: str
     cells: list[CellInfo]
+    key_values: dict[str, str] = field(default_factory=dict)
 
     @property
     def filled_cols(self) -> list[str]:
-        return [c.attr for c in self.cells if c.status == "filled"]
+        return [c.attr for c in self.cells if cell_is_complete(c)]
 
     @property
     def missing_cols(self) -> list[str]:
-        return [c.attr for c in self.cells if c.status not in ("filled", "hard_cell")]
+        return [c.attr for c in self.cells if cell_is_actionable(c)]
 
     @property
     def evidence_count(self) -> int:
@@ -46,11 +52,11 @@ class RowStatus:
 
     @property
     def is_complete(self) -> bool:
-        return len(self.missing_cols) == 0
+        return all(cell_is_complete(c) for c in self.cells)
 
     @property
     def is_empty(self) -> bool:
-        return all(c.evidence_count == 0 for c in self.cells)
+        return all(c.evidence_count == 0 and not c.inferred for c in self.cells)
 
 
 @dataclass
@@ -62,6 +68,8 @@ class TableSnapshot:
     is_open_set: bool
     rows: list[RowStatus]
     column_descriptions: dict[str, str] = field(default_factory=dict)
+    recent_entities: list[str] = field(default_factory=list)
+    inferred_columns: list[str] = field(default_factory=list)
 
     @property
     def is_empty(self) -> bool:
@@ -79,27 +87,43 @@ class TableSnapshot:
     def empty_rows(self) -> list[RowStatus]:
         return [r for r in self.rows if r.is_empty and not r.is_complete]
 
-
-@dataclass
-class RunningTaskSnap:
-    """One in-flight (RUNNING) Frontier task, projected for orchestrator view.
-
-    Lets the orchestrator see *what* each running sub-agent is working on
-    (table / target cells / task text) instead of a bare RUNNING count, so it
-    stops re-dispatching work already in flight.
-    """
-
-    agent_id: str  # assigned_agent_id, or "unassigned"
-    table_id: str
-    targets: list[str]  # first few target_cells, for cell-level alignment
-    text: str  # short task text (question or task_prompt)
+    def summary(self) -> dict:
+        """全表统计与展示窗口独立；冲突计数单列。"""
+        by_status: Counter[str] = Counter()
+        by_attribute = {}
+        complete = actionable = unassigned = conflicts = pending = 0
+        for attr in self.data_columns:
+            by_attribute[attr] = dict(unresolved=0, actionable=0, unavailable=0,
+                                      conflicts=0, pending=0)
+        for row in self.rows:
+            for cell in row.cells:
+                by_status[cell.status] += 1
+                done, work = cell_is_complete(cell), cell_is_actionable(cell)
+                conflict = cell.has_conflict or cell.conflict_status == "confirmed"
+                waiting = cell.conflict_status == "pending"
+                complete += done
+                actionable += work
+                unassigned += work and not cell.active_task_ids
+                conflicts += conflict
+                pending += waiting
+                counts = by_attribute[cell.attr]
+                counts["unresolved"] += not done
+                counts["actionable"] += work
+                counts["unavailable"] += cell.status == "hard_cell"
+                counts["conflicts"] += conflict
+                counts["pending"] += waiting
+        return dict(total_rows=len(self.rows), filled_rows=sum(r.is_complete for r in self.rows),
+                    unresolved_rows=sum(not r.is_complete for r in self.rows),
+                    total_cells=sum(by_status.values()), completed_cells=complete,
+                    by_status=dict(by_status), actionable_cells=actionable,
+                    unassigned_actionable_cells=unassigned, conflicts=conflicts,
+                    pending_comparisons=pending, by_attribute=by_attribute)
 
 
 @dataclass
 class FrontierSnapshot:
     by_status: dict[str, int] = field(default_factory=dict)
     open_by_kind: dict[str, int] = field(default_factory=dict)
-    running_tasks: list[RunningTaskSnap] = field(default_factory=list)
 
 
 @dataclass
@@ -108,7 +132,6 @@ class SearchStateSnapshot:
     frontier: FrontierSnapshot
     total_rows: int
     rows_with_gaps: int
-    research_mode: str = "table"
     task_evidence: list[dict] = field(default_factory=list)
     findings: list[dict] = field(default_factory=list)
 
@@ -116,6 +139,7 @@ class SearchStateSnapshot:
     def from_state(state: SearchState) -> SearchStateSnapshot:
         cmap = state.coverage_map
         frontier = state.frontier
+        owners = frontier.active_cell_tasks(cmap)
 
         tables: list[TableSnapshot] = []
         total_rows = 0
@@ -136,10 +160,12 @@ class SearchStateSnapshot:
                             CellInfo(
                                 attr=attr,
                                 status="missing",
+                                requires_search=ts.requires_search(attr),
                                 display_hint="",
                                 evidence_count=0,
                                 best_alignment="",
                                 has_conflict=False,
+                                active_task_ids=owners.get(key, []),
                             )
                         )
                     else:
@@ -147,14 +173,18 @@ class SearchStateSnapshot:
                             CellInfo(
                                 attr=attr,
                                 status=cell.status.value if cell.status else "missing",
+                                requires_search=ts.requires_search(attr),
+                                inferred=cell.inferred,
                                 display_hint=cell.display_hint or "",
                                 evidence_count=len(cell.supporting_evidence_ids),
                                 best_alignment=cell.best_alignment or "",
                                 has_conflict=cell.has_conflict,
                                 conflict_status=cell.conflict_status,
+                                active_task_ids=owners.get(key, []),
                             )
                         )
-                row = RowStatus(entity=ent, cells=cells)
+                row = RowStatus(entity=ent, cells=cells,
+                                key_values=cmap.primary_key_values(ent, table_id=tid))
                 rows.append(row)
                 if not row.is_complete:
                     rows_with_gaps += 1
@@ -168,6 +198,8 @@ class SearchStateSnapshot:
                     data_columns=data_cols,
                     is_open_set=ts.is_column_only,
                     rows=rows,
+                    recent_entities=list(ts.entities[-30:]),
+                    inferred_columns=[a for a in data_cols if not ts.requires_search(a)],
                     column_descriptions={
                         a: f"{d.type}: {d.desc}" for a, d in ts.column_desc.items()
                     },
@@ -176,21 +208,11 @@ class SearchStateSnapshot:
 
         by_status: Counter[str] = Counter()
         open_by_kind: Counter[str] = Counter()
-        running_tasks: list[RunningTaskSnap] = []
         for q in frontier.questions if frontier else []:
             s = q.status.value if q.status else ""
             by_status[s] += 1
             if s == "pending":
                 open_by_kind[q.kind or "search"] += 1
-            elif s == "running":
-                running_tasks.append(
-                    RunningTaskSnap(
-                        agent_id=q.assigned_agent_id or "unassigned",
-                        table_id=q.table_id or "",
-                        targets=list(q.target_cells or [])[:4],
-                        text=(q.question or q.task_prompt or "")[:80],
-                    )
-                )
 
         from searchos.socm.coverage import answer_evidence
 
@@ -202,7 +224,11 @@ class SearchStateSnapshot:
                 "question": task.question,
                 "status": task.status.value,
                 "agent_type": task.agent_type,
-                "result_mode": task.result_mode,
+                "agent_id": task.assigned_agent_id,
+                "table_id": task.table_id,
+                "target_cells": list(task.target_cells),
+                "priority": task.priority,
+                "updated_at": task.updated_at,
                 "evidence_count": len(
                     {
                         binding.evidence_id
@@ -232,14 +258,12 @@ class SearchStateSnapshot:
             if not node.entity and not node.attribute
         ]
         return SearchStateSnapshot(
-            research_mode=state.research_mode,
             task_evidence=task_evidence,
             findings=findings,
             tables=tables,
             frontier=FrontierSnapshot(
                 by_status=dict(by_status),
                 open_by_kind=dict(open_by_kind),
-                running_tasks=running_tasks,
             ),
             total_rows=total_rows,
             rows_with_gaps=rows_with_gaps,

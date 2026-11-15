@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "f74930fb8b6cd3defbc0f233c62d8e92ab8ccd01dd18c047f86a31a767e9d758",
+  "capabilities": {
+    "fetch_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_article\", \"url\": \"https://www.allkpop.com/article/2024/03/yg-entertainment-artists-who-founded-their-own-labels\", \"max_wait_seconds\": 45}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.948373+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.allkpop.com/article/2024/03/[redacted]",
+          "status": 307
+        },
+        {
+          "url": "https://www.allkpop.com/article/2024/03/[redacted]",
+          "status": 403
+        },
+        {
+          "url": "https://www.allkpop.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"query\": \"BTS comeback\", \"max_wait_seconds\": 30}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.487272+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.allkpop.com/search",
+          "status": 307
+        },
+        {
+          "url": "https://www.allkpop.com/search",
+          "status": 403
+        },
+        {
+          "url": "https://www.allkpop.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://www.allkpop.com/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eefc89cfa77b82/nrjyIO76WsQuL1QW67PbxlxOwt6NSbUVC67fknpu7rI-1792740102-1.2.1.1-5fFE1EaiCoAAn02mWxohyEkkhZOkLYva8KWGvCjarFUKchtOFkpbSbn3ZxIBAkI_",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.allkpop.com/[redacted]",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -104,21 +104,6 @@ def _format_capped_list(items: list[Any], *, cap: int = 30, show: int = 20) -> s
     if len(vals) <= cap:
         return _format_full_list(vals)
     return f"{', '.join(vals[:show])} ... (+{len(vals) - show} more)"
-def _check_schema_exists() -> str:
-    """Preflight: schema must exist before dispatching data-collecting agents.
-
-    Returns empty string on pass, error string on block.
-    """
-    assert _ctx.workspace is not None
-    state = _ctx.workspace.load_state()
-    if not state.coverage_map.tables and state.research_mode != "findings":
-        return (
-            "Error: schema is empty. Call ``create_schema(tables_json=..., "
-            "relations_json=...)`` BEFORE dispatching any sub-agents. "
-            "Single-table queries pass a length-1 array; multi-table "
-            "queries pass one object per table plus relations linking them."
-        )
-    return ""
 
 
 def _missing_agent_report(agent_id: str, agent_type: str, result: str) -> Any:
@@ -151,7 +136,7 @@ def _missing_agent_report(agent_id: str, agent_type: str, result: str) -> Any:
     report = report_type(agent_id=agent_id, status="error", result=result)
     if isinstance(report, SearchReport):
         report.task_ids = task_ids
-    _ctx.completed[agent_id] = report
+    _ctx.publish_report(report)
     return report
 
 
@@ -258,7 +243,7 @@ async def _continue_sub_agent_run(
                 "summary": report.result,
             })
         _review_search_attempt(info, agent_id, report, latest_messages)
-        _ctx.completed[agent_id] = report
+        _ctx.publish_report(report)
         return report
     except Exception as e:
         import traceback
@@ -285,7 +270,7 @@ async def _continue_sub_agent_run(
             scope_entities=scope_entities,
         )
         _review_search_attempt(info, agent_id, report, latest_messages)
-        _ctx.completed[agent_id] = report
+        _ctx.publish_report(report)
         return report
 def _find_writer_id() -> str | None:
     """Return the agent_id of the single writer (if one exists in this session).
@@ -298,7 +283,7 @@ def _find_writer_id() -> str | None:
     return None
 def _outline_status(state: Any) -> dict[str, Any]:
     """Summarize how 'done' the writer's outline is, plus pointer to a
-    writer agent if one is registered. Used by check_agents to surface
+    writer agent if one is registered. Used by report delivery to surface
     draft status to the orchestrator (so it knows where the draft stands
     without reading state itself).
     """
@@ -333,7 +318,7 @@ def _set_writer_last_evidence_count(writer_id: str, n: int) -> None:
         info["last_evidence_count"] = n
 def _detect_scope_entities(task: str, entities: list[str]) -> set[str]:
     """返回任务涉及的所有实体；空集交由调用方按无范围处理。"""
-    from searchos.util.scope import match_entities_in_task
+    from searchos.socm.planning.frontier import match_entities_in_task
     return match_entities_in_task(task, entities)
 def _build_sub_agent_context(state: Any, *, agent_type: str | None = None) -> str:
     """Render the SOCM schema overview for a sub-agent.
@@ -381,11 +366,6 @@ def _build_sub_agent_context(state: Any, *, agent_type: str | None = None) -> st
                 f"({r.kind.value}){tail}"
             )
 
-    lines.append("")
-    lines.append(
-        "Note: extract evidence by browsing — the middleware records findings into "
-        "the evidence graph and updates coverage automatically."
-    )
     return "\n".join(lines)
 def _build_writer_socm_block(state: Any) -> str:
     """Compact SOCM summary for writer_agent: coverage progress + open questions.
@@ -400,18 +380,20 @@ def _build_writer_socm_block(state: Any) -> str:
     if cmap is not None and cmap.total_cells > 0:
         summary = coverage_summary(state)
         by_status = summary["by_status"]
-        filled = by_status.get("filled", 0)
+        filled = summary["completed_cells"]
         pct = round(100 * filled / summary["total"]) if summary["total"] else 0
         lines.append(
             f"Filled: {filled}/{summary['total']} cells ({pct}%) | "
             f"uncertain: {by_status.get('uncertain', 0)} | "
             f"missing: {by_status.get('missing', 0)} | "
-            f"conflicts: {len(summary['conflict_cells'])}"
+            f"unavailable: {by_status.get('hard_cell', 0)} | "
+            f"conflicts: {sum(t['conflicts'] for t in summary['tables'])} | "
+            f"pending comparisons: {sum(t['pending_comparisons'] for t in summary['tables'])}"
         )
         for t in summary["tables"]:
             lines.append(
                 f"Table {t['table_label'] or t['table_id']}: "
-                f"{t['n_entities']} entities × {t['n_attributes']} attributes"
+                f"{t['total_rows']} entities × {len(t['by_attribute'])} data attributes"
             )
         lines.append(
             f"Entities ({len(cmap.table_schema.entities)}): "
@@ -422,13 +404,13 @@ def _build_writer_socm_block(state: Any) -> str:
             f"{_format_capped_list(cmap.table_schema.attributes)}"
         )
         worst_attrs = sorted(
-            summary["by_attribute"], key=lambda a: -a["missing"]
+            summary["by_attribute"], key=lambda a: -a["unresolved"]
         )[:8]
-        worst_attrs = [a for a in worst_attrs if a["missing"]]
+        worst_attrs = [a for a in worst_attrs if a["unresolved"]]
         if worst_attrs:
             lines.append(
-                "Top missing attributes: "
-                + ", ".join(f"{a['attribute']}({a['missing']})" for a in worst_attrs)
+                "Top unresolved attributes: "
+                + ", ".join(f"{a['table_id']}/{a['attribute']}({a['unresolved']})" for a in worst_attrs)
             )
         if summary["worst_entities"]:
             lines.append(
@@ -969,7 +951,7 @@ async def _spawn_sub_agent(
     import time
 
     from searchos.agents.runtime import create_search_agent_graph
-    from searchos.harness.middleware.sensor.core.models import BudgetState
+    from searchos.harness.middleware.sensor.core.run_state import BudgetState
 
     assert _ctx.workspace is not None
     assert _ctx.model is not None
@@ -1053,12 +1035,13 @@ async def _spawn_sub_agent(
         )
         if source_scope.get("selection") == "library":
             prompt_parts.append(
-                "本轮可探索当前知识库的可读文档快照。先按任务使用 local_catalog(query=...) "
-                "检索目录，或读取 local_catalog() 浏览范围；再沿相关文档目录定位并读取原文。"
-                "未匹配文件名不表示库内没有相关材料；可检索摘要和别名。不要遍历无关资料。"
+                "For this turn, explore the readable document snapshot in the current library. "
+                "Search catalogs with local_catalog(query=...) or browse the scope with local_catalog(), "
+                "then follow relevant document catalogs to locate and read source content. "
+                "Search summaries and aliases when filenames do not match. Stay within relevant material."
             )
         else:
-            prompt_parts.append("本轮只允许读取这些已选文档，直接从对应目录开始：\n" + paths)
+            prompt_parts.append("This turn allows only the selected documents below. Start directly from their catalogs:\n" + paths)
     assigned = next((q for q in state.frontier.questions if q.id == assigned_task_id), None)
     if assigned and assigned.blocked_by:
         from searchos.socm.coverage import answer_evidence
@@ -1066,7 +1049,7 @@ async def _spawn_sub_agent(
                if b.task_id in assigned.blocked_by}
         supporting = [{"id": n.id, "finding": n.finding, "source": n.source}
                       for n in answer_evidence(state) if n.id in ids]
-        prompt_parts.append("前置任务的已核验发现（按当前问题继续核查）：\n" +
+        prompt_parts.append("Verified findings from prerequisite tasks (check against the current question):\n" +
                             json.dumps(supporting, ensure_ascii=False))
 
     from pathlib import Path
@@ -1100,7 +1083,7 @@ async def _spawn_sub_agent(
     # same-type sub-agents could never share the cached persona/toolset.
     from datetime import datetime as _dt
 
-    from searchos.agents.temporal import render_temporal_grounding
+    from searchos.agents.date_context import render_temporal_grounding
     prompt_parts.append(render_temporal_grounding(
         _dt.now().strftime("%Y-%m-%d"),
         agent_type,
@@ -1152,23 +1135,22 @@ async def _spawn_sub_agent(
                     )
                 skill_parts.append(
                     f"Consider `load_skill(\"{sname}\")` if it fits the current need. "
-                    "Apply method instructions through your existing tools; use exec "
-                    "only for documented scripts. You may discover a better fit with list_skills."
+                    "Apply method instructions through your available tools. Load executable skills, "
+                    "then use their SearchAnything command_prefix inside exec. You may discover a better fit with list_skills."
                 )
         if skill_parts:
             prompt_parts.append("## Recommended Skills\n" + "\n\n".join(skill_parts))
 
-    if assigned and assigned.result_mode == "findings":
+    if assigned and assigned.kind == "search":
         prompt_parts.append(
-            "Read sources to collect supported facts and limitations for the assigned question. "
-            "Evidence Extraction automatically binds verified evidence to this task. "
-            "Evidence Extraction uses the applicable schema and fills supported cells "
-            "automatically; without a schema, Extraction records independent findings. "
-            "Preserve source references and identify unresolved questions."
+            "Read original sources for the assigned question. Preserve their references "
+            "and report any unresolved gaps. Evidence Extraction links supported facts "
+            "to this task. It uses the current schema to update rows and cells, or "
+            "records independent findings when no table exists."
         )
     strategy_guidance_applied = bool(strategy_guidance and agent_type in {"search_agent", "local_search_agent"})
     if strategy_guidance_applied:
-        prompt_parts.append("## 本次子任务的候选检索方法\n权限、来源范围和预算仍遵守已有规则。\n" + strategy_guidance)
+        prompt_parts.append("## Candidate retrieval methods for this subtask\nFollow the existing permissions, source scope, and budgets.\n" + strategy_guidance)
     if prompt_suffix:
         prompt_parts.append(prompt_suffix)
     system_prompt = "\n\n".join(prompt_parts)
@@ -1398,10 +1380,6 @@ async def _spawn_sub_agent(
     execution_context = (
         previous["execution_context"].copy() if previous is not None else copy_context()
     )
-    pending_reports = list(previous.get("pending_reports", ())) if previous is not None else []
-    if (previous is not None and not previous.get("report_delivered", False)
-            and agent_label in _ctx.completed):
-        pending_reports.append(_ctx.completed[agent_label])
     if bind_task_id:
         state = _ctx.workspace.atomic_update_state(_bind)
         assigned = next((q for q in state.frontier.questions if q.id == assigned_task_id), None)
@@ -1417,8 +1395,6 @@ async def _spawn_sub_agent(
         ),
         "source_scope_key": source_scope_key(state.source_scope),
         "access_key": access_key(),
-        "pending_reports": pending_reports,
-        "report_delivered": False,
         "logged_message_ids": (
             set(previous.get("logged_message_ids", ())) if previous is not None else set()
         ),
@@ -1596,7 +1572,7 @@ async def _collect_sub_agent_result(
             })
 
         _review_search_attempt(info, agent_id, report, latest_messages)
-        _ctx.completed[agent_id] = report
+        _ctx.publish_report(report)
         return report
 
     except Exception as e:
@@ -1624,7 +1600,7 @@ async def _collect_sub_agent_result(
             scope_entities=scope_entities,
         )
         _review_search_attempt(info, agent_id, report, latest_messages)
-        _ctx.completed[agent_id] = report
+        _ctx.publish_report(report)
         return report
 
 
@@ -1657,12 +1633,12 @@ def _task_redundancy_reason(
     """
     if not target_cells:
         return ""
+    from searchos.socm.coverage.models import cell_is_complete
     cmap = state.coverage_map
     keys = [cmap.resolve_cell_reference(c, table_id=table_id) for c in target_cells]
     cells = [cmap.cells.get(k) for k in keys]
     if cells and all(
-        c is not None and c.status.value == "filled" and not c.has_conflict
-        for c in cells
+        cell_is_complete(c) for c in cells
     ):
         return f"all {len(cells)} target_cells already filled"
     return ""

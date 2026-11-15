@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_reports": "direct",
+    "get_report": "direct",
+    "list_reports": "direct",
+    "download_excel": "direct"
+  },
+  "aliases": {
+    "list_reports": "list_reports",
+    "get_report": "get_report",
+    "download_excel": "download_excel",
+    "search_reports": "search_reports",
+    "run": "search_reports"
+  }
+}

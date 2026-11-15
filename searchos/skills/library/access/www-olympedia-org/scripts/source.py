@@ -9,6 +9,9 @@ Functions:
 - get_results: Get detailed results for an Olympic event by ID
 - search_athletes: Search for athletes by name
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -163,7 +166,7 @@ async def get_athlete(athlete_id: str, ctx: Any = None) -> dict[str, Any]:
     
     url = f"{BASE_URL}/athletes/{athlete_id}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await _fetch_page(session, url)
         
         if status != 200:
@@ -248,7 +251,7 @@ async def get_results(event_id: str, ctx: Any = None) -> dict[str, Any]:
     
     url = f"{BASE_URL}/results/{event_id}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await _fetch_page(session, url)
         
         if status != 200:
@@ -347,7 +350,7 @@ async def search_athletes(query: str, ctx: Any = None) -> dict[str, Any]:
     
     url = f"{BASE_URL}/athletes/quick_search"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Get CSRF token
         token = await _get_csrf_token(session)
         if not token:
@@ -409,6 +412,7 @@ async def search_athletes(query: str, ctx: Any = None) -> dict[str, Any]:
             }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Olympedia query.

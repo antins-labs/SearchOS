@@ -4,6 +4,9 @@ TJCN Statistical Bulletin Access Skill
 Fetches and parses statistical bulletins (统计公报) from www.tjcn.org.
 Handles GBK encoding, extracts full text, metadata, and data tables.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -321,6 +324,7 @@ async def search_reports(query: str, year: int = None) -> dict:
     return results
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute function for TJCN statistical bulletin access.
@@ -344,7 +348,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             'valid_functions': ['get_report', 'get_list', 'search']
         }
     
-    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0, follow_redirects=True) as client:
         if function == 'get_report':
             url = params.get('url')
             if not url:

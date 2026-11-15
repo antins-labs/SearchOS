@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "4408ae6ff59d413794789cbb849c508fe27af3886ec50a39484564ec8467d266",
+  "capabilities": {
+    "get_rankings": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rankings\", \"system\": \"QS\", \"year\": \"2025\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.381526+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_institution": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_institution\", \"institution_id\": \"id6272-massachusetts_institute_of_technology_mit-usa\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.382477+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search_institutions": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_institutions\", \"system\": \"QS\", \"year\": \"2025\", \"country\": \"Switzerland\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.382544+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "list_available_years": {
+      "status": "offline_business_passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_available_years\", \"system\": \"Times\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.382610+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-universityrankings-ch/scripts/source.py",
+        "line": 311,
+        "end_line": 333,
+        "implementation": "list_available_years",
+        "source_sha256": "6d13d2fc15af47f05c6760a489f31e5b25ff6e4711f70b2eb1efde5e914e0edf",
+        "implementation_sha256": "7bd57ae7afa235e4b8e7f79dada33d01a5f288ce75d667fb0108d9d3c54b50c4"
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "filter_by_status": "direct",
+    "search_paper": "proxy",
+    "list_conferences": "direct",
+    "filter_by_session": "proxy",
+    "list_papers": "direct"
+  },
+  "aliases": {
+    "list_papers": "list_papers",
+    "search_paper": "search_paper",
+    "filter_by_session": "filter_by_session",
+    "filter_by_status": "filter_by_status",
+    "list_conferences": "list_conferences",
+    "run": "list_conferences"
+  }
+}

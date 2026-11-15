@@ -4,6 +4,9 @@ NASA Mission Details & History Page Extractor
 Fetches and parses mission details pages and history articles from NASA.gov.
 Provides structured data about Apollo missions including crew, objectives, launch details, etc.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -304,7 +307,7 @@ def parse_history_page(html: str, url: str) -> dict:
 
 async def fetch_page(url: str, ctx: Any = None) -> tuple[str, int]:
     """Fetch a page from NASA.gov"""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, headers=HEADERS, timeout=aiohttp.ClientTimeout(total=30)) as response:
             return await response.text(), response.status
 
@@ -419,6 +422,7 @@ async def fetch_page_auto(params: dict[str, Any], ctx: Any = None) -> dict[str, 
         return {'error': f'Parse error: {str(e)}', 'error_code': 'PARSE_ERROR'}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute NASA page fetch based on function parameter.

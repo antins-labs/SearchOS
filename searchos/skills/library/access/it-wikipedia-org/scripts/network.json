@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_infobox": "inherit",
+    "get_wikidata": "proxy",
+    "get_bibliography": "inherit",
+    "get_sections": "inherit",
+    "search": "inherit",
+    "get_page": "proxy"
+  },
+  "aliases": {
+    "get_page": "get_page",
+    "get_sections": "get_sections",
+    "get_bibliography": "get_bibliography",
+    "get_infobox": "get_infobox",
+    "get_wikidata": "get_wikidata",
+    "search": "search",
+    "run": "search"
+  }
+}

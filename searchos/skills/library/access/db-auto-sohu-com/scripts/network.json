@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_model_news": "direct",
+    "get_dealer_prices": "direct",
+    "get_model_prices": "direct",
+    "get_full_model_info": "direct",
+    "get_competitor_ranking": "direct",
+    "get_model_stats": "direct",
+    "get_hot_models": "direct",
+    "get_related_trims": "direct",
+    "get_trim_prices": "direct",
+    "get_city_prices": "direct"
+  },
+  "aliases": {
+    "get_model_stats": "get_model_stats",
+    "get_model_prices": "get_model_prices",
+    "get_trim_prices": "get_trim_prices",
+    "get_city_prices": "get_city_prices",
+    "get_dealer_prices": "get_dealer_prices",
+    "get_model_news": "get_model_news",
+    "get_competitor_ranking": "get_competitor_ranking",
+    "get_related_trims": "get_related_trims",
+    "get_hot_models": "get_hot_models",
+    "get_full_model_info": "get_full_model_info",
+    "run": "get_full_model_info"
+  }
+}

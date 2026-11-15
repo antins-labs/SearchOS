@@ -1,0 +1,185 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e53b40df4fa800c7903557a7341288f2f96d15f58edaa16e130fd156e0113c36",
+  "capabilities": {
+    "get_country": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country\", \"cca3\": \"FRA\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.858347+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.lddgo.net/en/common/country-detail",
+          "status": 200
+        },
+        {
+          "url": "https://www.lddgo.net/img/user/lang.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.lddgo.net/js/base/common_util-e754b524f770492ab039a40fb53b5b8b.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.lddgo.net/js/tool/common/world-fa9e501ffd3869928b05e70de9cbb63a.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.lddgo.net/js/base/side_bar-477b9f2eeb0d92131d92fb1ac8e73c0b.js",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/layui/css/layui.css",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/css/main.css",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/layui/layui.all.js",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/js/third/base/clipboard.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.lddgo.net/img/icon-1732875babb6f45ec2e61eaf37a1c0f0.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.lddgo.net/img/icon.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.lddgo.net/js/third/tool/country/data/fra.svg",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/layui/css/modules/laydate/default/laydate.css",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/layui/css/modules/layer/default/layer.css",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/layui/css/modules/code.css",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/layui/font/iconfont.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610210101/show_ads_impl_fy2021.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_country_by_name": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country_by_name\", \"country_name\": \"France\", \"cca3\": \"FRA\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.861928+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.lddgo.net/en/common/country-detail",
+          "status": 200
+        },
+        {
+          "url": "https://www.lddgo.net/img/user/lang.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.lddgo.net/js/base/common_util-e754b524f770492ab039a40fb53b5b8b.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.lddgo.net/js/tool/common/world-fa9e501ffd3869928b05e70de9cbb63a.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.lddgo.net/js/base/side_bar-477b9f2eeb0d92131d92fb1ac8e73c0b.js",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/layui/css/layui.css",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/css/main.css",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/js/third/base/clipboard.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/layui/layui.all.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.lddgo.net/img/icon-1732875babb6f45ec2e61eaf37a1c0f0.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.lddgo.net/img/icon.png",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/layui/css/modules/laydate/default/laydate.css",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/layui/css/modules/layer/default/layer.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.lddgo.net/js/third/tool/country/data/fra.svg",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/layui/css/modules/code.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://staticfile.lddgo.net/layui/font/iconfont.woff2",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

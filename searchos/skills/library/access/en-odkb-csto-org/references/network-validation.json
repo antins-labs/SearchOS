@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ceddace700ecf83dfd1ebec8ceff4a9a821b40f3b90d2fcb30c7912103424ae0",
+  "capabilities": {
+    "get_history": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_history\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.606416+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.odkb-csto.org/25years/",
+          "status": 200
+        }
+      ]
+    },
+    "get_sessions": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sessions\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.607423+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.odkb-csto.org/session/",
+          "status": 200
+        }
+      ]
+    },
+    "get_session_detail": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_session_detail\", \"url\": \"/session/2022/sovet-kollektivnoy-bezopasnosti-23-noyabrya-v-erevane-obsudil-aktualnye-problemy-mezhdunarodnoy-i-re/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.607584+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.odkb-csto.org/session/2022/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "get_news": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_news\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.607874+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.odkb-csto.org/news/",
+          "status": 200
+        }
+      ]
+    },
+    "get_documents": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_documents\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.607982+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.odkb-csto.org/documents/",
+          "status": 200
+        }
+      ]
+    },
+    "get_leadership": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_leadership\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.608042+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.odkb-csto.org/25years/istoriya-rukovodstva/",
+          "status": 200
+        }
+      ]
+    },
+    "get_structure": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_structure\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.608100+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.odkb-csto.org/structure/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

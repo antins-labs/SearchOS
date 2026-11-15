@@ -6,6 +6,9 @@ and development statistics.
 
 API Documentation: https://datahelpdesk.worldbank.org/knowledgebase/articles/898581-api-basic-call-structures
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any, Optional
@@ -273,6 +276,7 @@ FUNCTIONS = {
 }
 
 
+@_skill_network.entrypoint
 async def execute_async(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute World Bank API function (async version).
@@ -302,7 +306,7 @@ async def execute_async(params: dict[str, Any], ctx: Any = None) -> dict[str, An
             "available_functions": list(FUNCTIONS.keys())
         }
     
-    async with aiohttp.ClientSession(headers=HEADERS) as session:
+    async with _skill_network.aiohttp_session(headers=HEADERS) as session:
         func = FUNCTIONS[function_name]
         try:
             result = await func(session, params)
@@ -311,6 +315,7 @@ async def execute_async(params: dict[str, Any], ctx: Any = None) -> dict[str, An
             return {"success": False, "error": f"Function execution failed: {str(e)}"}
 
 
+@_skill_network.entrypoint
 def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Synchronous wrapper for execute_async.

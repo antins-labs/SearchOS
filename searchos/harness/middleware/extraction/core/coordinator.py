@@ -6,11 +6,9 @@ import asyncio
 import json
 import logging
 from collections.abc import Callable
+from dataclasses import replace
 from typing import Any, Literal
 
-from searchos.harness.middleware.extraction.core.commit import ingest_facts, ingest_rows
-from searchos.harness.middleware.extraction.core.conflicts import ConflictReviewer
-from searchos.harness.middleware.extraction.core.judge import RowExtractor
 from searchos.harness.middleware.extraction.core.models import (
     DeliveryMode,
     EvidenceObservation,
@@ -20,17 +18,21 @@ from searchos.harness.middleware.extraction.core.models import (
     ExtractionReport,
     ExtractionSummary,
 )
-from searchos.harness.middleware.extraction.core.preparation import (
+from searchos.harness.middleware.extraction.core.source_windows import (
     ObservationPreparer,
     OriginalWindowPreparer,
 )
-from searchos.harness.middleware.extraction.core.routing import SchemaRouting, TaskRouting
 from searchos.harness.middleware.extraction.core.store import EvidenceStore, WorkspaceEvidenceStore
-from searchos.harness.middleware.extraction.core.task_scope import (
+from searchos.harness.middleware.extraction.core.tables.conflicts import ConflictReviewer
+from searchos.harness.middleware.extraction.core.tables.evidence import ingest_facts, ingest_rows
+from searchos.harness.middleware.extraction.core.tables.rows import RowExtractor
+from searchos.harness.middleware.extraction.core.tables.targets import (
     capture_task_targets,
     restrict_task_rows,
+    route_observations,
 )
 from searchos.harness.middleware.models import TaskContext
+from searchos.socm.evidence import EvidenceStatus
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +47,6 @@ class ExtractionCoordinator:
         trajectory_logger: Any = None,
         batch_n: int = 5,
         config: ExtractionConfig | None = None,
-        routing: TaskRouting | None = None,
         commit_rows: Callable | None = None,
         preparer: ObservationPreparer | None = None,
         *,
@@ -60,7 +61,6 @@ class ExtractionCoordinator:
         self.workspace = workspace
         self.task = task
         self._store = store if store is not None else WorkspaceEvidenceStore(workspace)
-        self._routing = routing or (SchemaRouting() if policy == "schema_facts" else TaskRouting())
         self._commit_rows = commit_rows or (
             ingest_facts if policy == "schema_facts" else ingest_rows
         )
@@ -114,7 +114,9 @@ class ExtractionCoordinator:
             for record in self._journal.load():
                 self._extracted_content_hashes.add(record["content_hash"])
                 if record["status"] != "done":
-                    self._recovered.append(record["item"])
+                    item = record["item"]
+                    item.pop("result_mode", None)
+                    self._recovered.append(item)
         self._report_pending()
 
     @property
@@ -128,12 +130,12 @@ class ExtractionCoordinator:
 
     def _record_settlement(self, reports: list[ExtractionReport]) -> None:
         completed = [report for report in reports if report.status != "skipped"]
-        if not completed or not all(report.succeeded for report in completed):
-            return
         productive = any(
             report.committed_nodes or report.evidence_links_added or report.cells_filled
             for report in completed
         )
+        if not completed or (not productive and any(not report.succeeded for report in completed)):
+            return
         self._progress = ExtractionProgress(
             settled_batches=self._progress.settled_batches + 1,
             consecutive_empty_batches=(
@@ -150,6 +152,46 @@ class ExtractionCoordinator:
             in_flight=self._flush_in_flight_count,
         )
 
+    def _accept(self, observation: EvidenceObservation, state: Any) -> dict | ExtractionReceipt:
+        """在缓冲锁内登记可抽取内容，重复或过短时返回回执。"""
+        content = observation.content or ""
+        import hashlib
+
+        task = next((q for q in state.frontier.questions if q.id == observation.task_id), None)
+        target_table = observation.target_table or (task.table_id if task else "")
+        if not content.strip() or (state.coverage_map.tables and len(content) < 50):
+            return ExtractionReceipt(accepted=False, reason="content_too_short")
+        identity_parts = [observation.source_url, observation.task_id,
+                          "table" if state.coverage_map.tables else "findings", target_table, content]
+        if observation.referring_page:
+            identity_parts.append(observation.referring_page)
+        identity = json.dumps(identity_parts, ensure_ascii=False)
+        content_hash = hashlib.sha256(identity.encode("utf-8", errors="ignore")).hexdigest()
+        item = {
+            "content": content,
+            "source_url": observation.source_url,
+            "source_urls": [observation.referring_page[0]] if observation.referring_page else list(observation.source_urls),
+            "referring_page": observation.referring_page,
+            "page_id": observation.page_id,
+            "content_hash": content_hash,
+            "target_table": target_table,
+            "task_id": observation.task_id,
+            "task_text": observation.task_text
+            or (task.task_prompt or task.question if task else state.intent),
+            "local_source_metadata": observation.local_source_metadata,
+            "source_kind": str(observation.source_kind),
+        }
+        item = capture_task_targets(state, item)
+        if content_hash in self._extracted_content_hashes:
+            self._duplicate_count += 1
+            return ExtractionReceipt(accepted=False, duplicate=True, reason="duplicate_content")
+        if self._journal is not None:
+            self._journal.write(item, "pending")
+        self._retry_items.pop(content_hash, None)
+        self._extracted_content_hashes.add(content_hash)
+        self._accepted_count += 1
+        return item
+
     async def submit(
         self,
         observation: EvidenceObservation,
@@ -157,50 +199,13 @@ class ExtractionCoordinator:
         delivery: DeliveryMode = DeliveryMode.BUFFERED,
     ) -> ExtractionReceipt:
         """接收 Observation；同步模式返回本次提交的 EvidenceNode。"""
-        content = observation.content or ""
-        import hashlib
-
-        state = self._store.load_state()
-        task = next((q for q in state.frontier.questions if q.id == observation.task_id), None)
-        result_mode = self._routing.result_mode(state, task, observation.result_mode)
-        target_table = observation.target_table or (task.table_id if task else "")
-        if not content.strip() or (result_mode == "table" and len(content) < 50):
-            return ExtractionReceipt(accepted=False, reason="content_too_short")
-        identity = json.dumps(
-            [observation.source_url, observation.task_id, result_mode, target_table, content],
-            ensure_ascii=False,
-        )
-        content_hash = hashlib.sha256(identity.encode("utf-8", errors="ignore")).hexdigest()
-        item = {
-            "content": content,
-            "source_url": observation.source_url,
-            "source_urls": list(observation.source_urls),
-            "page_id": observation.page_id,
-            "content_hash": content_hash,
-            "target_table": target_table,
-            "task_id": observation.task_id,
-            "result_mode": result_mode,
-            "task_text": observation.task_text
-            or (task.task_prompt or task.question if task else state.intent),
-            "local_source_metadata": observation.local_source_metadata,
-            "source_kind": str(observation.source_kind),
-        }
-        item = capture_task_targets(state, item)
         flushes: list[tuple[str, list[dict[str, Any]]]] = []
         async with self._buffer_lock:
-            if content_hash in self._extracted_content_hashes:
-                self._duplicate_count += 1
-                return ExtractionReceipt(
-                    accepted=False,
-                    duplicate=True,
-                    reason="duplicate_content",
-                    feedback=self._take_feedback(),
-                )
-            if self._journal is not None:
-                self._journal.write(item, "pending")
-            self._retry_items.pop(content_hash, None)
-            self._extracted_content_hashes.add(content_hash)
-            self._accepted_count += 1
+            item = self._accept(observation, self._store.load_state())
+            if isinstance(item, ExtractionReceipt):
+                if item.duplicate:
+                    return replace(item, feedback=self._take_feedback())
+                return item
             if delivery is DeliveryMode.BUFFERED:
                 # Keep one source URL per pending batch.  When the agent moves
                 # to a new URL, freeze the completed source batch for
@@ -235,6 +240,22 @@ class ExtractionCoordinator:
         for reason, snapshot in flushes:
             self._spawn_background_flush(reason, snapshot=snapshot)
         return ExtractionReceipt(accepted=True, feedback=self._take_feedback())
+
+    async def submit_exec(self, observations: list[EvidenceObservation]) -> str:
+        """每个子结果单独抽取，整次编排只结算一次进展。"""
+        async with self._buffer_lock:
+            state = self._store.load_state()
+            batch = []
+            for observation in observations:
+                item = self._accept(observation, state)
+                if isinstance(item, dict):
+                    batch.append(item)
+            if batch:
+                if self._pending_buffer:
+                    pending, self._pending_buffer = self._pending_buffer, []
+                    self._spawn_background_flush("url_switch", snapshot=pending)
+                self._spawn_background_flush("exec", snapshot=batch)
+        return self._take_feedback()
 
     def _take_feedback(self) -> str:
         feedback = "\n".join(item for item in self._pending_feedback if item)
@@ -271,7 +292,7 @@ class ExtractionCoordinator:
             recovery_deadline = asyncio.timeout(settings.extraction_finalize_timeout_s)
             try:
                 async with recovery_deadline:
-                    await self._run_snapshot(recovered, reason="recovery")
+                    self._record_settlement(await self._run_snapshot(recovered, reason="recovery"))
             except TimeoutError:
                 if not recovery_deadline.expired():
                     raise
@@ -385,14 +406,20 @@ class ExtractionCoordinator:
         if not snapshot:
             return
 
-        async def _run() -> None:
-            batch = snapshot
-            snapshot_size = len(batch)
-            self._flush_in_flight_count += snapshot_size
-            self._report_pending()
+        queued = {item["content_hash"]: item for item in snapshot}
+        self._flush_in_flight_count += len(queued)
+        self._report_pending()
+
+        async def _extract(batch):
             try:
                 async with self._flush_semaphore:
-                    await self._run_snapshot(batch, reason=reason)
+                    for item in batch:
+                        queued.pop(item["content_hash"])
+                    try:
+                        return await self._run_snapshot(batch, reason=reason)
+                    finally:
+                        self._flush_in_flight_count -= len(batch)
+                        self._report_pending()
             except Exception as exc:  # noqa: BLE001
                 self._background_flush_errors.append(exc)
                 logger.warning(
@@ -400,13 +427,27 @@ class ExtractionCoordinator:
                     reason,
                     exc_info=True,
                 )
-            finally:
-                self._flush_in_flight_count -= snapshot_size
+                return [ExtractionReport(status="failed", succeeded=False)]
+        def _finished(task):
+            self._flush_tasks.discard(task)
+            if queued:
+                # 编排在获得并发槽之前取消；这些来源仍在 journal，可单独重试。
+                self._retry_items.update(queued)
+                self._extracted_content_hashes.difference_update(queued)
+                self._flush_in_flight_count -= len(queued)
                 self._report_pending()
+
+        async def _run() -> None:
+            if reason == "exec":
+                results = await asyncio.gather(*(_extract([item]) for item in snapshot))
+                reports = [report for group in results for report in group]
+            else:
+                reports = await _extract(snapshot)
+            self._record_settlement(reports)
 
         task = asyncio.create_task(_run())
         self._flush_tasks.add(task)
-        task.add_done_callback(self._flush_tasks.discard)
+        task.add_done_callback(_finished)
 
     async def _extract_sync(
         self,
@@ -430,6 +471,7 @@ class ExtractionCoordinator:
             }
             async with self._flush_semaphore:
                 reports = await self._run_snapshot([item], reason=reason)
+            self._record_settlement(reports)
             after = self._store.load_state()
             attached = {
                 b.evidence_id for b in after.evidence_graph.task_bindings if b.task_id == task_id
@@ -437,7 +479,8 @@ class ExtractionCoordinator:
             return [
                 n
                 for n in after.evidence_graph.nodes
-                if (n.id not in pre or n.id in attached) and n.source == source_url
+                if n.status == EvidenceStatus.ACTIVE and (n.id not in pre or n.id in attached)
+                and n.source == source_url
             ], reports
         except Exception as exc:  # noqa: BLE001
             logger.warning(
@@ -481,7 +524,7 @@ class ExtractionCoordinator:
         if snapshot:
             self._flush_in_flight_count += len(snapshot)
             try:
-                await self._run_snapshot(snapshot, reason=reason)
+                self._record_settlement(await self._run_snapshot(snapshot, reason=reason))
             finally:
                 self._flush_in_flight_count -= len(snapshot)
                 self._report_pending()
@@ -525,7 +568,7 @@ class ExtractionCoordinator:
         # buffered before schema creation. Preserve the originating task ID.
         state = self._store.load_state()
         snapshot = [capture_task_targets(state, item) for item in snapshot]
-        snapshot, rejected = self._routing.expand(state, snapshot)
+        snapshot, rejected = route_observations(state, snapshot)
         for item, table_id in rejected:
             self._pending_feedback.append(
                 f"Target table {table_id!r} no longer exists; select an existing schema."
@@ -535,7 +578,6 @@ class ExtractionCoordinator:
             key = (
                 item.get("task_id", ""),
                 item.get("target_table", ""),
-                item.get("result_mode", ""),
             )
             groups.setdefault(key, []).append(item)
         reports = [
@@ -549,7 +591,6 @@ class ExtractionCoordinator:
         ]
         for group in groups.values():
             reports.extend(await self._flush_group(group, reason=reason))
-        self._record_settlement(reports)
         return reports
 
     async def _flush_group(
@@ -563,12 +604,11 @@ class ExtractionCoordinator:
         if not snapshot:
             return []
 
-        items = self._preparer.prepare_pages(snapshot)
-
-        state = self._store.load_state()
-        if items and items[0].get("result_mode") == "findings":
+        target_tid = snapshot[0]["target_table"]
+        if not target_tid:
             from searchos.harness.middleware.extraction.core.findings import extract_and_commit
 
+            items = self._preparer.original_windows(snapshot)
             new_ids: set[str] = set()
             succeeded = True
             for chunk in self._preparer.chunk_items(items):
@@ -595,43 +635,14 @@ class ExtractionCoordinator:
                     succeeded=succeeded,
                 )
             ]
-        target_tid = next(
-            (str(item.get("target_table") or "") for item in items if item.get("target_table")),
-            "",
-        )
-
-        if target_tid and target_tid in state.coverage_map.tables:
-            schema = state.coverage_map.tables[target_tid]
-        else:
-            schema = state.coverage_map.table_schema
-        if not schema.attributes:
-            # No schema yet (explore). Stash agent:// summaries for
-            # create_schema to replay post-commit.
-            agent_items = [
-                {
-                    "source_url": it.get("source_url", "") or "",
-                    "content": it.get("content", "") or "",
-                }
-                for it in items
-                if (it.get("source_url", "") or "").startswith("agent://")
-            ]
-            if agent_items:
-
-                def _stash(s: Any) -> Any:
-                    s.pending_agent_summaries.extend(agent_items)
-                    return s
-
-                self._store.atomic_update_state(_stash)
-                if self._trajectory_logger:
-                    self._trajectory_logger._append_raw(
-                        {
-                            "type": "harness",
-                            "kind": "pending_summary_stashed",
-                            "count": len(agent_items),
-                            "reason": reason,
-                        }
-                    )
+        items = self._preparer.prepare_pages(snapshot)
+        if not items:
             return []
+        state = self._store.load_state()
+        schema = state.coverage_map.tables.get(target_tid)
+        if schema is None:
+            return [ExtractionReport(table_id=target_tid, status="failed", succeeded=False,
+                                     warnings=("target_table_missing",))]
 
         if self._trajectory_logger:
             self._trajectory_logger._append_raw(
@@ -740,17 +751,16 @@ class ExtractionCoordinator:
                     status="skipped",
                     warnings=("missing schema",),
                 )
-            phase_order = [mode for mode, _view in self._extractor.plan_calls(tid, fresh)]
+            call_plan = self._extractor.plan_calls(tid, fresh, items)
 
-            for phase_index, mode in enumerate(phase_order):
+            for phase_index, (mode, targets) in enumerate(call_plan):
                 # No await or write precedes phase zero; reuse the same snapshot.
                 phase_state = fresh if phase_index == 0 else self._store.load_state()
                 phase_schema = phase_state.coverage_map.tables.get(tid)
                 if phase_schema is None or not phase_schema.attributes:
                     continue
-                phase_views = dict(self._extractor.plan_calls(tid, phase_state))
-                view = phase_views.get(mode)
-                if view is None:
+                view = self._extractor.render_call(mode, tid, phase_state, targets)
+                if mode == "fill" and not view:
                     continue
                 results = await asyncio.gather(
                     *(
@@ -760,6 +770,7 @@ class ExtractionCoordinator:
                             view,
                             phase_state,
                             mode=mode,
+                            target_cells=targets,
                         )
                         for chunk in chunks
                     )

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_tournament_game": "direct",
+    "get_tournament_bracket": "proxy",
+    "get_news_entry": "direct"
+  },
+  "aliases": {
+    "get_news_entry": "get_news_entry",
+    "get_tournament_bracket": "get_tournament_bracket",
+    "get_tournament_game": "get_tournament_game",
+    "run": "get_tournament_game"
+  }
+}

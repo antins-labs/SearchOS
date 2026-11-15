@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_all_profiles": "direct",
+    "get_profile": "direct",
+    "list_profile_types": "direct"
+  },
+  "aliases": {
+    "get_profile": "get_profile",
+    "get_all_profiles": "get_all_profiles",
+    "run": "list_profile_types",
+    "list_profile_types": "list_profile_types"
+  }
+}

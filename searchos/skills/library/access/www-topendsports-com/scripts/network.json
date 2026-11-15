@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_all_sports": "direct",
+    "get_sports_changes": "proxy",
+    "get_sports_count": "direct",
+    "get_discontinued": "direct",
+    "get_sport_detail": "direct"
+  },
+  "aliases": {
+    "get_sports_changes": "get_sports_changes",
+    "get_sports_count": "get_sports_count",
+    "get_discontinued": "get_discontinued",
+    "get_sport_detail": "get_sport_detail",
+    "get_all_sports": "get_all_sports",
+    "run": "get_all_sports"
+  }
+}

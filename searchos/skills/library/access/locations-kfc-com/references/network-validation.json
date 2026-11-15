@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3e5797180ca334b63bb014d5f92c453c112edbf00a6830b4d8cd856e8676c3bf",
+  "capabilities": {
+    "list_states": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_states\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.780964+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/locations-kfc-com/scripts/source.py",
+        "line": 236,
+        "end_line": 272,
+        "implementation": "list_states",
+        "source_sha256": "97df82210970557174afabb9f91746ba5989c017b96ca3270878e31143ed4dbc",
+        "implementation_sha256": "3fd257a346cc5e04a4500476a6ed68209868cbf4d9427d8adf40d4c679b5a4ed"
+      }
+    },
+    "list_cities": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_cities\", \"state\": \"ny\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.781802+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://locations.kfc.com/ny",
+          "status": 200
+        }
+      ]
+    },
+    "list_stores": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_stores\", \"city_path\": \"ny/bronx\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.781957+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://locations.kfc.com/ny/bronx",
+          "status": 200
+        }
+      ]
+    },
+    "get_store": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_store\", \"store_url\": \"https://locations.kfc.com/ny/new-york/2-penn-plaza\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.782052+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://locations.kfc.com/ny/new-york/2-penn-plaza",
+          "status": 200
+        }
+      ]
+    },
+    "fetch": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch\", \"path\": \"/ca/los-angeles\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.782127+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://locations.kfc.com/ca/los-angeles",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d1ba936bf02ec95632cde1790dcb4d47feb6e84b3be000672d412f575ca095e8",
+  "capabilities": {
+    "get_tournament": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tournament\", \"url\": \"http://www.todor66.com/volleyball/Other/Montreux_2005.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.368504+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.todor66.com/volleyball/Other/Montreux_2005.html",
+          "status": 200
+        }
+      ]
+    },
+    "parse_html": {
+      "status": "incomplete",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"parse_html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.370307+00:00",
+      "reason": "documented input was rejected: Missing required parameter: html",
+      "source_responses": []
+    },
+    "get_finals": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_finals\", \"url\": \"http://www.todor66.com/volleyball/Other/Montreux_2005.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.370511+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.todor66.com/volleyball/Other/Montreux_2005.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_rankings": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rankings\", \"url\": \"http://www.todor66.com/volleyball/Other/Montreux_2005.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.370691+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.todor66.com/volleyball/Other/Montreux_2005.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_groups": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_groups\", \"url\": \"http://www.todor66.com/volleyball/Other/Montreux_2005.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.371167+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.todor66.com/volleyball/Other/Montreux_2005.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

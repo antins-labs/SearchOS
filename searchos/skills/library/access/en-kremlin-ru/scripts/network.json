@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_press_releases": "direct",
+    "list_press_releases": "direct",
+    "get_press_release": "direct"
+  },
+  "aliases": {
+    "get_press_release": "get_press_release",
+    "list_press_releases": "list_press_releases",
+    "search_press_releases": "search_press_releases",
+    "run": "search_press_releases"
+  }
+}

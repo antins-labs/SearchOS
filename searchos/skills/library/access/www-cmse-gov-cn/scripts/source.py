@@ -2,6 +2,9 @@
 CMSE (China Manned Space Engineering) Access Skill
 Extracts structured data from www.cmse.gov.cn - China's official space program website
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -328,7 +331,7 @@ async def get_mission_details(params: dict, ctx: Any = None) -> dict:
     if not url.startswith('http'):
         url = urljoin(BASE_URL, url)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         content = await fetch_page(session, url)
         
         if not content:
@@ -366,7 +369,7 @@ async def get_timeline(params: dict, ctx: Any = None) -> dict:
     if not url.startswith('http'):
         url = urljoin(BASE_URL, url)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         content = await fetch_page(session, url)
         
         if not content:
@@ -415,7 +418,7 @@ async def list_missions(params: dict, ctx: Any = None) -> dict:
     
     missions = []
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         content = await fetch_page(session, url)
         
         if not content:
@@ -475,7 +478,7 @@ async def get_article(params: dict, ctx: Any = None) -> dict:
     if not url.startswith('http'):
         url = urljoin(BASE_URL, url)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         content = await fetch_page(session, url)
         
         if not content:
@@ -550,7 +553,7 @@ async def search(params: dict, ctx: Any = None) -> dict:
     # Always include the main missions page
     search_urls.append(f"{BASE_URL}/col/col9/index.html")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for url in search_urls[:3]:  # Limit to 3 URLs
             content = await fetch_page(session, url)
             if content:
@@ -598,6 +601,7 @@ async def search(params: dict, ctx: Any = None) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the CMSE skill

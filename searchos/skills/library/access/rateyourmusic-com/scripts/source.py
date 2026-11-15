@@ -6,6 +6,9 @@ Attempts multiple approaches:
 2. Playwright browser automation with full JavaScript challenge solving
 3. Falls back gracefully when blocked
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -202,7 +205,7 @@ class RateYourMusicAccess:
         
         try:
             # Try Chrome impersonation
-            response = curl_requests.get(
+            response = _skill_network.requests_call(curl_requests.get, 
                 url,
                 headers=RateYourMusicAccess.CHROME_HEADERS,
                 impersonate="chrome120",
@@ -221,12 +224,12 @@ class RateYourMusicAccess:
         
         try:
             async with async_playwright() as p:
-                browser = await p.chromium.launch(
+                browser = await _skill_network.browser_launch(p.chromium, 
                     headless=True,
                     args=['--disable-blink-features=AutomationControlled']
                 )
                 
-                context = await browser.new_context(
+                context = await _skill_network.browser_new_context(browser, 
                     viewport={'width': 1920, 'height': 1080},
                     user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                     locale='en-US'
@@ -240,7 +243,7 @@ class RateYourMusicAccess:
                     window.chrome = { runtime: {} };
                 """)
                 
-                page = await context.new_page()
+                page = await _skill_network.browser_new_page(context)
                 
                 try:
                     await page.goto(url, timeout=timeout * 1000, wait_until='load')
@@ -271,7 +274,7 @@ class RateYourMusicAccess:
             return 0, "aiohttp not available"
         
         try:
-            async with aiohttp.ClientSession() as session:
+            async with _skill_network.aiohttp_session() as session:
                 async with session.get(
                     url,
                     headers=RateYourMusicAccess.CHROME_HEADERS,
@@ -410,6 +413,7 @@ async def search(query: str, release_type: str = None, limit: int = 10) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the RateYourMusic skill.

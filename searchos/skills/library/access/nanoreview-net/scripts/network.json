@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_chipset": "direct",
+    "get_phone": "direct",
+    "get_cpu": "direct"
+  },
+  "aliases": {
+    "get_chipset": "get_chipset",
+    "get_phone": "get_phone",
+    "get_cpu": "get_cpu",
+    "run": "get_cpu"
+  }
+}

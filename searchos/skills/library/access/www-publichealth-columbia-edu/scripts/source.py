@@ -3,6 +3,9 @@ Columbia University Mailman School of Public Health - Faculty Profile Access Ski
 
 Extracts structured data from faculty profile pages at publichealth.columbia.edu
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -12,7 +15,7 @@ from typing import Any
 
 async def fetch_page(url: str, timeout: int = 30) -> tuple[int, str]:
     """Fetch a page and return status code and HTML content."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout), allow_redirects=True) as resp:
             html = await resp.text()
             return resp.status, html
@@ -244,6 +247,7 @@ async def search_profiles(query: str, limit: int = 10) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the Columbia Public Health faculty profile skill.

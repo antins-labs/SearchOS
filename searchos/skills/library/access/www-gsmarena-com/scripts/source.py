@@ -14,6 +14,9 @@ Extracts detailed phone specifications from GSMArena.com including:
 - Battery info
 - Miscellaneous details
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -25,16 +28,16 @@ from playwright.async_api import async_playwright, Browser, Page
 async def _ensure_browser():
     """Create a new browser instance."""
     p = await async_playwright().start()
-    browser = await p.chromium.launch(headless=True)
+    browser = await _skill_network.browser_launch(p.chromium, headless=True)
     return p, browser
 
 
 async def _create_page(browser: Browser) -> Page:
     """Create a new page with standard settings."""
-    context = await browser.new_context(
+    context = await _skill_network.browser_new_context(browser, 
         user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     )
-    page = await context.new_page()
+    page = await _skill_network.browser_new_page(context)
     return page, context
 
 
@@ -302,6 +305,7 @@ async def parse_specs_structure(params: dict, ctx: Any = None) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict, ctx: Any = None) -> dict:
     """
     Main entry point for GSMArena phone specs skill.

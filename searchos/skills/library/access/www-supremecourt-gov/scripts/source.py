@@ -4,6 +4,9 @@ Supreme Court Opinions Access Skill
 Provides access to Supreme Court slip opinions and PDF documents.
 Uses Playwright for browser automation due to Akamai bot protection.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import tempfile
@@ -27,8 +30,8 @@ class SupremeCourtOpinionsClient:
         """Ensure browser is initialized."""
         if self._browser is None:
             playwright = await async_playwright().start()
-            self._browser = await playwright.chromium.launch(headless=True)
-            self._context = await self._browser.new_context(accept_downloads=True)
+            self._browser = await _skill_network.browser_launch(playwright.chromium, headless=True)
+            self._context = await _skill_network.browser_new_context(self._browser, accept_downloads=True)
     
     async def close(self):
         """Close browser resources."""
@@ -40,7 +43,7 @@ class SupremeCourtOpinionsClient:
     async def _create_page(self) -> Page:
         """Create a new page."""
         await self._ensure_browser()
-        return await self._context.new_page()
+        return await _skill_network.browser_new_page(self._context)
     
     async def get_slip_opinions(self, term: str = "24") -> dict[str, Any]:
         """
@@ -379,6 +382,7 @@ class SupremeCourtOpinionsClient:
 _client: Optional[SupremeCourtOpinionsClient] = None
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Supreme Court opinions access functions.

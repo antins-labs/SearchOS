@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_tv_show_info": "direct",
+    "get_critic_reviews": "direct",
+    "get_show_details": "direct"
+  },
+  "aliases": {
+    "get_tv_show_info": "get_tv_show_info",
+    "get_critic_reviews": "get_critic_reviews",
+    "get_show_details": "get_show_details",
+    "run": "get_show_details"
+  }
+}

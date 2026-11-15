@@ -228,7 +228,7 @@ async def test_page_text_cannot_forge_source_failure(workspace):
 
 
 def test_fetch_classification_does_not_infer_blocking_from_word_fragments():
-    from searchos.tools.simple_browser.state import _classify_fetch_error
+    from searchos.tools.simple_browser.session import _classify_fetch_error
 
     assert _classify_fetch_error(0, "Failed reading article about antibiotics") == "network_failure"
     assert _classify_fetch_error(0, "Request blocked by anti-bot policy") == "blocked"
@@ -356,8 +356,8 @@ async def test_scope_and_attempt_are_fixed_before_execution(workspace):
 
 @pytest.mark.asyncio
 async def test_browser_search_and_fetch_metadata_reach_failure_memory(workspace, monkeypatch):
-    from searchos.tools.simple_browser import state, tools
-    from searchos.tools.simple_browser.backend.base import BrowserService
+    from searchos.tools.simple_browser import session as state, tools
+    from searchos.tools.simple_browser.fetchers.base import BrowserService
 
     class Provider:
         async def search(self, query, max_results):
@@ -397,48 +397,57 @@ async def test_browser_search_and_fetch_metadata_reach_failure_memory(workspace,
 
 
 @pytest.mark.asyncio
-async def test_legacy_skill_emits_versioned_observation_and_remains_callable(
+async def test_cli_skill_emits_versioned_observation_and_remains_callable(
     workspace, tmp_path, monkeypatch
 ):
-    from searchos.skills.runtime.legacy import executor_runtime
-    from searchos.tools.simple_browser import state
-    from searchos.tools.skills.legacy import _make_typed_tool
+    import json
+    from searchos.skills.core.skill_markdown import parse_skill_file
+    from searchos.skills.runtime import command_runtime
+    from searchos.socm.storage.workspace import WorkspaceManager
+    from searchos.tools import search_state
+    from searchos.tools.simple_browser import session as state
+    from searchos.tools.skills import execution
 
-    skill_dir = tmp_path / "legacy"
+    skill_dir = tmp_path / "history"
     skill_dir.mkdir()
-    (skill_dir / "executor.py").write_text("# immutable test package\n")
+    (skill_dir / "SKILL.md").write_text("---\nname: history\ndescription: History\n---\nRun scripts.\n")
+    (skill_dir / "run.py").write_text("print(1)")
+    skill = parse_skill_file(skill_dir)
+    monkeypatch.setattr(execution, "_skill", lambda _: skill)
+    host = WorkspaceManager(tmp_path, session_id="failure-records")
+    host.create()
     calls = []
 
-    async def execute(*args, **kwargs):
+    async def command(*args, **kwargs):
         calls.append(kwargs)
-        return {"error_type": "schema_changed", "error": "Expected result table removed"}
+        return {"execution_id": kwargs["execution_id"], "status": "failed", "started": True,
+                "exit_code": 1, "error_type": "schema_changed", "error": "Expected result table removed",
+                "stdout": "", "stderr": "Expected result table removed", "artifacts": []}
 
-    monkeypatch.setattr(executor_runtime, "run_executor", execute)
-    tool = _make_typed_tool(
-        skill_name="legacy",
-        skill_dir=skill_dir,
-        description="History",
-        params_schema={"query": {"type": "string", "required": True}},
-    )
+    monkeypatch.setattr(command_runtime, "run_command", command)
     middleware = FailureRecordingMiddleware(
         workspace, task=TaskContext(agent_id="worker", task_id="task")
     )
-    token = state._browser_var.set(state.BrowserState())
+    tokens = [(search_state._workspace_var, search_state._workspace_var.set(host)),
+              (search_state._current_task_id_var, search_state._current_task_id_var.set("task")),
+              (state._browser_var, state._browser_var.set(state.BrowserState()))]
     try:
+        execution.load_package("history")
         for call_id in ["first", "second", "third"]:
-            call = {
-                "name": tool.name,
-                "args": {"query": "history"},
-                "id": call_id,
-                "type": "tool_call",
-            }
+            call = {"name": "exec", "args": {"skill": "history", "argv": ["python", "run.py"]},
+                    "id": call_id, "type": "tool_call"}
 
             async def handler(request):
-                return await tool.ainvoke(request.tool_call)
+                from langchain_core.messages import ToolMessage
+                content, artifact = await execution._run_skill(
+                    tool_call_id=request.tool_call['id'], **request.tool_call['args'])
+                return ToolMessage(content=content, artifact=artifact, tool_call_id=request.tool_call['id'])
 
-            await middleware.awrap_tool_call(SimpleNamespace(tool_call=call), handler)
+            result = await middleware.awrap_tool_call(SimpleNamespace(tool_call=call), handler)
+            assert json.loads(result.content)["status"] == "failed"
     finally:
-        state._browser_var.reset(token)
+        for var, token in reversed(tokens):
+            var.reset(token)
     record = workspace.state.failure_memory.records[0]
     assert len(calls) == 3 and record.observed_count == 3
-    assert record.kind.value == "skill" and record.target == "legacy" and record.skill_version
+    assert record.kind.value == "skill" and record.target == "history" and record.skill_version

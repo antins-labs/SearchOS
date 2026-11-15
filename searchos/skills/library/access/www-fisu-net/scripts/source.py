@@ -6,6 +6,9 @@ Supports:
 - Spotlight articles (historical retrospectives)
 - Event listings
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -264,6 +267,7 @@ def extract_events_list(soup: BeautifulSoup, url: str) -> Dict[str, Any]:
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx=None) -> Dict[str, Any]:
     """
     Main execution function
@@ -280,7 +284,7 @@ async def execute(params: Dict[str, Any], ctx=None) -> Dict[str, Any]:
             'error': 'Missing required parameter: function'
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_event':
             url = params.get('url')
             if not url:

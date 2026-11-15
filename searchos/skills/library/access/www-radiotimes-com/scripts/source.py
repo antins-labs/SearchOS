@@ -2,6 +2,9 @@
 Radio Times Album List Extractor
 Extracts structured album discographies and similar list content from Radio Times articles.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -28,7 +31,7 @@ async def fetch_page(url: str, timeout: int = 30) -> tuple[Optional[str], Option
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, headers=headers, timeout=timeout) as response:
                 if response.status != 200:
                     return None, f"HTTP {response.status}"
@@ -359,6 +362,7 @@ async def get_page_info(url: str) -> Dict[str, Any]:
     return info
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main execution function for Radio Times access skill.

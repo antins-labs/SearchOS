@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "f1bcb61e44d6ee7fd5c6d6b73c3ad4755fe7ef9886860492754f2c16ca96c494",
+  "capabilities": {
+    "fetch_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_article\", \"doi\": \"10.1111/ajes.12597\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.828661+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.crossref.org/works/10.1111/ajes.12597",
+          "status": 200
+        },
+        {
+          "url": "https://api.semanticscholar.org/graph/v1/paper/DOI:10.1111/ajes.12597",
+          "status": 429
+        }
+      ]
+    },
+    "fetch_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_articles\", \"dois\": [\"10.1111/ajes.12597\", \"10.1111/ajes.12402\", \"10.1111/ajes.12438\"]}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.829675+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.semanticscholar.org/graph/v1/paper/DOI:10.1111/ajes.12597",
+          "status": 429
+        },
+        {
+          "url": "https://api.crossref.org/works/10.1111/ajes.12597",
+          "status": 200
+        },
+        {
+          "url": "https://api.semanticscholar.org/graph/v1/paper/DOI:10.1111/ajes.12402",
+          "status": 200
+        },
+        {
+          "url": "https://api.crossref.org/works/10.1111/ajes.12402",
+          "status": 200
+        },
+        {
+          "url": "https://api.semanticscholar.org/graph/v1/paper/DOI:10.1111/ajes.12438",
+          "status": 200
+        },
+        {
+          "url": "https://api.crossref.org/works/10.1111/ajes.12438",
+          "status": 200
+        }
+      ]
+    },
+    "extract_doi": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_doi\", \"url\": \"https://onlinelibrary.wiley.com/doi/full/10.1111/ajes.12597\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.829752+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/onlinelibrary-wiley-com/scripts/source.py",
+        "line": 429,
+        "end_line": 445,
+        "implementation": "extract_doi_from_url",
+        "source_sha256": "62926edeee372bd49f9b7fd35ca008971b76e4c91315ff9439c0578983a9d008",
+        "implementation_sha256": "5766fa3cf9bd8671e87ab0cc04a36a9d5aca6366e7f78a4cf08ad9e5fc47be4d"
+      }
+    }
+  }
+}

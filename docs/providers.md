@@ -185,7 +185,7 @@ the model provider.
 | `SF_SEARCH_PROVIDER` | Service | Key environment variable | Notes |
 |---|---|---|---|
 | `serper` | Serper.dev | `SERPER_API_KEY` | Recommended Google results backend |
-| `tavily` | Tavily | `TAVILY_API_KEY` | Requires `pip install 'searchos[tavily]'` |
+| `tavily` | Tavily | `TAVILY_API_KEY` | Included in the base installation |
 | `ragflow` | RagFlow | — | Ant Group internal backend; unavailable to external users |
 
 Without `SF_SEARCH_PROVIDER`, SearchOS infers Serper and then Tavily from the

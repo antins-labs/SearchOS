@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_paper": "direct"
+  },
+  "aliases": {
+    "get_paper": "get_paper",
+    "run": "get_paper"
+  }
+}

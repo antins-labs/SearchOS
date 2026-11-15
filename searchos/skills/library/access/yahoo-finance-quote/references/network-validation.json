@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5c3dec515a1030e71624bc0dea8d78b45c441b7b7bd3576ac79b07e1f7c060dd",
+  "capabilities": {
+    "quote": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/quote.py",
+        "AAPL"
+      ],
+      "checked_at": "2026-10-23T07:01:37.415372+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://query1.finance.yahoo.com/v8/finance/chart/AAPL",
+          "status": 200
+        }
+      ]
+    },
+    "history": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/history.py",
+        "AAPL",
+        "--days",
+        "2"
+      ],
+      "checked_at": "2026-10-23T07:01:37.418157+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://query1.finance.yahoo.com/v8/finance/chart/AAPL",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

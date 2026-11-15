@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5a3b71caa0bfb402b878f8f43e4de37e6a283c380e42e223de2e1781f0fbb74c",
+  "capabilities": {
+    "get_hospital_basic_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_hospital_basic_info\", \"hospital_id\": 21}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.094410+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.haodf.com/hospital/21.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_hospital_ranking": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_hospital_ranking\", \"hospital_id\": 21}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.095781+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.haodf.com/hospital/21.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_hospital_departments": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_hospital_departments\", \"hospital_id\": 21}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.096291+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.haodf.com/hospital/21.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_hospital_campuses": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_hospital_campuses\", \"hospital_id\": 21}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.096683+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.haodf.com/hospital/21.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

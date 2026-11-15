@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "f8a381d218b7bcb31a607818235a2dd83c1566d47a2b6051a5b41061cff989f1",
+  "capabilities": {
+    "get_holdings": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_holdings\", \"code\": \"025925\", \"topline\": 50, \"change_type\": \"buy\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.625838+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://fundf10.eastmoney.com/FundArchivesDatas.aspx",
+          "status": 200
+        }
+      ]
+    },
+    "get_changes": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_changes\", \"code\": \"010350\", \"change_type\": \"sell\", \"topline\": 50}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.626911+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://fundf10.eastmoney.com/FundArchivesDatas.aspx",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

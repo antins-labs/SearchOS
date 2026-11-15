@@ -11,6 +11,9 @@ Supported content types:
 
 URL pattern: https://nanoreview.net/en/{content_type}/{slug}
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -39,7 +42,7 @@ async def fetch_page(url: str, session: Optional[aiohttp.ClientSession] = None) 
     
     close_session = session is None
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
     
     try:
         async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as response:
@@ -424,6 +427,7 @@ async def get_cpu(slug: str, session: Optional[aiohttp.ClientSession] = None) ->
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the NanoReview skill.

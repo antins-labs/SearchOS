@@ -42,7 +42,7 @@ async def create_search(req: SearchRequest):
 
 async def launch_search_request(req: SearchRequest, session_id_override: str | None = None):
     """Shared engine entry point for immediate and scheduled work."""
-    from searchos.harness.telemetry.conversation_context import build_preamble
+    from searchos.harness.telemetry.conversation import build_history
     from searchos.socm import ForeignKey, Relation, RelationKind
     from searchos.socm.planning.frontier import FrontierTask
     from searchos.socm.state import SearchState
@@ -136,11 +136,11 @@ async def launch_search_request(req: SearchRequest, session_id_override: str | N
         }
 
     follow_up = bool(req.follow_up_to)
-    context_preamble: str | None = None
+    conversation_history: list[dict[str, str]] = []
 
     if follow_up:
         # Extend the prior session: same workspace, same SearchState (the
-        # coverage table carries over), conversation history as preamble.
+        # coverage table carries over), retaining the original conversation roles.
         session_id = req.follow_up_to
         prior = sessions.get(session_id)
         if prior and prior["status"] == "running":
@@ -155,11 +155,11 @@ async def launch_search_request(req: SearchRequest, session_id_override: str | N
         same_scope = evidence_scope(state.source_scope) == evidence_scope(source_scope)
         # A changed selection/revision is a new evidence scope. Prior questions
         # remain conversational context; old answers cannot act as source evidence.
-        history = [t.model_dump() if same_scope else {"query": t.query, "answer": ""}
+        history = [t.model_dump() if same_scope else {"query": t.query, "answer": "", "steers": t.steers}
                    for t in (req.history or [])]
         if not same_scope:
             state = SearchState(intent=req.query)
-        context_preamble = build_preamble(history) or None
+        conversation_history = build_history(history)
     else:
         session_id = session_id_override or new_session_id()
 
@@ -176,15 +176,17 @@ async def launch_search_request(req: SearchRequest, session_id_override: str | N
                 table_id = table.table_id.strip()
                 if not table_id:
                     continue
+                from searchos.socm import TableSchema
+                entities = [TableSchema.make_entity_key(row, table.primary_key or []) for row in table.entities or []]
                 state.coverage_map.add_table(
                     table_id,
                     attrs,
                     table_label=table.table_label or "",
                     primary_key=table.primary_key or [],
                     row_label=table.row_label or "",
-                    entities=table.entities or [],
+                    entities=entities,
                 )
-                for entity in table.entities or []:
+                for entity in entities:
                     state.frontier.add(FrontierTask(
                         id=f"q_{table_id}_{entity.lower().replace(' ', '_')}",
                         question=f"Find {', '.join(attrs)} for {entity}",
@@ -214,14 +216,16 @@ async def launch_search_request(req: SearchRequest, session_id_override: str | N
                     label=rel.label or "",
                 ))
         elif req.attrs:
+            from searchos.socm import TableSchema
+            entities = [TableSchema.make_entity_key(row, req.primary_key or []) for row in req.entities or []]
             state.coverage_map.initialize(
-                req.entities or [],
+                entities,
                 req.attrs,
                 table_label=req.table_label or "",
                 primary_key=req.primary_key or [],
                 row_label=req.row_label or "",
             )
-            for entity in req.entities or []:
+            for entity in entities:
                 state.frontier.add(FrontierTask(
                     id=f"q_{entity.lower().replace(' ', '_')}",
                     question=f"Find {', '.join(req.attrs)} for {entity}",
@@ -229,14 +233,13 @@ async def launch_search_request(req: SearchRequest, session_id_override: str | N
                 ))
 
     state.source_scope = source_scope
-    state.research_mode = "findings" if source_mode == "hybrid" else "table"
     state.intent = req.query
 
     return await _launch_search(
         req=req,
         session_id=session_id,
         state=state,
-        context_preamble=context_preamble,
+        conversation_history=conversation_history,
         follow_up=follow_up,
         query=req.query,
     )
@@ -247,7 +250,7 @@ async def _launch_search(
     req: SearchRequest | RepairRequest,
     session_id: str,
     state: Any,
-    context_preamble: str | None,
+    conversation_history: list[dict[str, str]],
     follow_up: bool,
     query: str,
     targeted_repair_task_ids: set[str] | None = None,
@@ -298,7 +301,7 @@ async def _launch_search(
                 query,
                 session_id=session_id,
                 initial_state=state,
-                context_preamble=context_preamble,
+                conversation_history=conversation_history,
                 steer_queue=steer_queue,
                 follow_up=follow_up,
                 targeted_repair_task_ids=targeted_repair_task_ids,
@@ -345,7 +348,7 @@ def _validate_repair_cells(
         seen.add(signature)
 
         schema = state.coverage_map.tables.get(table_id)
-        cell_key = f"{table_id}/{entity}.{attribute}"
+        cell_key = state.coverage_map.cell_key(table_id, entity, attribute)
         cell = state.coverage_map.cells.get(cell_key)
         if schema is None:
             errors.append(f"Unknown table {table_id!r}")
@@ -363,7 +366,7 @@ def _validate_repair_cells(
         else:
             unique.append(RepairCellRequest(
                 table_id=table_id,
-                entity=entity,
+                key=requested.key,
                 attribute=attribute,
             ))
 
@@ -393,7 +396,7 @@ def _prepare_repair_tasks(
     repair_targets = [
         RepairTarget(
             table_id=cell.table_id,
-            entity=cell.entity,
+            key=cell.key,
             attribute=cell.attribute,
         )
         for cell in unique
@@ -404,7 +407,7 @@ def _prepare_repair_tasks(
     )
 
     requested_targets = {
-        (cell.table_id, f"{cell.entity}.{cell.attribute}") for cell in unique
+        cell.cell_key() for cell in unique
     }
     now = time.time()
     for existing in state.frontier.questions:
@@ -414,9 +417,8 @@ def _prepare_repair_tasks(
             FrontierTaskStatus.BLOCKED,
         }:
             continue
-        existing_table_id = existing.table_id or state.coverage_map.primary_table_id
         overlaps = any(
-            (existing_table_id, target) in requested_targets
+            target in requested_targets
             for target in existing.target_cells
         )
         if overlaps:
@@ -427,8 +429,8 @@ def _prepare_repair_tasks(
     task_ids: list[str] = []
     target_cells: list[str] = []
     for plan in task_plans:
-        targets = [f"{plan.entity}.{attribute}" for attribute in plan.attributes]
-        target_cells.extend(f"{plan.table_id}/{target}" for target in targets)
+        targets = [state.coverage_map.cell_key(plan.table_id, plan.entity, attribute) for attribute in plan.attributes]
+        target_cells.extend(targets)
         attribute_list = ", ".join(plan.attributes)
         task = FrontierTask(
             id=f"repair_{uuid.uuid4().hex[:10]}",
@@ -453,7 +455,7 @@ def _prepare_repair_tasks(
 @router.post("/search/{session_id}/repair", response_model=RepairResponse)
 async def repair_cells(session_id: str, req: RepairRequest):
     """Run a scope-locked search for selected missing or weak coverage cells."""
-    from searchos.harness.telemetry.conversation_context import build_preamble
+    from searchos.harness.telemetry.conversation import build_history
 
     session_id = session_directory(WORKSPACE_ROOT, session_id).name
     prior = sessions.get(session_id)
@@ -466,19 +468,19 @@ async def repair_cells(session_id: str, req: RepairRequest):
     init_search_provider(settings_store.store.models.search_provider)
     validated_cells = _validate_repair_cells(state, req.cells)
     target_cells = [
-        f"{cell.table_id}/{cell.entity}.{cell.attribute}"
+        cell.cell_key()
         for cell in validated_cells
     ]
-    context_preamble = build_preamble(
+    conversation_history = build_history(
         [turn.model_dump() for turn in (req.history or [])],
-    ) or None
+    )
     cell_label = "cell" if len(target_cells) == 1 else "cells"
     query = f"Repair {len(target_cells)} selected coverage {cell_label}"
     started = await _launch_search(
         req=req,
         session_id=session_id,
         state=state,
-        context_preamble=context_preamble,
+        conversation_history=conversation_history,
         follow_up=True,
         query=query,
         targeted_repair_cells=target_cells,
@@ -514,7 +516,7 @@ def _resolve_evidence_choice(
     table_id = request.table_id.strip()
     entity = request.entity.strip()
     attribute = request.attribute.strip()
-    cell_key = f"{table_id}/{entity}.{attribute}"
+    cell_key = state.coverage_map.cell_key(table_id, entity, attribute)
     bindings = state.coverage_map.evidence_bindings.get(cell_key, [])
     selected_binding = next((b for b in bindings if b.evidence_id == selected.id), None)
     if selected_binding is not None:
@@ -542,7 +544,7 @@ def _resolve_evidence_choice(
     ):
         raise HTTPException(422, "Selected evidence does not belong to this cell")
 
-    cell_key = f"{table_id}/{entity}.{attribute}"
+    cell_key = state.coverage_map.cell_key(table_id, entity, attribute)
     cell = state.coverage_map.cells.get(cell_key)
     if cell is None:
         raise HTTPException(404, f"Coverage cell {cell_key!r} not found")
@@ -593,9 +595,11 @@ def _resolve_evidence_choice(
             existing_edges.add(forward)
 
     cell.status = CellStatus.FILLED
+    cell.inferred = False
     cell.supporting_evidence_ids = supporting
     cell.primary_evidence_id = selected.id
-    cell.display_hint = (selected.value or selected.finding or "")[:120]
+    cell.full_value = selected.value or selected.finding or ""
+    cell.display_hint = cell.full_value[:120]
     cell.best_alignment = selected.alignment or "loose"
     cell.best_confidence = selected.confidence
     cell.best_tier = state.coverage_map._fill_tier(selected)
@@ -682,7 +686,7 @@ async def stop_search(session_id: str):
 async def steer_search(session_id: str, req: SteerRequest):
     """Inject a live follow-up into a running search (TUI mid-run parity).
 
-    Immediate input wakes check_agents or replaces unfinished generation.
+    Immediate input wakes report delivery or replaces unfinished generation.
     Deferred input waits for the current tools; sub-agents keep running.
     """
     message = req.message.strip()
@@ -758,6 +762,7 @@ async def get_search_result(session_id: str):
         "evidence_count": result.evidence_count,
         "total_queries": result.total_queries,
         "total_steps": result.total_steps,
+        "skill_execution_count": result.skill_execution_count,
         "elapsed_s": result.elapsed_s,
         "eval_verdict": result.eval_verdict,
         "workspace_path": result.workspace_path,
@@ -850,7 +855,7 @@ def _get_live_state(session_id: str, revision: str | None = None) -> dict[str, A
         return {"status": "running", "session_id": session_id, "search_state": None}
 
     import json
-    from searchos.socm.storage.persistence import read_snapshot
+    from searchos.socm.storage.file_snapshots import read_snapshot
     snapshot = read_snapshot(state_file)
     status = sessions.get(state_file.parent.name, {}).get("status", "unknown")
     if revision == snapshot.revision:

@@ -3,6 +3,9 @@ SearchOS Access Skill for hkrailen.fandom.com (Hong Kong Railway Encyclopedia)
 Retrieves structured infobox data, station lists, and page content from the Fandom wiki.
 Uses the MediaWiki API to bypass Cloudflare protection.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -207,7 +210,7 @@ async def get_page_info(page_title: str, include_sections: bool = True) -> dict:
     Returns:
         Dict with page info, infobox data, stations, and description
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         params = {
             "action": "parse",
             "page": page_title,
@@ -260,7 +263,7 @@ async def get_infobox(page_title: str) -> dict:
     Returns:
         Dict with infobox data
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         params = {
             "action": "parse",
             "page": page_title,
@@ -304,7 +307,7 @@ async def get_station_list(page_title: str) -> dict:
     Returns:
         Dict with station list
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         params = {
             "action": "parse",
             "page": page_title,
@@ -349,7 +352,7 @@ async def search_pages(query: str, limit: int = 10) -> dict:
     Returns:
         Dict with search results
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         params = {
             "action": "query",
             "list": "search",
@@ -396,7 +399,7 @@ async def get_section_content(page_title: str, section: int | str) -> dict:
     Returns:
         Dict with section content
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         params = {
             "action": "parse",
             "page": page_title,
@@ -444,6 +447,7 @@ async def get_section_content(page_title: str, section: int | str) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the skill.

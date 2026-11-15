@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7cba84d3f5aa6791eea769528e5de8c2db8f0229a884026840dd5d7261b71072",
+  "capabilities": {
+    "get_release": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_release\", \"catalogue_number\": \"R 5389\", \"page_type\": \"beatles_singles\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.142854+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.jpgr.co.uk/r5389.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_index": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_index\", \"page_type\": \"beatles_singles\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.143797+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.jpgr.co.uk/i_beatles7_date.html",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"Strawberry\", \"page_type\": \"beatles_singles\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.143948+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.jpgr.co.uk/i_beatles7_date.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

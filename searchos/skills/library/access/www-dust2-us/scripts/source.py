@@ -4,6 +4,9 @@ Dust2.us News Access Skill
 Extracts Counter-Strike news articles from Dust2.us, a North American CS news site.
 Supports individual article extraction and news listing.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import re
@@ -23,7 +26,7 @@ async def fetch_html(url: str, timeout: int = 30) -> str:
         'Connection': 'keep-alive',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(
             url, 
             headers=headers, 
@@ -192,6 +195,7 @@ async def get_news_listing() -> dict[str, Any]:
         return {'error': f'Failed to parse news listing: {str(e)}'}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the Dust2.us access skill.

@@ -268,7 +268,7 @@ async def test_request_metadata_checks_fail_before_cli_execution(
 @pytest.mark.asyncio
 async def test_workspace_expected_host_changes_invalidate_successful_validation(tmp_path, monkeypatch):
     from searchos.skills.pipeline.access.pipeline import AccessPipeline
-    from searchos.skills.pipeline.valid import validate_request_package
+    from searchos.skills.pipeline.run import validate_request_package
     from searchos.skills.intent.models import SkillRequest
 
     workspace = AccessPipeline(tmp_path/'example-com')
@@ -309,7 +309,7 @@ async def test_workspace_expected_host_changes_invalidate_successful_validation(
 async def test_builder_repairs_request_metadata_within_its_call_budget(tmp_path, monkeypatch, defect, error):
     from langchain_core.messages import AIMessage, ToolMessage
     from searchos.skills.pipeline.access.pipeline import build_skill
-    from searchos.skills.pipeline.valid import validate_request_package
+    from searchos.skills.pipeline.run import validate_request_package
     from searchos.skills.intent.models import SkillRequest
 
     correct = ('---\nname: example-com\ndescription: 查询记录\ncategory: access\nmetadata:\n'

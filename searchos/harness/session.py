@@ -75,11 +75,6 @@ def _premature_end_reason(workspace: WorkspaceManager, control: Any) -> str | No
         )
         if open_count:
             reasons.append(f"{open_count} frontier task(s) still open")
-        if not any(q.kind == "search" for q in state.frontier.questions):
-            reasons.append(
-                "no search task was ever dispatched this session "
-                "(explore alone cannot complete a search task)"
-            )
         empty = state.coverage_map.empty_tables
         if empty:
             reasons.append(
@@ -93,14 +88,9 @@ def _premature_end_reason(workspace: WorkspaceManager, control: Any) -> str | No
 
 def _premature_end_nudge(reason: str) -> str:
     return (
-        "[AUTOMATED HARNESS — turn ended without a tool call]\n"
-        "Your previous message contained no executable tool call; action "
-        "descriptions written as plain text are NOT executed.\n"
-        f"The session is not complete: {reason}.\n"
-        "Continue by calling a real tool — check_agents to collect running "
-        "agents, enqueue_tasks to dispatch remaining work. If you are certain "
-        "no further progress is possible, state why explicitly and end with "
-        "a final summary."
+        f"Pending research work: {reason}.\n"
+        "Collect running agents or continue actionable tasks. If progress is blocked, "
+        "report the supported findings and the remaining limitation."
     )
 
 
@@ -148,7 +138,7 @@ async def close_browser_service() -> None:
     once before process exit so Playwright doesn't leak background tasks.
     """
     try:
-        from searchos.tools.simple_browser.backend.base import BrowserService
+        from searchos.tools.simple_browser.fetchers.base import BrowserService
     except Exception:
         return
     inst = BrowserService._instance  # type: ignore[attr-defined]
@@ -176,7 +166,6 @@ class SearchSession:
         model_overrides: dict[str, BaseChatModel] | None = None,
         skip_synthesis: bool | None = None,
         run_config: EffectiveRunConfig | None = None,
-        research_mode: str | None = None,
     ) -> None:
         """按 settings 中的角色选择模型，允许通过 model_overrides 覆盖。
 
@@ -232,7 +221,6 @@ class SearchSession:
         self._skill_exclude = list(skill_exclude or [])
         self._skip_synthesis = skip_synthesis if skip_synthesis is not None else settings.skip_synthesis
         self._run_config = run_config or EffectiveRunConfig.from_settings()
-        self._research_mode = research_mode
 
     def ensure_skill_registry(self) -> SkillRegistry:
         """Build + load the skill registry if not already done (idempotent;
@@ -250,9 +238,10 @@ class SearchSession:
 
     async def run(self, *args: Any, **kwargs: Any) -> SearchResult:
         """Execute with the immutable configuration captured at construction."""
+        from searchos.network import network_context
         self._conversation_logger = None
         try:
-            with activate_run_config(self._run_config):
+            with activate_run_config(self._run_config), network_context():
                 return await self._run_impl(*args, **kwargs)
         finally:
             if self._conversation_logger is not None:
@@ -260,7 +249,7 @@ class SearchSession:
 
     def _build_research_graph(
         self, *, state, workspace, query, fixed_schema, targeted_repair_mode,
-        orchestrator_deny, follow_up, context_preamble, traj_logger, conv_logger,
+        orchestrator_deny, follow_up, conversation_history, traj_logger, conv_logger,
         orch_budget, orch_control, steer_queue,
     ):
         """Build the research graph on demand, leaving simple searches without an orchestrator."""
@@ -273,8 +262,6 @@ class SearchSession:
         )
         from searchos.agents.orchestrator.prompt import build_orchestrator_prompt
         orchestrator_tools = get_orchestrator_tools(source_mode=(state.source_scope or {}).get("mode", ""))
-        if not self._run_config.enable_research_plan_tool:
-            orchestrator_tools = [t for t in orchestrator_tools if t.name != "set_research_plan"]
         if fixed_schema:
             orchestrator_tools = [
                 tool for tool in orchestrator_tools
@@ -283,8 +270,8 @@ class SearchSession:
         if targeted_repair_mode:
             repair_tool_allowlist = {
                 "enqueue_tasks",
-                "stop_task",
                 "check_agents",
+                "stop_task",
                 "inspect_table",
             }
             orchestrator_tools = [
@@ -297,7 +284,7 @@ class SearchSession:
         # router LLM call. Skipped entirely when enable_skills=False so the
         # orchestrator cannot see or use skills.
         if settings.enable_skills and "web" not in state.source_scope.get("unavailable_sources", {}):
-            from searchos.skills.catalog.router import render_playbook
+            from searchos.skills.catalog.discovery import render_playbook
             from searchos.skills.core.models import SkillCategory
             orch_candidates = self._skill_registry.list_by_category(SkillCategory.ORCHESTRATOR)
             if orchestrator_deny:
@@ -330,8 +317,7 @@ class SearchSession:
             enable_explore=_is_agent_enabled("explore_agent"),
             explore_on_start=self._run_config.explore_on_start and not targeted_repair_mode,
             orchestrator_playbook=orchestrator_playbook,
-            follow_up=follow_up or bool(context_preamble),
-            enable_research_plan_tool=self._run_config.enable_research_plan_tool,
+            follow_up=follow_up or bool(conversation_history),
             fixed_schema=fixed_schema,
             targeted_repair=targeted_repair_mode,
             source_mode=(state.source_scope or {}).get("mode", ""),
@@ -398,7 +384,7 @@ class SearchSession:
         *,
         session_id: str | None = None,
         initial_state: SearchState | None = None,
-        context_preamble: str | None = None,
+        conversation_history: list[dict[str, str]] | None = None,
         on_event: "Callable[[dict], None] | None" = None,
         steer_queue: SteerQueue | None = None,
         access_only: "set[str] | None" = None,
@@ -414,14 +400,12 @@ class SearchSession:
     ) -> SearchResult:
         """Execute a complete search session via Orchestrator pattern.
 
-        ``context_preamble`` (optional): prior-turn conversational background
-        injected ahead of the query in the orchestrator's first user message,
-        enabling multi-turn follow-ups. ``query`` itself stays unchanged for
-        logging/metadata.
+        ``conversation_history`` (optional): prior user and assistant messages.
+        The current query is appended unchanged as a separate user message.
 
         ``steer_queue`` (optional): a queue the caller pushes live user
         follow-ups onto while the run is in flight. Immediate input replaces
-        unfinished model generation or wakes check_agents; after_tool input
+        unfinished model generation or wakes report delivery; after_tool input
         waits for the current tool batch. Middleware commits each message once
         within the same graph. Neither mode cancels running sub-agents.
 
@@ -448,20 +432,22 @@ class SearchSession:
             or targeted_repair_task_ids is not None
         )
 
-        # --- Token tracking (per-run, ContextVar-backed) ---
-        from searchos.util.token_tracker import start_tracking
-        token_usage = start_tracking()
-        from searchos.tools.simple_browser.usage import (
-            start_tracking as start_browser_tracking,
-        )
-        browser_usage = start_browser_tracking()
-
         # --- Workspace ---
         workspace = WorkspaceManager(self._workspace_root, session_id)
         workspace.create()
 
+        # --- Token tracking (per-run, ContextVar-backed) ---
+        from searchos.harness.telemetry.usage import start_tracking
+        token_usage = start_tracking(
+            usage_path=workspace.path / settings.output_dir / "llm_usage.jsonl",
+        )
+        from searchos.tools.simple_browser.fetchers.cache import (
+            start_tracking as start_browser_tracking,
+        )
+        browser_usage = start_browser_tracking()
+
         # --- Reset cross-agent browser state for this fresh session ---
-        from searchos.tools.simple_browser.state import reset_browser, set_source_controls
+        from searchos.tools.simple_browser.session import reset_browser, set_source_controls
         reset_browser()
         source_controls = set_source_controls(trusted_domains, excluded_domains)
 
@@ -471,9 +457,6 @@ class SearchSession:
             state.source_scope = {"mode": "web", "documents": []}
         if state.source_scope.get("mode") == "local" and (trusted_domains or excluded_domains):
             raise ValueError("Local mode does not accept Web domain controls")
-        state.research_mode = self._research_mode or (
-            "findings" if state.source_scope.get("mode") == "hybrid" else "table"
-        )
         if not state.intent:
             state.intent = query
 
@@ -498,7 +481,7 @@ class SearchSession:
 
         # --- Trajectory logger ---
         self._active_workspace = workspace  # exposed so the live TUI can poll state
-        from searchos.harness.telemetry.episodic import TrajectoryLogger
+        from searchos.harness.telemetry.trajectory import TrajectoryLogger
         traj_logger = TrajectoryLogger(workspace.trajectory_path)
         # In-process live-TUI hook: every trajectory event (orchestrator +
         # sub-agents, all sharing this one logger) is forwarded as it's written.
@@ -549,7 +532,7 @@ class SearchSession:
         # --- Set up orchestrator tools context ---
         from searchos.agents.runtime import set_orchestrator_context
         from searchos.tools.search_state import set_workspace
-        from searchos.tools.simple_browser.state import _provider, set_browser_provider
+        from searchos.tools.simple_browser.session import _provider, set_browser_provider
 
         set_workspace(workspace)
         set_orchestrator_context(
@@ -575,7 +558,7 @@ class SearchSession:
             set_browser_provider(_provider)
 
 
-        from searchos.harness.middleware.sensor.core.models import BudgetState, ControlState
+        from searchos.harness.middleware.sensor.core.run_state import BudgetState, ControlState
 
         # Orchestrator never calls `search` — bound by iterations + sensors.
         orch_budget = BudgetState(
@@ -599,7 +582,7 @@ class SearchSession:
         final_state = None
         execution_error = ""
         finalization_reason = ""
-        prev_msg_count = 0
+        seen_message_ids = set()
 
         pending_tool_calls: dict[str, dict[str, Any]] = {}
         phase_tracker = _PhaseTracker(token_usage)
@@ -626,19 +609,17 @@ class SearchSession:
             route = await select_route(
                 model=self._model, query=query, state=state,
                 execution_path=self._run_config.execution_path,
-                follow_up=follow_up or bool(context_preamble), fixed_schema=fixed_schema,
+                follow_up=follow_up or bool(conversation_history), fixed_schema=fixed_schema,
                 targeted_repair=targeted_repair_mode, table_export=self._skip_synthesis,
                 remaining_time_s=remaining_time(), trajectory_logger=traj_logger,
             )
-            routing_record = {"execution_path": self._run_config.execution_path, **route.model_dump(), "escalated": False}
+            routing_record = {"execution_path": self._run_config.execution_path, **route.model_dump()}
             workspace.write_output("routing.json", json.dumps(routing_record, ensure_ascii=False, indent=2))
-            if self._run_config.execution_path != "unified" and not (follow_up or context_preamble or targeted_repair_mode):
+            if self._run_config.execution_path != "unified" and not (follow_up or conversation_history or targeted_repair_mode):
                 state.research_plan = route.plan()
-                if route.path == "simple":
-                    state.research_mode = "findings"
                 workspace.save_state(state)
             if route.path == "simple":
-                from searchos.harness.telemetry.trajectory import ConversationMessage
+                from searchos.harness.telemetry.conversation import ConversationMessage
 
                 conv_logger.register_sub_agent(
                     agent_name="orchestrator", parent="", task=query,
@@ -652,8 +633,7 @@ class SearchSession:
                         conv_logger.log(entry)
 
                 remaining = remaining_time()
-                # Reserve time to recover from a mistaken initial route.
-                simple_time = min(120.0, remaining * 0.6) if remaining is not None else 120.0
+                simple_time = min(120.0, remaining) if remaining is not None else 120.0
                 simple_outcome = await run_simple_search(
                     workspace=workspace, query=query,
                     evidence_obligations=route.evidence_obligations,
@@ -661,31 +641,19 @@ class SearchSession:
                     trajectory_logger=traj_logger,
                     on_steer_delivery=record_simple_steer,
                 )
-                if simple_outcome.escalate:
-                    state = workspace.load_state()
-                    state.research_mode = self._research_mode or "table"
-                    state.research_plan = route.model_copy(update={
-                        "path": "research", "strategy": ["deep"], "table_policy": "as_needed",
-                    }).plan()
-                    workspace.save_state(state)
-                    routing_record.update(escalated=True, final_path="research", escalation_reason=simple_outcome.reason)
-                    traj_logger._append_raw({"type": "harness", "kind": "search_route_escalated", "reason": simple_outcome.reason})
-                else:
-                    final_state = {"messages": [AIMessage(content=simple_outcome.answer)]}
-                    routing_record["final_path"] = "simple"
+                final_state = {"messages": [AIMessage(content=simple_outcome.answer)]}
+                routing_record["final_path"] = "simple"
                 workspace.write_output("routing.json", json.dumps(routing_record, ensure_ascii=False, indent=2))
 
-            if simple_outcome is None or simple_outcome.escalate:
+            if simple_outcome is None:
                 state = workspace.load_state()
                 graph, steering = self._build_research_graph(
                     state=state, workspace=workspace, query=query, fixed_schema=fixed_schema,
                     targeted_repair_mode=targeted_repair_mode, orchestrator_deny=orchestrator_deny,
-                    follow_up=follow_up, context_preamble=context_preamble,
+                    follow_up=follow_up, conversation_history=conversation_history,
                     traj_logger=traj_logger, conv_logger=conv_logger,
                     orch_budget=orch_budget, orch_control=orch_control, steer_queue=steer_queue,
                 )
-                if simple_outcome is not None and steering is not None:
-                    steering.delivered.extend(simple_outcome.delivered)
                 if targeted_repair_mode:
                     from searchos.agents.runtime import _scheduler
 
@@ -715,37 +683,36 @@ class SearchSession:
                         "model": str(model_name),
                     },
                 }
-                user_content = query
-                if context_preamble:
-                    user_content = (
-                        f"{context_preamble}\n\n---\n当前问题：{query}"
-                    )
+                from langchain_core.messages import SystemMessage
+
+                history_messages = [
+                    {**message, "id": f"history-{index}"}
+                    for index, message in enumerate(conversation_history or [])
+                ]
+                input_payload: dict[str, Any] = {"messages": [
+                    *history_messages,
+                    {"role": "user", "content": query, "id": "routed-query"},
+                ]}
+                # 历史已经持久保存；本轮日志和界面从当前用户消息开始追加。
+                seen_message_ids.update(message["id"] for message in history_messages)
                 if targeted_repair_mode:
-                    targets = ", ".join(targeted_repair_cells or [])
-                    user_content = (
-                        "[TARGETED CELL REPAIR]\n"
+                    from searchos.socm.refs import cell_ref
+                    targets = json.dumps([cell_ref(key) for key in targeted_repair_cells or []], ensure_ascii=False)
+                    repair_context = (
                         f"Repair only these coverage cells: {targets}.\n"
                         "You own the repair plan and dispatch. Split these cells into focused "
                         "retrieval tasks with enqueue_tasks using the current Agent Catalog; "
                         "set target_table and "
-                        "target_cells on every task (`target_cells` may use Entity.Attribute "
-                        "or the full table/Entity.Attribute key). Do not create or change schemas, add "
+                        "target_cells on every task as CellRef objects {table_id, key: [PK values], attribute}. "
+                        "Do not create or change schemas, add "
                         "entities, or expand beyond this allowlist. Keep dispatching and "
-                        "checking agents until the selected cells are repaired or the "
+                        "reviewing incoming reports until the selected cells are repaired or the "
                         "available evidence is exhausted, then summarize what changed."
                     )
-                input_payload: dict[str, Any] = {
-                    "messages": [{"role": "user", "content": user_content, "id": "routed-query"}],
-                }
-                if simple_outcome is not None:
-                    handoff = (
-                        "[AUTOMATED HARNESS — simple search handoff]\n" + simple_outcome.reason
-                        + "\nReuse existing task evidence and source observations; investigate remaining gaps."
-                        + "\nPrior worker draft (not verified):\n" + simple_outcome.answer
-                    )
-                    if simple_outcome.delivered:
-                        handoff += "\nAlready delivered user updates:\n" + "\n".join(simple_outcome.delivered)
-                    input_payload["messages"].append({"role": "user", "content": handoff})
+                    input_payload["messages"].append(SystemMessage(
+                        content=repair_context,
+                        additional_kwargs={"sf_synthetic": True, "sf_kind": "targeted_repair"},
+                    ))
                 resume_attempts = 0
                 # Same thread_id on every astream call → each resume continues
                 # the checkpointed conversation instead of starting over.
@@ -765,13 +732,21 @@ class SearchSession:
                             if "messages" not in event:
                                 continue
                             msgs = event["messages"]
-                            new_msgs = msgs[prev_msg_count:]
-                            prev_msg_count = len(msgs)
+                            # 压缩会缩短消息列表；按身份记录，保留压缩后的新回复。
+                            new_msgs = []
+                            for msg in msgs:
+                                message_id = getattr(msg, "id", None) or id(msg)
+                                if message_id not in seen_message_ids:
+                                    seen_message_ids.add(message_id)
+                                    new_msgs.append(msg)
 
                             for msg in new_msgs:
                                 # Record to conversation logger
                                 if not (initial_query_logged and getattr(msg, "id", None) == "routed-query"):
                                     for conv_msg in langchain_msg_to_conversation_msgs(msg):
+                                        # 只有最终交付记录可以成为该轮回答。
+                                        if conv_msg.role == "assistant":
+                                            conv_msg.metadata["phase"] = "progress"
                                         conv_logger.log(conv_msg)
 
                                 # Record Orchestrator tool events to trajectory
@@ -821,10 +796,9 @@ class SearchSession:
                                         except Exception:
                                             pass
 
-                            # Once research is stopped, leave the graph at a complete
-                            # tool/message boundary. Synthesis runs after task drain.
+                            # 时间收尾留在原图中；其他停止条件仍走现有恢复逻辑。
                             if (not self._skip_synthesis
-                                    and (orch_control.forced or orch_budget.fully_exhausted)
+                                    and orch_control.forced and not orch_control.summarizing
                                     and _is_safe_steer_boundary(event)):
                                 finalization_reason = orch_control.reason or "harness_stopped"
                                 break
@@ -859,7 +833,10 @@ class SearchSession:
                     })
                     input_payload = {
                         "messages": [
-                            {"role": "user", "content": _premature_end_nudge(reason)},
+                            SystemMessage(
+                                content=_premature_end_nudge(reason),
+                                additional_kwargs={"sf_synthetic": True, "sf_kind": "pending_work"},
+                            ),
                         ],
                     }
 
@@ -870,7 +847,7 @@ class SearchSession:
             logger.info("Orchestrator run cancelled by user")
             raise
         except Exception as exc:
-            if graph is None and (simple_outcome is None or simple_outcome.escalate):
+            if graph is None and simple_outcome is None:
                 # Invalid graph/configuration remains a caller-visible setup error.
                 raise
             execution_error = type(exc).__name__
@@ -927,7 +904,7 @@ class SearchSession:
                     logger.warning("Drain raised", exc_info=True)
 
             # Collectors have committed their reports and state; remove reaped
-            # entries even when no final check_agents tool call took place.
+            # entries during final cleanup.
             for agent_id, task in list(pending_pool.items()):
                 if task.done():
                     pending_pool.pop(agent_id, None)
@@ -977,16 +954,13 @@ class SearchSession:
                 final_search_state = workspace.load_state()
                 final_search_state.budget.elapsed_s = elapsed
                 from searchos.agents.runtime import (
-                    _check_call_count_var,
                     _session_search_count_var,
                 )
                 search_count_box = _session_search_count_var.get()
                 final_search_state.budget.consumed_queries = (
                     search_count_box[0] if search_count_box else 0
                 )
-                count_box = _check_call_count_var.get()
-                if count_box is not None:
-                    final_search_state.budget.current_iteration = count_box[0]
+                final_search_state.budget.current_iteration = orch_budget.current_iteration
                 final_search_state.budget.max_queries = orch_budget.max_queries
                 final_search_state.budget.max_time_s = orch_budget.max_time_s
                 final_search_state.budget.max_iterations = (
@@ -1010,7 +984,7 @@ class SearchSession:
                             state=final_search_state,
                             query=query,
                         )
-                    elif finalization_reason or orch_control.stopped:
+                    elif (finalization_reason or orch_control.stopped) and not orch_control.summarizing:
                         committed_final_answer = await _finalize_stopped_research(
                             workspace=workspace, state=final_search_state, query=query,
                             orchestrator_model=self._model,
@@ -1023,12 +997,12 @@ class SearchSession:
                         )
                     else:
                         answer_completed = False
-                        if not execution_error and (simple_outcome is None or simple_outcome.escalate):
+                        if not execution_error and simple_outcome is None and not orch_control.summarizing:
                             _record_finalization_follow_ups(steering, conv_logger)
                             final_state, answer_completed = await _check_or_complete_answer(
                                 final_state=final_state, query=query, model=self._model,
                                 follow_ups=steering.delivered if steering else (),
-                                context_preamble=context_preamble or "", steering=steering,
+                                conversation_history=conversation_history or [], steering=steering,
                             )
                         committed_final_answer = await _commit_final_answer(
                             workspace=workspace, state=final_search_state,
@@ -1091,7 +1065,7 @@ class SearchSession:
             session_id=workspace.session_id,
             workspace_path=str(workspace.path),
             search_state=final_search_state,
-            eval_verdict="UNASSESSED" if final_search_state.research_mode == "findings" else "COMPLETE",
+            eval_verdict="COMPLETE" if final_search_state.coverage_map.tables else "UNASSESSED",
             coverage_score=final_search_state.coverage_map.coverage_score,
             evidence_count=final_search_state.evidence_graph.node_count,
             total_queries=traj_logger.tool_counts.get("search", 0),
@@ -1105,7 +1079,10 @@ class SearchSession:
         token_dict = token_usage.to_dict()
         # Main-loop roles only; middleware one-shot calls are excluded
         # (their numbers stay visible in by_role).
-        token_dict["cache_hit_rate"] = round(token_usage.cache_hit_rate, 4)
+        cache_hit_rate = token_usage.cache_hit_rate
+        token_dict["cache_hit_rate"] = (
+            round(cache_hit_rate, 4) if cache_hit_rate is not None else None
+        )
         token_dict["by_role"] = token_usage.by_role
         token_phases = phase_tracker.finalize()
         traj_logger._append_raw({
@@ -1118,6 +1095,7 @@ class SearchSession:
             "evidence_count": result.evidence_count,
             "total_queries": result.total_queries,
             "total_steps": result.total_steps,
+            "skill_execution_count": traj_logger.skill_execution_count,
             "elapsed_s": result.elapsed_s,
             "tool_counts": traj_logger.tool_counts,
             "model_distribution": self._model_distribution,
@@ -1131,6 +1109,7 @@ class SearchSession:
         result.token_phases = token_phases
         result.browser_usage = browser_usage.to_dict()
         result.tool_counts = traj_logger.tool_counts
+        result.skill_execution_count = traj_logger.skill_execution_count
         result.model_distribution = self._model_distribution
 
         skill_generation = None
@@ -1153,6 +1132,7 @@ class SearchSession:
                     "elapsed_s": result.elapsed_s,
                     "total_queries": result.total_queries,
                     "total_steps": result.total_steps,
+                    "skill_execution_count": result.skill_execution_count,
                     "tool_counts": result.tool_counts,
                     "token_usage": result.token_usage,
                     "token_phases": result.token_phases,
@@ -1412,7 +1392,7 @@ def _incomplete_citation_answer(query, gaps):
 
 
 async def _check_or_complete_answer(*, final_state, query, model, follow_ups=(),
-                                    context_preamble="", steering=None):
+                                    conversation_history=(), steering=None):
     """无工具调用的结束内容只检查一次；不是最终答案时沿用对话补答一次。"""
     import json
 
@@ -1427,7 +1407,7 @@ async def _check_or_complete_answer(*, final_state, query, model, follow_ups=(),
     candidate = final_answer_text({"messages": [messages[-1]]})
     if not candidate.strip():
         return final_state, False
-    task = {"question": query, "conversation_context": context_preamble,
+    task = {"question": query, "conversation_history": list(conversation_history),
             "follow_ups": list(follow_ups)}
     check_prompt = (
         "[FINAL_ANSWER_CHECK]\n判断 candidate 是否已经是给用户的最终答案。"
@@ -1454,17 +1434,18 @@ async def _check_or_complete_answer(*, final_state, query, model, follow_ups=(),
         return final_state, False
 
     prompt = (
-        "[FINAL_ANSWER_COMPLETE]\n研究阶段已结束。上一条内容未完成对用户的作答。"
-        "根据下方原对话中的资料和仍有效的用户要求，直接给出本轮最终答案。"
-        "使用用户的语言，保留已有引用；证据不足处明确说明。"
-        "不要继续自检、描述准备过程或承诺稍后作答，不再调用工具。"
+        "[FINAL_ANSWER_COMPLETE]\nResearch has ended. Complete the answer using the "
+        "conversation's evidence and active user requirements. Use the user's language, "
+        "preserve citations, and state evidence gaps. Return the answer directly without "
+        "tool calls or promises of further work.\n\nCurrent requirements:\n"
+        + json.dumps(task, ensure_ascii=False)
     )
-    completion_messages = [*messages, HumanMessage(
-        content="请现在完成最终答案。本轮要求：\n" + json.dumps(task, ensure_ascii=False),
-    ), *pending]
+    completion_messages = [*messages, *pending]
     if steering is None:
+        from searchos.harness.middleware.utils.messages import merge_system_messages
+
         response = await asyncio.wait_for(
-            model.ainvoke([SystemMessage(content=prompt), *completion_messages]),
+            model.ainvoke(merge_system_messages([SystemMessage(content=prompt), *completion_messages])),
             timeout=settings.research_finalize_timeout_s,
         )
         completed_messages = [*completion_messages, response]
@@ -1496,7 +1477,7 @@ async def _commit_final_answer(*, workspace, state, query, final_state, model,
     from langchain_core.messages import AIMessage
 
     from searchos.harness.report.synthesis import finalize_research
-    from searchos.harness.telemetry.trajectory import ConversationMessage
+    from searchos.harness.telemetry.conversation import ConversationMessage
 
     audit = {
         "id": uuid4().hex, "status": "validating", "finalizer": finalizer,
@@ -2004,6 +1985,7 @@ class SearchResult:
         self.token_phases: dict[str, Any] = {}
         self.browser_usage: dict[str, int] = {}
         self.tool_counts: dict[str, int] = {}
+        self.skill_execution_count: int = 0
         self.model_distribution: dict[str, dict[str, str]] = {}
 
     def summary(self) -> str:

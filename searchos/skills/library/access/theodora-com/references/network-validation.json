@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "6606bb78a024e8c503abb9f5a711beccbe4f8a5cde8e5f69e469cdc02c52ef40",
+  "capabilities": {
+    "get_geography": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_geography\", \"country\": \"russia\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.875965+00:00",
+      "reason": "Could not find geography data for country: russia",
+      "source_responses": [
+        {
+          "url": "https://theodora.com/world_fact_book_2024/russia/russia_geography.html",
+          "status": 200
+        },
+        {
+          "url": "https://theodora.com/wfbcurrent/russia/russia_geography.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_geography_by_url": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_geography_by_url\", \"url\": \"https://theodora.com/wfbcurrent/china/china_geography.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.876566+00:00",
+      "reason": "Could not fetch page: https://theodora.com/wfbcurrent/china/china_geography.html",
+      "source_responses": [
+        {
+          "url": "https://theodora.com/wfbcurrent/china/china_geography.html",
+          "status": 200
+        }
+      ]
+    },
+    "list_countries": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_countries\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.876644+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://theodora.com/wfb/",
+          "status": 200
+        }
+      ]
+    },
+    "list_sections": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_sections\", \"country\": \"russia\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.876728+00:00",
+      "reason": "Could not find country: russia",
+      "source_responses": [
+        {
+          "url": "https://theodora.com/world_fact_book_2024/russia/index.html",
+          "status": 200
+        },
+        {
+          "url": "https://theodora.com/wfbcurrent/russia/index.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

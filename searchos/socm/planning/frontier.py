@@ -8,11 +8,41 @@ from __future__ import annotations
 
 import time
 from enum import Enum
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field
 
-from searchos.util.base_model import CamelModel
+from searchos.socm.refs import row_values
+from searchos.utils.base_model import CamelModel
+
+if TYPE_CHECKING:
+    from searchos.socm.coverage.models import CoverageMap
+
+
+def match_entities_in_task(
+    task_text: str, entities: list[str], *, require_first_component: bool = False,
+) -> set[str]:
+    """忽略大小写匹配实体名，或复合主键中至少两字符的分量。
+
+    require_first_component 用于任务投影：复合实体必须匹配首个主键分量，
+    避免同名专业等次级分量把任务扩展到其他学校。
+    使用子串匹配，不展开范围，也不检查词边界。
+    """
+    if not task_text or not entities:
+        return set()
+    haystack = task_text.lower()
+    matched: set[str] = set()
+    for entity in entities:
+        components = [value.lower() for value in row_values(entity)]
+        if len(components) == 1 and components[0] in haystack:
+            matched.add(entity)
+            continue
+        if require_first_component:
+            components = components[:1]
+        parts = [part.strip() for part in components if len(part.strip()) >= 2]
+        if any(part in haystack for part in parts):
+            matched.add(entity)
+    return matched
 
 
 class FrontierTaskStatus(str, Enum):
@@ -39,7 +69,6 @@ class FrontierTask(CamelModel):
 
     target_cells: list[str] = Field(default_factory=list)
     table_id: str = ""
-    result_mode: Literal["findings", "table"] = "table"
     source_scope_key: str = ""
 
     # Dispatch hints set at enqueue; Scheduler consumes them when spawning.
@@ -100,7 +129,7 @@ class FrontierMemory(CamelModel):
     @staticmethod
     def _dispatch_key(task: FrontierTask) -> tuple:
         agent = task.agent_type or {"search": "search_agent", "explore": "explore_agent", "write": "writer_agent"}[task.kind]
-        return (task.kind, agent, task.result_mode, task.table_id,
+        return (task.kind, agent, task.table_id,
                 task.source_scope_key, tuple(sorted(set(task.blocked_by))))
 
     @staticmethod
@@ -116,12 +145,7 @@ class FrontierMemory(CamelModel):
                   FrontierTaskStatus.RUNNING,
                   FrontierTaskStatus.BLOCKED)
 
-        # Only entity.attr cells join subset-dedup; char-split / free-text
-        # cells fall back to text-dedup, else char-set subsets false-merge.
-        def _cellish(cells: list[str]) -> bool:
-            return all("." in c for c in cells)
-
-        if task.kind == "search" and task.target_cells and _cellish(task.target_cells):
+        if task.kind == "search" and task.target_cells:
             new_cells = frozenset(task.target_cells)
             for q in self.questions:
                 if q.kind != "search" or q.status not in active:
@@ -130,7 +154,7 @@ class FrontierMemory(CamelModel):
                     continue
                 if self._dispatch_key(q) != self._dispatch_key(task):
                     continue
-                if not q.target_cells or not _cellish(q.target_cells):
+                if not q.target_cells:
                     continue
                 if new_cells.issubset(frozenset(q.target_cells)):
                     return q
@@ -261,3 +285,17 @@ class FrontierMemory(CamelModel):
                             FrontierTaskStatus.RUNNING,
                             FrontierTaskStatus.BLOCKED)
         )
+
+    def active_cell_tasks(self, coverage: CoverageMap) -> dict[str, list[str]]:
+        """返回显式目标的活动任务归属；读取不预留目标。"""
+        owners: dict[str, list[str]] = {}
+        for task in self.questions:
+            if task.kind != "search" or task.status not in {"pending", "running", "blocked"}:
+                continue
+            for raw in task.target_cells:
+                key = raw if raw in coverage.cells else coverage.resolve_cell_reference(
+                    raw, table_id=task.table_id,
+                )
+                if key:
+                    owners.setdefault(key, []).append(task.id)
+        return owners

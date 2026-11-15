@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "88d5ad98023d223344ebc9917fe9b500fad128d0423f2ce4a9bf83b3bf93d1fc",
+  "capabilities": {
+    "get_article": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://gaokao.chsi.com.cn/gkxx/zc/ss/202008/20200817/1964457141.html\", \"category\": \"zc\", \"province\": \"ss\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.642824+00:00",
+      "reason": "HTTP 412",
+      "source_responses": [
+        {
+          "url": "https://gaokao.chsi.com.cn/gkxx/zc/ss/202008/20200817/1964457141.html",
+          "status": 412
+        }
+      ]
+    },
+    "get_external_data": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_external_data\", \"url\": \"https://www.bjeea.cn/html/gkgz/tzgg/2020/0817/76309.html\", \"category\": \"zc\", \"province\": \"ss\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.646243+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bjeea.cn/html/gkgz/tzgg/2020/0817/76309.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_list": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_list\", \"category\": \"zc\", \"province\": \"ss\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.646328+00:00",
+      "reason": "HTTP 412",
+      "source_responses": [
+        {
+          "url": "https://gaokao.chsi.com.cn/gkxx/zc/ss/",
+          "status": 412
+        }
+      ]
+    }
+  }
+}

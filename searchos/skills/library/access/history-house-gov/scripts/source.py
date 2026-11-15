@@ -7,6 +7,9 @@ Internet Archive's Wayback Machine.
 
 Data source: https://history.house.gov/Institution/Shutdown/Government-Shutdowns/
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -141,7 +144,7 @@ def extract_footnotes(html: str) -> dict[str, str]:
 
 async def get_shutdown_data() -> dict[str, Any]:
     """Fetch and parse government shutdown data."""
-    async with httpx.AsyncClient(follow_redirects=True) as client:
+    async with _skill_network.httpx_async_client(follow_redirects=True) as client:
         for url in WAYBACK_URLS:
             html = await fetch_page(url, client)
             if html:
@@ -365,6 +368,7 @@ async def get_longest_shutdowns(params: dict[str, Any], ctx: Any = None) -> dict
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the government shutdowns skill.

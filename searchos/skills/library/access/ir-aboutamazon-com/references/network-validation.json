@@ -1,0 +1,429 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "159501701cecd0bf0d9d18ef0b78bfaeec3d58a3e0d452a5411f5f82ea4ed862",
+  "capabilities": {
+    "get_sec_filings": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sec_filings\", \"year\": 2025}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.721476+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://ir.aboutamazon.com/sec-filings/default.aspx",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/css/evergreen/dist/default/evergreen.1.0.0.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/css/global.css",
+          "status": 200
+        },
+        {
+          "url": "https://widgets.q4app.com/widgets/q4.api.1.13.3.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css",
+          "status": 200
+        }
+      ]
+    },
+    "get_sec_filing_years": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sec_filing_years\"}"
+      ],
+      "checked_at": "2026-10-23T07:18:59.834611+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://ir.aboutamazon.com/sec-filings/default.aspx",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css",
+          "status": 200
+        },
+        {
+          "url": "https://widgets.q4app.com/widgets/q4.api.1.13.3.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/css/global.css",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/GlobalBranding.ashx",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/typescript/dist/index.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/dependencies/evergreen.app.1.0.0.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/css/evergreen/dist/default/evergreen.1.0.0.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4Api.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4Slideshow.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4Pager.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4MultiSecFilings.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/typescript/dist/q4CookieConsent/index.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/dependencies/evergreen.core.1.0.0.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/css/client.css",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/design/amazon-logo-white.svg",
+          "status": 200
+        }
+      ]
+    },
+    "get_press_releases": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_press_releases\", \"year\": 2026, \"page_size\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:28.271215+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://ir.aboutamazon.com/",
+          "status": 301
+        },
+        {
+          "url": "https://ir.aboutamazon.com/overview/default.aspx",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/GlobalBranding.ashx",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/css/evergreen/dist/default/evergreen.1.0.0.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/css/global.css",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/dependencies/evergreen.app.1.0.0.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4Api.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4Pager.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4Slideshow.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4MultiSecFilings.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/typescript/dist/index.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/typescript/dist/q4CookieConsent/index.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/dependencies/evergreen.core.1.0.0.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/css/client.css",
+          "status": 200
+        },
+        {
+          "url": "https://widgets.q4app.com/widgets/q4.api.1.13.3.min.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_events": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_events\", \"year\": 2025}"
+      ],
+      "checked_at": "2026-10-23T07:23:28.468211+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://ir.aboutamazon.com/",
+          "status": 301
+        },
+        {
+          "url": "https://ir.aboutamazon.com/overview/default.aspx",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/GlobalBranding.ashx",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4Api.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/dependencies/evergreen.app.1.0.0.min.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_event_years": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_event_years\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:28.470188+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://ir.aboutamazon.com/",
+          "status": 301
+        },
+        {
+          "url": "https://ir.aboutamazon.com/overview/default.aspx",
+          "status": 200
+        },
+        {
+          "url": "https://widgets.q4app.com/widgets/q4.api.1.13.3.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4Api.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/GlobalBranding.ashx",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/css/evergreen/dist/default/evergreen.1.0.0.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/css/global.css",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/dependencies/evergreen.app.1.0.0.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4Pager.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/dependencies/evergreen.core.1.0.0.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4Slideshow.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4MultiSecFilings.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/typescript/dist/q4CookieConsent/index.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/typescript/dist/index.js",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/css/client.css",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/design/amazon-logo-white.svg",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/js/q4.core.1.0.8.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/js/q4.app.1.0.8.min.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_stock_quote": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_stock_quote\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:28.471170+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://ir.aboutamazon.com/",
+          "status": 301
+        },
+        {
+          "url": "https://ir.aboutamazon.com/overview/default.aspx",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/css/global.css",
+          "status": 200
+        },
+        {
+          "url": "https://widgets.q4app.com/widgets/q4.api.1.13.3.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/css/evergreen/dist/default/evergreen.1.0.0.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/GlobalBranding.ashx",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/css/client.css",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4Api.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/dependencies/evergreen.app.1.0.0.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4Pager.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4Slideshow.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/latest/evergreen.q4MultiSecFilings.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/typescript/dist/q4CookieConsent/index.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/module/widgets/dist/dependencies/evergreen.core.1.0.0.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://ir.aboutamazon.com/js/typescript/dist/index.js",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/design/amazon-logo-white.svg",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/js/q4.core.1.0.8.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/299287126/files/js/q4.app.1.0.8.min.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

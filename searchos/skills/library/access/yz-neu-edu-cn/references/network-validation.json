@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "41995d4a7eb6e4ddb66765dab1fb01bfec25edbdc2042febcaba88ebc9803480",
+  "capabilities": {
+    "get_score_requirements": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_score_requirements\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.426229+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://yz.neu.edu.cn/2025/0311/c5932a278797/pagem.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_program_catalog": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_program_catalog\", \"limit_results\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.427526+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://yz.neu.edu.cn/2025/1009/c5933a293436/pagem.htm",
+          "status": 200
+        }
+      ]
+    },
+    "search_programs": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_programs\", \"keyword\": \"计算机\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.427619+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://yz.neu.edu.cn/2025/1009/c5933a293436/pagem.htm",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

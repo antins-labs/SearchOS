@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_palaces": "direct",
+    "get_ticket_prices": "direct",
+    "get_opening_times": "direct"
+  },
+  "aliases": {
+    "list_palaces": "list_palaces",
+    "get_opening_times": "get_opening_times",
+    "get_ticket_prices": "get_ticket_prices",
+    "run": "get_ticket_prices"
+  }
+}

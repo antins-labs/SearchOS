@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "20dc88b0a32dd8d9faf09fbd8638098f8249d604a270c1f1ee208913d13e5087",
+  "capabilities": {
+    "get_detail": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_detail\", \"sightId\": \"8606\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.879378+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://touch.piao.qunar.com/touch/detail.htm",
+          "status": 200
+        }
+      ]
+    },
+    "batch": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"batch\", \"sightIds\": [\"8606\", \"472314\", \"9805\"]}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.880058+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://touch.piao.qunar.com/touch/detail.htm",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

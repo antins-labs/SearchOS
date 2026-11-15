@@ -2,6 +2,9 @@
 SearchOS Access Skill: Japanese Peace Museums
 Fetches structured list of peace museums from nomorewar-ishikawa.com
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 from typing import Any
 import asyncio
@@ -14,13 +17,13 @@ async def _fetch_museums_table(url: str) -> dict[str, Any]:
     Returns structured data with all 84 museums.
     """
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 locale='ja-JP',
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until='domcontentloaded', timeout=30000)
             await page.wait_for_selector('table', timeout=10000)
@@ -158,6 +161,7 @@ async def _list_by_prefecture(prefecture: str) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the SearchOS skill.

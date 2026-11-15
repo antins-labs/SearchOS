@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "default": "direct",
+  "functions": {
+    "query_score_lines": "direct"
+  },
+  "aliases": {
+    "package": "package",
+    "run": "query_score_lines",
+    "query_score_lines": "query_score_lines"
+  }
+}

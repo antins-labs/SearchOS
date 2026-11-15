@@ -2,6 +2,9 @@
 Kremlin Press Releases Access Skill
 Fetches structured press releases from en.kremlin.ru
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -328,6 +331,7 @@ async def search_press_releases(params: dict[str, Any], session: aiohttp.ClientS
         return {"error": str(e), "query": query}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Kremlin press release queries.
@@ -342,7 +346,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     if not function:
         return {"error": "Missing 'function' parameter"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "get_press_release":
             return await get_press_release(params, session)
         elif function == "list_press_releases":

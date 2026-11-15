@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_phone_specs": "direct",
+    "parse_specs_structure": "direct"
+  },
+  "aliases": {
+    "get_phone_specs": "get_phone_specs",
+    "parse_specs_structure": "parse_specs_structure",
+    "run": "parse_specs_structure"
+  }
+}

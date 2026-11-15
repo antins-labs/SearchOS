@@ -4,6 +4,9 @@ Nielsen News Center Access Skill
 Extracts viewership metrics, ratings data, and structured content from Nielsen news articles.
 Provides access to Super Bowl ratings, TV measurement data, and audience statistics.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -19,7 +22,7 @@ async def fetch_url(url: str, session: Optional[aiohttp.ClientSession] = None) -
     """Fetch HTML content from a URL."""
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -387,6 +390,7 @@ async def get_super_bowl_data(url: Optional[str] = None) -> Dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """Main entry point for the Nielsen News Center skill.
     

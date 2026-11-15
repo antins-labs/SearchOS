@@ -4,6 +4,9 @@ Indochine UQAM Historical Dictionary Access Skill
 Fetches dictionary entry content from indochine.uqam.ca, a scholarly resource
 on the Indochina War (1945-1956) maintained by UQAM (Université du Québec à Montréal).
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 import asyncio
@@ -12,6 +15,7 @@ import aiohttp
 from bs4 import BeautifulSoup
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the Indochine UQAM skill.
@@ -122,7 +126,7 @@ async def _fetch_entry(url: str, lang: str) -> dict[str, Any]:
     
     timeout = aiohttp.ClientTimeout(total=30)
     
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(timeout=timeout) as session:
         async with session.get(url, headers=headers) as response:
             if response.status != 200:
                 return {

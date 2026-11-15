@@ -10,6 +10,9 @@ Functions:
 - get_category: List pages in a category
 - get_random: Get random pages from the wiki
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -209,7 +212,7 @@ async def get_page(page_title: str, include_content: bool = True, include_wikite
     Returns:
         Page information including title, URL, sections, infobox, and content
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Get parsed HTML content
         parse_params = {
             'action': 'parse',
@@ -302,7 +305,7 @@ async def search(query: str, limit: int = 10) -> dict:
     """
     limit = min(max(1, limit), 50)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         params = {
             'action': 'query',
             'list': 'search',
@@ -353,7 +356,7 @@ async def get_category(category_name: str, limit: int = 20, continue_token: str 
     if not category_name.lower().startswith('category:'):
         category_name = 'Category:' + category_name
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         params = {
             'action': 'query',
             'list': 'categorymembers',
@@ -406,7 +409,7 @@ async def get_random(limit: int = 5, namespace: int = 0) -> dict:
     """
     limit = min(max(1, limit), 20)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         params = {
             'action': 'query',
             'list': 'random',
@@ -430,6 +433,7 @@ async def get_random(limit: int = 5, namespace: int = 0) -> dict:
         return {'pages': pages}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute a function on the Apple Fandom wiki.

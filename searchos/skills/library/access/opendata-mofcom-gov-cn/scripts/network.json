@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_dataset": "direct",
+    "get_download_urls": "proxy",
+    "list_datasets": "proxy"
+  },
+  "aliases": {
+    "list_datasets": "list_datasets",
+    "get_dataset": "get_dataset",
+    "get_download_urls": "get_download_urls",
+    "run": "get_download_urls"
+  }
+}

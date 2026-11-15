@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ee75f838208f0226da0eea5a5652f8e441c65ca76e0de87360b5aaaf6219fb80",
+  "capabilities": {
+    "get_cruise": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_cruise\", \"url\": \"https://www.travelweekly.com/Cruise/Viking-Ocean/Viking-Venus/Cruise-p60587758\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.059554+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.travelweekly.com/Cruise/Viking-Ocean/Viking-Venus/Cruise-p60587758",
+          "status": 307
+        },
+        {
+          "url": "https://www.travelweekly.com/Cruise/Viking-Ocean/Viking-Venus/Cruise-p60587758",
+          "status": 403
+        },
+        {
+          "url": "https://www.travelweekly.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

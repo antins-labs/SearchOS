@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "640973a6d2b051e46609f386d6d9d256c8497e0f6f5543be5e72e0ea99df717c",
+  "capabilities": {
+    "query": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"query\", \"starttime\": \"2025-09-01T00:00:00\", \"endtime\": \"2025-09-30T23:59:59\", \"minmagnitude\": 6.0, \"orderby\": \"magnitude\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.596507+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://earthquake.usgs.gov/fdsnws/event/1/query",
+          "status": 200
+        }
+      ]
+    },
+    "count": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"count\", \"starttime\": \"2025-01-01T00:00:00\", \"endtime\": \"2025-12-31T23:59:59\", \"minmagnitude\": 5.0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.597132+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://earthquake.usgs.gov/fdsnws/event/1/count",
+          "status": 200
+        }
+      ]
+    },
+    "detail": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"detail\", \"eventid\": \"us6000rdta\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.597206+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://earthquake.usgs.gov/fdsnws/event/1/query",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

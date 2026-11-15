@@ -5,6 +5,9 @@ Provides access to honoree biography records through the WordPress REST API.
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 import asyncio
 import json
 import re
@@ -161,6 +164,7 @@ async def fetch_categories(session: aiohttp.ClientSession) -> list[dict]:
         return await resp.json()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute ISHOF skill functions.
@@ -186,7 +190,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     
     timeout = aiohttp.ClientTimeout(total=30)
     
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(timeout=timeout) as session:
         try:
             # ----------------------------------------------------------------------
             # list_honorees: Paginated list

@@ -19,6 +19,9 @@ import type {
   LocalLibrary,
   LocalLibraryGraph,
   NetworkImportJob,
+  NetworkView,
+  LearnedNetworkRoute,
+  NetworkDiagnostic,
   ProvidersResponse,
   ProviderDiagnostic,
   RepairRequest,
@@ -223,6 +226,7 @@ export interface HistoryTurn {
   elapsed_s?: number | null;
   total_queries?: number | null;
   total_steps?: number | null;
+  skill_execution_count?: number | null;
   tool_counts?: SearchResult["tool_counts"] | null;
   token_usage?: SearchResult["token_usage"] | null;
   token_phases?: SearchResult["token_phases"] | null;
@@ -291,6 +295,11 @@ export async function getWorkspaceFiles(sessionId: string): Promise<{ tree: File
 
 export async function getFileContent(sessionId: string, path: string): Promise<{ content: string }> {
   return request(`/api/workspace/${sessionId}/file?path=${encodeURIComponent(path)}`, {}, { errorPrefix: "Get file failed" });
+}
+
+export async function getAgentReply(sessionId: string, agent: string, messageId: string, timestamp: string): Promise<{ content: string }> {
+  const query = new URLSearchParams({ agent, message_id: messageId, timestamp });
+  return request(`/api/workspace/${sessionId}/agent-reply?${query}`, {}, { errorPrefix: "读取回复失败" });
 }
 
 // ---- Local libraries ----
@@ -595,13 +604,11 @@ export const detectWebImageCapability = () =>
   putJson<RunDefaultsView>("/api/settings/web-image-capability/detect", {}, "POST");
 
 // First-class runtime knobs. Only keys present in the patch are touched; send
-// null to clear a knob back to its env/code default. https_proxy "" forces
-// no-proxy. Proxy / cache dir are not secrets.
+// null to clear a knob back to its env/code default.
 export const putAdvanced = (patch: {
   llm_max_retries?: number | null;
   orch_coverage_stall_rounds?: number | null;
   browser_disk_cache_dir?: string | null;
-  https_proxy?: string | null;
   search_max_results?: number | null;
   use_layered_context?: boolean | null;
 }) => putJson<AdvancedView>("/api/settings/advanced", patch);
@@ -647,6 +654,7 @@ export const patchProfile = (name: string, patch: {
   enable_thinking?: boolean;
   thinking_style?: "chat_template_kwargs" | "enable_thinking" | "none";
   rpm?: number | null;
+  max_input_tokens?: number | null;
   tpm?: number | null;
 }) => putJson<ModelsView>(`/api/settings/profiles/${encodeURIComponent(name)}`, patch, "PATCH");
 
@@ -661,6 +669,7 @@ export const createProfile = (body: {
   enable_thinking?: boolean;
   thinking_style?: "chat_template_kwargs" | "enable_thinking" | "none";
   rpm?: number;
+  max_input_tokens?: number | null;
   tpm?: number;
 }) => putJson<ModelsView>("/api/settings/profiles", body, "POST");
 
@@ -683,6 +692,17 @@ export const testSearchBackend = (query: string) =>
 
 export const testBrowserBackend = (url: string) =>
   runDiagnostic<BrowserDiagnostic>("browser", { url });
+
+export const putNetwork = (patch: Partial<Pick<NetworkView, "proxy_url" | "auto_route" | "routes">>) =>
+  putJson<NetworkView>("/api/settings/network", patch);
+
+export const testNetwork = (url: string) =>
+  runDiagnostic<NetworkDiagnostic>("network", { url });
+
+export const getNetworkRoutes = () => request<{ routes: LearnedNetworkRoute[] }>("/api/diagnostics/network/routes");
+
+export const clearNetworkRoutes = (host?: string) =>
+  request<{ routes: LearnedNetworkRoute[] }>(`/api/diagnostics/network/routes${host ? `?host=${encodeURIComponent(host)}` : ""}`, { method: "DELETE" });
 
 // ---- WebSocket ----
 
@@ -769,6 +789,15 @@ export type SkillCreationProgress = {
 };
 export const getSkillCreationProgress = (id: string, index = 0) =>
   request<SkillCreationProgress>(`/api/skills/creations/${encodeURIComponent(id)}/progress?index=${index}`, { cache: "no-store" });
+export type SkillCreationRounds = {
+  job_id: string; request_index: number;
+  roles: Record<"planner" | "builder" | "validator", {
+    number: number; at: string | null; content: unknown; reasoning: unknown;
+    tool_calls: { id: string | null; name: string; args: unknown; result: unknown }[];
+  }[]>;
+};
+export const getSkillCreationRounds = (id: string, index = 0) =>
+  request<SkillCreationRounds>(`/api/skills/creations/${encodeURIComponent(id)}/rounds?index=${index}`, { cache: "no-store" });
 export const deleteSkillCreations = (ids: string[]) =>
   putJson<{ deleted: string[] }>("/api/skills/creations/delete", { ids }, "POST");
 export const cancelSkillCreation = (id: string) =>

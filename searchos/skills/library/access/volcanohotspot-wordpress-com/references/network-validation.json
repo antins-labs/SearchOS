@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "de4f0ef44f497a0fa78573b6677160d2b3d450c6246a103e40cbff27e43b088f",
+  "capabilities": {
+    "get_post": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_post\", \"url\": \"https://volcanohotspot.wordpress.com/2019/08/11/are-there-volcanoes-in-fiji/\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.891101+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://volcanohotspot.wordpress.com/2019/08/11/are-there-volcanoes-in-fiji/",
+          "status": 403
+        }
+      ]
+    },
+    "get_posts": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_posts\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.893320+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://volcanohotspot.wordpress.com/",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

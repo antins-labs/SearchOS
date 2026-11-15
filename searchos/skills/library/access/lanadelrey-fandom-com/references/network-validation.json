@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e0759e54ac3edf75c965ed85ecc2acb8fb9e43c478f416253e87cd25a0144970",
+  "capabilities": {
+    "get_page": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"page\": \"Ultraviolence_(album)\", \"include_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.766446+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://lanadelrey.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_infobox": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_infobox\", \"page\": \"Lana_Del_Rey\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.767629+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://lanadelrey.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_tracklist": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tracklist\", \"page\": \"Born_to_Die_(album)\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.767704+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://lanadelrey.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"ultraviolence song\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.767775+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://lanadelrey.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_category_pages": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_category_pages\", \"category\": \"Albums\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.767870+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://lanadelrey.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_section": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_section\", \"page\": \"Lana_Del_Rey\", \"section\": \"Discography\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.767937+00:00",
+      "reason": "Could not get page sections",
+      "source_responses": [
+        {
+          "url": "https://lanadelrey.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

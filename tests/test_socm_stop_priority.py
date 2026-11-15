@@ -10,8 +10,9 @@ from langchain_core.messages import AIMessage, HumanMessage
 from searchos.agents.execution import ControlExecutor
 from searchos.harness.middleware.context.socm_middleware import SOCMContextMiddleware
 from searchos.harness.middleware.models import TaskContext
-from searchos.harness.middleware.sensor.core.models import ControlState
+from searchos.harness.middleware.sensor.core.run_state import ControlState
 from searchos.socm import SearchState
+from searchos.socm.refs import row_key
 
 
 @dataclass
@@ -24,7 +25,7 @@ class Request:
 
 def stopped_worker(role="search_agent_3"):
     state = SearchState()
-    state.coverage_map.add_table("t", ["Name", "Score"], primary_key=["Name"], entities=["A"])
+    state.coverage_map.add_table("t", ["Name", "Score"], primary_key=["Name"], entities=[row_key(["A"])])
     control = ControlState()
     control.stop("no_progress_tools_x10")
     control.blocked_tools.update({"search", "open", "find", "skill_*"})

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch_special_page": "direct",
+    "extract_metadata": "direct",
+    "fetch_article": "direct",
+    "search_articles": "direct"
+  },
+  "aliases": {
+    "fetch_article": "fetch_article",
+    "fetch_special_page": "fetch_special_page",
+    "search_articles": "search_articles",
+    "extract_metadata": "extract_metadata",
+    "run": "extract_metadata"
+  }
+}

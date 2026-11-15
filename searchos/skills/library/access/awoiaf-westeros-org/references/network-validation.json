@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "60fc1cd7be1b3598b4866c7450fc16310c348689de0ce64d6dc3ddd82d19e220",
+  "capabilities": {
+    "get_character": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_character\", \"name\": \"Tyrion Lannister\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.889614+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://awoiaf.westeros.org/index.php/Tyrion_Lannister",
+          "status": 200
+        }
+      ]
+    },
+    "search_characters": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_characters\", \"query\": \"Jon Snow\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.955618+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://awoiaf.westeros.org/index.php/Jon_Snow",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

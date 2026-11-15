@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_verified": "direct",
+    "list_by_region": "direct",
+    "list_companies": "direct",
+    "get_company": "direct",
+    "search_companies": "direct",
+    "get_summary": "direct",
+    "list_defunct": "direct"
+  },
+  "aliases": {
+    "list_companies": "list_companies",
+    "get_company": "get_company",
+    "search_companies": "search_companies",
+    "get_summary": "get_summary",
+    "list_by_region": "list_by_region",
+    "list_verified": "list_verified",
+    "list_defunct": "list_defunct",
+    "run": "list_defunct"
+  }
+}

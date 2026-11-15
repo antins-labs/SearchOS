@@ -13,6 +13,9 @@ Key findings:
 4. Image filenames follow pattern: W0{YYMMDD}{random}.png
 5. Articles are paginated with index.html, index_1.html, index_2.html, etc.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -258,7 +261,7 @@ async def list_articles(params: dict[str, Any], ctx: Any = None) -> dict[str, An
     else:
         url = f"{RAILWAY_INDEX_URL}index_{page-1}.html"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_html(session, url)
         
         if status != 200:
@@ -306,7 +309,7 @@ async def get_article(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]
             'error': 'Missing required parameter: url',
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_html(session, url)
         
         if status != 200:
@@ -341,7 +344,7 @@ async def get_image(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     
     # If no direct image URL, try to get it from article
     if not image_url and article_url:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             status, html = await fetch_html(session, article_url)
             if status == 200:
                 article = parse_article_detail(html, article_url)
@@ -353,7 +356,7 @@ async def get_image(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             'error': 'No image URL provided and could not extract from article',
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, image_bytes = await fetch_image(session, image_url)
         
         if status != 200 or not image_bytes:
@@ -404,7 +407,7 @@ async def search_by_month(params: dict[str, Any], ctx: Any = None) -> dict[str, 
     page = 1
     max_pages = 10  # Limit search to 10 pages
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         while page <= max_pages:
             if page == 1:
                 url = RAILWAY_INDEX_URL
@@ -449,7 +452,7 @@ async def list_latest(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]
     count = params.get('count', 5)
     include_details = params.get('include_details', False)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Fetch first page
         status, html = await fetch_html(session, RAILWAY_INDEX_URL)
         
@@ -479,6 +482,7 @@ async def list_latest(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]
 
 
 # Main execute function
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """Execute the MOT railway statistics skill.
     

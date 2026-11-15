@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "9bcf658b279559c0533b45704bf93b2381c7621b2af0a1ef05ff97388c14f77d",
+  "capabilities": {
+    "list_databases": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_databases\", \"version\": \"12\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.258284+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-sipri-org/scripts/source.py",
+        "line": 382,
+        "end_line": 407,
+        "implementation": "list_databases",
+        "source_sha256": "0921b5666bbd37db889abacbf0d0ece75f4d31daac128c1e12c1d85de3f61afc",
+        "implementation_sha256": "11bedad2c3755ac4323005271cf5c2d865fa4d8ad1c0c5a0a0bd71dd65d87fd1"
+      }
+    },
+    "download_database": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"download_database\", \"database\": \"milex_full\", \"version\": \"12\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.259142+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_datawrapper_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_datawrapper_data\", \"name\": \"milex_gdp_share\", \"version\": \"12\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.259331+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://datawrapper.dwcdn.net/g7sno/12/dataset.csv",
+          "status": 200
+        }
+      ]
+    },
+    "get_publication": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_publication\", \"url\": \"/publications/2025/sipri-fact-sheets/trends-world-military-expenditure-2024\", \"version\": \"12\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.259397+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search_publications": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_publications\", \"query\": \"military expenditure\", \"version\": \"12\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.259453+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.sipri.org/publications/search",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

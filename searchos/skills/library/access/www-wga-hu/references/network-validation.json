@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7a59e582ab04cee3ffe9f12e90f03871f613cef47e7e7adefdebf771ff2bc914",
+  "capabilities": {
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"author\": \"monet\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.386924+00:00",
+      "reason": "HTTP error: 403",
+      "source_responses": [
+        {
+          "url": "https://www.wga.hu/cgi-bin/search.cgi",
+          "status": 403
+        }
+      ]
+    },
+    "get_artwork": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_artwork\", \"url\": \"https://www.wga.hu/html_m/g/gogh_van/16/selfpo04a.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.387720+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.wga.hu/html_m/g/gogh_van/16/selfpo04a.html",
+          "status": 403
+        }
+      ]
+    },
+    "get_gallery": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_gallery\", \"url\": \"https://www.wga.hu/html_m/g/gogh_van/16/index.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.387782+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.wga.hu/html_m/g/gogh_van/16/index.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

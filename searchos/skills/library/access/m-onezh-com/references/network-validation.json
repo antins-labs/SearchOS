@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5ca09398021909a12b5b57c6a3a2018fd539e1a9ac3a89f4a6401eb06aec1b22",
+  "capabilities": {
+    "get_detail": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_detail\", \"exhibition_id\": \"85169\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.791513+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://m.onezh.com/web/index_85169.html",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"city_id\": \"1\", \"start_date\": \"20250501\", \"end_date\": \"20250531\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.792405+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://m.onezh.com/zhanhui/1_0_0_0_20250501/20250531/",
+          "status": 200
+        }
+      ]
+    },
+    "search_by_keyword": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_keyword\", \"keyword\": \"珠宝\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.792481+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://m.onezh.com/zhanhui/0_0_0_0_0/0/",
+          "status": 200
+        }
+      ]
+    },
+    "search_by_date": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_date\", \"start_date\": \"20250601\", \"end_date\": \"20250630\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.792540+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://m.onezh.com/zhanhui/0_0_0_0_20250601/20250630/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

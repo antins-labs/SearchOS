@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_reference_index": "direct",
+    "read_document": "direct"
+  },
+  "aliases": {
+    "access": "list_reference_index"
+  }
+}

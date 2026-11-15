@@ -9,6 +9,9 @@ Key endpoints:
 - Case page: /cases/federal/us/{volume}/{docket}/
 - Volume index: /cases/federal/us/{volume}/
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 from typing import Any, Optional
 import re
@@ -32,7 +35,7 @@ def fetch_url(url: str) -> dict:
         return {"error": "curl_cffi is required for this skill", "url": url}
     
     try:
-        resp = curl_requests.get(url, impersonate=IMPERSONATE, timeout=TIMEOUT)
+        resp = _skill_network.requests_call(curl_requests.get, url, impersonate=IMPERSONATE, timeout=TIMEOUT)
         
         if resp.status_code == 403:
             return {"error": "Access denied (Cloudflare challenge)", "status_code": 403, "url": url}
@@ -301,6 +304,7 @@ def parse_volume_page(html: str, volume: str) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute a Justia Supreme Court query.

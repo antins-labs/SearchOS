@@ -5,6 +5,9 @@ Fetches Reddit post content and comments using the PullPush API,
 which provides archived Reddit data without requiring authentication
 or being blocked by Reddit's security measures.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -291,6 +294,7 @@ async def get_subreddit_posts(
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """Execute Reddit post fetch operation.
     
@@ -303,7 +307,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     function = params.get("function", "")
     
-    async with aiohttp.ClientSession(
+    async with _skill_network.aiohttp_session(
         timeout=DEFAULT_TIMEOUT,
         headers=DEFAULT_HEADERS,
     ) as session:

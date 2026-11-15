@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_movie_detail": "direct",
+    "search_by_rank": "proxy",
+    "get_rankings": "direct"
+  },
+  "aliases": {
+    "get_rankings": "get_rankings",
+    "get_movie_detail": "get_movie_detail",
+    "search_by_rank": "search_by_rank",
+    "run": "search_by_rank"
+  }
+}

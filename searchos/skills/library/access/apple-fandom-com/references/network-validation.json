@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "dfd0fbfe781ad9c4874e4e05f6de898737de830bfe16c2ce0aacf934cc5498f6",
+  "capabilities": {
+    "get_page": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"page_title\": \"Steve_Jobs\", \"include_content\": true, \"include_wikitext\": false, \"namespace\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.739969+00:00",
+      "reason": "Execution error: 'str' object has no attribute 'get'",
+      "source_responses": [
+        {
+          "url": "https://apple.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"iPhone\", \"limit\": 3, \"include_content\": true, \"include_wikitext\": false, \"namespace\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.782868+00:00",
+      "reason": "403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://apple.fandom.com/api.php?action=query&list=search&srsearch=iPhone&srlimit=3&srprop=size%7Cwordcount%7Ctimestamp%7Csnippet%7Ctitlesnippet&srenablerewrites=true&format=json'",
+      "source_responses": [
+        {
+          "url": "https://apple.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_category": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_category\", \"category_name\": \"Former_Apple_employees\", \"limit\": 3, \"include_content\": true, \"include_wikitext\": false, \"namespace\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.783522+00:00",
+      "reason": "403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://apple.fandom.com/api.php?action=query&list=categorymembers&cmtitle=Category:Former_Apple_employees&cmlimit=3&cmprop=title%7Csortkey%7Ctimestamp%7Ctype&cmsort=sortkey&format=json'",
+      "source_responses": [
+        {
+          "url": "https://apple.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_random": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_random\", \"limit\": 3, \"include_content\": true, \"include_wikitext\": false, \"namespace\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.784354+00:00",
+      "reason": "403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://apple.fandom.com/api.php?action=query&list=random&rnlimit=3&rnnamespace=0&format=json'",
+      "source_responses": [
+        {
+          "url": "https://apple.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

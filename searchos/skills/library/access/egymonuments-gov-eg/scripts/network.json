@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_monuments": "direct",
+    "get_monument": "direct",
+    "get_multiple_monuments": "direct"
+  },
+  "aliases": {
+    "get_monument": "get_monument",
+    "get_multiple_monuments": "get_multiple_monuments",
+    "search_monuments": "search_monuments",
+    "run": "search_monuments"
+  }
+}

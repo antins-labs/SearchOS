@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { X, Loader2, CheckCircle2, XCircle, Circle } from "lucide-react";
 import type { AgentCardData } from "./AgentCard";
 import { TraceLine, agentLabel } from "./trace";
-import ToolCallDetailDialog, { type ToolCallDetail } from "./ToolCallDetailDialog";
+import OrchestratorTimeline from "./OrchestratorTimeline";
 
 const STATUS = {
   pending: { icon: <Circle size={13} className="text-ink-faint" />, label: "pending" },
@@ -17,11 +17,12 @@ const STATUS = {
 export default function TraceDrawer({
   worker,
   onClose,
+  sessionId,
 }: {
   worker: AgentCardData | null;
   onClose: () => void;
+  sessionId?: string | null;
 }) {
-  const [selectedTool, setSelectedTool] = useState<ToolCallDetail | null>(null);
   const open = worker != null;
   useEffect(() => {
     if (!open) return;
@@ -64,9 +65,12 @@ export default function TraceDrawer({
           {worker.events.length === 0 ? (
             <div className="text-ink-faint">No trace recorded yet.</div>
           ) : (
-            worker.events.map((e, i) => (
-              <TraceLine key={i} event={e} onOpenTool={setSelectedTool} />
-            ))
+            <>
+              <OrchestratorTimeline events={worker.events} agentName={worker.name} sessionId={sessionId}
+                status={worker.status === "pending" ? "running" : worker.status} />
+              {worker.events.filter(event => !["step", "tool_call_started", "tool_call_failed", "skill_execution", "agent_final"].includes(String((event.data as Record<string, unknown> | null)?.type)))
+                .map((event, i) => <TraceLine key={i} event={event} />)}
+            </>
           )}
           {worker.status === "running" && (
             <div className="flex items-center gap-1.5 pt-1 text-accent dark:text-accent">
@@ -75,7 +79,6 @@ export default function TraceDrawer({
           )}
         </div>
       </aside>
-      <ToolCallDetailDialog detail={selectedTool} onClose={() => setSelectedTool(null)} />
     </div>
   );
 }

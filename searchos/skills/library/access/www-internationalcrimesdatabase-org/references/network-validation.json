@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "897195af5a825f7ba2c5a4cccf090ab0732fcb49c8080ee24d3b8c3bc0475281",
+  "capabilities": {
+    "get_case": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_case\", \"case_id\": \"147\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.131620+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.internationalcrimesdatabase.org/Case/147/",
+          "status": 200
+        }
+      ]
+    },
+    "list_cases": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_cases\", \"category\": \"Genocide\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.132131+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "list_categories": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_categories\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.132217+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search_cases": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_cases\", \"query\": \"Rwanda\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.132310+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

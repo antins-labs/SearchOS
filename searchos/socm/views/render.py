@@ -7,7 +7,12 @@ data is computed once. This is the role-specific projection φ(M) (paper §SOCM)
 
 from __future__ import annotations
 
+import json
+
+from searchos.socm.coverage.models import cell_is_actionable, cell_is_complete
+from searchos.socm.refs import cell_key, cell_ref, row_values
 from searchos.socm.views.snapshot import (
+    CellInfo,
     FrontierSnapshot,
     RowStatus,
     SearchStateSnapshot,
@@ -16,57 +21,51 @@ from searchos.socm.views.snapshot import (
 
 
 def _has_unresolved_attributes(row: RowStatus) -> bool:
-    return any(c.has_conflict or c.status != "filled" for c in row.cells)
+    return not row.is_complete
 
 
-def _render_entity_gaps(
-    lines: list[str],
-    rows: list[RowStatus],
-    *,
-    include_recorded: bool = False,
-) -> None:
-    """逐实体展示缺口；状态与候选值同行，不按属性组合分组。"""
-    import json
+def render_cell(cell: CellInfo, value: str | None, *, with_values: bool = True,
+                include_tasks: bool = False, citation: dict | None = None):
+    """行窗口与工具回执共用单元格状态；引用和任务归属按需附加。"""
+    status = "unavailable" if cell.status == "hard_cell" else cell.status
+    if cell.has_conflict or cell.conflict_status == "confirmed":
+        status = "conflict"
+    elif status == "missing" and cell.conflict_status == "clear":
+        value = None
+    meta = {}
+    if cell.inferred:
+        meta["inferred"] = True
+    if status not in {"missing", "filled"} or (status == "filled" and value is None and with_values):
+        meta["status"] = status
+    if cell.conflict_status in {"pending", "uncertain"}:
+        meta["comparison"] = cell.conflict_status
+    if include_tasks and cell.active_task_ids:
+        meta["active_task_ids"] = cell.active_task_ids
+    if citation and value is not None:
+        meta.update(citation)
+    if with_values:
+        if not meta:
+            return value
+        if value is None and meta == {"status": "filled"}:
+            return meta
+        return {"value": value, **meta}
+    return {"status": status, **meta} if meta else status
 
-    def quote(value: str) -> str:
-        return json.dumps(value, ensure_ascii=False)
 
-    for row in rows:
-        missing = []
-        recorded = []
-        details = []
-        for cell in row.cells:
-            attr = quote(cell.attr)
-            if cell.has_conflict:
-                detail = f"{attr} status=conflict"
-                if cell.display_hint:
-                    detail += f" (current value: {quote(cell.display_hint)})"
-                details.append(detail)
-            elif cell.conflict_status in {"pending", "uncertain"}:
-                details.append(f"{attr} evidence_comparison={cell.conflict_status}")
-            elif cell.status == "filled":
-                if include_recorded:
-                    recorded.append(
-                        f"{attr}={quote(cell.display_hint)}"
-                        if cell.display_hint
-                        else f"{attr} (value preview unavailable)"
-                    )
-                continue
-            elif cell.status == "hard_cell":
-                details.append(f"{attr} unavailable")
-            elif cell.status == "uncertain":
-                detail = f"{attr} status=uncertain"
-                if cell.display_hint:
-                    detail += f" (candidate: {quote(cell.display_hint)})"
-                details.append(detail)
-            else:
-                missing.append(attr)
-        if recorded:
-            details.append("recorded " + ", ".join(recorded))
-        if missing:
-            details.insert(0, "missing " + ", ".join(missing))
-        if details:
-            lines.append(f"- {quote(row.entity)}: " + "; ".join(details) + ".")
+def _row_values(ts: TableSnapshot, row: RowStatus) -> list:
+    """每行仅展示列值，特殊状态附在对应单元格。"""
+    values = ([row.key_values.get(attr, "") for attr in ts.primary_key]
+              if ts.primary_key else row_values(row.entity))
+    values.extend(render_cell(cell, cell.display_hint or None) for cell in row.cells)
+    return values
+
+
+def _render_rows(lines: list[str], ts: TableSnapshot, rows: list[RowStatus], *, header=True) -> None:
+    if header:
+        lines.append("Columns: " + json.dumps((ts.primary_key or ["Entity"]) + ts.data_columns,
+                                              ensure_ascii=False))
+        lines.append("Rows follow column order; null = missing.")
+    lines.extend(json.dumps(_row_values(ts, row), ensure_ascii=False) for row in rows)
 
 
 # ---------------------------------------------------------------------------
@@ -79,60 +78,49 @@ def render_orchestrator_view(snap: SearchStateSnapshot) -> str:
     lines: list[str] = [tasks] if tasks else []
     if not snap.tables:
         return "\n".join(lines)
-    lines.append("[Table fill state — KNOWN rows only]")
+    lines.append("[Table fill state]")
     unresolved_rows = sum(bool(_has_unresolved_attributes(r)) for t in snap.tables for r in t.rows)
 
     lines.append(
-        f"- Known rows: {snap.total_rows} (seeded/discovered), "
+        f"- Known rows: {snap.total_rows}, "
         f"{unresolved_rows} with unresolved columns"
     )
-    if snap.total_rows and not unresolved_rows:
-        lines.append(
-            "- All known rows are filled. Coverage describes rows already "
-            "present in the schema; it does not describe undiscovered rows."
-        )
-    open_set_tids = [t.table_id for t in snap.tables if t.is_open_set and t.rows]
-    if open_set_tids:
-        lines.append(
-            "- ⚠️ OPEN-SET table(s): "
-            + ", ".join(f"`{t}`" for t in open_set_tids)
-            + " — counts reflect DISCOVERED rows only."
-        )
-    empty_tids = [t.table_id for t in snap.tables if t.is_empty]
-    if empty_tids:
-        lines.append("- ⚠️ EMPTY table(s) with 0 rows: " + ", ".join(f"`{t}`" for t in empty_tids))
-
-    _render_frontier(lines, snap.frontier)
     for ts in snap.tables:
         _render_orch_table(lines, ts)
 
     return "\n".join(lines)
 
 
-def _render_orch_table(lines: list[str], ts: TableSnapshot) -> None:
-    if ts.is_empty:
-        lines.append("")
-        lines.append(
-            f"### `{ts.table_id}` ({ts.label}) — pk={ts.primary_key or '?'} — ⚠️ EMPTY (0 rows)"
-        )
-        if ts.data_columns:
-            lines.append(f"Data columns: {ts.data_columns}")
-        return
-
+def _render_orch_table(
+    lines: list[str], ts: TableSnapshot, *, reader: str = "inspect_table",
+) -> None:
     incomplete = [r for r in ts.rows if _has_unresolved_attributes(r)]
+    mode = "discovery" if ts.is_open_set else "seeded"
     lines.extend(
         [
             "",
-            f"### `{ts.table_id}` ({ts.label}) — pk={ts.primary_key}",
+            f"### `{ts.table_id}` ({ts.label}) — mode={mode}",
             f"Rows: {len(ts.rows)}; rows with unresolved attributes: {len(incomplete)}; "
             f"filled rows: {len(ts.rows) - len(incomplete)}.",
         ]
     )
-    if ts.is_open_set:
-        lines.append(
-            "OPEN SET: this view contains discovered rows only; additional rows may exist."
-        )
-    _render_entity_gaps(lines, incomplete)
+    summary = ts.summary()
+    if ts.inferred_columns:
+        lines.append("Fill from known row facts with edit_entities: " + json.dumps(ts.inferred_columns, ensure_ascii=False))
+    lines.append("Cell totals: " + json.dumps({k: v for k, v in summary.items()
+                  if k not in {"total_rows", "filled_rows", "unresolved_rows", "by_attribute"}}))
+    lines.append("Fields: " + json.dumps(summary["by_attribute"], ensure_ascii=False))
+    _render_gap_window(lines, ts, reader=reader)
+
+
+def _render_gap_window(lines: list[str], ts: TableSnapshot, *, reader: str) -> list[RowStatus]:
+    rows = [r for r in ts.rows if not r.is_complete]
+    rows.sort(key=lambda r: (not any(cell_is_actionable(c) and not c.active_task_ids
+                                    for c in r.cells), r.entity))
+    lines.append(f"Gap rows shown: {min(30, len(rows))}/{len(rows)}; "
+                 f"details: {reader}.")
+    _render_rows(lines, ts, rows[:30])
+    return rows[:30]
 
 
 def _render_frontier(lines: list[str], fr: FrontierSnapshot) -> None:
@@ -148,17 +136,6 @@ def _render_frontier(lines: list[str], fr: FrontierSnapshot) -> None:
             "  open by kind: "
             + ", ".join(f"{k}={v}" for k, v in sorted(fr.open_by_kind.items(), key=lambda x: -x[1]))
         )
-    # In-flight tasks: show WHAT each running sub-agent is on, so the
-    # orchestrator does not re-dispatch work already covered. A gap that
-    # matches a task below is being worked — wait for it, don't re-enqueue.
-    if fr.running_tasks:
-        lines.append(f"  in-flight tasks ({len(fr.running_tasks)}):")
-        for rt in fr.running_tasks[:10]:
-            tbl = f"`{rt.table_id}` " if rt.table_id else ""
-            tgt = f" → cells: {', '.join(rt.targets)}" if rt.targets else ""
-            lines.append(f"  - [{rt.agent_id}] {tbl}{rt.text}{tgt}")
-        if len(fr.running_tasks) > 10:
-            lines.append(f"  - …+{len(fr.running_tasks) - 10} more running")
 
 
 # ---------------------------------------------------------------------------
@@ -184,35 +161,44 @@ def render_search_agent_view(
         cells = [
             c
             for c in row.cells
-            if target_cells is None or f"{ts.table_id}/{row.entity}.{c.attr}" in target_cells
+            if (target_cells is None and c.requires_search) or (
+                target_cells is not None and cell_key(ts.table_id, row.entity, c.attr) in target_cells)
         ]
         if cells:
-            scoped_rows.append(RowStatus(row.entity, cells))
-            targets.extend((f"{ts.table_id}/{row.entity}.{c.attr}", c) for c in cells)
-    remaining = [
-        (key, c) for key, c in targets if c.has_conflict or c.status not in ("filled", "hard_cell")
-    ]
-    unavailable = sum(c.status == "hard_cell" and not c.has_conflict for _, c in targets)
-    completed = len(targets) - len(remaining) - unavailable
+            scoped_rows.append(row)
+            targets.extend((cell_key(ts.table_id, row.entity, c.attr), c) for c in cells)
+    remaining = [(key, c) for key, c in targets if cell_is_actionable(c, explicit_target=target_cells is not None)]
+    unavailable = sum(c.status == "hard_cell" for _, c in targets)
+    completed = sum(cell_is_complete(c) for _, c in targets)
+    pending = sum(c.conflict_status == "pending" for _, c in targets)
     lines = [
         "[Coverage state — your task targets]",
-        f"### Target table: `{ts.table_id}` ({ts.label}) — pk={ts.primary_key}",
+        f"### Target table: `{ts.table_id}` ({ts.label})",
         f"Assigned cells: {len(targets)}; filled: {completed}; "
         f"actionable gaps: {len(remaining)}; unavailable: {unavailable}.",
+        f"Pending evidence comparisons: {pending}.",
     ]
     if not targets:
-        lines.append("No matching assigned cells.")
-    elif not remaining:
-        lines.append("No actionable gaps are marked in the matched cells.")
-    if unavailable:
-        lines.append("Unavailable cells remain unresolved.")
-    lines.append("Target records (recorded values are previews):")
-    _render_entity_gaps(lines, scoped_rows, include_recorded=True)
+        lines.append("Target match: none.")
+    lines.append("Target records:")
+    _render_rows(lines, ts, scoped_rows)
+    if target_cells is not None:
+        offset = len(ts.primary_key) or 1
+        selection = [[i, [offset + j for j, c in enumerate(row.cells)
+                           if cell_key(ts.table_id, row.entity, c.attr) in target_cells]]
+                     for i, row in enumerate(scoped_rows)]
+        lines.append("Assigned targets [row index, column indices] (zero-based): "
+                     + json.dumps(selection))
     described = {c.attr for row in scoped_rows for c in row.cells}
+    definitions: dict[str, list[str]] = {}
     for attr in sorted(described):
         desc = ts.column_descriptions.get(attr, "")
         if desc:
-            lines.append(f"Column {attr}: {desc}")
+            definitions.setdefault(desc, []).append(attr)
+    if definitions:
+        lines.append("Column definitions:")
+        for desc, columns in definitions.items():
+            lines.append(f"- {json.dumps(columns, ensure_ascii=False)}: {desc}")
     return "\n".join(lines)
 
 
@@ -231,18 +217,21 @@ def render_discovery_view(
         return ""
 
     lines: list[str] = ["[Coverage state — your task targets]"]
-    lines.append(f"### Target table: `{ts.table_id}` ({ts.label}) — pk={ts.primary_key or '?'}")
+    lines.append(f"### Target table: `{ts.table_id}` ({ts.label})")
+    if ts.inferred_columns:
+        lines.append("The orchestrator fills these columns: " + json.dumps(ts.inferred_columns, ensure_ascii=False))
     lines.append(
         f"- {len(ts.rows)} rows discovered so far, {len(ts.complete_rows)} with all columns filled"
     )
-    if ts.data_columns:
-        lines.append(f"- Data columns: {ts.data_columns}")
 
-    _render_entity_gaps(lines, ts.rows)
-    import json
-
-    complete_entities = [r.entity for r in ts.rows if not _has_unresolved_attributes(r)]
-    lines.append("Collected entities: " + json.dumps(complete_entities, ensure_ascii=False))
+    lines.append("Table totals: " + json.dumps(ts.summary(), ensure_ascii=False))
+    gap_entities = {row.entity for row in
+                    _render_gap_window(lines, ts, reader="Main Agent via inspect_table")}
+    by_entity = {r.entity: r for r in ts.rows}
+    recent = [by_entity[e] for e in ts.recent_entities if e not in gap_entities]
+    lines.append(f"Additional recent rows shown: {len(recent)}; "
+                 f"latest window: {len(ts.recent_entities)}/{len(ts.rows)}.")
+    _render_rows(lines, ts, recent, header=False)
 
     if sibling_agents:
         lines.append("")
@@ -263,64 +252,86 @@ _SNAPSHOT_COMPLETE_CAP = 100  # max complete rows as dedup anchors (merged view)
 _PK_LIST_MAX_ROWS = 500  # DISCOVER-mode PK inventory cap (compact lines)
 
 
-def render_extraction_snapshot(snap: SearchStateSnapshot, target_table_id: str) -> str:
+def render_extraction_snapshot(
+    snap: SearchStateSnapshot, target_table_id: str, target_cells: set[str] | None = None,
+) -> str:
     ts = _find_table(snap, target_table_id)
     if ts is None:
         return "(no table)"
 
     if ts.is_empty:
+        columns = [c for c in ts.data_columns if c not in ts.inferred_columns]
         return (
             "(table is empty — every row you identify will be added as "
-            f"new; {len(ts.data_columns)} data column(s): {ts.data_columns})"
+            f"new; {len(columns)} data column(s): {columns})"
         )
 
-    incomplete = [(r.entity, r.missing_cols) for r in ts.rows if not r.is_complete]
-    complete = [r.entity for r in ts.complete_rows]
+    incomplete = _extraction_rows(ts, target_cells)
+    complete = ts.complete_rows
 
     lines = [
         f"Existing rows: {len(ts.rows)} total — {len(complete)} complete, "
-        f"{len(incomplete)} incomplete. Data columns: {ts.data_columns}"
+        f"{len(incomplete)} incomplete."
     ]
-    for entity, missing in incomplete[:_SNAPSHOT_MAX_ROWS]:
-        lines.append(f'  "{entity}"  MISSING=[{", ".join(missing)}]')
-    if len(incomplete) > _SNAPSHOT_MAX_ROWS:
-        lines.append(f"  … and {len(incomplete) - _SNAPSHOT_MAX_ROWS} more incomplete row(s)")
+    _render_extraction_rows(lines, ts, incomplete)
 
     if complete:
         display = complete[-_SNAPSHOT_COMPLETE_CAP:]
         omitted = len(complete) - len(display)
-        compact = ", ".join(f'"{e}"' for e in display)
+        compact = json.dumps([[row.key_values.get(attr, "") for attr in ts.primary_key]
+                              for row in display], ensure_ascii=False)
         if omitted:
             header = (
                 f"Complete rows (latest {len(display)}/{len(complete)}; "
-                "reuse PK text, do NOT re-extract): "
+                "primary-key column order): "
             )
         else:
-            header = "Complete rows (reuse PK text, do NOT re-extract): "
+            header = "Complete rows (primary-key column order): "
         lines.append(header + compact)
 
     return "\n".join(lines)
 
 
-def render_fill_snapshot(snap: SearchStateSnapshot, target_table_id: str) -> str:
+def render_fill_snapshot(
+    snap: SearchStateSnapshot, target_table_id: str, target_cells: set[str] | None = None,
+) -> str:
     """FILL-mode view: incomplete rows only, with their MISSING columns.
     Returns "" when there are none — callers skip the fill judge call."""
     ts = _find_table(snap, target_table_id)
     if ts is None or ts.is_empty:
         return ""
-    incomplete = [(r.entity, r.missing_cols) for r in ts.rows if not r.is_complete]
+    incomplete = _extraction_rows(ts, target_cells)
     if not incomplete:
         return ""
 
     lines = [
         f"Rows with empty columns: {len(incomplete)} "
-        f"(of {len(ts.rows)} total). Data columns: {ts.data_columns}"
+        f"(of {len(ts.rows)} total)."
     ]
-    for entity, missing in incomplete[:_SNAPSHOT_MAX_ROWS]:
-        lines.append(f'  "{entity}"  MISSING=[{", ".join(missing)}]')
-    if len(incomplete) > _SNAPSHOT_MAX_ROWS:
-        lines.append(f"  … and {len(incomplete) - _SNAPSHOT_MAX_ROWS} more incomplete row(s)")
+    _render_extraction_rows(lines, ts, incomplete)
     return "\n".join(lines)
+
+
+def _extraction_rows(
+    ts: TableSnapshot, target_cells: set[str] | None,
+) -> list[tuple[RowStatus, list[str]]]:
+    rows = []
+    for row in ts.rows:
+        attrs = [c.attr for c in row.cells if cell_is_actionable(c, explicit_target=target_cells is not None)
+                 and (target_cells is None or cell_key(ts.table_id, row.entity, c.attr) in target_cells)]
+        if attrs:
+            rows.append((row, attrs))
+    return rows
+
+
+def _render_extraction_rows(
+    lines: list[str], ts: TableSnapshot, rows: list[tuple[RowStatus, list[str]]],
+) -> None:
+    _render_rows(lines, ts, [row for row, _ in rows])
+    offset = len(ts.primary_key) or 1
+    targets = [[i, [offset + ts.data_columns.index(attr) for attr in attrs]]
+               for i, (_, attrs) in enumerate(rows)]
+    lines.append("Fill targets [row index, column indices] (zero-based): " + json.dumps(targets))
 
 
 def render_known_pk_list(
@@ -335,13 +346,14 @@ def render_known_pk_list(
     ts = _find_table(snap, target_table_id)
     if ts is None or ts.is_empty:
         return ""
-    pks = [r.entity for r in ts.rows]
-    header = f"Known rows: {len(pks)} — "
+    pks = [[r.key_values.get(attr, "") for attr in ts.primary_key]
+           if ts.primary_key else row_values(r.entity) for r in ts.rows]
+    header = f"Known rows: {len(pks)}; keys in schema primary-key column order: "
     if len(pks) <= max_rows:
-        return header + ", ".join(f'"{e}"' for e in pks)
+        return header + json.dumps(pks, ensure_ascii=False)
     return (
         header
-        + ", ".join(f'"{e}"' for e in pks[:max_rows])
+        + json.dumps(pks[:max_rows], ensure_ascii=False)
         + f" … and {len(pks) - max_rows} more existing row(s) "
         "(protected by ingest-time dedup)."
     )
@@ -362,14 +374,13 @@ def render_compact_summary(snap: SearchStateSnapshot) -> str:
 
     total_cells = sum(len(r.cells) for t in snap.tables for r in t.rows)
     filled_cells = sum(
-        1 for t in snap.tables for r in t.rows for c in r.cells if c.status == "filled"
+        1 for t in snap.tables for r in t.rows for c in r.cells if cell_is_complete(c)
     )
     if total_cells:
         pct = filled_cells / total_cells
         lines.append(f"Coverage: {pct:.0%} ({filled_cells}/{total_cells})")
     for table in snap.tables:
-        lines.append(f"### `{table.table_id}`")
-        _render_entity_gaps(lines, table.rows, include_recorded=True)
+        _render_orch_table(lines, table, reader="read_coverage / read_evidence")
 
     return "\n".join(lines)
 
@@ -385,12 +396,33 @@ def render_task_evidence(snap: SearchStateSnapshot, task_ids: set[str] | None = 
     if not tasks and not findings:
         return ""
     lines = ["[Research tasks and evidence]"]
+    if task_ids is None:
+        _render_frontier(lines, snap.frontier)
+        running = [t for t in tasks if t["status"] == "running"]
+        queued = sorted((t for t in tasks if t["status"] in {"pending", "blocked"}),
+                        key=lambda t: (-t["priority"], t["task_id"]))[:20]
+        ended = sorted((t for t in tasks if t["status"] in {"completed", "cancelled"}),
+                       key=lambda t: (-t["updated_at"], t["task_id"]))[:5]
+        shown = running + queued + ended
+        lines.append(f"Tasks shown: {len(shown)}/{len(tasks)}; details: list_frontier.")
+        tasks = shown
     for task in tasks:
-        lines.append(
-            f"- {task['task_id']} ({task['agent_type']}, {task['result_mode']}, "
-            f"{task['status']}): {task['question']} | "
-            f"{task['evidence_count']} source-supported findings"
-        )
+        details = [f"{task['task_id']} ({task['status']})", f"evidence={task['evidence_count']}"]
+        if task_ids is None:
+            details.append(task["agent_type"])
+            if task["agent_id"]:
+                details.append(f"agent={task['agent_id']}")
+            if task["table_id"]:
+                details.append(f"table={task['table_id']}")
+            question = task["question"].strip()
+            if question:
+                goal = question.splitlines()[0]
+                details.append(goal[:120] + ("…" if len(goal) > 120 else ""))
+            targets = task["target_cells"]
+            if targets:
+                details.append("targets=" + json.dumps([cell_ref(key) for key in targets[:4]], ensure_ascii=False)
+                               + (f" (+{len(targets) - 4})" if len(targets) > 4 else ""))
+        lines.append("- " + " | ".join(details))
     for finding in findings:
         lines.append(json.dumps(finding, ensure_ascii=False, sort_keys=True))
     return "\n".join(lines)

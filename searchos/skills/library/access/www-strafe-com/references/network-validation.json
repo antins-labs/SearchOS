@@ -1,0 +1,247 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "f90131faea435008fea903195510ae24e20ed0c045e8d47e627021a69a724d5e",
+  "capabilities": {
+    "get_news_list": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_news_list\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.880462+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.strafe.com/news/",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/_next/static/css/1bfc7891c48ce900.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/_next/static/chunks/main-fdbbb59018fe0df7.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/_next/static/css/5df9aff1eb5bd4be.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/_next/static/css/6130b30dc11a8073.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/_next/image/",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/static/images/sports/page-bg/default.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/fonts/GothamNarrow-Book.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/fonts/GothamNarrow-Bold.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://s.nitropay.com/ads-2777.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/fonts/GothamNarrow-Ultra.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/static/images/sports/csgo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/static/images/sports/dota2.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/static/images/sports/r6s.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/static/images/sports/lol.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/static/images/sports/valorant.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/static/images/sports/rocketleague.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/static/images/icons/discover_u.svg",
+          "status": 200
+        }
+      ]
+    },
+    "get_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"lcs-summer-2026-schedule-format-rosters-tickets\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.883543+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.strafe.com/news/read/[redacted]/",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/_next/static/css/5df9aff1eb5bd4be.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/_next/static/css/3987cea2885c0678.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/_next/static/css/c33b2ad5d7f65fdd.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/static/images/sports/page-bg/default.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/_next/image/",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/_next/static/css/6130b30dc11a8073.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/fonts/GothamNarrow-Bold.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/fonts/GothamNarrow-Medium.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/fonts/GothamNarrow-Book.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/fonts/GothamNarrow-Black.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/fonts/GothamNarrow-Ultra.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/_next/static/chunks/webpack-339e74c4c7e2107e.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/_next/static/chunks/framework-c3be89446ef67571.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/_next/static/chunks/main-fdbbb59018fe0df7.js",
+          "status": 200
+        },
+        {
+          "url": "https://s.nitropay.com/ads-2777.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/static/images/sports/valorant.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/static/images/sports/r6s.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/static/images/sports/csgo.svg",
+          "status": 200
+        }
+      ]
+    },
+    "get_awards_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_awards_article\", \"url\": \"jackeylove-takes-the-crown-all-2025-lpl-split-3-awards\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.883875+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.strafe.com/news/read/[redacted]/",
+          "status": 307
+        },
+        {
+          "url": "https://www.strafe.com/news/read/[redacted]/",
+          "status": 403
+        },
+        {
+          "url": "https://www.strafe.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://www.strafe.com/cdn-cgi/challenge-platform/h/b/fo/4182103868:1792739122:V8G1jY2NUK8Wf_EyqWl4oFl-Vhg4n0zOvnUYj25IMzA/a4ef08e099800ac2/v9UqaYXsgEinu_86hnjhCLLRIRghXag4Zj_jqcFrFac-1792740608-1.2.1.1-FoqzJPjqz.9aHd5RyhHc6h5nrAQEFH0gW0XlDXaK8DZrcewNhaOC4fYK0nBaakSA",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.strafe.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/1awqc/0x4AAAAAAADnPIDROrmt1Wwj/light/fbE/new/normal",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/fo/3602489839:1792739125:tr4igEXElsQp19swOffJyihNzqlISM9XMop0Rg2AJxA/a4ef08f3da333117/m5_yBPsFaC2qRcgylRSsGYqjp0scmT7BTowPrceD4Y0-1792740611-1.2.1.1-8QJEokUom80jwAmz437g3zSfKO8THtKfQ5mqkNOhhSSKS0CuX2XtxOgvuq7.d40R",
+          "status": 200
+        },
+        {
+          "url": "blob:https://challenges.cloudflare.com/[redacted]",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_attraction_by_id": "direct",
+    "search_attractions": "direct",
+    "get_attraction_by_url": "direct"
+  },
+  "aliases": {
+    "get_attraction_by_id": "get_attraction_by_id",
+    "get_attraction_by_url": "get_attraction_by_url",
+    "search_attractions": "search_attractions",
+    "run": "search_attractions"
+  }
+}

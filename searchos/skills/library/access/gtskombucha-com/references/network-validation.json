@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d845795b5b1b5f53a3808c0731580008f9bc220033c34b58753696b7640dfb25",
+  "capabilities": {
+    "list_collections": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_collections\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.700522+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gtslivingfoods.com/",
+          "status": 200
+        }
+      ]
+    },
+    "get_collection": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_collection\", \"collection_handle\": \"synergy-raw-kombucha\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.701237+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gtslivingfoods.com/collections/synergy-the-real-kombucha",
+          "status": 200
+        }
+      ]
+    },
+    "get_product": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_product\", \"product_handle\": \"gts-kombucha-gingerade\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.701303+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gtslivingfoods.com/products/gts-kombucha-gingerade",
+          "status": 200
+        }
+      ]
+    },
+    "search_products": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_products\", \"query\": \"ginger\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.701370+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gtslivingfoods.com/search",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

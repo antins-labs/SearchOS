@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ad9ba248d3cc54d79224a02c0a95abdadcf00797f549907dbc0b67ebc779027b",
+  "capabilities": {
+    "package": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"subreddit\": \"Python\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.238891+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.reddit.com/r/Python/.rss",
+          "status": 200
+        }
+      ]
+    },
+    "reddit_rss": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/reddit_rss.py",
+        "--subreddit",
+        "python",
+        "--limit",
+        "2"
+      ],
+      "checked_at": "2026-10-23T07:01:37.239813+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.reddit.com/r/python/.rss",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

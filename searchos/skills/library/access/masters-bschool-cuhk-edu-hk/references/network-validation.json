@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "33909401fe1b37d4a6c7aa271d5b69983e9ba013f9ea7a2170e581360ac56804",
+  "capabilities": {
+    "list_programs": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_programs\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.795333+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/masters-bschool-cuhk-edu-hk/scripts/source.py",
+        "line": 366,
+        "end_line": 381,
+        "implementation": "list_all_programs",
+        "source_sha256": "2a7b2523e4e4d66ac4fc12aedd1953f591abd79d44fd2add4a5884fb375bfced",
+        "implementation_sha256": "6f37b10051c99909128a590fc2beeed04234720cea1747c4327884c5377f69e5"
+      }
+    },
+    "get_program": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_program\", \"slug\": \"mscba\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.345110+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/programmes/mscba/",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-content/cache/autoptimize/css/autoptimize_09a9d22750c9bb3a847bf0204315cb3a.css",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-includes/css/dashicons.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-content/cache/autoptimize/css/autoptimize_single_a241aeae164956d67f09697730f406af.css",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-content/cache/autoptimize/css/autoptimize_single_a6154587fdc495a7029010ad23fe9a18.css",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-content/uploads/2026/05/cuhk_logo-1.png",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-content/cache/autoptimize/css/autoptimize_single_4e4382e04168dcc73b1e72ed90551f17.css",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-includes/js/dist/hooks.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-includes/js/jquery/jquery.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-includes/js/dist/dom-ready.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-includes/js/dist/i18n.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-includes/js/dist/a11y.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-includes/js/jquery/jquery-migrate.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-content/themes/consilox_child/assets/js/bootstrap.bundle.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-content/themes/consilox_child/assets/js/select2.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-content/themes/consilox_child/assets/js/swiper-bundle.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-content/cache/autoptimize/js/autoptimize_single_08f8d6d993e6cdca6cf31ae3165e75df.js",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-content/cache/autoptimize/js/autoptimize_single_03e768f61fd3b1eaeda9de885e319144.js",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/wp-content/cache/autoptimize/js/autoptimize_single_83673a38ebe8655184e70d38f2e299a1.js",
+          "status": 200
+        }
+      ]
+    },
+    "search_programs": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_programs\", \"query\": \"finance\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:29.921137+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/masters-bschool-cuhk-edu-hk/scripts/source.py",
+        "line": 459,
+        "end_line": 486,
+        "implementation": "search_programs",
+        "source_sha256": "2a7b2523e4e4d66ac4fc12aedd1953f591abd79d44fd2add4a5884fb375bfced",
+        "implementation_sha256": "c5adfbf72d31065c4eb8c8f794a7e09a3e462b827ba57136b85bc2713ef1863d"
+      }
+    },
+    "get_multiple_programs": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_multiple_programs\", \"slugs\": [\"mscfin\", \"mscba\", \"macc\"]}"
+      ],
+      "checked_at": "2026-10-23T07:23:29.924629+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/programmes/mscfin/",
+          "status": 202
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/.well-known/sgcaptcha/",
+          "status": 200
+        },
+        {
+          "url": "https://masters.bschool.cuhk.edu.hk/programmes/mscba/",
+          "status": 202
+        }
+      ]
+    }
+  }
+}

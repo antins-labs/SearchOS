@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_profile": "direct",
+    "get_summary": "direct",
+    "list_sections": "direct",
+    "search_key": "direct"
+  },
+  "aliases": {
+    "get_profile": "get_profile",
+    "search_key": "search_key",
+    "list_sections": "list_sections",
+    "get_summary": "get_summary",
+    "run": "get_summary"
+  }
+}

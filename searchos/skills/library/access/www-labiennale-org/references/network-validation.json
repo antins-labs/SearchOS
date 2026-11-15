@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "83ef0c026ed77686831c1cd35d2458c2938b31bdb660c2e9fd999bc0cdcbdabc",
+  "capabilities": {
+    "get_lineup": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_lineup\", \"year\": \"2019\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.156456+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.labiennale.org/en/cinema/2019/lineup",
+          "status": 200
+        }
+      ]
+    },
+    "get_section": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_section\", \"url\": \"https://www.labiennale.org/en/cinema/2019/venezia-76-competition\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.158723+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.labiennale.org/en/cinema/2019/venezia-76-competition",
+          "status": 200
+        }
+      ]
+    },
+    "get_film": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_film\", \"url\": \"https://www.labiennale.org/en/cinema/2019/venezia-76-competition/ad-astra\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.158964+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.labiennale.org/en/cinema/2019/venezia-76-competition/ad-astra",
+          "status": 200
+        }
+      ]
+    },
+    "search_films": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_films\", \"query\": \"Joker\", \"year\": \"2019\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.159258+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.labiennale.org/en/cinema/2019/lineup",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

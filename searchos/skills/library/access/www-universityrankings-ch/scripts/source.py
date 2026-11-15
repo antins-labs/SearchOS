@@ -12,6 +12,9 @@ The site provides rankings from multiple systems:
 
 Data is retrieved via Wayback Machine archival snapshots.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import httpx
@@ -46,7 +49,7 @@ class UniversityRankingsClient:
         self.client: Optional[httpx.AsyncClient] = None
     
     async def __aenter__(self):
-        self.client = httpx.AsyncClient(
+        self.client = _skill_network.httpx_async_client(
             timeout=60.0,
             verify=False,
             follow_redirects=True,
@@ -330,6 +333,7 @@ class UniversityRankingsClient:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute a function from this skill.

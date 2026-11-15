@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7e9b1e86fed8c077110f21de869a7a074cc35a44ddaf50803a0cd4d12ad821c6",
+  "capabilities": {
+    "get_rankings": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rankings\", \"limit\": 3, \"language\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.075536+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.goratings.org/en/",
+          "status": 200
+        }
+      ]
+    },
+    "get_ladies_rankings": {
+      "status": "timed_out",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ladies_rankings\", \"language\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.076953+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_player_info": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player_info\", \"player_id\": \"1225\", \"include_history\": true, \"language\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.077131+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_player_rating_history": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player_rating_history\", \"player_id\": \"1225\", \"language\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.077314+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_ladies_history": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ladies_history\", \"language\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.077536+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.goratings.org/ladies-json/history.json",
+          "status": 200
+        }
+      ]
+    },
+    "search_player": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_player\", \"name\": \"Shin\", \"language\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.077888+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.goratings.org/en/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

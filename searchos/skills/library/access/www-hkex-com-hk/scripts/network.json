@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_months": "inherit",
+    "get_highlights": "inherit",
+    "get_raw_tables": "inherit"
+  },
+  "aliases": {
+    "list_months": "list_months",
+    "get_highlights": "get_highlights",
+    "get_raw_tables": "get_raw_tables",
+    "run": "get_raw_tables"
+  }
+}

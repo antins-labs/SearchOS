@@ -1,3 +1,4 @@
+import { cellKey, rowValues } from "@/lib/socmRefs";
 import type { Turn } from "@/lib/conversation";
 import type { CoverageCell, CoverageMap, Relation, TableSchema } from "@/lib/types";
 import { declaredCoverageTables } from "@/lib/coverageTables";
@@ -30,11 +31,13 @@ function cellValue(cell: CoverageCell | undefined): ExportValue {
   return cell.value;
 }
 
-function primaryKeyValues(schema: TableSchema, entity: string): string[] {
+function primaryKeyValues(coverageMap: CoverageMap, schema: TableSchema, entity: string): ExportValue[] {
   const keys = schema.primary_key ?? [];
-  if (keys.length <= 1) return [entity];
-  const parts = entity.split("|");
-  return keys.map((_, index) => parts[index] ?? (index === 0 ? entity : ""));
+  if (!keys.length) return rowValues(entity);
+  return keys.map((key, index) => {
+    const cell = coverageMap.cells[cellKey(schema.table_id, entity, key)];
+    return cell ? cellValue(cell) : rowValues(entity)[index];
+  });
 }
 
 export function buildExportTables(coverageMap: CoverageMap): ExportTable[] {
@@ -48,10 +51,10 @@ export function buildExportTables(coverageMap: CoverageMap): ExportTable[] {
     const columns = [...primaryKeys, ...dataColumns];
     const rows = schema.entities.map((entity) => {
       const row: Record<string, ExportValue> = {};
-      const keyValues = primaryKeyValues(schema, entity);
+      const keyValues = primaryKeyValues(coverageMap, schema, entity);
       primaryKeys.forEach((key, index) => { row[key] = keyValues[index] ?? ""; });
       dataColumns.forEach((attribute) => {
-        row[attribute] = cellValue(coverageMap.cells[`${schema.table_id}/${entity}.${attribute}`]);
+        row[attribute] = cellValue(coverageMap.cells[cellKey(schema.table_id, entity, attribute)]);
       });
       return row;
     });

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "person": "direct",
+    "page": "direct",
+    "election": "direct",
+    "office": "direct"
+  },
+  "aliases": {
+    "person": "person",
+    "office": "office",
+    "election": "election",
+    "page": "page",
+    "run": "page"
+  }
+}

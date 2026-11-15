@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_country_legality": "direct",
+    "extract_legal_status": "direct"
+  },
+  "aliases": {
+    "get_country_legality": "get_country_legality",
+    "extract_legal_status": "extract_legal_status",
+    "run": "extract_legal_status"
+  }
+}

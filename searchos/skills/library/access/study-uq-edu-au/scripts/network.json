@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_programs": "direct",
+    "list_programs": "direct",
+    "get_program": "direct"
+  },
+  "aliases": {
+    "get_program": "get_program",
+    "search_programs": "search_programs",
+    "list_programs": "list_programs",
+    "run": "list_programs"
+  }
+}

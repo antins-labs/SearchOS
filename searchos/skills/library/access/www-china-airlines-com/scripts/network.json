@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_checked_baggage": "direct",
+    "get_carry_on_baggage": "direct",
+    "get_all_baggage": "direct"
+  },
+  "aliases": {
+    "get_carry_on_baggage": "get_carry_on_baggage",
+    "get_checked_baggage": "get_checked_baggage",
+    "get_all_baggage": "get_all_baggage",
+    "run": "get_all_baggage"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "151149ecd162ce0d522f1e27a8a3a56357d36dc23d97278e87186d429e25d4e1",
+  "capabilities": {
+    "get_report": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_report\", \"report_id\": \"100276\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.788717+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://m.cih-index.com/wy/report/100276.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_page_image": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page_image\", \"report_id\": \"100276\", \"page_number\": 1, \"width\": 1920}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.789391+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://m.cih-index.com/wy/report/100276.html",
+          "status": 200
+        },
+        {
+          "url": "https://m.cih-index.com/wy/report/getToken",
+          "status": 200
+        },
+        {
+          "url": "https://cihcdnzip.soufunimg.com/backend/reportCreisFile/100276/b288ef92ab724ac78b7a36cfbfcd44ec_1.jpg",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

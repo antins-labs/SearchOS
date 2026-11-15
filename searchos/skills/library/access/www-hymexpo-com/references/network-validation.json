@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3a526ab412272e4a612cc2d04c161f6058e98eab61eb8e68cd737509962bba36",
+  "capabilities": {
+    "get_schedule": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_schedule\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.113969+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.hymexpo.com/sys-nd/185.html",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"keyword\": \"汽车\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.115588+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.hymexpo.com/sys-nd/185.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_month": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_month\", \"month\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.115890+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.hymexpo.com/sys-nd/185.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -12,7 +12,7 @@ from searchos.skills.core.models import (
     SkillAvailability,
     SkillCategory,
 )
-from searchos.skills.core.schema import parse_skill_file
+from searchos.skills.core.skill_markdown import parse_skill_file
 from searchos.skills.names import canonical_skill_name, canonical_skill_names
 
 # Skills disabled everywhere: hidden from the catalog here and rejected at
@@ -317,15 +317,8 @@ class SkillRegistry:
         only strategy skills named in it (the ``/skill`` picker's unchecked
         set subtracted); ``None`` keeps all strategy skills.
 
-        Lists **selectable** skills the orchestrator may pass in
-        ``skills=[...]`` when dispatching a sub-agent — strategy skills
-        and access skills. Dispatch names are recommendations; agents load
-        instructions and run bundled scripts through the fixed exec tool.
-        Other permitted skills remain discoverable at runtime.
-
-        Orchestrator-layer skills are excluded — they go into the
-        orchestrator's own prompt via the playbook router, never into a
-        sub-agent's ``skills=[...]``.
+        Lists strategy and access skills available to retrieval agents.
+        The playbook router supplies orchestrator skills separately.
         """
         access_allow = canonical_skill_names(access_allow) if access_allow is not None else None
         strategy_allow = canonical_skill_names(strategy_allow) if strategy_allow is not None else None
@@ -334,10 +327,6 @@ class SkillRegistry:
         for skill in sorted(self._skills.values(), key=lambda s: s.meta.name):
             if skill.meta.name in SKILL_BLACKLIST:
                 continue
-            # Orchestrator-layer skills are injected into the orchestrator's
-            # own system prompt via the playbook router — they are never
-            # passed in `skills=[...]` to a sub-agent. Hide from this catalog
-            # so the orchestrator doesn't accidentally forward the name.
             if skill.meta.category == SkillCategory.ORCHESTRATOR:
                 continue
             if (
@@ -355,7 +344,7 @@ class SkillRegistry:
             selectable.append(skill)
 
         lines = [
-            f"[Selectable skills — {len(selectable)} | pass these names in `skills=[...]`]",
+            f"[Available retrieval skills: {len(selectable)}]",
         ]
         for skill in selectable:
             desc = skill.meta.description or skill.meta.trigger or "(no description)"

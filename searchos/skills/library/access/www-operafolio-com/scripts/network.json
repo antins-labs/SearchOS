@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_composer_operas": "direct",
+    "get_composers": "direct",
+    "get_famous_arias": "direct",
+    "get_opera_details": "direct",
+    "search_operas": "direct",
+    "get_operas": "direct"
+  },
+  "aliases": {
+    "get_composer_operas": "get_composer_operas",
+    "get_opera_details": "get_opera_details",
+    "get_composers": "get_composers",
+    "get_operas": "get_operas",
+    "search_operas": "search_operas",
+    "get_famous_arias": "get_famous_arias",
+    "run": "get_famous_arias"
+  }
+}

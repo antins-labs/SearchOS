@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_faculty_profile": "direct",
+    "search_faculty": "direct",
+    "get_faculty_list": "direct"
+  },
+  "aliases": {
+    "get_faculty_list": "get_faculty_list",
+    "get_faculty_profile": "get_faculty_profile",
+    "search_faculty": "search_faculty",
+    "run": "search_faculty"
+  }
+}

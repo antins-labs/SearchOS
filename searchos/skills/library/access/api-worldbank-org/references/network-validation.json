@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1b9299834bced27ea1dc253605cc3fd1abb4a270ca9acafef0d651db5d142f00",
+  "capabilities": {
+    "get_indicator_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_indicator_data\", \"country_codes\": [\"US\"], \"indicator_code\": \"NY.GDP.MKTP.CD\", \"start_year\": 2020, \"end_year\": 2024, \"most_recent_only\": false, \"per_page\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.663644+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/country/US/indicator/NY.GDP.MKTP.CD",
+          "status": 200
+        }
+      ]
+    },
+    "list_countries": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_countries\", \"income_level\": \"HIC\", \"most_recent_only\": false, \"per_page\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.705733+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/country",
+          "status": 200
+        }
+      ]
+    },
+    "list_indicators": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_indicators\", \"source\": 2, \"per_page\": 3, \"most_recent_only\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.705893+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/indicator",
+          "status": 200
+        }
+      ]
+    },
+    "get_indicator_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_indicator_info\", \"indicator_code\": \"NY.GDP.MKTP.CD\", \"most_recent_only\": false, \"per_page\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.705977+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/indicator/NY.GDP.MKTP.CD",
+          "status": 200
+        }
+      ]
+    },
+    "get_country_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country_info\", \"country_code\": \"US\", \"most_recent_only\": false, \"per_page\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.706068+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/country/US",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

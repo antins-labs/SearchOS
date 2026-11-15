@@ -4,6 +4,9 @@ CCTV Video Page Access Skill
 Fetches video/program metadata from tv.cctv.com pages.
 Supports both individual video pages (VIDE*) and album/collection pages (VIDA*).
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -288,7 +291,7 @@ async def scrape_page(url: str) -> Dict:
     """
     Automatically detect page type and scrape accordingly.
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         page_type, page_id = extract_page_type_and_id(url)
         
         if not page_id:
@@ -311,6 +314,7 @@ async def scrape_page(url: str) -> Dict:
             }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the skill.
@@ -327,7 +331,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
         return {"error": "Missing required parameter: function"}
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             if function == "scrape_page":
                 url = params.get("url")
                 if not url:

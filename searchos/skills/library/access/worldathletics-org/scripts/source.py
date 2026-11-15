@@ -6,6 +6,9 @@ Fetches world rankings data from worldathletics.org including:
 - Event-specific rankings (100m, 1500m, marathon, etc.)
 - Supports pagination, region filtering, and age category filtering
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -262,6 +265,7 @@ async def get_available_countries(session: aiohttp.ClientSession) -> list[dict]:
         return countries
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute World Athletics rankings query.
@@ -313,7 +317,7 @@ async def execute_get_rankings(params: dict[str, Any]) -> dict[str, Any]:
     current_page = page
     total_pages = 1
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Fetch pages until we have enough results or run out of pages
         while len(all_rankings) < limit and current_page <= total_pages:
             rankings, pagination = await fetch_page(
@@ -351,7 +355,7 @@ async def execute_get_rankings(params: dict[str, Any]) -> dict[str, Any]:
 
 async def execute_get_events(params: dict[str, Any]) -> dict[str, Any]:
     """Get list of available events."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         events = await get_available_events(session)
     
     return {
@@ -364,7 +368,7 @@ async def execute_get_events(params: dict[str, Any]) -> dict[str, Any]:
 
 async def execute_get_countries(params: dict[str, Any]) -> dict[str, Any]:
     """Get list of available countries for filtering."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         countries = await get_available_countries(session)
     
     return {

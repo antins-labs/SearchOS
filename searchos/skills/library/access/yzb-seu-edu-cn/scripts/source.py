@@ -6,6 +6,9 @@ This skill provides access to:
 1. Department-specific admission score tables (复试分数线)
 2. University-wide basic score requirements (复试基本线)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -285,7 +288,7 @@ async def get_department_scores(url: str) -> dict:
     Returns:
         Dictionary with score data or error information
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, url)
         
         if status != 200:
@@ -316,7 +319,7 @@ async def get_basic_scores(url: str) -> dict:
     Returns:
         Dictionary with score data or error information
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, url)
         
         if status != 200:
@@ -380,6 +383,7 @@ async def get_basic_scores(url: str) -> dict:
         return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute the skill based on the provided function and parameters.
@@ -444,7 +448,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
                 'error': 'Missing required parameter: url'
             }
         
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             status, html = await fetch_page(session, url, timeout)
             
             if status != 200:

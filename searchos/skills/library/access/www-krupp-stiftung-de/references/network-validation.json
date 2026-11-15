@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1aeeb9e257f4418dd1ebe14978907adf26143b7f3a091618ee8bd05bde61982d",
+  "capabilities": {
+    "list_institutions": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_institutions\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.154313+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.krupp-stiftung.de/en/institutionen/",
+          "status": 200
+        }
+      ]
+    },
+    "get_institution": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_institution\", \"slug\": \"thyssenkrupp-ag\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.155492+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.krupp-stiftung.de/en/institutionen/thyssenkrupp-ag/",
+          "status": 200
+        }
+      ]
+    },
+    "get_exhibition": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_exhibition\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.155667+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.krupp-stiftung.de/en/krupp-historical-exhibition/",
+          "status": 200
+        }
+      ]
+    },
+    "get_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"url\": \"https://www.krupp-stiftung.de/en/alfried-krupp/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.156357+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.krupp-stiftung.de/en/alfried-krupp/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -26,7 +26,7 @@ def _configure_models(*, allow_remote: bool) -> None:
     from searchos.config.setup_wizard import ensure_model_config
 
     ensure_model_config()
-    from searchos.config.web_overlay import load_and_apply
+    from searchos.config.settings_overlay import load_and_apply
 
     load_and_apply()
 

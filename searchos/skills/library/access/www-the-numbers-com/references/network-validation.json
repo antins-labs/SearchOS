@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5e68dd62b8a06eaf1729968752c436207a5e24714cf98f952d694ebb133e9a25",
+  "capabilities": {
+    "get_movie": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_movie\", \"movie_title\": \"Avengers: Endgame\", \"year\": 2019}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.288760+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.the-numbers.com/movie/Avengers-Endgame-(2019)",
+          "status": 200
+        }
+      ]
+    },
+    "get_franchise": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_franchise\", \"franchise_name\": \"Marvel Cinematic Universe\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.290246+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.the-numbers.com/movies/franchise/Marvel-Cinematic-Universe",
+          "status": 200
+        }
+      ]
+    },
+    "get_box_office_chart": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_box_office_chart\", \"chart_type\": \"weekend\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.290334+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

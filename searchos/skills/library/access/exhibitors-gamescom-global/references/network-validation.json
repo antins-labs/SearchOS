@@ -1,0 +1,267 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "22c80ca37afa34c1a1c5559de05613b562189a06efd8ca3d9a9329ecd325b5ba",
+  "capabilities": {
+    "search": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"nintendo\", \"search_type\": \"alle\", \"page\": 1, \"page_size\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.615490+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://exhibitors.gamescom.global/en/gamescom-exhibitors/list-of-exhibitors/",
+          "status": 200
+        },
+        {
+          "url": "https://exhibitors.gamescom.global/global/asdb.php",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/css/styles.css",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/shariff/shariff_complete_2.css",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/searchapp/sccassets/styles/ssc_default.css",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/searchapp/search-app-styles.css",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/shariff/shariff_min.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.cookielaw.org/scripttemplates/otSDKStub.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/searchapp/js_2/sscbasic.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/icons/icon_chevron_down_light_h7.svg",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/datepicker/datepicker-en-gb.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/icons/icon_chevron_down_h7.svg",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/js/main.min.js.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdns.eu1.gigya.com/js/gigya.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_exhibitor": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_exhibitor\", \"slug\": \"nintendo\", \"search_type\": \"alle\", \"page\": 1, \"page_size\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:18:59.378930+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://exhibitors.gamescom.global/en/exhibitor/nintendo/",
+          "status": 200
+        },
+        {
+          "url": "https://exhibitors.gamescom.global/global/asdb.php",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.cookielaw.org/scripttemplates/otSDKStub.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.cookielaw.org/consent/[redacted]/41175e92-e2a0-46cf-a166-e53913752b26.json",
+          "status": 200
+        },
+        {
+          "url": "https://cdns.eu1.gigya.com/js/gigya.js",
+          "status": 200
+        },
+        {
+          "url": "https://geolocation.onetrust.com/cookieconsentpub/v1/geo/location",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/css/styles.css",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/searchapp/search-app-styles.css",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/searchapp/sccassets/styles/ssc_default.css",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/shariff/shariff_complete_2.css",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/datepicker/datepicker-en-gb.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/searchapp/js_2/sscbasic.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/shariff/shariff_min.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/js/main.min.js.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/icons/icon_chevron_down_light_h7.svg",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/icons/icon_chevron_down_h7.svg",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/redaktionell/gamescom/img/layout/gc-logo/gamescom_2022_logo_negativ.png",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/redaktionell/gamescom/img/layout/gc-logo/gamescom_2022_logo_positiv.png",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/icons/icon_home_h18_light.svg",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/icons/ico_search_white.svg",
+          "status": 200
+        }
+      ]
+    },
+    "get_filters": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_filters\", \"search_type\": \"alle\", \"page\": 1, \"page_size\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:26.514913+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://exhibitors.gamescom.global/en/gamescom-exhibitors/list-of-exhibitors/",
+          "status": 200
+        },
+        {
+          "url": "https://exhibitors.gamescom.global/global/asdb.php",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/searchapp/search-app-styles.css",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/css/styles.css",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/searchapp/js_2/sscbasic.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/shariff/shariff_complete_2.css",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/searchapp/sccassets/styles/ssc_default.css",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/shariff/shariff_min.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.cookielaw.org/scripttemplates/otSDKStub.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/third-party/datepicker/datepicker-en-gb.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/js/main.min.js.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdns.eu1.gigya.com/js/gigya.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/icons/icon_chevron_down_light_h7.svg",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/icons/icon_chevron_down_h7.svg",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/icons/sprache_cloud_white.svg",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/icons/ico_search_white.svg",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/icons/icon_chevron_right_h12_light.svg",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/icons/icon_home_h18.svg",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/icons/icon_exit_h18_light.svg",
+          "status": 200
+        },
+        {
+          "url": "https://media.koelnmesse.io/gamescom/assets/icons/icon_exit_h18.svg",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

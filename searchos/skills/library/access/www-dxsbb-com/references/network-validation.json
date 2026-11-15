@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "cf1d2903b2f04b52055a95637e83ca10fdeb15d2d0f539b992eb914852ff1ac4",
+  "capabilities": {
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"province\": \"北京\", \"year\": \"2024\", \"category\": \"投档分数\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.026576+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dxsbb.com/news/list_1001.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.dxsbb.com/news/106432.html\", \"category\": \"投档分数\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.028520+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dxsbb.com/news/106432.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_list": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_list\", \"category_id\": \"1001\", \"category\": \"投档分数\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.028737+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dxsbb.com/news/list_1001.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_categories": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_categories\", \"category\": \"投档分数\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.028871+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-dxsbb-com/scripts/source.py",
+        "line": 392,
+        "end_line": 407,
+        "implementation": "execute branch",
+        "source_sha256": "9d6268ea125db421d456f670905feeef211f2f800198a63ced3840d9e79fbd64",
+        "implementation_sha256": "296ac21f3b98a941b98ac3c697dbc7ed9920424479c83d9640bf976d37532fc6"
+      }
+    }
+  }
+}

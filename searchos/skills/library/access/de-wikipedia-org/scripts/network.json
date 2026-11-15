@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "extract_awards": "direct",
+    "extract_tables": "proxy",
+    "search": "proxy",
+    "fetch_page": "proxy"
+  },
+  "aliases": {
+    "search": "search",
+    "extract_tables": "extract_tables",
+    "extract_awards": "extract_awards",
+    "fetch_page": "fetch_page",
+    "run": "fetch_page"
+  }
+}

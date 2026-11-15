@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "de7814cdf78a7fee07ddb450ec7b8a0d71e39b0a9ddb99a0c969c27bbcd0e17e",
+  "capabilities": {
+    "get_course": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_course\", \"course_id\": \"18f73fdf-0804-2e30-cf22-f66710164e4f\", \"course_slug\": \"media-and-communication\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.378295+00:00",
+      "reason": "Failed to fetch course page. Status: 403",
+      "source_responses": [
+        {
+          "url": "https://www.ucas.com/explore/courses/[redacted]/media-and-communication",
+          "status": 403
+        }
+      ]
+    },
+    "search_courses": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_courses\", \"query\": \"computer science\", \"study_level\": \"Undergraduate\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.380461+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://y3qrv216kl-dsn.algolia.net/1/indexes/d10prod_courses_new/query",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_films": "direct",
+    "get_lineup": "direct",
+    "get_film": "direct",
+    "get_section": "direct"
+  },
+  "aliases": {
+    "get_lineup": "get_lineup",
+    "get_section": "get_section",
+    "get_film": "get_film",
+    "search_films": "search_films",
+    "run": "search_films"
+  }
+}

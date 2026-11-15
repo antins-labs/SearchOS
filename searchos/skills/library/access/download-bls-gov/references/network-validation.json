@@ -1,0 +1,159 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "99a710dc570f21a07cfa5b2b836780f873089ef2e4eed0c7bb577975e45672ae",
+  "capabilities": {
+    "fetch_data_file": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_data_file\", \"state\": \"Alabama\", \"limit\": 3, \"offset\": 0, \"include_header\": true, \"timeout\": 60, \"retry_count\": 3, \"retry_delay\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.594705+00:00",
+      "reason": "BLS server returned 403 Forbidden. The download.bls.gov server applies bot detection and rate limiting. Please wait before retrying. URL: https://download.bls.gov/pub/time.series/sm/sm.data.1.Alabama",
+      "source_responses": [
+        {
+          "url": "https://download.bls.gov/pub/time.series/sm/sm.data.1.Alabama",
+          "status": 403
+        }
+      ]
+    },
+    "fetch_series_file": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_series_file\", \"limit\": 3, \"offset\": 0, \"include_header\": true, \"timeout\": 60, \"retry_count\": 3, \"retry_delay\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.595651+00:00",
+      "reason": "BLS server returned 403 Forbidden. The download.bls.gov server applies bot detection and rate limiting. Please wait before retrying. URL: https://download.bls.gov/pub/time.series/sm/sm.series",
+      "source_responses": [
+        {
+          "url": "https://download.bls.gov/pub/time.series/sm/sm.series",
+          "status": 403
+        }
+      ]
+    },
+    "fetch_area_codes": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_area_codes\", \"limit\": 3, \"offset\": 0, \"include_header\": true, \"timeout\": 60, \"retry_count\": 3, \"retry_delay\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.595749+00:00",
+      "reason": "BLS server returned 403 Forbidden. The download.bls.gov server applies bot detection and rate limiting. Please wait before retrying. URL: https://download.bls.gov/pub/time.series/sm/sm.area",
+      "source_responses": [
+        {
+          "url": "https://download.bls.gov/pub/time.series/sm/sm.area",
+          "status": 403
+        }
+      ]
+    },
+    "fetch_industry_codes": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_industry_codes\", \"limit\": 3, \"offset\": 0, \"include_header\": true, \"timeout\": 60, \"retry_count\": 3, \"retry_delay\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.595852+00:00",
+      "reason": "BLS server returned 403 Forbidden. The download.bls.gov server applies bot detection and rate limiting. Please wait before retrying. URL: https://download.bls.gov/pub/time.series/sm/sm.industry",
+      "source_responses": [
+        {
+          "url": "https://download.bls.gov/pub/time.series/sm/sm.industry",
+          "status": 403
+        }
+      ]
+    },
+    "fetch_data_type_codes": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_data_type_codes\", \"limit\": 3, \"offset\": 0, \"include_header\": true, \"timeout\": 60, \"retry_count\": 3, \"retry_delay\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.596210+00:00",
+      "reason": "BLS server returned 403 Forbidden. The download.bls.gov server applies bot detection and rate limiting. Please wait before retrying. URL: https://download.bls.gov/pub/time.series/sm/sm.data_type",
+      "source_responses": [
+        {
+          "url": "https://download.bls.gov/pub/time.series/sm/sm.data_type",
+          "status": 403
+        }
+      ]
+    },
+    "fetch_footnote_codes": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_footnote_codes\", \"limit\": 3, \"offset\": 0, \"include_header\": true, \"timeout\": 60, \"retry_count\": 3, \"retry_delay\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.596284+00:00",
+      "reason": "BLS server returned 403 Forbidden. The download.bls.gov server applies bot detection and rate limiting. Please wait before retrying. URL: https://download.bls.gov/pub/time.series/sm/sm.footnote",
+      "source_responses": [
+        {
+          "url": "https://download.bls.gov/pub/time.series/sm/sm.footnote",
+          "status": 403
+        }
+      ]
+    },
+    "parse_series_id": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"parse_series_id\", \"series_id\": \"SMU01000000000000001\", \"limit\": 3, \"offset\": 0, \"include_header\": true, \"timeout\": 60, \"retry_count\": 3, \"retry_delay\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:35:11.331967+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/download-bls-gov/scripts/source.py",
+        "line": 198,
+        "end_line": 295,
+        "implementation": "parse_series_id",
+        "source_sha256": "ad1d3b6bd51bbda5cf7ea76f51efe0ee121f5b221fe6b7146aa6aac3331b99dc",
+        "implementation_sha256": "6eac55214d248a7dfd3b7af51d0316024419e75fab920a7e626bb43507e17384"
+      }
+    },
+    "list_available_files": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_available_files\", \"limit\": 3, \"offset\": 0, \"include_header\": true, \"timeout\": 60, \"retry_count\": 3, \"retry_delay\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.596424+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/download-bls-gov/scripts/source.py",
+        "line": 469,
+        "end_line": 498,
+        "implementation": "list_available_files",
+        "source_sha256": "ad1d3b6bd51bbda5cf7ea76f51efe0ee121f5b221fe6b7146aa6aac3331b99dc",
+        "implementation_sha256": "b11fdded46cf30576c2215716b3cb21bb6a3584ca782f81b575dd2c1cbc50aef"
+      }
+    }
+  }
+}

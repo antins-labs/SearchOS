@@ -3,6 +3,9 @@ Nagasaki Peace Portal Access Skill
 Retrieves structured information from nagasakipeace.jp about the Nagasaki Atomic Bomb Museum,
 historical records, survivor testimonies, and peace education resources.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -141,7 +144,7 @@ async def get_home_page(params: dict) -> dict:
     
     connector = aiohttp.TCPConnector(ssl=ssl_context)
     
-    async with aiohttp.ClientSession(
+    async with _skill_network.aiohttp_session(
         connector=connector,
         timeout=aiohttp.ClientTimeout(total=60)
     ) as session:
@@ -198,7 +201,7 @@ async def get_museum_info(params: dict) -> dict:
     
     connector = aiohttp.TCPConnector(ssl=ssl_context)
     
-    async with aiohttp.ClientSession(
+    async with _skill_network.aiohttp_session(
         connector=connector,
         timeout=aiohttp.ClientTimeout(total=60)
     ) as session:
@@ -262,7 +265,7 @@ async def get_records_page(params: dict) -> dict:
     
     connector = aiohttp.TCPConnector(ssl=ssl_context)
     
-    async with aiohttp.ClientSession(
+    async with _skill_network.aiohttp_session(
         connector=connector,
         timeout=aiohttp.ClientTimeout(total=60)
     ) as session:
@@ -311,7 +314,7 @@ async def get_photo_gallery(params: dict) -> dict:
     
     connector = aiohttp.TCPConnector(ssl=ssl_context)
     
-    async with aiohttp.ClientSession(
+    async with _skill_network.aiohttp_session(
         connector=connector,
         timeout=aiohttp.ClientTimeout(total=60)
     ) as session:
@@ -375,7 +378,7 @@ async def get_survivors_page(params: dict) -> dict:
     
     connector = aiohttp.TCPConnector(ssl=ssl_context)
     
-    async with aiohttp.ClientSession(
+    async with _skill_network.aiohttp_session(
         connector=connector,
         timeout=aiohttp.ClientTimeout(total=60)
     ) as session:
@@ -432,7 +435,7 @@ async def get_survivor_story(params: dict) -> dict:
     
     connector = aiohttp.TCPConnector(ssl=ssl_context)
     
-    async with aiohttp.ClientSession(
+    async with _skill_network.aiohttp_session(
         connector=connector,
         timeout=aiohttp.ClientTimeout(total=60)
     ) as session:
@@ -475,7 +478,7 @@ async def get_reference_page(params: dict) -> dict:
     
     connector = aiohttp.TCPConnector(ssl=ssl_context)
     
-    async with aiohttp.ClientSession(
+    async with _skill_network.aiohttp_session(
         connector=connector,
         timeout=aiohttp.ClientTimeout(total=60)
     ) as session:
@@ -516,7 +519,7 @@ async def get_about_atomic_bomb(params: dict) -> dict:
     
     connector = aiohttp.TCPConnector(ssl=ssl_context)
     
-    async with aiohttp.ClientSession(
+    async with _skill_network.aiohttp_session(
         connector=connector,
         timeout=aiohttp.ClientTimeout(total=60)
     ) as session:
@@ -565,7 +568,7 @@ async def get_page(params: dict) -> dict:
     
     connector = aiohttp.TCPConnector(ssl=ssl_context)
     
-    async with aiohttp.ClientSession(
+    async with _skill_network.aiohttp_session(
         connector=connector,
         timeout=aiohttp.ClientTimeout(total=60)
     ) as session:
@@ -596,6 +599,7 @@ async def get_page(params: dict) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Nagasaki Peace Portal access skill.

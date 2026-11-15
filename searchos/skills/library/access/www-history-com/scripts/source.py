@@ -4,6 +4,9 @@ History.com Access Skill for SearchOS
 Fetches articles, topic listings, and "This Day in History" events from www.history.com.
 Uses direct HTTP requests with proper headers - no JavaScript rendering required.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -291,7 +294,7 @@ def extract_this_day_content(soup: BeautifulSoup, url: str) -> dict:
 
 async def get_article(url: str) -> dict:
     """Fetch and parse a History.com article."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         soup, error = await fetch_html(url, session)
         if error:
             return {'error': error, 'url': url}
@@ -301,7 +304,7 @@ async def get_article(url: str) -> dict:
 
 async def get_topic(url: str) -> dict:
     """Fetch and parse a History.com topic page."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         soup, error = await fetch_html(url, session)
         if error:
             return {'error': error, 'url': url}
@@ -311,7 +314,7 @@ async def get_topic(url: str) -> dict:
 
 async def get_this_day(url: str) -> dict:
     """Fetch and parse a History.com 'This Day in History' page."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         soup, error = await fetch_html(url, session)
         if error:
             return {'error': error, 'url': url}
@@ -321,7 +324,7 @@ async def get_this_day(url: str) -> dict:
 
 async def get_topics_list() -> dict:
     """Fetch the list of all topics from the homepage."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         soup, error = await fetch_html(BASE_URL, session)
         if error:
             return {'error': error}
@@ -369,6 +372,7 @@ async def get_topics_list() -> dict:
         return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the History.com access skill.

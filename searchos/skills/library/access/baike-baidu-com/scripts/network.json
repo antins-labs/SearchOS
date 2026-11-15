@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_movie_info": "direct",
+    "get_lemma": "direct",
+    "search": "direct"
+  },
+  "aliases": {
+    "search": "search",
+    "get_lemma": "get_lemma",
+    "get_movie_info": "get_movie_info",
+    "run": "get_movie_info"
+  }
+}

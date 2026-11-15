@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch": "direct",
+    "filter_province": "direct",
+    "list_types": "direct",
+    "search": "direct",
+    "count": "direct"
+  },
+  "aliases": {
+    "list_types": "list_types",
+    "fetch": "fetch",
+    "count": "count",
+    "filter_province": "filter_province",
+    "search": "search",
+    "run": "search"
+  }
+}

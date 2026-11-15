@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_player": "proxy",
+    "get_ladies_history": "proxy",
+    "get_player_info": "direct",
+    "get_ladies_rankings": "proxy",
+    "get_player_rating_history": "direct",
+    "get_rankings": "proxy"
+  },
+  "aliases": {
+    "get_rankings": "get_rankings",
+    "get_ladies_rankings": "get_ladies_rankings",
+    "get_player_info": "get_player_info",
+    "get_player_rating_history": "get_player_rating_history",
+    "get_ladies_history": "get_ladies_history",
+    "search_player": "search_player",
+    "run": "search_player"
+  }
+}

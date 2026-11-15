@@ -3,6 +3,9 @@
 
 Reads MDN reference documents and lists reference index entries.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 import argparse
 import json
 import os
@@ -23,7 +26,7 @@ CAPABILITIES = ("read_document", "list_reference_index")
 
 
 def get_proxy_mode():
-    return os.environ.get("SEARCHOS_PROXY_MODE", "inherit")
+    return _skill_network.mode()
 
 
 def make_opener():
@@ -32,8 +35,8 @@ def make_opener():
     if proxy_mode == "direct":
         # bypass application proxies
         handler = urllib.request.ProxyHandler({})
-        return urllib.request.build_opener(handler)
-    return urllib.request.build_opener()  # default honors env proxies
+        return _skill_network.urllib_build_opener(handler)
+    return _skill_network.urllib_build_opener()  # default honors env proxies
 
 
 def fetch(url):
@@ -67,6 +70,7 @@ def _text(el):
     return el.get_text(" ", strip=True) if el is not None else None
 
 
+@_skill_network.entrypoint(capability_id='read_document')
 def read_document(inp):
     path = inp.get("path")
     if not isinstance(path, str) or not path.strip():
@@ -159,6 +163,7 @@ def read_document(inp):
     return {"status": "ok", "records": [record], "warnings": []}
 
 
+@_skill_network.entrypoint(capability_id='list_reference_index')
 def list_reference_index(inp):
     section = inp.get("section")
     if not isinstance(section, str) or not section.strip():
@@ -228,6 +233,7 @@ HANDLERS = {
 }
 
 
+@_skill_network.entrypoint(capability_id='access', cli=True)
 def main(argv):
     parser = argparse.ArgumentParser(
         prog="access.py",

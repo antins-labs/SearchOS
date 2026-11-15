@@ -8,6 +8,9 @@ Product data is embedded in JSON-LD schema and meta tags.
 No age verification gate blocks access - the age gate is JavaScript-based
 and doesn't prevent direct HTML fetching.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -246,7 +249,7 @@ async def list_products(session: aiohttp.ClientSession, locale: str = DEFAULT_LO
 
 async def get_products_by_urls(urls: list) -> dict:
     """Get multiple products by their URLs"""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         tasks = [get_product(session, url) for url in urls]
         products = await asyncio.gather(*tasks)
         
@@ -286,6 +289,7 @@ async def search_products(session: aiohttp.ClientSession, query: str,
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Smirnoff product access skill.
@@ -313,7 +317,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     
     locale = params.get('locale', DEFAULT_LOCALE)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_product':
             url = params.get('url')
             if not url:

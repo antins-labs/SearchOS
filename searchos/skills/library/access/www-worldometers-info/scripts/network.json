@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_country_population_details": "proxy",
+    "get_population_by_country": "proxy",
+    "get_largest_countries": "direct"
+  },
+  "aliases": {
+    "get_largest_countries": "get_largest_countries",
+    "get_population_by_country": "get_population_by_country",
+    "get_country_population_details": "get_country_population_details",
+    "run": "get_country_population_details"
+  }
+}

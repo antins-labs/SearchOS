@@ -11,6 +11,9 @@ Data sources:
 - CrossRef API: Bibliographic data, references
 - Elsevier API: Publisher metadata (limited without API key)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -18,6 +21,7 @@ import re
 from typing import Any, Optional
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute ScienceDirect article access functions.
@@ -70,7 +74,7 @@ async def get_article(params: dict[str, Any]) -> dict[str, Any]:
         "data": {}
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # 1. OpenAlex API - most comprehensive
         openalex_data = await _fetch_openalex(session, headers, doi, pii)
         if openalex_data and not openalex_data.get("error"):
@@ -135,7 +139,7 @@ async def search_articles(params: dict[str, Any]) -> dict[str, Any]:
         "success": False
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if source in ["openalex", "all"]:
             openalex_results = await _search_openalex(session, headers, query, limit)
             if isinstance(openalex_results, list):

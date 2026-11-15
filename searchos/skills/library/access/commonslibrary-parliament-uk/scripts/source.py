@@ -4,6 +4,9 @@ UK Parliament House of Commons Library - Research Briefings Access Skill
 Fetches research briefings from commonslibrary.parliament.uk using Playwright
 browser automation to bypass cookie consent walls and bot protection.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 from typing import Any
 import re
@@ -11,6 +14,7 @@ import json
 from playwright.async_api import async_playwright
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """Execute the Commons Library access skill.
     
@@ -57,13 +61,13 @@ async def get_briefing(params: dict[str, Any]) -> dict[str, Any]:
     url = f"https://commonslibrary.parliament.uk/research-briefings/{briefing_id.lower()}/"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 locale="en-GB",
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until="domcontentloaded", timeout=30000)
             await page.wait_for_timeout(500)
@@ -262,13 +266,13 @@ async def list_briefings(params: dict[str, Any]) -> dict[str, Any]:
         url = f"https://commonslibrary.parliament.uk/research-briefings/page/{page_num}/"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 locale="en-GB",
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until="domcontentloaded", timeout=30000)
             await page.wait_for_timeout(500)
@@ -365,13 +369,13 @@ async def search_briefings(params: dict[str, Any]) -> dict[str, Any]:
     url = f"https://commonslibrary.parliament.uk/?s={encoded_query}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 locale="en-GB",
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until="domcontentloaded", timeout=30000)
             await page.wait_for_timeout(1000)

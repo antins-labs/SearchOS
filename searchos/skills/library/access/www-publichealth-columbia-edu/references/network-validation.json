@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e40d47dcf555c1b06427e888052f82fbe2930830bb3c97e5616e7653113da90e",
+  "capabilities": {
+    "get_profile": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_profile\", \"profile_slug\": \"hernandez-stroud-jd\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.235092+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.publichealth.columbia.edu/profile/hernandez-stroud-jd",
+          "status": 200
+        }
+      ]
+    },
+    "search_profiles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_profiles\", \"query\": \"Hernandez Stroud\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.235721+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.publichealth.columbia.edu/profile/hernandez-stroud-jd",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

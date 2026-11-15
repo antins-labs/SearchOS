@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "322b55c1b11ae50e51e973dbd44f574ac7cbd34f3b3685c43ef7909a13097e22",
+  "capabilities": {
+    "list_results": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_results\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.765351+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://laaxopen.com/en/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    },
+    "get_event": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_event\", \"event_id\": 4083}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.766041+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://laaxopen.com/en/wp-json/wp/v2/posts/4083",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"sport\": \"snowboard\", \"discipline\": \"halfpipe\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.766103+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://laaxopen.com/en/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    },
+    "get_years": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_years\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.766356+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://laaxopen.com/en/wp-json/wp/v2/categories",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

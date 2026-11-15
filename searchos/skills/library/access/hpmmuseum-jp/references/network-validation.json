@@ -1,0 +1,375 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "28e66d0849b1bdfb67c8f86378d0d1d6095023c829e344d72b13be7fdd4d3283",
+  "capabilities": {
+    "get_info_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_info_page\", \"page_id\": \"42\", \"lang\": \"eng\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.708061+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://hpmmuseum.jp/modules/info/index.php",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/xoops.css",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/modules/info/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/images/header_title_230221.png",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/common/js/x-utils.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/images/banner/flo-bn_pc-1_en.png",
+          "status": 200
+        },
+        {
+          "url": "https://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/smoothness/jquery-ui.css",
+          "status": 200
+        },
+        {
+          "url": "https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/images/banner/flo-bn_sp-1_en.png",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/images/banner/flo-bn_pc-2_en.png",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/js/jquery.cookie.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/images/banner/flo-bn_sp-2_en.png",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/js/jquery.textresizer.js",
+          "status": 200
+        },
+        {
+          "url": "https://code.jquery.com/jquery-3.6.0.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/js/css_browser_selector.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/images/information/page-a_pic04.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/images/information/page-a_pic01.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/fonts/hiroshima.ttf",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/js/jquery.heightLine.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_exhibit_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_exhibit_page\", \"exhibit_id\": \"1302\", \"page_num\": \"06\", \"lang\": \"eng\"}"
+      ],
+      "checked_at": "2026-10-23T07:18:59.757702+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://hpmmuseum.jp/virtual/VirtualMuseum_e/exhibit_e/exh1302_e/exh130206_e.html",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/virtual/VirtualMuseum_e/exhibit_e/exh1302_e/exh1302_e.css",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/virtual/img/ex1302_img/130240.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/virtual/img/ex1302_img/130241.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/virtual/img/ex1302_img/130239.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/virtual/img/exh_tit_e.gif",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/virtual/img/ex1302_img/130242.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/virtual/img/ex1302_img/130238.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/virtual/VirtualMuseum_e/images/back_whi.gif",
+          "status": 404
+        }
+      ]
+    },
+    "get_exhibit_toc": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_exhibit_toc\", \"exhibit_id\": \"1302\", \"lang\": \"eng\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:27.651024+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://hpmmuseum.jp/virtual/VirtualMuseum_e/exhibit_e/exh1302_e/exhi_top_e.html",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/virtual/VirtualMuseum_e/exhibit_e/exh1302_e/exh1302_e.css",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/virtual/img/ex1302_img/Top.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/virtual/img/exh_tit_e.gif",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/virtual/VirtualMuseum_e/images/back_whi.gif",
+          "status": 404
+        }
+      ]
+    },
+    "get_permanent_exhibitions": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_permanent_exhibitions\", \"lang\": \"eng\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:27.749519+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://hpmmuseum.jp/modules/exhibition/index.php",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/xoops.css",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/common/js/x-utils.js",
+          "status": 200
+        },
+        {
+          "url": "https://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/smoothness/jquery-ui.css",
+          "status": 200
+        },
+        {
+          "url": "https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/images/logo_sitetop_pc.png",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/images/banner/flo-bn_pc-1.png",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/images/banner/flo-bn_pc-2.png",
+          "status": 200
+        },
+        {
+          "url": "https://code.jquery.com/jquery-3.6.0.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/images/banner/flo-bn_sp-1.png",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/js/jquery.textresizer.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/js/jquery.cookie.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/js/jquery.heightLine.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/js/css_browser_selector.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/js/jquery.biggerlink.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/js/common.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/fonts/hiroshima.ttf",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view/images/banner/flo-bn_sp-2.png",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/uploads/zone/00000000008_b9b0ea0f2a38f2349743d5c2993c1016.jpg",
+          "status": 200
+        }
+      ]
+    },
+    "get_homepage": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_homepage\", \"lang\": \"eng\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:27.749761+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://hpmmuseum.jp/",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/xoops.css",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/css/slick/slick.css",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/images/banner/flo-bn_pc-1_en.png",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/common/js/x-utils.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/css/slick/slick-theme.css",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/images/header_title_230221.png",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/images/banner/flo-bn_sp-1_en.png",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/images/banner/flo-bn_pc-2_en.png",
+          "status": 200
+        },
+        {
+          "url": "https://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/smoothness/jquery-ui.css",
+          "status": 200
+        },
+        {
+          "url": "https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/js/jquery.cookie.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/images/banner/flo-bn_sp-2_en.png",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/js/jquery.textresizer.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/js/css_browser_selector.js",
+          "status": 200
+        },
+        {
+          "url": "https://code.jquery.com/jquery-3.6.0.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/js/jquery.biggerlink.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://hpmmuseum.jp/themes/view_eng/js/jquery.heightLine.js",
+          "status": 200
+        },
+        {
+          "url": "https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

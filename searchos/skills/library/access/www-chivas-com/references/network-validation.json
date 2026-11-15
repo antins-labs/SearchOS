@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "8e326314afb82c4ad651e54d4f921c56228d2151a9ae85a73721dc925dbdb513",
+  "capabilities": {
+    "list_products": {
+      "status": "offline_business_passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_products\", \"use_archive\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.984641+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-chivas-com/scripts/source.py",
+        "line": 281,
+        "end_line": 294,
+        "implementation": "list_products",
+        "source_sha256": "3ca222498560c24bf3c9d0b48a4714faf34d7163073cbfa09c06cc622352bc3a",
+        "implementation_sha256": "a025a5115565d3ebe8c19dec1d88e55585a098f51d4e34e711bbf133c1e0b560"
+      }
+    },
+    "get_product": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_product\", \"slug\": \"chivas-12\", \"use_archive\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.985987+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_all_products": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_products\", \"use_archive\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.986103+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

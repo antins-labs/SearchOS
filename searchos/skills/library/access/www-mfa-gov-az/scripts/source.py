@@ -2,6 +2,9 @@
 SearchOS Access Skill for Azerbaijan Ministry of Foreign Affairs (www.mfa.gov.az)
 Extracts news articles and bilateral relations information.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -11,6 +14,7 @@ from urllib.parse import urljoin, urlparse, parse_qs
 import re
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute MFA Azerbaijan access skill.
@@ -81,7 +85,7 @@ async def get_news_article(params: dict[str, Any]) -> dict[str, Any]:
     if '/news/' not in url:
         return {"error": "URL must be a news article URL (containing /news/)"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, status = await fetch_html(url, session)
         
         if status != 200 or not html:
@@ -183,7 +187,7 @@ async def list_news(params: dict[str, Any]) -> dict[str, Any]:
     else:
         url = base_url
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, status = await fetch_html(url, session)
         
         if status != 200 or not html:
@@ -280,7 +284,7 @@ async def get_bilateral_relations(params: dict[str, Any]) -> dict[str, Any]:
     if 'mfa.gov.az' not in url:
         return {"error": "URL must be from mfa.gov.az domain"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, status = await fetch_html(url, session)
         
         if status != 200 or not html:

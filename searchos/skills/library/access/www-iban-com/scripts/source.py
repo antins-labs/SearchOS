@@ -8,6 +8,9 @@ Provides access to:
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -214,6 +217,7 @@ def filter_by_country_name(data: list[dict], name: str) -> list[dict]:
     ]
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute IBAN.com access skill.
@@ -231,7 +235,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     timeout = aiohttp.ClientTimeout(total=60)
     connector = aiohttp.TCPConnector(limit=5)
     
-    async with aiohttp.ClientSession(timeout=timeout, connector=connector) as session:
+    async with _skill_network.aiohttp_session(timeout=timeout, connector=connector) as session:
         try:
             if function == 'get_country_codes':
                 # Optional filtering

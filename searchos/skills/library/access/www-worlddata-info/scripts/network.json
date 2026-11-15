@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_country_volcanoes": "proxy",
+    "get_latest_activity": "direct",
+    "get_global_eruptions": "direct"
+  },
+  "aliases": {
+    "get_country_volcanoes": "get_country_volcanoes",
+    "get_global_eruptions": "get_global_eruptions",
+    "get_latest_activity": "get_latest_activity",
+    "run": "get_latest_activity"
+  }
+}

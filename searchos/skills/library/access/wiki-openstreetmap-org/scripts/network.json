@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_aonb_data": "inherit",
+    "search_pages": "proxy",
+    "get_page_tables": "proxy"
+  },
+  "aliases": {
+    "get_aonb_data": "get_aonb_data",
+    "get_page_tables": "get_page_tables",
+    "search_pages": "search_pages",
+    "run": "search_pages"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_setlist": "direct",
+    "get_average_setlist": "direct"
+  },
+  "aliases": {
+    "get_setlist": "get_setlist",
+    "get_average_setlist": "get_average_setlist",
+    "run": "get_average_setlist"
+  }
+}

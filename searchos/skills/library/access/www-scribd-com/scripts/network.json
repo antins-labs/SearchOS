@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "extract_tables": "direct",
+    "get_document": "direct"
+  },
+  "aliases": {
+    "get_document": "get_document",
+    "extract_tables": "extract_tables",
+    "run": "extract_tables"
+  }
+}

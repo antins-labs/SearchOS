@@ -9,12 +9,16 @@ Extracts structured information from French Wikipedia pages including:
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 import asyncio
 import re
 from typing import Any
 from playwright.async_api import async_playwright, Browser, Page
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute French Wikipedia data extraction.
@@ -303,13 +307,13 @@ async def get_page_info(params: dict[str, Any]) -> dict[str, Any]:
         url = f"https://fr.wikipedia.org/wiki/{encoded_title}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 locale='fr-FR',
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             if not await _fetch_page(page, url):
                 return {"error": f"Failed to load page: {url}", "success": False}
@@ -357,10 +361,10 @@ async def get_infobox(params: dict[str, Any]) -> dict[str, Any]:
         url = f"https://fr.wikipedia.org/wiki/{encoded_title}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(locale='fr-FR')
-            page = await context.new_page()
+            context = await _skill_network.browser_new_context(browser, locale='fr-FR')
+            page = await _skill_network.browser_new_page(context)
             
             if not await _fetch_page(page, url):
                 return {"error": f"Failed to load page: {url}", "success": False}
@@ -403,10 +407,10 @@ async def get_tables(params: dict[str, Any]) -> dict[str, Any]:
         url = f"https://fr.wikipedia.org/wiki/{encoded_title}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(locale='fr-FR')
-            page = await context.new_page()
+            context = await _skill_network.browser_new_context(browser, locale='fr-FR')
+            page = await _skill_network.browser_new_page(context)
             
             if not await _fetch_page(page, url):
                 return {"error": f"Failed to load page: {url}", "success": False}
@@ -443,10 +447,10 @@ async def get_section(params: dict[str, Any]) -> dict[str, Any]:
         url = f"https://fr.wikipedia.org/wiki/{encoded_title}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(locale='fr-FR')
-            page = await context.new_page()
+            context = await _skill_network.browser_new_context(browser, locale='fr-FR')
+            page = await _skill_network.browser_new_page(context)
             
             if not await _fetch_page(page, url):
                 return {"error": f"Failed to load page: {url}", "success": False}
@@ -502,10 +506,10 @@ async def search_pages(params: dict[str, Any]) -> dict[str, Any]:
     search_url = f"https://fr.wikipedia.org/w/index.php?search={query}&title=Sp%C3%A9cial:Recherche&fulltext=1"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(locale='fr-FR')
-            page = await context.new_page()
+            context = await _skill_network.browser_new_context(browser, locale='fr-FR')
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(search_url, wait_until="domcontentloaded", timeout=30000)
             

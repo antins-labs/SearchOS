@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "dce347ce6167f9fba68fe3c72179125137caffd4084eb7d81c532b707c41ca76",
+  "capabilities": {
+    "get_rankings": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rankings\", \"category\": \"passengers\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.191444+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/blog-aci-aero/scripts/source.py",
+        "line": 196,
+        "end_line": 214,
+        "implementation": "get_airport_rankings",
+        "source_sha256": "9d8bf5ba77c064079a228062fe8437321379884b38f742dedb74c42be7726d9e",
+        "implementation_sha256": "ffe1a7142f4cd473455494c6b0c34c43929d7c90b4199b6c803034b70071635d"
+      }
+    },
+    "get_statistics": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_statistics\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.234297+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/blog-aci-aero/scripts/source.py",
+        "line": 217,
+        "end_line": 223,
+        "implementation": "get_statistics",
+        "source_sha256": "9d8bf5ba77c064079a228062fe8437321379884b38f742dedb74c42be7726d9e",
+        "implementation_sha256": "a9ef0a08501b995f9dea73cc5bbe477e5ba463f2f7a3bd4c1d13a0afb3f737ef"
+      }
+    },
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.234527+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://blog.aci.aero/airport-economics/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "get_ranking_tables": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ranking_tables\", \"category\": \"cargo\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.234671+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/blog-aci-aero/scripts/source.py",
+        "line": 187,
+        "end_line": 193,
+        "implementation": "get_all_ranking_images",
+        "source_sha256": "9d8bf5ba77c064079a228062fe8437321379884b38f742dedb74c42be7726d9e",
+        "implementation_sha256": "9c3d198f543e7d5ce949f1bfa6b3bdc05c6fd33f5f63df9c1163c0aa0ce7a78c"
+      }
+    },
+    "search_airport": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_airport\", \"query\": \"Dubai\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.234802+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/blog-aci-aero/scripts/source.py",
+        "line": 226,
+        "end_line": 283,
+        "implementation": "search_airport",
+        "source_sha256": "9d8bf5ba77c064079a228062fe8437321379884b38f742dedb74c42be7726d9e",
+        "implementation_sha256": "94174ad39caad6f6b43e38df7d0aaeaa00e9ecc69023319821c9e92701091c98"
+      }
+    },
+    "get_all": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.234907+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://blog.aci.aero/airport-economics/[redacted]/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

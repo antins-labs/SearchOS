@@ -3,6 +3,7 @@
 import { Maximize2 } from "lucide-react";
 
 import type { WSEvent, EvidenceNode } from "@/lib/types";
+import { skillExecutionInfo } from "@/lib/runState";
 import type { ToolCallDetail } from "./ToolCallDetailDialog";
 
 /* ── agent naming ──────────────────────────────────────────────
@@ -208,6 +209,7 @@ export function recentSteps(events: WSEvent[], n: number): Step[] {
     if (e.type !== "trajectory") continue;
     const data = (e.data ?? {}) as Record<string, unknown>;
     const t = String(data.type || "");
+    if (skillExecutionInfo(data)) continue;
     if (data.source_mode === "local" && t === "task_start") {
       const count = Number(data.document_count || 0);
       all.push({ verb: "Reading", detail: count > 0 ? `${count} local documents` : "local documents" });

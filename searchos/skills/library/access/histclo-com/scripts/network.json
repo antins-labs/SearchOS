@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_essay": "direct",
+    "search_essays": "direct"
+  },
+  "aliases": {
+    "get_essay": "get_essay",
+    "search_essays": "search_essays",
+    "run": "search_essays"
+  }
+}

@@ -10,6 +10,9 @@ agent 通过 skill.md 了解可用 functions，通过 `function` 参数选择调
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import logging
 from typing import Any
@@ -31,7 +34,7 @@ RPC_HEADERS = {
 
 
 async def _get_session() -> aiohttp.ClientSession:
-    session = aiohttp.ClientSession()
+    session = _skill_network.aiohttp_session()
     async with session.get("https://gk-stu.bjeea.cn/") as resp:
         await resp.read()
     await _call_rpc(session, "entryVerify", [])
@@ -157,6 +160,7 @@ FUNCTIONS = {
 }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any) -> dict[str, Any]:
     fn_name = params.get("function", "")
     if not fn_name:

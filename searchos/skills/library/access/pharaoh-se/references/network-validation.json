@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "695139b49f698dca890cb582198ad29f352534b7e187e25eea3499ebbd96f66a",
+  "capabilities": {
+    "get_pharaoh": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_pharaoh\", \"pharaoh_slug\": \"Qakara-Ibi\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.838253+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://pharaoh.se/pharaohs/Qakara-Ibi/",
+          "status": 200
+        }
+      ]
+    },
+    "get_dynasty": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_dynasty\", \"dynasty_number\": \"predynastic\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.838882+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "list_dynasties": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_dynasties\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.838951+00:00",
+      "reason": "Could not find article content",
+      "source_responses": [
+        {
+          "url": "https://pharaoh.se/dynasties/",
+          "status": 200
+        }
+      ]
+    },
+    "list_pharaohs": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_pharaohs\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.839008+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://pharaoh.se/pharaohs/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

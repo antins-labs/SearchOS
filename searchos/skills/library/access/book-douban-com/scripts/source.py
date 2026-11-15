@@ -7,6 +7,9 @@ Provides access to:
 - Publisher/press book lists with pagination
 - Author book lists with pagination
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -369,6 +372,7 @@ async def search_books(
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """Execute Douban Books API request.
     
@@ -392,7 +396,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     
     timeout = aiohttp.ClientTimeout(total=30)
     
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(timeout=timeout) as session:
         try:
             if func == "get_book":
                 subject_id = params.get("subject_id")

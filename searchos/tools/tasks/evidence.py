@@ -10,11 +10,16 @@ from langchain_core.tools import tool
 from searchos.agents.runtime import _ctx
 
 
-@tool
+@tool(parse_docstring=True)
 async def bind_evidence(task_id: str, evidence_ids: list[str], relation: str = "context") -> str:
-    """Associate existing in-scope evidence with a subtask. Does not create facts or
-    complete the task. relation: supports, contradicts, or context. Use read_evidence(task_id=...)
-    to inspect the bindings and their source excerpts before deciding further work.
+    """Link existing evidence to a subtask and return the number of new bindings. Use
+    read_evidence(task_id=...) to inspect the links and excerpts before planning further work.
+
+    Args:
+        task_id: Existing task that should reference the evidence.
+        evidence_ids: IDs of existing facts in the current source scope.
+        relation: How the facts relate to the task: supports, contradicts or context (default).
+            Binding updates the links only.
     """
     from searchos.socm.evidence import bind_task_evidence
 
@@ -32,18 +37,21 @@ async def bind_evidence(task_id: str, evidence_ids: list[str], relation: str = "
     return json.dumps({"task_id": task_id, "bindings_added": added})
 
 
-@tool
+@tool(parse_docstring=True)
 async def extract_observation(
     task_id: str, observation_id: str, start: int = 0, max_chars: int = 8000
 ) -> str:
-    """Extract new task-relevant facts from a saved original-source window.
+    """Extract and verify task-relevant facts from an already saved source window. Returns
+    evidence_ids and next_start when more text remains.
 
-    Obtain observation_id from read_evidence. Reuses source text already read;
-    does not fetch the source or establish its current freshness. start is a
-    zero-based character offset; max_chars is at most 12000. Returns evidence_ids
-    and next_start for remaining text. Checks excerpts and factual support before
-    binding facts to the task. Does not fill cells or complete the task; use
-    project_evidence for supported cell values, source agents for missing text.
+    Extraction uses the saved reading's date and content. It binds supported facts to the task. Use
+    project_evidence to fill cells and dispatch retrieval for missing or newer source text.
+
+    Args:
+        task_id: Existing task whose evidence requirements guide extraction.
+        observation_id: ID of the original-source observation from read_evidence.
+        start: Zero-based character offset. Use next_start to continue.
+        max_chars: Maximum characters to read from start, capped at 12000.
     """
     from searchos.config.settings import settings
     from searchos.harness.middleware.extraction.core.replay import extract_saved_observation

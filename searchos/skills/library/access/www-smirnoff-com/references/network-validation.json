@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c6c0cc2b7a1c86f6a89824b7321f30f6aefae5ba9c89958589719bbcdb2f32ae",
+  "capabilities": {
+    "get_product": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_product\", \"url\": \"https://www.smirnoff.com/en-us/products/vodkas-and-flavors/smirnoff-no-21-vodka\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.259541+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.smirnoff.com/en-us/products/vodkas-and-flavors/smirnoff-no-21-vodka",
+          "status": 200
+        }
+      ]
+    },
+    "get_products": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_products\", \"urls\": [\"https://www.smirnoff.com/en-us/products/vodkas-and-flavors/smirnoff-no-21-vodka\", \"https://www.smirnoff.com/en-us/products/vodkas-and-flavors/smirnoff-no-57-vodka\"]}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.260117+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.smirnoff.com/en-us/products/vodkas-and-flavors/smirnoff-no-57-vodka",
+          "status": 200
+        },
+        {
+          "url": "https://www.smirnoff.com/en-us/products/vodkas-and-flavors/smirnoff-no-21-vodka",
+          "status": 200
+        }
+      ]
+    },
+    "list_products": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_products\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.260194+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.smirnoff.com/en-us/products",
+          "status": 200
+        }
+      ]
+    },
+    "search_products": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_products\", \"query\": \"ice\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.260360+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.smirnoff.com/en-us/products",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

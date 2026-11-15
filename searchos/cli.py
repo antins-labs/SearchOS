@@ -30,9 +30,9 @@ def _setup_provider(no_search: bool) -> None:
     # 后端优先取 web_settings.json overlay 的 models.search_provider（与 web 一致，
     # main() 已在此前 load_and_apply）；overlay 未配时回落 SF_SEARCH_PROVIDER，
     # 再按已有 key 推断（serper → tavily），最后回落内部 ragflow。
-    from searchos.config.web_overlay import store
-    from searchos.tools.simple_browser.search import build_search_provider
-    from searchos.tools.simple_browser.state import set_browser_provider
+    from searchos.config.settings_overlay import store
+    from searchos.tools.simple_browser.search_providers import build_search_provider
+    from searchos.tools.simple_browser.session import set_browser_provider
     set_browser_provider(build_search_provider(store.models.search_provider or ""))
 
 
@@ -171,7 +171,7 @@ def main() -> None:
     # Apply the web Settings-page overlay (provider connections, model cards,
     # role bindings) onto the settings singleton so the CLI/TUI shares one
     # config with the web app. No-op when web_settings.json is absent.
-    from searchos.config.web_overlay import load_and_apply
+    from searchos.config.settings_overlay import load_and_apply
     load_and_apply()
     if args.query:
         sys.exit(asyncio.run(_run(args)))

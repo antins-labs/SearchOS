@@ -9,6 +9,9 @@ Supports:
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 from typing import Any
@@ -163,7 +166,7 @@ async def get_paper(anthology_id: str, include_bibtex: bool = False) -> dict[str
     
     paper_url = f"https://aclanthology.org/{anthology_id}/"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             # Fetch the paper page
             html = await _fetch_html(paper_url, session)
@@ -195,6 +198,7 @@ async def get_paper(anthology_id: str, include_bibtex: bool = False) -> dict[str
             }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the ACL Anthology access skill.

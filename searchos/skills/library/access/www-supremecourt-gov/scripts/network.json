@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_opinions": "direct",
+    "download_pdf": "direct",
+    "get_relating_to_orders": "direct",
+    "get_slip_opinions": "direct"
+  },
+  "aliases": {
+    "get_slip_opinions": "get_slip_opinions",
+    "get_relating_to_orders": "get_relating_to_orders",
+    "download_pdf": "download_pdf",
+    "search_opinions": "search_opinions",
+    "run": "search_opinions"
+  }
+}

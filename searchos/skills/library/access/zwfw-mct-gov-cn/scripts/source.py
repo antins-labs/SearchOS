@@ -15,6 +15,9 @@ Data structure:
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 import json
 import asyncio
 from typing import Any, Dict, List, Optional
@@ -33,9 +36,9 @@ class HotelDBClient:
         """Initialize browser if not already done."""
         if not self._initialized:
             playwright = await async_playwright().start()
-            self.browser = await playwright.chromium.launch(headless=True)
-            context = await self.browser.new_context()
-            self.page = await context.new_page()
+            self.browser = await _skill_network.browser_launch(playwright.chromium, headless=True)
+            context = await _skill_network.browser_new_context(self.browser)
+            self.page = await _skill_network.browser_new_page(context)
             
             # Load the page to get SM4 library in context
             await self.page.goto('https://zwfw.mct.gov.cn/wycx/wxjlyfd/', wait_until='networkidle')
@@ -196,6 +199,7 @@ class HotelDBClient:
 _client: Optional[HotelDBClient] = None
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute hotel database queries.

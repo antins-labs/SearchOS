@@ -8,6 +8,9 @@ The direct Wiley site (onlinelibrary.wiley.com) is protected by Cloudflare
 and returns 403 errors for automated access. This skill uses public APIs
 that index Wiley content to retrieve comprehensive article metadata.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -350,7 +353,7 @@ async def fetch_article(doi: str) -> dict[str, Any]:
         if match:
             doi = match.group(1)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Fetch from both sources in parallel
         crossref_task = fetch_crossref(doi, session)
         s2_task = fetch_semantic_scholar(doi, session)
@@ -442,6 +445,7 @@ def extract_doi_from_url(url: str) -> str | None:
     return None
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Wiley Online Library access skill.

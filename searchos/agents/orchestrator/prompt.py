@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from searchos.agents.temporal import render_temporal_grounding
+from searchos.agents.date_context import render_temporal_grounding
 
 from .prompts.evidence import render_evidence
 from .prompts.research import render_research
@@ -26,7 +26,6 @@ def build_orchestrator_prompt(
     local_sources: str = "",
     source_limitations: str = "",
     explore_on_start: bool = False,
-    enable_research_plan_tool: bool = True,
     fixed_schema: bool = False,
     targeted_repair: bool = False,
 ) -> str:
@@ -48,7 +47,8 @@ def build_orchestrator_prompt(
         "are a separate limit. Runtime limits are authoritative.",
     ]
     if mode != "local":
-        limits.append(f"Default Access Skill calls per eligible agent: {max_skills_per_agent}.")
+        skill_limit = max_skills_per_agent if max_skills_per_agent > 0 else "unlimited"
+        limits.append(f"Default per-agent budget for Exec batches that start an Access Skill: {skill_limit}.")
     sections.extend([
         "## Resources\n\n" + "\n".join(limits),
         "## Agents\n\n" + agent_catalog,
@@ -57,22 +57,23 @@ def build_orchestrator_prompt(
     if mode != "local" and skill_catalog.strip():
         sections.append(
             "## Skills\n\n" + skill_catalog.strip() + "\n\n"
-            "Let retrieval agents discover skills for their tasks. Recommend skills only "
-            "when their names and relevance are established in this run."
+            "Search agents discover, load, and execute skills within their retrieval tasks. "
+            "When the user specifies a platform or skill, include that requirement in the task "
+            "brief and assign it directly to search_agent."
         )
     # 编排技能面向 Web 研究；修复任务使用选定单元格约束。
     if mode == "web" and not targeted_repair and orchestrator_playbook.strip():
         sections.append("## Research guidance\n\n" + orchestrator_playbook.strip())
     sections.extend([
         render_research(
-            plan_tool=enable_research_plan_tool,
             explore=explore,
             initial_explore=explore_on_start and not follow_up,
             repair=targeted_repair,
             fixed=fixed_schema,
             follow_up=follow_up,
+            retrieval_agent="local_search_agent" if mode == "local" else "search_agent",
         ),
-        render_tables(fixed=fixed_schema, repair=targeted_repair, hybrid=mode == "hybrid"),
+        render_tables(fixed=fixed_schema, repair=targeted_repair),
         render_evidence(repair=targeted_repair),
     ])
     return "\n\n".join(section.strip() for section in sections if section.strip()) + "\n"

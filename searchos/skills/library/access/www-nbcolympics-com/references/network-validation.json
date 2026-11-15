@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c73fe7695f69654631f629607be535ea59702f7718061aec0de6f80895f1ad19",
+  "capabilities": {
+    "get_mascots": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_mascots\", \"season\": \"Winter\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.205350+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nbcolympics.com/news/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "get_mascot_by_year": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_mascot_by_year\", \"year\": 1984, \"season\": \"Winter\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.206092+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nbcolympics.com/news/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.nbcolympics.com/news/look-back-olympic-mascots-through-years\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.206189+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nbcolympics.com/news/[redacted]",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

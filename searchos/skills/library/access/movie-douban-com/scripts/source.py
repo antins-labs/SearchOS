@@ -4,6 +4,9 @@ Douban Movie Access Skill
 Fetches movie and celebrity information from movie.douban.com.
 Uses Playwright to handle JavaScript challenge and CSRF protection.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -16,8 +19,8 @@ from playwright.async_api import async_playwright, Browser, BrowserContext
 async def _init_browser_and_context() -> tuple[Browser, BrowserContext]:
     """Initialize a shared browser and context with proper headers."""
     p = await async_playwright().start()
-    browser = await p.chromium.launch(headless=True)
-    context = await browser.new_context(
+    browser = await _skill_network.browser_launch(p.chromium, headless=True)
+    context = await _skill_network.browser_new_context(browser, 
         user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         locale='zh-CN',
         viewport={'width': 1920, 'height': 1080}
@@ -29,7 +32,7 @@ async def _fetch_movie_detail(subject_id: str, browser: Browser, context: Browse
     """Fetch movie detail from subject page."""
     url = f'https://movie.douban.com/subject/{subject_id}/'
     
-    page = await context.new_page()
+    page = await _skill_network.browser_new_page(context)
     try:
         await page.goto(url, wait_until='networkidle', timeout=60000)
         
@@ -179,7 +182,7 @@ async def _fetch_movie_celebrities(subject_id: str, browser: Browser, context: B
     """Fetch full cast and crew list from celebrities page."""
     url = f'https://movie.douban.com/subject/{subject_id}/celebrities'
     
-    page = await context.new_page()
+    page = await _skill_network.browser_new_page(context)
     try:
         await page.goto(url, wait_until='networkidle', timeout=60000)
         
@@ -235,6 +238,7 @@ async def _fetch_movie_celebrities(subject_id: str, browser: Browser, context: B
         return {'error': str(e), 'url': url, 'subject_id': subject_id}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Douban movie data fetching.

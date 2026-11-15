@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_posts": "direct",
+    "list_mtr_posts": "direct",
+    "get_tunnel_summary": "direct",
+    "get_article": "direct"
+  },
+  "aliases": {
+    "get_tunnel_summary": "get_tunnel_summary",
+    "get_article": "get_article",
+    "search_posts": "search_posts",
+    "list_mtr_posts": "list_mtr_posts",
+    "run": "list_mtr_posts"
+  }
+}

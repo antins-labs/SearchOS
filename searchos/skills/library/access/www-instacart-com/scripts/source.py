@@ -4,6 +4,9 @@ Instacart Product Page Access Skill
 Fetches product information from Instacart cross-retailer product detail pages.
 Extracts product details, nutrition info, ingredients, and pricing from embedded JSON data.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -13,6 +16,7 @@ from urllib.parse import unquote
 from typing import Any
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Instacart product page fetch.
@@ -82,7 +86,7 @@ async def get_product(params: dict[str, Any]) -> dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             # Try to fetch the product page
             async with session.get(product_url, headers=headers, timeout=30, allow_redirects=False) as response:
                 if response.status == 302:

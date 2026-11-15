@@ -4,6 +4,9 @@ UK Land Registry Market Trend Data Access Skill
 Fetches and processes house price index data from the UK Land Registry public data portal.
 Handles large CSV files (150K+ rows) with streaming and filtering capabilities.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import csv
@@ -221,7 +224,7 @@ async def get_data(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     url = _build_url(data_type, year_month)
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             content = await _fetch_csv(session, url)
             
             # Parse with streaming, filters, limit and offset
@@ -279,7 +282,7 @@ async def list_regions(params: dict[str, Any], ctx: Any = None) -> dict[str, Any
     url = _build_url(data_type, year_month)
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             content = await _fetch_csv(session, url)
             
             # Parse only region info
@@ -364,7 +367,7 @@ async def get_metadata(params: dict[str, Any], ctx: Any = None) -> dict[str, Any
     url = _build_url(data_type, year_month)
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             content = await _fetch_csv(session, url)
             
             reader = csv.reader(StringIO(content))
@@ -460,7 +463,7 @@ async def get_timeseries(params: dict[str, Any], ctx: Any = None) -> dict[str, A
     results = []
     errors = []
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for month in months:
             is_valid, error = _validate_year_month(month)
             if not is_valid:
@@ -506,6 +509,7 @@ async def get_timeseries(params: dict[str, Any], ctx: Any = None) -> dict[str, A
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the UK Land Registry data access skill.

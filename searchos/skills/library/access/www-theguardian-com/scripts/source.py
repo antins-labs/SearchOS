@@ -2,6 +2,9 @@
 The Guardian article extractor skill for SearchOS.
 Extracts article content, metadata, and publication info from The Guardian news articles.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import json
 import re
@@ -22,14 +25,14 @@ async def extract_article(url: str) -> dict[str, Any]:
         Dictionary with article data or error information
     """
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 locale='en-US',
                 viewport={'width': 1280, 'height': 720}
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate to the article
             await page.goto(url, wait_until='domcontentloaded', timeout=60000)
@@ -222,6 +225,7 @@ async def get_sections() -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for The Guardian skill.

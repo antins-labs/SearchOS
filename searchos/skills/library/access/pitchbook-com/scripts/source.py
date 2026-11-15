@@ -5,6 +5,9 @@ Provides access to PitchBook company profile data. Note: PitchBook.com has
 aggressive Cloudflare protection and may require authenticated sessions for
 full access. This skill provides multiple access methods with graceful fallbacks.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -39,7 +42,7 @@ class PitchBookAccess:
         
         try:
             p = await async_playwright().start()
-            self.browser = await p.chromium.launch(
+            self.browser = await _skill_network.browser_launch(p.chromium, 
                 headless=headless,
                 args=[
                     '--disable-blink-features=AutomationControlled',
@@ -47,7 +50,7 @@ class PitchBookAccess:
                     '--no-sandbox',
                 ]
             )
-            self.context = await self.browser.new_context(
+            self.context = await _skill_network.browser_new_context(self.browser, 
                 viewport={'width': 1920, 'height': 1080},
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
                 locale='en-US',
@@ -62,7 +65,7 @@ class PitchBookAccess:
                 window.chrome = { runtime: {} };
             """)
             
-            self.page = await self.context.new_page()
+            self.page = await _skill_network.browser_new_page(self.context)
             return {"success": True}
             
         except Exception as e:
@@ -273,6 +276,7 @@ class PitchBookAccess:
             self.page = None
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute PitchBook company profile access.

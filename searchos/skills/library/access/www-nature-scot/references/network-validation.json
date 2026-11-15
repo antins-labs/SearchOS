@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b57be3a49e5035316c51616435aa1ef9489bf5cf87eefe78a59bef44b81979ed",
+  "capabilities": {
+    "fetch_page": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_page\", \"url\": \"https://www.nature.scot/professional-advice/protected-areas-and-species/protected-areas/national-designations/national-scenic-areas\", \"timeout\": 30}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.183334+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.nature.scot/professional-advice/protected-areas-and-species/protected-areas/national-designations/national-scenic-areas",
+          "status": 403
+        }
+      ]
+    },
+    "check_access_health": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"check_access_health\", \"timeout\": 30}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.189511+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.nature.scot/",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

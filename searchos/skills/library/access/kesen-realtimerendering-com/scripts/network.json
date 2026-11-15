@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_paper": "direct",
+    "list_conferences": "direct",
+    "list_papers": "direct",
+    "search_papers": "direct"
+  },
+  "aliases": {
+    "list_conferences": "list_conferences",
+    "list_papers": "list_papers",
+    "get_paper": "get_paper",
+    "search_papers": "search_papers",
+    "run": "search_papers"
+  }
+}

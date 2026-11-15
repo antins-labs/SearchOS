@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_mascot_by_year": "direct",
+    "get_mascots": "direct",
+    "get_article": "direct"
+  },
+  "aliases": {
+    "get_mascots": "get_mascots",
+    "get_mascot_by_year": "get_mascot_by_year",
+    "get_article": "get_article",
+    "run": "get_article"
+  }
+}

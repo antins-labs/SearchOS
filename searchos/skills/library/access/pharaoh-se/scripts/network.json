@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_dynasty": "direct",
+    "get_pharaoh": "direct",
+    "list_dynasties": "direct",
+    "list_pharaohs": "direct"
+  },
+  "aliases": {
+    "get_pharaoh": "get_pharaoh",
+    "get_dynasty": "get_dynasty",
+    "list_dynasties": "list_dynasties",
+    "list_pharaohs": "list_pharaohs",
+    "run": "list_pharaohs"
+  }
+}

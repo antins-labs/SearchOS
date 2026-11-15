@@ -3,28 +3,21 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 from typing import Any
 
 from langchain_core.tools import tool
 
 from searchos.tools.search_state import _ws
+from searchos.socm.refs import RowRef, cell_ref, cell_key, row_ref
 
 _MAX_CELL_LIMIT = 200
 _EVIDENCE_IDS_PER_CELL = 5
 
-def _parse_cell_key(key: str) -> tuple[str, str, str]:
-    """Split ``"{table_id}/{entity}.{attribute}"`` (table prefix optional)."""
-    table_id, sep, rest = key.partition("/")
-    if not sep:
-        table_id, rest = "", key
-    ent, _, attr = rest.partition(".")
-    return table_id, ent, attr
-
-
 def _cell_snapshot(cell_key: str, cell: Any) -> dict[str, Any]:
     ev_ids = list(cell.supporting_evidence_ids)
     return {
-        "cell": cell_key,
+        "cell": cell_ref(cell_key),
         "status": cell.status.value,
         "best_alignment": cell.best_alignment,
         "evidence_ids": ev_ids[:_EVIDENCE_IDS_PER_CELL],
@@ -38,77 +31,69 @@ def _cell_snapshot(cell_key: str, cell: Any) -> dict[str, Any]:
 def coverage_summary(state: Any) -> dict[str, Any]:
     """Aggregate coverage statistics — shared by ``read_coverage(mode="summary")``
     and the writer spawn context block. Constant-size w.r.t. entity count."""
-    cmap = state.coverage_map
-    by_status: dict[str, int] = {}
-    by_attr: dict[str, dict[str, int]] = {}
-    missing_by_entity: dict[str, int] = {}
-    conflict_cells: list[str] = []
-    for key, cell in cmap.cells.items():
-        st = cell.status.value
-        by_status[st] = by_status.get(st, 0) + 1
-        _, ent, attr = _parse_cell_key(key)
-        a = by_attr.setdefault(attr, {"filled": 0, "missing": 0, "uncertain": 0, "conflicts": 0})
-        if st in a:
-            a[st] += 1
-        if cell.has_conflict:
-            a["conflicts"] += 1
-            conflict_cells.append(key)
-        if st == "missing":
-            missing_by_entity[ent] = missing_by_entity.get(ent, 0) + 1
-    worst_entities = sorted(missing_by_entity.items(), key=lambda kv: -kv[1])[:10]
+    from searchos.socm.views.snapshot import SearchStateSnapshot
+    snap = SearchStateSnapshot.from_state(state)
+    tables = [{"table_id": t.table_id, "table_label": t.label, **t.summary()} for t in snap.tables]
+    by_status = Counter()
+    for table in tables:
+        by_status.update(table["by_status"])
+    gaps = [(t.table_id, r.entity, len(r.missing_cols)) for t in snap.tables for r in t.rows
+            if r.missing_cols]
     return {
-        "total": len(cmap.cells),
-        "by_status": by_status,
-        "tables": [
-            {
-                "table_id": tid,
-                "table_label": ts.table_label,
-                "n_entities": len(ts.entities),
-                "n_attributes": len(ts.attributes),
-            }
-            for tid, ts in cmap.tables.items()
-        ],
-        "by_attribute": [
-            {"attribute": attr, **counts} for attr, counts in sorted(by_attr.items())
-        ],
-        "worst_entities": [{"entity": e, "missing": n} for e, n in worst_entities],
-        "conflict_cells": conflict_cells[:20],
+        "total": sum(by_status.values()), "by_status": dict(by_status), "tables": tables,
+        "completed_cells": sum(t["completed_cells"] for t in tables),
+        "by_attribute": [{"table_id": t["table_id"], "attribute": attr, **counts}
+                         for t in tables for attr, counts in t["by_attribute"].items()],
+        "worst_entities": [{"row": row_ref(tid, e), "missing": n}
+                           for tid, e, n in sorted(gaps, key=lambda item: -item[2])[:10]],
+        "conflict_cells": [cell_ref(cell_key(t.table_id, r.entity, c.attr)) for t in snap.tables
+                           for r in t.rows for c in r.cells
+                           if c.has_conflict or c.conflict_status == "confirmed"][:20],
     }
 
 
-@tool
+@tool(parse_docstring=True)
 async def read_coverage(
     mode: str = "summary",
     status: str = "",
-    entity: str = "",
+    row: RowRef | None = None,
     attribute: str = "",
     limit: int = 60,
     offset: int = 0,
 ) -> str:
-    """Coverage view. ``mode="summary"`` (default) returns aggregate stats only — start here; ``mode="cells"`` returns a paginated cell list (always combine with filters on large tables).
+    """Read coverage across result tables. Start with the summary and use filtered cell pages to
+    investigate gaps or conflicts.
 
     Args:
-        mode (str): ``"summary"`` — ``{total, by_status, tables, by_attribute, worst_entities, conflict_cells}``; ``"cells"`` — ``{cells:[{cell, status, evidence_ids(top5), evidence_count, ...}], count, total_matched, next_offset}``.
-        status (str): cells mode — ``"missing"`` | ``"filled"`` | ``"uncertain"`` | ``"hard_cell"`` — empty = no filter.
-        entity (str): cells mode — exact entity name — empty = no filter.
-        attribute (str): cells mode — exact attribute name — empty = no filter.
-        limit (int): cells mode page size (max 200).
-        offset (int): cells mode pagination offset.
+        mode: "summary" returns total, completed_cells, by_status, tables, by_attribute,
+            worst_entities and conflict_cells. "cells" returns cells, count, total_matched and
+            next_offset. Each cell includes its reference, status, up to five evidence_ids and the
+            full evidence_count.
+        status: In cells mode filter by missing, filled, uncertain or hard_cell. Omit to include
+            all statuses.
+        row: Optional exact RowRef {table_id,key} for cells mode. Supply key values in primary_key
+            order.
+        attribute: Exact column name for cells mode. Omit to include all data columns.
+        limit: Maximum cells per page, default 60, capped at 200.
+        offset: Starting index in cells mode. Use next_offset to continue.
     """
     state = _ws().load_state()
     if mode != "cells":
         return json.dumps(coverage_summary(state), ensure_ascii=False)
 
     matched = []
-    for key, cell in state.coverage_map.cells.items():
-        _, ent, attr = _parse_cell_key(key)
-        if status and cell.status.value != status:
-            continue
-        if entity and ent != entity:
-            continue
-        if attribute and attr != attribute:
-            continue
-        matched.append((key, cell))
+    cmap = state.coverage_map
+    for tid, table in cmap.tables.items():
+        for ent in sorted(table.entities):
+            if row and (tid != row.table_id or ent != cmap.resolve_entity(row.row_key(), table_id=tid)):
+                continue
+            for attr in table.data_columns:
+                if attribute and attr != attribute:
+                    continue
+                key = cmap.cell_key(tid, ent, attr)
+                cell = cmap.cells.get(key)
+                if cell is not None and (not status or cell.status.value == status):
+                    matched.append((key, cell))
     limit = max(1, min(int(limit), _MAX_CELL_LIMIT))
     offset = max(0, int(offset))
     page = matched[offset : offset + limit]
@@ -122,3 +107,7 @@ async def read_coverage(
         },
         ensure_ascii=False,
     )
+
+
+read_coverage.args_schema.model_config["extra"] = "forbid"
+read_coverage.args_schema.model_rebuild(force=True)

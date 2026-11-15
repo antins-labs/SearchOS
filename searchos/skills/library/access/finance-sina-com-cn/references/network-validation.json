@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "4ae1f36c14ad2ac609c9c20884ebb6ef25599926612de789a10f64948246a352",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://finance.sina.com.cn/stock/relnews/hk/2025-05-06/doc-inevrvkt0394044.shtml\", \"include_images\": true, \"include_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.620868+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://finance.sina.com.cn/stock/relnews/hk/2025-05-06/doc-inevrvkt0394044.shtml",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

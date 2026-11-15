@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "35e022921d24755b8fc9c8e770dd142ba6c188602f8f9fd36bfd7cdd5bceebb5",
+  "capabilities": {
+    "get_product_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_product_info\", \"url\": \"https://www.instant-gaming.com/en/16754-buy-total-war-warhammer-iii-tamurkhan-thrones-of-decay-pc\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:02.755903+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.instant-gaming.com/en/[redacted]",
+          "status": 307
+        },
+        {
+          "url": "https://www.instant-gaming.com/en/[redacted]",
+          "status": 403
+        },
+        {
+          "url": "https://www.instant-gaming.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

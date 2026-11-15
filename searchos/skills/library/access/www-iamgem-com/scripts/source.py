@@ -7,6 +7,9 @@ Extracts concert tour information from www.iamgem.com including:
 - Cities
 - Venues
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -321,6 +324,7 @@ async def get_statistics(session: aiohttp.ClientSession) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the G.E.M. tour data skill.
@@ -335,7 +339,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     function = params.get('function', 'list_tours')
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'list_tours':
             return await list_tours(session)
         

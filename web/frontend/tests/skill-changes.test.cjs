@@ -16,7 +16,14 @@ async function render(data, { id = "generation", base = "", error = "" } = {}) {
     "next/link": ({ children, ...props }) => React.createElement("a", props, children),
     "react-markdown": { __esModule: true, ...markdown },
     "remark-gfm": { __esModule: true, ...gfm },
-    "@/hooks/useSkillGeneration": { useSkillGeneration: () => ({ data, error, retry() {} }) },
+    react: {
+      ...React,
+      useEffect() {},
+      useState(initial) {
+        return [typeof initial === "object" ? { key: id ? `session/${id}` : "", data, error } : initial, () => {}];
+      },
+    },
+    "@/lib/api": { getSkillGeneration() { throw new Error("SSR must not poll"); } },
     "@/hooks/useWorkspaceBase": { useWorkspaceBase: () => base },
     "@/components/settings/SettingsProvider": { useSettings: () => ({ uiPrefs: { language: "zh" } }) },
   };
@@ -61,4 +68,95 @@ test("读取故障保留已收到的技能变化并提供重试", async () => {
   assert.match(html, /暂时无法同步技能变化/);
   assert.match(html, /立即重试/);
   assert.match(html, /create-method/);
+});
+
+function pollingCard() {
+  const states = [], timers = new Map(), requests = [];
+  let cursor = 0, nextTimer = 1, effectDeps, cleanup;
+  const react = {
+    useState(initial) {
+      const index = cursor++;
+      if (!(index in states)) states[index] = initial;
+      return [states[index], value => { states[index] = typeof value === "function" ? value(states[index]) : value; }];
+    },
+    useEffect(effect, deps) {
+      if (effectDeps && deps.every((value, index) => Object.is(value, effectDeps[index]))) return;
+      cleanup?.(); effectDeps = deps; cleanup = effect();
+    },
+  };
+  const jsx = (type, props) => ({ type, props });
+  const dependencies = {
+    react, "react/jsx-runtime": { jsx, jsxs: jsx },
+    "@/hooks/useWorkspaceBase": { useWorkspaceBase: () => "" },
+    "@/components/settings/SettingsProvider": { useSettings: () => ({ uiPrefs: { language: "zh" } }) },
+    "@/lib/api": { getSkillGeneration(sessionId, generationId, signal) {
+      return new Promise((resolve, reject) => requests.push({ sessionId, generationId, signal, resolve, reject }));
+    } },
+  };
+  const exports = {};
+  const source = fs.readFileSync(path.join(__dirname, "../src/components/conversation/SkillChanges.tsx"), "utf8");
+  vm.runInNewContext(ts.transpileModule(source, { compilerOptions: {
+    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true,
+  } }).outputText, {
+    exports, AbortController,
+    require: name => dependencies[name] ?? {},
+    setTimeout(fn, ms) { const id = nextTimer++; timers.set(id, { fn, ms }); return id; },
+    clearTimeout: id => timers.delete(id),
+  });
+  return {
+    requests, timers,
+    render(sessionId = "session", generationId = "one") { cursor = 0; return exports.default({ sessionId, generationId }); },
+    tick(ms) { for (const [id, timer] of timers) if (timer.ms === ms) { timers.delete(id); timer.fn(); break; } },
+    stop() { cleanup?.(); },
+  };
+}
+function cardText(node) {
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  return [node?.props?.children ?? []].flat().map(cardText).join("");
+}
+function cardButton(node, text) {
+  if (node?.type === "button" && cardText(node) === text) return node;
+  for (const child of [node?.props?.children ?? []].flat()) {
+    if (child && typeof child === "object") { const match = cardButton(child, text); if (match) return match; }
+  }
+}
+
+test("就近轮询保留运行刷新并在终态停止", async () => {
+  const h = pollingCard();
+  h.render();
+  assert.equal(h.requests[0].generationId, "one");
+  h.requests[0].resolve({ status: "running", items: [] });
+  await new Promise(setImmediate);
+  assert.equal([...h.timers.values()][0].ms, 2000);
+  h.tick(2000);
+  h.requests[1].resolve({ status: "completed", items: [] });
+  await new Promise(setImmediate);
+  assert.equal(h.timers.size, 0);
+  assert.match(cardText(h.render()), /本轮未发现需要新增或更新的技能/);
+  h.stop();
+  assert.equal(h.requests[1].signal.aborted, true);
+});
+
+test("切换轮次撤销旧请求并隔离迟到结果，读取失败可立即重试", async () => {
+  const h = pollingCard();
+  h.render("old-session", "old");
+  h.render("new-session", "new");
+  assert.equal(h.requests[0].signal.aborted, true);
+  h.requests[0].resolve({ status: "completed", items: [] });
+  await new Promise(setImmediate);
+  assert.match(cardText(h.render("new-session", "new")), /正在整理可复用的技能/);
+  h.requests[1].reject(new Error("offline"));
+  await new Promise(setImmediate);
+  const failed = h.render("new-session", "new");
+  assert.match(cardText(failed), /暂时无法同步技能变化/);
+  assert.equal([...h.timers.values()][0].ms, 5000);
+  cardButton(failed, "立即重试").props.onClick();
+  h.render("new-session", "new");
+  assert.equal(h.requests[1].signal.aborted, true);
+  assert.equal(h.requests[2].generationId, "new");
+  h.requests[2].resolve({ status: "completed", items: [] });
+  await new Promise(setImmediate);
+  assert.doesNotMatch(cardText(h.render("new-session", "new")), /暂时无法同步/);
+  assert.equal(h.timers.size, 0);
+  h.stop();
 });

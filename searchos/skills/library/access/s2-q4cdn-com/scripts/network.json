@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_report_content": "direct",
+    "get_download_sizes": "direct",
+    "get_brand_links": "proxy",
+    "get_pdf_url": "proxy",
+    "get_annual_report_info": "direct",
+    "list_available_years": "direct"
+  },
+  "aliases": {
+    "get_annual_report_info": "get_annual_report_info",
+    "list_available_years": "list_available_years",
+    "get_pdf_url": "get_pdf_url",
+    "search_report_content": "search_report_content",
+    "get_brand_links": "get_brand_links",
+    "get_download_sizes": "get_download_sizes",
+    "run": "get_download_sizes"
+  }
+}

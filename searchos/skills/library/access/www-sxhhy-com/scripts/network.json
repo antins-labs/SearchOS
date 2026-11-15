@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_by_batch": "direct",
+    "statistics": "inherit",
+    "locations": "direct",
+    "search": "inherit",
+    "get_by_year": "inherit",
+    "get_by_location": "inherit",
+    "list_all": "inherit",
+    "batches": "direct"
+  },
+  "aliases": {
+    "list_all": "list_all",
+    "get_by_batch": "get_by_batch",
+    "get_by_year": "get_by_year",
+    "get_by_location": "get_by_location",
+    "search": "search",
+    "statistics": "statistics",
+    "batches": "batches",
+    "locations": "locations",
+    "run": "locations"
+  }
+}

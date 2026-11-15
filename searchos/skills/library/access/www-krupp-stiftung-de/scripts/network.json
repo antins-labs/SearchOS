@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_page": "direct",
+    "get_exhibition": "direct",
+    "list_institutions": "direct",
+    "get_institution": "direct"
+  },
+  "aliases": {
+    "list_institutions": "list_institutions",
+    "get_institution": "get_institution",
+    "get_exhibition": "get_exhibition",
+    "get_page": "get_page",
+    "run": "get_page"
+  }
+}

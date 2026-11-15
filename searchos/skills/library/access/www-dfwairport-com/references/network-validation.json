@@ -1,0 +1,163 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "a2e3d271de81d850305041b8d3efd042d8da145faa3e197255d798d398642045",
+  "capabilities": {
+    "get_all_statistics": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_statistics\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.008720+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dfwairport.com/",
+          "status": 200
+        },
+        {
+          "url": "https://www.dfwairport.com/_next/data/SKK9f3sh2A5ja79lUGmrk/business/about/stats.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_passenger_statistics": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_passenger_statistics\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.009597+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dfwairport.com/",
+          "status": 200
+        },
+        {
+          "url": "https://www.dfwairport.com/_next/data/SKK9f3sh2A5ja79lUGmrk/business/about/stats.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_operations_statistics": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_operations_statistics\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.009764+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dfwairport.com/",
+          "status": 200
+        },
+        {
+          "url": "https://www.dfwairport.com/_next/data/SKK9f3sh2A5ja79lUGmrk/business/about/stats.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_cargo_statistics": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_cargo_statistics\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.009855+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dfwairport.com/",
+          "status": 200
+        },
+        {
+          "url": "https://www.dfwairport.com/_next/data/SKK9f3sh2A5ja79lUGmrk/business/about/stats.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_latest_reports": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_latest_reports\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.009965+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dfwairport.com/",
+          "status": 200
+        },
+        {
+          "url": "https://www.dfwairport.com/_next/data/SKK9f3sh2A5ja79lUGmrk/business/about/stats.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_reports_by_period": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_reports_by_period\", \"period\": \"Apr 26\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.010030+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dfwairport.com/",
+          "status": 200
+        },
+        {
+          "url": "https://www.dfwairport.com/_next/data/SKK9f3sh2A5ja79lUGmrk/business/about/stats.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_page_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page_info\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.010381+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dfwairport.com/",
+          "status": 200
+        },
+        {
+          "url": "https://www.dfwairport.com/_next/data/SKK9f3sh2A5ja79lUGmrk/business/about/stats.json",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,233 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "fe4c4385774a3dd8a79dad58b2268b530ab4bc94f234b5c70b2a9ca78bd0ae0f",
+  "capabilities": {
+    "get_member_states": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_member_states\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.071050+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.un.org/en/about-us/member-states",
+          "status": 200
+        }
+      ]
+    },
+    "get_security_council": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_security_council\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.073198+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.un.org/securitycouncil/content/current-members",
+          "status": 301
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/content/current-members",
+          "status": 301
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/en/content/current-members",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/modules/contrib/seckit/css/seckit.no_body.css",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/themes/custom/un3/un3_base/node_modules/@fontsource/roboto/files/roboto-latin-500-normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/sites/default/files/css/css_A_PHJYVJXNblpSsi4FMwoc-iJDxCysRkIrdnP_dJa6E.css",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/themes/custom/un3/un3_base/node_modules/@fontsource/roboto/files/roboto-latin-400-italic.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/themes/custom/un3/un3_base/node_modules/@fontsource/roboto/files/roboto-latin-400-normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/themes/custom/un3/un3_base/node_modules/@fontsource/roboto/files/roboto-latin-700-normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/sites/default/files/css/css_29yI9uxBfqoQSow0rA-zyxCSJ3UCWIGsO171KcxtIgA.css",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/themes/custom/un3/un3_base/node_modules/@fontsource/roboto-condensed/files/roboto-condensed-latin-700-normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/themes/custom/un3/un3_base/node_modules/@fontsource/oswald/files/oswald-latin-700-normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/modules/contrib/google_tag/js/gtag.js",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/libraries/fontawesome/webfonts/fa-solid-900.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/modules/contrib/google_tag/js/gtm.js",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/sites/default/files/js/js_9BWwNATYW0ymoyaMwwm5-q2dOO9rScJQcBh0mRoDbWg.js",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/libraries/fontawesome/webfonts/fa-brands-400.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/modules/contrib/seckit/js/seckit.document_write.js",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/themes/custom/un3/un3_base/images/logos/UN_logo_en.svg",
+          "status": 200
+        },
+        {
+          "url": "https://main.un.org/securitycouncil/core/assets/vendor/jquery/jquery.min.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_icj_judges": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_icj_judges\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.073337+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.icj-cij.org/en/current-members",
+          "status": 302
+        },
+        {
+          "url": "http://www.icj-cij.org/current-members",
+          "status": 301
+        },
+        {
+          "url": "https://www.icj-cij.org/current-members",
+          "status": 200
+        },
+        {
+          "url": "https://www.icj-cij.org/sites/default/files/css/css_87fW-063oM4Ub7PPvhiozAhbh5hr9N_jDT8s7_ROPg4.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.icj-cij.org/sites/default/files/css/css_PhcKwkvWgod4xQDrWHMJlfCSrODwFABMUgx28c-GK5w.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.icj-cij.org/themes/custom/icj/logo.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.icj-cij.org/themes/custom/icj/images/bullet.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.icj-cij.org/sites/default/files/js/js_hX96gwZCkRaxxjdDq1mwJ4IeRDsD7qeMdaIXZZw8b70.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.icj-cij.org/sites/default/files/js/js_2GVoaTsA5zYxsamuvQjnZFZwzmht-IuhPD5Km87LZoM.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.icj-cij.org/core/assets/vendor/jquery/jquery.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.icj-cij.org/themes/custom/icj/images/twitter.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.icj-cij.org/themes/custom/icj/images/linkedin.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.icj-cij.org/themes/custom/icj/images/youtube.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.icj-cij.org/sites/default/files/styles/large/public/images/members-of-the-court-images/sebutinde-th.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.icj-cij.org/themes/custom/icj/images/logo_un.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.icj-cij.org/themes/custom/icj/fonts/roboto/fonts/Regular/Roboto-Regular.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.icj-cij.org/sites/default/files/styles/large/public/images/members-of-the-court-images/yuji-th.jpg",
+          "status": 200
+        }
+      ]
+    },
+    "get_organ_overview": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_organ_overview\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.073455+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.un.org/en/about-us/[redacted]",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

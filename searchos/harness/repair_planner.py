@@ -12,20 +12,17 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
-from searchos.util.json_extract import extract_json_object
+from searchos.socm.refs import CellRef, RowRef, cell_key, row_values
+from searchos.utils.json_extract import extract_json_object
 
 logger = logging.getLogger(__name__)
 
 
-class RepairTarget(BaseModel, extra="forbid"):
-    table_id: str
-    entity: str
-    attribute: str
+class RepairTarget(CellRef):
+    pass
 
 
-class RepairTaskPlan(BaseModel, extra="forbid"):
-    table_id: str
-    entity: str
+class RepairTaskPlan(RowRef):
     attributes: list[str] = Field(min_length=1, max_length=20)
     title: str = Field(default="", max_length=160)
     search_queries: list[str] = Field(default_factory=list, max_length=6)
@@ -44,9 +41,9 @@ _SYSTEM = """You plan tightly scoped web-research repair tasks for a structured 
 
 The selected cells are an immutable allowlist. You may group cells into tasks, but you MUST:
 - include every selected cell exactly once;
-- use only the exact table_id, entity, and attribute strings supplied;
+- use the exact table_id, key array, and attribute supplied;
 - never add schema, entities, attributes, or adjacent research goals;
-- group only attributes that share the same table_id and entity;
+- group only attributes that share the same table_id and key;
 - provide focused web search queries and preferred authoritative source types;
 - define evidence acceptance criteria for every task.
 
@@ -55,7 +52,7 @@ Return ONLY one JSON object with this shape:
   "tasks": [
     {
       "table_id": "exact table id",
-      "entity": "exact entity",
+      "key": ["exact primary-key values in schema order"],
       "attributes": ["exact attribute"],
       "title": "short task title",
       "search_queries": ["focused query"],
@@ -75,7 +72,7 @@ def deterministic_repair_plan(targets: list[RepairTarget]) -> list[RepairTaskPla
     return [
         RepairTaskPlan(
             table_id=table_id,
-            entity=entity,
+            key=row_values(entity),
             attributes=attributes,
             title=f"Repair {entity}: {', '.join(attributes)}",
             search_queries=[],
@@ -150,13 +147,13 @@ def validate_repair_plan(
 def _render_context(state: Any, targets: list[RepairTarget]) -> str:
     cells: list[dict[str, Any]] = []
     for target in targets:
-        key = f"{target.table_id}/{target.entity}.{target.attribute}"
+        key = cell_key(target.table_id, target.entity, target.attribute)
         cell = state.coverage_map.cells.get(key)
         schema = state.coverage_map.tables.get(target.table_id)
         cells.append({
             "table_id": target.table_id,
             "table_label": getattr(schema, "table_label", "") if schema else "",
-            "entity": target.entity,
+            "key": target.key,
             "attribute": target.attribute,
             "status": getattr(getattr(cell, "status", None), "value", "missing"),
             "current_value": getattr(cell, "value", "") if cell else "",

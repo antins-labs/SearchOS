@@ -19,6 +19,12 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from api.deps import LOCAL_DATA_ROOT, WORKSPACE_ROOT, sessions
+from api.local.import_jobs import (
+    NetworkImportJobStore,
+    cancel_network_import,
+    retry_network_import,
+    schedule_network_import,
+)
 from api.local.index_jobs import (
     LocalIndexJob,
     LocalIndexJobStore,
@@ -26,18 +32,13 @@ from api.local.index_jobs import (
     retry_background_index,
     schedule_background_index,
 )
-from api.local.import_jobs import (
-    NetworkImportJobStore,
-    cancel_network_import,
-    retry_network_import,
-    schedule_network_import,
-)
 from searchos.agents.local_search.qa import QABudget
+from searchos.config.settings import settings
 from searchos.harness.answer_stream import AnswerStreamEmitter
+from searchos.harness.telemetry.usage import start_tracking
 from searchos.local.errors import MissingDependencyError
 from searchos.local.library import LocalLibraryService
 from searchos.local.reader.office_preview import OfficePreviewService
-from searchos.util.token_tracker import start_tracking
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/local")
@@ -264,7 +265,7 @@ async def import_network_source(library_id: str, req: NetworkImportRequest):
     """Register one explicit network import and return without waiting for I/O."""
     try:
         _service().get_library(library_id)
-        from searchos.tools.simple_browser.image_reading import _reject_private_literal
+        from searchos.tools.simple_browser.images import _reject_private_literal
 
         _reject_private_literal(req.source_url)
         key = req.idempotency_key or hashlib.sha256(
@@ -570,8 +571,7 @@ def _append_trajectory(path: Path, payload: dict[str, Any]) -> None:
 
 
 def _write_conversation(path: Path, query: str, answer: str) -> None:
-    from searchos.harness.telemetry.conversation import ConversationLogger
-    from searchos.harness.telemetry.trajectory import ConversationMessage
+    from searchos.harness.telemetry.conversation import ConversationLogger, ConversationMessage
     recorder = ConversationLogger(path.parent.parent.parent / "conversation.json")
     recorder.hydrate()
     recorder.register_sub_agent("orchestrator", "", query, agent_type="local_qa")
@@ -591,9 +591,8 @@ async def launch_local_search(
     max_time: float | None = None,
 ) -> dict[str, str]:
     """Launch a source-locked Local-only answer without creating a web provider."""
-    from searchos.socm import SearchState, WorkspaceManager
-
     from api.assistant.runtime import get_runtime
+    from searchos.socm import SearchState, WorkspaceManager
     await get_runtime().before_replace(session_id)
     workspace = WorkspaceManager(WORKSPACE_ROOT, session_id)
     workspace.create()
@@ -612,7 +611,9 @@ async def launch_local_search(
 
     async def _run() -> None:
         started = time.monotonic()
-        usage = start_tracking()
+        usage = start_tracking(
+            usage_path=workspace.path / settings.output_dir / "llm_usage.jsonl",
+        )
         budget = QABudget()
         _append_trajectory(workspace.trajectory_path, {
             "type": "task_start",

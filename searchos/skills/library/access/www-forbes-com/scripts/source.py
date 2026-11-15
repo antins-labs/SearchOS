@@ -7,6 +7,9 @@ Provides structured access to:
 - Filtering by industry, country, and gender
 - The current year's data (2026 as of this version)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import json
 import re
@@ -76,7 +79,7 @@ async def _get_billionaires_list(
     fields_str = ",".join(fields)
     url = f"{BASE_API_URL}/{year}/position/true.json?fields={fields_str}&limit={limit}&start={offset}"
     
-    async with httpx.AsyncClient(timeout=30.0, headers=HEADERS) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0, headers=HEADERS) as client:
         data = await _fetch_json(client, url)
         
         if "error" in data:
@@ -135,7 +138,7 @@ async def _get_billionaire_profile(uri: str, year: int = 2026) -> Dict[str, Any]
     Returns:
         Dictionary with billionaire profile data
     """
-    async with httpx.AsyncClient(timeout=30.0, headers=HEADERS) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0, headers=HEADERS) as client:
         # Get profile data - the personLists contains most detailed info for the billionaires list
         profile_url = f"{PROFILE_API_URL}/{uri}.json?filter=finalWorth,finalWorthDate,personLists,quote,promotionLink"
         profile_data = await _fetch_json(client, profile_url)
@@ -215,7 +218,7 @@ async def _search_billionaires(
     offset = 0
     page_size = 500
     
-    async with httpx.AsyncClient(timeout=30.0, headers=HEADERS) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0, headers=HEADERS) as client:
         fields_str = "uri,rank,personName,finalWorth,age,countryOfCitizenship,source,industries,organization,gender"
         
         while True:
@@ -327,6 +330,7 @@ async def _get_stats(year: int = 2026) -> Dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Execute Forbes billionaires access skill.

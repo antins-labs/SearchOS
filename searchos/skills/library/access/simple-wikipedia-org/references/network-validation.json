@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "94eab2315a2c27cd4e8a34062f6cd8dcb061d7dcea6a6ad170a1622528877d98",
+  "capabilities": {
+    "get_award_page": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_award_page\", \"title\": \"Grammy_Award_for_Best_Rap_Album\", \"include_html\": false, \"sort\": \"desc\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.858296+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://simple.wikipedia.org/w/api.php",
+          "status": 200
+        }
+      ]
+    },
+    "get_winners": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_winners\", \"title\": \"Grammy_Award_for_Best_Rap_Album\", \"limit\": 3, \"include_html\": false, \"sort\": \"desc\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.858912+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://simple.wikipedia.org/w/api.php",
+          "status": 200
+        }
+      ]
+    },
+    "search_awards": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_awards\", \"query\": \"Grammy Award\", \"include_html\": false, \"sort\": \"desc\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.858995+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://simple.wikipedia.org/w/api.php",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

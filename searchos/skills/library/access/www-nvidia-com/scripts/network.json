@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_by_url": "direct",
+    "fetch_specs": "proxy",
+    "list_key_specs": "direct"
+  },
+  "aliases": {
+    "fetch_specs": "fetch_specs",
+    "list_key_specs": "list_key_specs",
+    "search_by_url": "search_by_url",
+    "run": "search_by_url"
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "0200e602853103222a1c68fe60c2bd87bddda3386a2ac57f24e3c35becd0cf46",
+  "capabilities": {
+    "get_package_metadata": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_package_metadata\", \"package_id\": \"BUDGET-2025-TAB\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.086726+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.govinfo.gov/metadata/pkg/BUDGET-2025-TAB/mods.xml",
+          "status": 200
+        }
+      ]
+    },
+    "get_granule_xlsx": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_granule_xlsx\", \"package_id\": \"BUDGET-2025-TAB\", \"granule_id\": \"BUDGET-2025-TAB-2-1\", \"max_rows\": 50}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.089627+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.govinfo.gov/content/pkg/BUDGET-2025-TAB/xls/BUDGET-2025-TAB-2-1.xlsx",
+          "status": 200
+        }
+      ]
+    },
+    "get_granule_pdf_url": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_granule_pdf_url\", \"package_id\": \"BUDGET-2025-TAB\", \"granule_id\": \"BUDGET-2025-TAB-2-1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.089884+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.govinfo.gov/error",
+          "status": 200
+        }
+      ]
+    },
+    "get_premis_metadata": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_premis_metadata\", \"package_id\": \"BUDGET-2025-TAB\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.090151+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.govinfo.gov/metadata/pkg/BUDGET-2025-TAB/premis.xml",
+          "status": 200
+        }
+      ]
+    },
+    "list_package_contents": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_package_contents\", \"package_id\": \"BUDGET-2025-TAB\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.090274+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.govinfo.gov/metadata/pkg/BUDGET-2025-TAB/mods.xml",
+          "status": 200
+        }
+      ]
+    },
+    "search_budget_tables": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_budget_tables\", \"package_id\": \"BUDGET-2025-TAB\", \"section\": \"1\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.090465+00:00",
+      "reason": "results is empty",
+      "source_responses": [
+        {
+          "url": "https://www.govinfo.gov/metadata/pkg/BUDGET-2025-TAB/mods.xml",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

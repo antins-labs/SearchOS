@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_catalog": "direct",
+    "download_file": "direct",
+    "get_publication": "direct",
+    "get_category_files": "direct",
+    "search_sitemap": "direct",
+    "list_categories": "direct"
+  },
+  "aliases": {
+    "list_categories": "list_categories",
+    "get_category_files": "get_category_files",
+    "get_publication": "get_publication",
+    "download_file": "download_file",
+    "get_catalog": "get_catalog",
+    "search_sitemap": "search_sitemap",
+    "run": "search_sitemap"
+  }
+}

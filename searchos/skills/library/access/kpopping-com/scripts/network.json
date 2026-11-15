@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_company_profile": "direct",
+    "list_companies": "direct",
+    "search_companies": "direct"
+  },
+  "aliases": {
+    "get_company_profile": "get_company_profile",
+    "list_companies": "list_companies",
+    "search_companies": "search_companies",
+    "run": "search_companies"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3a097fee295a89d6979e541a5d78f7f67abce0e0112146a53c9fc59fb0057242",
+  "capabilities": {
+    "list_announcements": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_announcements\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.980400+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.cdtfhr.com/v1/web/exam/announce",
+          "status": 200
+        }
+      ]
+    },
+    "search_announcements": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_announcements\", \"keyword\": \"教师\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.981265+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.cdtfhr.com/v1/web/exam/announce",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

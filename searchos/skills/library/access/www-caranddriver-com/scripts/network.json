@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_vehicle": "direct",
+    "get_specs": "direct",
+    "list_years": "direct",
+    "search": "direct"
+  },
+  "aliases": {
+    "get_vehicle": "get_vehicle",
+    "search": "search",
+    "get_specs": "get_specs",
+    "list_years": "list_years",
+    "run": "list_years"
+  }
+}

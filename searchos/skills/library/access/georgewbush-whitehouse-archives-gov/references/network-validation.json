@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "a7beeaae450ab51f0a233aa1c69cf32ec11008af551e9628c65ebdbb9bdba47b",
+  "capabilities": {
+    "get_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"url\": \"https://georgewbush-whitehouse.archives.gov/news/releases/2007/11/20071121-2.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.656797+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://georgewbush-whitehouse.archives.gov/news/releases/2007/11/20071121-2.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_menu_archive": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_menu_archive\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.663888+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://georgewbush-whitehouse.archives.gov/firstlady/arts-menu-archive.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_menus": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_menus\", \"year\": \"2007\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.664231+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://georgewbush-whitehouse.archives.gov/firstlady/arts-menu-archive.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

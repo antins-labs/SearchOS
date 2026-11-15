@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_publications": "direct",
+    "get_years": "direct",
+    "search_publications": "direct",
+    "get_publication": "direct"
+  },
+  "aliases": {
+    "list_publications": "list_publications",
+    "get_publication": "get_publication",
+    "search_publications": "search_publications",
+    "get_years": "get_years",
+    "run": "get_years"
+  }
+}

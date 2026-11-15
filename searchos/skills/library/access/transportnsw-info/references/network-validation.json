@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1fdf6d3ac14680e2421504f287ca94447ccc5c4570cb7035dfa4e9df6db641bd",
+  "capabilities": {
+    "get_route": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_route\", \"route_number\": \"T6\", \"include_geojson\": true, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.882338+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://transportnsw.info/api/graphql",
+          "status": 200
+        }
+      ]
+    },
+    "search_routes": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_routes\", \"query\": \"Airport\", \"include_geojson\": true, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.883272+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://transportnsw.info/api/graphql",
+          "status": 200
+        }
+      ]
+    },
+    "get_alerts": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_alerts\", \"path\": \"/routes/details/sydney-trains-network/t6/020t6\", \"include_geojson\": true, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.883347+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://transportnsw.info/api/graphql",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -14,22 +14,23 @@ from searchos.socm import FrontierTask, SearchState
 from searchos.socm.failure_memory.memory import record_failure, scope_for_task, source_scope_key
 from searchos.socm.failure_memory.models import FailureMemory, FailureScope
 from searchos.socm.failure_memory.projection import render_failure_memory
-from tests.test_socm_persistence import graph_for, snapshots, turn
+from searchos.socm.refs import cell_key, row_key
+from tests.test_socm_persistence import graph_for, snapshots, system_text, turn
 
 
 def task_state(*, schema=True):
     state = SearchState()
     if schema:
         state.coverage_map.add_table(
-            "t", ["Name", "Value"], primary_key=["Name"], entities=["A", "B"]
+            "t", ["Name", "Value"], primary_key=["Name"], entities=[row_key(["A"]), row_key(["B"])]
         )
         state.coverage_map.add_table(
-            "other", ["Name", "Value"], primary_key=["Name"], entities=["A"]
+            "other", ["Name", "Value"], primary_key=["Name"], entities=[row_key(["A"])]
         )
     state.frontier.add(
         FrontierTask(
             id="current", question="Find A", assigned_agent_id="reader", status="running",
-            table_id="t" if schema else "", target_cells=["t/A.Value"] if schema else [],
+            table_id="t" if schema else "", target_cells=[cell_key("t", row_key(["A"]), "Value")] if schema else [],
         )
     )
     return state
@@ -55,7 +56,7 @@ async def test_new_failure_reaches_next_model_call_and_reuses_checkpoint_message
     graph, model = graph_for(ws, checkpointer=checkpoint)
     _, writes = await turn(graph)
     assert len(writes) == 1
-    assert "Search failure memory" not in writes[0].content
+    assert "Failure memory" not in writes[0].content
 
     stored = record_failure(
         ws,
@@ -67,17 +68,18 @@ async def test_new_failure_reaches_next_model_call_and_reuses_checkpoint_message
     history, writes = await turn(graph)
     assert len(writes) == len(snapshots(history)) == 1
     assert writes[0].id == "socm-current"
-    assert "failed exact query" in snapshots(model.received[-1])[0].content
+    assert "failed exact query" in system_text(model.received[-1])
 
     restored_ws = InMemoryEvidenceStore(SearchState.model_validate_json(ws.state.model_dump_json()))
     graph, model = graph_for(restored_ws, checkpointer=checkpoint)
     history, writes = await turn(graph)
     assert not writes
-    assert len(snapshots(history)) == len(snapshots(model.received[-1])) == 1
+    assert len(snapshots(history)) == 1
+    assert system_text(model.received[-1]).count(snapshots(history)[0].content) == 1
     assert "sf_context_changed" not in snapshots(history)[0].additional_kwargs
 
     remember(restored_ws.state, target="unrelated B query", scope=FailureScope(
-        table_id="t", target_cells=["t/B.Value"],
+        table_id="t", target_cells=[cell_key("t", row_key(["B"]), "Value")],
         source_scope_key=source_scope_key(restored_ws.state.source_scope),
     ))
     _, writes = await turn(graph)
@@ -118,19 +120,19 @@ def test_cell_and_entity_matches_preserve_table_and_exact_names():
     state = task_state()
     permission = source_scope_key(state.source_scope)
     remember(state, target="matching short cell", scope=FailureScope(
-        table_id="t", target_cells=["A.Value"], source_scope_key=permission,
+        table_id="t", target_cells=[cell_key("t", row_key(["A"]), "Value")], source_scope_key=permission,
     ))
     remember(state, target="wrong table", scope=FailureScope(
-        table_id="other", target_cells=["other/A.Value"], source_scope_key=permission,
+        table_id="other", target_cells=[cell_key("other", row_key(["A"]), "Value")], source_scope_key=permission,
     ))
     remember(state, target="wrong cell", scope=FailureScope(
-        table_id="t", target_cells=["t/B.Value"], source_scope_key=permission,
+        table_id="t", target_cells=[cell_key("t", row_key(["B"]), "Value")], source_scope_key=permission,
     ))
     remember(state, kind="path", target="matching entity", scope=FailureScope(
-        table_id="t", entities=["A"], source_scope_key=permission,
+        table_id="t", entities=[row_key(["A"])], source_scope_key=permission,
     ))
     remember(state, kind="path", target="entity substring", scope=FailureScope(
-        table_id="t", entities=["Find A"], source_scope_key=permission,
+        table_id="t", entities=[row_key(["Find A"])], source_scope_key=permission,
     ))
     text = project(state)
     assert "matching short cell" in text and "matching entity" in text
@@ -155,7 +157,7 @@ def test_relevant_failure_can_trigger_projection_without_schema(view):
         SimpleNamespace(load_state=lambda: state),
         task=TaskContext(agent_id="reader", task_id="current"), view=view,
     )
-    assert "Search failure memory" in middleware.render()
+    assert "Failure memory:" in middleware.render()
     assert "metadata route" in middleware.render()
 
 
@@ -185,7 +187,7 @@ def test_overview_aggregates_and_writer_hides_query_trace():
     remember(state, kind="skill", target="parser capability")
     remember(state, kind="path", target="current ranking route")
     remember(state, kind="path", target="other table route", scope=FailureScope(
-        table_id="other", target_cells=["other/A.Value"],
+        table_id="other", target_cells=[cell_key("other", row_key(["A"]), "Value")],
         source_scope_key=source_scope_key(state.source_scope),
     ))
     overview = render_failure_memory(state, view="overview")
@@ -205,7 +207,7 @@ def test_post_mortem_inference_keeps_record_confidence_without_guidance(view):
     text = project(state, view=view)
 
     assert "post_mortem inference; confidence=low" in text
-    assert "observed limits" not in text and "Conditional guidance" not in text
+    assert "observed limits" not in text and "Guidance:" not in text
 
 
 def test_writer_keeps_source_object_access_conditions_and_skill_version_without_query_trace():
@@ -213,6 +215,7 @@ def test_writer_keeps_source_object_access_conditions_and_skill_version_without_
     remember(
         state, kind="source", target="https://example.org/archive", confidence="high",
         operation=json.dumps(["open", {"url": "https://example.org/archive", "loc": 10}]),
+        guidance="Use the annual report for this period.",
     )
     remember(
         state, kind="source", target="https://example.org/annual", source="post_mortem",
@@ -239,3 +242,7 @@ def test_writer_keeps_source_object_access_conditions_and_skill_version_without_
     assert "post_mortem inference; confidence=low" in text
     assert "raw source search trace" not in text
     assert "raw skill query trace" not in text and "raw path query trace" not in text
+    assert "Use the annual report for this period." not in text
+    task_view = project(state)
+    assert "Guidance: Use the annual report for this period." in task_view
+    assert "Conditional guidance" not in task_view

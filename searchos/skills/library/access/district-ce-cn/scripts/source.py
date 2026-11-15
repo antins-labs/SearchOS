@@ -2,6 +2,9 @@
 SearchOS access skill for district.ce.cn - Local Party and Government Leadership Database
 Fetches official biographical articles and leadership database tables from the China Economic Net.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -452,6 +455,7 @@ async def search_news(params: dict, session: aiohttp.ClientSession) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the SearchOS skill.
@@ -472,7 +476,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             'available_functions': ['fetch_article', 'fetch_leadership_db', 'detect_page_type']
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'fetch_article':
             return await fetch_article(params, session)
         elif function == 'fetch_leadership_db':

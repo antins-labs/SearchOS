@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_sites": "direct",
+    "search_sites": "direct",
+    "get_country_stats": "direct",
+    "get_statistics": "direct",
+    "get_site": "direct"
+  },
+  "aliases": {
+    "list_sites": "list_sites",
+    "get_site": "get_site",
+    "get_country_stats": "get_country_stats",
+    "get_statistics": "get_statistics",
+    "search_sites": "search_sites",
+    "run": "search_sites"
+  }
+}

@@ -15,6 +15,9 @@ The skill extracts:
 - Availability
 - Product images
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -22,6 +25,7 @@ import re
 from typing import Any
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Kroger product page access.
@@ -124,7 +128,7 @@ async def fetch_product_page(url: str) -> dict[str, Any]:
     from playwright.async_api import async_playwright
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
+        browser = await _skill_network.browser_launch(p.chromium, 
             headless=True,
             args=[
                 '--disable-blink-features=AutomationControlled',
@@ -136,7 +140,7 @@ async def fetch_product_page(url: str) -> dict[str, Any]:
         
         try:
             # Create context with realistic browser fingerprint
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 locale='en-US',
                 viewport={'width': 1920, 'height': 1080},
@@ -167,7 +171,7 @@ async def fetch_product_page(url: str) -> dict[str, Any]:
                 });
             """)
             
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Set extra headers
             await page.set_extra_http_headers({
@@ -371,7 +375,7 @@ async def fetch_search_results(url: str, query: str) -> dict[str, Any]:
     from playwright.async_api import async_playwright
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
+        browser = await _skill_network.browser_launch(p.chromium, 
             headless=True,
             args=[
                 '--disable-blink-features=AutomationControlled',
@@ -380,7 +384,7 @@ async def fetch_search_results(url: str, query: str) -> dict[str, Any]:
         )
         
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 locale='en-US',
                 viewport={'width': 1920, 'height': 1080},
@@ -392,7 +396,7 @@ async def fetch_search_results(url: str, query: str) -> dict[str, Any]:
                 Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
             """)
             
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             response = await page.goto(url, wait_until='domcontentloaded', timeout=60000)
             

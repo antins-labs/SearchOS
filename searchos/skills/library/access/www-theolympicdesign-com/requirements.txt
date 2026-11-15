@@ -1,2 +1,2 @@
-aiohttp
+aiohttp>=3.12
 beautifulsoup4

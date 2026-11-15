@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_items": "inherit",
+    "get_item_specs": "inherit",
+    "get_item_overview": "inherit"
+  },
+  "aliases": {
+    "get_item_specs": "get_item_specs",
+    "get_item_overview": "get_item_overview",
+    "search_items": "search_items",
+    "run": "search_items"
+  }
+}

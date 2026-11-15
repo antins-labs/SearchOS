@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3347169d43ca3a788b4526a4472fcfb1f5861a03d1975159158458236de647f5",
+  "capabilities": {
+    "get_athlete_profile": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_athlete_profile\", \"athlete_slug\": \"usain-bolt\", \"language\": \"en\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.437021+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search_athletes": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_athletes\", \"query\": \"bolt\", \"limit\": 3, \"language\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.439784+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "list_athletes_by_country": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_athletes_by_country\", \"country_code\": \"JAM\", \"limit\": 3, \"language\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.439988+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

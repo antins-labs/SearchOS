@@ -1,0 +1,312 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1494347339b7cdaba7d190c75dbb37c717aac0145230864d4077c692816ae669",
+  "capabilities": {
+    "get_character": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_character\", \"character\": \"verse\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.776280+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/characters/verse.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/slick.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/reset.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/animate.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/slick-theme.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/colorbox.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/bootstrap.css",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/earlyaccess/notosansjapanese.css",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/teamstory/css/ts_style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/js/jquery.bgswitcher.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/lightbox.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/js/jquery.pjax.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/jquery.simpleTicker.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/style_sub.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/__utm.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/js/libs.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/img/la_01.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/cio.css",
+          "status": 200
+        }
+      ]
+    },
+    "get_team": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_team\", \"team\": \"japan\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.779875+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/teams/japan.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/reset.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/animate.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/lightbox.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/colorbox.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/slick-theme.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/bootstrap.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/jquery.simpleTicker.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/slick.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/style_sub.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/js/libs.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/img/loading2.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/cio.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/img/la_01.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/teamstory/css/ts_style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/js/jquery.bgswitcher.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/__utm.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/js/jquery.pjax.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/img/la_02.png",
+          "status": 200
+        }
+      ]
+    },
+    "list_teams": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_teams\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.780443+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-snk-corp-co-jp/scripts/source.py",
+        "line": 289,
+        "end_line": 302,
+        "implementation": "list_teams",
+        "source_sha256": "b2f4bb4bbd438515e6c9a4ecde84ee0550500c592691d99665152fcea12a94af",
+        "implementation_sha256": "fdb8cc0c3d5ffa92480e1898e5db88fcf97b834bbeee22bf02a360667beb2d46"
+      }
+    },
+    "get_story": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_story\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.780824+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/story/",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/reset.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/animate.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/lightbox.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/colorbox.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/bootstrap.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/slick-theme.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/jquery.simpleTicker.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/slick.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/teamstory/css/ts_style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/js/libs.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/cio.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/css/style_sub.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/img/loading2.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/img/la_01.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/js/jquery.bgswitcher.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/__utm.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.snk-corp.co.jp/us/games/kof-xiv/common/js/jquery.pjax.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

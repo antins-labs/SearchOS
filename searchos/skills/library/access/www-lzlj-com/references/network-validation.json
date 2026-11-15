@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3dc5c9ff1b25c525aa53e2b576ae70183abb1c75de0d8d942d71f27ba44313f8",
+  "capabilities": {
+    "list_brands": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_brands\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.167720+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.lzlj.com/brand/",
+          "status": 200
+        }
+      ]
+    },
+    "list_products": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_products\", \"brand_slug\": \"1573\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.168717+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.lzlj.com/brand/1573/",
+          "status": 200
+        }
+      ]
+    },
+    "get_product_detail": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_product_detail\", \"product_url\": \"http://www.lzlj.com/brand/1573/3742.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.168952+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.lzlj.com/brand/1573/3742.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

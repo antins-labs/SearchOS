@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_teams": "direct",
+    "search": "direct",
+    "get_characters": "direct",
+    "get_page": "direct",
+    "get_character": "direct",
+    "get_team": "direct",
+    "get_bosses": "direct"
+  },
+  "aliases": {
+    "get_bosses": "get_bosses",
+    "get_character": "get_character",
+    "get_characters": "get_characters",
+    "get_teams": "get_teams",
+    "get_team": "get_team",
+    "search": "search",
+    "get_page": "get_page",
+    "run": "get_page"
+  }
+}

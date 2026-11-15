@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e0eeb051a75033bac0462ef88d6db468fa6c65a34f3a28bd483b85eaa1388a60",
+  "capabilities": {
+    "get_yearly_box_office": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_yearly_box_office\", \"year\": 2024, \"count\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.964473+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.boxofficemojo.com/year/2024/",
+          "status": 200
+        }
+      ]
+    },
+    "list_top_movies": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_top_movies\", \"year\": 2023, \"count\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.965733+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.boxofficemojo.com/year/2023/",
+          "status": 200
+        }
+      ]
+    },
+    "get_movie_details": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_movie_details\", \"release_id\": \"rl3638199041\", \"count\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.966012+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.boxofficemojo.com/release/rl3638199041/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

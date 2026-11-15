@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5480d562135ea28ab1b9b0235510fdb9c4c1c68a464dbf53942ba2a4342d9021",
+  "capabilities": {
+    "extract_profile": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_profile\", \"url\": \"https://www.cnn.com/2017/12/17/world/amy-wright-2017-cnn-hero-of-the-year\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.989108+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://edition.cnn.com/2017/12/17/world/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "extract_profiles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_profiles\", \"urls\": [\"https://www.cnn.com/2015/11/17/world/cnn-hero-of-the-year-2015\", \"https://www.cnn.com/2017/12/17/world/amy-wright-2017-cnn-hero-of-the-year\"]}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.989899+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://edition.cnn.com/2015/11/17/world/cnn-hero-of-the-year-2015",
+          "status": 200
+        },
+        {
+          "url": "https://edition.cnn.com/2017/12/17/world/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "check_urls": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"check_urls\", \"urls\": [\"https://www.cnn.com/2017/12/17/world/amy-wright-2017-cnn-hero-of-the-year\"]}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.993809+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.cnn.com/2017/12/17/world/[redacted]",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

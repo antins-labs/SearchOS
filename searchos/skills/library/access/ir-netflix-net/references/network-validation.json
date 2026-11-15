@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3b7d43556db9f4f413883a4105c2bbd242dc8ed4bc24da6987a9918935ca3f43",
+  "capabilities": {
+    "get_sec_filings_years": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sec_filings_years\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.725080+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ir.netflix.net/feed/SECFiling.svc/GetEdgarFilingYearList",
+          "status": 200
+        }
+      ]
+    },
+    "get_sec_filings": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sec_filings\", \"year\": 2024}"
+      ],
+      "checked_at": "2026-10-23T07:18:59.847897+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ir.netflix.net/feed/SECFiling.svc/GetEdgarFilingList",
+          "status": 200
+        }
+      ]
+    },
+    "get_event_years": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_event_years\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:28.541349+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ir.netflix.net/feed/Event.svc/GetEventYearList",
+          "status": 200
+        }
+      ]
+    },
+    "get_annual_reports": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_annual_reports\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:28.652747+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ir.netflix.net/feed/Event.svc/GetEventList",
+          "status": 200
+        }
+      ]
+    },
+    "search_filings": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_filings\", \"query\": \"insider\", \"year\": 2024}"
+      ],
+      "checked_at": "2026-10-23T07:23:28.653627+00:00",
+      "reason": "Request failed: Page.goto: net::ERR_EMPTY_RESPONSE at https://ir.netflix.net/feed/SECFiling.svc/GetEdgarFilingList?apiKey=BF185719B0464B3CB809D23926182246&LanguageId=1&exchange=CIK&symbol=0001065280&formGroupIdList=&excludeNoDocuments=true&pageSize=-1&pageNumber=0&tagList=&includeTags=true&year=2024&excludeSelection=1\nCall log:\n  - navigating to \"https://ir.netflix.net/feed/SECFiling.svc/GetEdgarFilingList?apiKey=BF185719B0464B3CB809D23926182246&LanguageId=1&exchange=CIK&symbol=0001065280&formGroupIdList=&excludeNoDocuments=true&pageSize=-1&pageNumber=0&tagList=&includeTags=true&year=2024&excludeSelection=1\", waiting until \"networkidle\"\n",
+      "source_responses": []
+    }
+  }
+}

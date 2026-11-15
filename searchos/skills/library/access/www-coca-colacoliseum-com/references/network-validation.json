@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "090ddb09f0d66c9e20cbba9713d8cf22a96c225024ab87f6ed3e4f6e0bab54d2",
+  "capabilities": {
+    "get_events": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_events\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.997633+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.coca-colacoliseum.com/events",
+          "status": 200
+        }
+      ]
+    },
+    "get_event_detail": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_event_detail\", \"url\": \"https://www.coca-colacoliseum.com/events/detail/gem-1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.999516+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.coca-colacoliseum.com/events/detail/gem-1",
+          "status": 200
+        }
+      ]
+    },
+    "search_events": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_events\", \"query\": \"tempo\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.999593+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.coca-colacoliseum.com/events",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

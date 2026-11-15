@@ -1,0 +1,189 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "378c45cc4c41c9e379dd20ba4752cc8a96fc49a8caaa1ec0a4e3188ab040b5de",
+  "capabilities": {
+    "scrape": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"scrape\", \"url\": \"https://www.usgs.gov/geology-and-ecology-of-national-parks/geology-congaree-national-park\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.086652+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.usgs.gov/[redacted]/geology-congaree-national-park",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"landslides California\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.089070+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.usgs.gov/search",
+          "status": 302
+        },
+        {
+          "url": "https://www.usgs.gov/search",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/core/assets/vendor/jquery.ui/themes/base/core.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/core/assets/vendor/jquery.ui/themes/base/controlgroup.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/core/assets/vendor/jquery.ui/themes/base/checkboxradio.css",
+          "status": 200
+        },
+        {
+          "url": "https://use.fontawesome.com/releases/v6.5.1/css/all.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/core/assets/vendor/jquery.ui/themes/base/resizable.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/core/modules/system/css/components/align.module.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/core/assets/vendor/jquery.ui/themes/base/dialog.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/core/assets/vendor/jquery.ui/themes/base/button.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/core/modules/system/css/components/container-inline.module.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/core/modules/system/css/components/clearfix.module.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/core/modules/system/css/components/js.module.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/core/modules/system/css/components/hidden.module.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/core/misc/components/ajax-progress.module.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/core/misc/components/progress.module.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/core/modules/ckeditor5/css/ckeditor5.dialog.fix.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/modules/contrib/jquery_ui/assets/vendor/jquery.ui/themes/base/core.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/modules/contrib/jquery_ui/assets/vendor/jquery.ui/themes/base/tabs.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.usgs.gov/modules/contrib/responsive_table_filter/css/responsive-table-filter.css",
+          "status": 200
+        }
+      ]
+    },
+    "get_park_geology": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_park_geology\", \"park_name\": \"Congaree\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.089264+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.usgs.gov/[redacted]/geology-congaree-national-park",
+          "status": 405
+        },
+        {
+          "url": "https://207195cb9010.8961569e.eu-central-1.captcha.awswaf.com/207195cb9010/c36cc4a6b8db/73c95d3f14b3/captcha.js",
+          "status": 200
+        },
+        {
+          "url": "https://207195cb9010.8961569e.eu-central-1.token.awswaf.com/207195cb9010/c36cc4a6b8db/73c95d3f14b3/challenge.js",
+          "status": 200
+        },
+        {
+          "url": "https://207195cb9010.8961569e.eu-central-1.token.awswaf.com/207195cb9010/c36cc4a6b8db/73c95d3f14b3/mp_verify",
+          "status": 200
+        }
+      ]
+    },
+    "get_volcano_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_volcano_info\", \"volcano_name\": \"Kilauea\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.089512+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.usgs.gov/volcanoes/kilauea",
+          "status": 405
+        },
+        {
+          "url": "https://207195cb9010.8961569e.eu-central-1.captcha.awswaf.com/207195cb9010/c36cc4a6b8db/73c95d3f14b3/captcha.js",
+          "status": 200
+        },
+        {
+          "url": "https://207195cb9010.8961569e.eu-central-1.token.awswaf.com/207195cb9010/c36cc4a6b8db/73c95d3f14b3/challenge.js",
+          "status": 200
+        },
+        {
+          "url": "https://207195cb9010.8961569e.eu-central-1.token.awswaf.com/207195cb9010/c36cc4a6b8db/73c95d3f14b3/mp_verify",
+          "status": 200
+        },
+        {
+          "url": "https://207195cb9010.8961569e.eu-central-1.token.awswaf.com/207195cb9010/c36cc4a6b8db/73c95d3f14b3/telemetry",
+          "status": 200
+        },
+        {
+          "url": "https://static.captcha.awswaf.com/fonts/AmazonEmberLt/stylesheet.css",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

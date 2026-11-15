@@ -5,6 +5,9 @@ Extracts patch notes, DLC details, and game information from www.totalwar.com.
 The site uses Next.js with streaming SSR and Vercel security checkpoint.
 Direct HTTP requests successfully retrieve the embedded content.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -16,7 +19,7 @@ from urllib.parse import urljoin, urlparse
 
 async def fetch_page(url: str, headers: dict) -> tuple[int, str]:
     """Fetch page content via HTTP"""
-    async with aiohttp.ClientSession(headers=headers) as session:
+    async with _skill_network.aiohttp_session(headers=headers) as session:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as resp:
             return resp.status, await resp.text()
 
@@ -345,6 +348,7 @@ async def get_game_info(url: str) -> dict:
     return parse_game_page(html, content)
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Total War site access skill.

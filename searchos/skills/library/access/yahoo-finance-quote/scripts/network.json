@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "quote": "proxy",
+    "history": "inherit"
+  },
+  "aliases": {
+    "quote": "quote",
+    "history": "history"
+  }
+}

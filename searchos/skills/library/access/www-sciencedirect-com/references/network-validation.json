@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "79462f19349ba7ed53695db357b4556f0e134ae79f625db6eff1077fa6690ea8",
+  "capabilities": {
+    "get_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"doi\": \"10.1016/j.tust.2021.104281\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.242243+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://api.openalex.org/works/https://doi.org/10.1016/j.tust.2021.104281",
+          "status": 200
+        },
+        {
+          "url": "https://api.semanticscholar.org/graph/v1/paper/DOI:10.1016/j.tust.2021.104281",
+          "status": 200
+        },
+        {
+          "url": "https://api.crossref.org/works/10.1016/j.tust.2021.104281",
+          "status": 200
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"query\": \"tunnelling Hong Kong\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.243282+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.openalex.org/works",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

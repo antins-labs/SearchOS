@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7d511295803090ef52c7300d41835a15ec86360cc252152e10a5a7f002fcb3f1",
+  "capabilities": {
+    "search": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"告白气球\", \"page\": 1, \"page_size\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.413919+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://shc.y.qq.com/soso/fcgi-bin/search_for_qq_cp",
+          "status": 200
+        }
+      ]
+    },
+    "get_detail": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_detail\", \"song_mid\": \"003OUlho2HcRHC\", \"page\": 1, \"page_size\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.414431+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://c6.y.qq.com/v8/fcg-bin/fcg_play_single_song.fcg",
+          "status": 200
+        }
+      ]
+    },
+    "get_lyrics": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_lyrics\", \"song_mid\": \"003OUlho2HcRHC\", \"page\": 1, \"page_size\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.414488+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

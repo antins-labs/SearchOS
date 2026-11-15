@@ -1,5 +1,8 @@
 "use client";
 
+import { cellKey, rowKey } from "@/lib/socmRefs";
+
+
 import { useState, useEffect, useCallback, useRef, useMemo, type CSSProperties } from "react";
 import { Activity, Database, History, Menu, MessageSquare, Plus, Settings2, X } from "lucide-react";
 import useDialogFocus from "@/hooks/useDialogFocus";
@@ -8,7 +11,7 @@ import { useSearch } from "@/hooks/useSearch";
 import { useLocalLibrary } from "@/hooks/useLocalLibrary";
 import { useLiveFollowUps } from "@/hooks/useLiveFollowUps";
 import { branchHistoryTurn, getWorkspaceFiles, listHistory, loadHistory, updateHistoryAssets, deleteHistory, resolveEvidence, stopSearch, type HistoryAssetPatch, type HistoryItem, type HistoryTurn } from "@/lib/api";
-import { deriveAnswer, foldWorkers } from "@/lib/derive";
+import { deriveAnswer, foldWorkers } from "@/lib/runState";
 import type { FileNode, RepairCellTarget, SearchState, SourceSelection, WSEvent } from "@/lib/types";
 import { sourceSelectionForTurn } from "@/lib/sourceSelection";
 import {
@@ -239,7 +242,7 @@ export default function ResearchWorkspace({ mobile = false }: { mobile?: boolean
         : [];
       const history = followUpTo
         ? sessionTurns
-            .map((t) => ({ query: t.query, answer: t.answer }))
+            .map((t) => ({ query: t.query, answer: t.answer, steers: t.followUps ?? [] }))
         : undefined;
 
       const id = `t${++turnSeq}`;
@@ -291,7 +294,7 @@ export default function ResearchWorkspace({ mobile = false }: { mobile?: boolean
   const handleRepair = useCallback((sourceTurn: Turn, cells: RepairCellTarget[]) => {
     if (sessionActive || !sourceTurn.sessionId || !sourceTurn.searchState || cells.length === 0) return;
     const snapshots = cells.flatMap((cell) => {
-      const key = `${cell.table_id}/${cell.entity}.${cell.attribute}`;
+      const key = cellKey(cell.table_id, rowKey(cell.key), cell.attribute);
       const before = sourceTurn.searchState?.coverage_map.cells[key];
       return before ? [{ ...cell, before: { status: before.status, value: before.value } }] : [];
     });
@@ -328,11 +331,11 @@ export default function ResearchWorkspace({ mobile = false }: { mobile?: boolean
 
     const history = turns
       .filter((item) => item.status === "completed")
-      .map((item) => ({ query: item.query, answer: item.answer }));
+      .map((item) => ({ query: item.query, answer: item.answer, steers: item.followUps ?? [] }));
     void repair(
       sourceTurn.sessionId,
       {
-        cells: snapshots.map(({ table_id, entity, attribute }) => ({ table_id, entity, attribute })),
+        cells: snapshots.map(({ table_id, key, attribute }) => ({ table_id, key, attribute })),
         effort: overrides.effort,
         max_time: overrides.max_time,
         skills: overrides.skills,
@@ -469,6 +472,7 @@ export default function ResearchWorkspace({ mobile = false }: { mobile?: boolean
           const segEvents = segments[i] ?? [];
           const turnRunning = i === last && isRunning;
           const runState = restoredRunState(i === last ? data.status : "completed");
+          const supportedState = h.search_state?.format_version === 2 ? h.search_state : null;
           return {
             id: i === last ? data.session_id : `${data.session_id}#${i}`,
             query: h.query || data.query,
@@ -477,8 +481,9 @@ export default function ResearchWorkspace({ mobile = false }: { mobile?: boolean
             status: runState.status,
             events: segEvents,
             workers: foldWorkers(segEvents, !turnRunning, runState.status === "error" ? "error" : "completed"),
-            searchState: h.search_state,
-            stateSource: turnRunning ? "live" : h.state_source,
+            searchState: supportedState,
+            sources: sourceSelectionForTurn({ searchState: h.search_state }),
+            stateSource: supportedState ? (turnRunning ? "live" : h.state_source) : "unavailable",
             sourceMode: h.search_state?.source_scope?.mode ?? (segEvents.some((event) => (
               event.type === "trajectory"
               && (event.data as Record<string, unknown> | undefined)?.source_mode === "local"

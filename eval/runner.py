@@ -525,7 +525,7 @@ async def run_benchmark(
     if is_qa:
         from searchos.config.models import resolve_profile
         profile = resolve_profile("judge")
-        qa_config = {"research_mode": "findings", "judge_model": profile.model,
+        qa_config = {"judge_model": profile.model,
                      "judge_provider": profile.provider, "judge_timeout_s": 120}
 
     def _factory(per_question_root: str) -> SearchSession:
@@ -538,7 +538,6 @@ async def run_benchmark(
             skill_library_path="searchos/skills/library",
             skip_synthesis=True,
             run_config=eval_run_config,
-            research_mode="findings" if is_qa else "table",
         )
 
     tasks = [

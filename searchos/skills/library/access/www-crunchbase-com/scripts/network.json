@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_organization": "direct",
+    "get_person": "direct"
+  },
+  "aliases": {
+    "get_person": "get_person",
+    "get_organization": "get_organization",
+    "run": "get_organization"
+  }
+}

@@ -10,6 +10,9 @@ List types: managers, owners, builders
 The data is server-side rendered HTML, so we use direct HTTP requests with BeautifulSoup
 for efficient extraction.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -194,7 +197,7 @@ async def get_rankings(
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
         }
-        session = aiohttp.ClientSession(headers=headers)
+        session = _skill_network.aiohttp_session(headers=headers)
     
     try:
         html, error = await fetch_page(session, url)
@@ -265,7 +268,7 @@ async def search_companies(
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         }
-        session = aiohttp.ClientSession(headers=headers)
+        session = _skill_network.aiohttp_session(headers=headers)
     
     try:
         # Determine which lists to search
@@ -321,7 +324,7 @@ async def get_company_details(
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         }
-        session = aiohttp.ClientSession(headers=headers)
+        session = _skill_network.aiohttp_session(headers=headers)
     
     try:
         company_data = {
@@ -378,7 +381,7 @@ async def get_list_info(session: aiohttp.ClientSession | None = None) -> dict[st
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         }
-        session = aiohttp.ClientSession(headers=headers)
+        session = _skill_network.aiohttp_session(headers=headers)
     
     try:
         available = {}
@@ -407,6 +410,7 @@ async def get_list_info(session: aiohttp.ClientSession | None = None) -> dict[st
             await session.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the skill.

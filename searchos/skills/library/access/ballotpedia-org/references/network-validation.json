@@ -1,0 +1,345 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "9fcafdf68b5e146dfd1cbcfee36c2ca86b2643e3366068b2da983f0788289e65",
+  "capabilities": {
+    "person": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"url\": \"https://ballotpedia.org/Mick_Mulvaney\", \"function\": \"person\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.984404+00:00",
+      "reason": "No person infobox found",
+      "source_responses": [
+        {
+          "url": "https://ballotpedia.org/Mick_Mulvaney",
+          "status": 202
+        },
+        {
+          "url": "https://68fb4f98879c.4f5a34d4.us-west-1.token.awswaf.com/68fb4f98879c/3718eb346831/74430e3f1f2d/challenge.js",
+          "status": 200
+        },
+        {
+          "url": "https://68fb4f98879c.4f5a34d4.us-west-1.token.awswaf.com/68fb4f98879c/3718eb346831/74430e3f1f2d/inputs",
+          "status": 200
+        },
+        {
+          "url": "https://68fb4f98879c.4f5a34d4.us-west-1.token.awswaf.com/68fb4f98879c/3718eb346831/74430e3f1f2d/mp_verify",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/Mick_Mulvaney",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/freestar-ad-shield.js",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/SB-promo-header.css",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/freestar-ad-block.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        }
+      ]
+    },
+    "office": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"url\": \"https://ballotpedia.org/Donald_Trump_presidential_Cabinet,_2017-2021\", \"function\": \"office\"}"
+      ],
+      "checked_at": "2026-10-23T07:18:58.222657+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ballotpedia.org/Donald_Trump_presidential_Cabinet,_2017-2021",
+          "status": 202
+        },
+        {
+          "url": "https://68fb4f98879c.ad9a0bc3.eu-central-1.token.awswaf.com/68fb4f98879c/3718eb346831/74430e3f1f2d/challenge.js",
+          "status": 200
+        },
+        {
+          "url": "https://68fb4f98879c.ad9a0bc3.eu-central-1.token.awswaf.com/68fb4f98879c/3718eb346831/74430e3f1f2d/inputs",
+          "status": 200
+        },
+        {
+          "url": "https://68fb4f98879c.ad9a0bc3.eu-central-1.token.awswaf.com/68fb4f98879c/3718eb346831/74430e3f1f2d/mp_verify",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/Donald_Trump_presidential_Cabinet,_2017-2021",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/SB-promo-header.css",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/freestar-ad-block.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/freestar-ad-shield.js",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/skins/BallotpediaBootstrap/images/bp-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://a.pub.network/ballotpedia-org/cls.css",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/img_auth.php/thumb/5/5e/US-WhiteHouse-Logo.svg/250px-US-WhiteHouse-Logo.svg.png",
+          "status": 403
+        },
+        {
+          "url": "https://ssl.google-analytics.com/ga.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/librefranklin/v20/jizBREVItHgc8qDIbSTKq4XkRiUa6zUTjg.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/librefranklin/v20/jizDREVItHgc8qDIbSTKq4XkRiUf2zc.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/skins/BallotpediaBootstrap/awesome/webfonts/fa-brands-400.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/skins/BallotpediaBootstrap/bootstrap/fonts/glyphicons-halflings-regular.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/skins/BallotpediaBootstrap/awesome/webfonts/fa-solid-900.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://config.config-factory.com/ballotpedia-org.json",
+          "status": 200
+        }
+      ]
+    },
+    "election": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"election\", \"url\": \"https://ballotpedia.org/Mick_Mulvaney\"}"
+      ],
+      "checked_at": "2026-10-23T07:35:11.178728+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ballotpedia.org/Mick_Mulvaney",
+          "status": 202
+        },
+        {
+          "url": "https://68fb4f98879c.ad9a0bc3.eu-central-1.token.awswaf.com/68fb4f98879c/3718eb346831/74430e3f1f2d/challenge.js",
+          "status": 200
+        },
+        {
+          "url": "https://68fb4f98879c.ad9a0bc3.eu-central-1.token.awswaf.com/68fb4f98879c/3718eb346831/74430e3f1f2d/inputs",
+          "status": 200
+        },
+        {
+          "url": "https://68fb4f98879c.ad9a0bc3.eu-central-1.token.awswaf.com/68fb4f98879c/3718eb346831/74430e3f1f2d/mp_verify",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/Mick_Mulvaney",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/SB-promo-header.css",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/freestar-ad-block.js",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/freestar-ad-shield.js",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/skins/BallotpediaBootstrap/images/bp-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://a.pub.network/ballotpedia-org/cls.css",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.google-analytics.com/ga.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/librefranklin/v20/jizDREVItHgc8qDIbSTKq4XkRiUf2zc.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/librefranklin/v20/jizBREVItHgc8qDIbSTKq4XkRiUa6zUTjg.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/skins/BallotpediaBootstrap/bootstrap/fonts/glyphicons-halflings-regular.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ballotpedia.org/images/thumb/0/0c/BP-Initials-UPDATED.png/40px-BP-Initials-UPDATED.png",
+          "status": 200
+        },
+        {
+          "url": "https://config.config-factory.com/ballotpedia-org.json",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/skins/BallotpediaBootstrap/awesome/webfonts/fa-solid-900.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/skins/BallotpediaBootstrap/awesome/webfonts/fa-brands-400.woff2",
+          "status": 200
+        }
+      ]
+    },
+    "page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"page\", \"url\": \"https://ballotpedia.org/Alex_Azar\"}"
+      ],
+      "checked_at": "2026-10-23T07:39:54.672140+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ballotpedia.org/Alex_Azar",
+          "status": 202
+        },
+        {
+          "url": "https://68fb4f98879c.ad9a0bc3.eu-central-1.token.awswaf.com/68fb4f98879c/3718eb346831/74430e3f1f2d/challenge.js",
+          "status": 200
+        },
+        {
+          "url": "https://68fb4f98879c.ad9a0bc3.eu-central-1.token.awswaf.com/68fb4f98879c/3718eb346831/74430e3f1f2d/inputs",
+          "status": 200
+        },
+        {
+          "url": "https://68fb4f98879c.ad9a0bc3.eu-central-1.token.awswaf.com/68fb4f98879c/3718eb346831/74430e3f1f2d/mp_verify",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/Alex_Azar",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/SB-promo-header.css",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/freestar-ad-shield.js",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/freestar-ad-block.js",
+          "status": 200
+        },
+        {
+          "url": "https://a.pub.network/ballotpedia-org/cls.css",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/skins/BallotpediaBootstrap/images/bp-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.google-analytics.com/ga.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/librefranklin/v20/jizDREVItHgc8qDIbSTKq4XkRiUf2zc.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/librefranklin/v20/jizBREVItHgc8qDIbSTKq4XkRiUa6zUTjg.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/skins/BallotpediaBootstrap/awesome/webfonts/fa-brands-400.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/skins/BallotpediaBootstrap/bootstrap/fonts/glyphicons-halflings-regular.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://ballotpedia.org/wiki/skins/BallotpediaBootstrap/awesome/webfonts/fa-solid-900.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://s3.amazonaws.com/ballotpedia-api4/files/thumbs/200/300/Alex_Azar_WWSG_Photo__cropped_-6_fixed.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://config.config-factory.com/ballotpedia-org.json",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

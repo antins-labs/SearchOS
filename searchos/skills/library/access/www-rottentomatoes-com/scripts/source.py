@@ -12,6 +12,9 @@ The skill uses direct HTTP requests to fetch pages and extracts:
 1. JSON-LD structured data for comprehensive metadata
 2. Embedded JSON for detailed score information
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -360,6 +363,7 @@ def parse_vanity_from_url(url: str) -> tuple[str, str, Optional[str]]:
     return None, None, None
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Rotten Tomatoes skill functions
@@ -372,7 +376,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     function = params.get('function', '')
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_movie':
             vanity = params.get('vanity', '').strip()
             if not vanity:

@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "759a4ee09009373d69f1a4511195c88080f2bb5a5b489cf7a8e0cd8410d48c08",
+  "capabilities": {
+    "fetch": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch\", \"url\": \"https://www.britannica.com/biography/Alice-Munro\", \"max_wait\": 60}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.966212+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.britannica.com/biography/Alice-Munro",
+          "status": 307
+        },
+        {
+          "url": "https://www.britannica.com/biography/Alice-Munro",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/icon",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagservices.com/tag/js/gpt.js",
+          "status": 200
+        },
+        {
+          "url": "https://dev.visualwebsiteoptimizer.com/j.php",
+          "status": 200
+        },
+        {
+          "url": "https://jryhoywlyxnlymahs.ay.delivery/manager/JRyhoywLYXNLYMAhs",
+          "status": 200
+        },
+        {
+          "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+          "status": 200
+        },
+        {
+          "url": "https://jryhoywlyxnlymahs.ay.delivery/client-v2.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.britannica.com/mendel-resources/3-206/dist/_tailwind.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.britannica.com/mendel-resources/3-206/dist/topic-page.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.britannica.com/mendel-resources/3-206/dist/mendel-css.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.britannica.com/mendel-resources/3-206/dist/vendor-bundle.css",
+          "status": 200
+        },
+        {
+          "url": "https://jryhoywlyxnlymahs.ay.delivery/forest/JRyhoywLYXNLYMAhs/js/bid/forest.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://jryhoywlyxnlymahs.ay.delivery/manager-script/yield-manager-script-v3.13.0-prod",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.britannica.com/mendel-resources/3-206/js/libs/jquery-3.5.0.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://client.aps.amazon-adsystem.com/publisher.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.britannica.com/46/92946-050-7F8EA300/Alice-Munro-2006.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.britannica.com/mendel-resources/3-206/images/chatbot/star-ai.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.britannica.com/mendel-resources/3-206/images/shared/google-g.svg",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"name\": \"Alice Munro\", \"max_wait\": 60}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.640294+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.britannica.com/search",
+          "status": 307
+        },
+        {
+          "url": "https://www.britannica.com/search",
+          "status": 403
+        },
+        {
+          "url": "https://www.britannica.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://www.britannica.com/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eefd18f86e6799/x8JYZrVmfc0eKIRcG.DLllAERvXNXzOof_y8dVDFIkk-1792740125-1.2.1.1-13F0C5nJUO9EqIN2WlUjLWKuFXN7zllFyfkMQJT2f7rp2pPjr9TcaLXWffBMwARN",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.britannica.com/[redacted]",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

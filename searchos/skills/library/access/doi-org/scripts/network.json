@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_files": "proxy",
+    "resolve_doi": "proxy",
+    "get_metadata": "direct"
+  },
+  "aliases": {
+    "get_metadata": "get_metadata",
+    "list_files": "list_files",
+    "resolve_doi": "resolve_doi",
+    "run": "resolve_doi"
+  }
+}

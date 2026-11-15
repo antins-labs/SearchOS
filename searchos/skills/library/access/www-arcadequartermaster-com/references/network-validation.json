@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "aba52a18ba1db9140558a2f3408ed6fb49ccf0912e76f540d8e960c877d8e24a",
+  "capabilities": {
+    "fetch_boss_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_boss_page\", \"url\": \"https://www.arcadequartermaster.com/kof01_ceo.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.948950+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.arcadequartermaster.com/kof01_ceo.html",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_all_pages": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_all_pages\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.949471+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.arcadequartermaster.com/kof01_ceo.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.arcadequartermaster.com/kof03_bosses.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.arcadequartermaster.com/kof00_nests.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

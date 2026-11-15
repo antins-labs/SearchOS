@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_top_movies": "direct",
+    "get_movie_details": "direct",
+    "get_yearly_box_office": "direct"
+  },
+  "aliases": {
+    "get_yearly_box_office": "get_yearly_box_office",
+    "list_top_movies": "list_top_movies",
+    "get_movie_details": "get_movie_details",
+    "run": "get_movie_details"
+  }
+}

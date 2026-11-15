@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "90534612f26ae8c0421bc14a16243aad2e78e99ccffd49571ab3e8b40d70b37d",
+  "capabilities": {
+    "winners": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"winners\", \"year\": \"2026\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.371316+00:00",
+      "reason": "no business data in result",
+      "source_responses": [
+        {
+          "url": "https://www.tonyawards.com/winners/",
+          "status": 200
+        }
+      ]
+    },
+    "nominees": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"nominees\", \"category\": \"Best Play\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.372002+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.tonyawards.com/nominees/",
+          "status": 200
+        }
+      ]
+    },
+    "press_releases": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"press_releases\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.372096+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.tonyawards.com/press/",
+          "status": 200
+        }
+      ]
+    },
+    "press_release": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"press_release\", \"url\": \"/press/the-tony-awards-announce-the-2025-2026-nominating-committee/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.372274+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.tonyawards.com/press/[redacted]/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

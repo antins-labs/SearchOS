@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b99ffe77f9cbfce4c36e181f473d2f217394ed7f58f821a35c5d605b07a70bbe",
+  "capabilities": {
+    "get_national_data": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_national_data\", \"year\": 2023, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.221540+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://irmaservices.nps.gov/vseapi/Nation-Result/USA/getResults",
+          "status": 200
+        }
+      ]
+    },
+    "get_state_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_state_data\", \"state_code\": \"CA\", \"year\": 2022, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.222455+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://irmaservices.nps.gov/vseapi/State-Result/CA/getResults",
+          "status": 200
+        }
+      ]
+    },
+    "get_all_states": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_states\", \"year\": 2024, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.222660+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://irmaservices.nps.gov/vseapi/State-Result",
+          "status": 200
+        }
+      ]
+    },
+    "get_park_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_park_data\", \"park_code\": \"YELL\", \"year\": 2023, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.222964+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://irmaservices.nps.gov/vseapi/Park-Result/YELL/getResults",
+          "status": 200
+        }
+      ]
+    },
+    "get_all_parks": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_parks\", \"year\": 2023, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.223160+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://irmaservices.nps.gov/vseapi/Park-Result/getAllParks",
+          "status": 200
+        }
+      ]
+    },
+    "search_parks": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_parks\", \"query\": \"yellow\", \"year\": 2024, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.223347+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://irmaservices.nps.gov/vseapi/Park-Result/getAllParks",
+          "status": 200
+        }
+      ]
+    },
+    "get_available_years": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_available_years\", \"year\": 2024, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.223485+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-nps-gov/scripts/source.py",
+        "line": 245,
+        "end_line": 257,
+        "implementation": "get_available_years",
+        "source_sha256": "f7f3f95fff03fd67a1a035fffb18b2ec89fea724ac2d3742b9473093163d1abe",
+        "implementation_sha256": "7f7494670cc4543965d69c1e558be818e44f2d124c3e9e16c74d1bb2cf8e6180"
+      }
+    }
+  }
+}

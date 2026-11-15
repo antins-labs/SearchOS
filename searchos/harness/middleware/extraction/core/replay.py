@@ -6,11 +6,8 @@ import asyncio
 import hashlib
 from typing import Any
 
-from searchos.harness.middleware.extraction.core.commit import ingest_facts
 from searchos.harness.middleware.extraction.core.coordinator import ExtractionCoordinator
 from searchos.harness.middleware.extraction.core.models import ExtractionConfig
-from searchos.harness.middleware.extraction.core.preparation import OriginalWindowPreparer
-from searchos.harness.middleware.extraction.core.routing import SchemaRouting
 from searchos.harness.middleware.extraction.core.store import WorkspaceEvidenceStore
 
 
@@ -77,6 +74,7 @@ async def extract_saved_observation(
     item = {
         "source_url": observation.source,
         "source_urls": observation.source_urls,
+        "referring_page": observation.referring_page,
         "content": observation.text[start:end],
         "observation_text": observation.text,
         "observation_offset": start,
@@ -97,20 +95,13 @@ async def extract_saved_observation(
             async def ainvoke(self, prompt):
                 return SimpleNamespace(content=await invoke(prompt))
 
-        config = ExtractionConfig.from_settings()
-        routing = SchemaRouting()
         coordinator = ExtractionCoordinator(
             ReplayJudge(),
             store,
-            config=config,
-            routing=routing,
-            commit_rows=ingest_facts,
-            preparer=OriginalWindowPreparer(config),
+            config=ExtractionConfig.from_settings(),
+            policy="schema_facts",
         )
-        reports = await coordinator._flush_snapshot(
-            [{**item, "result_mode": routing.result_mode(state, task, "")}],
-            reason="saved_observation",
-        )
+        reports = await coordinator._flush_snapshot([item], reason="saved_observation")
         if any(not report.succeeded for report in reports):
             raise RuntimeError("Saved source extraction failed; inspect extraction diagnostics")
         ids = list(coordinator.committed_node_ids)

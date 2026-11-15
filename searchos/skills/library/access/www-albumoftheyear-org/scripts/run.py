@@ -1,5 +1,8 @@
 """独立技能 CLI；只使用标准库，检索依赖在运行时加载。"""
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import argparse
 import asyncio
@@ -56,6 +59,7 @@ async def invoke(params):
     return result
 
 
+@_skill_network.entrypoint(capability_id='run', cli=True)
 def main(argv=None):
     contract = json.loads((ROOT / 'references/parameters.json').read_text(encoding='utf-8'))
     schema = contract['parameters']

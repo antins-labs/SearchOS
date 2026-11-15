@@ -10,6 +10,9 @@ Provides structured access to Apple's investor relations data including:
 
 Uses Playwright browser automation to bypass Cloudflare protection.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -36,9 +39,9 @@ class AppleInvestorClient:
             return
         
         self._playwright = await async_playwright().start()
-        self.browser = await self._playwright.chromium.launch(headless=True)
-        self.context = await self.browser.new_context()
-        self.page = await self.context.new_page()
+        self.browser = await _skill_network.browser_launch(self._playwright.chromium, headless=True)
+        self.context = await _skill_network.browser_new_context(self.browser)
+        self.page = await _skill_network.browser_new_page(self.context)
         
         # Navigate to main page to establish session and bypass Cloudflare
         await self.page.goto(self.MAIN_PAGE, wait_until='networkidle', timeout=60000)
@@ -532,6 +535,7 @@ async def get_client() -> AppleInvestorClient:
     return _client
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Apple Investor Relations API requests.

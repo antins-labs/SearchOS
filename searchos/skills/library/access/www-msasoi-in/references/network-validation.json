@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2e0b457a0013895d5a7b6928b311f3939dde579aa241ca53b17f5595275e80b2",
+  "capabilities": {
+    "get_holidays_2025": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_holidays_2025\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.189898+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.msasoi.in/2024/07/Holidays%20to%20be%20observed%20in%20Central%20Government%20Offices%20during%20year%202025%20.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_holidays": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_holidays\", \"query\": \"diwali\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.190911+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.msasoi.in/2024/07/Holidays%20to%20be%20observed%20in%20Central%20Government%20Offices%20during%20year%202025%20.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -5,6 +5,9 @@ Extracts hardware technical specifications for all Google Pixel phones from the
 official Google Support help article. Supports filtering by device name, year,
 generation, and specific spec categories.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import httpx
@@ -44,7 +47,7 @@ async def fetch_pixel_specs(url: str = "https://support.google.com/pixelphone/an
         'Accept-Language': 'en-US,en;q=0.5',
     }
     
-    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0, follow_redirects=True) as client:
         response = await client.get(url, headers=headers)
         response.raise_for_status()
         html = response.text
@@ -467,6 +470,7 @@ async def list_available_devices(params: dict) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main execution function for the Pixel specs skill.

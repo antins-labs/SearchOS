@@ -6,7 +6,7 @@ const test = require("node:test");
 const vm = require("node:vm");
 const ts = require("typescript");
 const api = {};
-vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/mobileSources.ts"), "utf8"), {
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/sourceSelection.ts"), "utf8"), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
 }).outputText, { exports: api });
 const docs = [{document_id:"ready",searchable:true},{document_id:"pending",searchable:false}];

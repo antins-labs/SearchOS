@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_person_profile": "direct",
+    "search_people": "direct"
+  },
+  "aliases": {
+    "get_person_profile": "get_person_profile",
+    "search_people": "search_people",
+    "run": "search_people"
+  }
+}

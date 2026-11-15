@@ -15,6 +15,7 @@ from searchos.socm import (
     WorkspaceManager,
     record_failure,
 )
+from searchos.socm.refs import cell_key, row_key
 
 
 def memory(event="t:1:c1", **changes):
@@ -76,8 +77,8 @@ def test_different_failure_conditions_are_not_merged(changes):
 
 def test_scope_order_does_not_create_distinct_memories():
     store = FailureStore()
-    store.record(memory(scope=FailureScope(target_cells=["t/A.x", "t/B.x"])))
-    store.record(memory("t:1:c2", scope=FailureScope(target_cells=["t/B.x", "t/A.x"])))
+    store.record(memory(scope=FailureScope(target_cells=[cell_key("t", row_key(["A"]), "x"), cell_key("t", row_key(["B"]), "x")])))
+    store.record(memory("t:1:c2", scope=FailureScope(target_cells=[cell_key("t", row_key(["B"]), "x"), cell_key("t", row_key(["A"]), "x")])))
     assert len(store.records) == 1
     assert store.records[0].observed_count == 2
 
@@ -110,16 +111,16 @@ def test_target_cells_keep_table_identity(tmp_path):
     def setup(state):
         for tid in ("first", "second"):
             state.coverage_map.add_table(
-                tid, ["name", "value"], primary_key=["name"], entities=["A"]
+                tid, ["name", "value"], primary_key=["name"], entities=[row_key(["A"])]
             )
         task = state.frontier.questions[0]
         task.table_id = "first"
-        task.target_cells = ["A.value"]
+        task.target_cells = [cell_key("first", row_key(["A"]), "value")]
         return state
 
     ws.atomic_update_state(setup)
     record_failure(ws, memory())
-    assert ws.load_state().failure_memory.records[0].scope.target_cells == ["first/A.value"]
+    assert ws.load_state().failure_memory.records[0].scope.target_cells == [cell_key("first", row_key(["A"]), "value")]
 
 
 def test_concurrent_records_survive_restart_and_do_not_overwrite(tmp_path):

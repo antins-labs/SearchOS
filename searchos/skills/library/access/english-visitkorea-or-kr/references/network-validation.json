@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1e215da7a98272d16f3d15f7b278b7b92eb880c52f066f1eb69c4df0ff51f0f1",
+  "capabilities": {
+    "fetch_attraction": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_attraction\", \"vconts_id\": \"78636\", \"url_type\": \"auto\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.610868+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://english.visitkorea.or.kr/svc/contents/contentsView.do",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

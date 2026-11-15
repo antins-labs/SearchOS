@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_categories": "direct",
+    "search_papers": "direct",
+    "get_venues": "direct",
+    "get_years": "direct",
+    "list_papers": "direct"
+  },
+  "aliases": {
+    "list_papers": "list_papers",
+    "get_venues": "get_venues",
+    "get_years": "get_years",
+    "get_categories": "get_categories",
+    "search_papers": "search_papers",
+    "run": "search_papers"
+  }
+}

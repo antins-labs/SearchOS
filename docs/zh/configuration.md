@@ -160,7 +160,7 @@ L4 还承载 per-profile 定制（web 设置页 Models 区的 profile 卡）：
 - `searchos/config/profiles.py` — `ModelProfile` / `ROLE_NAMES` / 内置默认 profiles
 - `searchos/config/providers.py` — `SF_PROVIDER` 预设注册表（见 [providers.md](providers.md)）
 - `searchos/config/env_file.py` — `.env` 原子读写、值校验、`remove_env_keys`
-- `searchos/config/web_overlay.py` — overlay 数据模型、`apply_to_runtime()`、迁移函数（Web 与 CLI/TUI 共享）
+- `searchos/config/settings_overlay.py` — overlay 数据模型、`apply_to_runtime()`、迁移函数（Web 与 CLI/TUI 共享）
 - `searchos/config/effort.py` — effort 档位（TUI `/effort` 与 web 共用）
 - `web/api/settings/store.py` — L4 overlay 的写事务（锁 + dry-run 回滚 + reload 重放）
 - `web/api/routes/models.py` / `routes/settings.py` — 设置 API 端点

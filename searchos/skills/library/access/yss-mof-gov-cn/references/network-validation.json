@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "a943abb6a9c3c584947987365b0d71526e7724920837eee37a70160d6d6bea73",
+  "capabilities": {
+    "extract_table": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_table\", \"url\": \"http://yss.mof.gov.cn/2020zyjs/202106/t20210629_3727251.htm\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.418324+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://yss.mof.gov.cn/2020zyjs/202106/t20210629_3727251.htm",
+          "status": 200
+        }
+      ]
+    },
+    "extract_tables": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_tables\", \"urls\": [\"http://yss.mof.gov.cn/2020zyjs/202106/t20210629_3727251.htm\"]}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.420728+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://yss.mof.gov.cn/2020zyjs/202106/t20210629_3727251.htm",
+          "status": 200
+        }
+      ]
+    },
+    "list_available_tables": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_available_tables\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.421055+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/yss-mof-gov-cn/scripts/source.py",
+        "line": 450,
+        "end_line": 479,
+        "implementation": "execute branch",
+        "source_sha256": "85024f6abc5180f538fed346a0bf61e81fc7a0f499faa1482e87b35b78f6da84",
+        "implementation_sha256": "864d65c907b428b99ef7122988b0cbcc4c0eaea7590e98671871591b34820e2c"
+      }
+    }
+  }
+}

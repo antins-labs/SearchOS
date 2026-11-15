@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "286ac425a134619918dbd1762c15f0603115dad7630aa388ff679efccd9ac9cb",
+  "capabilities": {
+    "get_discography": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_discography\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.956215+00:00",
+      "reason": "Cloudflare challenge did not resolve within timeout. The site may be blocking automated access. Try again later or use a different IP.",
+      "source_responses": [
+        {
+          "url": "https://www.beatlesbible.com/discography/united-kingdom/",
+          "status": 307
+        },
+        {
+          "url": "https://www.beatlesbible.com/discography/united-kingdom/",
+          "status": 403
+        },
+        {
+          "url": "https://www.beatlesbible.com/cdn-cgi/speculation",
+          "status": 200
+        },
+        {
+          "url": "https://www.beatlesbible.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://www.beatlesbible.com/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eef459895ed8c2/XHIi5zn0tUP8wx8tqOFaZZ32w.55KQw_q5_gahEDWn0-1792739767-1.2.1.1-vudR7tosCe.pbWHUfhXhW_AXmnKbfwO75N6Fu5ycAHsL8osXSO6U3x.nz5p1LoZ5",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.beatlesbible.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/w7rk4/0x4AAAAAAADnPIDROrmt1Wwj/light/fbE/new/normal",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/fo/2425580051:1792735516:RUlw5eP8DMQu0c-QvGL7lXMBneL91MvjjBeH4XWvNCY/a4eef48b8ec2c52c/jgngy7LCZZ3hrhzqELm3qBr2l7Q5nSpaLcZKGcl4ngc-1792739775-1.2.1.1-BYlg3w.NwaXh7n956hbiwjyUqn2Hwl5Y3AKMx.SHxVPR2R66iHxZ7TCyRYc.qkuZ",
+          "status": 200
+        }
+      ]
+    },
+    "get_release": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_release\", \"url\": \"https://www.beatlesbible.com/1966/08/05/uk-single-eleanor-rigby-yellow-submarine/\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.548208+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.beatlesbible.com/1966/08/05/[redacted]/",
+          "status": 307
+        },
+        {
+          "url": "https://www.beatlesbible.com/1966/08/05/[redacted]/",
+          "status": 403
+        }
+      ]
+    },
+    "search_releases": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_releases\", \"query\": \"Eleanor Rigby\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:32.555014+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.beatlesbible.com/discography/united-kingdom/",
+          "status": 307
+        },
+        {
+          "url": "https://www.beatlesbible.com/discography/united-kingdom/",
+          "status": 403
+        },
+        {
+          "url": "https://www.beatlesbible.com/cdn-cgi/speculation",
+          "status": 200
+        },
+        {
+          "url": "https://www.beatlesbible.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://www.beatlesbible.com/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4ef011d3e4aae00/TG7NE62iiRLRNwnX2UEr5_CYJ38kz3C_JpQSME66phg-1792740290-1.2.1.1-tKkF_eVHZavgTs0PTsSb5SeJtECqwmX5fOaK2xVsktiZv88yV2JMu5DCPjRFJvkN",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.beatlesbible.com/[redacted]",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -14,6 +14,8 @@ import stat
 import sys
 import uuid
 
+from searchos.network import network_scoped
+
 OUTPUT_LIMIT = 16_000
 LOG_LIMIT = 10_000_000
 TAIL_LIMIT = 2_000
@@ -31,19 +33,22 @@ def _inside(path: Path, root: Path) -> bool:
 
 
 def _entry(skill: Path, argv: list[str]) -> list[str]:
-    if not isinstance(argv, list) or len(argv) < 2 or any(not isinstance(a, str) or '\0' in a for a in argv):
-        raise ValueError("argv must contain an interpreter and a skill script")
-    if argv[0] not in _INTERPRETERS or argv[1].startswith('-'):
-        raise ValueError("only python/python3, bash/sh, node and a script entry are allowed")
-    script = (skill / argv[1]).resolve()
-    if not _inside(script, skill) or not script.is_file():
-        raise ValueError("entry must be a file inside the skill package")
-    executable = sys.executable if argv[0] in {"python", "python3"} else shutil.which(argv[0])
+    if (not isinstance(argv, list) or not argv or not argv[0]
+            or any(not isinstance(a, str) or '\0' in a for a in argv)):
+        raise ValueError("argv must contain a command and optional arguments")
+    local = skill / argv[0]
+    executable = (sys.executable if argv[0] in {'python', 'python3'} else
+                  str(local) if local.is_file() else shutil.which(argv[0]))
     if not executable:
-        raise ValueError(f"interpreter unavailable: {argv[0]}")
+        raise ValueError(f"command unavailable: {argv[0]}")
+    arguments = list(argv[1:])
+    if argv[0] in _INTERPRETERS and arguments and not arguments[0].startswith('-'):
+        script = skill / arguments[0]
+        if script.is_file():
+            arguments[0] = str(script.resolve())
     # Python locates pyvenv.cfg through its invocation path; resolving the
     # interpreter symlink would silently switch to the base environment.
-    return [os.path.abspath(executable), str(script), *argv[2:]]
+    return [os.path.abspath(executable), *arguments]
 
 
 def _browser_cache() -> Path | None:
@@ -62,21 +67,16 @@ def _browser_cache() -> Path | None:
     return None
 
 
-def _environment(work: Path, *, network: bool = False, proxy_mode: str = 'inherit',
-                 diagnostic_network_override: bool = False, network_audit: bool = False) -> dict[str, str]:
-    env = {"PATH": "/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin",
+def _environment(work: Path, *, network: bool = False, network_policy=None) -> dict[str, str]:
+    env = {"PATH": str(Path(sys.executable).parent) + ":/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin",
             "HOME": str(work), "TMPDIR": str(work), "LANG": "en_US.UTF-8",
             "PYTHONIOENCODING": "utf-8", "PYTHONDONTWRITEBYTECODE": "1",
             "PYTHONNOUSERSITE": "1"}
     if cache := _browser_cache():
         env["PLAYWRIGHT_BROWSERS_PATH"] = str(cache)
     if network:
-        from searchos.skills.runtime.network import proxy_environment
-        env.update(proxy_environment(proxy_mode))
-        if diagnostic_network_override:
-            env['SEARCHOS_NETWORK_DIAGNOSTIC_MODE'] = proxy_mode
-        if network_audit:
-            env['SEARCHOS_NETWORK_AUDIT'] = '1'
+        from searchos.network import proxy_environment
+        env.update(proxy_environment(policy=network_policy))
     return env
 
 
@@ -117,7 +117,7 @@ def _read_only_paths(paths) -> tuple[Path, ...]:
 def _backend(command: list[str], skill: Path, work: Path, network: bool,
              read_only_paths: tuple[Path, ...] = (), *, browser_profile: Path | None = None,
              desktop: bool = False, network_ports: tuple[int, ...] | None = None,
-             listen_loopback: bool = False) -> tuple[list[str], str]:
+             listen_loopback: bool = False, ipc_socket: Path | None = None) -> tuple[list[str], str]:
     if network_ports is not None and (not network or not network_ports or
             any(type(port) is not int or not 1 <= port <= 65535 for port in network_ports)):
         raise ValueError('invalid browser network capability')
@@ -167,6 +167,9 @@ def _backend(command: list[str], skill: Path, work: Path, network: bool,
                         ' (global-name "com.apple.SecurityServer"))')
         elif network:
             profile += '(allow network*)(allow mach-lookup (global-name "com.apple.mDNSResponder"))(allow file-read* (literal "/private/etc/resolv.conf") (literal "/private/etc/hosts") (subpath "/private/etc/ssl"))'
+        if ipc_socket is not None:
+            endpoint = json.dumps(str(ipc_socket))
+            profile += f'(allow network-outbound (remote unix-socket (literal {endpoint})))(allow file-read* (literal {endpoint}))'
         if browser_profile is not None:
             profile += f'(allow file-read* file-write* (subpath {json.dumps(str(browser_profile))}))'
             profile += ('(deny mach-lookup (global-name "com.apple.securityd")'
@@ -209,6 +212,8 @@ def _backend(command: list[str], skill: Path, work: Path, network: bool,
                 args += ['--ro-bind', filename, filename]
         args += ['--proc', '/proc', '--dev', '/dev', '--bind', str(work), str(work), '--chdir', str(work), '--', *command]
         extra = []
+        if ipc_socket is not None:
+            extra += ['--ro-bind', str(ipc_socket), str(ipc_socket)]
         if browser_profile is not None:
             extra += ['--bind', str(browser_profile), str(browser_profile)]
         if desktop and Path('/tmp/.X11-unix').is_dir():
@@ -331,28 +336,30 @@ async def _capture_output(stream, name: str, record: Path, result: dict, executi
             capture(pending)
 
 
+@network_scoped
 async def run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
                       execution_dir: Path, stdin: str = '', timeout_s: float = 60,
                       network: bool = True, execution_id: str | None = None,
-                      proxy_mode: str = 'inherit', diagnostic_network_override: bool = False,
-                      network_audit: bool = False, read_only_paths=(), trace_functions: bool = False,
-                      browser: bool = False, browser_request: dict | None = None) -> dict:
+                      read_only_paths=(), trace_functions: bool = False,
+                      browser: bool = False, browser_request: dict | None = None,
+                      runtime_env: dict | None = None, ipc_socket: Path | None = None,
+                      wait_for_browser: bool = False, network_policy=None) -> dict:
     """创建任务持有浏览器；确认后探测返回调用方，CLI 至多重试一次。"""
     from searchos.skills.runtime.browser_session import BrowserSession, command_profile, current_session
-    from searchos.skills.runtime.network import command_network_mode, proxy_environment, validate_proxy_mode
     session, owned = current_session.get(), False
     kwargs = dict(work_dir=work_dir, execution_dir=execution_dir, stdin=stdin,
-                  timeout_s=timeout_s, network=network, execution_id=execution_id, proxy_mode=proxy_mode)
-    for key, value in [('diagnostic_network_override', diagnostic_network_override),
-                       ('network_audit', network_audit), ('trace_functions', trace_functions)]:
-        if value:
-            kwargs[key] = value
+                  timeout_s=timeout_s, network=network, execution_id=execution_id)
+    if runtime_env:
+        kwargs['runtime_env'] = runtime_env
+    if ipc_socket is not None:
+        kwargs['ipc_socket'] = ipc_socket
+    if network_policy is not None and network:
+        kwargs['network_policy'] = network_policy
+    if trace_functions:
+        kwargs['trace_functions'] = True
     try:
         if not isinstance(timeout_s, (int, float)) or not math.isfinite(timeout_s) or not 0 < timeout_s <= 300:
             raise ValueError('timeout must be between 0 and 300 seconds')
-        validate_proxy_mode(proxy_mode)
-        if network:
-            proxy_environment(proxy_mode)
         _entry(Path(skill_dir).resolve(), argv)
         reads = _read_only_paths(read_only_paths)
         if reads:
@@ -368,11 +375,7 @@ async def run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
         if site and session and site != session.site:
             raise ValueError('browser profile host does not match this task')
         if site and session is None:
-            session, owned = BrowserSession(site), True
-        mode = (command_network_mode(Path(skill_dir), argv)
-                if site and not diagnostic_network_override else proxy_mode)
-        if site or browser:
-            proxy_environment(mode)
+            session, owned = BrowserSession(site, **({'wait_timeout': timeout_s} if wait_for_browser else {})), True
     except (ValueError, OSError, TypeError) as exc:
         return {'status': 'blocked', 'error': str(exc), 'started': False,
                 'exit_code': None, 'artifacts': [], 'stdout': '', 'stderr': ''}
@@ -389,19 +392,25 @@ async def run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
         while True:
             started = asyncio.get_running_loop().time()
             try:
-                env = await asyncio.wait_for(session.ensure(mode), timeout_s)
+                env = await asyncio.wait_for(session.ensure(), timeout_s)
                 remaining = timeout_s - (asyncio.get_running_loop().time() - started)
                 if remaining <= 0:
                     raise TimeoutError
                 result = await _run_command(skill_dir, argv,
                     **{**kwargs, 'timeout_s': remaining}, browser_env=env, browser_session=session)
-            except TimeoutError:
+            except TimeoutError as exc:
                 result = {'status': 'timed_out', 'timed_out': True, 'started': False,
+                          'timeout_phase': 'browser_prepare',
+                          'error': session.clean(f'browser_prepare: TimeoutError: {str(exc) or session.diagnostic or "等待浏览器准备超时"}'),
                           'exit_code': None, 'stdout': '', 'stderr': '', 'artifacts': []}
+            except ConnectionError as exc:
+                result = {'status': 'failed', 'error': session.clean(f'browser_prepare: {type(exc).__name__}: {exc}'),
+                          'started': False, 'exit_code': None, 'stdout': '', 'stderr': '', 'artifacts': []}
             except (ValueError, OSError) as exc:
                 result = {'status': 'blocked', 'error': session.clean(str(exc)), 'external_blocked': True,
                           'next_action': 'wait_external', 'started': False, 'exit_code': None,
                           'stdout': '', 'stderr': '', 'artifacts': []}
+            result['browser_mode'] = session.mode
             retry, resolved = await session.resolve(result, request, after_confirmation=bool(history))
             if result.get('execution_id'):
                 receipt = Path(execution_dir) / result['execution_id'] / 'record.json'
@@ -449,10 +458,9 @@ def _redact_browser_execution(result, session, execution_dir, work_dir):
 async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
                       execution_dir: Path, stdin: str = '', timeout_s: float = 60,
                       network: bool = True, execution_id: str | None = None,
-                      browser_env: dict | None = None, proxy_mode: str = 'inherit',
-                      diagnostic_network_override: bool = False, network_audit: bool = False,
+                      browser_env: dict | None = None,
                       _receipt_callback=None, read_only_paths=(), trace_functions: bool = False,
-                      browser_session=None) -> dict:
+                      browser_session=None, runtime_env=None, ipc_socket=None, network_policy=None) -> dict:
     """返回一次命令记录；取消时保存 cancelled 记录并重新抛出 CancelledError。
 
     execution_dir/<execution_id>/record.json、非空日志及 artifacts/。
@@ -464,6 +472,11 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
         raise ValueError('invalid execution id')
     result = dict(execution_id=execution_id, status='blocked', exit_code=None,
                   stdout='', stderr='', truncated=False, artifacts=[], started=False, timed_out=False)
+    if browser_session is not None:
+        result['browser_mode'] = browser_session.mode
+    from searchos.network import current_context
+    network_context = current_context()
+    event_cursor = network_context.event_cursor
     if _receipt_callback:
         _receipt_callback(result, False)
     skill, work, records = (Path(p).resolve() for p in (skill_dir, work_dir, execution_dir))
@@ -476,9 +489,16 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
         if not isinstance(stdin, str) or len(stdin.encode()) > STDIN_LIMIT:
             raise ValueError('stdin exceeds limit or is not text')
         command = _entry(skill, argv)
-        env = _environment(work, network=network, proxy_mode=proxy_mode,
-                           diagnostic_network_override=diagnostic_network_override,
-                           network_audit=network_audit)
+        env = _environment(work, network=network,
+                           network_policy=getattr(browser_session, 'network_policy', None) or network_policy)
+        env.update(SKILL_DIR=str(skill), PYTHONPATH=str(skill))
+        if runtime_env:
+            allowed = {'SEARCHOS_BRIDGE_SOCKET', 'SEARCHOS_INPUTS_FILE', 'SEARCHOS_RUN_TOKEN', 'SEARCHOS_RUNTIME_BIN'}
+            if set(runtime_env) - allowed or any(not isinstance(v, str) for v in runtime_env.values()):
+                raise ValueError('invalid runtime environment')
+            env.update(runtime_env)
+            if runtime_env.get('SEARCHOS_RUNTIME_BIN'):
+                env['PATH'] = runtime_env['SEARCHOS_RUNTIME_BIN'] + os.pathsep + env['PATH']
         if browser_env:
             if set(browser_env) != {'BROWSER_CDP_URL'}:
                 raise ValueError('unexpected browser capability environment')
@@ -487,7 +507,9 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
             env['NO_PROXY'] = env['no_proxy'] = bypass
         allowed_reads = _read_only_paths(read_only_paths)
         trace_path = None
-        if trace_functions and argv[0] in {'python', 'python3'}:
+        if (trace_functions and len(argv) > 1 and argv[0] in {'python', 'python3'}
+                and not argv[1].startswith('-') and (skill / argv[1]).resolve().is_relative_to(skill)
+                and (skill / argv[1]).is_file()):
             trace_path = work / ('.function-trace-' + execution_id + '.json')
             command = [command[0], str(_FUNCTION_TRACE), str(trace_path), str(skill), argv[1], *argv[2:]]
             allowed_reads = (*allowed_reads, _FUNCTION_TRACE)
@@ -496,15 +518,25 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
             raise ValueError('read-only paths must be separate from work and execution directories')
         marker = execution_id
         backend_options = {'read_only_paths': allowed_reads} if allowed_reads else {}
+        if ipc_socket is not None:
+            ipc_socket = Path(ipc_socket)
+            if ipc_socket.is_symlink() or not ipc_socket.is_socket():
+                raise ValueError('invalid execution bridge socket')
+            backend_options['ipc_socket'] = ipc_socket.resolve()
         if browser_env:
             from urllib.parse import urlsplit
             endpoint = urlsplit(browser_env['BROWSER_CDP_URL'])
             if endpoint.scheme != 'ws' or endpoint.hostname != '127.0.0.1' or not endpoint.port or len(endpoint.path) < 32:
                 raise ValueError('browser capability requires an authenticated local gateway')
-            backend_options['network_ports'] = (endpoint.port,)
+            proxy = urlsplit(env['HTTPS_PROXY'])
+            backend_options['network_ports'] = tuple(dict.fromkeys((endpoint.port, proxy.port)))
+        elif network_policy is not None and network:
+            from urllib.parse import urlsplit
+            backend_options['network_ports'] = (urlsplit(env['HTTPS_PROXY']).port,)
         command, backend = _backend([sys.executable, '-I', str(_LAUNCHER), str(marker), str(timeout_s), *command], skill, work, network, **backend_options)
         work.mkdir(parents=True, exist_ok=True)
-        list(_files(work))
+        before_files = {str(path.relative_to(work)): (path.stat().st_mtime_ns, path.stat().st_ctime_ns, path.stat().st_size)
+                        for path in _files(work)}
         record.mkdir(parents=True)
         if _receipt_callback:
             _receipt_callback(result, True)
@@ -512,10 +544,14 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
         result['error'] = str(exc)
         return result
     result['backend'] = backend
-    result['capabilities'] = {'disk_quota': 'polled', 'process_cleanup': 'pid-namespace' if backend == 'bubblewrap' else 'process-group', 'memory_limit': False, 'process_count_limit': False, 'network': network, 'proxy_mode': proxy_mode}
-    # Arguments/stdin may contain secrets: save only entry, counts and policy.
-    (record / 'request.json').write_text(json.dumps({'entry': argv[:2], 'argument_count': len(argv)-2,
-        'stdin_bytes': len(stdin.encode()), 'timeout_s': timeout_s, 'network': network, 'proxy_mode': proxy_mode,
+    result['capabilities'] = {'disk_quota': 'polled', 'process_cleanup': 'pid-namespace' if backend == 'bubblewrap' else 'process-group', 'memory_limit': False, 'process_count_limit': False, 'network': network}
+    result['network'] = {'config_fingerprint': network_context.config.fingerprint,
+                         'route_generation': network_context.store.generation,
+                         'scope': 'task', 'connections': []}
+    # 参数和 stdin 可能包含凭据，仅保存程序名、数量与执行策略。
+    (record / 'request.json').write_text(json.dumps({'entry': argv[:1], 'argument_count': len(argv)-1,
+        'stdin_bytes': len(stdin.encode()), 'timeout_s': timeout_s, 'network': network,
+        'network_fingerprint': network_context.config.fingerprint,
         'read_only_paths': [str(path) for path in allowed_reads]}))
     proc = None
     tasks = []
@@ -583,6 +619,7 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
     except TimeoutError:
         result['status'] = 'timed_out'
         result['timed_out'] = True
+        result['timeout_phase'] = 'execution'
     except (OSError, ValueError) as exc:
         result['status'] = 'failed' if proc else 'blocked'
         result.setdefault('error', str(exc))
@@ -616,11 +653,20 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
                     result['function_trace'] = {'complete': False, 'calls': []}
                 finally:
                     trace_path.unlink(missing_ok=True)
+            try:
+                result['updated_files'] = [str(path.relative_to(work)) for path in _files(work)
+                    if before_files.get(str(path.relative_to(work))) !=
+                    (path.stat().st_mtime_ns, path.stat().st_ctime_ns, path.stat().st_size)]
+            except (OSError, ValueError) as exc:
+                result.update(artifact_error=str(exc), updated_files=[])
+                if result['status'] == 'completed':
+                    result['status'] = 'failed'
             if browser_session:
                 try:
                     await browser_session.refresh_secrets()
-                except Exception:
-                    result['cleanup_error'] = 'browser_state_unavailable'
+                except Exception as exc:
+                    result['cleanup_error'] = 'browser_state_unavailable: ' + browser_session.clean(
+                        f'{type(exc).__name__}: {exc}')
                 clean = _redact_browser_execution(result, browser_session, execution_dir, work_dir)
                 result.clear()
                 result.update(clean)
@@ -630,6 +676,7 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
                 result['artifact_error'] = str(exc)
                 if result['status'] == 'completed':
                     result['status'] = 'failed'
+            result['network']['connections'] = network_context.events_since(event_cursor)
             (record / 'record.json').write_text(json.dumps(result, ensure_ascii=False, indent=2))
             for name in ('stdout', 'stderr'):
                 log = record / f'{name}.log'

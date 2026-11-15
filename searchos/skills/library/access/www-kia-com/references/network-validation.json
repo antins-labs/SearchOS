@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "019b2d517fe511965dc2b94ec67727851b389c917d49fc93350e785872807b66",
+  "capabilities": {
+    "get_trim_comparison": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_trim_comparison\", \"model\": \"k4\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.808781+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.kia.com/us/en/k4/specs-compare",
+          "status": 200
+        },
+        {
+          "url": "https://www.kia.com/us/etc.clientlibs/UI/clientlibs/clientlib-base-stg-rc-20261020175829-4a64788202c9d0236eb1-1792607254236.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.kia.com/us/etc.clientlibs/UI/clientlibs/clientlib-google-analytics-stg-rc-20261020175829-4a64788202c9d0236eb1-1792607254236.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.kia.com/us/etc.clientlibs/UI/clientlibs/clientlib-specs-compare-v2-stg-rc-20261020175829-4a64788202c9d0236eb1-1792607254236.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.kia.com/us/etc.clientlibs/UI/clientlibs/clientlib-specs-compare-v2-stg-rc-20261020175829-4a64788202c9d0236eb1-1792607254236.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.kia.com/us/etc.clientlibs/core/wcm/components/commons/datalayer/v1/clientlibs/core.wcm.components.commons.datalayer.v1.js",
+          "status": 200
+        },
+        {
+          "url": "https://assets.sitescdn.net/answers-search-bar/v1.0/answerstemplates.compiled.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://app.usercentrics.eu/browser-ui/latest/loader.js",
+          "status": 200
+        },
+        {
+          "url": "https://ebusiness.dealertrack.com/Suite/suite.js",
+          "status": 301
+        },
+        {
+          "url": "https://www.kia.com/us/etc.clientlibs/UI/clientlibs/clientlib-base-stg-rc-20261020175829-4a64788202c9d0236eb1-1792607254236.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_vehicle_specs": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_vehicle_specs\", \"model\": \"k4\", \"year\": 2025}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.810563+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.kia.com/us/en/vehicles/k4/2025/specs",
+          "status": 200
+        },
+        {
+          "url": "https://www.kia.com/us/etc.clientlibs/UI/clientlibs/clientlib-specs-and-compare-stg-rc-20261020175829-4a64788202c9d0236eb1-1792607254236.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.kia.com/us/etc.clientlibs/UI/clientlibs/clientlib-base-stg-rc-20261020175829-4a64788202c9d0236eb1-1792607254236.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.kia.com/us/etc.clientlibs/UI/clientlibs/clientlib-specs-and-compare-stg-rc-20261020175829-4a64788202c9d0236eb1-1792607254236.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.kia.com/us/etc.clientlibs/core/wcm/components/commons/datalayer/v1/clientlibs/core.wcm.components.commons.datalayer.v1.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.kia.com/us/etc.clientlibs/UI/clientlibs/clientlib-google-analytics-stg-rc-20261020175829-4a64788202c9d0236eb1-1792607254236.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

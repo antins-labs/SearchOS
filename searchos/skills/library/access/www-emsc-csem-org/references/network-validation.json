@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c3548f830143eb02ba59768b5e5e82d7b72f54e1dd85b80ad1a40a250328cc60",
+  "capabilities": {
+    "get_earthquake": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_earthquake\", \"earthquake_id\": \"1867478\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.032367+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.emsc-csem.org/Earthquake_information/earthquake.php",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

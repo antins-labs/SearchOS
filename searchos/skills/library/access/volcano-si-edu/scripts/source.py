@@ -6,6 +6,9 @@ managed challenge protection which may block automated access. The skill
 implements multiple strategies to attempt access and provides clear error
 messages when blocked.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -84,7 +87,7 @@ async def wait_for_challenge_resolution(page, max_wait_seconds: int = 120) -> bo
 
 async def create_browser_context(playwright, user_agent: str = None):
     """Create a browser context with anti-detection measures."""
-    browser = await playwright.chromium.launch(
+    browser = await _skill_network.browser_launch(playwright.chromium, 
         headless=True,
         args=[
             '--disable-blink-features=AutomationControlled',
@@ -94,7 +97,7 @@ async def create_browser_context(playwright, user_agent: str = None):
         ]
     )
     
-    context = await browser.new_context(
+    context = await _skill_network.browser_new_context(browser, 
         user_agent=user_agent or 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         viewport={'width': 1920, 'height': 1080},
         locale='en-US',
@@ -124,7 +127,7 @@ async def fetch_country_volcanos(country: str) -> dict[str, Any]:
     
     async with async_playwright() as p:
         browser, context = await create_browser_context(p)
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         
         try:
             await page.goto(url, wait_until='domcontentloaded', timeout=60000)
@@ -256,7 +259,7 @@ async def fetch_volcano_details(volcano_number: str) -> dict[str, Any]:
     
     async with async_playwright() as p:
         browser, context = await create_browser_context(p)
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         
         try:
             await page.goto(url, wait_until='domcontentloaded', timeout=60000)
@@ -353,7 +356,7 @@ async def fetch_ring_of_fire_info() -> dict[str, Any]:
     
     async with async_playwright() as p:
         browser, context = await create_browser_context(p)
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         
         try:
             await page.goto(url, wait_until='domcontentloaded', timeout=60000)
@@ -413,7 +416,7 @@ async def check_site_access() -> dict[str, Any]:
     
     async with async_playwright() as p:
         browser, context = await create_browser_context(p)
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         
         try:
             response = await page.goto(url, wait_until='domcontentloaded', timeout=60000)
@@ -455,6 +458,7 @@ async def check_site_access() -> dict[str, Any]:
             await browser.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the volcano.si.edu access skill.

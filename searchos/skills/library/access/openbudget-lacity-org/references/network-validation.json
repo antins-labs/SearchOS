@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5e2ba6da0e86c4c7f32c6e226cfa6d1442c37722386fa492345f909963dcc024",
+  "capabilities": {
+    "get_years": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_years\", \"budget_type\": \"operating\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.830606+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://openbudget.lacity.org/api/all_years.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_departments": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_departments\", \"year\": \"2023\", \"page\": 0, \"limit\": 3, \"sort_field\": \"total\", \"sort_order\": \"desc\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.831479+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://openbudget.lacity.org/api/opex/chart_data.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_programs": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_programs\", \"year\": \"2023\", \"department\": \"Police\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.831543+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://openbudget.lacity.org/api/opex/chart_data.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_appropriations": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_appropriations\", \"year\": \"2023\", \"department\": \"Police\", \"program\": \"Field Forces\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.831613+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://openbudget.lacity.org/api/opex/chart_data.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_budget_total": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_budget_total\", \"year\": \"2023\", \"level\": \"org1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.831683+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://openbudget.lacity.org/api/opex/totals.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_fund_sources": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_fund_sources\", \"year\": \"2023\", \"level\": \"org1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.831833+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://openbudget.lacity.org/api/opex/fund_source_data.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_historical": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_historical\", \"year\": \"2023\", \"level\": \"org1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.832027+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://openbudget.lacity.org/api/opex/historical.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_entity_counts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_entity_counts\", \"year\": \"2023\", \"level\": \"org2\", \"department\": \"Police\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.832103+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://openbudget.lacity.org/api/opex/entity_counts.json",
+          "status": 200
+        }
+      ]
+    },
+    "search_entities": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_entities\", \"query\": \"police\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.832168+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://openbudget.lacity.org/api/search_preload.json",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

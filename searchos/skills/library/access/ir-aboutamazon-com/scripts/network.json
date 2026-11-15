@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_events": "direct",
+    "get_press_releases": "direct",
+    "get_event_years": "direct",
+    "get_stock_quote": "direct",
+    "get_sec_filings": "direct",
+    "get_sec_filing_years": "direct"
+  },
+  "aliases": {
+    "get_sec_filings": "get_sec_filings",
+    "get_sec_filing_years": "get_sec_filing_years",
+    "get_press_releases": "get_press_releases",
+    "get_events": "get_events",
+    "get_event_years": "get_event_years",
+    "get_stock_quote": "get_stock_quote",
+    "run": "get_stock_quote"
+  }
+}

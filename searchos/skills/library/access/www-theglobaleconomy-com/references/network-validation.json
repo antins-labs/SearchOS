@@ -1,0 +1,355 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "222d657af229000aceafb3a447219be4c6045e4521ab0a140ec7d862d16bf83e",
+  "capabilities": {
+    "get_country_profile": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country_profile\", \"country_code\": \"USA\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.947853+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.theglobaleconomy.com/USA/",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/css/style_common.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/flags/USA_flg.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/search_btn.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/header_top_bg.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/search_field.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/logo.gif",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.google-analytics.com/ga.js",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.google-analytics.com/r/__utm.gif",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610200101/show_ads_impl_fy2021.js",
+          "status": 200
+        },
+        {
+          "url": "https://stats.g.doubleclick.net/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        }
+      ]
+    },
+    "get_rankings": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rankings\", \"indicator\": \"GDP_per_capita_PPP\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.950159+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.theglobaleconomy.com/rankings/GDP_per_capita_PPP/",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/search_btn.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/css/style_common.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/search_field.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/indi_menu.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/header_top_bg.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/logo.gif",
+          "status": 200
+        }
+      ]
+    },
+    "get_indicator_data": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_indicator_data\", \"country_code\": \"USA\", \"indicator\": \"gdp_growth\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.950449+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.theglobaleconomy.com/USA/gdp_growth/",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/css/style_common.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/search_btn.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/flags/USA_flg.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/logo.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/header_top_bg.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/search_field.gif",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/indi_menu.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610200101/show_ads_impl_fy2021.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/api_arrow_open.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/api_arrow_close.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.gstatic.com/charts/loader.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://ssl.google-analytics.com/ga.js",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.google-analytics.com/r/__utm.gif",
+          "status": 200
+        },
+        {
+          "url": "https://stats.g.doubleclick.net/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://www.gstatic.com/charts/51/loader.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.gstatic.com/charts/51/css/util/util.css",
+          "status": 200
+        }
+      ]
+    },
+    "list_countries": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_countries\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.950735+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.theglobaleconomy.com/",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/css/style_common.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/search_btn.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/flags/Brazil_flg.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/flags/Russia_flg.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/logo.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/flags/Germany_flg.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/flags/South-Korea_flg.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/header_top_bg.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/flags/India_flg.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/home_combo_bg_new.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/search_field.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.google-analytics.com/ga.js",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.google-analytics.com/r/__utm.gif",
+          "status": 200
+        },
+        {
+          "url": "https://stats.g.doubleclick.net/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        }
+      ]
+    },
+    "list_indicators": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_indicators\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.951007+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.theglobaleconomy.com/indicators_list.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/css/style_common.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/search_btn.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/search_field.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/logo.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.theglobaleconomy.com/images/header_top_bg.gif",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.google-analytics.com/ga.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.google-analytics.com/r/__utm.gif",
+          "status": 200
+        },
+        {
+          "url": "https://stats.g.doubleclick.net/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        }
+      ]
+    }
+  }
+}

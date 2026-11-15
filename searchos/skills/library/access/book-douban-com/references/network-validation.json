@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "08d2f66f3b547e1c3907f32db2784e6d4df824ae82d4304e493852d5a43810b5",
+  "capabilities": {
+    "get_book": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_book\", \"subject_id\": \"1770782\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.409594+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://book.douban.com/subject/1770782/",
+          "status": 200
+        }
+      ]
+    },
+    "get_press_books": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_press_books\", \"press_id\": \"2595\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.443388+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://book.douban.com/press/2595/",
+          "status": 200
+        }
+      ]
+    },
+    "get_author_books": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_author_books\", \"author_id\": \"4572453\", \"sortby\": \"time\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.443850+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://book.douban.com/author/4572453/books",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"追风筝的人\", \"start\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.443977+00:00",
+      "reason": "books is empty",
+      "source_responses": [
+        {
+          "url": "https://book.douban.com/subject_search",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

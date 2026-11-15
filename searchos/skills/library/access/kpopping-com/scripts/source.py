@@ -2,6 +2,9 @@
 kpopping.com access skill
 Fetches K-pop company information from kpopping.com company database pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -18,7 +21,7 @@ async def _fetch_html(url: str, timeout: int = 30) -> str:
         'Accept-Language': 'en-US,en;q=0.9',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, headers=headers, timeout=timeout) as response:
             response.raise_for_status()
             return await response.text()
@@ -221,6 +224,7 @@ async def search_companies(query: str) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the kpopping.com access skill.

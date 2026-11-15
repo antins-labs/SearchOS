@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "18a365b38d99a0098955e62f4ddd4ad41776d74c8172b2989e5e04ed5ee18c85",
+  "capabilities": {
+    "get_movie": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_movie\", \"url\": \"http://www.imdb.com/title/tt0185906/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.848852+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://r.jina.ai/http://www.imdb.com/title/tt0185906/",
+          "status": 200
+        }
+      ]
+    },
+    "get_list": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_list\", \"url\": \"http://www.imdb.com/list/ls033953812/\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.796311+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://r.jina.ai/http://www.imdb.com/list/ls033953812/",
+          "status": 200
+        }
+      ]
+    },
+    "get_name": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_name\", \"url\": \"http://www.imdb.com/name/nm0000410/\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:31.200463+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://r.jina.ai/http://www.imdb.com/name/nm0000410/",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:31.202247+00:00",
+      "reason": "Search not supported via r.jina.ai. Use get_movie, get_list, or get_name with specific IMDb URLs or IDs.",
+      "source_responses": []
+    }
+  }
+}

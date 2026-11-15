@@ -4,6 +4,9 @@ TradingKey Article Fetcher - SearchOS Access Skill
 Fetches analysis and news articles from www.tradingkey.com, extracting
 structured metadata and full content including tables, key points, and data.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 import json
@@ -388,6 +391,7 @@ async def search_articles(query: str, category: str | None, session: ClientSessi
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the TradingKey access skill.
@@ -405,7 +409,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     function = params.get("function", "get_article")
     
-    async with ClientSession(headers=HEADERS, timeout=DEFAULT_TIMEOUT) as session:
+    async with _skill_network.aiohttp_session(headers=HEADERS, timeout=DEFAULT_TIMEOUT) as session:
         if function == "get_article":
             url = params.get("url")
             article_id = params.get("article_id")

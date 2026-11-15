@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "9db4953b760a2ca400acef0d0b33c6827d84d133ec20073c08ef03452c1f6922",
+  "capabilities": {
+    "get_route_details": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_route_details\", \"table_select\": 212, \"include_timetable\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.849693+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://railmaps.com.au/routedetails.php",
+          "status": 200
+        },
+        {
+          "url": "https://railmaps.com.au/routedetails_AJAX.php",
+          "status": 200
+        }
+      ]
+    },
+    "search_routes": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_routes\", \"include_timetable\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.850236+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/railmaps-com-au/scripts/source.py",
+        "line": 266,
+        "end_line": 312,
+        "implementation": "search_routes",
+        "source_sha256": "7c989f4ac8fcd4cbebb6d44a552e7e7e3714a0b8f0dd9588902554a0325bce36",
+        "implementation_sha256": "d63b6ffbcd8e0b99843e5b3ff50f26f10482163dfb82edb0534bd45b7e60a99b"
+      }
+    }
+  }
+}

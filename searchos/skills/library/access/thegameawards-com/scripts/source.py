@@ -4,6 +4,9 @@ The Game Awards Rewind Skill
 Extracts award winners, nominees, and show highlights from The Game Awards rewind pages.
 Uses Next.js RSC (React Server Components) endpoint to retrieve structured data.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import json
 import re
@@ -11,6 +14,7 @@ from typing import Any, Dict, List, Optional
 import aiohttp
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Execute The Game Awards rewind data extraction.
@@ -86,7 +90,7 @@ async def get_rewind_data(year: str) -> Dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as resp:
                 if resp.status != 200:
                     return {

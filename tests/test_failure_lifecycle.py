@@ -63,6 +63,7 @@ async def test_task_exit_uses_one_review_entry_with_actual_current_attempt(monke
         post_mortem_model=object(),
         completed={},
     )
+    context.publish_report = lambda r: context.completed.update({r.agent_id: r})
     monkeypatch.setattr(lifecycle, "_ctx", context)
     monkeypatch.setattr(
         lifecycle,
@@ -116,6 +117,7 @@ async def test_continuation_reviews_without_conversation_logging(monkeypatch, cr
         post_mortem_model=object(),
         completed={},
     )
+    context.publish_report = lambda r: context.completed.update({r.agent_id: r})
     monkeypatch.setattr(lifecycle, "_ctx", context)
     monkeypatch.setattr(lifecycle, "_snapshot_state_for_diff", lambda state: {})
     monkeypatch.setattr(

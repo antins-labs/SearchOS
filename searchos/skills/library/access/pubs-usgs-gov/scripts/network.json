@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_full_info": "direct",
+    "get_rare_earths": "direct",
+    "list_commodities": "direct",
+    "get_commodity": "direct"
+  },
+  "aliases": {
+    "get_commodity": "get_commodity",
+    "list_commodities": "list_commodities",
+    "get_rare_earths": "get_rare_earths",
+    "get_full_info": "get_full_info",
+    "run": "get_full_info"
+  }
+}

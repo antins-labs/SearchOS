@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "9976ee3c0fff509b28fe3a5276d6ca6cd43b6b8b15c46e4b7973fa4d64a40181",
+  "capabilities": {
+    "list_years": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_years\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.115614+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gk-stu.bjeea.cn/",
+          "status": 200
+        },
+        {
+          "url": "https://gk-stu.bjeea.cn/themis-student-service-api/rpc",
+          "status": 200
+        }
+      ]
+    },
+    "list_batches": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_batches\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.188322+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gk-stu.bjeea.cn/",
+          "status": 502
+        },
+        {
+          "url": "https://gk-stu.bjeea.cn/themis-student-service-api/rpc",
+          "status": 200
+        }
+      ]
+    },
+    "list_provinces": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_provinces\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.188493+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gk-stu.bjeea.cn/",
+          "status": 200
+        },
+        {
+          "url": "https://gk-stu.bjeea.cn/themis-student-service-api/rpc",
+          "status": 200
+        }
+      ]
+    },
+    "list_elective_subjects": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_elective_subjects\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.189343+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gk-stu.bjeea.cn/",
+          "status": 200
+        },
+        {
+          "url": "https://gk-stu.bjeea.cn/themis-student-service-api/rpc",
+          "status": 200
+        }
+      ]
+    },
+    "list_art_exam_types": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_art_exam_types\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.190483+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gk-stu.bjeea.cn/",
+          "status": 502
+        },
+        {
+          "url": "https://gk-stu.bjeea.cn/themis-student-service-api/rpc",
+          "status": 200
+        }
+      ]
+    },
+    "query_score_lines": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"query_score_lines\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.190754+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gk-stu.bjeea.cn/",
+          "status": 502
+        },
+        {
+          "url": "https://gk-stu.bjeea.cn/themis-student-service-api/rpc",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

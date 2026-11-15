@@ -4,6 +4,9 @@ Datamuse API 词语检索脚本
 
 通过 Datamuse 公开 API 查询词语关系，支持同义词、相关词、反义词等。
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import argparse
 import json
@@ -72,7 +75,7 @@ def fetch_words(url: str, timeout: int = 15) -> List[Dict[str, Any]]:
     )
     
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        with _skill_network.urllib_urlopen(request, timeout=timeout) as response:
             if response.status != 200:
                 raise ValueError(f"HTTP {response.status}: {response.reason}")
             
@@ -161,6 +164,7 @@ def query_words(
     }
 
 
+@_skill_network.entrypoint(capability_id='query', cli=True)
 def main():
     """命令行入口。"""
     parser = argparse.ArgumentParser(

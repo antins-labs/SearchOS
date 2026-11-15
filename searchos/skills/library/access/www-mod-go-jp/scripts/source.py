@@ -4,6 +4,9 @@ Japan Ministry of Defense (MOD) - Defense Ministers Access Skill
 Fetches information about current and previous defense ministers,
 vice-ministers, and parliamentary vice-ministers from the Japan MOD website.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -373,6 +376,7 @@ class MODJapanFetcher:
             }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute function for Japan MOD minister information retrieval
@@ -398,7 +402,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     
     fetcher = MODJapanFetcher()
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             if function == 'get_current_ministers_ja':
                 result = await fetcher.get_current_ministers_ja(session)

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_box_office_chart": "direct",
+    "get_franchise": "direct",
+    "get_movie": "direct"
+  },
+  "aliases": {
+    "get_movie": "get_movie",
+    "get_franchise": "get_franchise",
+    "get_box_office_chart": "get_box_office_chart",
+    "run": "get_box_office_chart"
+  }
+}

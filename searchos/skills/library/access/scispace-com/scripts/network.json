@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "check_captcha_status": "direct",
+    "extract_journal_slug": "direct",
+    "get_journal_info": "direct"
+  },
+  "aliases": {
+    "get_journal_info": "get_journal_info",
+    "check_captcha_status": "check_captcha_status",
+    "extract_journal_slug": "extract_journal_slug",
+    "run": "extract_journal_slug"
+  }
+}

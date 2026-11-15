@@ -199,7 +199,7 @@ async def test_normal_session_final_does_not_bypass_repair_and_history(
 ):
     from searchos.config import models
     from searchos.harness import session
-    from searchos.harness.telemetry.conversation_context import conversation_turns
+    from searchos.harness.telemetry.conversation import conversation_turns
     from searchos.skills.catalog.registry import SkillRegistry
 
     model = ScriptedModel(
@@ -311,15 +311,16 @@ async def test_answer_self_check_preserves_final_or_completes_once(is_final):
             assert payload["follow_ups"] == ["补充收入比较"]
             return AIMessage(content=json.dumps({"is_final_answer": is_final}))
         assert len(calls) == 2
-        assert messages == history[1:-1]
-        assert "补充收入比较" in history[-1].content
-        assert "此前已要求比较商业价值" in history[-1].content
+        assert messages == history[1:]
+        assert "补充收入比较" in history[0].content
+        assert "此前已要求比较商业价值" in history[0].content
         return AIMessage(content=GOOD)
 
     state = {"messages": messages}
     result, regenerated = await _check_or_complete_answer(
         final_state=state, query="比较甲乙", model=SimpleNamespace(ainvoke=invoke),
-        follow_ups=["补充收入比较"], context_preamble="此前已要求比较商业价值",
+        follow_ups=["补充收入比较"],
+        conversation_history=[{"role": "user", "content": "此前已要求比较商业价值"}],
     )
     assert len(calls) == (1 if is_final else 2)
     assert regenerated is (not is_final)

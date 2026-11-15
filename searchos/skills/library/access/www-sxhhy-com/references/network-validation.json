@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "a1d20e0483bfe5c1b007d560fa659468ea3d0d6f6cb7272d8f05842da131df69",
+  "capabilities": {
+    "list_all": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_all\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.281621+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.sxhhy.com/21/9360.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_batch": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_batch\", \"batch\": \"第七批\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.282419+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.sxhhy.com/21/9360.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_year": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_year\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.282605+00:00",
+      "reason": "HTTP error: 500",
+      "source_responses": [
+        {
+          "url": "http://www.sxhhy.com/21/9360.html",
+          "status": 500
+        }
+      ]
+    },
+    "get_by_location": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_location\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.282763+00:00",
+      "reason": "HTTP error: 500",
+      "source_responses": [
+        {
+          "url": "http://www.sxhhy.com/21/9360.html",
+          "status": 500
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"keyword\": \"温泉\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.282828+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.sxhhy.com/21/9360.html",
+          "status": 200
+        }
+      ]
+    },
+    "statistics": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"statistics\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.282888+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.sxhhy.com/21/9360.html",
+          "status": 200
+        }
+      ]
+    },
+    "batches": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"batches\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.282950+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.sxhhy.com/21/9360.html",
+          "status": 200
+        }
+      ]
+    },
+    "locations": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"locations\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.283008+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.sxhhy.com/21/9360.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

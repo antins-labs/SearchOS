@@ -8,6 +8,9 @@ Fetches structured information from the German Bundestag website:
 The seat distribution page uses JavaScript rendering for charts, but the
 underlying data can be extracted from the article text and related pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -304,6 +307,7 @@ async def get_page_content(url: str, session: aiohttp.ClientSession) -> dict:
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Bundestag.de access skill.
@@ -315,7 +319,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     function = params.get('function', '')
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_seat_distribution':
             return await get_seat_distribution(session)
         

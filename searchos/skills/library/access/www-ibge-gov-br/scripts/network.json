@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_municipalities": "direct",
+    "get_state_municipalities": "direct",
+    "get_municipality_statistics": "direct",
+    "get_municipality_full": "direct",
+    "get_municipality": "direct",
+    "get_states": "direct"
+  },
+  "aliases": {
+    "search_municipalities": "search_municipalities",
+    "get_municipality": "get_municipality",
+    "get_municipality_statistics": "get_municipality_statistics",
+    "get_municipality_full": "get_municipality_full",
+    "get_state_municipalities": "get_state_municipalities",
+    "get_states": "get_states",
+    "run": "get_states"
+  }
+}

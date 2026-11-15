@@ -1,0 +1,152 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b25b83af8625b7532eb17ee70d5dae86a049e641ecdade779f04107877e6b59d",
+  "capabilities": {
+    "get_monthly_revenue": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_monthly_revenue\", \"year\": 2024, \"lang\": \"en\", \"data_type\": \"monthly\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.010459+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dicj.gov.mo/web/en/information/DadosEstat_mensal/2024/report_en.xml",
+          "status": 200
+        }
+      ]
+    },
+    "get_quarterly_statistics": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_quarterly_statistics\", \"year\": 2024, \"lang\": \"en\", \"data_type\": \"monthly\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.011841+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dicj.gov.mo/web/en/information/DadosEstat/2024/report_en.xml",
+          "status": 200
+        }
+      ]
+    },
+    "get_concessionaire_reports": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_concessionaire_reports\", \"concessionaire\": \"PBL\", \"lang\": \"en\", \"data_type\": \"monthly\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.011945+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dicj.gov.mo/web/en/information/relcontas/PBL/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_financial_report": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_financial_report\", \"concessionaire\": \"PBL\", \"year\": 2024, \"lang\": \"cn\", \"data_type\": \"monthly\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.012015+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dicj.gov.mo/web/cn/information/relcontas/PBL/RC2024.html",
+          "status": 200
+        }
+      ]
+    },
+    "list_concessionaires": {
+      "status": "offline_business_passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_concessionaires\", \"lang\": \"en\", \"data_type\": \"monthly\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.012080+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-dicj-gov-mo/scripts/source.py",
+        "line": 469,
+        "end_line": 489,
+        "implementation": "list_all_concessionaires",
+        "source_sha256": "6a4f49a49c5a2202a001e5195906c1b2c5101eadf17ed63a5af1ecfd18395b43",
+        "implementation_sha256": "1b220732b408fad05e59268ce08a6967100d82069ce46dadc4c027a69926af91"
+      }
+    },
+    "check_years": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"check_years\", \"lang\": \"en\", \"data_type\": \"monthly\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.012147+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.dicj.gov.mo/web/en/information/DadosEstat_mensal/2026/report_en.xml",
+          "status": 200
+        },
+        {
+          "url": "https://www.dicj.gov.mo/web/en/information/DadosEstat_mensal/2025/report_en.xml",
+          "status": 200
+        },
+        {
+          "url": "https://www.dicj.gov.mo/web/en/information/DadosEstat_mensal/2024/report_en.xml",
+          "status": 200
+        },
+        {
+          "url": "https://www.dicj.gov.mo/web/en/information/DadosEstat_mensal/2023/report_en.xml",
+          "status": 200
+        },
+        {
+          "url": "https://www.dicj.gov.mo/web/en/information/DadosEstat_mensal/2022/report_en.xml",
+          "status": 200
+        },
+        {
+          "url": "https://www.dicj.gov.mo/web/en/information/DadosEstat_mensal/2021/report_en.xml",
+          "status": 200
+        },
+        {
+          "url": "https://www.dicj.gov.mo/web/en/information/DadosEstat_mensal/2020/report_en.xml",
+          "status": 200
+        },
+        {
+          "url": "https://www.dicj.gov.mo/web/en/information/DadosEstat_mensal/2019/report_en.xml",
+          "status": 200
+        },
+        {
+          "url": "https://www.dicj.gov.mo/web/en/information/DadosEstat_mensal/2018/report_en.xml",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

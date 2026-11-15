@@ -4,6 +4,9 @@ SearchOS Access Skill for Bundeswahlleiterin.de (German Federal Election Commiss
 Fetches election results data from the official German federal election website.
 Supports national results, state-level results, and press releases.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -436,6 +439,7 @@ async def list_election_years(session: aiohttp.ClientSession) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the Bundeswahlleiterin.de access skill.
@@ -449,7 +453,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     function = params.get("function", "")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "get_national_results":
             election_year = params.get("election_year", "2025")
             return await get_national_results(election_year, session)

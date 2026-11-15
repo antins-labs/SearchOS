@@ -1,0 +1,229 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "736746f0324dbad4f53f16aa875750813b8ea2b8ea07464dad86cd968a8f491d",
+  "capabilities": {
+    "get_monthly_futures": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_monthly_futures\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.254675+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202609monthvarietystatistics.dat",
+          "status": 200
+        }
+      ]
+    },
+    "get_monthly_options": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_monthly_options\", \"year\": 2025, \"month\": 4}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.255674+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/option/monthdata/202504monthvarietystatistics.dat",
+          "status": 200
+        }
+      ]
+    },
+    "get_product_config": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_product_config\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.255749+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.shfe.com.cn/data/config/product_config.dat",
+          "status": 200
+        }
+      ]
+    },
+    "get_report_config": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_report_config\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.255817+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.shfe.com.cn/data/config/report_config_cn.dat",
+          "status": 200
+        }
+      ]
+    },
+    "get_web_config": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_web_config\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.255884+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.shfe.com.cn/data/config/web_config.dat",
+          "status": 200
+        }
+      ]
+    },
+    "get_available_months": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_available_months\", \"start_year\": 2024, \"end_year\": 2025}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.255970+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202401monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202402monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202403monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202404monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202405monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202406monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202407monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202408monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202409monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202410monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202411monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202412monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202501monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202502monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202503monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202504monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202505monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202506monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202507monthvarietystatistics.dat",
+          "status": 200
+        },
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202508monthvarietystatistics.dat",
+          "status": 200
+        }
+      ]
+    },
+    "get_instrument_summary": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_instrument_summary\", \"year\": 2025, \"month\": 4}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.256037+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202504monthvarietystatistics.dat",
+          "status": 200
+        }
+      ]
+    },
+    "get_top_instruments": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_top_instruments\", \"year\": 2025, \"month\": 4, \"sort_by\": \"volume\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.256414+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.shfe.com.cn/data/tradedata/future/monthdata/202504monthvarietystatistics.dat",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

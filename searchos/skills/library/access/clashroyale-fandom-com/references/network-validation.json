@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "60427724b7a2a91547a4347a3607de428284df10a344ed9afc087494f3debf90",
+  "capabilities": {
+    "get_card": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_card\", \"card_name\": \"Mega_Knight\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.482238+00:00",
+      "reason": "Failed to fetch page",
+      "source_responses": [
+        {
+          "url": "https://clashroyale.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "search_cards": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_cards\", \"query\": \"goblin\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.482892+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://clashroyale.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "list_cards": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_cards\", \"category\": \"Spell_Cards\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.482964+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://clashroyale.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

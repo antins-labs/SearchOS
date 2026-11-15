@@ -8,6 +8,9 @@ Fetches structured information from en.odkb-csto.org including:
 - Documents
 - Leadership information
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -559,6 +562,7 @@ async def get_structure(params: dict[str, Any], session: aiohttp.ClientSession) 
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the CSTO access skill.
@@ -589,7 +593,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
             ]
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "get_history":
             return await get_history(params, session)
         elif function == "get_sessions":

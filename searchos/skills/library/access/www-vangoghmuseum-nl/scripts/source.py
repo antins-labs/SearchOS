@@ -4,6 +4,9 @@ Van Gogh Museum Collection Access Skill
 Fetches artwork details from the Van Gogh Museum online collection.
 Bypasses cookie consent wall using Cookiebot consent cookie.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -45,7 +48,7 @@ async def fetch_artwork(object_id: str) -> dict:
     }
 
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as response:
                 if response.status == 404:
                     result['error'] = "Artwork not found"
@@ -160,6 +163,7 @@ async def get_iiif_image_url(iiif_base: str, width: int = 1280) -> str:
     return f"{iiif_base}/full/{width},/0/default.jpg"
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the Van Gogh Museum collection access skill.

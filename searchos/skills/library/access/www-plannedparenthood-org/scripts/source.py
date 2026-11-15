@@ -7,6 +7,9 @@ Fetches health center information from Planned Parenthood's public API including
 - Filter by channel (telehealth, onsite)
 - Get real-time opening hours for facilities
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -105,7 +108,7 @@ async def search_health_centers(
         "page": page,
     }
 
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Validate location first
         validate_url = f"{BASE_URL}/health-center/api/_validate_location"
         validate_result = await _make_request(
@@ -158,7 +161,7 @@ async def get_opening_hours(facility_ids: list[int]) -> dict:
     if not facility_ids:
         return {"error": True, "message": "No facility IDs provided"}
 
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         url = f"{BASE_URL}/_facility-opening-hours"
         params = {"facility_ids": ",".join(str(fid) for fid in facility_ids)}
 
@@ -246,6 +249,7 @@ async def get_services_list() -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Planned Parenthood health center queries.

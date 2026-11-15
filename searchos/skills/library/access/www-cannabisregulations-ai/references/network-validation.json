@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "94088227d55b46fef73a4dd49be513ba0ea1114afc9040cd5a438bd2aee87384",
+  "capabilities": {
+    "get_country_legality": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country_legality\", \"country\": \"Ecuador\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.976717+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.cannabisregulations.ai/country-legality/ecuador-marijuana",
+          "status": 200
+        },
+        {
+          "url": "https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        },
+        {
+          "url": "https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7%2F689e5ba67671442434f3ca35%2F6ab84a15b4645496e05f7fae%2Fv3runtime-0.3.0.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7%2F689e5ba67671442434f3ca35%2F6ab7ba61686d68a8f74bc1f8%2Fv3orgschema-0.1.0.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7/css/cannabis-regulations-ai.webflow.shared.20f65ea7e.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7/6a70ea92f1eeb98cd38640ed_crai-finder-grid-patch-1.1.0.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7/js/webflow.6399e70f.9b2479493a1f5c30.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7/6598692fa5e7e772f9411570_LOGO-p-1600.png",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yygg_vb.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8-qxTOlOVk6OThhvA.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7/js/webflow.schunk.0628f561c2cf88a5.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7/js/webflow.schunk.e661489a1c70db1e.js",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.cannabisregulations.ai/[redacted]/xnK5WSJLtiIS1nWkPj2rFCtVDeU",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610200101/show_ads_impl.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        }
+      ]
+    },
+    "extract_legal_status": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_legal_status\", \"country\": \"Kazakhstan\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.745759+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.cannabisregulations.ai/country-legality/kazakhstan-marijuana",
+          "status": 200
+        },
+        {
+          "url": "https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7/css/cannabis-regulations-ai.webflow.shared.20f65ea7e.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7/6a70ea92f1eeb98cd38640ed_crai-finder-grid-patch-1.1.0.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7/js/webflow.6399e70f.9b2479493a1f5c30.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7%2F689e5ba67671442434f3ca35%2F6ab84a15b4645496e05f7fae%2Fv3runtime-0.3.0.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7%2F689e5ba67671442434f3ca35%2F6ab7ba61686d68a8f74bc1f8%2Fv3orgschema-0.1.0.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7/js/webflow.schunk.0628f561c2cf88a5.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7/js/webflow.schunk.e661489a1c70db1e.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/6578f278b08f54c9e9835fe7/6598692fa5e7e772f9411570_LOGO-p-1600.png",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8-qxTOlOVk6OThhvA.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yygg_vb.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.cannabisregulations.ai/[redacted]/xnK5WSJLtiIS1nWkPj2rFCtVDeU",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.cannabisregulations.ai/[redacted]/ga/g/c",
+          "status": 204
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610200101/show_ads_impl.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

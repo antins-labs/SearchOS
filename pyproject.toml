@@ -51,6 +51,7 @@ dependencies = [
     "pillow>=10.1.0",
     "PyYAML>=6.0.0",
     "httpx>=0.28.0",
+    "h11>=0.16.0",
     "requests>=2.32.0",
     "tiktoken>=0.7.0",
     "rich>=14.2.0",
@@ -74,9 +75,8 @@ searchos = "searchos.cli:main"
 
 [project.optional-dependencies]
 mobile = ["pywebpush>=2.5.0,<3", "cryptography>=46.0.0"]
-tavily = ["tavily-python>=0.5.0"]
 browser = ["playwright>=1.40.0", "cryptography>=46.0.0"]
-crawl4ai = ["crawl4ai>=0.4.0"]
+crawl4ai = ["crawl4ai>=0.7.4"]
 anthropic = ["langchain-anthropic>=0.3.0"]  # 已进核心依赖；保留 extra 向后兼容
 observability = ["langsmith>=0.2.0"]
 eval = ["pandas>=2.0", "numpy>=1.24"]
@@ -103,7 +103,7 @@ local-docs = [
     "python-docx>=1.1.0",
     "python-pptx>=1.0.0",
 ]
-all = ["searchos[access,local-docs,tavily,crawl4ai,observability,eval]"]
+all = ["searchos[access,local-docs,crawl4ai,observability,eval]"]
 dev = ["ruff>=0.4.0", "pytest>=8.0", "pytest-asyncio>=0.24"]
 
 [tool.hatch.build.targets.wheel]

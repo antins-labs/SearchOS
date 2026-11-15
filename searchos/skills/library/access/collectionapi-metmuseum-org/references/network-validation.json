@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "4fee9dca196eee39030016547b3e121f9e169d98c369422471c8e3b5b6d35744",
+  "capabilities": {
+    "get_object": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_object\", \"object_id\": 922242}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.572817+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://collectionapi.metmuseum.org/public/collection/v1/objects/922242",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"van gogh\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.573752+00:00",
+      "reason": "http_error",
+      "source_responses": [
+        {
+          "url": "https://collectionapi.metmuseum.org/public/collection/v1/search",
+          "status": 410
+        }
+      ]
+    },
+    "departments": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"departments\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.573858+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://collectionapi.metmuseum.org/public/collection/v1/departments",
+          "status": 200
+        }
+      ]
+    },
+    "get_objects_batch": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_objects_batch\", \"object_ids\": [922242, 922243, 436533]}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.574123+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://collectionapi.metmuseum.org/public/collection/v1/objects/922242",
+          "status": 200
+        },
+        {
+          "url": "https://collectionapi.metmuseum.org/public/collection/v1/objects/922243",
+          "status": 200
+        },
+        {
+          "url": "https://collectionapi.metmuseum.org/public/collection/v1/objects/436533",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

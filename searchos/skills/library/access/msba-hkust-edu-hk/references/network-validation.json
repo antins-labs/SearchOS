@@ -1,0 +1,206 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7055b3f15e042b2e0e556abaf8423252a8b68f4bc21036c858d07f4aa41fde0b",
+  "capabilities": {
+    "get_program_fees": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_program_fees\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.809792+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://msba.hkust.edu.hk/admission/program-fee-expenses",
+          "status": 200
+        }
+      ]
+    },
+    "get_admission_requirements": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_admission_requirements\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.810785+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://msba.hkust.edu.hk/admission/admission-requirements",
+          "status": 200
+        }
+      ]
+    },
+    "get_application_schedule": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_application_schedule\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.810870+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_scholarships": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_scholarships\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.810938+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://msba.hkust.edu.hk/admission/scholarship-financial-aids",
+          "status": 200
+        }
+      ]
+    },
+    "get_curriculum": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_curriculum\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.811010+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://msba.hkust.edu.hk/program/program-curriculum",
+          "status": 200
+        }
+      ]
+    },
+    "get_program_overview": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_program_overview\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.811091+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://msba.hkust.edu.hk/program/overview-schedule",
+          "status": 200
+        }
+      ]
+    },
+    "get_class_profile": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_class_profile\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.811167+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://msba.hkust.edu.hk/student-life/class-profile",
+          "status": 200
+        }
+      ]
+    },
+    "search_all": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_all\", \"query\": \"tuition\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.811422+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://msba.hkust.edu.hk/admission/program-fee-expenses",
+          "status": 200
+        },
+        {
+          "url": "https://msba.hkust.edu.hk/admission/admission-requirements",
+          "status": 200
+        },
+        {
+          "url": "https://msba.hkust.edu.hk/admission/application-schedule-procedures",
+          "status": 200
+        },
+        {
+          "url": "https://msba.hkust.edu.hk/admission/scholarship-financial-aids",
+          "status": 200
+        },
+        {
+          "url": "https://msba.hkust.edu.hk/program/program-curriculum",
+          "status": 200
+        },
+        {
+          "url": "https://msba.hkust.edu.hk/program/overview-schedule",
+          "status": 200
+        },
+        {
+          "url": "https://msba.hkust.edu.hk/student-life/class-profile",
+          "status": 200
+        }
+      ]
+    },
+    "get_all_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_info\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.812757+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://msba.hkust.edu.hk/admission/admission-requirements",
+          "status": 200
+        },
+        {
+          "url": "https://msba.hkust.edu.hk/admission/scholarship-financial-aids",
+          "status": 200
+        },
+        {
+          "url": "https://msba.hkust.edu.hk/admission/program-fee-expenses",
+          "status": 200
+        },
+        {
+          "url": "https://msba.hkust.edu.hk/admission/application-schedule-procedures",
+          "status": 200
+        },
+        {
+          "url": "https://msba.hkust.edu.hk/program/overview-schedule",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,7 +1,7 @@
 """Web-side persistence for the settings overlay.
 
 The overlay DATA MODEL and the read/apply path live in
-``searchos.config.web_overlay`` (shared with the CLI/TUI, which apply the same
+``searchos.config.settings_overlay`` (shared with the CLI/TUI, which apply the same
 overlay read-only). This module re-exports those and adds the WRITE path the
 web app needs: atomic saves, the async lock, and .env-backed key/provider
 edits. Sparse semantics throughout: ``None`` / absent means "no override, env
@@ -20,13 +20,14 @@ from pathlib import Path
 # app and the CLI share one implementation. Re-exported so existing web imports
 # (``from api.settings.store import store`` / ``ProviderConnection`` / …) keep
 # working unchanged.
-from searchos.config.web_overlay import (  # noqa: F401
+from searchos.config.settings_overlay import (  # noqa: F401
     DEFAULT_PROVIDER_CONNECTIONS,
     AdvancedOverlay,
     CustomProfile,
     EffortLevel,
     EffortOverlay,
     ModelsOverlay,
+    NetworkOverlay,
     ProfileOverride,
     ProviderConnection,
     RunDefaults,
@@ -123,3 +124,4 @@ def reset() -> None:
 
     from searchos.config.settings import reload_settings_in_place
     reload_settings_in_place()
+    apply_to_runtime()

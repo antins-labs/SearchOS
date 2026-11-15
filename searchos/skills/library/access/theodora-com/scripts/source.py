@@ -4,6 +4,9 @@ Theodora.com World Factbook Access Skill
 Extracts country geography data from theodora.com CIA World Factbook pages.
 Supports both world_fact_book_2024 and wfbcurrent URL patterns.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -196,7 +199,7 @@ async def get_geography(params: dict) -> dict:
         f"https://theodora.com/wfbcurrent/{country_slug}/{country_slug}_geography.html"
     ]
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for url in urls:
             html = await fetch_page(url, session)
             if html:
@@ -218,7 +221,7 @@ async def get_geography_by_url(params: dict) -> dict:
     if 'theodora.com' not in url:
         return {"error": "URL must be from theodora.com domain"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html = await fetch_page(url, session)
         if html:
             result = parse_geography_content(html)
@@ -232,7 +235,7 @@ async def list_countries(params: dict) -> dict:
     """List all available countries."""
     url = "https://theodora.com/wfb/"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html = await fetch_page(url, session)
         if html:
             return parse_country_list(html)
@@ -254,7 +257,7 @@ async def list_sections(params: dict) -> dict:
         f"https://theodora.com/wfbcurrent/{country_slug}/index.html"
     ]
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for url in urls:
             html = await fetch_page(url, session)
             if html:
@@ -265,6 +268,7 @@ async def list_sections(params: dict) -> dict:
         return {"error": f"Could not find country: {country}"}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the Theodora.com access skill.

@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "455b20f0af63fb9b364120768d576a437bfc8696d8b717a5b872a846efcf72f7",
+  "capabilities": {
+    "get_player_summary": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player_summary\", \"player_id\": 50906}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.444050+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://extranet-lv.bwfbadminton.com/api/vue-player-summary",
+          "status": 200
+        }
+      ]
+    },
+    "get_player_bio": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player_bio\", \"player_id\": 50906}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.474602+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://extranet-lv.bwfbadminton.com/api/vue-player-bio",
+          "status": 200
+        }
+      ]
+    },
+    "get_player_previous_matches": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player_previous_matches\", \"player_id\": 64032, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.475456+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://extranet-lv.bwfbadminton.com/api/vue-player-match-previous",
+          "status": 200
+        }
+      ]
+    },
+    "get_player_next_match": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player_next_match\", \"player_id\": 50906}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.475573+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://extranet-lv.bwfbadminton.com/api/vue-player-match-next",
+          "status": 200
+        }
+      ]
+    },
+    "get_player_gallery": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player_gallery\", \"player_id\": 50906}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.475696+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://extranet-lv.bwfbadminton.com/api/vue-player-gallery",
+          "status": 200
+        }
+      ]
+    },
+    "get_player_news": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player_news\", \"player_id\": 50906}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.475981+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://bwfbadminton.com/wp-json/internal-api/vue-player-news",
+          "status": 200
+        }
+      ]
+    },
+    "get_player_full_profile": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player_full_profile\", \"player_id\": 50906}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.476066+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://extranet-lv.bwfbadminton.com/api/vue-player-match-previous",
+          "status": 200
+        },
+        {
+          "url": "https://extranet-lv.bwfbadminton.com/api/vue-player-summary",
+          "status": 200
+        },
+        {
+          "url": "https://extranet-lv.bwfbadminton.com/api/vue-player-match-next",
+          "status": 200
+        },
+        {
+          "url": "https://extranet-lv.bwfbadminton.com/api/vue-player-bio",
+          "status": 200
+        }
+      ]
+    },
+    "search_player_by_id": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_player_by_id\", \"player_id\": 75787}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.476190+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://extranet-lv.bwfbadminton.com/api/vue-player-summary",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

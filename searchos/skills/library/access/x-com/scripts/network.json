@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_user": "inherit",
+    "get_tweets": "inherit",
+    "get_tweet": "inherit"
+  },
+  "aliases": {
+    "get_tweet": "get_tweet",
+    "get_user": "get_user",
+    "get_tweets": "get_tweets"
+  }
+}

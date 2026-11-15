@@ -5,6 +5,9 @@ Provides structured access to case records from the International Crimes Databas
 at www.internationalcrimesdatabase.org, including case metadata, parties, 
 categories, keywords, and detailed content sections.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -325,6 +328,7 @@ async def search_cases(session: aiohttp.ClientSession, query: str) -> dict:
         return {'error': f'Error during search: {str(e)}'}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the International Crimes Database access skill.
@@ -344,7 +348,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     function = params.get('function', '')
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_case':
             case_id = params.get('case_id')
             url = params.get('url')

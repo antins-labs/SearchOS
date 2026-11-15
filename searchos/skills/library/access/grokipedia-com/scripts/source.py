@@ -5,6 +5,9 @@ Fetches and extracts structured content from Grokipedia wiki pages.
 Grokipedia is a wiki/encyclopedia site with articles containing sections,
 tables, lists, and other structured data.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import httpx
 from bs4 import BeautifulSoup, Tag
@@ -12,6 +15,7 @@ from typing import Any
 import asyncio
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Grokipedia page fetch and extraction.
@@ -79,7 +83,7 @@ async def get_page(params: dict[str, Any]) -> dict[str, Any]:
     }
     
     try:
-        async with httpx.AsyncClient(timeout=30.0, verify=False) as client:
+        async with _skill_network.httpx_async_client(timeout=30.0, verify=False) as client:
             response = await client.get(url, headers=headers, follow_redirects=True)
             
             if response.status_code == 404:

@@ -180,7 +180,7 @@ class ToolResultStore:
             receipt["field_count"] = len(value)
             for key in (*_EXECUTION_STATUS_FIELDS, "valid", "package_valid", "stage",
                         "examples", "observation_id", "content_source", "live_evidence",
-                        "source_url", "validation_status", "diagnostic_network_override"):
+                        "source_url", "validation_status"):
                 item = value.get(key)
                 if isinstance(item, (str, bool, int, float)) or key in value and item is None:
                     receipt[key] = item[:_STATUS_TEXT_CHARS] if isinstance(item, str) else item

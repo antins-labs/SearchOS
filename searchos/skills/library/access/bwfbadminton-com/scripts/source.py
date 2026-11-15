@@ -11,6 +11,9 @@ Supports:
 - Player news and gallery
 - Tournament information from match data
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from typing import Any
@@ -78,7 +81,7 @@ async def get_player_summary(player_id: int, session: aiohttp.ClientSession = No
     if session:
         result = await _fetch(session)
     else:
-        async with aiohttp.ClientSession() as sess:
+        async with _skill_network.aiohttp_session() as sess:
             result = await _fetch(sess)
     
     if not result.get("success"):
@@ -140,7 +143,7 @@ async def get_player_bio(player_id: int, session: aiohttp.ClientSession = None) 
     if session:
         result = await _fetch(session)
     else:
-        async with aiohttp.ClientSession() as sess:
+        async with _skill_network.aiohttp_session() as sess:
             result = await _fetch(sess)
     
     if not result.get("success"):
@@ -201,7 +204,7 @@ async def get_player_previous_matches(
             else:
                 break
     else:
-        async with aiohttp.ClientSession() as sess:
+        async with _skill_network.aiohttp_session() as sess:
             for i in range(limit):
                 result = await _fetch(sess, i)
                 if result.get("success") and result["data"].get("results"):
@@ -282,7 +285,7 @@ async def get_player_next_match(player_id: int, session: aiohttp.ClientSession =
     if session:
         result = await _fetch(session)
     else:
-        async with aiohttp.ClientSession() as sess:
+        async with _skill_network.aiohttp_session() as sess:
             result = await _fetch(sess)
     
     if not result.get("success"):
@@ -345,7 +348,7 @@ async def get_player_gallery(
     if session:
         result = await _fetch(session)
     else:
-        async with aiohttp.ClientSession() as sess:
+        async with _skill_network.aiohttp_session() as sess:
             result = await _fetch(sess)
     
     if not result.get("success"):
@@ -395,7 +398,7 @@ async def get_player_news(
     if session:
         result = await _fetch(session)
     else:
-        async with aiohttp.ClientSession() as sess:
+        async with _skill_network.aiohttp_session() as sess:
             result = await _fetch(sess)
     
     if not result.get("success"):
@@ -428,7 +431,7 @@ async def get_player_full_profile(player_id: int) -> dict:
     Returns:
         Combined player profile data
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Fetch all data in parallel
         import asyncio
         summary_task = get_player_summary(player_id, session)
@@ -484,6 +487,7 @@ async def search_player_by_id(player_id: int) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the BWF Badminton skill.

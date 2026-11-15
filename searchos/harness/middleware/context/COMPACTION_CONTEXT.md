@@ -1,6 +1,6 @@
 # CompactionContextMiddleware：上下文压缩调研与实现
 
-调研日期：2026-09-29。实现入口为 [CompactionContextMiddleware](compaction_context_middleware.py)，消息边界与计量辅助函数位于 [utils/compaction.py](utils/compaction.py)。它属于 Context，只有显式装载才启用，不改动默认 pipeline。
+调研日期：2026-09-29。实现入口为 [CompactionContextMiddleware](compaction_context_middleware.py)，完整工具事务、历史裁剪与摘要实现在 [core/history.py](core/history.py)。它属于 Context，只有显式装载才启用，不改动默认 pipeline。
 
 ## 公开资料确认了什么
 

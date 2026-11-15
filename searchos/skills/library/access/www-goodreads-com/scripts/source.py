@@ -2,6 +2,9 @@
 Goodreads SearchOS access skill.
 Parses book, author, and choice awards pages from goodreads.com using direct HTTP requests.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import json
 import re
@@ -20,7 +23,7 @@ async def _fetch_html(url: str) -> tuple[int, str]:
         "Accept-Language": "en-US,en;q=0.9",
     }
     
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         headers=headers,
         timeout=30.0,
         follow_redirects=True
@@ -368,6 +371,7 @@ def _parse_choice_awards(html: str, url: str) -> dict[str, Any]:
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Goodreads data extraction.

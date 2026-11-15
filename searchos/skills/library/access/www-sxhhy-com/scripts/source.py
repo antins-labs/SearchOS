@@ -2,6 +2,9 @@
 SearchOS Access Skill for sxhhy.com - National-level Tourist Resort Directory
 Fetches and parses the complete dataset from 国家级旅游度假区名录
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import os
 import asyncio
@@ -34,7 +37,7 @@ async def fetch_page(url: str) -> str:
         env.pop(proxy_var, None)
     
     # Create httpx client with proxy disabled via mounts
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         timeout=30.0,
         follow_redirects=True,
         http2=False,
@@ -139,6 +142,7 @@ def group_by_location(resorts: list[dict]) -> dict[str, list[dict]]:
     return grouped
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main execution function for the SearchOS skill.

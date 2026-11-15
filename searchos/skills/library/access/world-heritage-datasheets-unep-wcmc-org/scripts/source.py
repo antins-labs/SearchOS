@@ -4,6 +4,9 @@ SearchOS Skill: World Heritage Datasheets (UNEP-WCMC)
 Provides access to the UNEP-WCMC World Heritage Datasheets containing detailed
 information about natural and mixed World Heritage Sites worldwide.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -232,7 +235,7 @@ async def list_sites() -> dict:
     Returns:
         dict with 'sites' list containing name, slug, and url for each site
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html = await _fetch_html(session, HOME_URL)
         sites = _parse_home_page_site_list(html)
         
@@ -265,7 +268,7 @@ async def get_site(site_slug: str) -> dict:
     
     url = f"{SITE_URL}/{site_slug}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await _fetch_html(session, url)
             site_data = _parse_site_html(html, site_slug)
@@ -301,7 +304,7 @@ async def search(query: str) -> dict:
     
     url = f"{SEARCH_URL}?q={query}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await _fetch_html(session, url)
             results = _parse_search_results(html)
@@ -327,7 +330,7 @@ async def list_countries() -> dict:
     Returns:
         dict with countries and their site counts
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await _fetch_html(session, TAGS_URL)
             countries_data = _parse_country_tags(html)
@@ -375,7 +378,7 @@ async def get_sites_by_country(country: str) -> dict:
     
     country_lower = country.lower().strip()
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await _fetch_html(session, TAGS_URL)
             countries_data = _parse_country_tags(html)
@@ -405,6 +408,7 @@ async def get_sites_by_country(country: str) -> dict:
             }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute a World Heritage Datasheets function.

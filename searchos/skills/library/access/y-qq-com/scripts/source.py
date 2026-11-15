@@ -2,12 +2,16 @@
 QQ Music Access Skill
 Fetches song details and lyrics from y.qq.com
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import json
 from typing import Any
 import httpx
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute QQ Music API calls
@@ -74,7 +78,7 @@ async def search_songs(query: str, page: int = 1, page_size: int = 10) -> dict[s
     }
     
     try:
-        async with httpx.AsyncClient(timeout=30, headers=headers) as client:
+        async with _skill_network.httpx_async_client(timeout=30, headers=headers) as client:
             resp = await client.get(url, params=params)
             data = resp.json()
             
@@ -149,7 +153,7 @@ async def get_song_detail(song_mid: str) -> dict[str, Any]:
     }
     
     try:
-        async with httpx.AsyncClient(timeout=30, headers=headers) as client:
+        async with _skill_network.httpx_async_client(timeout=30, headers=headers) as client:
             resp = await client.get(url, params=params)
             data = resp.json()
             
@@ -248,7 +252,7 @@ async def get_song_lyrics(song_mid: str) -> dict[str, Any]:
     }
     
     try:
-        async with httpx.AsyncClient(timeout=30, headers=headers) as client:
+        async with _skill_network.httpx_async_client(timeout=30, headers=headers) as client:
             resp = await client.get(url, params=params)
             data = resp.json()
             

@@ -11,6 +11,9 @@ Supported functions:
 - get_references: Get references cited by an article
 - search_articles: Search for articles in a journal (limited to recent works)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -57,7 +60,7 @@ class UChicagoJournalsClient:
         self.session: Optional[aiohttp.ClientSession] = None
     
     async def __aenter__(self):
-        self.session = aiohttp.ClientSession(headers=self.headers)
+        self.session = _skill_network.aiohttp_session(headers=self.headers)
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -492,6 +495,7 @@ class UChicagoJournalsClient:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Execute UChicago Journals skill function.

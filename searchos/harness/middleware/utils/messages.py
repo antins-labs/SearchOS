@@ -8,9 +8,28 @@ from typing import Any
 from uuid import uuid4
 
 from langchain.agents.middleware.types import ModelResponse
-from langchain_core.messages import HumanMessage, ToolMessage
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 
-from searchos.util.tool_output_budget import bounded_text
+
+def merge_system_messages(messages):
+    """把运行时系统上下文合并到首条系统消息，保持用户与工具消息顺序。"""
+    systems = [message for message in messages if isinstance(message, SystemMessage)]
+    if not systems:
+        return messages
+    blocks = []
+    for message in systems:
+        if isinstance(message.content, str):
+            blocks.append({"type": "text", "text": message.content})
+        else:
+            blocks.extend(message.content)
+    content = (
+        "\n\n".join(block["text"] for block in blocks)
+        if all(isinstance(block, dict) and set(block) == {"type", "text"}
+               and block["type"] == "text" for block in blocks)
+        else blocks
+    )
+    return [systems[0].model_copy(update={"content": content}),
+            *(message for message in messages if not isinstance(message, SystemMessage))]
 
 
 def extract_tool_name(request: Any, default: str = "unknown") -> str:
@@ -72,6 +91,8 @@ def append_feedback(result: Any, text: str) -> Any:
         )
         budget = (getattr(result, "additional_kwargs", {}) or {}).get("sf_output_token_budget")
         if isinstance(content, str) and isinstance(budget, int):
+            from searchos.harness.middleware.context.tool_results_middleware import bounded_text
+
             content = bounded_text(content, budget)
         return result.model_copy(update={"content": content})
     if hasattr(result, "content"):
@@ -90,7 +111,7 @@ def inject_context(request: Any, content: str, kind: str) -> Any:
         if (getattr(message, "additional_kwargs", {}) or {}).get("sf_kind") != kind
     ]
     messages.append(
-        HumanMessage(
+        SystemMessage(
             content=content,
             additional_kwargs={"sf_synthetic": True, "sf_kind": kind},
         )
@@ -104,17 +125,20 @@ async def call_with_context(
     *,
     content: str,
     kind: str,
+    user: bool = False,
+    message_id: str | None = None,
 ) -> ModelResponse:
     """在末尾追加变化后的控制消息，成功后按发送顺序写回历史。"""
     previous = next(
         (m for m in reversed(request.messages) if m.additional_kwargs.get("sf_kind") == kind),
         None,
     )
-    if previous is not None and previous.content == content:
+    if (previous is not None and previous.content == content
+            and (message_id is None or previous.id == message_id)):
         return await handler(request)
-    message = HumanMessage(
+    message = (HumanMessage if user else SystemMessage)(
         content=content,
-        id=str(uuid4()),
+        id=message_id or str(uuid4()),
         additional_kwargs={
             "sf_synthetic": True, "sf_kind": kind, "sf_context_changed": False,
         },

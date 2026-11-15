@@ -8,6 +8,9 @@ Yahoo Finance 股票报价查询工具
     python quote.py AAPL
     python quote.py MSFT --output quote.json
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import argparse
 import json
@@ -48,7 +51,7 @@ def fetch_quote(symbol: str) -> dict:
     )
     
     try:
-        with urllib.request.urlopen(request, context=ctx, timeout=15) as response:
+        with _skill_network.urllib_urlopen(request, context=ctx, timeout=15) as response:
             data = json.loads(response.read().decode('utf-8'))
     except urllib.error.HTTPError as e:
         if e.code == 404:
@@ -105,6 +108,7 @@ def fetch_quote(symbol: str) -> dict:
     return quotes
 
 
+@_skill_network.entrypoint(capability_id='quote', cli=True)
 def main():
     parser = argparse.ArgumentParser(
         description='从 Yahoo Finance 获取股票实时报价',

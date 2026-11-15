@@ -9,6 +9,9 @@ Provides access to National Park Service economic impact data including:
 Data includes jobs, visitor spending, labor income, value added, and economic output
 broken down by spending sectors (camping, gas, groceries, lodging, recreation, restaurants, retail).
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from typing import Any, Optional
@@ -25,7 +28,7 @@ AVAILABLE_YEARS = list(range(2012, 2025))  # 2012-2024
 async def _make_request(url: str, timeout: int = 30) -> dict:
     """Make HTTP GET request to API endpoint"""
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as response:
                 if response.status == 200:
                     return await response.json()
@@ -254,6 +257,7 @@ async def get_available_years() -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for NPS VSE API access skill.

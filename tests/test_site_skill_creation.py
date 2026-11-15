@@ -139,7 +139,7 @@ async def test_intent_can_research_and_correct_submission_within_regular_calls(t
             self.calls += 1
             if self.calls <= 5:
                 return AIMessage(content='', tool_calls=[dict(id=str(self.calls), name='search', args={'query':'docs'})])
-            assert {'search', 'open', 'find', 'exec'} == self.tools
+            assert {'search', 'open', 'find', 'exec', 'network_check'} == self.tools
             proposal = plan()
             if self.calls == 6:
                 proposal['capabilities'][0]['acceptance'] = 'invalid'
@@ -170,7 +170,7 @@ async def test_advice_reserves_final_json_repair_calls_within_total_budget(tmp_p
         bindings = 0
         def bind_tools(self, definitions):
             self.bindings += 1
-            assert {'search', 'find', 'open', 'exec'} == {tool['function']['name'] for tool in definitions}
+            assert {'search', 'find', 'open', 'exec', 'network_check'} == {tool['function']['name'] for tool in definitions}
             owner = self
             class Bound:
                 async def ainvoke(self, messages):
@@ -296,7 +296,7 @@ async def test_unlocked_resume_uses_configured_planning_budget(tmp_path):
             self.calls += 1
             if self.calls <= 5:
                 return AIMessage(content='', tool_calls=[dict(id=str(self.calls), name='search', args={'query': 'docs'})])
-            assert {'search', 'open', 'find', 'exec'} == self.tools
+            assert {'search', 'open', 'find', 'exec', 'network_check'} == self.tools
             return AIMessage(content='invalid JSON')
     model = Intent()
     session = SitePlannerAgent(model, SimpleNamespace(browser=Browser()), BuildRecord(tmp_path / 'resumed'), max_turns=5)
@@ -386,7 +386,7 @@ async def test_site_entry_uses_intent_dialogue_and_builds_one_multicapability_pa
     class Intent:
         calls = 0
         def bind_tools(self, definitions):
-            assert {'search', 'open', 'find', 'exec'} == {t['function']['name'] for t in definitions}
+            assert {'search', 'open', 'find', 'exec', 'network_check'} == {t['function']['name'] for t in definitions}
             return self
         async def ainvoke(self, messages):
             self.calls += 1

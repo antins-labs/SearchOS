@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "extract_slug": "direct",
+    "get_company_info": "direct"
+  },
+  "aliases": {
+    "get_company_info": "get_company_info",
+    "extract_slug": "extract_slug",
+    "run": "extract_slug"
+  }
+}

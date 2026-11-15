@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "13b4032c81f318d3440eacd993aa4dbabb20be263a4b8d8b366d4d9abd0548a4",
+  "capabilities": {
+    "fetch_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_page\", \"url\": \"https://gaokao.eol.cn/bei_jing/dongtai/202407/t20240720_2625168.shtml\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.646386+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gaokao.eol.cn/bei_jing/dongtai/202407/t20240720_2625168.shtml",
+          "status": 200
+        }
+      ]
+    },
+    "get_admission_lines": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_admission_lines\", \"url\": \"https://gaokao.eol.cn/bei_jing/dongtai/202407/t20240720_2625168.shtml\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.650581+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gaokao.eol.cn/bei_jing/dongtai/202407/t20240720_2625168.shtml",
+          "status": 200
+        }
+      ]
+    },
+    "get_score_distribution": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_score_distribution\", \"url\": \"https://gaokao.eol.cn/bei_jing/dongtai/202306/t20230625_2446872.shtml\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.650656+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gaokao.eol.cn/bei_jing/dongtai/202306/t20230625_2446872.shtml",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

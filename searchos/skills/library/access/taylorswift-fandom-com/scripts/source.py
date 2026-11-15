@@ -5,6 +5,9 @@ Fetches content from taylorswift.fandom.com, extracting structured data from
 infoboxes, tables, and page content. Uses Wayback Machine archives when
 direct access is blocked by Cloudflare protection.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import httpx
@@ -27,7 +30,7 @@ HEADERS = {
 
 async def fetch_page(url: str, use_wayback: bool = True) -> tuple[int, str]:
     """Fetch a page, trying Wayback Machine if direct access fails."""
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         timeout=30.0,
         follow_redirects=True,
         headers=HEADERS
@@ -456,6 +459,7 @@ async def get_tour_dates(page_title: str) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """Main entry point for the skill."""
     function = params.get("function", "")

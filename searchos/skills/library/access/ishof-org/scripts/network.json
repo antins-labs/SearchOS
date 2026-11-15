@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_honoree": "direct",
+    "honorees_by_category": "direct",
+    "list_honorees": "direct",
+    "search_honorees": "direct",
+    "list_categories": "direct"
+  },
+  "aliases": {
+    "list_honorees": "list_honorees",
+    "get_honoree": "get_honoree",
+    "search_honorees": "search_honorees",
+    "list_categories": "list_categories",
+    "honorees_by_category": "honorees_by_category",
+    "run": "honorees_by_category"
+  }
+}

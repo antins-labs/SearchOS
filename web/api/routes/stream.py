@@ -10,7 +10,7 @@ from pathlib import Path
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from api.deps import WORKSPACE_ROOT, session_directory, sessions
-from api.state_stream import StateStream
+from api.research.events import StateStream, file_events, report_journal, timeline_events
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -40,7 +40,7 @@ async def search_stream(ws: WebSocket, session_id: str):
     # from the top. Used by follow-up runs, which reuse the prior session's
     # workspace: the client only wants this turn's events.
     if ws.query_params.get("tail") in ("1", "true") and ws_path.exists():
-        jsonl_files = [ws_path / "trajectory.jsonl"] + [
+        jsonl_files = [ws_path / "trajectory.jsonl", report_journal(ws_path)] + [
             ws_path / "blackboard" / f"{name}.jsonl"
             for name in ("progress", "announcements", "claims")
         ]
@@ -54,8 +54,8 @@ async def search_stream(ws: WebSocket, session_id: str):
             is_done = session and session["status"] in ("completed", "error")
 
             if ws_path.exists():
-                # Stream trajectory.jsonl (tool calls, steps)
-                await _stream_jsonl(ws, ws_path / "trajectory.jsonl", "trajectory", file_positions)
+                for event in await asyncio.to_thread(timeline_events, ws_path, file_positions):
+                    await ws.send_json(event)
 
                 # Stream blackboard
                 for stream_name in ("progress", "announcements", "claims"):
@@ -96,6 +96,7 @@ async def search_stream(ws: WebSocket, session_id: str):
                             "evidence_count": r.evidence_count,
                             "total_queries": r.total_queries,
                             "total_steps": r.total_steps,
+                            "skill_execution_count": r.skill_execution_count,
                             "elapsed_s": r.elapsed_s,
                             "eval_verdict": r.eval_verdict,
                         }
@@ -124,35 +125,5 @@ async def _stream_jsonl(
     positions: dict[str, int],
 ) -> None:
     """Read new lines from a JSONL file and send as WebSocket events."""
-    key = str(file_path)
-    if not file_path.exists():
-        return
-
-    pos = positions.get(key, 0)
-    try:
-
-        def read_lines():
-            with file_path.open("rb") as stream:
-                if stream.seek(0, 2) < pos:
-                    stream.seek(0)
-                else:
-                    stream.seek(pos)
-                records = []
-                while line := stream.readline():
-                    if not line.endswith(b"\n"):
-                        break
-                    records.append((stream.tell(), line))
-                return records
-
-        for end, line in await asyncio.to_thread(read_lines):
-            positions[key] = end
-            try:
-                entry = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            await ws.send_json(
-                {"type": event_prefix, "data": entry, "event_id": f"{event_prefix}:{end}"}
-            )
-
-    except Exception:
-        pass
+    for event in await asyncio.to_thread(list, file_events(file_path, event_prefix, positions)):
+        await ws.send_json(event)

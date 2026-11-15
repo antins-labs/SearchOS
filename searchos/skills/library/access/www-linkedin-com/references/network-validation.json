@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "74e6f1559795e1ce8c639bcb53019e851d48a4ad59d3c3e2adf00e391b0f9df0",
+  "capabilities": {
+    "get_company_info": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_company_info\", \"url\": \"https://www.linkedin.com/company/proudlypeakmade\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.166139+00:00",
+      "reason": "LinkedIn access is geo-restricted from this location",
+      "source_responses": [
+        {
+          "url": "https://www.linkedin.cn/incareer/company/proudlypeakmade",
+          "status": 451
+        }
+      ]
+    },
+    "extract_slug": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_slug\", \"url\": \"https://www.linkedin.com/company/google/about\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.167448+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-linkedin-com/scripts/source.py",
+        "line": 48,
+        "end_line": 83,
+        "implementation": "extract_slug",
+        "source_sha256": "fe9615ba273fc4144038fbcd7e72b168e840c0a04954dd3c3b5a87b9f6e2dded",
+        "implementation_sha256": "9e3ea9a5b1d94a3aab7a3296c0d44b688fad6b6d6e75c2cbd2a2de170f2881cf"
+      }
+    }
+  }
+}

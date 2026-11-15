@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2bad2381df5799c7e4fe0edcc24dfdac235d581b15fa54a3ffc06cbedc6b968c",
+  "capabilities": {
+    "get_carry_on_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_carry_on_info\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.006973+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.delta.com/us/en/baggage/carry-on-baggage",
+          "status": 200
+        }
+      ]
+    },
+    "get_baggage_faqs": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_baggage_faqs\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.008211+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.delta.com/us/en/baggage/additional-baggage-information/baggage-faqs",
+          "status": 200
+        }
+      ]
+    },
+    "get_baggage_overview": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_baggage_overview\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.008388+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search_baggage_info": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_baggage_info\", \"query\": \"liquid restrictions\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.008530+00:00",
+      "reason": "results is empty",
+      "source_responses": [
+        {
+          "url": "https://www.delta.com/us/en/baggage/carry-on-baggage",
+          "status": 200
+        },
+        {
+          "url": "https://www.delta.com/us/en/baggage/additional-baggage-information/baggage-faqs",
+          "status": 200
+        },
+        {
+          "url": "https://www.delta.com/us/en/baggage/overview",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

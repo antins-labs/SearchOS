@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "853c3d6e76aaa817dd516244a0229f4d14136a100c1759637af03e9ece436f96",
+  "capabilities": {
+    "get_profile": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_profile\", \"country\": \"iran\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.876840+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://theworldfactbook.org/country/iran.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_key": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_key\", \"country\": \"germany\", \"search_term\": \"exports\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.877435+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://theworldfactbook.org/country/germany.html",
+          "status": 200
+        }
+      ]
+    },
+    "list_sections": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_sections\", \"country\": \"france\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.877512+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://theworldfactbook.org/country/france.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_summary": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_summary\", \"country\": \"brazil\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.877594+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://theworldfactbook.org/country/brazil.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

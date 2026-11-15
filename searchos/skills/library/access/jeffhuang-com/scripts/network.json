@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_papers": "direct",
+    "get_papers_by_conference": "direct",
+    "get_papers_by_year": "direct",
+    "get_conferences": "direct",
+    "get_all_papers": "direct",
+    "get_statistics": "direct"
+  },
+  "aliases": {
+    "get_all_papers": "get_all_papers",
+    "get_papers_by_conference": "get_papers_by_conference",
+    "get_papers_by_year": "get_papers_by_year",
+    "search_papers": "search_papers",
+    "get_statistics": "get_statistics",
+    "get_conferences": "get_conferences",
+    "run": "get_conferences"
+  }
+}

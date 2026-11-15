@@ -5,6 +5,9 @@ Fetches discography data and article content from beatlesbible.com.
 The site uses Cloudflare Turnstile protection which may block automated access.
 When accessible, provides structured data about Beatles releases, songs, and articles.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any
@@ -17,6 +20,7 @@ CLOUDFLARE_WAIT_TIME = 15  # Seconds to wait for Cloudflare challenge
 PAGE_LOAD_TIMEOUT = 30000  # Milliseconds for page load
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Beatles Bible data retrieval.
@@ -55,13 +59,13 @@ async def _fetch_page(url: str) -> tuple[str | None, str | None]:
         tuple of (html_content, error_message)
     """
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
+        browser = await _skill_network.browser_launch(p.chromium, 
             headless=True,
             args=['--disable-blink-features=AutomationControlled']
         )
         
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 locale='en-US',
                 viewport={'width': 1920, 'height': 1080},
@@ -84,7 +88,7 @@ async def _fetch_page(url: str) -> tuple[str | None, str | None]:
                 window.chrome = { runtime: {} };
             """)
             
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             try:
                 await page.goto(url, wait_until='domcontentloaded', timeout=PAGE_LOAD_TIMEOUT)

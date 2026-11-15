@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_hotels": "direct",
+    "get_hotel_detail": "direct",
+    "search_hotels": "direct"
+  },
+  "aliases": {
+    "list_hotels": "list_hotels",
+    "get_hotel_detail": "get_hotel_detail",
+    "search_hotels": "search_hotels",
+    "run": "search_hotels"
+  }
+}

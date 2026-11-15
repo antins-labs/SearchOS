@@ -6,7 +6,10 @@ import {
   Loader2, Maximize2, MessageSquarePlus, TriangleAlert,
 } from "lucide-react";
 import type { WSEvent } from "@/lib/types";
+import { skillExecutionInfo } from "@/lib/runState";
 import { agentLabel } from "./trace";
+import Answer from "../conversation/Answer";
+import { getAgentReply } from "@/lib/api";
 import ToolCallDetailDialog, { type ToolCallDetail } from "./ToolCallDetailDialog";
 
 /* The orchestrator's own run trajectory: each step is a card — its reasoning
@@ -26,6 +29,7 @@ interface ActionView {
   detail?: string;
   agents?: DispatchAgent[]; // dispatch wave
   checks?: CheckAgent[];    // check_agents report
+  reports?: WorkerReport[];
   result?: string;          // tool observation preview
   spin?: boolean;           // in-flight (tool_call_started, no step yet)
   toolCall?: ToolCallDetail;
@@ -80,7 +84,68 @@ function stepView(name: string, args: string): ActionView | null {
   }
 }
 
-interface Card { k: number; reasoning: string; action: ActionView | null; }
+interface WorkerReport {
+  agent_id: string;
+  status?: string;
+  agent_report?: { text?: string };
+  last_message?: string;
+  result?: string;
+  grounded_findings?: { id: string; source_urls: string[] }[];
+}
+
+interface Card { k: number; reasoning: string; action: ActionView | null; report?: WorkerReport; children?: Card[]; reply?: { agent: string; messageId: string; timestamp: string }; }
+
+function DeliveredReport({ report }: { report: WorkerReport }) {
+  const [open, setOpen] = useState(false);
+  const body = STR(report.agent_report?.text).trim() || STR(report.last_message).trim() || STR(report.result).trim();
+  const status = STR(report.status);
+  const labels: Record<string, string> = { completed: "已完成", error: "失败", failed: "失败", cancelled: "已取消", partial: "部分完成", blocked: "受阻" };
+  return <details className="min-w-0" onToggle={(e) => setOpen(e.currentTarget.open)}>
+    <summary className="cursor-pointer rounded text-[13px] font-medium text-accent-ink focus-visible:outline-accent">
+      {agentLabel(STR(report.agent_id))} 的报告
+      {status && <span className="ml-2 text-xs font-normal text-ink-dim">{labels[status] ?? status}</span>}
+      {!open && body && <span className="mt-1 line-clamp-2 break-words text-xs font-normal text-ink-dim">{trim(body, 180)}</span>}
+    </summary>
+    {open && <div className="mt-2 space-y-2">
+      {body && <Answer markdown={body} evidenceSources={Object.fromEntries(
+        (report.grounded_findings ?? []).filter(f => f.source_urls?.length).map(f => [f.id, f.source_urls]),
+      )} />}
+      <details>
+        <summary className="cursor-pointer text-xs text-ink-dim">查看原始报告</summary>
+        <pre className="mt-1 max-h-96 overflow-auto whitespace-pre-wrap break-words text-xs">{JSON.stringify(report, null, 2)}</pre>
+      </details>
+    </div>}
+  </details>;
+}
+
+function FinalReply({ card, sessionId }: { card: Card; sessionId?: string | null }) {
+  const [content, setContent] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const load = async () => {
+    if (!sessionId || !card.reply || content !== null || loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      const reply = await getAgentReply(sessionId, card.reply.agent, card.reply.messageId, card.reply.timestamp);
+      setContent(reply.content);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "读取失败");
+    } finally { setLoading(false); }
+  };
+  return <details className="min-w-0 font-sans" onToggle={(event) => { if (event.currentTarget.open) void load(); }}>
+    <summary className="cursor-pointer rounded text-[13px] font-medium text-accent-ink focus-visible:outline-accent">最终回复</summary>
+    <div className="mt-2 overflow-x-auto">
+      {loading ? <p>读取中…</p> : error ? <div><p>{error}</p><button type="button" onClick={() => void load()}>重试</button></div>
+        : <Answer markdown={content ?? card.reasoning} />}
+    </div>
+  </details>;
+}
+
+function skillBatchSummary(children: Card[]): string {
+  const failed = children.filter(child => child.action?.toolCall?.status === "error").length;
+  return `技能编排 · ${children.length} 个子步骤${failed ? ` · ${failed} 个失败` : ""}`;
+}
 
 const RUNNING_LABEL: Record<string, string> = {
   check_agents: "Checking on sub-agents",
@@ -90,13 +155,17 @@ const RUNNING_LABEL: Record<string, string> = {
   enqueue_tasks: "Queueing tasks",
 };
 
-function buildCards(
+export function buildCards(
   events: WSEvent[],
   status: "idle" | "running" | "completed" | "error",
   priorEvents: WSEvent[],
+  agentName = "orchestrator",
 ): Card[] {
   const out: Card[] = [];
   const pending: { id: string; index: unknown; tool: string; card: Card }[] = [];
+  const calls = new Map<string, Card>();
+  const executionParents = new Map<string, Card>();
+  const children = new Map<string, { card: Card; parentCallId: string; parentExecutionId: string }>();
   const live = new Map<string, string>();
   let legacyWave: Card | null = null;
   const trackWorker = (event: WSEvent) => {
@@ -127,6 +196,33 @@ function buildCards(
     const t = STR(d.type), agent = STR(d.agent);
     trackWorker(e);
 
+    const skill = skillExecutionInfo(d);
+    if (skill) {
+      if (agent !== agentName) return;
+      const previous = children.get(skill.executionId);
+      if (previous && !previous.card.action?.spin && skill.status === "running") return;
+      const card: Card = previous?.card ?? { k: i, reasoning: "", action: null };
+      const running = skill.status === "running" && status === "running";
+      card.action = {
+        icon: running ? Loader2 : skill.status === "error" || skill.status === "cancelled" ? TriangleAlert : Compass,
+        spin: running, tone: skill.status === "error" ? CHIP.error : CHIP.neutral,
+        label: `技能 · ${skill.skill}`,
+        detail: running ? "执行中" : skill.status === "cancelled" ? "已取消"
+          : skill.status === "error" ? "执行失败" : skill.status === "running" ? "未收到结果" : "已完成",
+        result: trim(skill.output, 220),
+        toolCall: { tool: skill.skill, kind: "skill", executionId: skill.executionId,
+          arguments: JSON.stringify({ argv: skill.argv }), output: skill.output, agent,
+          timestamp: STR(d.timestamp), status: skill.status },
+      };
+      children.set(skill.executionId, { card, parentCallId: skill.parentCallId, parentExecutionId: skill.parentExecutionId });
+      return;
+    }
+    if (agentName !== "orchestrator" && agent === agentName && t === "agent_final") {
+      out.push({ k: i, reasoning: STR(d.reasoning), action: null,
+        reply: { agent, messageId: STR(d.message_id), timestamp: STR(d.timestamp) } });
+      return;
+    }
+
     if (t === "task_complete" || t === "task_error") {
       finishPending();
       out.push({ k: i, reasoning: "", action: {
@@ -136,7 +232,7 @@ function buildCards(
       } });
       return;
     }
-    if (t === "dispatch" && agent) {
+    if (t === "dispatch" && agent && agentName === "orchestrator") {
       const owner = [...pending].reverse().find((p) => p.tool === "enqueue_tasks")?.card;
       const card = owner ?? legacyWave ?? { k: i, reasoning: "", action: {
         icon: Users, tone: CHIP.accent, label: "", agents: [],
@@ -160,9 +256,14 @@ function buildCards(
       } });
       return;
     }
-    if (agent !== "orchestrator") return;
+    if (agent !== agentName) return;
+    if (t === "agent_report" && agent === "orchestrator" && d.report && typeof d.report === "object") {
+      legacyWave = null;
+      out.push({ k: i, reasoning: "", action: null, report: d.report as WorkerReport });
+      return;
+    }
     if (t === "tool_call_started") {
-      if (d.tool_call_id && pending.some((call) => call.id === d.tool_call_id)) return;
+      if (d.tool_call_id && calls.has(STR(d.tool_call_id))) return;
       legacyWave = null;
       const tool = STR(d.tool);
       const card: Card = { k: i, reasoning: STR(d.reasoning).trim(), action: {
@@ -172,6 +273,7 @@ function buildCards(
           timestamp: STR(d.timestamp), status: "running" },
       } };
       out.push(card);
+      if (d.tool_call_id) calls.set(STR(d.tool_call_id), card);
       pending.push({ id: STR(d.tool_call_id), index: d.step_index, tool, card });
       return;
     }
@@ -183,11 +285,18 @@ function buildCards(
     const match = pending.findIndex((call) => id ? call.id === id
       : d.step_index != null && call.index != null ? call.index === d.step_index : call.tool === name);
     const started = match >= 0 ? pending.splice(match, 1)[0].card : null;
-    const card = started ?? (name === "enqueue_tasks" ? legacyWave : null)
+    const card = started ?? calls.get(id) ?? (name === "enqueue_tasks" ? legacyWave : null)
       ?? { k: i, reasoning: "", action: null };
-    if (!started && card !== legacyWave) out.push(card);
+    if (!started && !calls.has(id) && card !== legacyWave) out.push(card);
+    if (id) calls.set(id, card);
     const agents = card.action?.agents;
     const fullResult = STR(d.observation || d.observation_summary || d.error).trim();
+    if (name === "exec") {
+      try {
+        const result = JSON.parse(fullResult);
+        if (result.execution_id) executionParents.set(result.execution_id, card);
+      } catch { /* 执行失败回执可能是纯文本。 */ }
+    }
     let action: ActionView | null;
     if (failed) {
       action = { icon: TriangleAlert, tone: CHIP.error,
@@ -197,12 +306,28 @@ function buildCards(
         label: agents?.length ? agents.length > 1 ? `Dispatched ${agents.length} agents (concurrent)`
           : "Dispatched 1 agent" : "Tasks queued" };
     } else if (name === "check_agents") {
-      const checks = runningAgents();
-      action = { icon: Eye, tone: CHIP.neutral, checks,
-        label: checks.length ? `Checked ${checks.length} in-flight agents` : "Checked on sub-agents" };
+      let checks = runningAgents();
+      let reports: WorkerReport[] = [];
+      let label = checks.length ? `Checked ${checks.length} in-flight agents` : "Checked on sub-agents";
+      try {
+        const receipt = JSON.parse(fullResult);
+        if (receipt.await_reports === true) label = "等待下一份 Agent 报告";
+        if (receipt.await_reports === false) label = "没有待接收的 Agent 报告";
+        if (Array.isArray(receipt.reports)) {
+          reports = receipt.reports.filter((r: WorkerReport) => r && typeof r.agent_id === "string");
+          if (Array.isArray(receipt.running_ids)) {
+            checks = receipt.running_ids.map((name: string) => ({ name, status: "running" }));
+          }
+          if (reports.length) label = `收到 ${reports.length} 份 Agent 报告`;
+          else if (receipt.interrupted_by === "user_follow_up") label = "用户追问已打断等待";
+          else if (receipt.timed_out) label = "等待报告超时";
+          else label = checks.length ? "暂未收到 Agent 报告" : "没有待接收的 Agent 报告";
+        }
+      } catch { /* 旧版工具回执可能只保留了文本摘要。 */ }
+      action = { icon: Eye, tone: CHIP.neutral, checks, reports, label };
     } else action = stepView(name, args);
     if (action) {
-      action.result = name === "enqueue_tasks" && agents?.length && !failed
+      action.result = (name === "enqueue_tasks" && agents?.length && !failed) || action.reports?.length
         ? undefined : trim(fullResult, 220);
       action.toolCall = { tool: name, arguments: args, output: fullResult, agent,
         timestamp: card.action?.toolCall?.timestamp || STR(d.timestamp),
@@ -216,17 +341,33 @@ function buildCards(
   else for (const call of pending) {
     if (call.tool === "check_agents" && call.card.action) call.card.action.checks = runningAgents();
   }
+  const orphans = new Map<string, Card>();
+  for (const child of children.values()) {
+    let parent = calls.get(child.parentCallId) ?? executionParents.get(child.parentExecutionId)
+      ?? orphans.get(child.parentExecutionId);
+    if (!parent) {
+      parent = { k: -child.card.k - 1, reasoning: "", action: {
+        icon: Compass, tone: CHIP.neutral, label: "Exec", detail: "父调用记录未载入",
+      } };
+      orphans.set(child.parentExecutionId, parent);
+      out.push(parent);
+    }
+    (parent.children ??= []).push(child.card);
+  }
   return out;
 }
 
-export default function OrchestratorTimeline({ events, status = "running", priorEvents = [] }: {
+export default function OrchestratorTimeline({ events, status = "running", priorEvents = [], agentName = "orchestrator", sessionId }: {
   events: WSEvent[];
   status?: "idle" | "running" | "completed" | "error";
   priorEvents?: WSEvent[];
+  agentName?: string;
+  sessionId?: string | null;
 }) {
-  const cards = buildCards(events, status, priorEvents);
+  const cards = buildCards(events, status, priorEvents, agentName);
   const [selectedKey, setSelectedKey] = useState<number | null>(null);
-  const selectedTool = cards.find((card) => card.k === selectedKey)?.action?.toolCall ?? null;
+  const selectedTool = cards.flatMap(card => [card, ...(card.children ?? [])])
+    .find((card) => card.k === selectedKey)?.action?.toolCall ?? null;
   if (cards.length === 0) {
     return <div className="px-4 py-3 text-[12.5px] text-ink-faint">Orchestrator is starting…</div>;
   }
@@ -234,7 +375,10 @@ export default function OrchestratorTimeline({ events, status = "running", prior
     <div className="space-y-2 px-4 py-3">
       {cards.map((c) => (
         <div key={c.k} className="rise-in surface rounded-xl px-3.5 py-3">
-          {c.reasoning && <p className="mb-2.5 line-clamp-4 text-[13px] leading-relaxed text-ink">{c.reasoning}</p>}
+          {c.report && <DeliveredReport report={c.report} />}
+          {c.reasoning && (c.action ? <p className="mb-2.5 line-clamp-4 text-[13px] leading-relaxed text-ink">{c.reasoning}</p> : (
+            <FinalReply card={c} sessionId={sessionId} />
+          ))}
           {c.action && (
               <ActionBlock action={c.action} onOpenTool={() => setSelectedKey(c.k)}>
                 <div className="flex items-center gap-1.5 text-[12.5px] font-medium">
@@ -276,9 +420,31 @@ export default function OrchestratorTimeline({ events, status = "running", prior
                 )}
               </ActionBlock>
           )}
+          {c.action?.reports?.map((report, i) => (
+            <div className="mt-2" key={i}><DeliveredReport report={report} /></div>
+          ))}
+          {!!c.children?.length && (
+            <details className="mt-2 ml-3 border-l border-line pl-3">
+              <summary className="cursor-pointer rounded text-xs text-ink-dim focus-visible:outline-accent">
+                {skillBatchSummary(c.children)}
+              </summary>
+              <div className="mt-1.5 space-y-1.5">
+                {c.children.map(child => child.action && (
+                  <ActionBlock key={child.k} action={child.action} onOpenTool={() => setSelectedKey(child.k)}>
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <child.action.icon size={12} className={child.action.spin ? "animate-spin" : undefined} />
+                      <span>{child.action.label}</span>
+                      <span className="ml-auto text-[10px] opacity-75">{child.action.detail}</span>
+                    </div>
+                    {child.action.result && <div className="mt-1 line-clamp-2 break-all font-mono text-[11px] opacity-75">{child.action.result}</div>}
+                  </ActionBlock>
+                ))}
+              </div>
+            </details>
+          )}
         </div>
       ))}
-      <ToolCallDetailDialog detail={selectedTool} onClose={() => setSelectedKey(null)} />
+      <ToolCallDetailDialog key={selectedKey} detail={selectedTool} sessionId={sessionId} onClose={() => setSelectedKey(null)} />
     </div>
   );
 }

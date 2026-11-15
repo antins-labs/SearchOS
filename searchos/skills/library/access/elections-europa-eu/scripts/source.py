@@ -9,10 +9,14 @@ which requires JavaScript rendering and DOM parsing to extract properly.
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 from typing import Any
 import re
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the elections.europa.eu access skill.
@@ -73,10 +77,10 @@ async def _get_country_voting_info(params: dict[str, Any]) -> dict[str, Any]:
         from playwright.async_api import async_playwright
         
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
             try:
-                context = await browser.new_context()
-                page = await context.new_page()
+                context = await _skill_network.browser_new_context(browser)
+                page = await _skill_network.browser_new_page(context)
                 
                 # Navigate to the page
                 await page.goto(url, wait_until="domcontentloaded", timeout=25000)

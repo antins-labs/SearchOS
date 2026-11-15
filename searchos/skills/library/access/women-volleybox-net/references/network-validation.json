@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "a99545c1409b07b7d3ecd9e5131166525fd28d7fece2af92b3bca3c7e7d2ce31",
+  "capabilities": {
+    "get_tournament_classification": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tournament_classification\", \"tournament_url\": \"women-the-olympics-2024-o30223\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.910021+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://women.volleybox.net/women-the-olympics-2024-o30223",
+          "status": 307
+        },
+        {
+          "url": "https://women.volleybox.net/women-the-olympics-2024-o30223",
+          "status": 403
+        },
+        {
+          "url": "https://women.volleybox.net/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://women.volleybox.net/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eef24ef801f381/YHMa.yK445m6qB8_898oB0By0XMSUDeMLYdqak4mFw4-1792739683-1.2.1.1-kqka5j_vhf2e6Xz_LolZMYaH8ojJUtLiOV9BeFiAr4XTsuffDlRjiI0mLduBlBAO",
+          "status": 200
+        },
+        {
+          "url": "blob:https://women.volleybox.net/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_team_tournaments": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_team_tournaments\", \"team_url\": \"brazil-t724\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.393269+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://women.volleybox.net/brazil-t724",
+          "status": 307
+        },
+        {
+          "url": "https://women.volleybox.net/brazil-t724",
+          "status": 403
+        },
+        {
+          "url": "https://women.volleybox.net/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://women.volleybox.net/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eefb88ad845d48/oamBm1.PYarI1d4pgnHnFm9cWsh3g4SnokMsSmI40Xc-1792740061-1.2.1.1-xsJyLptJ4tOxCJVfNrBFim5q_fZ7WtQmGBNOu.yZtkqiuYZlUXHwPBglEqr3RaSF",
+          "status": 200
+        },
+        {
+          "url": "blob:https://women.volleybox.net/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/l3a9f/0x4AAAAAAADnPIDROrmt1Wwj/light/fbE/new/normal",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/fo/2425580051:1792735516:RUlw5eP8DMQu0c-QvGL7lXMBneL91MvjjBeH4XWvNCY/a4eefb953da72716/Rgc5MuzBUWfnOTtwi6uRGiX17vGsHhoxNliJ3rvBj.s-1792740063-1.2.1.1-tejGNP8lG43mRJFu4s93ZAryHu2FrJNTR9ORyX4mWy4gWLxWGz27cNbiIDpA_xW0",
+          "status": 200
+        }
+      ]
+    },
+    "get_team_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_team_info\", \"team_url\": \"italy-t922\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:32.284346+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://women.volleybox.net/italy-t922",
+          "status": 307
+        },
+        {
+          "url": "https://women.volleybox.net/italy-t922",
+          "status": 403
+        },
+        {
+          "url": "https://women.volleybox.net/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -6,7 +6,7 @@ import time
 from collections.abc import Callable, Mapping
 from typing import Any
 
-from searchos.harness.middleware.sensor.core.models import ControlState
+from searchos.harness.middleware.sensor.core.run_state import ControlState
 from searchos.harness.middleware.utils.messages import inject_context
 
 
@@ -54,12 +54,11 @@ class DispatchPolicy:
         self._last_size, self._last_time = size, now
         self._count += 1
         content = (
-            "[AUTOMATED HARNESS — Frontier queue empty]\n"
             f"{size} sub-agent(s) running ({', '.join(agents[:6])}); "
             f"max_parallel_agents={self.capacity} and the Frontier OPEN queue is empty. "
             "Enqueue work only for a concrete user requirement not already covered by "
             "evidence or running tasks. Free capacity is not a reason to expand scope. "
-            "If all useful work is in flight, wait with check_agents; do not reread "
+            "If all useful work is in flight, call check_agents to wait for the next report; do not reread "
             "unchanged tables or repeat the user's request."
         )
         request = inject_context(request, content, "pool_nudge")

@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "da2ab52bc528f8bea7f8de35d8760208b6e6d394ec6024b77ea098ac119f1e83",
+  "capabilities": {
+    "search": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"lebron james\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.038482+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://site.api.espn.com/apis/search/v2",
+          "status": 200
+        }
+      ]
+    },
+    "get_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_info\", \"athlete_id\": \"1966\", \"sport\": \"nba\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.041268+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/1966",
+          "status": 200
+        }
+      ]
+    },
+    "get_stats": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_stats\", \"athlete_id\": \"1966\", \"sport\": \"nba\", \"season_type\": \"2\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.041591+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/1966/stats",
+          "status": 200
+        }
+      ]
+    },
+    "get_profile": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_profile\", \"athlete_id\": \"3975\", \"sport\": \"nba\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.041733+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/3975/stats",
+          "status": 200
+        },
+        {
+          "url": "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/3975",
+          "status": 200
+        }
+      ]
+    },
+    "get_stats_tables": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_stats_tables\", \"athlete_id\": \"3139477\", \"sport\": \"nfl\", \"category\": \"averages\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.041883+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/3139477/stats",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

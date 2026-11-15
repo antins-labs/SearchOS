@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "stats": "inherit",
+    "list": "inherit",
+    "longest": "inherit",
+    "search": "inherit"
+  },
+  "aliases": {
+    "list": "list",
+    "stats": "stats",
+    "search": "search",
+    "longest": "longest",
+    "run": "longest"
+  }
+}

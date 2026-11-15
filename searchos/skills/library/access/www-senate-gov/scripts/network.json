@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_senators_by_state": "inherit",
+    "get_state_history": "proxy",
+    "list_all_states": "proxy"
+  },
+  "aliases": {
+    "get_senators_by_state": "get_senators_by_state",
+    "list_all_states": "list_all_states",
+    "get_state_history": "get_state_history",
+    "run": "get_state_history"
+  }
+}

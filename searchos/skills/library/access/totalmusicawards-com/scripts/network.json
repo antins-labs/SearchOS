@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_category": "direct",
+    "list_categories": "direct"
+  },
+  "aliases": {
+    "get_category": "get_category",
+    "list_categories": "list_categories",
+    "run": "list_categories"
+  }
+}

@@ -3,6 +3,9 @@ Shiksha.com University Rankings Skill
 
 Fetches university ranking data from Shiksha.com ranking pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import httpx
 import re
@@ -273,6 +276,7 @@ async def fetch_university_page(
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Shiksha rankings skill.
@@ -308,7 +312,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     university_slug = university_slug.strip('/')
     university_slug = re.sub(r'[^a-z0-9-]', '', university_slug.lower())
     
-    async with httpx.AsyncClient(follow_redirects=True, timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(follow_redirects=True, timeout=30.0) as client:
         # Establish session by hitting homepage first
         await _establish_session(client)
         

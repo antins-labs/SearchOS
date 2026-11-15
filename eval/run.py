@@ -41,8 +41,8 @@ def _setup_provider(no_search: bool) -> None:
     # searchos unifies search + page-fetch onto one provider: set_browser_provider
     # binds the shared _provider that both the search tool (get_provider) and
     # the page fetcher read.
-    from searchos.tools.simple_browser.state import set_browser_provider
-    from searchos.tools.simple_browser.search import build_search_provider
+    from searchos.tools.simple_browser.session import set_browser_provider
+    from searchos.tools.simple_browser.search_providers import build_search_provider
     # SF_SEARCH_PROVIDER 显式指定后端；无 key 时默认仍是内部 ragflow。
     set_browser_provider(build_search_provider())
 

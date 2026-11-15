@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "4f69fb2c3a45215dbef5f178cbb6f964522783c84187645c8192fa43520dc7fe",
+  "capabilities": {
+    "get_dataset": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_dataset\", \"dataset_path\": \"nasa-nasa-ssh\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.850906+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://registry.opendata.aws/nasa-nasa-ssh/",
+          "status": 200
+        }
+      ]
+    },
+    "list_datasets": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_datasets\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.851371+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://registry.opendata.aws/rss.xml",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

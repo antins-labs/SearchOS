@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "9541955ee6a87e76f4702db1a4d08ed3b40d61762eafd9fc71cfe5a10e5e21d7",
+  "capabilities": {
+    "fetch_article": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_article\", \"url\": \"https://www.nba.com/news/horry-scale-nikola-jokic-game-winner-39-foot-buzzer-beater\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.203425+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nba.com/news/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_games": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_games\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.204975+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nba.com/games",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_stats": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_stats\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.205132+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nba.com/stats/players/traditional",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,210 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "8e4fcc22c971de5b1db88ff60170fbaf9070c35e27a4232a127642ff78f4bdbb",
+  "capabilities": {
+    "get_gazetted_holidays": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_gazetted_holidays\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.857365+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.staffnews.in/2024/07/gazetted-holidays-year-2025.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/themes/magone/style.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/2022/01/logo-staffnews.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/themes/magone/assets/css/print.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/2024/07/list-of-holidays-2025.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/500/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-includes/js/jquery/jquery.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/symbols/900/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/700/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/900/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/2026/10/8th-cpc-pay-calculator-staffnews-in.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/staffnews-fonts/fa-solid-staffnews-single.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/staffnews-fonts/fa-brands-staffnews.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/staffnews-fonts/fa-regular-staffnews-v2.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/400/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/700/italic.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/400/italic.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin-ext/400/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/300/normal.woff2",
+          "status": 200
+        }
+      ]
+    },
+    "get_restricted_holidays": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_restricted_holidays\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.859421+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_holiday_page": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_holiday_page\", \"url\": \"https://www.staffnews.in/2026/07/list-of-holidays-2027-to-be-observed-in-central-government-offices.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.859650+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.staffnews.in/2026/07/list-of-holidays-2027-to-be-observed-in-central-government-offices.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/themes/magone/style.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/2022/01/logo-staffnews.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/2026/07/central-government-offices-holiday-calendar-year-2027.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/2026/10/8th-cpc-pay-calculator-staffnews-in.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/staffnews-fonts/fa-brands-staffnews.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/staffnews-fonts/fa-solid-staffnews-single.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/700/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/400/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-content/uploads/staffnews-fonts/fa-regular-staffnews-v2.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/symbols/700/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/900/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/300/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/400/italic.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin-ext/400/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/latin/500/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/cf-fonts/s/roboto/5.2.10/math/700/normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.staffnews.in/wp-includes/js/jquery/jquery.min.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

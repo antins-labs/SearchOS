@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_financial_reports": "inherit",
+    "get_quarterly_earnings": "direct",
+    "parse_financial_statement": "direct"
+  },
+  "aliases": {
+    "get_financial_reports": "get_financial_reports",
+    "get_quarterly_earnings": "get_quarterly_earnings",
+    "parse_financial_statement": "parse_financial_statement",
+    "run": "parse_financial_statement"
+  }
+}

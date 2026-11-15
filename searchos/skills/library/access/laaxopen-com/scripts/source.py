@@ -2,6 +2,9 @@
 LAAX Open Results Skill
 Fetches competition results from LAAX OPEN via WordPress REST API.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import re
@@ -373,6 +376,7 @@ async def get_years(params: dict, session: aiohttp.ClientSession) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute LAAX Open results query.
@@ -401,7 +405,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             'error': 'Function parameter is required. Use: list_results, get_event, search, or get_years'
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'list_results':
             return await list_results(params, session)
         elif function == 'get_event':

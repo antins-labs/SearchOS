@@ -4,6 +4,9 @@ TotalMusicAwards.com Grammy Awards Database Access Skill
 This skill fetches Grammy Award winners and nominees data from totalmusicawards.com,
 a comprehensive database of Grammy winners and nominees organized by category and year.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -21,8 +24,8 @@ async def get_browser():
     global _browser, _context
     if _browser is None:
         playwright = await async_playwright().start()
-        _browser = await playwright.chromium.launch(headless=True)
-        _context = await _browser.new_context(
+        _browser = await _skill_network.browser_launch(playwright.chromium, headless=True)
+        _context = await _skill_network.browser_new_context(_browser, 
             user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         )
     return _context
@@ -31,7 +34,7 @@ async def get_browser():
 async def fetch_category_page(url: str) -> dict:
     """Fetch and parse a Grammy category page"""
     context = await get_browser()
-    page = await context.new_page()
+    page = await _skill_network.browser_new_page(context)
     
     try:
         await page.goto(url, wait_until='domcontentloaded', timeout=60000)
@@ -233,7 +236,7 @@ def get_category_url(category: str) -> str:
 async def get_all_categories() -> list:
     """Fetch the list of all available Grammy categories"""
     context = await get_browser()
-    page = await context.new_page()
+    page = await _skill_network.browser_new_page(context)
     
     try:
         url = 'https://totalmusicawards.com/grammy-awards-winners-archive/'
@@ -267,6 +270,7 @@ async def get_all_categories() -> list:
         await page.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the TotalMusicAwards skill.

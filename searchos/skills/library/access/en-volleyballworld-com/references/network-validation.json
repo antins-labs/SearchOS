@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7a05c273045fcad00298e17e736ce0018263b29908d16f95d95678e93331cb76",
+  "capabilities": {
+    "list_competitions": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_competitions\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.608164+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/en-volleyballworld-com/scripts/source.py",
+        "line": 339,
+        "end_line": 355,
+        "implementation": "list_competitions",
+        "source_sha256": "36dee5bf1229656298be4d6b6112a6290223f157013f121df5c0116dd56f4171",
+        "implementation_sha256": "077bb6e455989470267e952b324377df2abad2f2c50f1dd42761c124f1f7de93"
+      }
+    },
+    "tournament_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"tournament_info\", \"competition\": \"challenger-cup\", \"year\": \"2024\", \"gender\": \"men\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.608873+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.volleyballworld.com/api/v1/volley-tournament/2024-07-02/2024-07-07/1441",
+          "status": 200
+        }
+      ]
+    },
+    "teams": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"teams\", \"competition\": \"challenger-cup\", \"year\": \"2024\", \"gender\": \"women\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.608930+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.volleyballworld.com/api/v1/volley-tournament/2024-07-02/2024-07-07/1442",
+          "status": 200
+        }
+      ]
+    },
+    "matches": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"matches\", \"competition\": \"challenger-cup\", \"year\": \"2023\", \"gender\": \"men\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.608984+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.volleyballworld.com/api/v1/volley-tournament/2023-07-27/2023-07-30/1347",
+          "status": 200
+        }
+      ]
+    },
+    "standings": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"standings\", \"competition\": \"challenger-cup\", \"year\": \"2023\", \"gender\": \"women\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.609038+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.volleyballworld.com/api/v1/volley-tournament/2023-07-27/2023-07-30/1346",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

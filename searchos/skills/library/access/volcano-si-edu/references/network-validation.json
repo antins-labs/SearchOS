@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2791b4aac16803460255d3cf326d5f0f0bcf9f560406f1443e3c636c706122d9",
+  "capabilities": {
+    "get_country_volcanos": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country_volcanos\", \"country\": \"Panama\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.889141+00:00",
+      "reason": "cloudflare_blocked",
+      "source_responses": [
+        {
+          "url": "https://volcano.si.edu/volcanolist_countries.cfm",
+          "status": 307
+        },
+        {
+          "url": "https://volcano.si.edu/volcanolist_countries.cfm",
+          "status": 403
+        },
+        {
+          "url": "https://volcano.si.edu/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        }
+      ]
+    },
+    "get_volcano_details": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_volcano_details\", \"volcano_number\": \"344100\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.309877+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://volcano.si.edu/volcano.cfm",
+          "status": 307
+        },
+        {
+          "url": "https://volcano.si.edu/volcano.cfm",
+          "status": 403
+        },
+        {
+          "url": "https://volcano.si.edu/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://volcano.si.edu/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eefb923c74364b/4zAvBlLGhiCugeSJs8w5eCQdABfxLr81CBujqCTs0cY-1792740063-1.2.1.1-cwDniYBQLV226d7ZIXdhahFUpPoANCXTkqMWiQyZZA1.GEXiEkkVbZCpXmdmF2PO",
+          "status": 200
+        },
+        {
+          "url": "blob:https://volcano.si.edu/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "get_ring_of_fire": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ring_of_fire\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:31.888443+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://volcano.si.edu/faq/Pacific_Ring_of_Fire.cfm",
+          "status": 307
+        },
+        {
+          "url": "https://volcano.si.edu/faq/Pacific_Ring_of_Fire.cfm",
+          "status": 403
+        },
+        {
+          "url": "https://volcano.si.edu/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        }
+      ]
+    },
+    "check_access": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"check_access\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:31.892245+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://volcano.si.edu/volcanolist_countries.cfm",
+          "status": 307
+        },
+        {
+          "url": "https://volcano.si.edu/volcanolist_countries.cfm",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "74bea057a465718c9543608f21a5acfabd4b366620f20b0d5cff8052968e671d",
+  "capabilities": {
+    "get_article": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"title\": \"Spock\", \"include_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.801225+00:00",
+      "reason": "Network error: 403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://memory-alpha.fandom.com/api.php?action=query&titles=Spock&prop=info%7Cpageprops%7Ccategories%7Clinks%7Cextracts&exintro=true&explaintext=true&cllimit=100&pllimit=100&redirects=true&format=json'",
+      "source_responses": [
+        {
+          "url": "https://memory-alpha.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"Klingon\", \"limit\": 3, \"include_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.802440+00:00",
+      "reason": "Network error: 403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://memory-alpha.fandom.com/api.php?action=query&list=search&srsearch=Klingon&srlimit=3&srprop=size%7Cwordcount%7Ctimestamp%7Csnippet%7Ctitlesnippet&srenablerewrites=true&format=json'",
+      "source_responses": [
+        {
+          "url": "https://memory-alpha.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_category": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_category\", \"category\": \"Performers\", \"limit\": 3, \"include_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.803350+00:00",
+      "reason": "Network error: 403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://memory-alpha.fandom.com/api.php?action=query&list=categorymembers&cmtitle=Category:Performers&cmlimit=3&cmprop=ids%7Ctitle%7Ctype%7Ctimestamp&cmsort=sortkey&format=json'",
+      "source_responses": [
+        {
+          "url": "https://memory-alpha.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "random": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"random\", \"limit\": 3, \"include_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.803845+00:00",
+      "reason": "Network error: 403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://memory-alpha.fandom.com/api.php?action=query&list=random&rnlimit=3&rnnamespace=0&format=json'",
+      "source_responses": [
+        {
+          "url": "https://memory-alpha.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

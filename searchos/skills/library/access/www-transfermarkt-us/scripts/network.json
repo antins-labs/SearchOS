@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_fixtures": "direct",
+    "get_squad": "direct",
+    "get_player_market_values": "direct"
+  },
+  "aliases": {
+    "get_fixtures": "get_fixtures",
+    "get_squad": "get_squad",
+    "get_player_market_values": "get_player_market_values",
+    "run": "get_player_market_values"
+  }
+}

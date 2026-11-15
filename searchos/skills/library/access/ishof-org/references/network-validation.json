@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "465393fefaf0a8c2e092a409a7835302891cfa7beb597dc490a2a2ab8e8e017d",
+  "capabilities": {
+    "list_honorees": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_honorees\", \"page\": 1, \"per_page\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.737074+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ishof.org/wp-json/wp/v2/honoree",
+          "status": 200
+        }
+      ]
+    },
+    "get_honoree": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_honoree\", \"slug\": \"michael-phelps\", \"include_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.741319+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ishof.org/wp-json/wp/v2/honoree",
+          "status": 200
+        }
+      ]
+    },
+    "search_honorees": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_honorees\", \"query\": \"phelps\", \"include_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.741411+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ishof.org/wp-json/wp/v2/honoree",
+          "status": 200
+        }
+      ]
+    },
+    "list_categories": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_categories\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.742123+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ishof.org/wp-json/wp/v2/honoree_category",
+          "status": 200
+        }
+      ]
+    },
+    "honorees_by_category": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"honorees_by_category\", \"category\": \"masters-honoree\", \"per_page\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.743114+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ishof.org/wp-json/wp/v2/honoree",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

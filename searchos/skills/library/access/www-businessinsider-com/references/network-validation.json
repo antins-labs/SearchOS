@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "41d9bbe5c4fd13e52c1e48712d55c6621287950407b5bc2937f64bd4f0c818e0",
+  "capabilities": {
+    "get_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.businessinsider.com/olympic-games-when-sports-were-added-timeline-2021-7\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.970831+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.businessinsider.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://i.insider.com/60f9e3500729770012b96cb5",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.privacy-mgmt.com/unified/wrapperMessagingWithoutDetection.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.businessinsider.com/styles/v1-post-page.0200dc687a3426bceff1.css",
+          "status": 200
+        }
+      ]
+    },
+    "get_slideshow": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_slideshow\", \"url\": \"https://www.businessinsider.com/olympic-games-when-sports-were-added-timeline-2021-7\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.692460+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.businessinsider.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://i.insider.com/60f9e3500729770012b96cb5",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.privacy-mgmt.com/unified/wrapperMessagingWithoutDetection.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

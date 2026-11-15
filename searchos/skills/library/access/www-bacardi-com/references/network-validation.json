@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "bf149354912c2548bb1feed4e35924b031fbc481570c953f25ae5df738dbd8cb",
+  "capabilities": {
+    "list_products": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_products\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.952622+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-bacardi-com/scripts/source.py",
+        "line": 290,
+        "end_line": 323,
+        "implementation": "list_products",
+        "source_sha256": "85befe0b947ee85457f1b1a0c8c599090b9c44171b45cd87bb47e47dc0919d55",
+        "implementation_sha256": "c65ada7214d2ae2ad3e9dd879b0746b1ae400d1680b2b8d1d10da25b5befc4c3"
+      }
+    },
+    "get_product": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_product\", \"url\": \"https://www.bacardi.com/us/en/our-rums/reserva-ocho-rum/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.953488+00:00",
+      "reason": "http_403",
+      "source_responses": [
+        {
+          "url": "https://www.bacardi.com/us/en/our-rums/reserva-ocho-rum/",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

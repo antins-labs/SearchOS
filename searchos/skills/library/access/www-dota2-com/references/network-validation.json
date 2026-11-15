@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ec593f9eb2ac043946c9b8d45f26d4460b1a6e1f204341a7e561d009cc415551",
+  "capabilities": {
+    "get_news_entry": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_news_entry\", \"url\": \"https://www.dota2.com/newsentry/3398555399437783294\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.014405+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dota2.com/newsentry/3398555399437783294",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com/public/css/aos/aos.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com/public/javascript/aos/aos.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com/public/css/dota_react/main.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com/public/javascript/dota_react/manifest.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com/public/javascript/dota_react/libraries~b28b7af69.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com/public/javascript/dota_react/main.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com//public/javascript/dota_react/21318.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com//public/javascript/dota_react/27277.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com//public/javascript/dota_react/68117.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com//public/javascript/dota_react/96795.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com//public/javascript/dota_react/88244.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com//public/javascript/dota_react/73924.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com//public/javascript/dota_react/50040.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com//public/javascript/dota_react/72612.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com//public/javascript/dota_react/94691.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com//public/javascript/dota_react/50518.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com//public/javascript/dota_react/6777.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com//public/javascript/dota_react/66385.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.dota2.com//public/javascript/dota_react/89233.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_tournament_bracket": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tournament_bracket\", \"url\": \"http://www.dota2.com/tournaments/international2012/mainevent/results/grandfinal/\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:02.143666+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.dota2.com/tournaments/international2012/mainevent/results/grandfinal/",
+          "status": 302
+        },
+        {
+          "url": "https://www.dota2.com/tournaments/international2012/mainevent/results/grandfinal/",
+          "status": 302
+        },
+        {
+          "url": "https://cdn.steamstatic.com/apps/dota2/international2012_static/mainevent_results_grandfinal.html",
+          "status": 200
+        },
+        {
+          "url": "https://media.steampowered.com/apps/dota2/images/nav/en_forums_over.png",
+          "status": 200
+        },
+        {
+          "url": "https://media.steampowered.com/apps/dota2/images/nav/en_workshop_over.png",
+          "status": 200
+        },
+        {
+          "url": "https://media.steampowered.com/apps/dota2/images/trans.gif",
+          "status": 200
+        },
+        {
+          "url": "https://media.steampowered.com/apps/dota2/images/nav/en_workshop.png",
+          "status": 200
+        },
+        {
+          "url": "https://media.steampowered.com/apps/dota2/images/nav/en_items.png",
+          "status": 200
+        },
+        {
+          "url": "https://media.steampowered.com/apps/dota2/images/nav/en_forums.png",
+          "status": 200
+        },
+        {
+          "url": "https://media.steampowered.com/apps/dota2/images/international2012/teams/ig_logo_list.png",
+          "status": 200
+        },
+        {
+          "url": "https://media.steampowered.com/apps/dota2/images/nav/en_dota_logo_over.png",
+          "status": 200
+        },
+        {
+          "url": "https://media.steampowered.com/apps/dota2/images/international2012/teams/navi_logo_list.png",
+          "status": 200
+        },
+        {
+          "url": "https://media.steampowered.com/apps/dota2/images/nav/en_dota_logo.png",
+          "status": 200
+        },
+        {
+          "url": "https://media.steampowered.com/apps/dota2/images/nav/en_items_over.png",
+          "status": 200
+        },
+        {
+          "url": "https://media.steampowered.com/apps/dota2/images/nav/en_store_over.png",
+          "status": 200
+        }
+      ]
+    },
+    "get_tournament_game": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tournament_game\", \"url\": \"http://www.dota2.com/tournaments/international2012/game/40/\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.188882+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.dota2.com/tournaments/international2012/game/40/",
+          "status": 302
+        },
+        {
+          "url": "https://www.dota2.com/tournaments/international2012/game/40/",
+          "status": 302
+        },
+        {
+          "url": "https://cdn.steamstatic.com/apps/dota2/international2012_static/games/40_p0_v1.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

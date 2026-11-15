@@ -2,6 +2,9 @@
 SearchOS Access Skill for pharaoh.se
 Retrieves structured information about Ancient Egyptian pharaohs and dynasties.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -9,6 +12,7 @@ from typing import Any
 import json
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute pharaoh.se queries.
@@ -41,7 +45,7 @@ async def _fetch_html(url: str) -> tuple[int, str]:
         'Accept-Language': 'en-US,en;q=0.9',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, headers=headers, timeout=30) as resp:
             html = await resp.text()
             return resp.status, html

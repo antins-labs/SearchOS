@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_qa": "direct",
+    "search": "direct",
+    "get_all": "direct",
+    "get_section": "direct"
+  },
+  "aliases": {
+    "get_all": "get_all",
+    "search": "search",
+    "get_section": "get_section",
+    "get_qa": "get_qa",
+    "run": "get_qa"
+  }
+}

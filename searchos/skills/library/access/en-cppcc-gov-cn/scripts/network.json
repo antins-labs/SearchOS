@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_categories": "direct",
+    "search_members": "direct",
+    "get_category": "direct",
+    "get_metadata": "direct",
+    "get_roster": "direct"
+  },
+  "aliases": {
+    "get_roster": "get_roster",
+    "get_categories": "get_categories",
+    "get_category": "get_category",
+    "search_members": "search_members",
+    "get_metadata": "get_metadata",
+    "run": "get_metadata"
+  }
+}

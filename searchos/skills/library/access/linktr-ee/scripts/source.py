@@ -4,11 +4,15 @@ Fetches profile data including links and social connections from Linktree profil
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 import asyncio
 import json
 from typing import Any
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Linktree profile data extraction.
@@ -66,12 +70,12 @@ async def get_profile(params: dict[str, Any]) -> dict[str, Any]:
         from playwright.async_api import async_playwright
         
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
             try:
-                context = await browser.new_context(
+                context = await _skill_network.browser_new_context(browser, 
                     user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                 )
-                page = await context.new_page()
+                page = await _skill_network.browser_new_page(context)
                 
                 # Navigate with commit wait
                 await page.goto(url, wait_until="commit", timeout=30000)

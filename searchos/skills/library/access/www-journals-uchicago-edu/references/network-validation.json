@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "4dd3e77322c2efd812f66b215de9d86933ac23e425ab4e3d1462ed267e1f78cb",
+  "capabilities": {
+    "list_journals": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_journals\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.139581+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-journals-uchicago-edu/scripts/source.py",
+        "line": 476,
+        "end_line": 495,
+        "implementation": "list_journals",
+        "source_sha256": "13b6fa69a98c747ac83ff854955eb1cd79e11c1e883c260b2a9fe82a426cbcb4",
+        "implementation_sha256": "9babe5fd26aa6c0842f24d7b7491a298fed193aa81a49c4dab6e413d900371c3"
+      }
+    },
+    "get_article_metadata": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article_metadata\", \"doi\": \"10.1086/739568\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.141336+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.crossref.org/works/10.1086/739568",
+          "status": 200
+        }
+      ]
+    },
+    "get_toc_current": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_toc_current\", \"journal_code\": \"ajs\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.141499+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.crossref.org/works",
+          "status": 200
+        }
+      ]
+    },
+    "get_toc_issue": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_toc_issue\", \"journal_code\": \"ajs\", \"volume\": \"131\", \"issue\": \"4\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.141651+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_references": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_references\", \"doi\": \"10.1086/739568\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.141815+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.crossref.org/works/10.1086/739568",
+          "status": 200
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"journal_code\": \"ajs\", \"query\": \"immigration\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.141946+00:00",
+      "reason": "articles is empty",
+      "source_responses": [
+        {
+          "url": "https://api.crossref.org/works",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

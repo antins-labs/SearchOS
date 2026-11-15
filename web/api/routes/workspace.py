@@ -11,6 +11,26 @@ from api.deps import session_directory, WORKSPACE_ROOT
 router = APIRouter(prefix="/api/workspace")
 
 
+@router.get("/{session_id}/agent-reply")
+async def get_agent_reply(session_id: str, agent: str, message_id: str = "", timestamp: str = ""):
+    """按消息 ID 读取完整回复；旧事件使用记录时间定位后续首条回复。"""
+    import re
+    from searchos.harness.telemetry.conversation import read_conversation
+
+    if not re.fullmatch(r"[\w-]+", agent) or not (message_id or timestamp):
+        raise HTTPException(400, "Invalid message reference")
+    ws = session_directory(WORKSPACE_ROOT, session_id)
+    messages = read_conversation(ws / "conversations" / "snapshots" / f"{agent}.json").get("messages", [])
+    for message in messages:
+        if message.get("role") != "assistant":
+            continue
+        matches = (message.get("metadata", {}).get("message_id") == message_id if message_id
+                   else message.get("timestamp", "") >= timestamp)
+        if matches:
+            return {"content": message.get("content", ""), "message_id": message.get("metadata", {}).get("message_id")}
+    raise HTTPException(404, "Reply not recorded yet")
+
+
 @router.get("/{session_id}/files")
 async def list_workspace_files(session_id: str):
     """Return workspace file tree."""

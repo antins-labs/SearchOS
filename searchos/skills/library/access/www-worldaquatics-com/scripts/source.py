@@ -8,6 +8,9 @@ Provides access to World Aquatics (formerly FINA) database for:
 
 API Base: https://api.worldaquatics.com/fina
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from typing import Any, Optional
@@ -31,7 +34,7 @@ class WorldAquaticsAPI:
     
     async def _get_session(self) -> aiohttp.ClientSession:
         if self._session is None or self._session.closed:
-            self._session = aiohttp.ClientSession(headers=self.headers)
+            self._session = _skill_network.aiohttp_session(headers=self.headers)
         return self._session
     
     async def close(self):
@@ -146,6 +149,7 @@ class WorldAquaticsAPI:
 
 # ==== EXECUTOR FUNCTIONS ====
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute World Aquatics API request

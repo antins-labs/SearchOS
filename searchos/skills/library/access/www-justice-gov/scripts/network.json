@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_job_detail": "inherit",
+    "list_jobs": "inherit"
+  },
+  "aliases": {
+    "list_jobs": "list_jobs",
+    "get_job_detail": "get_job_detail",
+    "run": "get_job_detail"
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "902ca2b5c95d842f3926aad1e9d7c13eaa5f154f97481c89dd9c65897f53d59c",
+  "capabilities": {
+    "get_article_info": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article_info\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.966836+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.brookings.edu/articles/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "get_cabinet_turnover_comparison": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_cabinet_turnover_comparison\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.967519+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://datawrapper.dwcdn.net/PXOek/4/dataset.csv",
+          "status": 200
+        }
+      ]
+    },
+    "get_ateam_turnover_comparison": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ateam_turnover_comparison\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.967745+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://datawrapper.dwcdn.net/91P1Y/4/dataset.csv",
+          "status": 200
+        }
+      ]
+    },
+    "get_ateam_departures": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ateam_departures\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.967826+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.brookings.edu/articles/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "get_serial_turnover": {
+      "status": "timed_out",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_serial_turnover\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.967907+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_cabinet_departures": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_cabinet_departures\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.967978+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.brookings.edu/articles/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "get_all_data": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_data\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.968052+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://datawrapper.dwcdn.net/PXOek/4/dataset.csv",
+          "status": 200
+        },
+        {
+          "url": "https://datawrapper.dwcdn.net/91P1Y/4/dataset.csv",
+          "status": 200
+        },
+        {
+          "url": "https://www.brookings.edu/articles/[redacted]/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

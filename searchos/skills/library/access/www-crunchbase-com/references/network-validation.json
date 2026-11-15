@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "171d04e247e5b46dadd895d36d6e8dedb563d694f81a6eff538283df030d5df5",
+  "capabilities": {
+    "get_person": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_person\", \"slug\": \"georges-clement\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.003186+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.crunchbase.com/",
+          "status": 200
+        },
+        {
+          "url": "https://images.crunchbase.com/image/upload/c_pad,h_80,w_80,f_auto,b_white,q_auto:eco/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://images.crunchbase.com/image/upload/c_pad,h_80,w_80,f_auto,b_white,q_auto:eco/ldkghwns1fmi3nhbzp11",
+          "status": 200
+        },
+        {
+          "url": "https://images.crunchbase.com/image/upload/c_pad,h_80,w_80,f_auto,b_white,q_auto:eco/gihcdbeeagcuoj8i5nnk",
+          "status": 200
+        },
+        {
+          "url": "https://www.crunchbase.com/assets/static/static-homepage/crunchbase-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.crunchbase.com/assets/static/static-pages/public-sans-latin.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.crunchbase.com/assets/static/static-homepage/oecd-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.crunchbase.com/assets/static/static-homepage/section-divider.avif",
+          "status": 200
+        },
+        {
+          "url": "https://www.crunchbase.com/assets/static/static-homepage/prediction-icons.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.crunchbase.com/cdn-cgi/challenge-platform/scripts/jsd/main.js",
+          "status": 302
+        },
+        {
+          "url": "https://www.crunchbase.com/cdn-cgi/challenge-platform/h/b/scripts/jsd/d2d3316b729e/main.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1961cdaa9b9e04169b7_Logo_Bar_Mixpanel.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1961cdaa9b9e04169b9_Logo_Bar_Monday.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1961cdaa9b9e04169b6_Logo_Bar_Bayer.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1961cdaa9b9e04169bf_Quote_Slider_Logo_atomico.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1961cdaa9b9e04169ba_Logo_Bar_Outreach.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1951cdaa9b9e041699d_Clay%20Logo%20Dark.png.avif",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1961cdaa9b9e04169c0_Quote_Slider_Logo_HubSpot.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1961cdaa9b9e04169c1_Quote_Slider_Logo_Picus_Capital.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.crunchbase.com/person/georges-clement",
+          "status": 403
+        }
+      ]
+    },
+    "get_organization": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_organization\", \"slug\": \"justfix-nyc\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.948773+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.crunchbase.com/",
+          "status": 200
+        },
+        {
+          "url": "https://www.crunchbase.com/assets/static/static-homepage/prediction-icons.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.crunchbase.com/assets/static/static-homepage/crunchbase-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.crunchbase.com/cdn-cgi/challenge-platform/scripts/jsd/main.js",
+          "status": 302
+        },
+        {
+          "url": "https://www.crunchbase.com/assets/static/static-homepage/oecd-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.crunchbase.com/assets/static/static-homepage/section-divider.avif",
+          "status": 200
+        },
+        {
+          "url": "https://www.crunchbase.com/assets/static/static-pages/public-sans-latin.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1961cdaa9b9e04169ba_Logo_Bar_Outreach.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1961cdaa9b9e04169b6_Logo_Bar_Bayer.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1951cdaa9b9e041699d_Clay%20Logo%20Dark.png.avif",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.cookielaw.org/scripttemplates/otSDKStub.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.crunchbase.com/cdn-cgi/challenge-platform/h/b/scripts/jsd/d2d3316b729e/main.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1961cdaa9b9e04169b9_Logo_Bar_Monday.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1961cdaa9b9e04169b7_Logo_Bar_Mixpanel.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1961cdaa9b9e04169bf_Quote_Slider_Logo_atomico.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1961cdaa9b9e04169c1_Quote_Slider_Logo_Picus_Capital.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.prod.website-files.com/687e6d0359c517be389ea464/6a2ef1961cdaa9b9e04169c0_Quote_Slider_Logo_HubSpot.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.crunchbase.com/organization/justfix-nyc",
+          "status": 307
+        },
+        {
+          "url": "https://www.crunchbase.com/cdn-cgi/challenge-platform/h/b/jsd/oneshot/d2d3316b729e/0.628670174050007:1792735521:LkuVcGaSlTLU-CaoikZbuK7ZuqBaOmveRtVGxoomvKM/a4eefd38fc2f2402",
+          "status": 200
+        },
+        {
+          "url": "https://images.crunchbase.com/image/upload/c_pad,h_80,w_80,f_auto,b_white,q_auto:eco/ldkghwns1fmi3nhbzp11",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

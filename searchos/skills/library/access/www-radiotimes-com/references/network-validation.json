@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "0e723086c92be3c8d95bfaea542fbd8c853c2a6ea22a1a18586631314e3b6945",
+  "capabilities": {
+    "get_album_list": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_album_list\", \"url\": \"https://www.radiotimes.com/audio/bob-dylan-albums-in-order-full-list-album-releases/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.235815+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.radiotimes.com/audio/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "get_page_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page_info\", \"url\": \"https://www.radiotimes.com/audio/bob-dylan-albums-in-order-full-list-album-releases/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.236299+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.radiotimes.com/audio/[redacted]/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

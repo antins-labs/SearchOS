@@ -4,6 +4,9 @@ Scribd Document Access Skill
 Extracts document metadata and content from Scribd document pages.
 Handles multiple access strategies due to Scribd's anti-bot protection.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -80,7 +83,7 @@ async def try_browser_access(url: str, doc_id: str) -> dict:
     
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(
+            browser = await _skill_network.browser_launch(p.chromium, 
                 headless=True,
                 args=[
                     '--disable-blink-features=AutomationControlled',
@@ -89,14 +92,14 @@ async def try_browser_access(url: str, doc_id: str) -> dict:
                 ]
             )
             
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X_10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
                 viewport={'width': 1920, 'height': 1080},
                 locale='en-US',
                 java_script_enabled=True,
             )
             
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Inject stealth scripts
             await page.add_init_script("""
@@ -218,7 +221,7 @@ async def try_http_access(url: str, doc_id: str) -> dict:
         f"https://www.scribd.com/embeds/{doc_id}/content",
     ]
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for test_url in urls:
             for ua in user_agents:
                 try:
@@ -546,6 +549,7 @@ async def extract_tables(params: dict, ctx: Any = None) -> dict:
     return process_ranking_data(table_data)
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Scribd access skill.

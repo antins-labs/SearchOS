@@ -8,20 +8,20 @@ from searchos.skills.pipeline.access.tools.execute import ACCESS_TIMEOUT_S
 
 TOOL_DEFINITIONS = [
     {"type": "function", "function": {"name": "search",
-     "description": "通过互联网搜索引擎检索公开网页，查找目标站点、API、库文档、教程、示例和排错资料。query 填写网页检索关键词，返回网页线索后用 open 阅读原文。本地代码和文件定位使用 exec 或当前角色的文件读取工具。",
+     "description": "检索公开网页，返回带编号的来源线索。用 open 阅读目标站点、API 文档、教程、示例或排错资料的原文。本地代码和文件可用 exec 或当前角色的文件读取工具定位。",
      "parameters": {"type": "object", "properties": {"query": {"type": "string", "description": "互联网网页检索关键词，可组合站点、库名、版本、API 名或脱敏报错。"}}, "required": ["query"]}}},
     {"type": "function", "function": {"name": "open",
-     "description": "读取互联网网页正文。id_or_url 接收 HTTP(S) URL 或 search/open/find 返回的网页结果 ID；loc 按网页行号续读。",
-     "parameters": {"type": "object", "properties": {"id_or_url": {"type": "string", "description": "互联网网页的 HTTP(S) URL 或网页结果 ID。"}, "loc": {"type": "integer", "default": 0, "description": "网页正文的起始行号。"}}, "required": ["id_or_url"]}}},
+     "description": "打开网页或已定位的匹配项，返回带行号的正文窗口和来源信息。按行号续读同一网页。",
+     "parameters": {"type": "object", "properties": {"id_or_url": {"type": "string", "description": "HTTP(S) URL 或 search、open、find 返回的网页结果编号字符串。"}, "loc": {"type": "integer", "default": 0, "description": "正文窗口的起始行号，从 0 开始。"}}, "required": ["id_or_url"]}}},
     {"type": "function", "function": {"name": "find",
-     "description": "在当前已打开的互联网网页文本中按字面查找短语，定位文档段落、API 名称或错误说明；先用 open 打开目标网页。返回的网页结果 ID 可用 open 阅读。本地代码和文件定位使用 exec 或当前角色的文件读取工具。",
+     "description": "在 open 打开的网页中查找字面短语，返回匹配项编号及上下文。可用 open 跳转至文档段落、API 名称或错误说明所在的位置。本地代码和文件可用 exec 或当前角色的文件读取工具定位。",
      "parameters": {"type": "object", "properties": {"pattern": {"type": "string", "description": "要在当前互联网网页文本中查找的字面短语。"}}, "required": ["pattern"]}}},
 ]
 
 
 class ResearchBrowser:
     def __init__(self):
-        from searchos.tools.simple_browser.state import BrowserState
+        from searchos.tools.simple_browser.session import BrowserState
         self.state = BrowserState()
         self.provider = None
 
@@ -43,7 +43,7 @@ class ResearchBrowser:
             metadata["error"] = "research source page is unavailable"
             return metadata
         metadata["read_from_cache"] = id(source) in cached_pages
-        for key in ("access_method", "proxy_mode", "reader_failure"):
+        for key in ("access_method", "reader_failure"):
             if key in source.metadata:
                 metadata[key] = source.metadata[key]
         text = source.text or ""
@@ -62,8 +62,8 @@ class ResearchBrowser:
         elif not text.strip():
             metadata.update(fetch_status="empty", content_source="page", error="research page is empty")
         else:
-            from searchos.tools.simple_browser.backend.base import BrowserService
-            from searchos.tools.simple_browser.backend.search_engine import SearchEngineBackend
+            from searchos.tools.simple_browser.fetchers.base import BrowserService
+            from searchos.tools.simple_browser.fetchers.search_engine import SearchEngineBackend
 
             service = BrowserService._instance
             if (metadata.get("access_method") != "http_fallback" and service is not None
@@ -77,22 +77,22 @@ class ResearchBrowser:
 
     async def _http_fallback(self, metadata: dict, loc: int) -> tuple[str | None, str]:
         """Read public HTML/JSON once without bypassing proxy or TLS settings."""
-        from searchos.tools.simple_browser.backend.aiohttp import AiohttpBackend
-        from searchos.tools.simple_browser.image_reading import validate_public_url
-        from searchos.tools.simple_browser.render import PageContents
-        from searchos.tools.simple_browser.state import is_url_allowed
+        from searchos.tools.simple_browser.fetchers.aiohttp import AiohttpBackend
+        from searchos.tools.simple_browser.images import validate_public_url
+        from searchos.tools.simple_browser.pages import PageContents
+        from searchos.tools.simple_browser.session import is_url_allowed
 
         url = metadata["source_url"]
         try:
             if not is_url_allowed(url):
                 raise ValueError("source domain is excluded for this run")
             await asyncio.wait_for(validate_public_url(url), timeout=5)
-            backend = AiohttpBackend(max_retries=0, trust_env=True, allow_redirects=False, allow_json=True)
+            backend = AiohttpBackend(max_retries=0, allow_redirects=False, allow_json=True)
             fetched = await asyncio.wait_for(backend.fetch(url, timeout=15), timeout=16)
             if not fetched.ok or not fetched.markdown.strip():
                 return None, fetched.error or f"HTTP fallback returned status {fetched.status} or empty content"
             page = PageContents(url=fetched.url, title=fetched.title, text=fetched.markdown,
-                urls=dict(fetched.links), metadata={"access_method": "http_fallback", "proxy_mode": "inherit",
+                urls=dict(fetched.links), metadata={"access_method": "http_fallback",
                     "reader_failure": {key: metadata[key] for key in ("fetch_status", "content_source", "error")
                                        if key in metadata}})
             self.state.add_page(page)
@@ -103,7 +103,10 @@ class ResearchBrowser:
     async def dispatch(self, name: str, args: dict) -> dict:
         name = {'search': 'web_search', 'open': 'web_open', 'find': 'web_find'}.get(name, name)
         from searchos.tools.search_state import _workspace_var
-        from searchos.tools.simple_browser import state, tools
+        from searchos.tools.simple_browser import session as state
+        from searchos.tools.simple_browser import tools
+        from searchos.tools.simple_browser.pages import _build_search_page
+        from searchos.tools.simple_browser.session import apply_source_controls
 
         # Keep parent browser history and workspace pages untouched, including on error.
         browser_token = state._browser_var.set(self.state)
@@ -111,17 +114,17 @@ class ResearchBrowser:
         try:
             cached_pages = {id(page) for page in self.state.pages.values()}
             if name == "web_search":
-                from searchos.tools.simple_browser.search import build_search_provider
+                from searchos.tools.simple_browser.search_providers import build_search_provider
                 if self.provider is None:
                     self.provider = build_search_provider()
                 query = str(args["query"]).strip()
                 if not query:
                     raise ValueError("query must not be empty")
-                results = state.apply_source_controls(await asyncio.wait_for(self.provider.search(query, 8), timeout=ACCESS_TIMEOUT_S))
+                results = apply_source_controls(await asyncio.wait_for(self.provider.search(query, 8), timeout=ACCESS_TIMEOUT_S))
                 for result in results:
                     self.state.search_content_cache[result.url] = result
                 self.state.search_history.append(query)
-                self.state.add_page(state._build_search_page(query, results))
+                self.state.add_page(_build_search_page(query, results))
                 content = self.state.show_page(loc=0, view_tokens=2000)
             else:
                 tool = {"web_open": tools.open, "web_find": tools.find}[name]
@@ -154,9 +157,10 @@ for tool in RESEARCH_TOOLS:
     function = tool['function']
     function['name'] = function['name'].removeprefix('web_')
     if function['name'] == 'open':
-        function['description'] += ' Planner 另支持读取回执中明确给出的保存产物路径，用 offset 和 limit 分页；本地探测代码定位使用 exec。'
+        function['description'] += ' Planner 还可读取回执给出的产物路径，用 offset 和 limit 分页。本地探测代码用 exec 定位。'
         function['parameters']['properties']['id_or_url']['description'] = (
             '互联网网页的 HTTP(S) URL、网页结果 ID，或回执中明确给出的保存产物路径。')
         function['parameters']['properties'].update(
-            offset={'type': 'integer', 'default': 0},
-            limit={'type': 'integer', 'default': 16000, 'minimum': 1, 'maximum': 24000})
+            offset={'type': 'integer', 'default': 0, 'description': '读取保存产物的字符偏移，从 0 开始，续读时传入上次的 next_offset。'},
+            limit={'type': 'integer', 'default': 16000, 'minimum': 1, 'maximum': 24000,
+                   'description': '单次读取保存产物的最大 Unicode 字符数，默认 16000，最大 24000。'})

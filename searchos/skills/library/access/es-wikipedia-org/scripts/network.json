@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search": "inherit",
+    "get_article": "inherit"
+  },
+  "aliases": {
+    "get_article": "get_article",
+    "search": "search",
+    "run": "search"
+  }
+}

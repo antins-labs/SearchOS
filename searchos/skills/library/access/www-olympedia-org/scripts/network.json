@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_athlete": "direct",
+    "get_results": "direct",
+    "search_athletes": "direct"
+  },
+  "aliases": {
+    "get_athlete": "get_athlete",
+    "get_results": "get_results",
+    "search_athletes": "search_athletes",
+    "run": "search_athletes"
+  }
+}

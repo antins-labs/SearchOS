@@ -1,5 +1,8 @@
 "use client";
 
+import { cellKey, rowKey } from "@/lib/socmRefs";
+
+
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, ChevronDown, Layers3, Loader2, Search, Wrench, WifiOff } from "lucide-react";
 import Composer, { type SubmitOpts } from "@/components/shell/Composer";
@@ -13,7 +16,7 @@ import type { Turn } from "@/lib/conversation";
 import type { CoverageCell, RepairCellTarget } from "@/lib/types";
 import type { LocalLibraryController } from "@/hooks/useLocalLibrary";
 import type { LiveFollowUpController } from "@/hooks/useLiveFollowUps";
-import { localCitationLabels } from "@/lib/localCitations";
+import { evidenceSourcesById, localCitationLabels } from "@/lib/localCitations";
 import { declaredCoverageTables } from "@/lib/coverageTables";
 
 interface Props {
@@ -183,9 +186,7 @@ function TurnView({
             {turn.status === "error" && <p className="mb-2 text-[12px] text-ink-faint">中断前的输出（非最终回答）</p>}
             <div className={done && answerCollapsed ? "max-h-[320px] overflow-hidden" : undefined}>
               <Answer markdown={displayAnswer} localSources={localSources} localSourceLabels={sourceLabels}
-                evidenceSources={Object.fromEntries((turn.searchState?.evidence_graph?.nodes ?? [])
-                  .filter((node) => !node.status || node.status === "active")
-                  .map((node) => [node.id, node.source_urls?.length ? node.source_urls : node.source]))}
+                evidenceSources={evidenceSourcesById(turn.searchState?.evidence_graph?.nodes ?? [])}
                 onOpenLocalSource={onOpenLocalSource} />
             </div>
             {done ? (
@@ -272,11 +273,11 @@ function RepairSummary({ turn }: { turn: Turn }) {
   const previousEvidence = new Set(repair.evidenceIdsBefore);
   const newEvidence = (state?.evidence_graph?.nodes ?? []).filter((node) => !previousEvidence.has(node.id));
   const rows = repair.cells.map((target) => {
-    const key = `${target.table_id}/${target.entity}.${target.attribute}`;
+    const key = cellKey(target.table_id, rowKey(target.key), target.attribute);
     const current = state?.coverage_map?.cells[key];
     const evidenceCount = newEvidence.filter((node) => (
       (node.table_id || primaryTable) === target.table_id
-      && node.entity === target.entity
+      && node.entity === rowKey(target.key)
       && node.attribute === target.attribute
     )).length;
     const changed = !!current && (
@@ -344,7 +345,7 @@ function RepairSummary({ turn }: { turn: Turn }) {
           <Search size={12} className="shrink-0 text-warn" />
           <span className="shrink-0">Needs attention</span>
           <span className="min-w-0 truncate text-ink-dim">
-            {unresolvedPreview.map(({ target }) => `${target.entity} · ${target.attribute}`).join("  /  ")}
+            {unresolvedPreview.map(({ target }) => `${target.key.join(" · ")} · ${target.attribute}`).join("  /  ")}
           </span>
           {remaining > unresolvedPreview.length && <span className="shrink-0">+{remaining - unresolvedPreview.length}</span>}
         </div>
@@ -370,10 +371,10 @@ function RepairSummary({ turn }: { turn: Turn }) {
           const beforeStatus = REPAIR_STATUS[target.before.status];
           const afterStatus = REPAIR_STATUS[current?.status ?? target.before.status];
           return (
-            <div key={`${target.table_id}/${target.entity}.${target.attribute}`} className="grid gap-1 py-2 text-[12px] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-3">
+            <div key={cellKey(target.table_id, rowKey(target.key), target.attribute)} className="grid gap-1 py-2 text-[12px] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-3">
               <div className="min-w-0">
-                <div className="truncate font-medium text-ink" title={`${target.table_id} / ${target.entity} / ${target.attribute}`}>
-                  {target.entity} · {target.attribute}
+                <div className="truncate font-medium text-ink" title={`${target.table_id} / ${target.key.join(" · ")} / ${target.attribute}`}>
+                  {target.key.join(" · ")} · {target.attribute}
                 </div>
                 <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-ink-dim">
                   <span className={beforeStatus.className}>{beforeStatus.label}</span>

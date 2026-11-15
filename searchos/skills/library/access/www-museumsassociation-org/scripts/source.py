@@ -2,6 +2,9 @@
 Museums Association News Article Fetcher
 Fetches structured news article content from www.museumsassociation.org
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -14,7 +17,7 @@ from urllib.parse import urljoin
 
 async def fetch_url(url: str, timeout: int = 30) -> tuple[int, str]:
     """Fetch URL content with aiohttp."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(
             url,
             ssl=False,
@@ -224,6 +227,7 @@ async def get_news_listing(page: int = 1) -> dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the skill.

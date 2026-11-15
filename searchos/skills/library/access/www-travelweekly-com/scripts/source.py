@@ -7,6 +7,9 @@ Target URL pattern: https://www.travelweekly.com/Cruise/{Line}/{Ship}/Cruise-p{i
 Note: This site uses aggressive Cloudflare protection that may block automated access.
 The skill implements multiple strategies to handle this, but success is not guaranteed.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -14,6 +17,7 @@ from typing import Any
 from urllib.parse import urlparse, urljoin
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Travel Weekly cruise data retrieval.
@@ -143,7 +147,7 @@ async def fetch_with_browser(url: str) -> dict[str, Any]:
         }
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
+        browser = await _skill_network.browser_launch(p.chromium, 
             headless=True,
             args=[
                 '--disable-blink-features=AutomationControlled',
@@ -153,7 +157,7 @@ async def fetch_with_browser(url: str) -> dict[str, Any]:
             ]
         )
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
                 viewport={"width": 1920, "height": 1080},
                 locale="en-US",
@@ -168,7 +172,7 @@ async def fetch_with_browser(url: str) -> dict[str, Any]:
                 window.chrome = { runtime: {} };
             """)
             
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate to the page
             await page.goto(url, timeout=60000, wait_until="domcontentloaded")

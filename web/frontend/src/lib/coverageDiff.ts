@@ -1,4 +1,5 @@
 import type { CoverageCell, CoverageMap } from "./types";
+import { cellRef, rowKey } from "./socmRefs";
 
 export type CoverageDiffKind = "added" | "modified" | "removed" | "conflict_resolved";
 
@@ -25,24 +26,16 @@ const comparableCell = (cell: CoverageCell) => JSON.stringify({
 });
 
 function cellIdentity(key: string, maps: CoverageMap[]): Omit<CoverageCellDiff, "key" | "kind" | "before" | "after"> {
-  const slash = key.indexOf("/");
-  const tableId = slash >= 0 ? key.slice(0, slash) : "_default";
-  const remainder = slash >= 0 ? key.slice(slash + 1) : key;
+  const ref = cellRef(key);
+  const tableId = ref.table_id;
   const schema = maps.map((map) => map.tables[tableId]).find(Boolean);
-  const attribute = [...(schema?.attributes ?? [])]
-    .sort((a, b) => b.length - a.length)
-    .find((candidate) => remainder.endsWith(`.${candidate}`));
-  const fallbackDot = remainder.lastIndexOf(".");
-  const resolvedAttribute = attribute ?? (fallbackDot >= 0 ? remainder.slice(fallbackDot + 1) : remainder);
-  const entity = attribute
-    ? remainder.slice(0, -(attribute.length + 1))
-    : fallbackDot >= 0 ? remainder.slice(0, fallbackDot) : remainder;
+  const entity = rowKey(ref.key);
 
   return {
     tableId,
     tableLabel: schema?.table_label || tableId,
     entity,
-    attribute: resolvedAttribute,
+    attribute: ref.attribute,
   };
 }
 

@@ -36,17 +36,23 @@ def _tool_names(tools: list) -> list[str]:
 # Explore 在首次检索或后续检索中按具体的不确定性派发。
 AGENT_CATALOG: list[AgentSpec] = [
     AgentSpec(
-        name=explore.AGENT_TYPE,
+        name=search.AGENT_TYPE,
         description=(
-            "Resolve uncertainty about identity, scope, candidate sets, or source strategy "
-            "before or during search. Follow the Orchestrator's initial-action policy."
+            "Retrieve and process information with Browser, Image, and Exec. "
+            "Discovers and loads skills, reads their instructions, and orchestrates "
+            "their calls to complete the retrieval task. Use for requests with a clear "
+            "target, including requests to use a named platform or skill."
         ),
-        tools=_tool_names(explore.get_tools()),
+        tools=_tool_names(search.get_tools()),
     ),
     AgentSpec(
-        name=search.AGENT_TYPE,
-        description="Search the web for evidence. No local-document tools.",
-        tools=_tool_names(search.get_tools()),
+        name=explore.AGENT_TYPE,
+        description=(
+            "Investigate a specific uncertainty about identity, scope, eligibility, "
+            "or candidate coverage that blocks task decomposition. Uses web search "
+            "and page reading; skill discovery, loading, and execution belong to search_agent."
+        ),
+        tools=_tool_names(explore.get_tools()),
     ),
     AgentSpec(
         name=local_search.AGENT_TYPE,

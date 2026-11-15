@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "69fdf6e45c80b52b22a4cbeb979916c876a51f98b041d8c2161acc0cdbfe3306",
+  "capabilities": {
+    "ask": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"ask\", \"query\": \"premier league top scorers 2023-24\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.277005+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.statmuse.com/fc/ask",
+          "status": 200
+        }
+      ]
+    },
+    "search_player_stats": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_player_stats\", \"league\": \"la liga\", \"season\": \"2022-23\", \"stat\": \"rating\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.277542+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.statmuse.com/fc/ask",
+          "status": 200
+        }
+      ]
+    },
+    "get_standings": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_standings\", \"league\": \"premier league\", \"season\": \"2023-24\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.277609+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.statmuse.com/fc/ask",
+          "status": 200
+        }
+      ]
+    },
+    "head_to_head": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"head_to_head\", \"team1\": \"real madrid\", \"team2\": \"barcelona\", \"season\": \"2023\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.277759+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.statmuse.com/fc/ask",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

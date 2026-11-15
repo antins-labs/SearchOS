@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_highlights": "direct",
+    "list_years": "direct",
+    "get_rewind": "direct",
+    "get_winners": "direct"
+  },
+  "aliases": {
+    "list_years": "list_years",
+    "get_rewind": "get_rewind",
+    "get_winners": "get_winners",
+    "get_highlights": "get_highlights",
+    "run": "get_highlights"
+  }
+}

@@ -2,6 +2,9 @@
 SearchOS access skill for www.lzlj.com
 Luzhou Laojiao brand and product information scraper
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -256,6 +259,7 @@ async def get_product_detail(session: aiohttp.ClientSession, product_url: str) -
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the SearchOS skill
@@ -275,7 +279,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     if not function:
         return {"error": "Missing required parameter: function. Must be one of: list_brands, list_products, get_product_detail"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "list_brands":
             return await list_brands(session)
         

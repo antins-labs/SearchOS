@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "04a35c8500fc27804846916bdb11d5fe0feb391803cdc42bf2f0457a41547a8f",
+  "capabilities": {
+    "get_person_profile": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_person_profile\", \"url\": \"https://www.cato.org/people/chelsea-follett\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.978256+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.cato.org/people/chelsea-follett",
+          "status": 200
+        },
+        {
+          "url": "https://www.cato.org/core/themes/stable9/css/core/components/progress.module.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.cato.org/core/themes/stable9/css/core/components/ajax-progress.module.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.cato.org/build/algolia_utilities/css/datepicker.e9fdab26ed.css",
+          "status": 200
+        },
+        {
+          "url": "https://cmp.osano.com/PyETaSNi0n/[redacted]/osano.js",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.cato.org/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.cato.org/build/page_header/css/page-header.07ee859cb7.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.cato.org/build/algolia_utilities/css/search.1860abbc69.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.cato.org/modules/contrib/pardot_integration/css/pardot-form.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.cato.org/build/author_page/css/author-page.a9d244500b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.cato.org/build/book_promo_block/css/book-promo-block.55c0197cad.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.cato.org/build/book_promo_content/css/book-promo-content.62356451b4.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.cato.org/build/read_more/css/read-more.05d142095e.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.cato.org/modules/contrib/paragraphs/css/paragraphs.unpublished.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.cato.org/build/cato_2020/css/critical.e03b575bbd.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.cato.org/themes/custom/cato_2020/css/webfonts.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.cato.org/build/cato_2020/css/bootstrap.788a34350b.css",
+          "status": 200
+        }
+      ]
+    },
+    "search_people": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_people\", \"query\": \"trade policy\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.765026+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.cato.org/search",
+          "status": 200
+        },
+        {
+          "url": "https://cmp.osano.com/PyETaSNi0n/[redacted]/osano.js",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.cato.org/[redacted]",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

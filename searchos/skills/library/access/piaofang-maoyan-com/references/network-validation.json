@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5b7074783857c0df4d9ae951c7f30819239d2128b3a20bb5607a5f78efd1aa79",
+  "capabilities": {
+    "get_rankings": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rankings\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.839065+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://piaofang.maoyan.com/rankings/year",
+          "status": 200
+        }
+      ]
+    },
+    "get_movie_detail": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_movie_detail\", \"movie_id\": \"1211229\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.839722+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://passport.maoyan.com/ipromobile/blogin",
+          "status": 200
+        }
+      ]
+    },
+    "search_by_rank": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_rank\", \"min_rank\": 1, \"max_rank\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.839798+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://piaofang.maoyan.com/rankings/year",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -4,6 +4,9 @@ Cannabis Regulations AI - Country Legality Extractor
 Extracts structured cannabis legality information from country profile pages
 on www.cannabisregulations.ai
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -11,6 +14,7 @@ from typing import Any
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute cannabis regulation queries.
@@ -40,10 +44,10 @@ async def fetch_page_content(url: str) -> tuple[str, str]:
         Tuple of (page_text, page_title) or raises exception
     """
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context()
-            page = await context.new_page()
+            context = await _skill_network.browser_new_context(browser)
+            page = await _skill_network.browser_new_page(context)
             
             # Set page timeout
             page.set_default_timeout(20000)

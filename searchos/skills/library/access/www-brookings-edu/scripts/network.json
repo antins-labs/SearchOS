@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_serial_turnover": "proxy",
+    "get_article_info": "proxy",
+    "get_all_data": "proxy",
+    "get_ateam_turnover_comparison": "direct",
+    "get_cabinet_turnover_comparison": "direct",
+    "get_ateam_departures": "proxy",
+    "get_cabinet_departures": "proxy"
+  },
+  "aliases": {
+    "get_article_info": "get_article_info",
+    "get_cabinet_turnover_comparison": "get_cabinet_turnover_comparison",
+    "get_ateam_turnover_comparison": "get_ateam_turnover_comparison",
+    "get_ateam_departures": "get_ateam_departures",
+    "get_serial_turnover": "get_serial_turnover",
+    "get_cabinet_departures": "get_cabinet_departures",
+    "get_all_data": "get_all_data",
+    "run": "get_all_data"
+  }
+}

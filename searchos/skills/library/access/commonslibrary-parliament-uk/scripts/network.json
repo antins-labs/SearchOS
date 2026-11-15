@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_briefings": "direct",
+    "search": "proxy",
+    "get_briefing": "proxy"
+  },
+  "aliases": {
+    "get_briefing": "get_briefing",
+    "list_briefings": "list_briefings",
+    "search": "search",
+    "run": "search"
+  }
+}

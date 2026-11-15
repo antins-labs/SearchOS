@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "51f7df5d0ae2f182c5a9393d4b9dbdb836cc9fa366f136d7a7a6a87bd1a20773",
+  "capabilities": {
+    "get_rankings": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rankings\", \"event\": \"1500m\", \"gender\": \"men\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.916466+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://worldathletics.org/world-rankings/1500-metres/men",
+          "status": 200
+        }
+      ]
+    },
+    "get_events": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_events\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.917887+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://worldathletics.org/world-rankings/overall-ranking/men",
+          "status": 200
+        }
+      ]
+    },
+    "get_countries": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_countries\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.918276+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://worldathletics.org/world-rankings/overall-ranking/men",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

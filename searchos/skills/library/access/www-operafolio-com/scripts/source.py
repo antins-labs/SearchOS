@@ -11,6 +11,9 @@ Fetches structured opera data from operafolio.com including:
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 import re
 from typing import Any
 from urllib.parse import quote
@@ -452,6 +455,7 @@ async def _get_famous_arias(session: aiohttp.ClientSession) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute OperaFolio skill functions.
@@ -469,7 +473,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     if not function:
         return {"error": "Missing required parameter: function"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "get_composer_operas":
             composer = params.get("composer", "")
             if not composer:

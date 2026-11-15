@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e5ff83dee810098e2fa75f7c00c1cb9239073a470e016bc12d2298e5504d3510",
+  "capabilities": {
+    "get_fixtures": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_fixtures\", \"club_id\": \"583\", \"season_id\": \"2024\", \"club_name\": \"fc-paris-saint-germain\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.056944+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.transfermarkt.us/fc-paris-saint-germain/spielplan/verein/583/saison_id/2024",
+          "status": 405
+        },
+        {
+          "url": "https://6cb07a88f2ca.31a26c7f.us-west-1.captcha.awswaf.com/6cb07a88f2ca/9fd9b1ce341a/af7a5b4cd612/captcha.js",
+          "status": 200
+        },
+        {
+          "url": "https://6cb07a88f2ca.31a26c7f.us-west-1.token.awswaf.com/6cb07a88f2ca/9fd9b1ce341a/af7a5b4cd612/challenge.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_squad": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_squad\", \"club_id\": \"79\", \"club_name\": \"vfb-stuttgart\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.059113+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.transfermarkt.us/vfb-stuttgart/kader/verein/79",
+          "status": 405
+        },
+        {
+          "url": "https://6cb07a88f2ca.31a26c7f.us-west-1.captcha.awswaf.com/6cb07a88f2ca/9fd9b1ce341a/af7a5b4cd612/captcha.js",
+          "status": 200
+        },
+        {
+          "url": "https://6cb07a88f2ca.31a26c7f.us-west-1.token.awswaf.com/6cb07a88f2ca/9fd9b1ce341a/af7a5b4cd612/challenge.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_player_market_values": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player_market_values\", \"club_id\": \"418\", \"club_name\": \"real-madrid\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.059409+00:00",
+      "reason": "Access blocked by Transfermarkt's anti-bot protection (AWS WAF). The site requires JavaScript challenge/CAPTCHA verification that cannot be bypassed with automated tools.",
+      "source_responses": [
+        {
+          "url": "https://www.transfermarkt.us/real-madrid/marktwertanalyse/verein/418",
+          "status": 405
+        },
+        {
+          "url": "https://6cb07a88f2ca.31a26c7f.us-west-1.captcha.awswaf.com/6cb07a88f2ca/9fd9b1ce341a/af7a5b4cd612/captcha.js",
+          "status": 200
+        },
+        {
+          "url": "https://6cb07a88f2ca.31a26c7f.us-west-1.token.awswaf.com/6cb07a88f2ca/9fd9b1ce341a/af7a5b4cd612/challenge.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

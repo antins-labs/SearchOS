@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_album": "proxy",
+    "list_albums": "direct"
+  },
+  "aliases": {
+    "list_albums": "list_albums",
+    "get_album": "get_album",
+    "run": "get_album"
+  }
+}

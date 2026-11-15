@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_media_info": "direct"
+  },
+  "aliases": {
+    "get_media_info": "get_media_info",
+    "run": "get_media_info"
+  }
+}

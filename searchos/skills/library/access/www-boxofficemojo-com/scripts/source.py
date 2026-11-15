@@ -10,6 +10,9 @@ Functions:
 - list_top_movies: List top N movies for a year with key metrics
 - get_movie_details: Get detailed information about a specific movie release
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -32,7 +35,7 @@ async def fetch_page(url: str, session: Optional[aiohttp.ClientSession] = None) 
     
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -395,6 +398,7 @@ async def get_movie_details(release_id: str, session: Optional[aiohttp.ClientSes
     return details
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for Box Office Mojo access skill.
@@ -423,7 +427,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             'available_functions': ['get_yearly_box_office', 'list_top_movies', 'get_movie_details']
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             if function == 'get_yearly_box_office':
                 year = params.get('year')

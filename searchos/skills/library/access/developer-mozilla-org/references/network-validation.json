@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "f1ad2fbc7131103a41830002d98f917c6e04ad0a8c904612a9d29077ed0d1980",
+  "capabilities": {
+    "read_document": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/access.py",
+        "read_document",
+        "--input",
+        "{\"path\": \"/docs/Web/CSS/display\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.587796+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/display",
+          "status": 301
+        },
+        {
+          "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/display",
+          "status": 200
+        }
+      ]
+    },
+    "list_reference_index": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/access.py",
+        "list_reference_index",
+        "--input",
+        "{\"section\": \"/docs/Web/API\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.588281+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

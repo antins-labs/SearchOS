@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "4916716efec45e65e5f8b17f3d2ec66318bf9c02961e3f5dfa41e9dc4f0800d5",
+  "capabilities": {
+    "get_prize_year": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_prize_year\", \"prize\": \"archibald\", \"year\": \"2023\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.950140+00:00",
+      "reason": "Could not find main content",
+      "source_responses": [
+        {
+          "url": "https://www.artgallery.nsw.gov.au/prizes/archibald/2023/",
+          "status": 200
+        }
+      ]
+    },
+    "get_artwork": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_artwork\", \"artwork_id\": \"30531\", \"prize\": \"archibald\", \"year\": \"2023\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.951012+00:00",
+      "reason": "Could not find main content",
+      "source_responses": [
+        {
+          "url": "https://www.artgallery.nsw.gov.au/prizes/archibald/2023/30531/simple/",
+          "status": 200
+        }
+      ]
+    },
+    "get_gallery_labels": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_gallery_labels\", \"prize\": \"archibald\", \"year\": \"2023\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.951236+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.artgallery.nsw.gov.au/in-gallery/aws23-labels/archibald-2023/",
+          "status": 200
+        }
+      ]
+    },
+    "list_prize_years": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_prize_years\", \"prize\": \"archibald\", \"year\": \"2023\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.951311+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.artgallery.nsw.gov.au/prizes/archibald/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

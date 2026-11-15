@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_matches": "direct",
+    "get_tournament_info": "direct"
+  },
+  "aliases": {
+    "get_tournament_info": "get_tournament_info",
+    "get_matches": "get_matches",
+    "run": "get_matches"
+  }
+}

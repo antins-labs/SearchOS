@@ -6,6 +6,8 @@ import json
 import os
 from urllib.parse import urlsplit
 
+from searchos.network import proxy_url
+
 from .auth import Config
 
 
@@ -82,6 +84,9 @@ class PushSender:
         payload = {"title": "SearchOS", "body": "你的任务已有结果，请打开查看。" if notification["kind"] == "completed" else "有一项任务需要你查看。", "url": notification["url"], "tag": notification["id"]}
         try:
             with NoRedirectSession() as session:
+                session.trust_env = False
+                gateway = proxy_url()
+                session.proxies = {"http": gateway, "https": gateway}
                 response = webpush(subscription_info=subscription, data=json.dumps(payload), vapid_private_key=str(self.key_path), vapid_claims={"sub": self.config.push_contact}, timeout=10, ttl=86400, requests_session=session)
             if response.status_code in {404, 410}:
                 return "gone"

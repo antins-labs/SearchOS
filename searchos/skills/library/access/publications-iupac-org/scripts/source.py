@@ -4,6 +4,9 @@ IUPAC Publications Access Skill
 Retrieves article content and table of contents from IUPAC's Chemistry International
 newsmagazine at publications.iupac.org.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -264,7 +267,7 @@ def construct_issue_url(volume: str, number: str) -> str:
 
 async def get_article(url: str) -> dict:
     """Fetch and parse a single article."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_page(url, session)
             soup = BeautifulSoup(html, 'html.parser')
@@ -294,7 +297,7 @@ async def get_issue_toc(url: Optional[str] = None, volume: Optional[str] = None,
                 'error': 'Either url or both volume and number must be provided'
             }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_page(url, session)
             soup = BeautifulSoup(html, 'html.parser')
@@ -333,6 +336,7 @@ async def search_articles(query: str, volume: Optional[str] = None, number: Opti
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the IUPAC Publications skill.

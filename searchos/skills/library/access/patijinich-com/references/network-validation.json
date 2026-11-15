@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "34551bb05089c4089a577f24fba5ec7a0c9a0ceb9aef8a798c3279663318c9c5",
+  "capabilities": {
+    "get_recipe": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_recipe\", \"url\": \"https://patijinich.com/morelia-style-gazpacho-salad/\", \"page\": 1, \"per_page\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.835280+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://patijinich.com/morelia-style-gazpacho-salad/",
+          "status": 200
+        }
+      ]
+    },
+    "get_recipe_by_id": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_recipe_by_id\", \"recipe_id\": 37910, \"page\": 1, \"per_page\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.836062+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://patijinich.com/wp-json/wp/v2/wprm_recipe/37910",
+          "status": 200
+        }
+      ]
+    },
+    "search_recipes": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_recipes\", \"query\": \"tacos\", \"per_page\": 3, \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.836231+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://patijinich.com/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    },
+    "list_recipes": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_recipes\", \"per_page\": 3, \"cuisine\": \"Mexican\", \"course\": \"Main Course\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.836300+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://patijinich.com/wp-json/wp/v2/wprm_cuisine",
+          "status": 200
+        },
+        {
+          "url": "https://patijinich.com/wp-json/wp/v2/wprm_course",
+          "status": 200
+        },
+        {
+          "url": "https://patijinich.com/wp-json/wp/v2/wprm_recipe",
+          "status": 200
+        }
+      ]
+    },
+    "list_cuisines": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_cuisines\", \"page\": 1, \"per_page\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.836360+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://patijinich.com/wp-json/wp/v2/wprm_cuisine",
+          "status": 200
+        }
+      ]
+    },
+    "list_courses": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_courses\", \"page\": 1, \"per_page\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.836420+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://patijinich.com/wp-json/wp/v2/wprm_course",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

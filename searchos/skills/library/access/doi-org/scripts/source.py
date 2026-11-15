@@ -7,10 +7,14 @@ format (for datasets/data releases).
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 import aiohttp
 from typing import Any
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute DOI metadata lookup.
@@ -49,7 +53,7 @@ async def _fetch_doi_metadata(doi: str, accept_header: str = "application/json")
     
     timeout = aiohttp.ClientTimeout(total=30)
     
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(timeout=timeout) as session:
         async with session.get(url, headers=headers, allow_redirects=True) as response:
             final_url = str(response.url)
             content_type = response.headers.get('Content-Type', '')
@@ -462,7 +466,7 @@ async def resolve_doi(params: dict[str, Any]) -> dict[str, Any]:
         
         timeout = aiohttp.ClientTimeout(total=30)
         
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with _skill_network.aiohttp_session(timeout=timeout) as session:
             # Use HEAD request for efficiency
             async with session.head(url, headers=headers, allow_redirects=True) as response:
                 final_url = str(response.url)

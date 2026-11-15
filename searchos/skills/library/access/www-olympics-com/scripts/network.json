@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_athlete_profile": "direct",
+    "list_athletes_by_country": "direct",
+    "search_athletes": "direct"
+  },
+  "aliases": {
+    "get_athlete_profile": "get_athlete_profile",
+    "search_athletes": "search_athletes",
+    "list_athletes_by_country": "list_athletes_by_country",
+    "run": "list_athletes_by_country"
+  }
+}

@@ -1,5 +1,8 @@
 "use client";
 
+import { cellKey, cellRef, rowLabel, rowValues, rowKey } from "@/lib/socmRefs";
+
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -67,6 +70,7 @@ function isRepairableCell(cell: CoverageCell | undefined): cell is CoverageCell 
 
 function renderCellValue(cell: CoverageCell): React.ReactNode {
   if (cell.status === "filled") {
+    if (cell.inferred) return <span>{cellText(cell)} <small className="text-ink-dim">推断</small></span>;
     const dot = <span className="coverage-filled-dot mt-[7px] h-1 w-1 shrink-0 rounded-full bg-ok/70" />;
     if (Array.isArray(cell.value)) {
       return (
@@ -175,12 +179,12 @@ function TableSection({
   }, [fullscreen]);
 
   const displayEntity = useCallback(
-    (entity: string) => hasKeys ? entity.replace(/\|/g, " / ") : entity,
-    [hasKeys],
+    (entity: string) => rowLabel(entity),
+    [],
   );
   const valueFor = useCallback((entity: string, column: string) => column === rowHeader
     ? displayEntity(entity)
-    : cellText(cells[`${table_id}/${entity}.${column}`]),
+    : cellText(cells[cellKey(table_id, entity, column)]),
   [cells, displayEntity, rowHeader, table_id]);
 
   const visibleEntities = useMemo(() => {
@@ -235,8 +239,7 @@ function TableSection({
     setSort(null);
   };
 
-  const prefix = `${table_id}/`;
-  const tableCells = Object.entries(cells).filter(([k]) => k.startsWith(prefix));
+  const tableCells = Object.entries(cells).filter(([k]) => cellRef(k).table_id === table_id);
   const filled = tableCells.filter(([, c]) => c.status === "filled").length;
   const total = tableCells.length;
   const pct = total > 0 ? (filled / total) * 100 : 0;
@@ -382,6 +385,7 @@ function TableSection({
                   <button type="button" onClick={() => toggleSort(column)} title={`Sort by ${column}`}
                     className="flex w-full items-center gap-1.5 whitespace-nowrap text-left hover:text-ink">
                     <span className="truncate">{column}</span>
+                    {schema.column_desc?.[column]?.requires_search === false && <small className="text-ink-faint">可推断</small>}
                     <SortIndicator column={column} sort={sort} />
                   </button>
                 </th>
@@ -395,12 +399,12 @@ function TableSection({
                   {displayEntity(entity)}
                 </td>
                 {visibleDataCols.map((column) => {
-                  const cell = cells[`${table_id}/${entity}.${column}`];
+                  const cell = cells[cellKey(table_id, entity, column)];
                   if (!cell) return <td key={column} className="whitespace-nowrap border-b border-line px-3 py-2 text-ink-faint">--</td>;
                   const sourceTitle = Array.isArray(cell.source) ? cell.source.join(", ") : cell.source;
                   const evidenceClickable = !!onCellClick && cell.status !== "missing";
                   const repairable = isRepairableCell(cell);
-                  const repairKey = `${table_id}/${entity}.${column}`;
+                  const repairKey = cellKey(table_id, entity, column);
                   const repairSelectable = repairMode && repairable && !!onToggleRepairCell;
                   const clickable = repairSelectable || (!repairMode && evidenceClickable);
                   const cellRef = { tableId: table_id, entity, attribute: column, cell };
@@ -414,7 +418,7 @@ function TableSection({
                     : sourceTitle ? `Source: ${sourceTitle}` : undefined;
                   const activateCell = () => {
                     if (repairSelectable) {
-                      onToggleRepairCell?.({ table_id, entity, attribute: column });
+                      onToggleRepairCell?.({ table_id, key: rowValues(entity), attribute: column });
                     } else if (evidenceClickable) {
                       onCellClick?.(cellRef);
                     }
@@ -565,9 +569,9 @@ export default function CoverageTable({ coverageMap, evidence, onRepairCells, an
       (attribute) => !(schema.primary_key ?? []).includes(attribute),
     );
     return schema.entities.flatMap((entity) => dataColumns.flatMap((attribute) => {
-      const key = `${schema.table_id}/${entity}.${attribute}`;
+      const key = cellKey(schema.table_id, entity, attribute);
       return isRepairableCell(coverageMap.cells[key])
-        ? [{ key, target: { table_id: schema.table_id, entity, attribute } }]
+        ? [{ key, target: { table_id: schema.table_id, key: rowValues(entity), attribute } }]
         : [];
     }));
   });
@@ -578,7 +582,7 @@ export default function CoverageTable({ coverageMap, evidence, onRepairCells, an
   );
 
   const toggleRepairCell = (target: RepairCellTarget) => {
-    const key = `${target.table_id}/${target.entity}.${target.attribute}`;
+    const key = cellKey(target.table_id, rowKey(target.key), target.attribute);
     setRepairSelection((current) => {
       const next = new Map(current);
       if (next.has(key)) next.delete(key);
@@ -655,7 +659,7 @@ export default function CoverageTable({ coverageMap, evidence, onRepairCells, an
 
       {selected && evidence && (
         <CellEvidencePopover cellRef={selected} nodes={evidence} onClose={() => setSelected(null)}
-          bindings={coverageMap.evidence_bindings?.[`${selected.tableId}/${selected.entity}.${selected.attribute}`]}
+          bindings={coverageMap.evidence_bindings?.[cellKey(selected.tableId, selected.entity, selected.attribute)]}
           onOpenLocalSource={onOpenLocalSource} />
       )}
 

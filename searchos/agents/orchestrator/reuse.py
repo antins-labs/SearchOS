@@ -20,7 +20,7 @@ def access_key() -> str:
     from dataclasses import asdict
 
     from searchos.tools.search_state import _source_scope_var
-    from searchos.tools.simple_browser.state import get_source_controls
+    from searchos.tools.simple_browser.session import get_source_controls
     from searchos.tools.skills.catalog import _skill_access_policy_var
 
     return source_scope_key({

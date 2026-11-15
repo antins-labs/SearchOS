@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3ce77b2456c86743e7e98b6ee14e6fdb61691910079847fafc8823562bf38812",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://milmag.pl/en/sipri-the-worlds-100-largest-arms-producers-see-revenue-growth-in-2024/\", \"lang\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.804446+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://milmag.pl/en/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"search_query\": \"SIPRI arms producers 2024\", \"lang\": \"en\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.806095+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://milmag.pl/en/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

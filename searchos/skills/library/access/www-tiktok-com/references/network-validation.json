@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "721fbb7a7ee4ceb1188cfb58a7f141047bc1f0d6586159fa0c2a90c39cd73ba8",
+  "capabilities": {
+    "get_creator_profile": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_creator_profile\", \"username\": \"kai_cenat\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.991639+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.tiktok.com/@kai_cenat",
+          "status": 200
+        },
+        {
+          "url": "https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/tiktok-infra/csp/sdk-pre/slardar.web.pre.js",
+          "status": 200
+        },
+        {
+          "url": "https://lf16-tiktok-web.tiktokcdn-us.com/obj/tiktok-web-tx/[redacted]/loader/2.0.0.314/index.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.tiktok.com/webapp-desktop/static/worker/multiple.worker-0.4.24.js",
+          "status": 200
+        },
+        {
+          "url": "https://lf16-tiktok-web.tiktokcdn-us.com/obj/tiktok-web-tx/[redacted]/loader/2.0.0.314/core.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.tiktok.com/sw.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

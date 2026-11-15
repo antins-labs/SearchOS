@@ -3,15 +3,17 @@
 from types import SimpleNamespace
 
 import pytest
-
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
-from searchos.harness.middleware.context.tool_results_middleware import ToolResultLimitMiddleware
-from searchos.harness.middleware.utils.tools import tool_costs
-from searchos.tools.simple_browser import batch
-from searchos.tools.simple_browser.render import PageContents
-from searchos.tools.simple_browser.search.base import SearchResult
-from searchos.util.tool_output_budget import text_token_bound, tool_output_budget
+from searchos.harness.middleware.context.tool_results_middleware import (
+    ToolResultLimitMiddleware,
+    text_token_bound,
+    tool_output_budget,
+)
+from searchos.harness.middleware.tool_costs import tool_costs
+from searchos.tools.simple_browser import tools as batch
+from searchos.tools.simple_browser.pages import PageContents
+from searchos.tools.simple_browser.search_providers.base import SearchResult
 
 
 def test_many_queries_are_fully_charged():

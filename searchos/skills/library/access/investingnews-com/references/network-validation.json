@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e45107d7e8497ccbc0ac1d9ded225c890108a1a9af1cd8eef28f6a7a85e508a8",
+  "capabilities": {
+    "get_reserves": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_reserves\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.714579+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://investingnews.com/daily/resource-investing/critical-metals-investing/rare-earth-investing/rare-earth-reserves-country/",
+          "status": 200
+        }
+      ]
+    },
+    "get_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_articles\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.716324+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://investingnews.com/tag/rare-earth-investing",
+          "status": 200
+        }
+      ]
+    },
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://investingnews.com/daily/resource-investing/critical-metals-investing/rare-earth-investing/top-canadian-rare-earths-stocks/\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.716508+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://investingnews.com/daily/resource-investing/critical-metals-investing/rare-earth-investing/top-canadian-rare-earths-stocks/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

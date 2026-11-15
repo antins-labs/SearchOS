@@ -15,6 +15,9 @@ The website uses aggressive anti-bot protection (Ray WAF or similar) that:
 This implementation uses Playwright with stealth measures and extensive
 retry logic to maximize success rate.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -142,7 +145,7 @@ class NHCAccess:
     
     async def _create_browser_context(self, playwright):
         """Create browser context with stealth settings"""
-        browser = await playwright.chromium.launch(
+        browser = await _skill_network.browser_launch(playwright.chromium, 
             headless=True,
             args=[
                 '--disable-blink-features=AutomationControlled',
@@ -154,7 +157,7 @@ class NHCAccess:
             ]
         )
         
-        context = await browser.new_context(
+        context = await _skill_network.browser_new_context(browser, 
             viewport={'width': 1920, 'height': 1080},
             user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X_10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             locale='zh-CN',
@@ -173,7 +176,7 @@ class NHCAccess:
         
         async with async_playwright() as p:
             browser, context = await self._create_browser_context(p)
-            page_obj = await context.new_page()
+            page_obj = await _skill_network.browser_new_page(context)
             
             try:
                 if page > 1:
@@ -281,7 +284,7 @@ class NHCAccess:
         
         async with async_playwright() as p:
             browser, context = await self._create_browser_context(p)
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             try:
                 success, html = await self._retry_request(page, url)
@@ -356,7 +359,7 @@ class NHCAccess:
         
         async with async_playwright() as p:
             browser, context = await self._create_browser_context(p)
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             try:
                 search_urls = [
@@ -427,6 +430,7 @@ class NHCAccess:
                 await browser.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict, ctx: Any = None) -> dict:
     """
     Main entry point for NHC access skill

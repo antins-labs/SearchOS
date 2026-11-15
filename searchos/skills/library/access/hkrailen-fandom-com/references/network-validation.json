@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "53991c34328ce5c2293360a448b4654471fb3aa381d8724dc55d8f07b1931879",
+  "capabilities": {
+    "get_page_info": {
+      "status": "invalid_output",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page_info\", \"page_title\": \"Tseung_Kwan_O_Line\", \"include_sections\": true, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.707013+00:00",
+      "reason": "ClientResponseError: 403, message='Forbidden', url='https://hkrailen.fandom.com/api.php?action=parse&page=Tseung_Kwan_O_Line&prop=text%7Csections%7Cdisplaytitle&format=json&formatversion=2'\n",
+      "source_responses": [
+        {
+          "url": "https://hkrailen.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_infobox": {
+      "status": "invalid_output",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_infobox\", \"page_title\": \"Island_Line\", \"include_sections\": true, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.707643+00:00",
+      "reason": "ClientResponseError: 403, message='Forbidden', url='https://hkrailen.fandom.com/api.php?action=parse&page=Island_Line&prop=text&format=json&formatversion=2'\n",
+      "source_responses": [
+        {
+          "url": "https://hkrailen.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_station_list": {
+      "status": "invalid_output",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_station_list\", \"page_title\": \"Tsuen_Wan_Line\", \"include_sections\": true, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.707755+00:00",
+      "reason": "ClientResponseError: 403, message='Forbidden', url='https://hkrailen.fandom.com/api.php?action=parse&page=Tsuen_Wan_Line&prop=text&format=json&formatversion=2'\n",
+      "source_responses": [
+        {
+          "url": "https://hkrailen.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "search_pages": {
+      "status": "invalid_output",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_pages\", \"query\": \"Line\", \"limit\": 3, \"include_sections\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.707836+00:00",
+      "reason": "ClientResponseError: 403, message='Forbidden', url='https://hkrailen.fandom.com/api.php?action=query&list=search&srsearch=Line&srlimit=3&format=json&formatversion=2'\n",
+      "source_responses": [
+        {
+          "url": "https://hkrailen.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_section_content": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_section_content\", \"page_title\": \"Tseung_Kwan_O_Line\", \"section\": \"1\", \"include_sections\": true, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.707989+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

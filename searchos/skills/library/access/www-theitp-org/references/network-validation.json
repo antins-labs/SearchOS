@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "9cc00c9e3d80550be6de5aad84e85d16d7ce8d207c7ee84b952e9d8163de3b3d",
+  "capabilities": {
+    "get_volume": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_volume\", \"url\": \"https://www.theitp.org/publications/the-journal/volume-16-part-4\", \"slug\": \"publications/the-journal/volume-15-part-4\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.307916+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.storyblok.com/v1/cdn/stories/publications/the-journal/volume-16-part-4",
+          "status": 200
+        },
+        {
+          "url": "https://firebasestorage.googleapis.com/v0/b/itp-website.appspot.com/o/pdf-previews%2Ftj_16-4%2F8.jpg",
+          "status": 404
+        },
+        {
+          "url": "https://firebasestorage.googleapis.com/v0/b/itp-website.appspot.com/o/pdf-previews%2Ftj_16-4%2F10.jpg",
+          "status": 404
+        },
+        {
+          "url": "https://firebasestorage.googleapis.com/v0/b/itp-website.appspot.com/o/pdf-previews%2Ftj_16-4%2F9.jpg",
+          "status": 404
+        },
+        {
+          "url": "https://firebasestorage.googleapis.com/v0/b/itp-website.appspot.com/o/pdf-previews%2Ftj_16-4%2F7.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://firebasestorage.googleapis.com/v0/b/itp-website.appspot.com/o/pdf-previews%2Ftj_16-4%2F1.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://firebasestorage.googleapis.com/v0/b/itp-website.appspot.com/o/pdf-previews%2Ftj_16-4%2F5.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://firebasestorage.googleapis.com/v0/b/itp-website.appspot.com/o/pdf-previews%2Ftj_16-4%2F2.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://firebasestorage.googleapis.com/v0/b/itp-website.appspot.com/o/pdf-previews%2Ftj_16-4%2F4.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://firebasestorage.googleapis.com/v0/b/itp-website.appspot.com/o/pdf-previews%2Ftj_16-4%2F3.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://firebasestorage.googleapis.com/v0/b/itp-website.appspot.com/o/pdf-previews%2Ftj_16-4%2F6.jpg",
+          "status": 200
+        }
+      ]
+    },
+    "list_volumes": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_volumes\", \"volume\": \"16\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.315181+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.storyblok.com/v1/cdn/stories",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

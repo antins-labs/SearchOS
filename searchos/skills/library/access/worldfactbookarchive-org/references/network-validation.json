@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5c1f5effd4ac2ed232d019f8bd36893ed7e12b7020d4a9266c7c6528b56009bf",
+  "capabilities": {
+    "get_field_history": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_field_history\", \"country_code\": \"CN\", \"field_name\": \"Coastline\", \"start_year\": 2020, \"end_year\": 2025}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.918373+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://worldfactbookarchive.org/archive/field/CN/Coastline",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/css/brand-fonts.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/css/archive-field.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/cdn-cgi/speculation",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/css/archive-layout.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/css/intel-theme.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/js/archive-field-data.js",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/css/analysis-workspace.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/img/cow_reading_book.png",
+          "status": 200
+        },
+        {
+          "url": "https://api.fontshare.com/v2/css",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/js/visualization-palette.js",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/js/dg2-echarts.js",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/js/analysis-workspace.js",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/js/archive-research.js",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/vendor/echarts.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/img/brand/wfa_logo.png",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/fonts/ibm-plex-mono/ibm-plex-mono-latin-400-normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/fonts/ibm-plex-mono/ibm-plex-mono-latin-700-normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.fontshare.com/wf/[redacted]/[redacted]/QOMBWPST76ICDYF6WOBS7SQ7RBT67QW2.woff2",
+          "status": 200
+        }
+      ]
+    },
+    "get_field_metadata": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_field_metadata\", \"country_code\": \"CN\", \"field_name\": \"Land boundaries\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.427163+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://worldfactbookarchive.org/archive/field/CN/Land%20boundaries",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/css/intel-theme.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/css/brand-fonts.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/cdn-cgi/speculation",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/css/archive-layout.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/css/archive-field.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/img/cow_reading_book.png",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/css/analysis-workspace.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/js/archive-field-data.js",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/js/visualization-palette.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/js/analysis-workspace.js",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/js/dg2-echarts.js",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/js/archive-research.js",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/vendor/echarts.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/img/brand/wfa_logo.png",
+          "status": 200
+        },
+        {
+          "url": "https://api.fontshare.com/v2/css",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/fonts/ibm-plex-mono/ibm-plex-mono-latin-400-normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://worldfactbookarchive.org/static/fonts/ibm-plex-mono/ibm-plex-mono-latin-700-normal.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.fontshare.com/wf/[redacted]/[redacted]/GHM6WVH6MILNYOOCXHXB5GTSGNTMGXZR.woff2",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

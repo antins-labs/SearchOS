@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "78f0c03f1966b3898ffc27078a356d11dfd2d1915f34e20ec97cd39be0b2bf3a",
+  "capabilities": {
+    "get_composer_operas": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_composer_operas\", \"composer\": \"Giuseppe Verdi\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.229554+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.operafolio.com/list_of_operas.asp",
+          "status": 200
+        }
+      ]
+    },
+    "get_opera_details": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_opera_details\", \"opera\": \"Rigoletto\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.230625+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.operafolio.com/opera.asp",
+          "status": 200
+        }
+      ]
+    },
+    "get_composers": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_composers\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.230697+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.operafolio.com/index.asp",
+          "status": 200
+        }
+      ]
+    },
+    "get_operas": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_operas\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.230805+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.operafolio.com/operas.asp",
+          "status": 200
+        }
+      ]
+    },
+    "search_operas": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_operas\", \"query\": \"traviata\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.230876+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.operafolio.com/operas.asp",
+          "status": 200
+        }
+      ]
+    },
+    "get_famous_arias": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_famous_arias\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.230951+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

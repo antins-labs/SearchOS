@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch_pdf": "direct",
+    "fetch_file": "direct",
+    "check_url": "direct",
+    "fetch_text_data": "direct"
+  },
+  "aliases": {
+    "fetch_pdf": "fetch_pdf",
+    "fetch_text_data": "fetch_text_data",
+    "check_url": "check_url",
+    "fetch_file": "fetch_file",
+    "run": "fetch_file"
+  }
+}

@@ -8,13 +8,13 @@ from uuid import uuid4
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
-from searchos.harness.middleware.context.utils.compaction import (
+from searchos.harness.middleware.context.core.history import (
     count_context_tokens,
     render_history,
     split_history,
+    summarize_history,
 )
-from searchos.harness.middleware.context.utils.messages import model_input_limit
-from searchos.harness.middleware.context.utils.summarize import summarize_history
+from searchos.harness.middleware.context.utils.token_counts import model_input_limit
 from searchos.skills.pipeline.access.artifacts import private_directory
 
 MAX_CONTEXT_BYTES = 96_000

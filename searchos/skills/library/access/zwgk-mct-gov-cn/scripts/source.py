@@ -4,6 +4,9 @@ Ministry of Culture and Tourism of the People's Republic of China - Government I
 
 This skill extracts official government announcements, particularly 5A scenic area designations.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -319,6 +322,7 @@ async def fetch_listing(category: str, session: aiohttp.ClientSession) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the skill.
@@ -341,7 +345,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     function = params.get('function', 'fetch_document')
     
-    async with aiohttp.ClientSession(headers=DEFAULT_HEADERS) as session:
+    async with _skill_network.aiohttp_session(headers=DEFAULT_HEADERS) as session:
         if function == 'fetch_document':
             url = params.get('url')
             if not url:

@@ -9,6 +9,9 @@ Functions:
 
 Website: http://www.nra.gov.cn/xwzx/zlzx/hytj/
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -349,7 +352,7 @@ async def list_articles(params: dict[str, Any], ctx: Any = None) -> dict[str, An
         # Pages are 0-indexed: index_1.shtml = page 2, etc.
         url = f"{LIST_URL.rstrip('/')}/index_{page - 1}.shtml"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, error = await fetch_html(session, url)
         
         if error:
@@ -380,7 +383,7 @@ async def get_article(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]
     if not url.startswith(('http://', 'https://')):
         url = urljoin(BASE_URL, url)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, error = await fetch_html(session, url)
         
         if error:
@@ -425,7 +428,7 @@ async def get_article_image(params: dict[str, Any], ctx: Any = None) -> dict[str
     if not url.startswith(('http://', 'https://')):
         url = urljoin(BASE_URL, url)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # First get the article to find the image
         html, error = await fetch_html(session, url)
         
@@ -488,7 +491,7 @@ async def get_stats_history(params: dict[str, Any], ctx: Any = None) -> dict[str
     results = []
     articles_processed = 0
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for page in range(start_page, end_page + 1):
             if articles_processed >= max_articles:
                 break
@@ -541,6 +544,7 @@ async def get_stats_history(params: dict[str, Any], ctx: Any = None) -> dict[str
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """Main entry point for the NRA railway statistics skill.
     

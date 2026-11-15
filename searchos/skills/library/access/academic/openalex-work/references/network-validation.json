@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7478d8dad4b8326d823b7ac218f91b7f2df79dc48ed935f3dcae38814d9753d7",
+  "capabilities": {
+    "package": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"per_page\": 3, \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.541772+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.openalex.org/works",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

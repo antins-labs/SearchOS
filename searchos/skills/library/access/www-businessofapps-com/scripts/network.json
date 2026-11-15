@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_popular_apps": "direct",
+    "get_app_revenue": "direct",
+    "list_pages": "direct",
+    "fetch_page": "direct"
+  },
+  "aliases": {
+    "fetch_page": "fetch_page",
+    "get_popular_apps": "get_popular_apps",
+    "get_app_revenue": "get_app_revenue",
+    "list_pages": "list_pages",
+    "run": "list_pages"
+  }
+}

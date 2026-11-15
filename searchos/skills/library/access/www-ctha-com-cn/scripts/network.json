@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_5star_hotels": "direct",
+    "get_1to4star_hotels": "direct",
+    "get_provinces": "direct",
+    "search_hotels": "direct"
+  },
+  "aliases": {
+    "get_provinces": "get_provinces",
+    "get_5star_hotels": "get_5star_hotels",
+    "get_1to4star_hotels": "get_1to4star_hotels",
+    "search_hotels": "search_hotels",
+    "run": "search_hotels"
+  }
+}

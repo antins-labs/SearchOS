@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d0dbf220a705285b088d92094d6a3886dd851c718c98c36c249c4e539185fc25",
+  "capabilities": {
+    "get_event": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_event\", \"event_id\": \"80a9036a-e0f3-4d0e-9fd7-f09f874566d5\", \"page\": 1, \"pagesize\": 20}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.863846+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_current_events": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_current_events\", \"page\": 1, \"pagesize\": 20}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.865112+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_past_events": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_past_events\", \"page\": 1, \"pagesize\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.865209+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_sectors": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sectors\", \"page\": 1, \"pagesize\": 20}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.865294+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search_companies": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_companies\", \"event_id\": \"80a9036a-e0f3-4d0e-9fd7-f09f874566d5\", \"company_name\": \"games\", \"page\": 1, \"pagesize\": 20}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.865373+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

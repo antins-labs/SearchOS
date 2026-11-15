@@ -3,6 +3,9 @@ Leafwell Marijuana Legal Status Scraper
 
 Extracts structured legal status information from Leafwell's "Is Marijuana Legal in X?" articles.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -314,6 +317,7 @@ async def search_countries(query: str, session: aiohttp.ClientSession) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the Leafwell legal status scraper.
@@ -329,7 +333,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     function = params.get("function", "")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "get_by_country":
             country = params.get("country")
             if not country:

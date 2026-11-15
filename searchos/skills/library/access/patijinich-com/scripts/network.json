@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_recipe": "direct",
+    "list_recipes": "direct",
+    "list_cuisines": "direct",
+    "list_courses": "direct",
+    "get_recipe_by_id": "proxy",
+    "search_recipes": "direct"
+  },
+  "aliases": {
+    "get_recipe": "get_recipe",
+    "get_recipe_by_id": "get_recipe_by_id",
+    "search_recipes": "search_recipes",
+    "list_recipes": "list_recipes",
+    "list_cuisines": "list_cuisines",
+    "list_courses": "list_courses",
+    "run": "list_courses"
+  }
+}

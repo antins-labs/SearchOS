@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e63feace0eb3a3b03adf72d959e8548f7afde3d0e5bcd51665ca334c4f71023c",
+  "capabilities": {
+    "get_case": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_case\", \"term\": \"2024\", \"docket\": \"23-1239\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.231018+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.oyez.org/cases/2024/23-1239",
+          "status": 200
+        }
+      ]
+    },
+    "get_cases_by_term": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_cases_by_term\", \"term\": \"2023\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.231784+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.oyez.org/cases/2023",
+          "status": 200
+        }
+      ]
+    },
+    "search_cases": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_cases\", \"query\": \"Harvard\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.231969+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://api.oyez.org/cases/2024",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

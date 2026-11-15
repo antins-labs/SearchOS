@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "09d7ef09a169bde8982658d539a535900e6117a9db8cb0c1bb633b58e285f6e7",
+  "capabilities": {
+    "get_sight_info": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sight_info\", \"sight_id\": \"109784\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.698183+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://m.ctrip.com/restapi/soa2/20036/json/getSightExtendInfo",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_toc_current": "direct",
+    "get_article_metadata": "direct",
+    "search_articles": "direct",
+    "list_journals": "direct",
+    "get_references": "direct",
+    "get_toc_issue": "direct"
+  },
+  "aliases": {
+    "list_journals": "list_journals",
+    "get_article_metadata": "get_article_metadata",
+    "get_toc_current": "get_toc_current",
+    "get_toc_issue": "get_toc_issue",
+    "get_references": "get_references",
+    "search_articles": "search_articles",
+    "run": "search_articles"
+  }
+}

@@ -16,6 +16,9 @@ browser or subprocess privileges.
 The API category filter does not work, so we filter client-side.
 Country names are embedded in site titles as "Site Name (Country)".
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 from typing import Any
@@ -59,7 +62,7 @@ class UNESCOWhcClient:
             return
 
         timeout = aiohttp.ClientTimeout(total=60)
-        self._session = aiohttp.ClientSession(
+        self._session = _skill_network.aiohttp_session(
             timeout=timeout,
             headers={
                 "Accept": "application/json,text/html;q=0.9,*/*;q=0.8",
@@ -388,6 +391,7 @@ class UNESCOWhcClient:
         return {"query": query, "total": len(sites), "sites": sites[:limit]}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute UNESCO World Heritage Centre queries.

@@ -16,23 +16,29 @@ CALCULATION = (
     "### Calculate from evidence\n"
     "\n"
     "Before dispatching a gap or finishing, distinguish missing source facts from values "
-    "derivable from collected data. Read inputs with `inspect_table(with_values=True)` and "
-    "retrieve their original sources and supporting excerpts with `read_evidence`. Establish "
+    "derivable from collected data. Use inputs already shown in SOCM. For additional "
+    "values, narrow `inspect_table(with_values=true)` to the required rows or column. Retrieve "
+    "original sources and supporting excerpts with `read_evidence` as needed. Establish "
     "the formula and each operand's meaning, units, reference period, and population from "
     "the requested metric and column definitions. Resolve an ambiguous definition before "
     "calculating; a nearby value cannot substitute for a required input.\n"
     "\n"
-    "Execute the calculation with `python`, inspect its printed result, persist it with "
+    "Execute the calculation with `exec(code=...)`, inspect its printed result, persist it with "
     "`edit_entities`, and verify the affected cells. A proposed calculation is unfinished "
     "until it is executed and recorded. Retrieve only missing inputs or definitions; state "
     "the limitation if they cannot be established. Distinguish calculated results from "
     "source quotations.\n"
+    "Orchestrator Exec runs offline on supplied data and saved inputs. Delegate new source "
+    "retrieval to an authorized Search Agent.\n"
     "\n"
-    "For every non-empty `edit_entities` set, including formatting changes, supply the "
-    "original `source` and supporting `source_excerpt`; for skill/agent observations use the "
-    "original links in `source_urls`. Separate edits when sources differ. Preserve meaning "
-    "and source versions. For calculations, cite the original text supporting the inputs and "
-    "identify the computation separately.\n"
+    "For each source-required `edit_entities` field, including formatting changes, pass "
+    "{value, evidence_ids}. Read these existing records with `read_evidence` and verify "
+    "their excerpts support the proposed value and source version. Each field supplies "
+    "its own IDs; calculations include the evidence for all required inputs. Edits reuse "
+    "the selected evidence. Retrieve missing support before writing a value. Use null "
+    "for unknown fields; empty values and '/' clear cells to missing without evidence IDs. "
+    "Keep explanations of missing information in the report. Identify calculations "
+    "separately from source quotations.\n"
 )
 
 CITATION_PROVENANCE = (
@@ -60,7 +66,8 @@ COMPLETION = (
     "intended referents, freshness, and coverage obligations with the collected evidence and "
     "actual members. Investigate gaps that affect a requested conclusion or completeness "
     "obligation; add dimensions only when the request or evidence establishes their "
-    "relevance. Never fill missing facts from parametric knowledge. Sufficient support and "
+    "relevance. Keep source-required facts without support empty. Record stable inferences "
+    "only in columns declared requires_search=false. Sufficient support and "
     "exhaustive coverage are different stopping conditions; apply the one the task requires.\n"
     "\n"
     "Continue useful retrieval while relevant gaps remain and resources permit. Finish when "
@@ -91,7 +98,9 @@ def render_evidence(*, repair: bool) -> str:
     sections = [EVIDENCE]
     if not repair:
         sections.append(CALCULATION)
-    citation_tools = "`inspect_table`" if repair else "`read_evidence` or `inspect_table`"
+    citation_tools = "an exact row lookup in `inspect_table` with values enabled"
+    if not repair:
+        citation_tools += " or `read_evidence`"
     sections.extend([
         "### Citations\n\n"
         f"Use citation values returned by {citation_tools}: "

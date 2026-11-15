@@ -8,6 +8,9 @@ This skill provides access to:
 3. Central news articles (中央要闻)
 4. Individual leader profiles
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -426,6 +429,7 @@ async def get_term_leadership(session: aiohttp.ClientSession, headers: dict, ter
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main execution function for the SearchOS skill
@@ -450,7 +454,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
         'Connection': 'keep-alive',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "get_current_leadership":
             return await get_current_leadership(session, headers)
         

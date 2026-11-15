@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_events": "direct",
+    "get_event_report": "direct",
+    "get_cap_alert": "direct",
+    "get_current_alerts": "direct",
+    "get_geojson": "direct"
+  },
+  "aliases": {
+    "get_event_report": "get_event_report",
+    "get_current_alerts": "get_current_alerts",
+    "search_events": "search_events",
+    "get_cap_alert": "get_cap_alert",
+    "get_geojson": "get_geojson",
+    "run": "get_geojson"
+  }
+}

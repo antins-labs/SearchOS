@@ -3,6 +3,9 @@ CollegeXpress Lists and Rankings Access Skill
 
 Fetches college lists and ranking data from CollegeXpress.com
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -244,6 +247,7 @@ async def discover_lists(session: aiohttp.ClientSession, category: Optional[str]
         return []
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the CollegeXpress skill.
@@ -275,7 +279,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             url = urljoin(BASE_URL, url)
         
         timeout = aiohttp.ClientTimeout(total=30)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with _skill_network.aiohttp_session(timeout=timeout) as session:
             result = await fetch_list(session, url)
         
         # Apply limit if specified
@@ -292,7 +296,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
         search = params.get('search')
         
         timeout = aiohttp.ClientTimeout(total=30)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with _skill_network.aiohttp_session(timeout=timeout) as session:
             # Also search the explore page for more results
             all_lists = []
             

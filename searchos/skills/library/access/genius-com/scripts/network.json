@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_script": "direct",
+    "search": "direct",
+    "get_metadata": "direct"
+  },
+  "aliases": {
+    "get_script": "get_script",
+    "search": "search",
+    "get_metadata": "get_metadata",
+    "run": "get_metadata"
+  }
+}

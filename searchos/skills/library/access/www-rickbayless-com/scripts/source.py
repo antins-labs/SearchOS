@@ -2,6 +2,9 @@
 Rick Bayless Recipe Site Access Skill
 Fetches recipe details from www.rickbayless.com
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -12,7 +15,7 @@ import json
 
 async def fetch_html(url: str) -> tuple[int, str]:
     """Fetch HTML content from a URL."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url) as response:
             html = await response.text()
             return response.status, html
@@ -186,6 +189,7 @@ async def search_recipes(query: str) -> dict[str, Any]:
         return {'error': str(e), 'error_code': 'EXCEPTION', 'query': query}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Rick Bayless recipe skill functions.

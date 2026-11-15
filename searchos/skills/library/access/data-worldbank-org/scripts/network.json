@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_income_levels": "direct",
+    "get_indicator_data": "direct",
+    "list_indicators": "direct",
+    "list_lending_types": "direct",
+    "list_topics": "direct",
+    "search": "direct",
+    "list_sources": "direct",
+    "list_regions": "direct",
+    "list_countries": "direct",
+    "get_indicator": "direct",
+    "get_country": "direct",
+    "compare_countries": "direct",
+    "get_topic": "direct"
+  },
+  "aliases": {
+    "list_countries": "list_countries",
+    "get_country": "get_country",
+    "list_indicators": "list_indicators",
+    "get_indicator": "get_indicator",
+    "get_indicator_data": "get_indicator_data",
+    "list_topics": "list_topics",
+    "get_topic": "get_topic",
+    "list_sources": "list_sources",
+    "list_regions": "list_regions",
+    "list_income_levels": "list_income_levels",
+    "list_lending_types": "list_lending_types",
+    "search": "search",
+    "compare_countries": "compare_countries",
+    "run": "compare_countries"
+  }
+}

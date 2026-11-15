@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b7750cdf2ebca1b6ac746723993b9076dd114613f6c938822369bc41339c0150",
+  "capabilities": {
+    "scrape_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"scrape_page\", \"url\": \"https://tv.cctv.com/2024/04/08/VIDECKyK80JsMgJTjBcFlXLJ240408.shtml\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.883470+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://tv.cctv.com/2024/04/08/VIDECKyK80JsMgJTjBcFlXLJ240408.shtml",
+          "status": 200
+        },
+        {
+          "url": "https://api.cntv.cn/video/videoinfoByGuid",
+          "status": 200
+        },
+        {
+          "url": "https://api.cntv.cn/NewVideoset/getVideoAlbumInfoByVideoId",
+          "status": 200
+        },
+        {
+          "url": "https://api.cntv.cn/NewVideo/getVideoListByAlbumIdNew",
+          "status": 200
+        }
+      ]
+    },
+    "get_video_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_video_info\", \"guid\": \"0d90555d55bc4e809f05a0bde347c29a\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.884302+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.cntv.cn/video/videoinfoByGuid",
+          "status": 200
+        }
+      ]
+    },
+    "get_album_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_album_info\", \"video_id\": \"VIDECKyK80JsMgJTjBcFlXLJ240408\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.884370+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.cntv.cn/NewVideoset/getVideoAlbumInfoByVideoId",
+          "status": 200
+        }
+      ]
+    },
+    "get_album_videos": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_album_videos\", \"album_id\": \"VIDA7iCcwXiFGORbpjTBTEdc240407\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.884425+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.cntv.cn/NewVideo/getVideoListByAlbumIdNew",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

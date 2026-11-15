@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "eba40dd72275e4d82558ab3794b3a88205aeafa1bee8af118db7b7e12117b3e9",
+  "capabilities": {
+    "get_course": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_course\", \"url\": \"https://www.prospects.ac.uk/universities/goldsmiths-university-of-london-3836/media-and-communications-9471/courses/script-writing-24120\", \"timeout\": 30, \"max_concurrent\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.234468+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.prospects.ac.uk/universities/[redacted]/media-and-communications-9471/courses/script-writing-24120",
+          "status": 200
+        }
+      ]
+    },
+    "get_courses": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_courses\", \"urls\": [\"https://www.prospects.ac.uk/universities/goldsmiths-university-of-london-3836/media-and-communications-9471/courses/script-writing-24120\", \"https://www.prospects.ac.uk/universities/goldsmiths-university-of-london-3836/media-and-communications-9471/courses/filmmaking-cinematography-112152\"], \"timeout\": 30, \"max_concurrent\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.235008+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.prospects.ac.uk/universities/[redacted]/media-and-communications-9471/courses/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.prospects.ac.uk/universities/[redacted]/media-and-communications-9471/courses/script-writing-24120",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

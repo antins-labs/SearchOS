@@ -27,7 +27,7 @@ from textual.widgets.option_list import Option
 
 from searchos.config.effort import EFFORT_LEVELS
 from searchos.harness.steering import SteeringMessage, SteeringQueue
-from searchos.harness.telemetry.conversation_context import build_preamble
+from searchos.harness.telemetry.conversation import build_history
 from searchos.tui.config_modal import ConfigModal, build_model_menu, build_root_menu
 from searchos.tui.dashboard import (
     ACCENT,
@@ -133,7 +133,7 @@ class EffortModal(ModalScreen):
                         f"并行 {cfg['max_parallel_agents']} · "
                         f"搜代总限 {cfg['max_search_agents_per_session']} · "
                         f"搜索 {cfg['max_searches_per_sub_agent']} · "
-                        f"技能 {cfg['max_skills_per_sub_agent']} · "
+                        f"技能编排 {cfg['max_skills_per_sub_agent']} · "
                         f"{cfg['default_max_time_s'] // 60}min")
                 opts.append(Option(f"{mark}{lvl:<7}{desc}", id=lvl))
             yield OptionList(*opts, id="effort-list")
@@ -496,7 +496,7 @@ class SearchOSApp(App):
         # by cli.main before the TUI starts) so restarts and the web UI stay in
         # sync; /effort, /skill, /search, /config write back to it (see
         # _persist_* helpers).
-        from searchos.config.web_overlay import store as _ov
+        from searchos.config.settings_overlay import store as _ov
         # /effort level (applied to the global settings budget knobs).
         self._effort: str = _ov.effort.level or "medium"
         # /skill access-catalog selection, threaded into run() each turn:
@@ -960,7 +960,7 @@ class SearchOSApp(App):
         <id>`` restores that session directly."""
         from datetime import datetime
 
-        from searchos.harness.telemetry.conversation_context import conversation_turns
+        from searchos.harness.telemetry.conversation import conversation_turns
 
         if self._mode == "running":
             self._note = "运行中无法恢复会话（先 Esc 中断）"
@@ -1001,7 +1001,7 @@ class SearchOSApp(App):
         (and its state, so the next input is a follow-up on the same table)."""
         import json as _json
 
-        from searchos.harness.telemetry.conversation_context import conversation_turns
+        from searchos.harness.telemetry.conversation import conversation_turns
         from searchos.socm.state import SearchState
 
         turns = conversation_turns(ws)
@@ -1113,7 +1113,7 @@ class SearchOSApp(App):
         self._effort = level
         # Persist to the shared overlay (picking a level resets per-knob
         # overrides, same as the web Budget section's level buttons).
-        from searchos.config.web_overlay import save_overlay, store
+        from searchos.config.settings_overlay import save_overlay, store
         store.effort.level = level
         store.effort.overrides = {}
         save_overlay()
@@ -1137,7 +1137,7 @@ class SearchOSApp(App):
             "max_search_agents_per_session": "每会话搜索代理总限",
             "max_searches_per_sub_agent": "每代理搜索数",
             "max_finds_per_sub_agent": "每代理发现数",
-            "max_skills_per_sub_agent": "每代理技能调用数",
+            "max_skills_per_sub_agent": "每代理技能编排次数",
             "search_agent_no_progress_tool_limit": "搜索代理停滞上限",
             "default_max_time_s": "墙钟上限(秒)",
             "skill_router_top_k": "技能路由 top-k",
@@ -1313,7 +1313,7 @@ class SearchOSApp(App):
     def _persist_skills(self) -> None:
         """Write the in-memory skill selection back to the shared overlay so it
         survives restarts and matches the web Skills section."""
-        from searchos.config.web_overlay import save_overlay, store
+        from searchos.config.settings_overlay import save_overlay, store
         store.skills.access_only = (
             None if self._access_only is None else sorted(self._access_only)
         )
@@ -1354,12 +1354,12 @@ class SearchOSApp(App):
     _SEARCH_BACKENDS = ("serper", "tavily", "ragflow")
 
     def _cmd_search(self, arg: str) -> None:
-        from searchos.config.web_overlay import save_overlay, store
-        from searchos.tools.simple_browser.search import (
+        from searchos.config.settings_overlay import save_overlay, store
+        from searchos.tools.simple_browser.search_providers import (
             build_search_provider,
             resolve_search_provider_name,
         )
-        from searchos.tools.simple_browser.state import set_browser_provider
+        from searchos.tools.simple_browser.session import set_browser_provider
 
         name = arg.strip().lower()
         if not name:
@@ -1408,7 +1408,7 @@ class SearchOSApp(App):
         <value>`` sets one knob directly. Keys: retries, cache, proxy, results,
         maxtime, stall, skills(on|off), role <role> <profile>."""
         from searchos.config.settings import ROLE_NAMES, settings
-        from searchos.config.web_overlay import apply_to_runtime, save_overlay, store
+        from searchos.config.settings_overlay import apply_to_runtime, save_overlay, store
 
         key, _, rest = arg.strip().partition(" ")
         key = key.strip().lower()
@@ -1438,7 +1438,12 @@ class SearchOSApp(App):
         elif key in ("cache", "cachedir"):
             store.advanced.browser_disk_cache_dir = rest or None
         elif key == "proxy":
-            store.advanced.https_proxy = rest  # "" 强制关闭；apply 会同步 os.environ
+            from searchos.config.settings_overlay import set_network_proxy
+            try:
+                set_network_proxy(rest)
+            except ValueError:
+                self._write_marker("代理地址无效", DANGER)
+                return
         elif key in ("results", "maxresults"):
             n = _int(rest)
             if n is None:
@@ -1479,8 +1484,8 @@ class SearchOSApp(App):
         from rich.table import Table
 
         from searchos.config.settings import settings
-        from searchos.config.web_overlay import store
-        from searchos.tools.simple_browser.search import resolve_search_provider_name
+        from searchos.config.settings_overlay import store
+        from searchos.tools.simple_browser.search_providers import resolve_search_provider_name
 
         table = Table(
             title="运行参数（/config <项> <值> 修改）", title_style=f"bold {ACCENT}",
@@ -1495,7 +1500,7 @@ class SearchOSApp(App):
             ("results (每查询结果数)", str(settings.search_max_results)),
             ("maxtime (墙钟上限 s)", str(settings.default_max_time_s)),
             ("cache (页面缓存目录)", settings.browser_disk_cache_dir),
-            ("proxy", store.advanced.https_proxy or "（无）"),
+            ("proxy", store.network.proxy_url if store.network else "（无）"),
             ("skills (技能系统)", "on" if settings.enable_skills else "off"),
             ("search (搜索后端)", search),
         ]
@@ -1526,9 +1531,10 @@ class SearchOSApp(App):
             prev = self._turns[-1]
             session_id = prev["session_id"]
             initial_state = prev["state"]
-            preamble = build_preamble(self._turns)
+            conversation_history = build_history(self._turns)
         else:
-            session_id = initial_state = preamble = None
+            session_id = initial_state = None
+            conversation_history = []
         self._dash = LiveDashboard(query=query)
         if self._session is None:
             self._session = self._session_factory()
@@ -1549,11 +1555,11 @@ class SearchOSApp(App):
         # Run the engine on its own loop/thread; never block the UI loop.
         self._ensure_engine_loop()
         self._run_future = asyncio.run_coroutine_threadsafe(
-            self._engine_run(query, preamble, session_id, initial_state, follow_up),
+            self._engine_run(query, conversation_history, session_id, initial_state, follow_up),
             self._engine_loop,
         )
 
-    async def _engine_run(self, query, preamble, session_id, initial_state, follow_up=False) -> None:
+    async def _engine_run(self, query, conversation_history, session_id, initial_state, follow_up=False) -> None:
         """Runs on the engine loop (background thread). All UI mutations are
         marshalled back to the Textual thread via ``call_from_thread``."""
         self._engine_task = asyncio.current_task()
@@ -1561,7 +1567,7 @@ class SearchOSApp(App):
             result = await self._session.run(
                 query,
                 on_event=self._on_event,
-                context_preamble=preamble,
+                conversation_history=conversation_history,
                 session_id=session_id,
                 initial_state=initial_state,
                 steer_queue=self._steer_queue,

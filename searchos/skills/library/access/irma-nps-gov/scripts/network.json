@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_full_profile": "inherit",
+    "download_file": "direct",
+    "parse_csv_file": "direct",
+    "get_file_holdings": "inherit",
+    "get_reference_profile": "inherit"
+  },
+  "aliases": {
+    "get_reference_profile": "get_reference_profile",
+    "get_file_holdings": "get_file_holdings",
+    "download_file": "download_file",
+    "parse_csv_file": "parse_csv_file",
+    "get_full_profile": "get_full_profile",
+    "run": "get_full_profile"
+  }
+}

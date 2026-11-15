@@ -8,6 +8,9 @@ Fetches concert setlist data from setlist.fm including:
 Note: setlist.fm uses AWS WAF protection, so this skill uses Playwright
 to render JavaScript and bypass the challenge.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -23,9 +26,9 @@ async def _fetch_with_playwright(url: str) -> str:
     from playwright.async_api import async_playwright
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
-        page = await context.new_page()
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
+        context = await _skill_network.browser_new_context(browser)
+        page = await _skill_network.browser_new_page(context)
         
         try:
             await page.goto(url, wait_until='networkidle', timeout=30000)
@@ -250,6 +253,7 @@ def _parse_average_setlist(html: str, url: str) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute the setlist.fm access skill.

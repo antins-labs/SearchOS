@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_directors": "direct"
+  },
+  "aliases": {
+    "get_directors": "get_directors",
+    "run": "get_directors"
+  }
+}

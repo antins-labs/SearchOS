@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e07c83c40c9eaa08e20b43f621a32ad031fc03efdf78dbcc9b1b96abb4bb237c",
+  "capabilities": {
+    "get_award_winners": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_award_winners\", \"year\": \"2024\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.235135+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://blog.siggraph.org/2024/08/celebrating-excellence-siggraph-2024-award-winners.html/",
+          "status": 200
+        }
+      ]
+    },
+    "get_technical_papers": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_technical_papers\", \"year\": \"2024\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.405438+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://blog.siggraph.org/2024/06/siggraph-2024-technical-papers-awards-best-papers-honorable-mentions-and-test-of-time.html/",
+          "status": 200
+        }
+      ]
+    },
+    "search_posts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_posts\", \"query\": \"technical papers 2024\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.405674+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://blog.siggraph.org/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

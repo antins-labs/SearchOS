@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "204e8ea669dad234a53c21df202bb8bfb29f237995a9721153a5f8bf8fa7292e",
+  "capabilities": {
+    "fetch_home_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_home_page\", \"lang\": \"en\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.852021+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://restaurant-kei.fr/en/",
+          "status": 200
+        }
+      ]
+    },
+    "get_contact_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_contact_info\", \"lang\": \"en\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.852508+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://restaurant-kei.fr/en/",
+          "status": 200
+        }
+      ]
+    },
+    "list_products": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_products\", \"product_type\": \"Carte Cadeau\", \"lang\": \"en\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.852570+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://restaurant-kei.fr/api/2024-01/graphql.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_product": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_product\", \"handle\": \"livre-dedicace-kei-iii\", \"lang\": \"en\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.852636+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://restaurant-kei.fr/api/2024-01/graphql.json",
+          "status": 200
+        }
+      ]
+    },
+    "list_collections": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_collections\", \"lang\": \"en\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.852689+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://restaurant-kei.fr/api/2024-01/graphql.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_collection": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_collection\", \"handle\": \"les-cartes-cadeaux\", \"lang\": \"en\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.852741+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://restaurant-kei.fr/api/2024-01/graphql.json",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -13,7 +13,9 @@ from searchos.socm.coverage import (
     evidence_scope,
     project_cell_evidence,
 )
-from searchos.socm.views.trace import resolve_cell_provenance as _resolve
+from searchos.socm.evidence.graph import EvidenceStatus
+from searchos.socm.evidence.provenance import resolve_cell_provenance as _resolve
+from searchos.socm.refs import CellRef, RowRef, cell_ref, row_ref
 from searchos.tools.search_state import _ws
 
 _FINDING_EXCERPT_CHARS = 500
@@ -29,6 +31,7 @@ def _node_snapshot(node: Any, state: Any = None, *, include_inactive: bool = Fal
     finding = node.finding or ""
     truncated = len(finding) > _FINDING_EXCERPT_CHARS
     citation = evidence_citation(node)
+    urls = evidence_source_urls(node)
     metadata = node.local_source_metadata or {}
     source_details = {key: metadata[key] for key in _READABLE_SOURCE_FIELDS if key in metadata}
     return {
@@ -36,11 +39,11 @@ def _node_snapshot(node: Any, state: Any = None, *, include_inactive: bool = Fal
         "status": node.status.value,
         "table_id": node.table_id,
         **(evidence_scope(state, node) if state is not None else {}),
-        "entity": node.entity,
+        "row": row_ref(node.table_id or state.coverage_map.primary_table_id, node.entity) if node.entity and state is not None else None,
         "attribute": node.attribute,
         "value": node.value,
         "cell_bindings": ([
-            {"cell": key, **binding.model_dump(exclude={"evidence_id"})}
+            {"cell": cell_ref(key), **binding.model_dump(exclude={"evidence_id"})}
             for key, records in state.coverage_map.evidence_bindings.items()
             for binding in records
             if binding.evidence_id == node.id
@@ -51,12 +54,10 @@ def _node_snapshot(node: Any, state: Any = None, *, include_inactive: bool = Fal
         "finding": finding[:_FINDING_EXCERPT_CHARS],
         **({"finding_truncated": True} if truncated else {}),
         "source": node.source,
-        "source_urls": evidence_source_urls(node),
+        "source_urls": urls,
         "citation": citation,
         "citable": citation is not None,
-        "provenance_status": "source_linked" if citation else "original_source_missing",
-        **({"provenance_note": "未提供原始来源；此记录仅供审计与定位缺口。请读取并核验原文，不可作为原文证据引用。"}
-           if citation is None else {}),
+        "provenance_status": "source_linked" if urls else "original_source_missing",
         "source_excerpt": node.source_excerpt,
         **({"local_source_metadata": source_details} if source_details else {}),
         "confidence": node.confidence,
@@ -68,35 +69,38 @@ def _node_snapshot(node: Any, state: Any = None, *, include_inactive: bool = Fal
     }
 
 
-@tool
+@tool(parse_docstring=True)
 async def read_evidence(
-    cell: str = "",
+    cell: CellRef | None = None,
     evidence_ids: str = "",
-    entity: str = "",
+    row: RowRef | None = None,
     attribute: str = "",
     max_nodes: int = 40,
     include_inactive: bool = False,
     task_id: str = "",
 ) -> str:
-    """Fetch active evidence within the current answer scope.
+    """Read evidence records in the current answer scope. Returns nodes, task bindings, and
+    available comparisons for the requested cell.
 
-    Explicit ids/cell take precedence over entity/attribute; empty filters return
-    the most recent nodes. Set ``include_inactive=True`` for an audit view.
-    ``finding`` is excerpted to 500 chars — use ``resolve_cell_provenance`` for full text.
-    Records without original sources have ``citable=False`` and no citation;
-    read and verify their original sources before using them as answer evidence.
-    ``source_linked`` means traceable, not semantically verified.
+    Explicit IDs and a cell select their combined records and take priority over row and attribute.
+    With no selection filters, the tool returns recent nodes. Findings are excerpted to 500
+    characters. Use resolve_cell_provenance for the full finding and original snippet where
+    available. A source_linked record has a traceable source. Verify that its text supports the
+    claim. Records missing an original source have citable=false.
 
     Args:
-        cell (str): exact cell key from ``read_coverage`` (``"table_id/entity.attribute"``).
-        evidence_ids (str): comma-separated ids (e.g. ``"f_abc,f_def"``).
-        entity (str): exact entity name; returns all nodes touching it.
-        attribute (str): exact attribute name; combine with ``entity`` for a precise slice.
-        max_nodes (int): cap on returned records.
-        include_inactive (bool): Include excluded, rejected and superseded evidence for audit.
-        task_id (str): Restrict the view to evidence associated with this task.
+        cell: Exact CellRef {table_id,key,attribute}, with key values in primary_key order.
+        evidence_ids: Comma-separated fact IDs, e.g. "f_abc,f_def".
+        row: Exact RowRef to select evidence for one row.
+        attribute: Exact column name. Combine with row for one row and column.
+        max_nodes: Maximum number of recent records to return, default 40.
+        include_inactive: True includes candidates, excluded, rejected and superseded evidence in
+            the source scope for audit.
+        task_id: Restrict the selection to facts associated with this task.
     """
     state = _ws().load_state()
+    cell = (state.coverage_map.resolve_cell_reference(cell) or cell.cell_key()) if cell else ""
+    entity = (state.coverage_map.resolve_row(row.row_key(), table_id=row.table_id)[0] or row.row_key()) if row else ""
     from searchos.socm.coverage import evidence_source_allowed
     all_nodes = ([node for node in state.evidence_graph.nodes if evidence_source_allowed(state, node)]
                  if include_inactive else answer_evidence(state))
@@ -106,6 +110,10 @@ async def read_evidence(
     if evidence_ids:
         ids.update(x.strip() for x in evidence_ids.split(",") if x.strip())
     if cell:
+        if include_inactive:
+            ids.update(n.id for n in all_nodes if n.status == EvidenceStatus.CANDIDATE
+                       and n.entity and n.attribute
+                       and state.coverage_map.cell_key(n.table_id, n.entity, n.attribute) == cell)
         target = state.coverage_map.cells.get(cell)
         if target is None and include_inactive:
             target = state.coverage_map.removed_cells.get(cell)
@@ -126,11 +134,11 @@ async def read_evidence(
         for key, records in state.coverage_map.evidence_bindings.items():
             target = state.coverage_map.cell_binding(key)
             if target and (include_inactive or key in state.coverage_map.cells):
-                if (not entity or target[1] == entity) and (not attribute or target[2] == attribute):
+                if (not row or (target[0] == row.table_id and target[1] == entity)) and (not attribute or target[2] == attribute):
                     bound_ids.update(b.evidence_id for b in records if include_inactive or b.status.value == "active")
         selected = [
             n for n in all_nodes
-            if n.id in bound_ids or ((not entity or n.entity == entity)
+            if n.id in bound_ids or ((not row or (n.entity == entity and (n.table_id or state.coverage_map.primary_table_id) == row.table_id))
             and (not attribute or n.attribute == attribute))
         ]
     else:
@@ -166,24 +174,28 @@ async def read_evidence(
     )
 
 
-@tool
+@tool(parse_docstring=True)
 async def resolve_cell_provenance(
-    cell: str = "",
+    cell: CellRef | None = None,
     evidence_id: str = "",
 ) -> str:
-    """Look up original snippets for a cell or a single evidence id; provide exactly one.
+    """Trace a cell or one evidence record to its original source. Supply exactly one selector.
+    Returns records and count.
 
-    Records include evidence_id, source_url/source_urls, snippet, finding, confidence and observation_id. ``span`` is ``{start_char, end_char}`` relative to ``span_basis`` (observation or page), or null when not located.
+    Each record includes its evidence_id, source_url/source_urls, snippet, finding, confidence and
+    observation_id. A located span gives {start_char,end_char} relative to span_basis (observation
+    or page). A null span means the text location is unknown.
 
     Args:
-        cell (str): ``"entity.attribute"`` cell key.
-        evidence_id (str): a single evidence id.
-    """  # noqa: E501
+        cell: CellRef {table_id,key,attribute}, with key values in primary_key order. Omit when
+            selecting an evidence ID.
+        evidence_id: One evidence ID. Omit when selecting a cell.
+    """
     ws = _ws()
     state = ws.load_state()
     records = _resolve(
         state,
-        cell=(cell or None),
+        cell=((state.coverage_map.resolve_cell_reference(cell) or cell.cell_key()) if cell else None),
         evidence_id=(evidence_id or None),
         workspace=ws,
     )
@@ -193,3 +205,8 @@ async def resolve_cell_provenance(
     )
     visible = [{key: record[key] for key in fields if key in record} for record in records]
     return json.dumps({"records": visible, "count": len(visible)}, ensure_ascii=False)
+
+
+for _tool in (read_evidence, resolve_cell_provenance):
+    _tool.args_schema.model_config["extra"] = "forbid"
+    _tool.args_schema.model_rebuild(force=True)

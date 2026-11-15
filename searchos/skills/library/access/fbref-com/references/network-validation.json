@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "cfc8830df49049b9b7e2b2e022fb2f53ccf1c33ed87e69cbc468e162f4ddb7e7",
+  "capabilities": {
+    "get_squad_stats": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_squad_stats\", \"url\": \"https://fbref.com/en/squads/e2d8892c/2024-2025/c8/Paris-Saint-Germain-Stats-Champions-League\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.619658+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://fbref.com/en/squads/e2d8892c/2024-2025/c8/[redacted]",
+          "status": 307
+        },
+        {
+          "url": "https://fbref.com/en/squads/e2d8892c/2024-2025/c8/[redacted]",
+          "status": 403
+        },
+        {
+          "url": "https://fbref.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://fbref.com/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eee5d4fe257b83/qrLevZeWgBjG54XMGh_f6O_4mQ_Z1L9eIVlH043dufI-1792739172-1.2.1.1-saFn_M1xNHNO6Vlb01_E_gr65LAeE4HWYuanZc9Imn5qH3xO5dTbPJCH_KyiYiiv",
+          "status": 200
+        }
+      ]
+    },
+    "get_competition_stats": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_competition_stats\", \"url\": \"https://fbref.com/en/comps/9/Premier-League-Stats\"}"
+      ],
+      "checked_at": "2026-10-23T07:18:59.456768+00:00",
+      "reason": "Cloudflare challenge not passed. FBref.com is blocking automated access.",
+      "source_responses": [
+        {
+          "url": "https://fbref.com/en/comps/9/Premier-League-Stats",
+          "status": 307
+        },
+        {
+          "url": "https://fbref.com/en/comps/9/Premier-League-Stats",
+          "status": 403
+        },
+        {
+          "url": "https://fbref.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://fbref.com/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eef9487e58eb2e/jXtc_uGwl4.MDSkrxDIR5tRZgZZ2IoatqLR50FqleqI-1792739969-1.2.1.1-2ScXiu.LQvevD0TMGh3k2gpIC7o6M7iRdL_6EDGb6w75lAAUMDJa8ECEgNJEMGhh",
+          "status": 200
+        },
+        {
+          "url": "blob:https://fbref.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/yz4o0/0x4AAAAAAAAjq6WYeRDKmebM/light/fbE/new/normal",
+          "status": 200
+        }
+      ]
+    },
+    "get_player_stats": {
+      "status": "incomplete",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player_stats\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:26.643543+00:00",
+      "reason": "documented input was rejected: Missing required parameter: url",
+      "source_responses": []
+    },
+    "search_teams": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_teams\", \"query\": \"Barcelona\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:26.729068+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://fbref.com/en/search/search.fcgi",
+          "status": 307
+        },
+        {
+          "url": "https://fbref.com/en/search/search.fcgi",
+          "status": 403
+        },
+        {
+          "url": "https://fbref.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://fbref.com/cdn-cgi/challenge-platform/h/b/fo/4182103868:1792739122:V8G1jY2NUK8Wf_EyqWl4oFl-Vhg4n0zOvnUYj25IMzA/a4ef04bb1b7c3ecb/xFg0K9rThRovxt3SGewbAwQvi04UfJaJjSFsUbANaQY-1792740438-1.2.1.1-jgIqOSXSRKrlB9iixWkw4yl3SY_IyOmUMLdwDGFGp2mJBN3G.ljaYrW.zr5MUgrM",
+          "status": 200
+        },
+        {
+          "url": "blob:https://fbref.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

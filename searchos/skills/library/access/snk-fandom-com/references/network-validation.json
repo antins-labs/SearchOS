@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "51b06c1f257b74d93b4794a065daefec42caa4201f41efe2e83f67fe22e3cb46",
+  "capabilities": {
+    "get_character": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_character\", \"page\": \"Krizalid\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.859967+00:00",
+      "reason": "API returned status 403",
+      "source_responses": [
+        {
+          "url": "https://snk.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "search_characters": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_characters\", \"query\": \"Rugal\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.860915+00:00",
+      "reason": "API returned status 403",
+      "source_responses": [
+        {
+          "url": "https://snk.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "list_characters": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_characters\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.860996+00:00",
+      "reason": "API returned status 403",
+      "source_responses": [
+        {
+          "url": "https://snk.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_section": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_section\", \"page\": \"Omega_Rugal\", \"section\": \"Powers\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.861078+00:00",
+      "reason": "API returned status 403",
+      "source_responses": [
+        {
+          "url": "https://snk.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

@@ -15,11 +15,15 @@ Each place record contains:
 - temporal attestations
 - place types and subjects
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from typing import Any
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Pleiades API requests.
@@ -82,7 +86,7 @@ async def get_place(params: dict[str, Any]) -> dict[str, Any]:
     
     url = f"https://pleiades.stoa.org/places/{place_id_str}/json"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await fetch_json(session, url)
         
         if "error" in data:
@@ -196,7 +200,7 @@ async def list_place_types(params: dict[str, Any]) -> dict[str, Any]:
     """
     url = "https://pleiades.stoa.org/vocabularies/place-types"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await fetch_json(session, url)
         
         if "error" in data:
@@ -231,7 +235,7 @@ async def list_time_periods(params: dict[str, Any]) -> dict[str, Any]:
     """
     url = "https://pleiades.stoa.org/vocabularies/time-periods"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await fetch_json(session, url)
         
         if "error" in data:
@@ -262,7 +266,7 @@ async def list_relationship_types(params: dict[str, Any]) -> dict[str, Any]:
     """
     url = "https://pleiades.stoa.org/vocabularies/relationship-types"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await fetch_json(session, url)
         
         if "error" in data:

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_news_article": "direct",
+    "list_news": "direct",
+    "get_bilateral_relations": "direct"
+  },
+  "aliases": {
+    "get_news_article": "get_news_article",
+    "list_news": "list_news",
+    "get_bilateral_relations": "get_bilateral_relations",
+    "run": "get_bilateral_relations"
+  }
+}

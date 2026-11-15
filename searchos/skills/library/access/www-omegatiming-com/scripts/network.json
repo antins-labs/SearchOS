@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_events": "inherit",
+    "search_events": "inherit",
+    "get_xml_results": "inherit",
+    "get_event_files": "inherit"
+  },
+  "aliases": {
+    "list_events": "list_events",
+    "get_event_files": "get_event_files",
+    "get_xml_results": "get_xml_results",
+    "search_events": "search_events",
+    "run": "search_events"
+  }
+}

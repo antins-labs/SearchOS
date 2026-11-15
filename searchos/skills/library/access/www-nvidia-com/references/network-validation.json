@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "28b5bae72ff5a28406f6887dcf85eb787c5333657fcde48749a1a94b96f1bd86",
+  "capabilities": {
+    "fetch_specs": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_specs\", \"gpu_slug\": \"geforce-gtx-750-ti\", \"timeout\": 30}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.225360+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nvidia.com/en-us/geforce/graphics-cards/geforce-gtx-750-ti/specifications/",
+          "status": 200
+        }
+      ]
+    },
+    "list_key_specs": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_key_specs\", \"gpu_slug\": \"gt-1030\", \"timeout\": 30}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.226095+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search_by_url": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_url\", \"url\": \"https://www.nvidia.com/en-us/geforce/graphics-cards/gt-1030/specifications/\", \"timeout\": 30}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.226160+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nvidia.com/en-us/geforce/graphics-cards/gt-1030/specifications/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

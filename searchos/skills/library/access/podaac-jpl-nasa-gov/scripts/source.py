@@ -2,6 +2,9 @@
 PODAAC Dataset Access Skill
 Fetches metadata and download information from PO.DAAC dataset landing pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -21,10 +24,10 @@ async def _fetch_dataset_page(url: str) -> dict[str, Any]:
         Dictionary containing extracted metadata
     """
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context()
-            page = await context.new_page()
+            context = await _skill_network.browser_new_context(browser)
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate with timeout handling
             try:
@@ -211,10 +214,10 @@ async def _search_datasets(query: str, limit: int = 10) -> dict[str, Any]:
     cmr_url = f"https://cmr.earthdata.nasa.gov/search/collections.umm_json?provider=POCLOUD&keyword={urllib.parse.quote(query)}&page_size={limit}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context()
-            page = await context.new_page()
+            context = await _skill_network.browser_new_context(browser)
+            page = await _skill_network.browser_new_page(context)
             
             try:
                 await page.goto(cmr_url, wait_until="domcontentloaded", timeout=60000)
@@ -296,6 +299,7 @@ async def _search_datasets(query: str, limit: int = 10) -> dict[str, Any]:
             await browser.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute PO.DAAC dataset access skill.

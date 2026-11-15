@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """检索 arXiv 或解析离线 Atom；仅依赖 Python 标准库。"""
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import argparse
 from datetime import datetime, timezone
@@ -42,7 +45,7 @@ def fetch_with_retry(url: str, timeout: float, max_retries: int, retry_delay: fl
     last_error = None
     for attempt in range(1, max_retries + 1):
         try:
-            with urlopen(request, timeout=timeout) as response:
+            with _skill_network.urllib_urlopen(request, timeout=timeout) as response:
                 return response.read(10_000_001)
         except HTTPError as exc:
             if exc.code == 400:
@@ -72,6 +75,7 @@ def fetch_with_retry(url: str, timeout: float, max_retries: int, retry_delay: fl
     raise RuntimeError(f"arXiv API 请求失败: {last_error}")
 
 
+@_skill_network.entrypoint(capability_id='search', cli=True)
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="检索 arXiv 或解析离线 Atom；仅依赖 Python 标准库。",

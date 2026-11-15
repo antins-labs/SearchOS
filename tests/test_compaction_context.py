@@ -11,7 +11,7 @@ from langgraph.graph.message import add_messages
 
 from searchos.agents.runtime import create_search_agent_graph
 from searchos.harness.middleware import CompactionContextMiddleware
-from searchos.harness.middleware.context.utils.compaction import (
+from searchos.harness.middleware.context.core.history import (
     count_context_tokens,
     render_history,
 )

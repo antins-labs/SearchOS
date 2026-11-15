@@ -8,10 +8,15 @@ from types import SimpleNamespace
 import pytest
 
 from searchos.tools.skills import execution as se
+from searchos.tools.exec import exec_code
+from searchos.tools.exec.skill_bridge import nested_execution
+from langchain_core.messages import ToolMessage
+from searchos.harness.middleware.sensor.budget_middleware import BudgetMiddleware
+from searchos.harness.middleware.sensor.core.run_state import BudgetState, ControlState
 from searchos.tools.search_state import _workspace_var, _current_task_id_var, _source_scope_var
-from searchos.skills.core.schema import parse_skill_file
+from searchos.skills.core.skill_markdown import parse_skill_file
 from searchos.socm.storage.workspace import WorkspaceManager
-from searchos.tools.simple_browser import state, tools
+from searchos.tools.simple_browser import session as state, tools
 
 @pytest.fixture
 def context(tmp_path, monkeypatch):
@@ -33,7 +38,7 @@ def context(tmp_path, monkeypatch):
 
 
 def execute(call='call-1', argv=None, **kwargs):
-    return se.exec_skill.coroutine('sample-skill', argv or ['python', 'run.py'], call, **kwargs)
+    return se._run_skill('sample-skill', argv or ['python', 'run.py'], call, **kwargs)
 
 
 def install_runner(monkeypatch, payload=None):
@@ -52,10 +57,6 @@ def install_runner(monkeypatch, payload=None):
     monkeypatch.setattr('searchos.skills.runtime.command_runtime.run_command', runtime)
     return calls
 
-
-from langchain_core.messages import ToolMessage
-from searchos.harness.middleware.sensor.budget_middleware import BudgetMiddleware
-from searchos.harness.middleware.sensor.core.models import BudgetState, ControlState
 
 
 @pytest.mark.asyncio
@@ -148,14 +149,14 @@ async def test_tool_node_parallel_exec_batch_completes_without_model_retry(conte
     async def delayed(*args, **kwargs):
         await release.wait()
         return await original_run(*args, **kwargs)
-    monkeypatch.setattr(se, '_acquire_work_lock', acquire)
+    monkeypatch.setattr('searchos.tools.exec.tool._acquire_work_lock', acquire)
     monkeypatch.setattr(command_runtime, 'run_command', delayed)
     message = AIMessage(content='', tool_calls=[
-        {'name': 'exec', 'id': call_id, 'args': {'skill': 'sample-skill', 'argv': ['python', 'run.py']}}
+        {'name': 'exec', 'id': call_id, 'args': {'argv': ['searchanything', 'run', 'sample-skill', '--', 'python', 'run.py']}}
         for call_id in ('batch-1', 'batch-2')
     ])
     graph = StateGraph(MessagesState)
-    graph.add_node('tools', ToolNode([se.exec_skill]))
+    graph.add_node('tools', ToolNode([exec_code]))
     graph.add_edge(START, 'tools')
     graph.add_edge('tools', END)
     batch = asyncio.create_task(graph.compile().ainvoke({'messages': [message]}))
@@ -311,12 +312,14 @@ async def test_cancelled_queued_exec_does_not_double_charge_owner(monkeypatch, w
             queued.set()
         async with lock:
             call_id = req.tool_call['id']
-            active_calls.add(call_id)
-            runs.append(call_id)
-            started.set()
-            await finish.wait()
-            return ToolMessage(content='result', tool_call_id=call_id,
-                               artifact={'execution': {'started': True}})
+            async def execute():
+                active_calls.add(call_id)
+                runs.append(call_id)
+                started.set()
+                await finish.wait()
+                return {"started": True}
+            await nested_execution.get()(call_id, {}, execute)
+            return ToolMessage(content='result', tool_call_id=call_id)
 
     owner = asyncio.create_task(middleware.awrap_tool_call(request(call_id='same'), handler))
     await started.wait()
@@ -349,23 +352,27 @@ async def test_cancelled_queued_exec_does_not_double_charge_owner(monkeypatch, w
 @pytest.mark.asyncio
 async def test_budget_rejected_duplicate_does_not_hide_owner_charge():
     import asyncio
-    from searchos.harness.middleware.utils.messages import is_blocked
 
     budget = BudgetState(max_skills=1)
     middleware = BudgetMiddleware(budget, ControlState())
     started, finish = asyncio.Event(), asyncio.Event()
     calls = []
     async def handler(req):
-        calls.append(req.tool_call['id'])
-        started.set()
-        await finish.wait()
+        async def execute():
+            calls.append(req.tool_call['id'])
+            started.set()
+            await finish.wait()
+            return {"started": True}
+        execution = await nested_execution.get()("child", {}, execute)
         return ToolMessage(content='result', tool_call_id=req.tool_call['id'],
-                           artifact={'execution': {'started': True}})
+                           artifact={'execution': execution})
     owner = asyncio.create_task(middleware.awrap_tool_call(request(call_id='same'), handler))
     try:
         await started.wait()
         duplicate = await middleware.awrap_tool_call(request(call_id='same'), handler)
-        assert is_blocked(duplicate) and budget.consumed_skills == 0
+        assert duplicate.artifact["execution"]["status"] == "blocked"
+        assert duplicate.additional_kwargs["sf_budget_receipt"]["rejected"]
+        assert budget.consumed_skills == 0
         finish.set()
         await owner
         assert calls == ['same'] and budget.consumed_skills == 1

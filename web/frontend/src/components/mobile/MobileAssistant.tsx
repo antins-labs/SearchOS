@@ -8,7 +8,7 @@ import type { LocalLibraryController } from "@/hooks/useLocalLibrary";
 import { useHostStatus } from "@/hooks/useHostStatus";
 import { HOST_LABELS, hostMessage } from "@/lib/hostStatus";
 import type { HistoryItem } from "@/lib/api";
-import { mobileSourceSelection } from "@/lib/mobileSources";
+import { mobileSourceSelection } from "@/lib/sourceSelection";
 import type { Turn } from "@/lib/conversation";
 import type { SubmitOpts } from "@/components/shell/Composer";
 import { useSettings } from "@/components/settings/SettingsProvider";

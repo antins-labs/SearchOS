@@ -1,0 +1,196 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "a6165697e3198caadac8b3e40635e21b4d6399fc418dec92468a0b570140687b",
+  "capabilities": {
+    "list_34_universities": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_34_universities\", \"university\": \"北京\", \"year\": \"2025\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.421296+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://yz.chsi.com.cn/kyzx/zt/kyfs2025.shtml",
+          "status": 200
+        }
+      ]
+    },
+    "list_national_lines": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_national_lines\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.424284+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://yz.chsi.com.cn/kyzx/zt/kyfs2025.shtml",
+          "status": 200
+        }
+      ]
+    },
+    "list_provinces": {
+      "status": "offline_business_passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_provinces\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.424425+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/yz-chsi-com-cn/scripts/source.py",
+        "line": 273,
+        "end_line": 296,
+        "implementation": "list_provinces",
+        "source_sha256": "e3205a8da21ea35f9055f002f5fcae775adc46f66d4f09c47b2276bf387eb1f6",
+        "implementation_sha256": "fe7bb4c8a9ecafad23c321a1af0a3253ba37266e3578b9aedfd67b2f7e956f80"
+      }
+    },
+    "get_schools_by_province": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_schools_by_province\", \"province_name\": \"北京\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.424755+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/11.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_score_line_detail": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_score_line_detail\", \"url\": \"https://yz.chsi.com.cn/kyzx/fsfsx34/202503/20250312/2293356009.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.424943+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://yz.chsi.com.cn/kyzx/fsfsx34/202503/20250312/2293356009.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_universities": {
+      "status": "empty_result",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_universities\", \"name\": \"北京\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.425022+00:00",
+      "reason": "results is empty",
+      "source_responses": [
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/11.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/12.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/13.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/14.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/15.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/21.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/22.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/23.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/31.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/32.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/33.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/34.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/35.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/36.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/37.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/41.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/42.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/43.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/44.json",
+          "status": 200
+        },
+        {
+          "url": "https://yz.chsi.com.cn/apply/code/cjcxshouyedw/45.json",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

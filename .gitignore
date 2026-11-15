@@ -60,6 +60,7 @@ web_settings.json
 
 # Local design and iteration plans (kept outside release-facing docs)
 development/
+docs/
 docs/searchanything-technical-design.md
 docs/development/
 docs/diagnostics/

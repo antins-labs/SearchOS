@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "bd316b098b4aaa9c321e96a241db59efa7e10f4e9e11e36cacbe47b02098d1dd",
+  "capabilities": {
+    "get_tournament_stats": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tournament_stats\", \"tournament_name\": \"LPL 2025 Split 3\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.689072+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gol.gg/tournament/tournament-stats/LPL%202025%20Split%203/",
+          "status": 200
+        }
+      ]
+    },
+    "get_tournament_ranking": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tournament_ranking\", \"tournament_name\": \"LPL 2025 Split 3\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.691482+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gol.gg/tournament/tournament-ranking/LPL%202025%20Split%203/",
+          "status": 200
+        }
+      ]
+    },
+    "get_players_list": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_players_list\", \"season\": \"S16\", \"split\": \"Summer\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.691620+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://gol.gg/players/list/season-S16/split-Summer/tournament-ALL/",
+          "status": 200
+        }
+      ]
+    },
+    "get_player_stats": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player_stats\", \"player_id\": \"1708\", \"tournament\": \"LPL 2025 Split 3\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.691734+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gol.gg/players/player-stats/1708/season-ALL/split-ALL/tournament-LPL%202025%20Split%203/champion-ALL/",
+          "status": 200
+        }
+      ]
+    },
+    "get_champions_list": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_champions_list\", \"season\": \"S16\", \"split\": \"Summer\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.691898+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gol.gg/champion/list/season-S16/split-Summer/tournament-ALL/",
+          "status": 200
+        }
+      ]
+    },
+    "get_teams_list": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_teams_list\", \"season\": \"S16\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.692588+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gol.gg/teams/list/season-S16/split-Summer/tournament-ALL/",
+          "status": 200
+        }
+      ]
+    },
+    "get_team_stats": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_team_stats\", \"team_id\": \"2519\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.692807+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gol.gg/teams/team-stats/2519/split-ALL/tournament-ALL/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

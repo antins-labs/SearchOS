@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_floor_guide": "proxy",
+    "get_homepage": "direct",
+    "get_about_info": "direct",
+    "get_notices": "direct",
+    "get_faq": "direct",
+    "get_visitor_info": "direct",
+    "get_projects": "direct"
+  },
+  "aliases": {
+    "get_homepage": "get_homepage",
+    "get_visitor_info": "get_visitor_info",
+    "get_floor_guide": "get_floor_guide",
+    "get_about_info": "get_about_info",
+    "get_faq": "get_faq",
+    "get_notices": "get_notices",
+    "get_projects": "get_projects",
+    "run": "get_projects"
+  }
+}

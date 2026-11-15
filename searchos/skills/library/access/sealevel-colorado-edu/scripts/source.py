@@ -4,6 +4,9 @@ Sea Level Research Group (University of Colorado) Access Skill
 Fetches global mean sea level (GMSL) time-series data from sealevel.colorado.edu.
 Provides access to raw tabular data files and data portal information.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import re
@@ -13,7 +16,7 @@ from typing import Any
 
 async def _fetch_url(url: str, timeout: int = 30) -> tuple[int, str]:
     """Fetch URL and return (status, content)."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
             content = await resp.text()
             return resp.status, content
@@ -319,6 +322,7 @@ async def get_release_info(params: dict[str, Any]) -> dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the Sea Level Research Group access skill.

@@ -4,6 +4,9 @@ SearchOS Access Skill for Egyptian Monuments (egymonuments.gov.eg)
 Fetches structured monument data from the official Egyptian Ministry of Tourism 
 and Antiquities website including title, location, description, images, and metadata.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -199,7 +202,7 @@ async def get_monument(params: dict[str, Any]) -> dict[str, Any]:
     else:
         target_url = build_monument_url(slug, lang)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, target_url)
         
         if status == 404:
@@ -260,7 +263,7 @@ async def get_multiple_monuments(params: dict[str, Any]) -> dict[str, Any]:
     
     results = []
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for url in target_urls:
             status, html = await fetch_page(session, url)
             
@@ -310,7 +313,7 @@ async def search_monuments(params: dict[str, Any]) -> dict[str, Any]:
     # However, results may be dynamically loaded
     search_url = f"{BASE_URL}/{lang}/mpSearchResult?q={query}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, search_url)
         
         if status != 200:
@@ -357,6 +360,7 @@ async def search_monuments(params: dict[str, Any]) -> dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the Egyptian Monuments access skill.

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_product": "direct"
+  },
+  "aliases": {
+    "get_product": "get_product",
+    "run": "get_product"
+  }
+}

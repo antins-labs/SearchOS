@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "874b9a94db6f4bbbdd3e91c7a62dde003f0203aae5d82b67872f9df3ee227d25",
+  "capabilities": {
+    "get_list": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_list\", \"url\": \"https://www.forbeschina.com/lists/1828\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.059208+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.forbeschina.com/lists/1828",
+          "status": 200
+        }
+      ]
+    },
+    "search_records": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_records\", \"url\": \"https://www.forbeschina.com/lists/1828\", \"country\": \"中国内地\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.060679+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.forbeschina.com/lists/1828",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

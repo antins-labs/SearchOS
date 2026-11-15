@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_by_ids": "direct",
+    "get_artist": "direct",
+    "search": "direct"
+  },
+  "aliases": {
+    "get_artist": "get_artist",
+    "search": "search",
+    "get_by_ids": "get_by_ids",
+    "run": "get_by_ids"
+  }
+}

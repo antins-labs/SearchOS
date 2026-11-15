@@ -6,6 +6,9 @@ No API key required. Does not use browser tools.
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import logging
@@ -24,6 +27,7 @@ _ARXIV_NS = "http://arxiv.org/schemas/atom"
 _TIMEOUT = 30.0
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: SkillContext) -> dict[str, Any]:
     """Search academic databases for papers.
 
@@ -43,7 +47,7 @@ async def execute(params: dict[str, Any], ctx: SkillContext) -> dict[str, Any]:
     year_range = params.get("year_range", "")
     source = params.get("source", "all")
 
-    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+    async with _skill_network.httpx_async_client(timeout=_TIMEOUT) as client:
         papers: list[dict] = []
 
         if source == "all":

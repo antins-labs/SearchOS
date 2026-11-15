@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_schedule": "direct",
+    "get_by_month": "direct",
+    "search": "direct"
+  },
+  "aliases": {
+    "get_schedule": "get_schedule",
+    "search": "search",
+    "get_by_month": "get_by_month",
+    "run": "get_by_month"
+  }
+}

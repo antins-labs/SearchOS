@@ -1,0 +1,201 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c11f47f4e7599c790be35e96a8d46715a3f2fdc2d1356776d47becce2823e128",
+  "capabilities": {
+    "get_model_stats": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_model_stats\", \"model_id\": 6178}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.584698+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://portal.auto.sohu.com/aggr/sales/v2/model/statistic",
+          "status": 200
+        }
+      ]
+    },
+    "get_model_prices": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_model_prices\", \"model_ids\": [6178, 6025, 7267]}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.585249+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://portal.auto.sohu.com/aggr/price/model-prices",
+          "status": 200
+        }
+      ]
+    },
+    "get_trim_prices": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_trim_prices\", \"model_id\": 6178}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.585324+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://portal.auto.sohu.com/aggr/price/trim-group-prices",
+          "status": 200
+        }
+      ]
+    },
+    "get_city_prices": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_city_prices\", \"model_id\": 6178}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.585382+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://portal.auto.sohu.com/aggr/price/model-city-prices",
+          "status": 200
+        }
+      ]
+    },
+    "get_dealer_prices": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_dealer_prices\", \"model_id\": 7267, \"city_code\": \"310100\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.585447+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://portal.auto.sohu.com/aggr/price/model-dealer-prices",
+          "status": 200
+        }
+      ]
+    },
+    "get_model_news": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_model_news\", \"model_id\": 6178}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.585521+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://portal.auto.sohu.com/aggr/media/news",
+          "status": 200
+        }
+      ]
+    },
+    "get_competitor_ranking": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_competitor_ranking\", \"model_id\": 6025}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.585596+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://portal.auto.sohu.com/aggr/eval/same-level-rank",
+          "status": 200
+        }
+      ]
+    },
+    "get_related_trims": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_related_trims\", \"model_id\": 6178}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.585661+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://portal.auto.sohu.com/aggr/model/related-trims",
+          "status": 200
+        }
+      ]
+    },
+    "get_hot_models": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_hot_models\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.585720+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://portal.auto.sohu.com/aggr//search/hot-cars",
+          "status": 200
+        }
+      ]
+    },
+    "get_full_model_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_full_model_info\", \"model_id\": 6178, \"city_code\": \"330100\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.585779+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://portal.auto.sohu.com/aggr/price/model-prices",
+          "status": 200
+        },
+        {
+          "url": "https://portal.auto.sohu.com/aggr/sales/v2/model/statistic",
+          "status": 200
+        },
+        {
+          "url": "https://portal.auto.sohu.com/aggr/price/trim-group-prices",
+          "status": 200
+        },
+        {
+          "url": "https://portal.auto.sohu.com/aggr/media/news",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

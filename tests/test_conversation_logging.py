@@ -4,9 +4,9 @@ from langchain_core.messages import HumanMessage
 
 from searchos.harness.telemetry.conversation import (
     ConversationLogger,
+    ConversationMessage,
     langchain_msg_to_conversation_msgs,
 )
-from searchos.harness.telemetry.trajectory import ConversationMessage
 
 
 def test_snapshot_is_pretty_printed_and_keeps_unicode(tmp_path):

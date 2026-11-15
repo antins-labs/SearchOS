@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Check, FileText, FolderOpen, Loader2, Search, Upload } from "lucide-react";
-import { mobileSourceSelection } from "@/lib/mobileSources";
+import { mobileSourceSelection } from "@/lib/sourceSelection";
 import { cancelLocalIndexJob, retryLocalIndexJob, localDocumentOriginalUrl, localDocumentPreviewUrl, listLocalDocuments } from "@/lib/api";
 import type { LocalDocument, SourceSelection } from "@/lib/types";
 import type { LocalLibraryController } from "@/hooks/useLocalLibrary";

@@ -19,6 +19,7 @@ function load(name) {
     module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,
     jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true,
   }}).outputText, { exports, require(dep) {
+    if (dep === '@/lib/api') return { getAgentReply: async () => ({ content: '完整回复' }) };
     if (dep.endsWith('ToolCallDetailDialog')) return { __esModule: true, default: () => null };
     if (dep.startsWith('.') || dep.startsWith('@/')) {
       const base = dep.startsWith('@/') ? dep.slice(2) : path.relative(path.join(__dirname,'../src'), path.resolve(path.dirname(filename),dep));
@@ -34,6 +35,62 @@ const event = (data) => ({ type: 'trajectory', data });
 const start = (id, tool = 'inspect_table') => event({ type:'tool_call_started',agent:'orchestrator',tool,tool_call_id:id,args:{table_id:id},reasoning:'开始 '+id });
 const step = (id, tool = 'inspect_table') => event({ type:'step',agent:'orchestrator',tool_call_id:id,action:{name:tool,args:{table_id:id}},observation:'结果 '+id });
 const html = (events) => renderToStaticMarkup(React.createElement(timeline,{events}));
+
+test('等待回执与随后送达的报告分别显示', () => {
+  const result = html([
+    event({type:'step', agent:'orchestrator', tool_call_id:'wait', action:{name:'check_agents',args:{}},
+      observation:'{"await_reports":true}'}),
+    event({type:'agent_report', agent:'orchestrator', report:{agent_id:'search_agent', result:'已核验'}}),
+  ]);
+  assert.match(result, /等待下一份 Agent 报告/);
+  assert.ok(result.indexOf('已核验') > result.indexOf('等待下一份 Agent 报告'));
+});
+
+test('显式等待显示工具返回的报告、剩余 worker 和超时', () => {
+  const checked = (receipt) => event({type:'step', agent:'orchestrator', tool_call_id:'wait',
+    action:{name:'check_agents',args:{timeout:5}}, observation:JSON.stringify(receipt)});
+  const result = html([checked({reports:[{agent_id:'search_agent', agent_report:{text:'院校名单已核验'}}],
+    remaining:1, running_ids:['search_agent_2']})]);
+  assert.match(result, /收到 1 份 Agent 报告/);
+  assert.equal((result.match(/院校名单已核验/g)||[]).length, 1);
+  assert.match(result, /Agent 2/);
+  assert.match(result, /View full parameters and output for check_agents/);
+  assert.match(html([checked({reports:[], remaining:1, running_ids:['search_agent_2'], timed_out:true})]), /等待报告超时/);
+});
+
+test('主时间线按交付顺序显示每份报告和正文，失败报告保留原因', (t) => {
+  const report = (data) => event({type:'agent_report', agent:'orchestrator', report:data});
+  const events = [
+    report({agent_id:'search_agent_2', status:'completed', result:'Completed: +2 evidence',
+      agent_report:{text:'GPU 单价已核实。'.repeat(32)+'[价格原文](evidence:e2)'},
+      grounded_findings:[{id:'e2', source_urls:['https://example.org/gpu-price']}]}),
+    report({agent_id:'search_agent_2', status:'error', result:'来源读取失败'}),
+    report({agent_id:'writer_agent', status:'completed', last_message:'比较表已写入'}),
+  ];
+  const result = html(events);
+  assert.match(result, /Agent 2/);
+  assert.ok(result.indexOf('GPU 单价已核实') >= 0 && result.indexOf('GPU 单价已核实') < result.indexOf('来源读取失败'));
+  assert.match(result, /比较表已写入/);
+  assert.equal((result.match(/<details\b/g)||[]).length, 3);
+  assert.doesNotMatch(result, /View full parameters|animate-spin/);
+  assert.doesNotMatch(renderToStaticMarkup(React.createElement(timeline, {events, agentName:'search_agent_2'})), /GPU 单价/);
+  assert.doesNotMatch(result, /价格原文/);
+  const useState = React.useState;
+  t.mock.method(React, 'useState', (initial) => useState(initial === false ? true : initial));
+  const expanded = html(events);
+  assert.match(expanded, /href="https:\/\/example.org\/gpu-price"/);
+  assert.match(expanded, /查看原始报告/);
+  assert.match(expanded, /grounded_findings/);
+});
+
+test('子代理最终回复可展开并渲染 Markdown', () => {
+  const agent = 'search_agent';
+  const events = [event({type:'agent_final', agent, reasoning:'## 结果\n\n- **已确认**'})];
+  const result = renderToStaticMarkup(React.createElement(timeline, {events, agentName:agent}));
+  assert.match(result, /<details[^>]*><summary[^>]*>最终回复<\/summary>/);
+  assert.match(result, /<h3[^>]*>结果<\/h3>/);
+  assert.match(result, /<strong[^>]*>已确认<\/strong>/);
+});
 
 test('同名并发工具在开始时显示，乱序返回只更新自己的卡片', () => {
   const before = html([start('a'),start('b')]);
@@ -70,7 +127,7 @@ test('失败和取消结束对应调用，不使正在工作的子代理变成�
   const result = html([start('a'),start('b'),error]);
   assert.match(result,/inspect_table · 已取消/);
   assert.equal((result.match(/animate-spin/g)||[]).length,1);
-  const { foldWorkers } = load('lib/derive.ts');
+  const { foldWorkers } = load('lib/runState.ts');
   const workers = foldWorkers([event({type:'dispatch',agent:'search_agent'}),event({type:'step',agent:'search_agent',status:'error'})]);
   assert.equal(workers[0].status,'running');
 });
@@ -104,4 +161,60 @@ test('只有结果的旧轨迹仍显示工具，开始事件重放不会重复�
   assert.match(html([step('old')]),/结果 old/);
   const begin = start('a');
   assert.equal((html([begin,begin,step('a')]).match(/View full parameters/g)||[]).length,1);
+});
+
+const skill = (id, parent, status = 'running') => event({
+  type: 'skill_execution', agent: 'orchestrator', execution_id: id,
+  parent_tool_call_id: parent, parent_execution_id: 'exec-' + parent,
+  skill: 'weixin-sogou-com', argv: ['python', 'scripts/access.py', 'search_articles'], status,
+  observation: status === 'running' ? '' : JSON.stringify({status, stdout: '文章结果 ' + id,
+    streams: {stdout: {shown_chars: 12, total_chars: 12, truncated: false}}}),
+});
+
+test('一个 Exec 内多个技能子步骤收在默认折叠的详情里，只计一次工具调用', () => {
+  const {buildCards} = load('components/workbench/OrchestratorTimeline.tsx');
+  const {deriveStepCount, foldWorkers} = load('lib/runState.ts');
+  const events = [start('a','exec'), start('b','exec'), skill('child-a','a'), skill('child-b','b'),
+    skill('child-b','b','completed'), skill('child-a','a','error'), skill('child-c','a','completed'),
+    step('a','exec'), step('b','exec')];
+  const cards = buildCards(events, 'completed', []);
+  assert.equal(cards.length, 2);
+  assert.equal(cards[0].children[0].action.toolCall.executionId, 'child-a');
+  assert.equal(cards[0].children[0].action.toolCall.status, 'error');
+  assert.equal(cards[1].children[0].action.toolCall.status, 'completed');
+  const markup = html(events);
+  assert.equal((markup.match(/<details\b/g) || []).length, 2);
+  assert.doesNotMatch(markup, /<details[^>]*\bopen\b/);
+  assert.match(markup, /<summary[^>]*>技能编排 · 2 个子步骤 · 1 个失败<\/summary>.*?文章结果 child-c/);
+  assert.match(markup, /<summary[^>]*>技能编排 · 1 个子步骤<\/summary>.*?文章结果 child-b/);
+  assert.equal(deriveStepCount([...events, ...events]), 2);
+  assert.equal(buildCards([...events, ...events], 'completed', []).length, 2);
+  const workers = foldWorkers([event({type:'dispatch',agent:'search_agent'}),
+    {...skill('c','a','error'), data:{...skill('c','a','error').data,agent:'search_agent'}}]);
+  assert.equal(workers[0].status,'running');
+});
+
+test('父 Exec 尚未返回时子执行已经可见，取消和终止会停止转圈', () => {
+  const {buildCards} = load('components/workbench/OrchestratorTimeline.tsx');
+  const events = [start('a','exec'), skill('c','a')];
+  assert.equal(buildCards(events,'running',[])[0].children[0].action.spin,true);
+  assert.equal(buildCards(events,'error',[])[0].children[0].action.spin,false);
+  assert.equal(buildCards([...events, skill('c','a','cancelled')],'running',[])[0].children[0].action.toolCall.status,'cancelled');
+});
+
+test('回放量子位 case 时通过 parent_execution_id 归组，原日志保持原样', () => {
+  const file = path.resolve(__dirname,'../../../searchos_workspace/20261102_212907_44e1b577763a/trajectory.jsonl');
+  // 本地验收使用原 case；独立 checkout 由下方固定样例覆盖同一结构。
+  const records = fs.existsSync(file) ? fs.readFileSync(file,'utf8').trim().split('\n').map(JSON.parse) : [
+    {type:'tool_call_started',agent:'search_agent',tool:'exec',tool_call_id:'p',args:{argv:['searchanything']}},
+    {type:'step',agent:'search_agent',tool_call_id:'c',action:{name:'exec',args:{skill:'weixin-sogou-com',argv:['python'],parent_execution_id:'exec-p'}},observation:"{'status':'completed'}"},
+    {type:'step',agent:'search_agent',tool_call_id:'p',action:{name:'exec',args:{argv:['searchanything']}},observation:JSON.stringify({execution_id:'exec-p',stdout:'articles'})},
+  ];
+  const {buildCards} = load('components/workbench/OrchestratorTimeline.tsx');
+  const {deriveStepCount} = load('lib/runState.ts');
+  const events = records.map(event);
+  const cards = buildCards(events,'completed',[],'search_agent');
+  assert.equal(cards.filter(c => c.action?.toolCall).length,fs.existsSync(file) ? 8 : 1);
+  assert.equal(cards.flatMap(c => c.children || []).length,fs.existsSync(file) ? 8 : 1);
+  assert.equal(deriveStepCount(events),fs.existsSync(file) ? 8 : 1);
 });

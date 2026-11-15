@@ -1,0 +1,291 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "61c11b870b6932e3072969801dd37d63e7cbd620ce61077d41ad3892a790b3f1",
+  "capabilities": {
+    "get_carry_on_baggage": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_carry_on_baggage\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.983807+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.china-airlines.com/us/en",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtm.js",
+          "status": 200
+        },
+        {
+          "url": "https://prd-api.china-airlines.com/us/en/Images/logo-light-en_tcm517-72169.webp",
+          "status": 200
+        },
+        {
+          "url": "https://prd-api.china-airlines.com/us/en/Images/logo-dark-en_tcm517-72168.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/c1f6ba4b87ce5c8a.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/549cba3fe396061f.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/1657b67b7317f6ed.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/7cfe79a1a41c5b5b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/e299cc06325667e0.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/45f610d6d24f35e9.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/58abe0eccaecf98e.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/b722bdbf76200a2b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/2a6399ff9b77e8c2.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/c96cd3cdbd83efa2.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/73e0e809368463a4.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/7ad963807369bc92.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/8a57f402190509ee.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/cf0b261d7b22ad2b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/9bb849aed3584536.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/71b5fc49cb6f7f6a.css",
+          "status": 200
+        }
+      ]
+    },
+    "get_checked_baggage": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_checked_baggage\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.849422+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.china-airlines.com/us/en",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/c1f6ba4b87ce5c8a.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtm.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/7cfe79a1a41c5b5b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/c96cd3cdbd83efa2.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/58abe0eccaecf98e.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/45f610d6d24f35e9.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/1657b67b7317f6ed.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/2a6399ff9b77e8c2.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/b722bdbf76200a2b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/7ad963807369bc92.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/73e0e809368463a4.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/8a57f402190509ee.css",
+          "status": 200
+        },
+        {
+          "url": "https://prd-api.china-airlines.com/us/en/Images/logo-light-en_tcm517-72169.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/e299cc06325667e0.css",
+          "status": 200
+        },
+        {
+          "url": "https://prd-api.china-airlines.com/us/en/Images/logo-dark-en_tcm517-72168.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/cf0b261d7b22ad2b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/549cba3fe396061f.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/9bb849aed3584536.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/71b5fc49cb6f7f6a.css",
+          "status": 200
+        }
+      ]
+    },
+    "get_all_baggage": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_baggage\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:32.930800+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.china-airlines.com/us/en",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtm.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/c1f6ba4b87ce5c8a.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/7cfe79a1a41c5b5b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/549cba3fe396061f.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/e299cc06325667e0.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/1657b67b7317f6ed.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/45f610d6d24f35e9.css",
+          "status": 200
+        },
+        {
+          "url": "https://prd-api.china-airlines.com/us/en/Images/logo-light-en_tcm517-72169.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/c96cd3cdbd83efa2.css",
+          "status": 200
+        },
+        {
+          "url": "https://prd-api.china-airlines.com/us/en/Images/logo-dark-en_tcm517-72168.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/58abe0eccaecf98e.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/b722bdbf76200a2b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/2a6399ff9b77e8c2.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/73e0e809368463a4.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/8a57f402190509ee.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/7ad963807369bc92.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/cf0b261d7b22ad2b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/71b5fc49cb6f7f6a.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.china-airlines.com/_next/static/css/9bb849aed3584536.css",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

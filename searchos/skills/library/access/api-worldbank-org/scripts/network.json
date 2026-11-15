@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_indicator_data": "direct",
+    "list_indicators": "direct",
+    "list_countries": "direct",
+    "get_country_info": "direct",
+    "get_indicator_info": "direct"
+  },
+  "aliases": {
+    "get_indicator_data": "get_indicator_data",
+    "list_countries": "list_countries",
+    "list_indicators": "list_indicators",
+    "get_indicator_info": "get_indicator_info",
+    "get_country_info": "get_country_info",
+    "run": "get_country_info"
+  }
+}

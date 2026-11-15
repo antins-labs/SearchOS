@@ -45,8 +45,7 @@ async def infer_requests(signal: SkillSignal, *, model: Any = None,
         if signal.trace_path is not None:
             content += '\n' + signal.trace_path.read_text(encoding='utf-8')
         if signal.kind == 'trace':
-            from searchos.skills.intent.context import trace_context
-            content = trace_context(content)
+            content = _trace.trace_context(content)
         if len(content) > 64000:
             content = content[:16000] + '\n[中间轨迹已省略]\n' + content[-47000:]
         existing = []

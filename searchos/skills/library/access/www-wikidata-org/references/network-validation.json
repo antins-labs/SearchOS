@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "a3c5bd4342ae9a6426ed9267cb628b092f20efafdd6bff6b649afc806d04c0c8",
+  "capabilities": {
+    "get_item": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_item\", \"item_id\": \"Q926972\", \"language\": \"en\", \"include_sitelinks\": true, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.134473+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.wikidata.org/wiki/Q926972",
+          "status": 200
+        }
+      ]
+    },
+    "search_items": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_items\", \"query\": \"Michael Scott Apple\", \"limit\": 3, \"language\": \"en\", \"include_sitelinks\": true}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.136517+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.wikidata.org/w/index.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.wikidata.org/w/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.wikidata.org/static/images/mobile/copyright/wikidatawiki-wordmark.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.wikidata.org/static/images/icons/wikidatawiki.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.wikidata.org/static/images/footer/wikimedia-button.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.wikidata.org/w/resources/assets/poweredby_mediawiki.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Special:CentralAutoLogin/start",
+          "status": 302
+        },
+        {
+          "url": "https://www.wikidata.org/w/api.php",
+          "status": 200
+        },
+        {
+          "url": "https://auth.wikimedia.org/metawiki/wiki/Special:CentralAutoLogin/checkLoggedIn",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

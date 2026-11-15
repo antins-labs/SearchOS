@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_universities": "inherit",
+    "list_subjects": "inherit",
+    "get_rankings": "inherit"
+  },
+  "aliases": {
+    "list_subjects": "list_subjects",
+    "get_rankings": "get_rankings",
+    "search_universities": "search_universities",
+    "run": "search_universities"
+  }
+}

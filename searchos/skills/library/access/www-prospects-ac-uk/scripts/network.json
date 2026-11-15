@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_course": "proxy",
+    "get_courses": "direct"
+  },
+  "aliases": {
+    "get_course": "get_course",
+    "get_courses": "get_courses",
+    "run": "get_courses"
+  }
+}

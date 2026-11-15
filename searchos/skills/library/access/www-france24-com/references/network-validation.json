@@ -1,0 +1,177 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "194696006965210c4f114a521d9206389bfa43b155fe28f4bf32186196d1736c",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.france24.com/en/europe/20260722-fast-moving-wildfire-forces-hundreds-of-evacuations-in-southern-france\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.067338+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.france24.com/en/europe/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/css/root.d116f5bfc4188b425c6d.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/css/article.6abce05101bc530398b6.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/fonts/inter_latin.640b10a7966d94927c2ec64a71918e48.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/images/svg/sprite.68b43361c11f23b39049016b32e6ae31.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/js/main.0369115f3bef9cb1e6ce.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/js/vendor.0369115f3bef9cb1e6ce.js",
+          "status": 200
+        },
+        {
+          "url": "https://consent.fmm.io/[redacted]/loader.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/en/_ws/urgent",
+          "status": 200
+        },
+        {
+          "url": "https://s.france24.com/media/display/[redacted]/w:1024/p:16x9/000-C2N23P7.webp",
+          "status": 200
+        },
+        {
+          "url": "https://tms.fmm.io/f24/en.js",
+          "status": 200
+        },
+        {
+          "url": "https://s.france24.com/media/display/[redacted]/w:280/p:16x9/AP03073006669.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/5351.1d4599263f000dafb15e.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/3363.7659fbd7b78d959debfb.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/729.1eb5192dde4b66241616.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/5470.bd33a0103b441aa5aff6.js",
+          "status": 200
+        },
+        {
+          "url": "https://s.france24.com/media/display/[redacted]/w:280/p:16x9/AP26197353090488.webp",
+          "status": 200
+        },
+        {
+          "url": "https://consent.fmm.io/sdk/[redacted]/modern/sdk.ab55cd9c975ee9186f14921f25d9e95b76f65cc5.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_section": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_section\", \"section\": \"france\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:02.447384+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.france24.com/en/france/",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/css/root.1ce0ac1c969a7bc32a81.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/css/page-builder.bbf828fb4330e114a900.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/images/svg/sprite.68b43361c11f23b39049016b32e6ae31.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/fonts/inter_latin.640b10a7966d94927c2ec64a71918e48.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/js/main.10533426584a44acf518.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/build/js/vendor.10533426584a44acf518.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.france24.com/en/_ws/urgent",
+          "status": 200
+        },
+        {
+          "url": "https://s.france24.com/media/display/[redacted]/w:720/p:16x9/EN-20261022-210133-211454-CS.webp",
+          "status": 200
+        },
+        {
+          "url": "https://s.france24.com/media/display/[redacted]/w:388/p:16x9/000-D3N97W4.webp",
+          "status": 200
+        },
+        {
+          "url": "https://s.france24.com/media/display/[redacted]/w:388/p:16x9/EN-20261022-150642-150910-CS.webp",
+          "status": 200
+        },
+        {
+          "url": "https://s.france24.com/media/display/[redacted]/w:388/p:16x9/capture-1d521ee2.webp",
+          "status": 200
+        },
+        {
+          "url": "https://s.france24.com/media/display/[redacted]/w:388/p:16x9/EN-Thumbnail-4.webp",
+          "status": 200
+        },
+        {
+          "url": "https://s.france24.com/media/display/[redacted]/w:388/p:16x9/capture-94c7ef8b.webp",
+          "status": 200
+        },
+        {
+          "url": "https://consent.fmm.io/[redacted]/loader.js",
+          "status": 200
+        },
+        {
+          "url": "https://s.france24.com/media/display/[redacted]/w:388/p:16x9/AP25281484289422.webp",
+          "status": 200
+        },
+        {
+          "url": "https://s.france24.com/media/display/[redacted]/w:388/p:16x9/d592333533499279ffb58a79a25ddfd8934c59b0.webp",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

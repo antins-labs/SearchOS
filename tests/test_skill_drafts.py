@@ -62,7 +62,7 @@ async def test_exhaustion_saves_complete_draft_and_resume_repairs_it(tmp_path, m
     assert await build_skill('example.com', [], builder_model=Repair(), output_dir=target,
         record_dir=second, max_turns=2, resume_draft=first / 'draft.json') == target
     from searchos.skills.core.capabilities import read_capability_results
-    from searchos.skills.core.schema import parse_skill_file
+    from searchos.skills.core.skill_markdown import parse_skill_file
     installed = parse_skill_file(target / 'SKILL.md')
     assert 'python scripts/search.py' in installed.body
     assert read_capability_results(installed)['package']['status'] == 'available'

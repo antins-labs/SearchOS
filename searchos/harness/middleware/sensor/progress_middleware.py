@@ -9,15 +9,15 @@ from langchain.agents.middleware.types import AgentMiddleware
 
 from searchos.harness.middleware.extraction import ExtractionCoordinator
 from searchos.harness.middleware.models import TaskContext
-from searchos.harness.middleware.sensor.core.models import ControlState, mark_agent_status
-from searchos.harness.middleware.sensor.utils.outcomes import tool_outcome
-from searchos.harness.middleware.sensor.utils.progress import task_progress
+from searchos.harness.middleware.sensor.core.run_state import ControlState, mark_agent_status
+from searchos.harness.middleware.sensor.core.task_progress import task_progress
+from searchos.harness.middleware.sensor.utils.tool_outcomes import tool_outcome
+from searchos.harness.middleware.tool_costs import tool_costs
 from searchos.harness.middleware.utils.messages import (
     append_feedback,
     extract_tool_name,
     is_blocked,
 )
-from searchos.harness.middleware.utils.tools import tool_costs
 
 
 class ReadingProgressMiddleware(AgentMiddleware):
@@ -103,7 +103,9 @@ class ToolProgressMiddleware(AgentMiddleware):
         )
 
     def observe(self, name: str, delta: Any, result: Any, args: Any = None) -> Any:
-        if self.control.stopped or self.limit <= 0 or not tool_costs(name, args):
+        if self.control.stopped or self.limit <= 0:
+            return result
+        if name != "exec" and not tool_costs(name, args):
             return result
         if delta.coverage_gain > 0 or delta.new_evidence_count > 0:
             self.empty_calls = 0

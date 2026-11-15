@@ -1,19 +1,7 @@
-"""Simple Browser (paper §4.2): search / open / find over a line-numbered
-page model, with swappable search providers and fetch backends.
+"""浏览器入口：tools、session、pages、images；后端与缓存在各自子包。"""
 
-Layout:
-- ``tools``   — the ``@tool`` shells + ``get_simple_browser_tools``
-- ``state``   — ``BrowserState``, fetch/persist, find matching, provider binding
-- ``render``  — HTML → line-numbered markdown (pure)
-- ``cache``   — disk fetch cache
-- ``result_pages`` — 技能执行结果页与资源索引
-- ``search/`` — search providers (serper / tavily / ragflow)
-- ``backend/``— fetch backends (aiohttp / crawl4ai / jina / search_engine)
-"""
-
-from searchos.tools.simple_browser.batch import explore_web
-from searchos.tools.simple_browser.render import PageContents, process_html
-from searchos.tools.simple_browser.state import (
+from searchos.tools.simple_browser.pages import PageContents, process_html
+from searchos.tools.simple_browser.session import (
     FETCH_ERROR_SENTINEL,
     BrowserState,
     _get_browser,
@@ -22,6 +10,7 @@ from searchos.tools.simple_browser.state import (
     set_browser_provider,
 )
 from searchos.tools.simple_browser.tools import (
+    explore_web,
     find,
     get_simple_browser_tools,
     open,

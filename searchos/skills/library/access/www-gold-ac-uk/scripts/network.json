@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_course_details": "direct",
+    "search_courses": "direct",
+    "get_department_info": "direct",
+    "get_filters": "direct"
+  },
+  "aliases": {
+    "search_courses": "search_courses",
+    "get_course_details": "get_course_details",
+    "get_filters": "get_filters",
+    "get_department_info": "get_department_info",
+    "run": "get_department_info"
+  }
+}

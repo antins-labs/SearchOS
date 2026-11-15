@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_posts": "direct",
+    "get_technical_papers": "direct",
+    "get_award_winners": "direct"
+  },
+  "aliases": {
+    "get_award_winners": "get_award_winners",
+    "get_technical_papers": "get_technical_papers",
+    "search_posts": "search_posts",
+    "run": "search_posts"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_changes": "direct",
+    "get_holdings": "direct"
+  },
+  "aliases": {
+    "get_holdings": "get_holdings",
+    "get_changes": "get_changes",
+    "run": "get_changes"
+  }
+}

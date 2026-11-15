@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "89d32d12e2b0ae7a28bcdf2fa2da461a8529e40dac3206bcbd97b03fe938e746",
+  "capabilities": {
+    "get_mascot": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_mascot\", \"name\": \"Izzy\", \"include_content\": true, \"include_sections\": true, \"max_content_paragraphs\": 10, \"min_size\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.794274+00:00",
+      "reason": "Network error: 403, message='Forbidden', url='https://mascots.fandom.com/api.php?action=parse&page=Izzy&prop=text%7Csections%7Cdisplaytitle%7Cproperties&redirects=true&format=json'",
+      "source_responses": [
+        {
+          "url": "https://mascots.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "search_mascots": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_mascots\", \"query\": \"Olympic\", \"limit\": 3, \"include_content\": true, \"include_sections\": true, \"max_content_paragraphs\": 10, \"min_size\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.795023+00:00",
+      "reason": "Network error: 403, message='Forbidden', url='https://mascots.fandom.com/api.php?action=opensearch&search=Olympic&limit=3&format=json'",
+      "source_responses": [
+        {
+          "url": "https://mascots.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "list_category": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_category\", \"category\": \"Summer Olympic Mascots\", \"limit\": 3, \"include_content\": true, \"include_sections\": true, \"max_content_paragraphs\": 10, \"min_size\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.795087+00:00",
+      "reason": "Network error: 403, message='Forbidden', url='https://mascots.fandom.com/api.php?action=query&list=categorymembers&cmtitle=Category:Summer+Olympic+Mascots&cmlimit=3&cmtype=page&format=json'",
+      "source_responses": [
+        {
+          "url": "https://mascots.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "list_categories": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_categories\", \"limit\": 3, \"min_size\": 5, \"include_content\": true, \"include_sections\": true, \"max_content_paragraphs\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.795147+00:00",
+      "reason": "Network error: 403, message='Forbidden', url='https://mascots.fandom.com/api.php?action=query&list=allcategories&aclimit=3&acmin=5&format=json'",
+      "source_responses": [
+        {
+          "url": "https://mascots.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "list_pages": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_pages\", \"prefix\": \"Olympic\", \"limit\": 3, \"include_content\": true, \"include_sections\": true, \"max_content_paragraphs\": 10, \"min_size\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.795208+00:00",
+      "reason": "Network error: 403, message='Forbidden', url='https://mascots.fandom.com/api.php?action=query&list=allpages&aplimit=3&apprefix=Olympic&format=json'",
+      "source_responses": [
+        {
+          "url": "https://mascots.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_page_categories": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page_categories\", \"name\": \"Izzy\", \"include_content\": true, \"include_sections\": true, \"max_content_paragraphs\": 10, \"min_size\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.795271+00:00",
+      "reason": "Network error: 403, message='Forbidden', url='https://mascots.fandom.com/api.php?action=query&titles=Izzy&prop=categories&redirects=true&format=json'",
+      "source_responses": [
+        {
+          "url": "https://mascots.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

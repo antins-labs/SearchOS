@@ -4,6 +4,7 @@ import asyncio
 from contextlib import aclosing
 
 import pytest
+from searchos.socm.refs import row_key
 from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
 from langchain_core.messages import AIMessage
 from langchain_core.tools import tool
@@ -72,7 +73,7 @@ async def test_components_run_with_runtime_control():
     extraction = Extraction()
     control = ControlState()
     state = SearchState()
-    state.coverage_map.add_table("t", ["Name", "Credits"], primary_key=["Name"], entities=["Alpha"])
+    state.coverage_map.add_table("t", ["Name", "Credits"], primary_key=["Name"], entities=[row_key(["Alpha"])])
     graph = make_graph(
         extraction,
         middleware=[
@@ -206,7 +207,7 @@ def test_empty_list_does_not_install_resource_manager():
 async def test_direct_list_shares_stop_state_with_socm_without_callback():
     control = ControlState(forced=True, reason="budget_exhausted")
     state = SearchState()
-    state.coverage_map.add_table("t", ["Name", "Credits"], primary_key=["Name"], entities=["Alpha"])
+    state.coverage_map.add_table("t", ["Name", "Credits"], primary_key=["Name"], entities=[row_key(["Alpha"])])
     socm = SOCMContextMiddleware(InMemoryEvidenceStore(state), task=TaskContext("reader"))
     graph = make_graph(None, middleware=[socm], control=control)
     result = await graph.ainvoke(
@@ -234,11 +235,11 @@ async def test_default_pipelines_run_through_same_graph_entry(mode, monkeypatch)
     from tests.test_middleware_composition import FindingsJudge
 
     monkeypatch.setattr(settings, "use_layered_context", False)
-    workspace = InMemoryEvidenceStore(SearchState(research_mode="findings"))
+    workspace = InMemoryEvidenceStore(SearchState())
     from searchos.socm import FrontierTask
 
     workspace.state.frontier.add(
-        FrontierTask(id="task", question="Credits?", result_mode="findings")
+        FrontierTask(id="task", question="Credits?")
     )
     kwargs = dict(
         model=Model(
@@ -365,7 +366,7 @@ async def test_resource_wrapper_preserves_graph_and_schema_inspection():
 async def test_session_logger_records_tools_without_business_middleware(tmp_path):
     import json
 
-    from searchos.harness.telemetry.episodic import TrajectoryLogger
+    from searchos.harness.telemetry.trajectory import TrajectoryLogger
 
     path = tmp_path / "trajectory.jsonl"
     logger = TrajectoryLogger(path)
@@ -424,7 +425,7 @@ async def test_runtime_enforces_only_budget_signals_from_loaded_sensor(loaded):
 async def test_runtime_handles_image_fallback_without_business_middleware(monkeypatch):
     from langchain_core.messages import HumanMessage, ToolMessage
 
-    from searchos.tools.simple_browser import image_reading
+    from searchos.tools.simple_browser import images as image_reading
 
     calls = []
     marked = []
@@ -478,10 +479,10 @@ async def test_runtime_handles_image_fallback_without_business_middleware(monkey
 async def test_runtime_logs_socm_input_without_logger_dependency_in_socm(tmp_path):
     import json
 
-    from searchos.harness.telemetry.episodic import TrajectoryLogger
+    from searchos.harness.telemetry.trajectory import TrajectoryLogger
 
     state = SearchState()
-    state.coverage_map.add_table("t", ["Name", "Credits"], primary_key=["Name"], entities=["Alpha"])
+    state.coverage_map.add_table("t", ["Name", "Credits"], primary_key=["Name"], entities=[row_key(["Alpha"])])
     workspace = InMemoryEvidenceStore(state)
     logger = TrajectoryLogger(tmp_path / "socm.jsonl")
     socm = SOCMContextMiddleware(workspace, task=TaskContext(agent_id="reader"))

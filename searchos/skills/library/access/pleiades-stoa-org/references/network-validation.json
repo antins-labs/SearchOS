@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "83fb61461fa6f284b1c06d68a7b8d91444ba2606b667a34ac71f5eb632bacebf",
+  "capabilities": {
+    "get_place": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_place\", \"place_id\": \"154462177\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.840356+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://pleiades.stoa.org/places/154462177/json",
+          "status": 200
+        }
+      ]
+    },
+    "list_place_types": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_place_types\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.840845+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://pleiades.stoa.org/vocabularies/place-types",
+          "status": 200
+        }
+      ]
+    },
+    "list_time_periods": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_time_periods\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.840922+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "list_relationship_types": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_relationship_types\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.840995+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://pleiades.stoa.org/vocabularies/relationship-types",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

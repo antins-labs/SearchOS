@@ -9,6 +9,9 @@ Target URLs:
 - English: https://www.aeromexico.com/en-us/travel-information/baggage/carry-on-baggage
 - Spanish: https://www.aeromexico.com/es-us/informacion-de-vuelos/equipaje/equipaje-de-mano
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -155,13 +158,13 @@ async def _fetch_baggage_page(url: str, locale: str = 'en-US') -> dict:
     """Fetch and extract content from a baggage page"""
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
+        browser = await _skill_network.browser_launch(p.chromium, 
             headless=True,
             args=['--disable-blink-features=AutomationControlled']
         )
         
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 locale=locale,
                 viewport={"width": 1920, "height": 1080},
@@ -173,7 +176,7 @@ async def _fetch_baggage_page(url: str, locale: str = 'en-US') -> dict:
                 Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
             """)
             
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate with multiple wait strategies
             try:
@@ -238,12 +241,12 @@ async def check_site_status(params: dict) -> dict:
     url = "https://www.aeromexico.com/en-us"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until="domcontentloaded", timeout=30000)
             await asyncio.sleep(2)
@@ -272,6 +275,7 @@ async def check_site_status(params: dict) -> dict:
 
 
 # Main execute function
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Aeromexico baggage information retrieval.

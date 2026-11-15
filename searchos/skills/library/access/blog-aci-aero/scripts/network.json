@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_rankings": "direct",
+    "get_article": "direct",
+    "get_all": "direct",
+    "get_ranking_tables": "direct",
+    "get_statistics": "direct",
+    "search_airport": "direct"
+  },
+  "aliases": {
+    "get_rankings": "get_rankings",
+    "get_statistics": "get_statistics",
+    "get_article": "get_article",
+    "get_ranking_tables": "get_ranking_tables",
+    "search_airport": "search_airport",
+    "get_all": "get_all",
+    "run": "get_all"
+  }
+}

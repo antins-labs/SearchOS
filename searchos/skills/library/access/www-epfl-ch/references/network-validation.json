@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2df8354d6b53f7c6142172a9b6f9119533089d9993d27a4a7ae7a2c8ce862c07",
+  "capabilities": {
+    "get_contact_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_contact_info\", \"lang\": \"en\", \"campus\": \"all\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.036672+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.epfl.ch/about/contact-en/",
+          "status": 200
+        }
+      ]
+    },
+    "get_campus_location": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_campus_location\", \"campus\": \"lausanne\", \"lang\": \"en\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.037852+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.epfl.ch/campus/visitors/coming-to-epfl/",
+          "status": 200
+        }
+      ]
+    },
+    "get_page_content": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page_content\", \"path\": \"/about/en/about/\", \"lang\": \"en\", \"campus\": \"all\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.037977+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.epfl.ch/about/en/about/",
+          "status": 301
+        },
+        {
+          "url": "https://www.epfl.ch/about/",
+          "status": 200
+        }
+      ]
+    },
+    "search_pages": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_pages\", \"query\": \"computer science\", \"limit\": 3, \"lang\": \"en\", \"campus\": \"all\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.038154+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.epfl.ch/en/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_programs": "direct",
+    "get_program": "direct",
+    "get_applying_info": "direct"
+  },
+  "aliases": {
+    "list_programs": "list_programs",
+    "get_program": "get_program",
+    "get_applying_info": "get_applying_info",
+    "run": "get_applying_info"
+  }
+}

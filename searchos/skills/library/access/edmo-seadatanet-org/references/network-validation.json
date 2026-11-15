@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2e3667d5906f7962cdf15d6d7fbd7066df90cc793ac6e5660d7fe52d8c4af6b1",
+  "capabilities": {
+    "get_organization": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_organization\", \"edmo_id\": \"4830\", \"existing_only\": \"true\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.597292+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://edmo.seadatanet.org/report/4830",
+          "status": 200
+        }
+      ]
+    },
+    "search_organizations": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_organizations\", \"name\": \"Marine\", \"existing_only\": \"true\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.597912+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://edmo.seadatanet.org/v_edmo/browse_export.asp",
+          "status": 200
+        }
+      ]
+    },
+    "list_organizations": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_organizations\", \"limit\": \"100\", \"existing_only\": \"true\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.597988+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://edmo.seadatanet.org/v_edmo/browse_export.asp",
+          "status": 200
+        }
+      ]
+    },
+    "get_countries": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_countries\", \"existing_only\": \"true\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.598056+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/edmo-seadatanet-org/scripts/source.py",
+        "line": 449,
+        "end_line": 460,
+        "implementation": "get_country_list",
+        "source_sha256": "ee55074f1f073c9dad574a849d7160c4df0e6fec7e0d2015fa89f5c094efadb8",
+        "implementation_sha256": "f9643cd283de06e2d80b493fe30f6243df792c6ca26678d7260d1ba520571001"
+      }
+    }
+  }
+}

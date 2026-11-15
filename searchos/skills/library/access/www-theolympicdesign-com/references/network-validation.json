@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1ad85cf05b61a5d13569174ae562ed92828d757dae4cc1f66c77d9be576e9c85",
+  "capabilities": {
+    "get_record": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_record\", \"slug\": \"atlanta-1996\", \"category\": \"mascots\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.317121+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.theolympicdesign.com/olympic-games/mascots/atlanta-1996/",
+          "status": 200
+        }
+      ]
+    },
+    "list_records": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_records\", \"category\": \"mascots\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.328700+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.theolympicdesign.com/olympic-games/mascots/atlanta-1996/",
+          "status": 200
+        }
+      ]
+    },
+    "search_records": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_records\", \"query\": \"london\", \"category\": \"mascots\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.329840+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.theolympicdesign.com/olympic-games/mascots/atlanta-1996/",
+          "status": 200
+        }
+      ]
+    },
+    "get_multiple_records": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_multiple_records\", \"slugs\": [\"atlanta-1996\", \"london-2012\", \"beijing-2008\"], \"category\": \"mascots\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.331151+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.theolympicdesign.com/olympic-games/mascots/atlanta-1996/",
+          "status": 200
+        },
+        {
+          "url": "https://www.theolympicdesign.com/olympic-games/mascots/london-2012/",
+          "status": 200
+        },
+        {
+          "url": "https://www.theolympicdesign.com/olympic-games/mascots/beijing-2008/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

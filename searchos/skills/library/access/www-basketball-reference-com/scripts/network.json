@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_team_roster": "direct",
+    "list_tables": "direct",
+    "get_player_stats": "direct",
+    "get_boxscore": "direct",
+    "get_team_stats": "direct",
+    "get_table": "direct"
+  },
+  "aliases": {
+    "get_team_roster": "get_team_roster",
+    "get_player_stats": "get_player_stats",
+    "get_boxscore": "get_boxscore",
+    "get_table": "get_table",
+    "list_tables": "list_tables",
+    "run": "list_tables",
+    "get_team_stats": "get_team_stats"
+  }
+}

@@ -3,6 +3,7 @@
 import type { WSEvent } from "@/lib/types";
 import { Loader2, CheckCircle2, XCircle, Circle, ChevronRight } from "lucide-react";
 import { agentLabel, recentSteps, agentGoal, agentIssue } from "./trace";
+import { deriveStepCount } from "@/lib/runState";
 
 export interface AgentCardData {
   name: string;
@@ -37,10 +38,10 @@ export default function AgentCard({
   const steps = recentSteps(events, 2);
   const goal = agentGoal(events);
   const issue = agentIssue(events);
-  const stepCount = events.filter((e) => {
+  const stepCount = deriveStepCount(events) + events.filter((e) => {
     if (e.type !== "trajectory") return false;
     const data = (e.data ?? {}) as Record<string, unknown>;
-    return data.type === "step" || (
+    return (
       data.source_mode === "local"
       && (data.type === "task_start" || data.type === "task_complete")
     );
@@ -96,7 +97,7 @@ export default function AgentCard({
 
       {/* footer */}
       <div className="flex items-center justify-between border-t border-line px-3 py-1.5 text-[10px] text-ink-dim">
-        <span>{stepCount} {stepCount === 1 ? "step" : "steps"}</span>
+        <span>{stepCount} 次工具调用</span>
         <span className="flex items-center gap-0.5 transition-colors group-hover:text-accent dark:group-hover:text-accent">
           trace <ChevronRight size={11} />
         </span>

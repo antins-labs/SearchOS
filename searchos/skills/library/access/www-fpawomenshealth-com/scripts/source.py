@@ -4,6 +4,9 @@ FPA Women's Health Clinic Location Scraper
 Fetches clinic location details including address, phone, hours, services,
 and coordinates from www.fpawomenshealth.com.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any, Dict, List, Optional
@@ -332,6 +335,7 @@ async def get_multiple_locations(params: Dict[str, Any], client: httpx.AsyncClie
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """Execute FPA Women's Health location queries.
     
@@ -357,7 +361,7 @@ async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
             'available_functions': ['list_locations', 'get_location', 'search_locations', 'get_multiple_locations']
         }
     
-    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0, follow_redirects=True) as client:
         if function == 'list_locations':
             return await list_locations(params, client)
         elif function == 'get_location':

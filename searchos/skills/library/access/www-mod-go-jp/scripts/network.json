@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_previous_ministers_en": "direct",
+    "get_profile": "direct",
+    "get_current_ministers_ja": "direct",
+    "get_previous_ministers_ja": "direct"
+  },
+  "aliases": {
+    "get_current_ministers_ja": "get_current_ministers_ja",
+    "get_previous_ministers_ja": "get_previous_ministers_ja",
+    "get_previous_ministers_en": "get_previous_ministers_en",
+    "get_profile": "get_profile",
+    "run": "get_profile"
+  }
+}

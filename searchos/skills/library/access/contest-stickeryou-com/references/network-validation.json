@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "433dbc1e18370369665504c34a3222b257ce771a71c6da7f15f4b521bda8c839",
+  "capabilities": {
+    "get_article": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://contest.stickeryou.com/stickeryou-news/new-olympic-sports-since-2000-a-modern-games-evolu\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.577582+00:00",
+      "reason": "Cannot connect to host contest.stickeryou.com:443 ssl:default [None]",
+      "source_responses": []
+    },
+    "get_news_listing": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_news_listing\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.578570+00:00",
+      "reason": "Cannot connect to host contest.stickeryou.com:443 ssl:default [None]",
+      "source_responses": []
+    },
+    "search_articles": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"query\": \"weather\", \"max_pages\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.578765+00:00",
+      "reason": "articles is empty",
+      "source_responses": []
+    }
+  }
+}

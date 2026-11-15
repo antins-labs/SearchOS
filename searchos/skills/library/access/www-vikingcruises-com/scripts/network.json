@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_cruise_details": "direct",
+    "get_pricing": "direct",
+    "search_cruises": "direct"
+  },
+  "aliases": {
+    "get_cruise_details": "get_cruise_details",
+    "get_pricing": "get_pricing",
+    "search_cruises": "search_cruises",
+    "run": "search_cruises"
+  }
+}

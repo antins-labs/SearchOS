@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "54bbd371e32098681214ebb2296297e4262d7d8dabbe6cffaed05c1bf92e9cc7",
+  "capabilities": {
+    "get_current_ministers_ja": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_current_ministers_ja\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.181027+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.mod.go.jp/j/profile/minister/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_previous_ministers_ja": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_previous_ministers_ja\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.183065+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.mod.go.jp/j/profile/minister/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_previous_ministers_en": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_previous_ministers_en\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.183320+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.mod.go.jp/en/about/previous_ministers.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_profile": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_profile\", \"url\": \"https://www.kantei.go.jp/jp/104/meibo/daijin/koizumi_shinjirou.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.183405+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.kantei.go.jp/jp/104/meibo/daijin/koizumi_shinjirou.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

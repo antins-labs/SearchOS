@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_test_reference_ranges": "direct",
+    "search_test": "direct"
+  },
+  "aliases": {
+    "get_test_reference_ranges": "get_test_reference_ranges",
+    "search_test": "search_test",
+    "run": "search_test"
+  }
+}

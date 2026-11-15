@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "df68a10f6b98f732bbfdd69054311c1200879ace60a82bf592e2dab6a7fc6409",
+  "capabilities": {
+    "list_categories": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_categories\", \"parse_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.979290+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_category_files": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_category_files\", \"category\": \"Budget Projections\", \"parse_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.980023+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_publication": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_publication\", \"publication_id\": \"59710\", \"parse_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.980118+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "download_file": {
+      "status": "incomplete",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"download_file\", \"parse_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.980186+00:00",
+      "reason": "documented input was rejected: Missing required parameter: url",
+      "source_responses": []
+    },
+    "get_catalog": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_catalog\", \"parse_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.980252+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search_sitemap": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_sitemap\", \"pattern\": \"budget\", \"parse_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.980324+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.cbo.gov/sitemap.xml",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

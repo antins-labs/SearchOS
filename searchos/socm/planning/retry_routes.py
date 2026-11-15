@@ -38,7 +38,7 @@ def call_routes(tool: str, args: dict) -> tuple[list[str], list[str]]:
     if tool in {"open", "read_visual"}:
         url = args.get("id_or_url", args.get("url", ""))
         if str(url).isdigit():
-            from searchos.tools.simple_browser.state import _get_browser
+            from searchos.tools.simple_browser.session import _get_browser
 
             browser = _get_browser()
             for key in reversed(browser.page_stack):
@@ -49,7 +49,7 @@ def call_routes(tool: str, args: dict) -> tuple[list[str], list[str]]:
         if isinstance(url, str) and url.startswith(("http://", "https://")):
             families.append(source_family(url))
     if tool == "find":
-        from searchos.tools.simple_browser.state import _get_browser, _get_source_page
+        from searchos.tools.simple_browser.session import _get_browser, _get_source_page
 
         browser = _get_browser()
         if browser.has_pages:
@@ -171,7 +171,7 @@ def route_signature(tool: str, args: dict) -> str:
     if tool in {"open", "read_visual"}:
         url = params.get("id_or_url", params.get("url", ""))
         if str(url).isdigit():
-            from searchos.tools.simple_browser.state import _get_browser
+            from searchos.tools.simple_browser.session import _get_browser
 
             browser = _get_browser()
             for key in reversed(browser.page_stack):
@@ -182,7 +182,7 @@ def route_signature(tool: str, args: dict) -> str:
         params.pop("id_or_url", None)
         params["url"] = url
     if tool == "find":
-        from searchos.tools.simple_browser.state import _get_browser, _get_source_page
+        from searchos.tools.simple_browser.session import _get_browser, _get_source_page
 
         browser = _get_browser()
         if browser.has_pages:

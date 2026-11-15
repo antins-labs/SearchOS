@@ -6,6 +6,9 @@ Supports:
 - Award ceremony listings (all categories and winners for a given year)
 - Category detail pages (winner and nominees with credits)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -53,7 +56,7 @@ async def fetch_award_ceremony(url: str) -> dict[str, Any]:
     Returns:
         Dict with ceremony info and list of categories with winners
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html = await fetch_html(url, session)
         soup = BeautifulSoup(html, 'html.parser')
         
@@ -121,7 +124,7 @@ async def fetch_category_details(url: str) -> dict[str, Any]:
     Returns:
         Dict with category info, winner, and nominees
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html = await fetch_html(url, session)
         soup = BeautifulSoup(html, 'html.parser')
         
@@ -249,7 +252,7 @@ async def search_awards_by_year(year: int) -> dict[str, Any]:
     url = f"https://www.grammy.com/awards/{ordinal.lower()}-annual-grammy-awards/"
     
     # Verify the URL exists
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_html(url, session)
             # Check if we got valid content
@@ -273,6 +276,7 @@ async def search_awards_by_year(year: int) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Grammy Awards skill.

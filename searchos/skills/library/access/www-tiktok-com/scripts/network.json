@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_creator_profile": "direct"
+  },
+  "aliases": {
+    "get_creator_profile": "get_creator_profile",
+    "run": "get_creator_profile"
+  }
+}

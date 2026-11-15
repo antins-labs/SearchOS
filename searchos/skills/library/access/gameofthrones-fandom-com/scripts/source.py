@@ -4,6 +4,9 @@ Game of Thrones Fandom Wiki Access Skill
 Fetches structured information from gameofthrones.fandom.com using the MediaWiki API.
 Reliably parses infobox data for characters, episodes, houses, locations, and more.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -35,7 +38,7 @@ INFOBOX_TEMPLATES = [
 
 async def fetch_api(params: dict) -> dict:
     """Make an API request to the Fandom wiki."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         url = f"{BASE_URL}?{urlencode(params)}"
         async with session.get(url, headers=HEADERS) as response:
             return await response.json()
@@ -454,6 +457,7 @@ async def get_section(title: str, section: str) -> dict:
     return {'error': 'No content found', 'title': title}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the Game of Thrones Fandom wiki access skill.

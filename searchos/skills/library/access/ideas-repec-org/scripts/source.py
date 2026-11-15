@@ -10,6 +10,9 @@ Supported functions:
 - search: Search for economic literature
 - get_citations: Get citation information for an article
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -547,6 +550,7 @@ async def get_citations(handle: str, client: httpx.AsyncClient) -> dict:
     return {'success': True, 'citations': citations}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute IDEAS/RePEc access skill.
@@ -564,7 +568,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     if not function:
         return {'error': 'Missing required parameter: function', 'error_code': 'MISSING_FUNCTION'}
     
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         follow_redirects=True,
         timeout=30.0,
         headers={

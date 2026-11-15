@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_article": "proxy",
+    "get_multiple_articles": "direct",
+    "search_pyramid_pages": "direct"
+  },
+  "aliases": {
+    "get_article": "get_article",
+    "get_multiple_articles": "get_multiple_articles",
+    "search_pyramid_pages": "search_pyramid_pages",
+    "run": "search_pyramid_pages"
+  }
+}

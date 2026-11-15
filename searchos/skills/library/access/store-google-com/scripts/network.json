@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_products": "direct",
+    "search_products": "direct",
+    "get_specs": "direct"
+  },
+  "aliases": {
+    "get_specs": "get_specs",
+    "list_products": "list_products",
+    "search_products": "search_products",
+    "run": "search_products"
+  }
+}

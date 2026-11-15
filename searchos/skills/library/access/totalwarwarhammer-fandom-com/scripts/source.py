@@ -12,6 +12,9 @@ Available functions:
 - get_backlinks: Get pages that link to a page
 - get_all_pages: Get a list of all wiki pages
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -453,6 +456,7 @@ async def get_all_pages(session: aiohttp.ClientSession, limit: int = 100) -> dic
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute a function to retrieve data from the Total War: Warhammer Fandom wiki.
@@ -469,7 +473,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     if not function:
         return {'error': 'Missing required parameter: function'}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             if function == 'get_page':
                 page_title = params.get('page_title') or params.get('title')

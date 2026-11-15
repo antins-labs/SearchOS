@@ -16,6 +16,7 @@ from searchos.skills.pipeline.access.session import (
     validate_repair_budget,
 )
 from searchos.skills.pipeline.access.tools.execute import BUILDER_EXEC_TOOL
+from searchos.skills.pipeline.access.tools.network import NETWORK_CHECK_TOOL
 from searchos.skills.pipeline.access.tools.files import (
     EDIT_FILE_TOOL,
     READ_FILE_TOOL,
@@ -24,13 +25,15 @@ from searchos.skills.pipeline.access.tools.files import (
 )
 from searchos.skills.pipeline.access.tools.web import TOOL_DEFINITIONS as BROWSER_TOOLS
 
-SEND_MESSAGE_TOOL = _tool('send_message', '向 validator 提交当前候选；调用方式、参数和输出说明写入 SKILL.md，Validator 自主阅读并验收。'
-    '向 planner 澄清业务范围或研究依据。宿主保存消息并顺序执行接收角色。', {
-    'role': {'type': 'string', 'enum': ['planner', 'builder', 'validator']},
-    'content': {'oneOf': [{'type': 'string'}, {'type': 'object'}]},
+SEND_MESSAGE_TOOL = _tool('send_message', '将当前候选包提交验收，或向 Planner 澄清业务范围和研究依据。'
+    '在 SKILL.md 中写明调用方式、参数和输出。工具记录消息并返回验收报告或 Planner 的答复。', {
+    'role': {'type': 'string', 'enum': ['planner', 'builder', 'validator'],
+             'description': 'Builder 可向 validator 提交候选，或向 planner 提问。'},
+    'content': {'oneOf': [{'type': 'string'}, {'type': 'object'}],
+                'description': '向 validator 提交时可传 {"request":"validate"}。向 planner 提问时传入问题文本或包含具体问题和观察的对象。'},
 }, ['role', 'content'])
 
-TOOL_DEFINITIONS = [*BROWSER_TOOLS, BUILDER_EXEC_TOOL, READ_FILE_TOOL,
+TOOL_DEFINITIONS = [*BROWSER_TOOLS, BUILDER_EXEC_TOOL, NETWORK_CHECK_TOOL, READ_FILE_TOOL,
                     WRITE_FILE_TOOL, EDIT_FILE_TOOL, SEND_MESSAGE_TOOL]
 
 class AccessBuilderAgent:
@@ -155,6 +158,7 @@ class AccessBuilderAgent:
             calls = getattr(response, 'tool_calls', None) or []
             self.messages.append(response)
             record.event('model_completed', turn=turn + 1, content=response.content,
+                         reasoning=(getattr(response, 'additional_kwargs', {}) or {}).get('reasoning_content'),
                          tool_calls=calls, usage=getattr(response, 'usage_metadata', None))
             for call in calls:
                 result = await run_tool(workspace, call)

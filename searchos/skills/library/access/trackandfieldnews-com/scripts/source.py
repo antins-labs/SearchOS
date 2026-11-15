@@ -3,6 +3,9 @@ Track & Field News Rankings Access Skill
 
 Fetches world and U.S. ranking data from trackandfieldnews.com articles.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -258,7 +261,7 @@ async def fetch_url(url: str, timeout: int = 30) -> str:
         'Accept-Language': 'en-US,en;q=0.5',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(
             url, 
             headers=headers, 
@@ -359,6 +362,7 @@ async def get_rankings_index(url: str = 'https://trackandfieldnews.com/track-fie
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx=None) -> Dict[str, Any]:
     """
     Main entry point for the Track & Field News rankings skill.

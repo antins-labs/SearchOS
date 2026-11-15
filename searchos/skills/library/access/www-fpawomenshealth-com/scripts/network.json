@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_multiple_locations": "direct",
+    "get_location": "direct",
+    "list_locations": "direct",
+    "search_locations": "direct"
+  },
+  "aliases": {
+    "list_locations": "list_locations",
+    "get_location": "get_location",
+    "search_locations": "search_locations",
+    "get_multiple_locations": "get_multiple_locations",
+    "run": "get_multiple_locations"
+  }
+}

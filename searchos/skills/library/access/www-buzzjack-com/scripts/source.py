@@ -10,6 +10,9 @@ TW LW PP WC Artist – Song
 
 Where TW=This Week, LW=Last Week, PP=Peak Position, WC=Weeks on Chart
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -131,7 +134,7 @@ async def _get_topic_posts(topic_url: str, page: int = None) -> dict:
     if page and page > 1:
         url = f"{url}/page/{page}/"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html = await _fetch_html(url, session)
         soup = BeautifulSoup(html, 'html.parser')
         
@@ -202,7 +205,7 @@ async def _get_forum_topics(forum_url: str, page: int = None) -> dict:
     if page and page > 1:
         url = f"{url}/page/{page}/"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html = await _fetch_html(url, session)
         soup = BeautifulSoup(html, 'html.parser')
         
@@ -396,6 +399,7 @@ async def list_forum_topics(params: dict) -> dict:
         return {'error': f'Error: {str(e)}', 'success': False, 'url': url}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the BuzzJack forums access skill.

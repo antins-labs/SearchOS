@@ -4,6 +4,9 @@ BBC Olympics Paris 2024 Medal Table Access Skill
 Fetches medal standings from BBC Sport Olympics Paris 2024 page.
 The data is embedded as JSON in the page's JavaScript __INITIAL_DATA__ variable.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 import json
@@ -21,6 +24,7 @@ except ImportError:
     BeautifulSoup = None
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute medal table query.
@@ -66,7 +70,7 @@ async def fetch_medal_data() -> dict[str, Any]:
     }
     
     try:
-        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        async with _skill_network.httpx_async_client(timeout=30.0, follow_redirects=True) as client:
             response = await client.get(url, headers=headers)
             response.raise_for_status()
             

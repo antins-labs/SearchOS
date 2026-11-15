@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "annual_reports": "direct",
+    "current_quarter": "direct",
+    "stock_quote": "direct",
+    "annual_report_detail": "direct",
+    "latest_earnings": "direct",
+    "earnings": "proxy",
+    "list_earnings_sections": "direct"
+  },
+  "aliases": {
+    "annual_reports": "annual_reports",
+    "annual_report_detail": "annual_report_detail",
+    "earnings": "earnings",
+    "current_quarter": "current_quarter",
+    "latest_earnings": "latest_earnings",
+    "list_earnings_sections": "list_earnings_sections",
+    "stock_quote": "stock_quote",
+    "run": "stock_quote"
+  }
+}

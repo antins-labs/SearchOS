@@ -6,6 +6,9 @@ Bypasses AWS WAF anti-bot protection using Playwright with stealth settings.
 
 Data is extracted from the __NEXT_DATA__ JSON embedded in the page.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -20,7 +23,7 @@ async def _fetch_awards_page(url: str, max_retries: int = 2) -> dict[str, Any]:
     for attempt in range(max_retries):
         try:
             async with async_playwright() as p:
-                browser = await p.chromium.launch(
+                browser = await _skill_network.browser_launch(p.chromium, 
                     headless=True,
                     args=[
                         '--disable-blink-features=AutomationControlled',
@@ -30,7 +33,7 @@ async def _fetch_awards_page(url: str, max_retries: int = 2) -> dict[str, Any]:
                 )
                 
                 try:
-                    context = await browser.new_context(
+                    context = await _skill_network.browser_new_context(browser, 
                         user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                         viewport={'width': 1920, 'height': 1080},
                         java_script_enabled=True,
@@ -44,7 +47,7 @@ async def _fetch_awards_page(url: str, max_retries: int = 2) -> dict[str, Any]:
                         });
                     """)
                     
-                    page = await context.new_page()
+                    page = await _skill_network.browser_new_page(context)
                     
                     # Navigate with retry logic
                     try:
@@ -392,6 +395,7 @@ async def get_awards(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the IMDb Awards skill.

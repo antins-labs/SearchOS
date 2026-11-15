@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3a8c1885662d74f73ebbd445a02e958b5263d71bb89bc09fb9ede19666335291",
+  "capabilities": {
+    "lookup_app": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"lookup_app\", \"app_id\": \"835599320\", \"country\": \"us\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.785405+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://itunes.apple.com/lookup",
+          "status": 200
+        }
+      ]
+    },
+    "lookup_by_bundle_id": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"lookup_by_bundle_id\", \"bundle_id\": \"com.burbn.instagram\", \"country\": \"us\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.826170+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://itunes.apple.com/lookup",
+          "status": 200
+        }
+      ]
+    },
+    "search_apps": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_apps\", \"query\": \"photo editor\", \"limit\": 3, \"country\": \"us\", \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.826438+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://itunes.apple.com/search",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

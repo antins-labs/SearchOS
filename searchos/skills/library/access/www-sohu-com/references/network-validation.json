@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "9de737948fa823b4602a93d4ab199faf1e528722b2f398087c78147409e461d9",
+  "capabilities": {
+    "fetch_article": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_article\", \"url\": \"https://www.sohu.com/a/748417406_484968\", \"extract_rankings\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.261415+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://www.sohu.com/a/748417406_484968",
+          "status": 403
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"extract_rankings\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.261967+00:00",
+      "reason": "Sohu search is not publicly available as an API. Please provide specific article URLs.",
+      "source_responses": []
+    }
+  }
+}

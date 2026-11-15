@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch_boss_page": "direct",
+    "fetch_all_pages": "direct"
+  },
+  "aliases": {
+    "fetch_boss_page": "fetch_boss_page",
+    "fetch_all_pages": "fetch_all_pages",
+    "run": "fetch_all_pages"
+  }
+}

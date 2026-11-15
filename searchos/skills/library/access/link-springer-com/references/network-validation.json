@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c88e523369c7d8a7ea10b7529fe919e1fca7a2f9ea8c25c15d29c72bac73fb01",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"doi\": \"10.1057/s41290-024-00210-2\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.770514+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://link.springer.com/article/10.1057/s41290-024-00210-2",
+          "status": 200
+        }
+      ]
+    },
+    "get_issue": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_issue\", \"journal_id\": \"41290\", \"volume\": \"12\", \"issue\": \"4\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.771040+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://link.springer.com/journal/41290/volumes-and-issues/12-4",
+          "status": 200
+        }
+      ]
+    },
+    "list_issues": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_issues\", \"journal_id\": \"41290\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.771121+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://link.springer.com/journal/41290/volumes-and-issues",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

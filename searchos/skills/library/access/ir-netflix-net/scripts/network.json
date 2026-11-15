@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_filings": "direct",
+    "get_event_years": "direct",
+    "get_annual_reports": "direct",
+    "get_sec_filings_years": "proxy",
+    "get_sec_filings": "proxy"
+  },
+  "aliases": {
+    "get_sec_filings_years": "get_sec_filings_years",
+    "get_sec_filings": "get_sec_filings",
+    "get_event_years": "get_event_years",
+    "get_annual_reports": "get_annual_reports",
+    "search_filings": "search_filings",
+    "run": "search_filings"
+  }
+}

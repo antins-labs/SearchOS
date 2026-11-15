@@ -13,6 +13,9 @@ Site structure:
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 import asyncio
 import json
 import re
@@ -20,6 +23,7 @@ from typing import Any
 from playwright.async_api import async_playwright, Browser, Page
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """Execute TheGlobalEconomy.com data retrieval."""
     function = params.get("function", "")
@@ -55,12 +59,12 @@ async def get_country_profile(params: dict[str, Any]) -> dict[str, Any]:
     url = f"https://www.theglobaleconomy.com/{country_code}/"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until="networkidle", timeout=60000)
             await page.wait_for_timeout(2000)
@@ -172,12 +176,12 @@ async def get_rankings(params: dict[str, Any]) -> dict[str, Any]:
         url = f"https://www.theglobaleconomy.com/rankings/{indicator}/"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until="domcontentloaded", timeout=45000)
             await page.wait_for_timeout(2000)
@@ -281,12 +285,12 @@ async def get_indicator_data(params: dict[str, Any]) -> dict[str, Any]:
     url = f"https://www.theglobaleconomy.com/{country_code}/{indicator}/"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Use longer timeout and only wait for domcontentloaded
             await page.goto(url, wait_until="domcontentloaded", timeout=60000)
@@ -381,12 +385,12 @@ async def list_countries(params: dict[str, Any]) -> dict[str, Any]:
     url = "https://www.theglobaleconomy.com/"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until="domcontentloaded", timeout=45000)
             await page.wait_for_timeout(2000)
@@ -427,12 +431,12 @@ async def list_indicators(params: dict[str, Any]) -> dict[str, Any]:
     url = "https://www.theglobaleconomy.com/indicators_list.php"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until="domcontentloaded", timeout=45000)
             await page.wait_for_timeout(2000)

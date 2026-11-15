@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_legislation": "direct",
+    "get_index": "direct",
+    "get_feed": "direct",
+    "get_xml": "direct",
+    "search": "direct"
+  },
+  "aliases": {
+    "get_legislation": "get_legislation",
+    "get_index": "get_index",
+    "get_feed": "get_feed",
+    "get_xml": "get_xml",
+    "search": "search",
+    "run": "search"
+  }
+}

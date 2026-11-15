@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_parks": "direct",
+    "get_summary": "direct",
+    "get_park_data": "direct"
+  },
+  "aliases": {
+    "get_park_data": "get_park_data",
+    "list_parks": "list_parks",
+    "get_summary": "get_summary",
+    "run": "get_summary"
+  }
+}

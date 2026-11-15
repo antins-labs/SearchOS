@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d0f3c2ad6e0908c6476cabf86c0e9a6df3ef487902ee084d7e27b44d60410532",
+  "capabilities": {
+    "list_sites": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_sites\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.913630+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://world-heritage-datasheets.unep-wcmc.org/datasheet/output/",
+          "status": 200
+        }
+      ]
+    },
+    "get_site": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_site\", \"site_slug\": \"olympic-national-park\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.915757+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://world-heritage-datasheets.unep-wcmc.org/datasheet/output/site/olympic-national-park/",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"national park\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.916150+00:00",
+      "reason": "results is empty",
+      "source_responses": [
+        {
+          "url": "http://world-heritage-datasheets.unep-wcmc.org/datasheet/output/search.html",
+          "status": 200
+        }
+      ]
+    },
+    "list_countries": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_countries\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.916250+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://world-heritage-datasheets.unep-wcmc.org/datasheet/output/tags.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_sites_by_country": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sites_by_country\", \"country\": \"United States of America\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.916359+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://world-heritage-datasheets.unep-wcmc.org/datasheet/output/tags.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

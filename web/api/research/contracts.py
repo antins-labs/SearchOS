@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
+from searchos.socm.refs import CellRef
 
 
 class SkillOverrides(BaseModel):
@@ -18,6 +19,7 @@ class HistoryTurn(BaseModel):
     """One prior conversation turn, echoed back by the client for follow-ups."""
     query: str
     answer: str = ""
+    steers: list[str] = Field(default_factory=list)
 
 class LocalSourceRequest(BaseModel):
     library_id: str = Field(min_length=1, max_length=160)
@@ -40,7 +42,7 @@ class SourcesRequest(BaseModel):
 class SchemaTableRequest(BaseModel):
     table_id: str
     table_label: str | None = None
-    entities: list[str] | None = None
+    entities: list[dict[str, str]] | None = None
     attrs: list[str]
     primary_key: list[str] | None = None
     row_label: str | None = None
@@ -55,7 +57,7 @@ class SchemaRelationRequest(BaseModel):
 
 class SearchRequest(BaseModel):
     query: str
-    entities: list[str] | None = None
+    entities: list[dict[str, str]] | None = None
     attrs: list[str] | None = None
     table_label: str | None = None
     primary_key: list[str] | None = None
@@ -78,10 +80,8 @@ class SearchResponse(BaseModel):
     session_id: str
     status: str
 
-class RepairCellRequest(BaseModel):
-    table_id: str
-    entity: str
-    attribute: str
+class RepairCellRequest(CellRef):
+    pass
 
 class RepairRequest(BaseModel):
     # The selected cells are validated against the persisted CoverageMap below,

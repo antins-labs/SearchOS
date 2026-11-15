@@ -2,6 +2,9 @@
 Viking Cruises Access Skill
 Extracts cruise itinerary, pricing, and sailing information from vikingcruises.com
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -10,6 +13,7 @@ from typing import Any, Optional
 from urllib.parse import urlencode, urlparse, parse_qs
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Viking Cruises data extraction.
@@ -234,13 +238,13 @@ async def fetch_cruise_page(url: str, page_type: str = "itinerary", year: str = 
         return {"error": "Playwright not installed. Run: pip install playwright && playwright install chromium"}
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
+        browser = await _skill_network.browser_launch(p.chromium, 
             headless=True,
             args=['--disable-blink-features=AutomationControlled']
         )
         
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 locale='en-US',
                 viewport={'width': 1920, 'height': 1080},
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -258,7 +262,7 @@ async def fetch_cruise_page(url: str, page_type: str = "itinerary", year: str = 
                 }
             )
             
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             try:
                 await page.goto(url, wait_until='domcontentloaded', timeout=60000)

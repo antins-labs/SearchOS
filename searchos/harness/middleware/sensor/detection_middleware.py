@@ -12,8 +12,8 @@ from searchos.harness.middleware.sensor.core.loops import (
     ReadingReminderSensor,
     StateStallSensor,
 )
-from searchos.harness.middleware.sensor.core.models import ControlState
-from searchos.harness.middleware.sensor.utils.progress import task_progress
+from searchos.harness.middleware.sensor.core.run_state import ControlState
+from searchos.harness.middleware.sensor.core.task_progress import task_progress
 
 
 class _DetectionRecords:
@@ -109,7 +109,7 @@ class StateStallMiddleware(_SensorMiddleware):
 
 class DispatchRoundMiddleware(_SensorMiddleware):
     def __init__(self, control: ControlState, *, max_rounds: int) -> None:
-        from searchos.harness.middleware.sensor.core.dispatch_round_sensor import (
+        from searchos.harness.middleware.sensor.core.dispatch import (
             DispatchRoundSensor,
         )
 
@@ -127,7 +127,7 @@ class CoverageStallMiddleware(_SensorMiddleware):
         agent_graphs: Any,
         max_stalled_rounds: int = 3,
     ) -> None:
-        from searchos.harness.middleware.sensor.core.coverage_stall_sensor import (
+        from searchos.harness.middleware.sensor.core.dispatch import (
             CoverageStallSensor,
         )
 

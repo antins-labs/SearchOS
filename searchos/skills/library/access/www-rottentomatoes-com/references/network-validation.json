@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "0a35110ba36ceafe6555a86076e76c84b6b3d8d6d93b02dba0ca281fbd136842",
+  "capabilities": {
+    "get_movie": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_movie\", \"vanity\": \"oppenheimer_2023\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.240464+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.rottentomatoes.com/m/oppenheimer_2023",
+          "status": 200
+        }
+      ]
+    },
+    "get_tv_show": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tv_show\", \"vanity\": \"the_last_of_us\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.240974+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.rottentomatoes.com/tv/the_last_of_us",
+          "status": 200
+        }
+      ]
+    },
+    "get_seasons": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_seasons\", \"vanity\": \"stranger_things\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.241041+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.rottentomatoes.com/tv/stranger_things",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_url": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_url\", \"url\": \"https://www.rottentomatoes.com/tv/the_last_of_us/s01\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.241107+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.rottentomatoes.com/tv/the_last_of_us/s01",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

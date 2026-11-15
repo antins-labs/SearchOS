@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_states": "direct",
+    "list_cities": "direct",
+    "search": "direct",
+    "get_location": "direct",
+    "list_locations": "direct"
+  },
+  "aliases": {
+    "list_states": "list_states",
+    "list_cities": "list_cities",
+    "list_locations": "list_locations",
+    "get_location": "get_location",
+    "search": "search",
+    "run": "search"
+  }
+}

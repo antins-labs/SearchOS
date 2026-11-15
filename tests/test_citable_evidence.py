@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from searchos.socm import EvidenceNode, SearchState
+from searchos.socm.refs import row_key
 
 
 def state_with_unsourced_summary():
@@ -36,6 +37,7 @@ async def test_read_evidence_does_not_issue_citation_for_summary_without_source(
     assert nodes["summary"]["citation"] is None
     assert nodes["summary"]["citable"] is False
     assert nodes["summary"]["provenance_status"] == "original_source_missing"
+    assert all("provenance_note" not in node for node in nodes.values())
     assert nodes["original"]["citation"] == "evidence:original"
     assert nodes["original"]["citable"] is True
     assert nodes["original"]["provenance_status"] == "source_linked"
@@ -52,12 +54,11 @@ def test_task_report_keeps_summary_out_of_grounded_findings():
     ]}
     _ground_search_report(report, answer_evidence(state))
     assert [n["id"] for n in report["grounded_findings"]] == ["original"]
-    assert "evidence:summary" not in report["last_message"]
-    assert report["agent_report"]["verified"] is False
+    assert "last_message" not in report
+    assert report["agent_report"] == {"verified": False, "text": "Agent claims"}
     assert report["unlinked_findings"][0]["id"] == "summary"
     assert report["unlinked_findings"][0]["citation"] is None
     assert report["unlinked_findings_total"] == 1
-    assert "补充原文" in report["last_message"]
 
 
 @pytest.mark.asyncio
@@ -97,21 +98,29 @@ async def test_inspect_preserves_values_and_coverage_but_reports_citation_gaps(m
 
     state = SearchState()
     state.coverage_map.add_table(
-        "t", ["name", "value"], primary_key=["name"], entities=["Summary", "Original"]
+        "t", ["name", "value"], primary_key=["name"], entities=[row_key([name]) for name in ("Summary", "Original")]
     )
     commit_evidence(state, [
         EvidenceNode(id="summary", source="agent://worker/summary", table_id="t",
-                     entity="Summary", attribute="value", value="kept for audit", alignment="full"),
+                     entity=row_key(["Summary"]), attribute="value", value="kept for audit", alignment="full"),
         EvidenceNode(id="original", source="https://example.org/original", table_id="t",
-                     entity="Original", attribute="value", value="source value", alignment="full"),
+                     entity=row_key(["Original"]), attribute="value", value="source value", alignment="full"),
     ])
     before = state.model_dump()
     workspace = SimpleNamespace(load_state=lambda: state)
-    monkeypatch.setattr(schema.assertions, "_orch_ctx", lambda: SimpleNamespace(workspace=workspace))
-    result = json.loads(await schema.inspect_table.ainvoke({"table_id": "t"}))
-    assert result["values"]["Summary"]["value"] == "kept for audit"
-    assert result["citations"] == {"Original": {"value": "evidence:original"}}
-    assert result["citation_gaps"] == {"Summary": {"value": "original_source_missing"}}
+    for module in (schema.tables, schema.rows, schema.cells):
+        monkeypatch.setattr(module, '_ctx', SimpleNamespace(workspace=workspace))
+    result = json.loads(await schema.inspect_table.ainvoke({"table_id": "t", "with_values": True}))
+    assert dict(result["rows"]) == {"Summary": "kept for audit", "Original": "source value"}
+    for name, reference in (("Original", "evidence:original"), ("Summary", None)):
+        exact = json.loads(await schema.inspect_table.ainvoke({"row": {"table_id": "t", "key": [name]}}))
+        cell = exact["rows"][0][1]
+        assert cell["value"] == dict(result["rows"])[name]
+        if reference:
+            assert cell["citation"] == reference
+        else:
+            assert cell["citation_gap"] == "original_source_missing"
+            assert "citation" not in cell
     assert state.model_dump() == before
 
 
@@ -128,7 +137,7 @@ async def test_finalizer_keeps_unsourced_claim_as_explicit_gap():
         strategy=["deep"], evidence_obligations=["Can tomllib write?"],
         stop_rule="Verify source support and report remaining gaps.",
     )
-    state.coverage_map.add_table("t", ["name"], primary_key=["name"], entities=["tomllib"])
+    state.coverage_map.add_table("t", ["name"], primary_key=["name"], entities=[row_key(["tomllib"])])
     assert await finalize_research(
         state=state, query="Can tomllib write?", model=model, stop_reason="time_budget",
     ) == "Sources incomplete."

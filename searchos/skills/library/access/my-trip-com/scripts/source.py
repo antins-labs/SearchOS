@@ -4,6 +4,9 @@ Trip.com Travel Guide Attraction Extractor
 Extracts detailed attraction information from Trip.com travel guide pages.
 Data is extracted from embedded JSON in the HTML page.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -184,7 +187,7 @@ async def get_attraction_by_id(
     """
     timeout = aiohttp.ClientTimeout(total=30)
     
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(timeout=timeout) as session:
         try:
             html = await fetch_attraction_page(session, poi_id, locale, currency)
             
@@ -269,6 +272,7 @@ async def search_attractions(
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """Main entry point for Trip.com attraction extraction.
     

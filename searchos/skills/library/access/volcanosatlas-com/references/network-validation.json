@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "64f1c29c924432e7fc7eb0c40c6df8490846852b952b05052df01f8d8efc87b9",
+  "capabilities": {
+    "list_countries": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_countries\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.893599+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.volcanosatlas.com/countries",
+          "status": 200
+        }
+      ]
+    },
+    "get_country_volcanoes": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country_volcanoes\", \"country\": \"Chile\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.894518+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.volcanosatlas.com/volcanoes-in-chile",
+          "status": 200
+        }
+      ]
+    },
+    "get_volcano_detail": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_volcano_detail\", \"slug\": \"villarrica\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.896100+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.volcanosatlas.com/volcano/villarrica",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

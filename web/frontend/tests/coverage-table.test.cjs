@@ -12,6 +12,8 @@ function loadCoverageTable() {
     "utf8",
   );
   const helperExports = {};
+  const refs = {};
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/socmRefs.ts"), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports: refs });
   vm.runInNewContext(ts.transpileModule(helperSource, {
     compilerOptions: {
       module: ts.ModuleKind.CommonJS,
@@ -38,6 +40,7 @@ function loadCoverageTable() {
       if (name === "react-dom") return { createPortal: (element) => element };
       if (name === "./CellEvidencePopover") return { __esModule: true, default: () => null };
       if (name === "@/lib/coverageTables") return helperExports;
+      if (name === "@/lib/socmRefs") return refs;
       return require(name);
     },
   });
@@ -51,7 +54,7 @@ test("coverage renders every declared schema even when another table has cells",
   const coverageMap = {
     tables: {
       filled: {
-        table_id: "filled", table_label: "Filled table", entities: ["A"],
+        table_id: "filled", table_label: "Filled table", entities: [JSON.stringify(["A"])],
         attributes: ["Name", "Value"], primary_key: ["Name"], row_label: "Name",
       },
       empty: {
@@ -60,7 +63,7 @@ test("coverage renders every declared schema even when another table has cells",
       },
     },
     cells: {
-      "filled/A.Value": { status: "filled", value: "Ready", supporting_evidence_ids: [] },
+      [JSON.stringify(["filled", ["A"], "Value"])]: { status: "filled", value: "Ready", supporting_evidence_ids: [] },
     },
     relations: [],
   };
@@ -68,6 +71,7 @@ test("coverage renders every declared schema even when another table has cells",
   const html = renderToStaticMarkup(React.createElement(CoverageTable, { coverageMap }));
 
   assert.match(html, /Filled table/);
+  assert.match(html, /1\/1 \(100%\)/);
   assert.match(html, /Empty schema/);
   assert.match(html, /No rows yet/);
 });
@@ -79,7 +83,7 @@ test("coverage does not expose an internal placeholder as a declared schema", ()
   const coverageMap = {
     tables: {
       _default: {
-        table_id: "_default", table_label: "Internal placeholder", entities: ["query"],
+        table_id: "_default", table_label: "Internal placeholder", entities: [JSON.stringify(["query"])],
         attributes: ["value"],
       },
     },

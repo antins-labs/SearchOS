@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_vehicle_specs": "direct",
+    "get_trim_comparison": "direct"
+  },
+  "aliases": {
+    "get_trim_comparison": "get_trim_comparison",
+    "get_vehicle_specs": "get_vehicle_specs",
+    "run": "get_vehicle_specs"
+  }
+}

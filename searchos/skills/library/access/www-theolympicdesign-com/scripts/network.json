@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_records": "direct",
+    "get_record": "proxy",
+    "search_records": "direct",
+    "get_multiple_records": "direct"
+  },
+  "aliases": {
+    "get_record": "get_record",
+    "list_records": "list_records",
+    "search_records": "search_records",
+    "get_multiple_records": "get_multiple_records",
+    "run": "get_multiple_records"
+  }
+}

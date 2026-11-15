@@ -4,6 +4,9 @@ StatMuse Football Statistics Access Skill
 Fetches statistical query results from StatMuse FC (football) section.
 Parses HTML tables from statmuse.com/fc/ask pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -150,7 +153,7 @@ async def ask(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
             'message': 'Query parameter is required'
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html_content = await fetch_page(session, query)
         
         # Handle HTTP 422 (Unprocessable Entity) - StatMuse returns this for queries it doesn't understand
@@ -416,6 +419,7 @@ async def head_to_head(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """Main entry point for StatMuse skill.
     

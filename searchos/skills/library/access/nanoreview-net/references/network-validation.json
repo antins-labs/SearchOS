@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d89189a134d43ba074beb23d579d3111be17ca45a8da0bb2c98675e7d53ca7c6",
+  "capabilities": {
+    "get_chipset": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_chipset\", \"slug\": \"qualcomm-snapdragon-820\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.818599+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://nanoreview.net/en/soc/qualcomm-snapdragon-820",
+          "status": 200
+        }
+      ]
+    },
+    "get_phone": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_phone\", \"slug\": \"oneplus-13\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.819313+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://nanoreview.net/en/phone/oneplus-13",
+          "status": 200
+        }
+      ]
+    },
+    "get_cpu": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_cpu\", \"slug\": \"intel-core-i9-14900k\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.819387+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://nanoreview.net/en/cpu/intel-core-i9-14900k",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

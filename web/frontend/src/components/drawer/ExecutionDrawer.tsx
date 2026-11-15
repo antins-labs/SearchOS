@@ -282,7 +282,7 @@ export default function ExecutionDrawer({
         </div>
       </div>
 
-      <TraceDrawer worker={activeWorker} onClose={() => setTraceAgent(null)} />
+      <TraceDrawer worker={activeWorker} sessionId={sessionId} onClose={() => setTraceAgent(null)} />
     </div>
   );
 

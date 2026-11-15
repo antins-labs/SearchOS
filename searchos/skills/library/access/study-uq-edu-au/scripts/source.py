@@ -4,6 +4,9 @@ UQ Study Portal Access Skill
 Extracts program information from University of Queensland's study portal.
 Supports program search via JSON:API and detailed data extraction from HTML pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -399,6 +402,7 @@ async def list_all_programs(
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the UQ Study skill.
@@ -424,7 +428,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             "available_functions": ["get_program", "search_programs", "list_programs"]
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "get_program":
             program_code = params.get("program_code")
             if not program_code:

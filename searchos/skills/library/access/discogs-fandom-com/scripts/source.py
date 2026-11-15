@@ -5,6 +5,9 @@ Fetches album information from discogs.fandom.com Chinese wiki.
 Uses MediaWiki API to retrieve structured data about albums including
 infobox metadata and tracklists.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import re
@@ -347,6 +350,7 @@ async def get_album_info(session: aiohttp.ClientSession, title: str) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute a Discogs Fandom wiki query.
@@ -362,7 +366,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     if not function:
         return {"error": "Missing required parameter: function"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_page':
             title = params.get('title')
             if not title:

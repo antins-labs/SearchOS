@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "4e127bbfc222c00625fffea857b33ba837a53d8f49e0e2d8df5578256f4c23eb",
+  "capabilities": {
+    "awards_by_year": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"awards_by_year\", \"year\": 2024}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.957083+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.berlinale.de/en/archive/awards-juries/awards.html/y=2024/o=desc/p=1/rp=100",
+          "status": 200
+        }
+      ]
+    },
+    "juries": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"juries\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.958079+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "biographies": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"biographies\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.958227+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.berlinale.de/en/festival/biographies/all-biographies.html",
+          "status": 200
+        }
+      ]
+    },
+    "biography_detail": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"biography_detail\", \"biography_url\": \"/en/festival/biographies/tricia-tuttle.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.958563+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.berlinale.de/en/festival/biographies/tricia-tuttle.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

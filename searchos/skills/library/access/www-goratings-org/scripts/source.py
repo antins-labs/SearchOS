@@ -3,6 +3,9 @@ GoRatings.org Access Skill
 
 Fetches Go player rankings, ratings, and game history from goratings.org.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -362,6 +365,7 @@ async def search_player(params: dict, session: aiohttp.ClientSession) -> dict:
         return {'success': False, 'error': str(e)}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict, ctx: Any = None) -> dict:
     """
     Main entry point for the GoRatings skill.
@@ -373,7 +377,7 @@ async def execute(params: dict, ctx: Any = None) -> dict:
     if not function:
         return {'success': False, 'error': 'function parameter is required'}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_rankings':
             return await get_rankings(params, session)
         elif function == 'get_ladies_rankings':

@@ -2,6 +2,9 @@
 Gamescom Exhibitor Search Skill
 Fetches exhibitor data from exhibitors.gamescom.global
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -90,13 +93,13 @@ async def _search_exhibitors(
     """Search for exhibitors with optional filters."""
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 locale='en-US'
             )
-            page_browser = await context.new_page()
+            page_browser = await _skill_network.browser_new_page(context)
             
             # Build search URL
             params = {
@@ -157,13 +160,13 @@ async def _get_exhibitor_detail(slug: str) -> dict:
     """Get detailed information about a specific exhibitor."""
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 locale='en-US'
             )
-            page_browser = await context.new_page()
+            page_browser = await _skill_network.browser_new_page(context)
             
             url = f"{BASE_URL}/en/exhibitor/{slug}/"
             await page_browser.goto(url, wait_until='domcontentloaded', timeout=60000)
@@ -251,13 +254,13 @@ async def _get_filter_options() -> dict:
     """Get available filter options (countries, halls, product sectors)."""
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 locale='en-US'
             )
-            page_browser = await context.new_page()
+            page_browser = await _skill_network.browser_new_page(context)
             
             await page_browser.goto(LIST_URL, wait_until='domcontentloaded', timeout=60000)
             await page_browser.wait_for_timeout(5000)
@@ -302,6 +305,7 @@ async def _get_filter_options() -> dict:
             await browser.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Gamescom exhibitor search.

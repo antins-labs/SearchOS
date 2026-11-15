@@ -1,5 +1,7 @@
 "use client";
 
+import { rowLabel } from "@/lib/socmRefs";
+
 import { useState, type KeyboardEvent } from "react";
 import {
   ArrowRight,
@@ -49,8 +51,8 @@ function ChangeRow({ change }: { change: CoverageCellDiff }) {
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <Icon className={`shrink-0 ${style.className}`} size={14} />
-          <span className="truncate text-[13px] font-medium text-ink" title={`${change.tableLabel} / ${change.entity} / ${change.attribute}`}>
-            {change.entity} · {change.attribute}
+          <span className="truncate text-[13px] font-medium text-ink" title={`${change.tableLabel} / ${rowLabel(change.entity)} / ${change.attribute}`}>
+            {rowLabel(change.entity)} · {change.attribute}
           </span>
         </div>
         <div className="ml-[22px] mt-0.5 truncate text-[11px] text-ink-faint">{change.tableLabel}</div>

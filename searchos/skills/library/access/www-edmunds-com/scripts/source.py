@@ -15,6 +15,9 @@ Data extracted:
 - Feature availability by trim
 - Pricing information
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -34,7 +37,7 @@ class EdmundsAccess:
     async def setup(self):
         """Initialize the browser with appropriate settings."""
         p = await async_playwright().start()
-        self.browser = await p.chromium.launch(
+        self.browser = await _skill_network.browser_launch(p.chromium, 
             headless=True,
             args=[
                 '--disable-blink-features=AutomationControlled',
@@ -43,7 +46,7 @@ class EdmundsAccess:
             ]
         )
         
-        self.context = await self.browser.new_context(
+        self.context = await _skill_network.browser_new_context(self.browser, 
             user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
             viewport={'width': 1920, 'height': 1080},
             screen={'width': 1920, 'height': 1080},
@@ -70,7 +73,7 @@ class EdmundsAccess:
             }
         ])
         
-        self.page = await self.context.new_page()
+        self.page = await _skill_network.browser_new_page(self.context)
         
         # Inject stealth scripts
         await self.page.add_init_script('''
@@ -354,6 +357,7 @@ class EdmundsAccess:
 _access: Optional[EdmundsAccess] = None
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main execution function for the Edmunds skill.

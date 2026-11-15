@@ -7,6 +7,9 @@ Extracts structured movie data from Douban's mobile API including:
 - Credits (cast and crew with roles)
 - User reviews and comments
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -57,7 +60,7 @@ async def fetch_movie_data(movie_id: str, endpoint: str = "", params: dict = Non
     if params:
         default_params.update(params)
     
-    async with httpx.AsyncClient(headers=HEADERS, timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(headers=HEADERS, timeout=30.0) as client:
         try:
             response = await client.get(url, params=default_params)
             response.raise_for_status()
@@ -334,6 +337,7 @@ async def get_movie_full(movie_id: str) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Douban movie API request.

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_events": "direct",
+    "get_countries": "direct",
+    "get_rankings": "direct"
+  },
+  "aliases": {
+    "get_rankings": "get_rankings",
+    "get_events": "get_events",
+    "get_countries": "get_countries",
+    "run": "get_countries"
+  }
+}

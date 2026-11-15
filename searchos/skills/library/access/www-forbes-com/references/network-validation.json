@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "35697b792f32cf1165b548b55686fe97f450c002959792749f19e5681dd46123",
+  "capabilities": {
+    "list": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list\", \"limit\": 3, \"offset\": 0, \"industry\": \"Technology\", \"country\": \"United States\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.056218+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.forbes.com/forbesapi/person/billionaires/2026/position/true.json",
+          "status": 200
+        }
+      ]
+    },
+    "profile": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"profile\", \"uri\": \"elon-musk\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.058025+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.forbes.com/forbesapi/person/elon-musk.json",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"Musk\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.058322+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "top": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"top\", \"count\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.058561+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.forbes.com/forbesapi/person/billionaires/2026/position/true.json",
+          "status": 200
+        }
+      ]
+    },
+    "stats": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"stats\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.058749+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.forbes.com/forbesapi/person/billionaires/2026/position/true.json",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d82d5064507f7a872c2a15abae63dba6e8418117034e80351bc68185ad1e63ff",
+  "capabilities": {
+    "get_post_by_slug": {
+      "status": "business_failure",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_post_by_slug\", \"slug\": \"super-bowl-viewership-breakdown-record-audience-were-more-people-watching\", \"include_content\": true, \"per_page\": 3, \"page\": 1, \"orderby\": \"count\", \"order\": \"desc\", \"hide_empty\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.264584+00:00",
+      "reason": "Redirect response '302 Found' for url 'https://www.sportsmediawatch.com/wp-json/wp/v2/posts?slug=super-bowl-viewership-breakdown-record-audience-were-more-people-watching'\nRedirect location: 'http://www.example.com'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/302",
+      "source_responses": [
+        {
+          "url": "https://www.sportsmediawatch.com/wp-json/wp/v2/posts",
+          "status": 302
+        }
+      ]
+    },
+    "get_post_by_id": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_post_by_id\", \"post_id\": 131208, \"include_content\": true, \"per_page\": 3, \"page\": 1, \"orderby\": \"count\", \"order\": \"desc\", \"hide_empty\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.266122+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.sportsmediawatch.com/wp-json/wp/v2/posts/131208",
+          "status": 200
+        }
+      ]
+    },
+    "search_posts": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_posts\", \"query\": \"super bowl ratings\", \"per_page\": 3, \"page\": 1, \"include_content\": false, \"orderby\": \"count\", \"order\": \"desc\", \"hide_empty\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.266390+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.sportsmediawatch.com/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    },
+    "get_posts_by_category": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_posts_by_category\", \"category\": \"nfl\", \"per_page\": 3, \"page\": 1, \"include_content\": false, \"orderby\": \"count\", \"order\": \"desc\", \"hide_empty\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.266556+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.sportsmediawatch.com/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    },
+    "get_posts_by_tag": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_posts_by_tag\", \"tag\": \"nfl-ratings\", \"per_page\": 3, \"page\": 1, \"include_content\": false, \"orderby\": \"count\", \"order\": \"desc\", \"hide_empty\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.266666+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.sportsmediawatch.com/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    },
+    "list_categories": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_categories\", \"per_page\": 3, \"orderby\": \"count\", \"order\": \"desc\", \"page\": 1, \"include_content\": false, \"hide_empty\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.266764+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.sportsmediawatch.com/wp-json/wp/v2/categories",
+          "status": 200
+        }
+      ]
+    },
+    "list_tags": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_tags\", \"per_page\": 3, \"orderby\": \"count\", \"order\": \"desc\", \"search\": \"ratings\", \"page\": 1, \"include_content\": false, \"hide_empty\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.267080+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.sportsmediawatch.com/wp-json/wp/v2/tags",
+          "status": 200
+        }
+      ]
+    },
+    "get_recent_posts": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_recent_posts\", \"per_page\": 3, \"page\": 1, \"include_content\": false, \"orderby\": \"count\", \"order\": \"desc\", \"hide_empty\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.267212+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.sportsmediawatch.com/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

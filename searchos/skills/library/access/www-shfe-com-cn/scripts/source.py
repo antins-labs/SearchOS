@@ -11,6 +11,9 @@ Data Structure:
 - Monthly options data includes: turnover, volume, open interest, exercise volume
 - Product configuration: details about all traded products (futures and options)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import json
@@ -401,6 +404,7 @@ async def get_top_instruments(
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute SHFE data retrieval.
@@ -435,7 +439,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
         }
     
     connector = aiohttp.TCPConnector(limit=5)
-    async with aiohttp.ClientSession(headers=HEADERS, connector=connector) as session:
+    async with _skill_network.aiohttp_session(headers=HEADERS, connector=connector) as session:
         
         if function == "get_monthly_futures":
             return await get_monthly_futures_data(

@@ -11,6 +11,7 @@ import TextField from "@/components/settings/controls/TextField";
 import KeyEditor from "@/components/settings/models/KeyEditor";
 import BackendDiagnosticPanel from "@/components/settings/diagnostics/BackendDiagnosticPanel";
 import Toggle from "@/components/settings/controls/Toggle";
+import NetworkSettings from "@/components/settings/diagnostics/NetworkSettings";
 
 const BROWSER_BACKENDS = ["jina", "aiohttp", "crawl4ai", "search_engine"];
 
@@ -33,7 +34,6 @@ export default function SearchSection() {
   const disabled = status !== "ready";
 
   const setAdvanced = (patch: {
-    https_proxy?: string;
     browser_disk_cache_dir?: string;
   }) =>
     mutate({
@@ -196,14 +196,6 @@ export default function SearchSection() {
             </Row>
           </>
         )}
-        <Row label={zh ? "自定义代理" : "Custom proxy"} hint={zh ? "联网请求使用的代理地址；留空表示不使用代理。" : "Proxy for outbound requests. Leave empty to disable."}>
-          <TextField
-            value={advanced.https_proxy}
-            onCommit={(v) => setAdvanced({ https_proxy: v })}
-            disabled={disabled}
-            placeholder="http://127.0.0.1:7890"
-          />
-        </Row>
         <Row label={zh ? "网页缓存目录" : "Page cache directory"} hint={zh ? "保存网页读取缓存；留空使用默认目录。" : "Stores fetched-page cache. Leave empty for the default directory."}>
           <TextField
             value={advanced.browser_disk_cache_dir}
@@ -213,6 +205,7 @@ export default function SearchSection() {
           />
         </Row>
       </Card>
+      <NetworkSettings disabled={disabled} />
       <div>
         <h3 className="mb-2 text-[14px] font-medium text-ink">{zh ? "连接测试" : "Connection tests"}</h3>
         <BackendDiagnosticPanel disabled={disabled} />

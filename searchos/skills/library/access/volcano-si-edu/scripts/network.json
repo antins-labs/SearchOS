@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_country_volcanos": "direct",
+    "get_volcano_details": "direct",
+    "check_access": "direct",
+    "get_ring_of_fire": "direct"
+  },
+  "aliases": {
+    "get_country_volcanos": "get_country_volcanos",
+    "get_volcano_details": "get_volcano_details",
+    "get_ring_of_fire": "get_ring_of_fire",
+    "check_access": "check_access",
+    "run": "check_access"
+  }
+}

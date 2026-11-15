@@ -269,14 +269,15 @@ def normalized(argv, *, route=False):
 
 
 def identity(command):
-    return command.get('capability_id', 'package'), tuple(normalized(command.get('argv', []))), command.get('stdin', '')
+    return (command.get('capability_id', 'package'), tuple(normalized(command.get('argv', []))),
+            command.get('stdin', ''), command.get('code', ''))
 
 
 def contract(command):
     return {key: deepcopy(command.get(key, default)) for key, default in {
         'capability_id': 'package', 'argv': [], 'expected_status': 'ok', 'check_kind': 'positive',
         'stdin': '', 'output': '', 'records_key': '', 'source_key': '', 'required_fields': [],
-        'regression_of': ''}.items()}
+        'regression_of': '', 'code': None}.items() if key != 'code' or command.get('code') is not None}
 
 
 def pending_commands(previous, cases, checks):
@@ -284,7 +285,7 @@ def pending_commands(previous, cases, checks):
     failed = {check['capability_id']: check for check in checks if check['status'] == 'failed'}
     passed = {check['capability_id']: check for check in checks if check.get('status') == 'passed'}
     for case in cases:
-        if case.get('check_kind') == 'contract' or is_advisory_case(case) or not case.get('argv'):
+        if case.get('check_kind') == 'contract' or is_advisory_case(case) or not (case.get('argv') or case.get('code')):
             continue
         item = contract(case.get('contract', case))
         key = identity(item)
@@ -327,15 +328,15 @@ def prepare_commands(previous, examples, plan=None, previous_cases=()):
     commands = deepcopy(previous)
     # 旧版本会在语义 passed 时清掉失败队列，从持久用例恢复遗漏的机器失败。
     for case in previous_cases:
-        if (case.get('status') == 'failed' and case.get('check_kind') != 'contract' and case.get('argv')
+        if (case.get('status') == 'failed' and case.get('check_kind') != 'contract' and (case.get('argv') or case.get('code'))
                 and not any(identity(item) == identity(case.get('contract', case)) for item in commands)):
             saved = case.get('contract', {key: case[key] for key in
-                ('capability_id', 'argv', 'expected_status', 'check_kind') if key in case})
+                ('capability_id', 'argv', 'code', 'expected_status', 'check_kind') if key in case})
             commands.append({**deepcopy(saved), 'reason': case.get('error', '原输入的机器检查失败'),
                              'execution_id': case.get('execution', {}).get('execution_id')})
     for old in commands:
         same_route = [example for example in examples if example.get('capability_id', 'package') == old.get('capability_id')
-                      and normalized(example['argv'], route=True) == normalized(old['argv'], route=True)]
+                      and normalized(example['argv'], route=True) == normalized(old.get('argv', []), route=True)]
         base = next((example for example in same_route if identity(example) == identity(old)),
                     next(iter(same_route), {}))
         prior = next((case for case in previous_cases if identity(case.get('contract', case)) == identity(old)), {})
@@ -441,8 +442,21 @@ class ValidationProgress:
     def validation_fingerprint(self):
         state = list(self.validation_state())
         state[5] = plan_requirements(state[5])
+        state.append(self.network_fingerprint)
+        state.append(self.browser_mode)
         raw = json.dumps(state, ensure_ascii=False, sort_keys=True).encode()
         return hashlib.sha256(raw).hexdigest()
+
+    @property
+    def network_fingerprint(self):
+        from searchos.network import current_context
+        return current_context().config.fingerprint
+
+    @property
+    def browser_mode(self):
+        from searchos.skills.runtime.browser_session import current_session
+        session = current_session.get()
+        return session.mode if session else None
 
 
     @staticmethod
@@ -471,8 +485,6 @@ class ValidationProgress:
                 raise ValueError('invalid example expected_status')
             if not isinstance(example.get('records_key', ''), str):
                 raise ValueError('example records_key must be a string')
-            if 'proxy_mode' in example or any(arg == '--proxy-mode' or arg.startswith('--proxy-mode=') for arg in argv):
-                raise ValueError('network configuration belongs in package functions; submit business arguments')
             _example_contract(example)
 
 
@@ -506,7 +518,14 @@ class ValidationProgress:
         plan = self.plan()
         definitions = contracts(self.capability_ids, self.examples, plan,
                                (self.require_host, self.expected_host, self.package.expected_name))
-        return index, definitions, validation_scope(index, definitions, self.last_validation)
+        scope = validation_scope(index, definitions, self.last_validation)
+        if self.last_validation and self.last_validation.get('network_fingerprint') != self.network_fingerprint:
+            scope.update(capability_ids=list(definitions), reused_capability_ids=[],
+                         reasons={cap: 'network_changed' for cap in definitions})
+        elif self.last_validation and self.last_validation.get('browser_mode') != self.browser_mode:
+            scope.update(capability_ids=list(definitions), reused_capability_ids=[],
+                         reasons={cap: 'browser_mode_changed' for cap in definitions})
+        return index, definitions, scope
 
 
     def merge_report(self, report):
@@ -527,13 +546,16 @@ class ValidationProgress:
         merged['external_commands'] = [contract(case.get('contract', case)) for case in merged.get('case_results', [])
                                        if case.get('external_blocked') and not is_advisory_case(case)]
         return {**merged,
+                'network_fingerprint': self.network_fingerprint,
+                'browser_mode': self.browser_mode,
                 'function_index': index, 'function_contracts': definitions,
                 'function_bindings': bindings, 'validation_scope': scope}
 
 
     def current_validation_report(self):
         fingerprint = self.validation_fingerprint()
-        if self.last_validation.get('candidate_fingerprint') == fingerprint:
+        if (self.last_validation.get('candidate_fingerprint') == fingerprint
+                and self.last_validation.get('network_fingerprint') == self.network_fingerprint):
             return self.validation_feedback(self.last_validation)
         _, _, scope = self._validation_scope()
         results = self.incomplete_results('当前候选版本尚未完成验收。')
@@ -719,12 +741,19 @@ class ValidationReview:
                 case["example"] = self.state["case_results"][previous]["example"]
                 self.state["case_results"][previous] = case
             result = {**result, "validation": case}
-            comparisons = self._parameter_comparisons(case)
-            if comparisons:
-                result['parameter_comparisons'] = comparisons
         self.state["observations"].append(
             {"id": oid, "tool": name, "args": deepcopy(args), "result": deepcopy(result)}
         )
+        if name == 'exec' and result.get('execution_id') and result.get('started') is not False and case is None:
+            owners = {old['capability_id'] for old in self.state['case_results']
+                if identity(old.get('contract', old))[1:] == identity(args)[1:]
+                and old.get('execution', {}).get('execution_id') != result['execution_id']}
+            if owners:
+                self.previous_regression_commands = self._regression_commands()
+                self.state['accepted_checks'] = [check for check in self.state.get('accepted_checks', [])
+                    if check['capability_id'] not in owners]
+                self.state['partial_report'] = self._semantic_report()
+                self.state['report_complete'] = False
         if case is not None:
             self._refresh_deterministic()
             if reopen:
@@ -734,49 +763,9 @@ class ValidationReview:
                 self.state["partial_report"] = self._semantic_report()
                 self.state["report_complete"] = False
         self.save()
-        if case is not None:
+        if case is not None or name == 'exec':
             self.on_progress(self.result())
         return {"observation_id": oid, **result}
-
-
-    def _parameter_comparisons(self, current):
-        """对同一能力的正常调用展示实际记录对照，语义由 Validator 核验。"""
-        if is_advisory_case(current) or not current.get('valid') or not current.get('record_summary'):
-            return []
-
-        def inputs(case):
-            argv = case.get('argv', [])
-            try:
-                value = json.loads(argv[argv.index('--input') + 1])
-                return value if isinstance(value, dict) else {'argv': argv[2:], 'stdin': case.get('contract', {}).get('stdin', '')}
-            except (ValueError, IndexError):
-                return {'argv': argv[2:], 'stdin': case.get('contract', {}).get('stdin', '')}
-
-        after = inputs(current)
-        if after is None:
-            return []
-        comparisons = []
-        for previous in self.state['case_results']:
-            if (previous.get('capability_id') != current['capability_id']
-                    or previous.get('candidate_version') != current['candidate_version']
-                    or is_advisory_case(previous) or not previous.get('valid')
-                    or not previous.get('record_summary')
-                    or normalized(previous.get('argv', []), route=True) != normalized(current['argv'], route=True)):
-                continue
-            before = inputs(previous)
-            if before is None or before == after:
-                continue
-            first, second = previous['record_summary'], current['record_summary']
-            comparisons.append({
-                'previous_execution_id': previous['execution']['execution_id'],
-                'current_execution_id': current['execution']['execution_id'],
-                'changed_inputs': sorted(key for key in before.keys() | after.keys()
-                                         if key not in before or key not in after or before[key] != after[key]),
-                'previous_count': first['count'], 'current_count': second['count'],
-                'same_records': first['records_sha256'] == second['records_sha256'],
-                'same_sources': first['sources_sha256'] == second['sources_sha256'],
-            })
-        return comparisons
 
 
     def _refresh_deterministic(self):
@@ -858,7 +847,9 @@ class ValidationReview:
 
 
     def execution_example(self, args):
-        capability, argv = args["capability_id"], args["argv"]
+        capability, argv = args["capability_id"], args.get("argv", [])
+        if args.get('check_kind', 'positive') not in {'positive', 'boundary'}:
+            raise ValueError('check_kind must be positive or boundary')
         pending = self._regression_commands()
         ref = args.get('regression_of')
         regression = next((item for item in pending if
@@ -873,7 +864,7 @@ class ValidationReview:
                     raise ValueError(f'regression {field} must retain the original business expectation')
         if not self.state.get('examples_locked'):
             selected = {key: deepcopy(args[key]) for key in
-                        ('capability_id', 'argv', 'stdin', 'output', 'regression_of') if key in args}
+                        ('capability_id', 'argv', 'code', 'stdin', 'output', 'regression_of') if key in args}
             selected['expected_status'] = (regression['expected_status'] if regression and not boundary_revision
                                            else args.get('expected_status', 'ok'))
             selected['check_kind'] = (regression['check_kind'] if regression and not boundary_revision
@@ -913,26 +904,22 @@ class ValidationReview:
         return selected
 
 
-    def _cli_evidence(self, capability, *, successful):
+    def _execution_evidence(self, capability, *, successful):
         observations = {item["id"]: item for item in self.state["observations"]}
         evidence = []
         for case in self.state["case_results"]:
             observation = observations.get(case.get("observation_id"), {})
             args, result = observation.get("args", {}), observation.get("result", {})
-            eid, argv = result.get("execution_id"), args.get("argv")
+            eid, argv = result.get("execution_id"), args.get("argv", [])
             if (is_advisory_case(case) or case.get("capability_id") != capability or observation.get("tool") != "exec"
-                    or args.get("capability_id") != capability or not isinstance(argv, list) or not argv
                     or result.get("started") is False or not eid or {"--help", "-h"}.intersection(argv)
-                    or identity(case.get('contract', case)) != identity(args)
                     or case.get("execution", {}).get("execution_id") != eid
                     or case.get("candidate_version") != self.state["candidate_version"]):
                 continue
             if successful and (case.get("status") != "passed" or not case.get("valid")
                     or case.get("check_kind") != "positive" or case.get("expected_status", "ok") != "ok"
                     or result.get("status") != "completed" or result.get("exit_code") != 0
-                    or result.get("error") or result.get("timed_out") or result.get("cancelled")
-                    or args.get("proxy_mode") is not None or result.get("diagnostic_network_override")
-                    or any(value == "--proxy-mode" or value.startswith("--proxy-mode=") for value in argv)):
+                    or result.get("error") or result.get("timed_out") or result.get("cancelled")):
                 continue
             evidence.append((eid, observation["id"]))
         return list(dict.fromkeys(evidence))
@@ -942,7 +929,7 @@ class ValidationReview:
         accepted = {check["capability_id"]: check["status"] for check in self.state.get("accepted_checks", [])}
         blocked = {cap for cap, item in self._capability_results().items() if item.get('external_blocked')}
         pending = [cap for cap in self.capabilities() if cap not in blocked and accepted.get(cap) not in {"passed", "failed"}]
-        missing = [cap for cap in pending if not self._cli_evidence(cap, successful=True)]
+        missing = [cap for cap in pending if not self._execution_evidence(cap, successful=True)]
         commands = []
         for cap in missing:
             example = next((example for example in self.state["examples"]
@@ -954,7 +941,11 @@ class ValidationReview:
         return {"accepted_capabilities": accepted, "pending_capabilities": pending,
                 "wait_external": sorted(blocked),
                 "pending_regressions": self._regression_instructions(),
-                "missing_independent_cli": missing, "suggested_commands": commands,
+                "missing_execution_evidence": missing, "suggested_commands": commands,
+                "executions": [{'execution_id': item['result']['execution_id'],
+                    'input': {key: value for key, value in item['args'].items() if key in {'argv', 'code', 'stdin'}},
+                    'status': item['result'].get('status'), 'exit_code': item['result'].get('exit_code')}
+                    for item in self.state['observations'] if item['tool'] == 'exec' and item['result'].get('execution_id')],
                 "validation_scope": self.state.get('validation_scope'),
                 "function_index_file": (self.state.get('function_index') or {}).get('index_file'),
                 "repair_budget": deepcopy(self.state.get("repair_budget"))}
@@ -974,7 +965,7 @@ class ValidationReview:
         return report
 
 
-    def submit(self, content):
+    def submit(self, content, *, bind_execution=None):
         required = set(self.capabilities())
         if (not isinstance(content, dict) or "checks" not in content
                 or set(content) - {"checks", "repair_budget"} or not isinstance(content["checks"], list)):
@@ -995,7 +986,7 @@ class ValidationReview:
                     raise ValueError(f"checks[{index}].capability_id must identify an existing capability")
                 if capability in duplicates:
                     raise ValueError(f"{capability}: submit one verdict per capability")
-                if set(check) - {"capability_id", "status", "reason", "intent_question", "execution_ids", "warnings"}:
+                if set(check) - {"capability_id", "status", "reason", "intent_question", "execution_ids", "executions", "warnings"}:
                     raise ValueError(f"{capability}: unknown capability verdict fields")
                 status = check.get("status")
                 if status not in {"passed", "failed", "uncertain"}:
@@ -1008,12 +999,42 @@ class ValidationReview:
                 question = check.get("intent_question")
                 if question is not None and (status != "uncertain" or not isinstance(question, str) or not question.strip()):
                     raise ValueError(f"{capability}: intent_question requires uncertain and nonempty text")
-                evidence = self._cli_evidence(capability, successful=status == "passed")
-                # 旧报告中的 execution_ids 由当前会话的真实证据覆盖。
+                if bind_execution is not None:
+                    references = check.get('executions', [])
+                    if not isinstance(references, list):
+                        raise ValueError('executions must be a list of execution references')
+                    if status in {'passed', 'failed'} and not references:
+                        raise ValueError(f'{capability}: {status} requires executions from this candidate session')
+                    bound = [bind_execution(capability, ref) for ref in references]
+                    self.previous_regression_commands = self._regression_commands()
+                    for case in bound:
+                        if ref := case['contract'].get('regression_of'):
+                            original = next((item for item in self.previous_regression_commands
+                                             if item.get('execution_id') == ref), None)
+                            if original:
+                                self.state['regression_contract_revisions'].append({
+                                    'previous_contract': deepcopy(original), 'revised_contract': deepcopy(case['contract']),
+                                    'execution_id': case.get('execution', {}).get('execution_id'),
+                                    'reason': 'Validator 使用当前接口复验原业务输入并在报告中核对。'})
+                        key = (identity(case['contract']), case['check_kind'])
+                        previous = next((i for i, old in enumerate(self.state['case_results'])
+                            if (identity(old.get('contract', old)), old['check_kind']) == key), None)
+                        if previous is None:
+                            case['example'] = len(self.state['case_results'])
+                            self.state['case_results'].append(case)
+                        else:
+                            case['example'] = self.state['case_results'][previous]['example']
+                            self.state['case_results'][previous] = case
+                    self._refresh_deterministic()
+                    selected_ids = {ref['execution_id'] for ref in references}
+                else:
+                    selected_ids = None
+                evidence = [(eid, oid) for eid, oid in self._execution_evidence(capability, successful=status == "passed")
+                            if selected_ids is None or eid in selected_ids]
                 if status in {"passed", "failed"} and not evidence:
                     raise ValueError(f"{capability}: {status} requires an independent "
                                      + ("successful " if status == "passed" else "")
-                                     + "CLI argv execution"
+                                     + "candidate execution"
                                      + (" using this capability's normal business route" if status == "passed"
                                         else " using normal business input with a recorded machine check; report boundary observations in warnings"))
                 purpose = next((cap.get("purpose", capability)
@@ -1069,7 +1090,7 @@ class ValidationReview:
 
     def _regression_instructions(self):
         return [{**item, 'exec': {key: deepcopy(item[key]) for key in
-            ('capability_id', 'argv', 'stdin', 'output', 'expected_status', 'check_kind')}}
+            ('argv', 'code', 'stdin') if key in item and (key != 'argv' or item[key])}}
             for item in self._regression_commands()]
 
 

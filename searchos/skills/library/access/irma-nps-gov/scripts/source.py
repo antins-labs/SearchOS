@@ -4,6 +4,9 @@ NPS IRMA DataStore Access Skill
 Fetches reference profiles, file listings, and tabular data from the 
 National Park Service Integrated Resource Management Applications (IRMA) DataStore.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import csv
@@ -15,6 +18,7 @@ from typing import Any
 import httpx
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute IRMA DataStore operations.
@@ -59,7 +63,7 @@ async def _fetch_url(url: str, params: dict = None, timeout: float = 60.0) -> ht
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     }
     
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         timeout=timeout,
         follow_redirects=True,
         headers=headers
@@ -211,7 +215,7 @@ async def download_file(params: dict[str, Any]) -> dict[str, Any]:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     }
     
-    async with httpx.AsyncClient(timeout=120.0, follow_redirects=True) as client:
+    async with _skill_network.httpx_async_client(timeout=120.0, follow_redirects=True) as client:
         # First, do a HEAD request to check size
         try:
             head_response = await client.head(url)

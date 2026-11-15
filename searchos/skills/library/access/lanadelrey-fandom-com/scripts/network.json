@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_infobox": "direct",
+    "search": "direct",
+    "get_category_pages": "direct",
+    "get_tracklist": "direct",
+    "get_page": "direct",
+    "get_section": "direct"
+  },
+  "aliases": {
+    "get_page": "get_page",
+    "get_infobox": "get_infobox",
+    "get_tracklist": "get_tracklist",
+    "search": "search",
+    "get_category_pages": "get_category_pages",
+    "get_section": "get_section",
+    "run": "get_section"
+  }
+}

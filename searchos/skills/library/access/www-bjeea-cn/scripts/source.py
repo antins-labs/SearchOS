@@ -10,6 +10,9 @@ This skill provides access to the Beijing Education Examination Authority websit
 
 The website serves critical structured data for college admissions in Beijing.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -36,7 +39,7 @@ class BJEEAClient:
     
     async def fetch_page(self, url: str) -> Dict[str, Any]:
         """Fetch and parse a BJEEA page."""
-        async with httpx.AsyncClient(timeout=self.timeout, follow_redirects=True) as client:
+        async with _skill_network.httpx_async_client(timeout=self.timeout, follow_redirects=True) as client:
             try:
                 resp = await client.get(url, headers=self.headers)
                 resp.raise_for_status()
@@ -325,6 +328,7 @@ async def search_admission_data(category: str = "gkgz", year: Optional[int] = No
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main execution function for the BJEEA access skill.

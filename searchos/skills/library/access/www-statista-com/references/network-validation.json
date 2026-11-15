@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3593e32888586e83093c003c3880faa05e7cf6fa73e0a04d7ee88204925882e9",
+  "capabilities": {
+    "get_statistic": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_statistic\", \"url_or_id\": \"1058725\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.276198+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.statista.com/statistics/1058725/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"olympic medals\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.276936+00:00",
+      "reason": "HTTP error 404",
+      "source_responses": [
+        {
+          "url": "https://www.statista.com/search/",
+          "status": 404
+        }
+      ]
+    }
+  }
+}

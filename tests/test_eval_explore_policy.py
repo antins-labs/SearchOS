@@ -36,7 +36,7 @@ def test_eval_initial_explore_is_task_local_and_respects_ablation(monkeypatch, e
         (True, "hybrid", {}, True, True, True),
         (True, "web", {"fixed_schema": True}, True, True, True),
         (True, "web", {"follow_up": True}, True, True, False),
-        (True, "web", {"context_preamble": "Prior evidence"}, True, True, False),
+        (True, "web", {"conversation_history": [{"role": "assistant", "content": "Prior evidence"}]}, True, True, False),
         (True, "web", {"targeted_repair_cells": []}, True, True, False),
         (True, "web", {}, False, True, False),
         (True, "hybrid", {}, True, False, False),

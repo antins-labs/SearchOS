@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1a16a2aa133352536ed4b48e3298c6d43b67b54f4014c69cdc7d30085a65093d",
+  "capabilities": {
+    "get_punk_details": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_punk_details\", \"punk_id\": \"5822\", \"transaction_limit\": 50}"
+      ],
+      "checked_at": "2026-10-23T07:39:56.018621+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.larvalabs.com/cryptopunks/details/5822",
+          "status": 301
+        },
+        {
+          "url": "https://www.larvalabs.com/catalog/cryptopunks/5822",
+          "status": 200
+        },
+        {
+          "url": "https://www.larvalabs.com/public/stylesheets/v2/styles.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.larvalabs.com/public/stylesheets/v2/extras.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.larvalabs.com/public/javascripts/v2/app.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.larvalabs.com/public/javascripts/catalog-autocomplete.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.larvalabs.com/__brace/htmx.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://files.larvalabs.com/cryptopunks/original/punk5822.svg",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.larvalabs.com/cdn-cgi/rum",
+          "status": 204
+        }
+      ]
+    },
+    "get_punk_transactions": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_punk_transactions\", \"punk_id\": \"7804\", \"transaction_limit\": 50}"
+      ],
+      "checked_at": "2026-10-23T07:39:56.033806+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.larvalabs.com/cryptopunks/details/7804",
+          "status": 301
+        },
+        {
+          "url": "https://www.larvalabs.com/catalog/cryptopunks/7804",
+          "status": 200
+        },
+        {
+          "url": "https://www.larvalabs.com/public/stylesheets/v2/styles.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.larvalabs.com/public/stylesheets/v2/extras.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.larvalabs.com/public/javascripts/catalog-autocomplete.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.larvalabs.com/public/javascripts/v2/app.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.larvalabs.com/__brace/htmx.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://files.larvalabs.com/cryptopunks/original/punk7804.svg",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.larvalabs.com/cdn-cgi/rum",
+          "status": 204
+        }
+      ]
+    }
+  }
+}

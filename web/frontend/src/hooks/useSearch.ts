@@ -2,8 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import type { RepairRequest, SearchRequest, SearchResult, SearchState, WorkerInfo, WSEvent } from "@/lib/types";
-import { applyStateChanges, advanceAnswer, olderRevision, type StateChange } from "@/lib/liveUpdates";
-import { finalizeWorkers, foldWorkers, updateWorkersBatch } from "@/lib/derive";
+import { applyStateChanges, advanceAnswer, olderRevision, finalizeWorkers, foldWorkers, updateWorkersBatch, type StateChange } from "@/lib/runState";
 import { startSearch, startRepair, getSearchResult, getSearchState, connectWebSocket, type RepairStartResponse } from "@/lib/api";
 export interface SearchSession {
   sessionId: string | null;

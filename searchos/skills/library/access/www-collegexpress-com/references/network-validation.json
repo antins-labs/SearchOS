@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3753dc034762cce1d2b8849552722e679121487579d0fe2e9043c2cb7c1eca8c",
+  "capabilities": {
+    "get_list": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_list\", \"url\": \"https://www.collegexpress.com/lists/list/top-50-largest-college-libraries/747/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.999662+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.collegexpress.com/lists/list/[redacted]/747/",
+          "status": 200
+        }
+      ]
+    },
+    "search_lists": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_lists\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.000275+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.collegexpress.com/lists/",
+          "status": 200
+        },
+        {
+          "url": "https://www.collegexpress.com/lists/explore/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5af5dbf32ff2d95227f3d8fec85ca15635657d3350fcc3474fd482ffac5858db",
+  "capabilities": {
+    "get_film": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_film\", \"slug\": \"the-turning-2013\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.768813+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://letterboxd.com/film/the-turning-2013/",
+          "status": 200
+        }
+      ]
+    },
+    "get_actor_filmography": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_actor_filmography\", \"slug\": \"cate-blanchett\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.769493+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://letterboxd.com/actor/cate-blanchett/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

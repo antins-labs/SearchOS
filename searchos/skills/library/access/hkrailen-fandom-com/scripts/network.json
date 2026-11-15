@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_station_list": "direct",
+    "get_infobox": "direct",
+    "search_pages": "direct",
+    "get_page_info": "direct",
+    "get_section_content": "direct"
+  },
+  "aliases": {
+    "get_page_info": "get_page_info",
+    "get_infobox": "get_infobox",
+    "get_station_list": "get_station_list",
+    "search_pages": "search_pages",
+    "get_section_content": "get_section_content",
+    "run": "get_section_content"
+  }
+}

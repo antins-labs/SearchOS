@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7cbff0a838c25a94d09e143ca9dea8c279f62f1439f53395a5260949b8440880",
+  "capabilities": {
+    "list_locations": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_locations\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.064450+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.fpawomenshealth.com/locations/detail/13/fresno",
+          "status": 200
+        }
+      ]
+    },
+    "get_location": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_location\", \"location_id\": 13, \"slug\": \"fresno\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.066156+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.fpawomenshealth.com/locations/detail/13/fresno",
+          "status": 200
+        }
+      ]
+    },
+    "search_locations": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_locations\", \"query\": \"los\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.066518+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.fpawomenshealth.com/locations/detail/13/fresno",
+          "status": 200
+        }
+      ]
+    },
+    "get_multiple_locations": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_multiple_locations\", \"locations\": [{\"id\": 13, \"slug\": \"fresno\"}, {\"id\": 12, \"slug\": \"bakersfield\"}]}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.067061+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.fpawomenshealth.com/locations/detail/13/fresno",
+          "status": 200
+        },
+        {
+          "url": "https://www.fpawomenshealth.com/locations/detail/12/bakersfield",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

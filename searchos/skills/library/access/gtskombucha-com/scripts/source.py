@@ -7,6 +7,9 @@ The site uses Shopify with embedded JSON product/collection data in the HTML pag
 Rate limiting note: The site has aggressive rate limiting. This executor implements
 delays and retries to handle 429 errors.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -25,6 +28,7 @@ REQUEST_DELAY = 3.0
 MAX_RETRIES = 3
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute a GT's Living Foods catalog query.
@@ -150,7 +154,7 @@ async def list_collections() -> dict[str, Any]:
     """List all available product collections."""
     import aiohttp
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await _fetch_page(session, f"{BASE_URL}/", retries=MAX_RETRIES)
         
         if status != 200:
@@ -199,7 +203,7 @@ async def get_collection(collection_handle: str, page: int = 1) -> dict[str, Any
     if page > 1:
         url += f"?page={page}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await _fetch_page(session, url, retries=MAX_RETRIES)
         
         if status == 404:
@@ -263,7 +267,7 @@ async def get_product(product_handle: str) -> dict[str, Any]:
     
     url = f"{BASE_URL}/products/{product_handle}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await _fetch_page(session, url, retries=MAX_RETRIES)
         
         if status == 404:
@@ -342,7 +346,7 @@ async def search_products(query: str) -> dict[str, Any]:
     encoded_query = urllib.parse.quote(query)
     url = f"{BASE_URL}/search?q={encoded_query}&type=product"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await _fetch_page(session, url, retries=MAX_RETRIES)
         
         if status != 200:

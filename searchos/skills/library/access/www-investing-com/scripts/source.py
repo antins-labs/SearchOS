@@ -12,6 +12,9 @@ Supported instruments:
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -206,11 +209,11 @@ class InvestingComClient:
         
         if self.browser is None:
             self._playwright = await async_playwright().start()
-            self.browser = await self._playwright.chromium.launch(
+            self.browser = await _skill_network.browser_launch(self._playwright.chromium, 
                 headless=True,
                 args=['--disable-blink-features=AutomationControlled', '--no-sandbox']
             )
-            self.context = await self.browser.new_context(
+            self.context = await _skill_network.browser_new_context(self.browser, 
                 viewport={'width': 1920, 'height': 1080},
                 user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
                 locale='en-US',
@@ -272,7 +275,7 @@ class InvestingComClient:
         """Fetch page and extract data"""
         await self.init_browser()
         
-        page = await self.context.new_page()
+        page = await _skill_network.browser_new_page(self.context)
         
         try:
             await page.goto(url, timeout=90000, wait_until='domcontentloaded')
@@ -477,6 +480,7 @@ async def list_supported_instruments(**kwargs) -> dict:
     return {'success': True, 'instruments': grouped, 'total': len(INSTRUMENT_IDS)}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """Main entry point"""
     function = params.get('function', '')

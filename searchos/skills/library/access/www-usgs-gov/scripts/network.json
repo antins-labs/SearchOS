@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_park_geology": "direct",
+    "scrape": "direct",
+    "search": "direct",
+    "get_volcano_info": "direct"
+  },
+  "aliases": {
+    "scrape": "scrape",
+    "search": "search",
+    "get_park_geology": "get_park_geology",
+    "get_volcano_info": "get_volcano_info",
+    "run": "get_volcano_info"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_all_pages": "direct",
+    "get_backlinks": "direct",
+    "get_page_links": "direct",
+    "get_category": "direct",
+    "search": "direct",
+    "get_page": "direct"
+  },
+  "aliases": {
+    "get_page": "get_page",
+    "search": "search",
+    "get_category": "get_category",
+    "get_page_links": "get_page_links",
+    "get_backlinks": "get_backlinks",
+    "get_all_pages": "get_all_pages",
+    "run": "get_all_pages"
+  }
+}

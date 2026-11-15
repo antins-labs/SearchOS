@@ -5,6 +5,9 @@ Fetches structured geography profile data from IndexMundi country pages.
 The site uses a consistent table layout with key-value pairs that can be
 reliably parsed without JavaScript rendering.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -207,6 +210,7 @@ async def fetch_all_profiles(
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the IndexMundi skill.
@@ -248,7 +252,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
         }
     
     # Create HTTP session
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         
         if function == "get_profile":
             profile_type = params.get("profile_type", "geography_profile")

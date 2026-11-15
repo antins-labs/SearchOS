@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "64a660182556820455a0453303091abbae5a64a8a7fb077126718b11428d1344",
+  "capabilities": {
+    "package": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"query\": \"information retrieval\", \"tags\": \"story\", \"num_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.861155+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://hn.algolia.com/api/v1/search",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search": "inherit",
+    "get_lyrics": "inherit",
+    "get_detail": "inherit"
+  },
+  "aliases": {
+    "search": "search",
+    "get_detail": "get_detail",
+    "get_lyrics": "get_lyrics",
+    "run": "get_lyrics"
+  }
+}

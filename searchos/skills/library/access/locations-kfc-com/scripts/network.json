@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_states": "direct",
+    "fetch": "direct",
+    "list_cities": "direct",
+    "get_store": "direct",
+    "list_stores": "direct"
+  },
+  "aliases": {
+    "list_states": "list_states",
+    "list_cities": "list_cities",
+    "list_stores": "list_stores",
+    "get_store": "get_store",
+    "fetch": "fetch",
+    "run": "fetch"
+  }
+}

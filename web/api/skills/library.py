@@ -6,7 +6,7 @@ import yaml
 from fastapi import HTTPException
 from api.deps import _REPO_ROOT
 from api.skills.catalog import SKILL_CATEGORIES, skill_enabled
-from searchos.skills.core.schema import find_skill_entry, parse_skill_text
+from searchos.skills.core.skill_markdown import find_skill_entry, parse_skill_text
 from searchos.skills.packaging import package_files
 
 

@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "4095f3322e3fde267581b073a19190c9a32ef8a70f533beb6598c77315f7d9ec",
+  "capabilities": {
+    "get_seat_distribution": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_seat_distribution\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.968956+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bundestag.de/en/parliament/plenary/distributionofseats",
+          "status": 200
+        },
+        {
+          "url": "https://www.bundestag.de/en/documents/textarchive/kw09-election-1055556",
+          "status": 200
+        }
+      ]
+    },
+    "get_text_archive_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_text_archive_article\", \"url\": \"https://www.bundestag.de/en/documents/textarchive/kw09-election-1055556\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.969464+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bundestag.de/en/documents/textarchive/kw09-election-1055556",
+          "status": 200
+        }
+      ]
+    },
+    "get_page_content": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page_content\", \"url\": \"https://www.bundestag.de/en/parliament/plenary/distributionofseats\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.969528+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bundestag.de/en/parliament/plenary/distributionofseats",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

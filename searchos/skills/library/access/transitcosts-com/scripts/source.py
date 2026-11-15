@@ -4,6 +4,9 @@ Transit Costs Project (transitcosts.com) Access Skill
 Fetches transit infrastructure project data including construction details,
 costs, and references from the Transit Costs Project database.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -12,6 +15,7 @@ import re
 from typing import Any
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute transit costs data retrieval.
@@ -207,7 +211,7 @@ async def get_project(params: dict[str, Any]) -> dict[str, Any]:
     if not url.startswith("https://transitcosts.com/"):
         return {"error": "URL must be from transitcosts.com domain"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_html(url, session)
         
         if status != 200:
@@ -274,7 +278,7 @@ async def list_projects(params: dict[str, Any]) -> dict[str, Any]:
     except (ValueError, TypeError):
         limit = 50
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_html("https://transitcosts.com/projects/", session)
         
         if status != 200:
@@ -320,7 +324,7 @@ async def search_projects(params: dict[str, Any]) -> dict[str, Any]:
     except (ValueError, TypeError):
         limit = 50
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_html("https://transitcosts.com/projects/", session)
         
         if status != 200:

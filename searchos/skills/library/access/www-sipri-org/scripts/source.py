@@ -10,6 +10,9 @@ This skill provides access to SIPRI's databases including:
 The skill downloads data directly from SIPRI's public file repository and
 Datawrapper CDN without requiring browser automation.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import csv
@@ -65,7 +68,7 @@ class SIPRIAccessSkill:
     async def _get_session(self) -> aiohttp.ClientSession:
         """Get or create HTTP session."""
         if self.session is None or self.session.closed:
-            self.session = aiohttp.ClientSession(timeout=self.timeout)
+            self.session = _skill_network.aiohttp_session(timeout=self.timeout)
         return self.session
     
     async def _fetch_url(self, url: str) -> Dict[str, Any]:
@@ -409,6 +412,7 @@ class SIPRIAccessSkill:
             await self.session.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the SIPRI access skill.

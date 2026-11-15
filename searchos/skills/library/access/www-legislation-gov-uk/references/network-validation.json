@@ -1,0 +1,183 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "4832c489a20ec901cddcefb5ab915b77210137aea3112bd5c8d58a8aed3086f5",
+  "capabilities": {
+    "get_legislation": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_legislation\", \"url\": \"/ukpga/Geo6/14-15/27\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.862140+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.legislation.gov.uk/",
+          "status": 202
+        }
+      ]
+    },
+    "get_index": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_index\", \"legislation_type\": \"ukla\", \"year\": \"1951\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.865753+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.legislation.gov.uk/",
+          "status": 202
+        }
+      ]
+    },
+    "get_feed": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_feed\", \"legislation_type\": \"ukla\", \"year\": \"1951\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.866166+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.legislation.gov.uk/",
+          "status": 202
+        },
+        {
+          "url": "https://97c89fc5066b.13fdb239.us-west-1.token.awswaf.com/97c89fc5066b/19d0ee195efd/ee98e0a82fb7/challenge.js",
+          "status": 200
+        },
+        {
+          "url": "https://97c89fc5066b.13fdb239.us-west-1.token.awswaf.com/97c89fc5066b/19d0ee195efd/ee98e0a82fb7/inputs",
+          "status": 200
+        },
+        {
+          "url": "https://97c89fc5066b.13fdb239.us-west-1.token.awswaf.com/97c89fc5066b/19d0ee195efd/ee98e0a82fb7/mp_verify",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/styles/screen.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/styles/survey/survey.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/scripts/jquery-4.0.0.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/scripts/CentralConfig.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/scripts/survey/survey.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/scripts/chrome.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_xml": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_xml\", \"legislation_type\": \"ukpga\", \"year\": \"Geo6\", \"chapter\": \"14-15/27\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.866321+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.legislation.gov.uk/",
+          "status": 202
+        }
+      ]
+    },
+    "search": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"fire safety\", \"year\": \"2023\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.866684+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.legislation.gov.uk/",
+          "status": 202
+        },
+        {
+          "url": "https://97c89fc5066b.13fdb239.us-west-1.token.awswaf.com/97c89fc5066b/19d0ee195efd/ee98e0a82fb7/challenge.js",
+          "status": 200
+        },
+        {
+          "url": "https://97c89fc5066b.13fdb239.us-west-1.token.awswaf.com/97c89fc5066b/19d0ee195efd/ee98e0a82fb7/inputs",
+          "status": 200
+        },
+        {
+          "url": "https://97c89fc5066b.13fdb239.us-west-1.token.awswaf.com/97c89fc5066b/19d0ee195efd/ee98e0a82fb7/mp_verify",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/styles/screen.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/styles/survey/survey.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/scripts/jquery-4.0.0.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/scripts/CentralConfig.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/scripts/survey/survey.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/scripts/chrome.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.legislation.gov.uk/scripts/homepageChrome.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

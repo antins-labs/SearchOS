@@ -1,15 +1,14 @@
-"""Exercise execution routing, evidence handoff, and optional planning tools."""
+"""Exercise execution routing, evidence handoff, and conversation planning."""
 
 import asyncio
 import json
-from dataclasses import replace
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage
 
-from searchos.config.run_config import EffectiveRunConfig, activate_run_config
+from searchos.config.run_config import EffectiveRunConfig
 from searchos.config.settings import settings
 from searchos.harness.routing import SearchRoute, select_route
 from searchos.socm import EvidenceNode, SearchState
@@ -75,6 +74,15 @@ async def test_structural_routes_skip_classifier(kwargs):
 
 
 @pytest.mark.asyncio
+async def test_required_schema_columns_route_to_research_before_classification():
+    model = SimpleNamespace(ainvoke=AsyncMock(return_value=AIMessage(content=route().model_dump_json())))
+    state = SearchState(required_attributes=["地区", "学校", "复试总分"])
+    chosen = await select_route(model=model, query="查出各校分数", state=state)
+    assert chosen.path == "research" and chosen.table_policy == "as_needed"
+    model.ainvoke.assert_not_called()
+
+
+@pytest.mark.asyncio
 async def test_hybrid_keeps_source_workflow_and_malformed_router_falls_back():
     model = SimpleNamespace(ainvoke=AsyncMock(return_value=AIMessage(content="invalid")))
     state = SearchState(source_scope={"mode": "hybrid", "documents": []})
@@ -108,22 +116,19 @@ def test_no_plan_tool_prompt_preserves_completeness_and_source_rules():
     from searchos.harness.middleware.context.socm_middleware import SOCMContextMiddleware
     from searchos.harness.middleware.models import TaskContext
 
-    prompt = build_orchestrator_prompt("agents", "skills", enable_research_plan_tool=False)
+    prompt = build_orchestrator_prompt("agents", "skills")
     assert "set_research_plan" not in prompt
     assert "source-backed inventory" in prompt and "evidence:FACT_ID" in prompt
-    config = replace(EffectiveRunConfig.from_settings(), enable_research_plan_tool=False)
     state = SearchState()
     middleware = SOCMContextMiddleware(
         workspace=SimpleNamespace(load_state=lambda: state), view="overview",
         task=TaskContext(agent_id="orchestrator"),
     )
-    with activate_run_config(config):
-        assert "set_research_plan" not in middleware.render()
+    assert "set_research_plan" not in middleware.render()
 
 
-@pytest.mark.parametrize("escalate", [False, True])
 @pytest.mark.asyncio
-async def test_session_skips_orchestrator_or_reuses_evidence(monkeypatch, tmp_path, escalate):
+async def test_simple_session_publishes_evidence_without_building_orchestrator(monkeypatch, tmp_path):
     from searchos.config import models
     from searchos.harness import routing, session, simple_search
     from searchos.harness.simple_search import SimpleSearchOutcome
@@ -137,7 +142,6 @@ async def test_session_skips_orchestrator_or_reuses_evidence(monkeypatch, tmp_pa
     monkeypatch.setattr(settings, "enable_access_skill_generation", False)
     monkeypatch.setattr(session, "_premature_end_reason", lambda *_: None)
     monkeypatch.setattr(routing, "select_route", AsyncMock(return_value=route()))
-    seen = {}
 
     async def simple(**kwargs):
         ws = kwargs["workspace"]
@@ -147,37 +151,18 @@ async def test_session_skips_orchestrator_or_reuses_evidence(monkeypatch, tmp_pa
             source_excerpt="Released on 2022-10-24",
         ))
         ws.save_state(state)
-        seen["workspace"] = ws
+        assert kwargs["remaining_time_s"] == 120
         kwargs["on_steer_delivery"](HumanMessage(
-            content="[用户追问 — 实时插入]\nUse UTC dates", id="steer-original-id",
+            content="Use UTC dates", id="steer-original-id",
             additional_kwargs={"sf_steer_id": "original-id", "sf_steer_mode": "immediate",
                                "sf_steer_text": "Use UTC dates"},
         ))
         return SimpleSearchOutcome(
-            answer="2022-10-24. [Source](evidence:original)", escalate=escalate,
-            reason="unresolved requirement" if escalate else "", delivered=["Use UTC dates"],
+            answer="2022-10-24. [Source](evidence:original)", delivered=["Use UTC dates"],
         )
 
     def build(self, **kwargs):
-        assert escalate, "Simple success must not build an Orchestrator"
-        assert kwargs["workspace"] is seen["workspace"]
-        assert kwargs["state"].evidence_graph.get_node("original") is not None
-        assert "simple budget" not in kwargs["state"].research_plan.stop_rule
-        assert kwargs["state"].research_plan.table_policy == "as_needed"
-        assert kwargs["orch_budget"].elapsed_s_live > 0
-        seen["research"] = True
-
-        async def stream(payload, **kwargs):
-            assert payload["messages"][0]["content"] == "Release date?"
-            content = payload["messages"][1]["content"]
-            assert "unresolved requirement" in content and "Use UTC dates" in content
-            yield "values", {"messages": [
-                HumanMessage(**{k: v for k, v in payload["messages"][0].items() if k != "role"}),
-                HumanMessage(content=content),
-                AIMessage(content="Date verified. [Source](evidence:original)"),
-            ]}
-
-        return SimpleNamespace(middleware=[], astream=stream), None
+        raise AssertionError("Simple search must not build an Orchestrator")
 
     monkeypatch.setattr(simple_search, "run_simple_search", simple)
     monkeypatch.setattr(session.SearchSession, "_build_research_graph", build)
@@ -187,16 +172,14 @@ async def test_session_skips_orchestrator_or_reuses_evidence(monkeypatch, tmp_pa
     )
     result = await harness.run("Release date?", session_id="route")
     assert not result.execution_error
-    assert model.ainvoke.await_count == int(escalate)
-    assert bool(seen.get("research")) is escalate
+    model.ainvoke.assert_not_called()
     assert result.evidence_count == 1
     output = tmp_path / "route" / "output"
     assert "https://example.org/release" in (output / "report.md").read_text()
     record = json.loads((output / "routing.json").read_text())
-    assert record["escalated"] is escalate
-    assert record["final_path"] == ("research" if escalate else "simple")
-    from searchos.harness.telemetry.conversation import read_conversation
-    from searchos.harness.telemetry.conversation_context import conversation_turns
+    assert "escalated" not in record
+    assert record["final_path"] == "simple"
+    from searchos.harness.telemetry.conversation import conversation_turns, read_conversation
 
     turns = conversation_turns(result.workspace_path)
     assert len(turns) == 1 and turns[0]["query"] == "Release date?"

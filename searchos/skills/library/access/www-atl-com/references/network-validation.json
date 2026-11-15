@@ -1,0 +1,213 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7ee69b0b4dc554d08f0b4ba7ce3f144f15d675a71f1ae6d96296e1e2ea320638",
+  "capabilities": {
+    "list_statistics": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_statistics\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.951370+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.atl.com/business-information/statistics/",
+          "status": 403
+        },
+        {
+          "url": "https://www.atl.com/cdn-cgi/styles/main.css",
+          "status": 200
+        },
+        {
+          "url": "https://performance.radar.cloudflare.com/beacon.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/cdn-cgi/challenge-platform/scripts/jsd/main.js",
+          "status": 302
+        },
+        {
+          "url": "https://www.atl.com/cdn-cgi/challenge-platform/h/b/scripts/jsd/d2d3316b729e/main.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_pdf_data": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_pdf_data\", \"year\": 2025, \"month\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.518573+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.atl.com/business-information/statistics/",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/instagram-feed/css/sbi-styles.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/custom-facebook-feed/vendor/smashballoon/framework/Packages/Blocks/css/sb-elementor.css",
+          "status": 200
+        },
+        {
+          "url": "https://use.fontawesome.com/releases/v5.13.0/css/all.css",
+          "status": 200
+        },
+        {
+          "url": "https://use.fontawesome.com/releases/v5.13.0/css/v4-shims.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/custom-facebook-feed/assets/css/font-awesome.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/ATL_chatboat_plugin_with_env/assets/chatboat.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/addons-for-visual-composer/assets/css/animate.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/addons-for-visual-composer/assets/css/icomoon.css",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/atl-first-amendment-permit/assets/css/atl-first-amendment.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/contact-form-7/includes/css/styles.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/[redacted]/assets/css/jquery.datetimepicker.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/addons-for-visual-composer/includes/addons/carousel/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/addons-for-visual-composer/includes/addons/clients/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/addons-for-visual-composer/includes/addons/heading/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/addons-for-visual-composer/includes/addons/posts-carousel/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/addons-for-visual-composer/includes/addons/services/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/addons-for-visual-composer/includes/addons/stats-bar/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/addons-for-visual-composer/includes/addons/tabs/css/style.css",
+          "status": 200
+        }
+      ]
+    },
+    "get_latest_report": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_latest_report\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:32.509969+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.atl.com/business-information/statistics/",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/instagram-feed/css/sbi-styles.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://use.fontawesome.com/releases/v5.13.0/css/all.css",
+          "status": 200
+        },
+        {
+          "url": "https://use.fontawesome.com/releases/v5.13.0/css/v4-shims.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://www.atl.com/wp-content/plugins/custom-facebook-feed/assets/css/font-awesome.min.css",
+          "status": 200
+        }
+      ]
+    },
+    "get_page_content": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page_content\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:32.515489+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.atl.com/business-information/statistics/",
+          "status": 403
+        },
+        {
+          "url": "https://www.atl.com/cdn-cgi/styles/main.css",
+          "status": 200
+        },
+        {
+          "url": "https://performance.radar.cloudflare.com/beacon.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.atl.com/cdn-cgi/challenge-platform/scripts/jsd/main.js",
+          "status": 302
+        },
+        {
+          "url": "https://www.atl.com/cdn-cgi/challenge-platform/h/b/scripts/jsd/d2d3316b729e/main.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

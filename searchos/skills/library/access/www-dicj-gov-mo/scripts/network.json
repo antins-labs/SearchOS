@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_quarterly_statistics": "direct",
+    "check_years": "inherit",
+    "get_financial_report": "inherit",
+    "list_concessionaires": "inherit",
+    "get_concessionaire_reports": "inherit",
+    "get_monthly_revenue": "direct"
+  },
+  "aliases": {
+    "get_monthly_revenue": "get_monthly_revenue",
+    "get_quarterly_statistics": "get_quarterly_statistics",
+    "get_concessionaire_reports": "get_concessionaire_reports",
+    "get_financial_report": "get_financial_report",
+    "list_concessionaires": "list_concessionaires",
+    "check_years": "check_years",
+    "run": "check_years"
+  }
+}

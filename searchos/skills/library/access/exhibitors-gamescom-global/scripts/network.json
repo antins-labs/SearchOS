@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_exhibitor": "direct",
+    "get_filters": "direct",
+    "search": "direct"
+  },
+  "aliases": {
+    "search": "search",
+    "get_exhibitor": "get_exhibitor",
+    "get_filters": "get_filters",
+    "run": "get_filters"
+  }
+}

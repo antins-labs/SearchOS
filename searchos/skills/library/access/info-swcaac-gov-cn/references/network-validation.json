@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1f61d27f17c8e064bb54fd0acafde08a08d5e358ff12b25717e0e53dabe80b2c",
+  "capabilities": {
+    "list_reports": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_reports\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.713740+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://info.swcaac.gov.cn/sctj/",
+          "status": 200
+        }
+      ]
+    },
+    "get_report_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_report_data\", \"report_id\": \"55798\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.714441+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://info.swcaac.gov.cn/sctj/Manage/SimpleReport/SimpleList.aspx",
+          "status": 200
+        }
+      ]
+    },
+    "list_options": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_options\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.714516+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://info.swcaac.gov.cn/sctj/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_bulletins": "direct",
+    "download_attachment": "direct",
+    "get_bulletin": "direct",
+    "search_bulletins": "direct"
+  },
+  "aliases": {
+    "list_bulletins": "list_bulletins",
+    "get_bulletin": "get_bulletin",
+    "download_attachment": "download_attachment",
+    "search_bulletins": "search_bulletins",
+    "run": "search_bulletins"
+  }
+}

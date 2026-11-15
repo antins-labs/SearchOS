@@ -7,6 +7,9 @@ and retrieve structured information from encyclopedia entries.
 
 Note: This site requires browser automation due to JavaScript-rendered content.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -19,8 +22,8 @@ from playwright.async_api import async_playwright, Browser, BrowserContext, Page
 async def _init_browser() -> tuple[Browser, BrowserContext]:
     """Initialize browser context with proper headers."""
     browser = await async_playwright().start()
-    chromium = await browser.chromium.launch(headless=True)
-    context = await chromium.new_context(
+    chromium = await _skill_network.browser_launch(browser.chromium, headless=True)
+    context = await _skill_network.browser_new_context(chromium, 
         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         locale="zh-CN",
         viewport={"width": 1920, "height": 1080}
@@ -50,7 +53,7 @@ async def _scrape_lemma_page(context: BrowserContext, url: str) -> dict[str, Any
         "url": url
     }
     
-    page = await context.new_page()
+    page = await _skill_network.browser_new_page(context)
     
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=30000)
@@ -147,7 +150,7 @@ async def _search_lemma(context: BrowserContext, keyword: str) -> dict[str, Any]
         "lemma_data": None
     }
     
-    page = await context.new_page()
+    page = await _skill_network.browser_new_page(context)
     
     try:
         # Use Baidu Baike search redirect endpoint
@@ -395,6 +398,7 @@ async def get_movie_info(params: dict[str, Any], context: Optional[BrowserContex
     return movie_info
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Baidu Baike access skill.

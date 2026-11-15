@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_report_config": "direct",
+    "get_monthly_futures": "direct",
+    "get_product_config": "direct",
+    "get_monthly_options": "proxy",
+    "get_web_config": "direct",
+    "get_instrument_summary": "direct",
+    "get_top_instruments": "direct",
+    "get_available_months": "direct"
+  },
+  "aliases": {
+    "get_monthly_futures": "get_monthly_futures",
+    "get_monthly_options": "get_monthly_options",
+    "get_product_config": "get_product_config",
+    "get_report_config": "get_report_config",
+    "get_web_config": "get_web_config",
+    "get_available_months": "get_available_months",
+    "get_instrument_summary": "get_instrument_summary",
+    "get_top_instruments": "get_top_instruments",
+    "run": "get_top_instruments"
+  }
+}

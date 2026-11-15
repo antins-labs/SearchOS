@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "8ea29c7e55617ac38dc4f13e7089e4958053eb0cd110ceca7aa1ac250b0988e6",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://en.as.com/nba/2024-nba-all-star-game-rosters-full-list-of-players-for-both-teams-n/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.601969+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.as.com/nba/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "list_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_articles\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.603160+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.as.com/nba/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

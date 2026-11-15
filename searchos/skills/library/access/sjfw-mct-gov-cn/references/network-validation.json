@@ -1,0 +1,406 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "8730cb27d3ea673a861bcb70345e94bf31c81499c9ff9b1849c18e89aee06216",
+  "capabilities": {
+    "list_types": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_types\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.859074+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/sjfw-mct-gov-cn/scripts/source.py",
+        "line": 349,
+        "end_line": 361,
+        "implementation": "list_data_types",
+        "source_sha256": "030795a0c4bf1452dddcf95a0e96c2bfc0f5dc3bc22d5b750ababd02eb2d660e",
+        "implementation_sha256": "7ded95efe1ed3f3fed41661ed20d255290ce9260cc4f11bcc377c9fbc20d6df0"
+      }
+    },
+    "fetch": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch\", \"type_id\": 54}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.958561+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://sjfw.mct.gov.cn/site/dataservice/rural",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/css/b5742fa.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/js/isMobile.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/css/1f469f2.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/css/6f391c0.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/0d43938.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/logo.c4e9d86.png",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/515ee9e.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/02ca22c.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/tu.3bddabf.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/icn.7b67eec.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/1729ff3.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/jiucuo.9ba92c2.png",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/icon_sear.43db46f.png",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/back_06.cf9bed8.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/icon_fh.4618974.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/back_13.6d5aaf0.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/27c151d.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/api/communal/getConfig",
+          "status": 200
+        }
+      ]
+    },
+    "count": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"count\", \"type_id\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:23:31.402044+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://sjfw.mct.gov.cn/site/dataservice/rural",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/css/6f391c0.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/css/b5742fa.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/css/1f469f2.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/js/isMobile.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/0d43938.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/515ee9e.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/1729ff3.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/icon_fh.4618974.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/tu.3bddabf.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/icn.7b67eec.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/icon_sear.43db46f.png",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/logo.c4e9d86.png",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/back_06.cf9bed8.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/jiucuo.9ba92c2.png",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/back_13.6d5aaf0.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/02ca22c.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/27c151d.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/api/communal/getConfig",
+          "status": 200
+        }
+      ]
+    },
+    "filter_province": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"filter_province\", \"type_id\": 54, \"province_name\": \"浙江\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:31.406502+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://sjfw.mct.gov.cn/site/dataservice/rural",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/css/6f391c0.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/css/b5742fa.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/js/isMobile.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/0d43938.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/css/1f469f2.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/1729ff3.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/02ca22c.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/515ee9e.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/back_06.cf9bed8.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/icon_fh.4618974.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/icon_sear.43db46f.png",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/logo.c4e9d86.png",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/tu.3bddabf.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/27c151d.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/icn.7b67eec.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/jiucuo.9ba92c2.png",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/back_13.6d5aaf0.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/api/communal/getConfig",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"type_id\": 10, \"name_keyword\": \"长城\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:31.406793+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://sjfw.mct.gov.cn/site/dataservice/rural",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/css/b5742fa.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/js/isMobile.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/0d43938.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/css/6f391c0.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/css/1f469f2.css",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/515ee9e.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/logo.c4e9d86.png",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/tu.3bddabf.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/icn.7b67eec.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/jiucuo.9ba92c2.png",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/icon_fh.4618974.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/icon_sear.43db46f.png",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/back_06.cf9bed8.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/img/back_13.6d5aaf0.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/1729ff3.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/02ca22c.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/_nuxt/27c151d.js",
+          "status": 200
+        },
+        {
+          "url": "https://sjfw.mct.gov.cn/api/communal/getConfig",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

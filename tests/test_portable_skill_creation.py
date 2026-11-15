@@ -50,13 +50,14 @@ def test_example_cli_runs_without_searchos_or_network(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_example_registration_rejects_output_escape(tmp_path):
+async def test_host_examples_reject_output_escape(tmp_path):
     workspace = AccessPipeline(tmp_path)
     with pytest.raises(ValueError):
-        await workspace.dispatch("send_message", {"role": "validator", "content": {"examples": [{
+        workspace.validation.set_validation_examples([{
             "argv": ["python", "scripts/search.py"], "output": "../escape.json", "records_key": "records",
-        }]}})
+        }])
     assert workspace.validation.examples == []
+    workspace.close()
 
 
 @pytest.mark.asyncio

@@ -8,6 +8,7 @@ from typing import Any
 from langchain_core.tools import tool
 
 from searchos.tools.search_state import _ws
+from searchos.socm.refs import cell_ref
 
 _RESOLUTION_EXCERPT_CHARS = 200
 
@@ -16,11 +17,11 @@ def _task_snapshot(task: Any) -> dict[str, Any]:
         "id": task.id,
         "kind": task.kind,
         "agent_type": task.agent_type,
-        "result_mode": task.result_mode,
+        "target_table": task.table_id,
         "status": task.status.value,
         "text": task.question,
         "priority": task.priority,
-        "target_cells": list(task.target_cells),
+        "target_cells": [cell_ref(key) for key in task.target_cells],
         "blocked_by": list(task.blocked_by),
         "attempts": task.attempts,
         "assigned_agent_id": task.assigned_agent_id,
@@ -31,14 +32,16 @@ def _task_snapshot(task: Any) -> dict[str, Any]:
     }
 
 
-@tool
+@tool(parse_docstring=True)
 async def list_frontier(kind: str = "", status: str = "", limit: int = 50) -> str:
-    """List frontier tasks with optional kind / status filters, sorted by priority. Each task carries ``resolution_excerpt`` (the dispatched agent's closing report, first 200 chars) — call ``read_task_report`` for the full text.
+    """Inspect queued, running or completed tasks in priority order. Returns tasks, count and
+    total_matched. Each resolution_excerpt contains up to 200 characters of the closing report. Use
+    read_task_report for its full text when available.
 
     Args:
-        kind (str): ``"search"`` | ``"write"`` | ``"explore"`` — empty = all kinds.
-        status (str): ``"pending"`` | ``"running"`` | ``"completed"`` | ``"blocked"`` | ``"cancelled"`` — empty = all statuses.
-        limit (int): cap on returned tasks (default 50).
+        kind: Filter by search, write or explore. Omit for all kinds.
+        status: Filter by pending, running, completed, blocked or cancelled. Omit for all statuses.
+        limit: Maximum tasks to return, default 50.
     """
     state = _ws().load_state()
     tasks = state.frontier.questions
@@ -54,12 +57,17 @@ async def list_frontier(kind: str = "", status: str = "", limit: int = 50) -> st
     )
 
 
-@tool
+@tool(parse_docstring=True)
 async def read_task_report(task_id: str) -> str:
-    """Read the full natural-language report a dispatched agent left on a frontier task: ``resolution`` (closing briefing — findings, dead ends, recommendations) and ``last_agent_report_excerpt`` (failure summary on recycled/cancelled tasks). Use before emitting a new task on the same cells.
+    """Read a Frontier task's recorded outcome before assigning more work on the same cells.
+    Returns task identity, targets, status, attempts, full resolution and
+    last_agent_report_excerpt.
+
+    The resolution is the worker's closing brief, including findings, dead ends and
+    recommendations. The excerpt can include a failure summary for a recycled or cancelled task.
 
     Args:
-        task_id (str): frontier task id (from ``list_frontier``).
+        task_id: Task ID returned by list_frontier.
     """
     state = _ws().load_state()
     task = next((t for t in state.frontier.questions if t.id == task_id), None)
@@ -69,11 +77,11 @@ async def read_task_report(task_id: str) -> str:
         {
             "task_id": task.id,
             "kind": task.kind,
-        "agent_type": task.agent_type,
-        "result_mode": task.result_mode,
+            "agent_type": task.agent_type,
+            "target_table": task.table_id,
             "status": task.status.value,
             "question": task.question,
-            "target_cells": list(task.target_cells),
+            "target_cells": [cell_ref(key) for key in task.target_cells],
             "assigned_agent_id": task.assigned_agent_id,
             "attempts": task.attempts,
             "resolution": task.resolution,

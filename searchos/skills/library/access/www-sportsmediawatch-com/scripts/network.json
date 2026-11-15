@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_posts": "proxy",
+    "get_posts_by_tag": "inherit",
+    "get_posts_by_category": "inherit",
+    "get_post_by_slug": "proxy",
+    "get_post_by_id": "inherit",
+    "get_recent_posts": "proxy",
+    "list_tags": "proxy",
+    "list_categories": "inherit"
+  },
+  "aliases": {
+    "get_post_by_slug": "get_post_by_slug",
+    "get_post_by_id": "get_post_by_id",
+    "search_posts": "search_posts",
+    "get_posts_by_category": "get_posts_by_category",
+    "get_posts_by_tag": "get_posts_by_tag",
+    "list_categories": "list_categories",
+    "list_tags": "list_tags",
+    "get_recent_posts": "get_recent_posts",
+    "run": "get_recent_posts"
+  }
+}

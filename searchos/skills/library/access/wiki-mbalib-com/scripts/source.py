@@ -13,6 +13,9 @@ Note: Table format varies by year:
 - 2023: rank, company_name, country (3 columns - simplified)
 - 2022: rank, company_name, revenue, profit, country, key_data (6 columns)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import httpx
 from lxml import html
@@ -30,7 +33,7 @@ async def _fetch_page(url: str, timeout: int = 30) -> str:
         'Connection': 'keep-alive',
     }
     
-    async with httpx.AsyncClient(timeout=timeout) as client:
+    async with _skill_network.httpx_async_client(timeout=timeout) as client:
         response = await client.get(url, headers=headers, follow_redirects=True)
         response.raise_for_status()
         return response.text
@@ -443,6 +446,7 @@ async def list_countries(params: dict[str, Any], ctx: Any = None) -> dict[str, A
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the skill.

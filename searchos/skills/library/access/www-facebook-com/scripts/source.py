@@ -2,6 +2,9 @@
 Facebook Post Access Skill
 Extracts post content from Facebook using Open Graph metadata from mobile endpoint.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -218,15 +221,15 @@ async def fetch_post_content(url: str, timeout: int = 30000) -> dict:
     mobile_url = get_mobile_url(url)
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
                 locale="en-US",
                 viewport={"width": 390, "height": 844},
             )
             
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             html_content = None
             
             async def handle_response(response):
@@ -291,6 +294,7 @@ async def fetch_post_content(url: str, timeout: int = 30000) -> dict:
             await browser.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Facebook post data extraction.

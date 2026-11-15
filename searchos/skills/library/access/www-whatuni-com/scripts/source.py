@@ -5,6 +5,9 @@ This skill provides structured access to WhatUni.com course data including:
 - Detailed course information including fees, duration, entry requirements
 - University information and ratings
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -494,6 +497,7 @@ async def search_universities(params: Dict[str, Any], client: httpx.AsyncClient)
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """Main entry point for the WhatUni access skill
     
@@ -514,7 +518,7 @@ async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
             'error': 'Missing required parameter: function'
         }
     
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         timeout=30.0,
         follow_redirects=True,
         headers=DEFAULT_HEADERS

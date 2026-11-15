@@ -6,6 +6,9 @@ Note: Crunchbase employs aggressive Cloudflare anti-bot protection.
 This skill uses Playwright with stealth techniques but may still encounter
 blocking that requires CAPTCHA solving.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -14,6 +17,7 @@ from typing import Any, Optional
 from playwright.async_api import async_playwright, Browser, BrowserContext, Page
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Crunchbase data retrieval.
@@ -62,7 +66,7 @@ def _get_url(params: dict[str, Any], entity_type: str) -> Optional[str]:
 
 async def _create_stealth_context(browser: Browser) -> BrowserContext:
     """Create a browser context with stealth settings."""
-    context = await browser.new_context(
+    context = await _skill_network.browser_new_context(browser, 
         user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         viewport={'width': 1920, 'height': 1080},
         locale='en-US',
@@ -465,7 +469,7 @@ async def get_person(params: dict[str, Any]) -> dict[str, Any]:
         }
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
+        browser = await _skill_network.browser_launch(p.chromium, 
             headless=True,
             args=[
                 '--disable-blink-features=AutomationControlled',
@@ -477,7 +481,7 @@ async def get_person(params: dict[str, Any]) -> dict[str, Any]:
         
         try:
             context = await _create_stealth_context(browser)
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # First visit homepage to establish session
             try:
@@ -552,7 +556,7 @@ async def get_organization(params: dict[str, Any]) -> dict[str, Any]:
         }
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
+        browser = await _skill_network.browser_launch(p.chromium, 
             headless=True,
             args=[
                 '--disable-blink-features=AutomationControlled',
@@ -564,7 +568,7 @@ async def get_organization(params: dict[str, Any]) -> dict[str, Any]:
         
         try:
             context = await _create_stealth_context(browser)
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # First visit homepage to establish session
             try:

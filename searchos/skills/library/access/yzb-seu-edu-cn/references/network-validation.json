@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "df68eb275fe031413c05ae50cec812a898bc33bce6e9791818dbe613caa0d4b4",
+  "capabilities": {
+    "get_department_scores": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_department_scores\", \"url\": \"https://yzb.seu.edu.cn/2025/0905/c6674a538419/page.htm\", \"timeout\": 30}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.427715+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://yzb.seu.edu.cn/2025/0905/c6674a538419/page.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_basic_scores": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_basic_scores\", \"url\": \"https://yzb.seu.edu.cn/2025/0314/c6676a521705/page.htm\", \"timeout\": 30}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.428806+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://yzb.seu.edu.cn/2025/0314/c6676a521705/page.htm",
+          "status": 200
+        },
+        {
+          "url": "https://yzb.seu.edu.cn/_upload/article/files/62/b3/7f10cde44b2f8de1d9c7802b6e52/b9ad3210-eae5-4b37-8e03-dfd198f59641.pdf",
+          "status": 200
+        }
+      ]
+    },
+    "get_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"url\": \"https://yzb.seu.edu.cn/2025/0905/c6674a538419/page.htm\", \"timeout\": 30}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.428908+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://yzb.seu.edu.cn/2025/0905/c6674a538419/page.htm",
+          "status": 200
+        }
+      ]
+    },
+    "list_known_pages": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_known_pages\", \"timeout\": 30}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.429119+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/yzb-seu-edu-cn/scripts/source.py",
+        "line": 255,
+        "end_line": 278,
+        "implementation": "discover_score_pages",
+        "source_sha256": "3944d9782f754b33b3ce848d8f29542828742bb35fe7a469b60b78f994496128",
+        "implementation_sha256": "eb132f0b847aaee0f05ea3c8b6950ee997be7cce54ae9f5379862b5f9d448e31"
+      }
+    }
+  }
+}

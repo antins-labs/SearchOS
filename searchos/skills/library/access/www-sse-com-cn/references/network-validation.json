@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "0e0a72d6d527c242e4d191e4c04ef63b12e7d25ef01f7b255735c22c9cf7f9e3",
+  "capabilities": {
+    "get_ipo_inquiry_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ipo_inquiry_info\", \"security_code\": \"688710\", \"page\": 1, \"page_size\": 3, \"list_board\": \"2\", \"is_star\": \"1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.267289+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://query.sse.com.cn/commonQuery.do",
+          "status": 200
+        }
+      ]
+    },
+    "get_ipo_process_status": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ipo_process_status\", \"security_code\": \"688710\", \"page\": 1, \"page_size\": 3, \"list_board\": \"2\", \"is_star\": \"1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.270194+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://query.sse.com.cn/commonQuery.do",
+          "status": 200
+        }
+      ]
+    },
+    "get_ipo_list": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ipo_list\", \"stock_type\": \"2\", \"page\": 1, \"page_size\": 3, \"list_board\": \"2\", \"is_star\": \"1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.270367+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://query.sse.com.cn/commonQuery.do",
+          "status": 200
+        }
+      ]
+    },
+    "get_financing_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_financing_info\", \"company_code\": \"688710\", \"list_board\": \"2\", \"page\": 1, \"page_size\": 3, \"is_star\": \"1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.271476+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://query.sse.com.cn/commonQuery.do",
+          "status": 200
+        }
+      ]
+    },
+    "get_dividend_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_dividend_info\", \"company_code\": \"688710\", \"is_star\": \"1\", \"page\": 1, \"page_size\": 3, \"list_board\": \"2\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.272654+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://query.sse.com.cn/commonQuery.do",
+          "status": 200
+        }
+      ]
+    },
+    "get_rights_issue_info": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rights_issue_info\", \"company_code\": \"688710\", \"list_board\": \"2\", \"page\": 1, \"page_size\": 3, \"is_star\": \"1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.272723+00:00",
+      "reason": "data is empty",
+      "source_responses": [
+        {
+          "url": "https://query.sse.com.cn/commonQuery.do",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

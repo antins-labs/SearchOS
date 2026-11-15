@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "895c0e8c25790ea47c941639019944860da1c055ba27648eb1d1d59aa2d958e9",
+  "capabilities": {
+    "fetch_gpu": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_gpu\", \"url\": \"https://www.techpowerup.com/gpu-specs/radeon-rx-7900-xtx.c3941\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.287073+00:00",
+      "reason": "HTTP error: 403",
+      "source_responses": [
+        {
+          "url": "https://www.techpowerup.com/gpu-specs/radeon-rx-7900-xtx.c3941",
+          "status": 403
+        }
+      ]
+    },
+    "fetch_multiple": {
+      "status": "live_access_unconfirmed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_multiple\", \"urls\": [\"https://www.techpowerup.com/gpu-specs/radeon-rx-7900-xtx.c3941\", \"https://www.techpowerup.com/gpu-specs/radeon-rx-7900-xt.c3942\"]}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.288330+00:00",
+      "reason": "business output returned without a confirmed successful source response",
+      "source_responses": [
+        {
+          "url": "https://www.techpowerup.com/gpu-specs/radeon-rx-7900-xt.c3942",
+          "status": 403
+        },
+        {
+          "url": "https://www.techpowerup.com/gpu-specs/radeon-rx-7900-xtx.c3941",
+          "status": 403
+        }
+      ]
+    },
+    "search_by_id": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_id\", \"gpu_id\": \"3941\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.288418+00:00",
+      "reason": "HTTP error: 403",
+      "source_responses": [
+        {
+          "url": "https://www.techpowerup.com/gpu-specs/gpu.c3941",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

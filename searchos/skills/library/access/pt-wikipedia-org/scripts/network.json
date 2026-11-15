@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_page": "proxy",
+    "extract_table": "direct",
+    "extract_infobox": "direct"
+  },
+  "aliases": {
+    "get_page": "get_page",
+    "extract_infobox": "extract_infobox",
+    "extract_table": "extract_table",
+    "run": "extract_table"
+  }
+}

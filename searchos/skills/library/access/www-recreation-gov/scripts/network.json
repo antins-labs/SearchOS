@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_ticket_pricing": "direct",
+    "get_ticket_facility": "proxy",
+    "get_facility_search": "direct",
+    "get_sitepass_facility": "direct",
+    "get_ticket_tours": "proxy",
+    "get_campground": "direct",
+    "get_sitepass_types": "direct",
+    "get_ticket_availability": "direct",
+    "get_campsites": "direct"
+  },
+  "aliases": {
+    "get_ticket_facility": "get_ticket_facility",
+    "get_ticket_tours": "get_ticket_tours",
+    "get_ticket_pricing": "get_ticket_pricing",
+    "get_ticket_availability": "get_ticket_availability",
+    "get_campground": "get_campground",
+    "get_campsites": "get_campsites",
+    "get_sitepass_facility": "get_sitepass_facility",
+    "get_sitepass_types": "get_sitepass_types",
+    "get_facility_search": "get_facility_search",
+    "run": "get_facility_search"
+  }
+}

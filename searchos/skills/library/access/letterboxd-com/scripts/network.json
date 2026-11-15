@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_film": "direct",
+    "get_actor_filmography": "direct"
+  },
+  "aliases": {
+    "get_film": "get_film",
+    "get_actor_filmography": "get_actor_filmography",
+    "run": "get_actor_filmography"
+  }
+}

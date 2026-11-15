@@ -4,6 +4,9 @@ Maoyan Box Office (piaofang.maoyan.com) Access Skill
 Provides access to Chinese box office rankings and movie details from Maoyan.
 Data is server-side rendered HTML requiring browser User-Agent headers.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -29,7 +32,7 @@ async def fetch_html(url: str, headers: dict = None) -> str:
     """Fetch HTML content from URL with proper headers."""
     req_headers = {**DEFAULT_HEADERS, **(headers or {})}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, headers=req_headers) as resp:
             if resp.status != 200:
                 raise Exception(f"HTTP {resp.status}: Failed to fetch {url}")
@@ -452,6 +455,7 @@ async def search_movies_by_rank(year: int = None, min_rank: int = None, max_rank
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Maoyan box office skill.

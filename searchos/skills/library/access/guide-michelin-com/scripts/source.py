@@ -4,6 +4,9 @@ Michelin Guide Restaurant Search Skill
 This skill provides access to the Michelin Guide restaurant database via Algolia API.
 It allows searching for restaurants by name, location, distinction (stars), and other criteria.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -327,7 +330,7 @@ async def search_restaurants(params: dict, ctx: Any = None) -> dict:
     if cuisine:
         facet_filters.append([f"cuisines.slug:{cuisine.replace(' ', '-')}"])
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await algolia_search(
             session,
             query=query,
@@ -381,7 +384,7 @@ async def get_restaurant_by_slug(params: dict, ctx: Any = None) -> dict:
     if "/" in slug:
         slug = slug.split("/")[-1]
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await algolia_search(
             session,
             query="",
@@ -446,7 +449,7 @@ async def get_restaurants_by_location(params: dict, ctx: Any = None) -> dict:
         if dist_slug:
             facet_filters.append([f"distinction.slug:{dist_slug}"])
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await algolia_search(
             session,
             query="",
@@ -484,7 +487,7 @@ async def get_available_filters(params: dict, ctx: Any = None) -> dict:
     Get available filter options (distinctions, cuisines, etc.)
     """
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         request_body = {
             "indexName": ALGOLIA_INDEX,
             "query": "",
@@ -553,6 +556,7 @@ async def get_available_filters(params: dict, ctx: Any = None) -> dict:
             }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict, ctx: Any = None) -> dict:
     """
     Main entry point for the Michelin Guide skill.

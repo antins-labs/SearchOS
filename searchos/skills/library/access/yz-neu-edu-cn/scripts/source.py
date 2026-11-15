@@ -2,6 +2,9 @@
 Northeastern University Graduate Admissions Skill
 Extracts admission score requirements and program catalogs from yz.neu.edu.cn
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import httpx
@@ -202,7 +205,7 @@ async def get_score_requirements(params: dict, ctx: Any = None) -> dict:
     if not url.startswith('http'):
         url = urljoin(BASE_URL, url)
     
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         headers=DEFAULT_HEADERS,
         follow_redirects=True,
         timeout=30.0
@@ -253,7 +256,7 @@ async def get_program_catalog(params: dict, ctx: Any = None) -> dict:
     if not url.startswith('http'):
         url = urljoin(BASE_URL, url)
     
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         headers=DEFAULT_HEADERS,
         follow_redirects=True,
         timeout=30.0
@@ -344,6 +347,7 @@ async def search_programs(params: dict, ctx: Any = None) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the skill.

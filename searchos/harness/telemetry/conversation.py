@@ -21,11 +21,28 @@ import os
 from datetime import UTC, datetime
 from pathlib import Path
 from threading import RLock
-from typing import Any
+from typing import Any, Literal
 
-from searchos.harness.telemetry.trajectory import ConversationMessage
+from pydantic import Field
+
+from searchos.utils.base_model import CamelModel
 
 logger = logging.getLogger(__name__)
+
+
+class ConversationMessage(CamelModel):
+    """完整的对话消息，记录 assistant/user/tool_call/tool_result 轨迹。"""
+
+    timestamp: str = ""
+    step_index: int = 0
+    agent_name: str = "orchestrator"  # 产生此消息的 agent
+    parent_agent: str = ""  # 父 agent（空表示顶层 orchestrator）
+    role: Literal["user", "assistant", "system", "tool_call", "tool_result"] = "assistant"
+    content: str | list[Any] = ""
+    reasoning: str = ""  # 分离字段里的思考（qwen3/glm-5/deepseek-r1 的 reasoning_content）
+    tool_name: str = ""  # tool_call / tool_result 时填充
+    tool_call_id: str = ""  # 关联 tool_call 与 tool_result
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class ConversationLogger:
@@ -287,8 +304,10 @@ def langchain_msg_to_conversation_msgs(msg: Any) -> list[ConversationMessage]:
     msg_type = getattr(msg, "type", None)
     content = getattr(msg, "content", "")
 
-    if msg_type == "human":
+    if msg_type in {"human", "system"}:
         extras = getattr(msg, "additional_kwargs", {}) or {}
+        if getattr(msg, "name", None) == "agent_reports" and extras.get("sf_synthetic"):
+            return [ConversationMessage(role="system", content=content, metadata={"synthetic": "agent_reports"})]
         # 注入已在模型请求边界记录；回写执行历史时不重复记录副本。
         if extras.get("sf_kind") == "socm_update" or "sf_context_changed" in extras:
             return []
@@ -296,7 +315,11 @@ def langchain_msg_to_conversation_msgs(msg: Any) -> list[ConversationMessage]:
             key: extras[f"sf_{key}"]
             for key in ("steer_id", "steer_mode", "steer_text") if f"sf_{key}" in extras
         }
-        results.append(ConversationMessage(role="user", content=content, metadata=metadata))
+        if msg_type == "system":
+            metadata["synthetic"] = extras.get("sf_kind", "runtime_context")
+        results.append(ConversationMessage(
+            role="system" if msg_type == "system" else "user", content=content, metadata=metadata,
+        ))
     elif msg_type == "ai":
         reasoning = ""
         extras = getattr(msg, "additional_kwargs", None) or {}
@@ -307,6 +330,7 @@ def langchain_msg_to_conversation_msgs(msg: Any) -> list[ConversationMessage]:
                 role="assistant",
                 content=content,
                 reasoning=reasoning,
+                metadata={"message_id": getattr(msg, "id", None)},
             )
         )
         for tc in getattr(msg, "tool_calls", []) or []:
@@ -331,3 +355,106 @@ def langchain_msg_to_conversation_msgs(msg: Any) -> list[ConversationMessage]:
             )
         )
     return results
+
+
+def build_history(turns: list[dict[str, Any]]) -> list[dict[str, str]]:
+    """原样恢复历史消息；长度控制交给现有上下文管理。"""
+    messages = []
+    for turn in turns:
+        for role, content in [
+            ("user", turn.get("query")),
+            *(("user", text) for text in turn.get("steers", [])),
+            ("assistant", turn.get("answer")),
+        ]:
+            if content:
+                messages.append({"role": role, "content": content})
+    return messages
+
+
+# 读取旧日志时识别当时的包装；新消息按 metadata 和原始角色恢复。
+
+# Markers the harness injects as "user" messages that are NOT user input.
+_HARNESS_PREFIX = "[AUTOMATED HARNESS"
+_STEER_PREFIX = "[用户追问"
+_QUERY_SEP = "\n---\n当前问题："
+
+
+def _msg_text(msg: dict[str, Any]) -> str:
+    content = msg.get("content", "")
+    if isinstance(content, list):
+        content = "\n".join(
+            b.get("text", "") for b in content
+            if isinstance(b, dict) and b.get("type") == "text"
+        )
+    return str(content or "").strip()
+
+
+def conversation_turns(workspace: str | Path) -> list[dict[str, Any]]:
+    """Rebuild ``[{query, answer, steers}]`` from the orchestrator's persisted
+    conversation log.
+
+    New sessions mark graph output as progress until the final answer is published.
+    Legacy logs use assistant text that is not followed by a tool call. System context is
+    ignored; metadata identifies live updates as the turn's ``steers``.
+    Older logs are decoded using their original context and query markers.
+    A closing message with no new user input in between (premature-end
+    resume) supersedes the previous turn's answer instead of opening a
+    spurious turn.
+    """
+    import json
+
+    path = Path(workspace) / "conversations" / "snapshots" / "orchestrator.json"
+    try:
+        msgs = read_conversation(path).get("messages", [])
+    except Exception:
+        return []
+
+    turns: list[dict[str, Any]] = []
+    query: str | None = None
+    steers: list[str] = []
+
+    for i, msg in enumerate(msgs):
+        role = msg.get("role")
+        text = _msg_text(msg)
+        metadata = msg.get("metadata") or {}
+        if metadata.get("synthetic"):
+            continue
+        if role in ("user", "human"):
+            if not text or text.startswith((_HARNESS_PREFIX, "[回答来源检查]")):
+                continue
+            if metadata.get("steer_id") or text.startswith(_STEER_PREFIX):
+                body = metadata.get("steer_text")
+                if body is None:
+                    body = text.split("\n", 1)[1] if "\n" in text else ""
+                    body = body.split("\n\n请在当前进展", 1)[0].strip()
+                if body:
+                    steers.append(body)
+                continue
+            if _QUERY_SEP in text:
+                text = text.split(_QUERY_SEP, 1)[1].strip()
+            query = text
+        elif role in ("ai", "assistant"):
+            if metadata.get("phase") == "progress" or msg.get("tool_calls"):
+                continue
+            nxt = msgs[i + 1] if i + 1 < len(msgs) else None
+            if nxt is not None and nxt.get("role") == "tool_call":
+                continue
+            if not text:
+                continue
+            if query is not None:
+                turns.append({"query": query, "answer": text, "steers": steers})
+                query, steers = None, []
+            elif turns:
+                turns[-1]["answer"] = text
+                if steers:
+                    turns[-1]["steers"].extend(steers)
+                    steers = []
+    # 收尾阶段可能在检索图结束后生成正文；仅替换同一问题的最后一轮。
+    try:
+        result = json.loads((Path(workspace) / "output" / "result.json").read_text(encoding="utf-8"))
+        if (turns and result.get("query") == turns[-1]["query"]
+                and isinstance(result.get("answer"), str)):
+            turns[-1]["answer"] = result["answer"]
+    except (OSError, ValueError, AttributeError):
+        pass
+    return turns

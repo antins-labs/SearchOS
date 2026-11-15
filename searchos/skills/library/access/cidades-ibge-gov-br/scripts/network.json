@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_population_area": "direct",
+    "get_by_id": "direct",
+    "list_states": "direct",
+    "list_municipalities": "direct",
+    "get_stats": "direct",
+    "get_municipality": "direct",
+    "get_districts": "direct",
+    "get_gdp": "direct"
+  },
+  "aliases": {
+    "get_municipality": "get_municipality",
+    "get_by_id": "get_by_id",
+    "get_districts": "get_districts",
+    "get_population_area": "get_population_area",
+    "get_gdp": "get_gdp",
+    "get_stats": "get_stats",
+    "list_states": "list_states",
+    "list_municipalities": "list_municipalities",
+    "run": "list_municipalities"
+  }
+}

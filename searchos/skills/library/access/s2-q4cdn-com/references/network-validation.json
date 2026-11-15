@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d55681b482e1f469adbba5ebdc8918898e355838bfce637f4d64e9ec3b9c4b9b",
+  "capabilities": {
+    "get_annual_report_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_annual_report_info\", \"year\": \"2024\", \"include_downloads\": true, \"include_people\": true, \"check_years\": [\"2020\", \"2021\", \"2022\", \"2023\", \"2024\"], \"document_type\": \"annual_report\", \"verify\": true, \"context_chars\": 150}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.853542+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://s2.q4cdn.com/890585342/files/doc_financials/2024/ar/annual-report-2024/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "list_available_years": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_available_years\", \"year\": \"2024\", \"include_downloads\": true, \"include_people\": true, \"check_years\": [\"2020\", \"2021\", \"2022\", \"2023\", \"2024\"], \"document_type\": \"annual_report\", \"verify\": true, \"context_chars\": 150}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.854063+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://s2.q4cdn.com/890585342/files/doc_financials/2024/ar/annual-report-2024/index.html",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/890585342/files/doc_financials/2023/ar/annual-report-2023/index.html",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/890585342/files/doc_financials/2020/ar/annual-report-2020/index.html",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/890585342/files/doc_financials/2022/ar/annual-report-2022/index.html",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/890585342/files/doc_financials/2021/ar/annual-report-2021/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_pdf_url": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_pdf_url\", \"year\": \"2024\", \"document_type\": \"ceo_letter\", \"include_downloads\": true, \"include_people\": true, \"check_years\": [\"2020\", \"2021\", \"2022\", \"2023\", \"2024\"], \"verify\": true, \"context_chars\": 150}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.854128+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://s2.q4cdn.com/890585342/files/doc_financials/2024/ar/annual-report-2024/downloads/pdf/2024arDavidLetter.pdf",
+          "status": 200
+        }
+      ]
+    },
+    "search_report_content": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_report_content\", \"year\": \"2023\", \"query\": \"digital\", \"include_downloads\": true, \"include_people\": true, \"check_years\": [\"2020\", \"2021\", \"2022\", \"2023\", \"2024\"], \"document_type\": \"annual_report\", \"verify\": true, \"context_chars\": 150}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.854191+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://s2.q4cdn.com/890585342/files/doc_financials/2023/ar/annual-report-2023/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_brand_links": {
+      "status": "business_failure",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_brand_links\", \"year\": \"2024\", \"include_downloads\": true, \"include_people\": true, \"check_years\": [\"2020\", \"2021\", \"2022\", \"2023\", \"2024\"], \"document_type\": \"annual_report\", \"verify\": true, \"context_chars\": 150}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.854246+00:00",
+      "reason": "Failed to fetch report page (HTTP 500)",
+      "source_responses": []
+    },
+    "get_download_sizes": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_download_sizes\", \"year\": \"2024\", \"include_downloads\": true, \"include_people\": true, \"check_years\": [\"2020\", \"2021\", \"2022\", \"2023\", \"2024\"], \"document_type\": \"annual_report\", \"verify\": true, \"context_chars\": 150}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.854299+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://s2.q4cdn.com/890585342/files/doc_financials/2024/ar/annual-report-2024/index.html",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/890585342/files/doc_financials/2024/ar/annual-report-2024/downloads/pdf/2024-annual-report.pdf",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/890585342/files/doc_financials/2024/ar/annual-report-2024/downloads/pdf/2017-Safe-Harbor-Statement.pdf",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/890585342/files/doc_financials/2024/ar/annual-report-2024/downloads/pdf/2024-financial%20highlights.pdf",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/890585342/files/doc_financials/2024/ar/annual-report-2024/downloads/pdf/YUM2024_Combined-Proxy-10K.pdf",
+          "status": 200
+        },
+        {
+          "url": "https://s2.q4cdn.com/890585342/files/doc_financials/2024/ar/annual-report-2024/downloads/pdf/2024arDavidLetter.pdf",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

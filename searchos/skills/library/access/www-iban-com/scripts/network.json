@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_country_codes": "direct",
+    "get_iban_structure": "direct",
+    "validate_iban": "direct"
+  },
+  "aliases": {
+    "get_country_codes": "get_country_codes",
+    "get_iban_structure": "get_iban_structure",
+    "validate_iban": "validate_iban",
+    "run": "validate_iban"
+  }
+}

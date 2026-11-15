@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "a2824060ca2db32373b26ab3e6316a88e888b7718a0e486ccc7ffc0bfffadc51",
+  "capabilities": {
+    "get_country_volcanoes": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country_volcanoes\", \"country\": \"chile\", \"region\": \"america\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.157736+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.worlddata.info/america/chile/volcanoes.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.worlddata.info/js/cbc-public42.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_global_eruptions": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_global_eruptions\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.159722+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.worlddata.info/volcanoes.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.worlddata.info/js/mp3player.v3.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.worlddata.info/js/cbc-public42.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_latest_activity": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_latest_activity\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.159862+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.worlddata.info/volcanoes.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.worlddata.info/js/cbc-public42.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.worlddata.info/js/mp3player.v3.php",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worlddata.info/css/footer22-en.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worlddata.info/pics/volcanoes.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worlddata.info/pics/logo-en750.png",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worlddata.info/maps/volcanoes/latest.930.png",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worlddata.info/pics/ring-of-fire.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worlddata.info/pics/icons.png",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

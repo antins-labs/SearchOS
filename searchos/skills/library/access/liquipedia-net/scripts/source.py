@@ -4,12 +4,16 @@ Liquipedia Dota 2 Tournament Data Access Skill
 Extracts structured tournament information from Liquipedia.net Dota 2 wiki pages,
 including tournament details, prize pool, group standings, and match results.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
 from typing import Any
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Liquipedia tournament data extraction.
@@ -41,12 +45,12 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
         from playwright.async_api import async_playwright
         
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
             try:
-                context = await browser.new_context(
+                context = await _skill_network.browser_new_context(browser, 
                     user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
                 )
-                page = await context.new_page()
+                page = await _skill_network.browser_new_page(context)
                 
                 # Navigate to page
                 await page.goto(url, wait_until="domcontentloaded", timeout=60000)

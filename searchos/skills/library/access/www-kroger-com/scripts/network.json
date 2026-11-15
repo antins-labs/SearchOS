@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_product": "direct",
+    "search_products": "direct"
+  },
+  "aliases": {
+    "get_product": "get_product",
+    "search_products": "search_products",
+    "run": "search_products"
+  }
+}

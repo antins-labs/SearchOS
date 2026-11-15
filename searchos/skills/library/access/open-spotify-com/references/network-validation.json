@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5a539e760077f429476cd4b22a3161eaab593b6a2b3876cb5bf6b83ed397da89",
+  "capabilities": {
+    "get_track": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_track\", \"track_id\": \"1jwwyhTZw5QRFnCCmCdhT5\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.829864+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://open.spotify.com/embed/track/1jwwyhTZw5QRFnCCmCdhT5",
+          "status": 200
+        },
+        {
+          "url": "https://open.spotify.com/oembed",
+          "status": 200
+        }
+      ]
+    },
+    "get_track_basic": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_track_basic\", \"track_id\": \"1jwwyhTZw5QRFnCCmCdhT5\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.830540+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://open.spotify.com/oembed",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

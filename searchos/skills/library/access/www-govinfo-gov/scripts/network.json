@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_premis_metadata": "direct",
+    "get_package_metadata": "direct",
+    "search_budget_tables": "direct",
+    "get_granule_xlsx": "direct",
+    "get_granule_pdf_url": "proxy",
+    "list_package_contents": "direct"
+  },
+  "aliases": {
+    "get_package_metadata": "get_package_metadata",
+    "get_granule_xlsx": "get_granule_xlsx",
+    "get_granule_pdf_url": "get_granule_pdf_url",
+    "get_premis_metadata": "get_premis_metadata",
+    "list_package_contents": "list_package_contents",
+    "search_budget_tables": "search_budget_tables",
+    "run": "search_budget_tables"
+  }
+}

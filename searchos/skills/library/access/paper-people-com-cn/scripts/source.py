@@ -7,6 +7,9 @@ This skill provides access to:
 - Navigation between articles and pages
 - Current index page with today's edition
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 import aiohttp
@@ -292,7 +295,7 @@ async def get_article(url: str) -> dict[str, Any]:
     Returns:
         dict with article data or error
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, error = await fetch_html(session, url)
         
         if error:
@@ -319,7 +322,7 @@ async def get_layout_page(url: str) -> dict[str, Any]:
     Returns:
         dict with layout page data or error
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, error = await fetch_html(session, url)
         
         if error:
@@ -346,7 +349,7 @@ async def get_index() -> dict[str, Any]:
     # The actual index page URL after redirects
     url = "http://paper.people.com.cn/rmrb/pc/layout/index.html"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, error = await fetch_html(session, url)
         
         if error:
@@ -393,6 +396,7 @@ async def search_by_date(date: str, page: int = 1) -> dict[str, Any]:
     return await get_layout_page(url)
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """Main entry point for the skill.
     

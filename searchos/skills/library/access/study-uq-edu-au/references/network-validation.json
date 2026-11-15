@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5bc9649b4bbdad178d052e098c3d5b14cb94d2cf9866696156a540b1f436aa47",
+  "capabilities": {
+    "get_program": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_program\", \"program_code\": \"5743\", \"year\": 2026}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.871093+00:00",
+      "reason": "Failed to fetch program from API: 403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://study.uq.edu.au/jsonapi/uq_program/uq_program?filter%5Bcode%5D%5Bvalue%5D=5743&page%5Blimit%5D=10'",
+      "source_responses": [
+        {
+          "url": "https://study.uq.edu.au/jsonapi/uq_program/uq_program",
+          "status": 403
+        }
+      ]
+    },
+    "search_programs": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_programs\", \"title\": \"engineering\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.871631+00:00",
+      "reason": "API request failed with status 403",
+      "source_responses": [
+        {
+          "url": "https://study.uq.edu.au/jsonapi/uq_program/uq_program",
+          "status": 403
+        }
+      ]
+    },
+    "list_programs": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_programs\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.871707+00:00",
+      "reason": "API request failed with status 403",
+      "source_responses": [
+        {
+          "url": "https://study.uq.edu.au/jsonapi/uq_program/uq_program",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

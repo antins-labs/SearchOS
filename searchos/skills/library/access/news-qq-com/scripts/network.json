@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch_full_article": "direct",
+    "fetch_comments": "direct",
+    "fetch_article": "direct"
+  },
+  "aliases": {
+    "fetch_article": "fetch_article",
+    "fetch_comments": "fetch_comments",
+    "fetch_full_article": "fetch_full_article",
+    "run": "fetch_full_article"
+  }
+}

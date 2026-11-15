@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e1d3156fee1ff6415c207a4bc01e56eb264e3dfe877bdaa95d9505c743de947e",
+  "capabilities": {
+    "get_collection_items": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_collection_items\", \"url\": \"https://www.gov.uk/government/collections/uk-house-price-index-reports\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.078142+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.gov.uk/government/collections/uk-house-price-index-reports",
+          "status": 200
+        }
+      ]
+    },
+    "get_data_downloads": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_data_downloads\", \"url\": \"https://www.gov.uk/government/statistical-data-sets/uk-house-price-index-data-downloads-february-2026\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.083195+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.gov.uk/government/statistical-data-sets/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "download_csv": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"download_csv\", \"url\": \"https://publicdata.landregistry.gov.uk/market-trend-data/house-price-index-data/Average-prices-2026-02.csv\", \"include_data\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.085675+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://publicdata.landregistry.gov.uk/market-trend-data/house-price-index-data/Average-prices-2026-02.csv",
+          "status": 200
+        }
+      ]
+    },
+    "search_hpi_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_hpi_data\", \"year\": 2026, \"month\": \"february\", \"data_type\": \"downloads\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.085895+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.gov.uk/government/statistical-data-sets/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "get_latest_hpi_release": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_latest_hpi_release\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.086152+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.gov.uk/government/collections/uk-house-price-index-reports",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

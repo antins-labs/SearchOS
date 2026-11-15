@@ -2,7 +2,7 @@
 
 import { Fragment, type ReactNode } from "react";
 import { turnActivitySegments, type Turn } from "@/lib/conversation";
-import { foldWorkers } from "@/lib/derive";
+import { foldWorkers } from "@/lib/runState";
 import OrchestrationCard from "./OrchestrationCard";
 
 export default function TurnActivity({ turn, onOpen, children }: {
@@ -34,7 +34,7 @@ export default function TurnActivity({ turn, onOpen, children }: {
                 searchState={latest ? turn.searchState : null}
                 status={latest ? turn.status : "idle"} continued={!latest}
                 workers={latest ? turn.workers : foldWorkers([...segment.priorEvents, ...segment.events])}
-                sourceMode={turn.sourceMode} onOpen={onOpen} />
+                sourceMode={turn.sourceMode} sessionId={turn.sessionId} onOpen={onOpen} />
             </div>}
             {latest && children}
           </div>

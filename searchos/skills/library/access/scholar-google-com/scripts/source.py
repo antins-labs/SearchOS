@@ -10,6 +10,9 @@ Fetches author profile data from Google Scholar including:
 Note: Google Scholar actively blocks automated access. This skill implements
 multiple strategies to access the data and provides proper error handling.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -17,6 +20,7 @@ from typing import Any, Optional
 from playwright.async_api import async_playwright, Page, BrowserContext
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Google Scholar profile fetch.
@@ -80,7 +84,7 @@ async def fetch_profile_with_browser(
     """
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
+        browser = await _skill_network.browser_launch(p.chromium, 
             headless=True,
             args=[
                 '--disable-blink-features=AutomationControlled',
@@ -138,7 +142,7 @@ async def try_fetch_with_context(
     Attempt to fetch profile with specific browser context settings.
     """
     
-    context = await browser.new_context(
+    context = await _skill_network.browser_new_context(browser, 
         user_agent=user_agent,
         locale='en-US',
         viewport={'width': 1920, 'height': 1080},
@@ -160,7 +164,7 @@ async def try_fetch_with_context(
         window.chrome = { runtime: {} };
     """)
     
-    page = await context.new_page()
+    page = await _skill_network.browser_new_page(context)
     
     try:
         url = f'https://scholar.google.com/citations?user={user_id}&hl=en'

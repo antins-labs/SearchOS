@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e509d7a1d3b69bdebaef61cd74cc1d7f73bb7e0f7a7998f9a0db6c98bf5c8708",
+  "capabilities": {
+    "get_reference_profile": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_reference_profile\", \"reference_id\": \"2316680\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.726358+00:00",
+      "reason": "HTTP error 404: Client error '404 Not Found' for url 'https://irma.nps.gov/DataStore/Reference/GetProfileCoreModel/2316680'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404",
+      "source_responses": [
+        {
+          "url": "https://irma.nps.gov/DataStore/Reference/GetProfileCoreModel/2316680",
+          "status": 404
+        }
+      ]
+    },
+    "get_file_holdings": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_file_holdings\", \"reference_id\": \"2316680\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.736736+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://irma.nps.gov/DataStore/Reference/GetHoldings",
+          "status": 200
+        }
+      ]
+    },
+    "download_file": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"download_file\", \"file_id\": \"753801\", \"max_size_mb\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.736830+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://irma.nps.gov/DataStore/DownloadFile/753801",
+          "status": 200
+        }
+      ]
+    },
+    "parse_csv_file": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"parse_csv_file\", \"file_id\": \"753800\", \"preview_rows\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.736921+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://irma.nps.gov/DataStore/DownloadFile/753800",
+          "status": 200
+        }
+      ]
+    },
+    "get_full_profile": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_full_profile\", \"reference_id\": \"2316680\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.737001+00:00",
+      "reason": "HTTP error 404: Client error '404 Not Found' for url 'https://irma.nps.gov/DataStore/Reference/GetProfileCoreModel/2316680'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404",
+      "source_responses": [
+        {
+          "url": "https://irma.nps.gov/DataStore/Reference/GetHoldings",
+          "status": 200
+        },
+        {
+          "url": "https://irma.nps.gov/DataStore/Reference/GetProfileCoreModel/2316680",
+          "status": 404
+        }
+      ]
+    }
+  }
+}

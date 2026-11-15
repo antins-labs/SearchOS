@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "55f328f070202f0271f37d3f706aba1d674716b038b60fc37b171661066685e6",
+  "capabilities": {
+    "get_paper": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_paper\", \"anthology_id\": \"2024.acl-long.788\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.568485+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://aclanthology.org/2024.acl-long.788/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

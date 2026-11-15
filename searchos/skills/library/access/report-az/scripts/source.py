@@ -10,12 +10,16 @@ Success rates vary and may depend on Cloudflare's current security settings.
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 import asyncio
 import re
 from typing import Any
 from playwright.async_api import async_playwright, Page, BrowserContext
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute report.az access skill.
@@ -36,7 +40,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
 
 async def create_stealth_context(browser) -> BrowserContext:
     """Create a browser context with stealth settings."""
-    context = await browser.new_context(
+    context = await _skill_network.browser_new_context(browser, 
         user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         viewport={'width': 1920, 'height': 1080},
         locale='en-US',
@@ -286,7 +290,7 @@ async def get_article(params: dict[str, Any]) -> dict[str, Any]:
         return {"error": "URL must be from report.az domain"}
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
+        browser = await _skill_network.browser_launch(p.chromium, 
             headless=True,
             args=[
                 '--disable-blink-features=AutomationControlled',
@@ -299,7 +303,7 @@ async def get_article(params: dict[str, Any]) -> dict[str, Any]:
         
         try:
             context = await create_stealth_context(browser)
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             print(f"Navigating to: {url}")
             
@@ -385,14 +389,14 @@ async def search_articles(params: dict[str, Any]) -> dict[str, Any]:
     search_url = f"https://report.az/en/search/{query}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
+        browser = await _skill_network.browser_launch(p.chromium, 
             headless=True,
             args=['--disable-blink-features=AutomationControlled']
         )
         
         try:
             context = await create_stealth_context(browser)
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             print(f"Navigating to search: {search_url}")
             

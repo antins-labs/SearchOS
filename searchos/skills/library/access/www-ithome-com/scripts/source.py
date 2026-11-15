@@ -4,6 +4,9 @@ IT之家 (ithome.com) Article Extractor
 Extracts article content, metadata, and images from IT Home news articles.
 Uses direct HTTP requests with BeautifulSoup for HTML parsing.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -26,7 +29,7 @@ async def fetch_article(url: str, session: Optional[aiohttp.ClientSession] = Non
     """
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -201,7 +204,7 @@ async def fetch_articles(urls: list[str]) -> list[dict[str, Any]]:
     Returns:
         List of article data dictionaries
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         tasks = [fetch_article(url, session) for url in urls]
         return await asyncio.gather(*tasks)
 
@@ -234,6 +237,7 @@ def format_article_summary(article: dict[str, Any]) -> str:
     return '\n'.join(lines)
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for IT Home article extraction.

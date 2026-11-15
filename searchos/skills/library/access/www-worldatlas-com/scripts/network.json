@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_bordering_countries": "proxy",
+    "fetch_article": "direct",
+    "search_articles": "direct"
+  },
+  "aliases": {
+    "fetch_article": "fetch_article",
+    "search_articles": "search_articles",
+    "get_bordering_countries": "get_bordering_countries",
+    "run": "get_bordering_countries"
+  }
+}

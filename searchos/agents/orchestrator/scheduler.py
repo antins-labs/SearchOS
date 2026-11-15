@@ -10,6 +10,7 @@ honors task `priority` / `blocked_by`. Caps:
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from typing import Any
 
@@ -30,7 +31,7 @@ class Scheduler:
     """
 
     def __init__(self, task_allowlist: set[str] | None = None) -> None:
-        from searchos.harness.middleware.sensor.core.writer_trigger_sensor import (
+        from searchos.harness.middleware.sensor.core.dispatch import (
             WriterTriggerSensor,
         )
         self._writer_sensor = WriterTriggerSensor()
@@ -146,8 +147,8 @@ class Scheduler:
     async def detect_evidence_conflicts(self) -> dict[str, Any]:
         """增量核验待处理证据；只报告当前有效的冲突。"""
         from searchos.agents.orchestrator.lifecycle import _ctx
-        from searchos.harness.middleware.extraction.core.conflicts import ConflictReviewer
-        from searchos.harness.middleware.extraction.core.judge import RowExtractor
+        from searchos.harness.middleware.extraction.core.tables.conflicts import ConflictReviewer
+        from searchos.harness.middleware.extraction.core.tables.rows import RowExtractor
         from searchos.harness.middleware.extraction.core.models import ExtractionConfig
         from searchos.harness.middleware.extraction.core.store import WorkspaceEvidenceStore
         from searchos.socm.coverage.conflicts import reconcile_conflicts
@@ -188,10 +189,9 @@ class Scheduler:
             ):
                 continue
             sig = tuple(sorted((a.id, b.id)))
-            cell_key = f"{a.entity}.{a.attribute}" if (a.entity and a.attribute) else ""
             conflicts.setdefault(
                 sig,
-                (cell_key, f"Evidence edge CONFLICT between {a.id} and {b.id}"),
+                ("", f"Evidence edge CONFLICT between {a.id} and {b.id}"),
             )
         return {"detected": len(conflicts), "enqueued": 0}
 
@@ -277,8 +277,8 @@ class Scheduler:
         writer_id = _find_writer_id()
         if writer_id is None:
             return {"action": "no_writer"}
-        if writer_id in _ctx.task_pool and not _ctx.task_pool[writer_id].done():
-            return {"action": "writer_busy"}
+        if writer_id in _ctx.task_pool:
+            return {"action": "awaiting_report" if _ctx.task_pool[writer_id].done() else "writer_busy"}
         # 续写也占容量；延后不会消费新证据计数。
         from searchos.config.settings import settings as _settings
         running = _running_count()
@@ -293,9 +293,10 @@ class Scheduler:
             return {"action": "below_threshold", "delta": delta}
 
         new_nodes = state.evidence_graph.nodes[last_seen:]
+        from searchos.socm.refs import row_values
         bullets = []
         for n in new_nodes[-10:]:
-            slot = f"[{n.entity}.{n.attribute}] " if (n.entity or n.attribute) else ""
+            slot = f"[{row_values(n.entity)}; {n.attribute}] " if n.entity else ""
             bullets.append(f"- {slot}{n.claim} (src={n.source})")
         follow_up = (
             f"{delta} new evidence nodes since last turn:\n"
@@ -357,13 +358,15 @@ class Scheduler:
         ]
         # Rate-limit cooldown: tasks recycled off a 429 carry not_before —
         # leave them queued until it passes.
-        cooling = sum(1 for q in ready if (q.not_before or 0.0) > now)
+        retry_times = [q.not_before for q in ready if (q.not_before or 0.0) > now]
+        cooling = len(retry_times)
         ready = [q for q in ready if (q.not_before or 0.0) <= now]
         if not ready:
             out: dict[str, Any] = {"spawned": 0, "running": running, "reason": "empty"}
             if cooling:
                 out["reason"] = "cooling"
                 out["cooling"] = cooling
+                out["retry_at"] = min(retry_times)
             return out
 
         ready.sort(key=lambda q: (-q.priority, q.created_at))
@@ -447,7 +450,10 @@ class Scheduler:
             if task.target_cells and agent_type in {
                 "search_agent", "local_search_agent",
             }:
-                prompt = f"{prompt}\n\nTarget cells: {', '.join(task.target_cells)}"
+                from searchos.socm.refs import cell_ref
+                prompt += "\n\nTarget cells: " + json.dumps(
+                    [cell_ref(key) for key in task.target_cells], ensure_ascii=False,
+                )
             options = {"agent_id": requested} if requested else {}
             aid = await _spawn_sub_agent(
                 agent_type, prompt, list(task.skills or []),

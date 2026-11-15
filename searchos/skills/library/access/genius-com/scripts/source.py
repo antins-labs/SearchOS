@@ -4,6 +4,9 @@ Genius.com Annotated Scripts/Transcripts Access Skill
 Extracts structured content from Genius.com annotated TV show/movie scripts and transcripts.
 Handles pagination, content blocks, and annotation references.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -15,7 +18,7 @@ from playwright.async_api import async_playwright, Page, BrowserContext
 
 async def create_browser_context(p: Any) -> tuple[Any, BrowserContext]:
     """Create a browser context with anti-detection measures."""
-    browser = await p.chromium.launch(
+    browser = await _skill_network.browser_launch(p.chromium, 
         headless=True,
         args=[
             '--disable-blink-features=AutomationControlled',
@@ -25,7 +28,7 @@ async def create_browser_context(p: Any) -> tuple[Any, BrowserContext]:
         ]
     )
     
-    context = await browser.new_context(
+    context = await _skill_network.browser_new_context(browser, 
         user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         locale='en-US',
         viewport={'width': 1920, 'height': 1080},
@@ -303,7 +306,7 @@ async def get_script_page(params: dict[str, Any]) -> dict[str, Any]:
     async with async_playwright() as p:
         browser, context = await create_browser_context(p)
         try:
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate to the page
             await page.goto(url, wait_until='domcontentloaded', timeout=45000)
@@ -352,7 +355,7 @@ async def search_scripts(params: dict[str, Any]) -> dict[str, Any]:
     async with async_playwright() as p:
         browser, context = await create_browser_context(p)
         try:
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(search_url, wait_until='domcontentloaded', timeout=45000)
             content_loaded = await wait_for_content(page, max_wait=15000)
@@ -410,7 +413,7 @@ async def get_page_metadata(params: dict[str, Any]) -> dict[str, Any]:
     async with async_playwright() as p:
         browser, context = await create_browser_context(p)
         try:
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until='domcontentloaded', timeout=45000)
             await wait_for_content(page, max_wait=10000)
@@ -471,6 +474,7 @@ async def get_page_metadata(params: dict[str, Any]) -> dict[str, Any]:
             await browser.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the Genius.com access skill.

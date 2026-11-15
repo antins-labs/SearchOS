@@ -5,6 +5,9 @@ This skill provides access to the China Futures Association's monthly transactio
 statistics data from www.cfachina.org. It can list available monthly reports,
 retrieve report details, and download/parse Excel data files.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -489,6 +492,7 @@ async def search_reports(params: Dict[str, Any], session: aiohttp.ClientSession)
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the CFA monthly transaction data skill.
@@ -509,7 +513,7 @@ async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
             'error': "Parameter 'function' is required. Available functions: list_reports, get_report, download_excel, search_reports"
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'list_reports':
             return await list_reports(params, session)
         elif function == 'get_report':

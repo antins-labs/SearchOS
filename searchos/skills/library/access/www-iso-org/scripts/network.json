@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_country": "direct"
+  },
+  "aliases": {
+    "get_country": "get_country",
+    "run": "get_country"
+  }
+}

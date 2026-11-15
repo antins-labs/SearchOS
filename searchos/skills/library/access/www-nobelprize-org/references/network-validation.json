@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e68c9e8d03126707b0b2f9ccf7e1945bd2e2629a5afb5e1de045855512b8560f",
+  "capabilities": {
+    "get_bibliography": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_bibliography\", \"url\": \"https://www.nobelprize.org/prizes/literature/1928/undset/bibliography/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.215383+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nobelprize.org/prizes/literature/1928/undset/bibliography/",
+          "status": 200
+        }
+      ]
+    },
+    "get_summary": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_summary\", \"url\": \"https://www.nobelprize.org/prizes/literature/1954/hemingway/bibliography/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.217361+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nobelprize.org/prizes/literature/1954/hemingway/bibliography/",
+          "status": 200
+        }
+      ]
+    },
+    "search_entries": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_entries\", \"url\": \"https://www.nobelprize.org/prizes/literature/1928/undset/bibliography/\", \"query\": \"Kristin Lavransdatter\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.217466+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nobelprize.org/prizes/literature/1928/undset/bibliography/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

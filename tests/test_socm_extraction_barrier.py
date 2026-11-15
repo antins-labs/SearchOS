@@ -20,6 +20,7 @@ from searchos.harness.middleware.extraction import (
 )
 from searchos.harness.middleware.models import TaskContext
 from searchos.socm import FrontierTask, SearchState
+from searchos.socm.refs import cell_key, row_key
 
 
 @dataclass
@@ -44,13 +45,13 @@ async def model_with_context(middleware, request, handler):
 async def test_model_waits_for_triggered_background_flush_commit():
     started, release = asyncio.Event(), asyncio.Event()
     state = SearchState()
-    state.coverage_map.add_table("t", ["Name", "Revenue"], primary_key=["Name"], entities=["Acme"])
+    state.coverage_map.add_table("t", ["Name", "Revenue"], primary_key=["Name"], entities=[row_key(["Acme"])])
     state.frontier.add(
         FrontierTask(
             id="task",
             question="Acme revenue",
             table_id="t",
-            target_cells=["t/Acme.Revenue"],
+            target_cells=[cell_key("t", row_key(["Acme"]), "Revenue")],
             assigned_agent_id="search_agent_test",
         )
     )
@@ -94,8 +95,8 @@ async def test_model_waits_for_triggered_background_flush_commit():
 
     async def handler(request):
         calls.append(request)
-        assert store.state.coverage_map.cells["t/Acme.Revenue"].status.value == "filled"
-        assert store.state.coverage_map.cells["t/Acme.Revenue"].display_hint == "1234"
+        assert store.state.coverage_map.cells[cell_key("t", row_key(["Acme"]), "Revenue")].status.value == "filled"
+        assert store.state.coverage_map.cells[cell_key("t", row_key(["Acme"]), "Revenue")].display_hint == "1234"
         assert any("actionable gaps: 0" in str(m.content) for m in request.messages)
         return ModelResponse(result=[AIMessage(content="Done")])
 
@@ -122,7 +123,7 @@ async def test_model_waits_for_triggered_background_flush_commit():
 @pytest.mark.asyncio
 async def test_model_does_not_flush_partial_same_url_batch():
     state = SearchState()
-    state.coverage_map.add_table("t", ["Name", "Revenue"], primary_key=["Name"], entities=["Acme"])
+    state.coverage_map.add_table("t", ["Name", "Revenue"], primary_key=["Name"], entities=[row_key(["Acme"])])
     store = InMemoryEvidenceStore(state)
 
     class Judge:
@@ -165,7 +166,7 @@ async def test_model_does_not_flush_partial_same_url_batch():
 @pytest.mark.asyncio
 async def test_same_url_flushes_once_when_buffer_reaches_threshold():
     state = SearchState()
-    state.coverage_map.add_table("t", ["Name", "Revenue"], primary_key=["Name"], entities=["Acme"])
+    state.coverage_map.add_table("t", ["Name", "Revenue"], primary_key=["Name"], entities=[row_key(["Acme"])])
     store = InMemoryEvidenceStore(state)
 
     class Judge:
@@ -213,13 +214,13 @@ async def test_same_url_flushes_once_when_buffer_reaches_threshold():
 async def test_url_switch_flushes_previous_url_and_model_waits():
     started, release = asyncio.Event(), asyncio.Event()
     state = SearchState()
-    state.coverage_map.add_table("t", ["Name", "Revenue"], primary_key=["Name"], entities=["Acme"])
+    state.coverage_map.add_table("t", ["Name", "Revenue"], primary_key=["Name"], entities=[row_key(["Acme"])])
     state.frontier.add(
         FrontierTask(
             id="task",
             question="Acme revenue",
             table_id="t",
-            target_cells=["t/Acme.Revenue"],
+            target_cells=[cell_key("t", row_key(["Acme"]), "Revenue")],
             assigned_agent_id="search_agent_test",
         )
     )
@@ -273,7 +274,7 @@ async def test_url_switch_flushes_previous_url_and_model_waits():
     )
 
     async def handler(request):
-        assert store.state.coverage_map.cells["t/Acme.Revenue"].status.value == "filled"
+        assert store.state.coverage_map.cells[cell_key("t", row_key(["Acme"]), "Revenue")].status.value == "filled"
         assert any("actionable gaps: 0" in str(m.content) for m in request.messages)
         return ModelResponse(result=[AIMessage(content="Continue")])
 

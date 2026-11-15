@@ -43,7 +43,7 @@ logging.basicConfig(
 async def lifespan(_app: FastAPI):
     # Apply the persisted web-settings overlay on top of the env base layer.
     settings_store.load_and_apply()
-    from api.skills.creation import jobs as skill_jobs
+    from api.skills.creation_jobs import jobs as skill_jobs
     skill_jobs.recover()
     local_index_jobs.resume_background_indexes()
     network_import_jobs.resume_network_imports()
@@ -59,6 +59,8 @@ async def lifespan(_app: FastAPI):
         await local_index_jobs.stop_background_indexes()
         await network_import_jobs.stop_network_imports()
         await topic_recap_jobs.stop_topic_recaps()
+        from searchos.network import shutdown
+        shutdown()
 
 
 app = FastAPI(

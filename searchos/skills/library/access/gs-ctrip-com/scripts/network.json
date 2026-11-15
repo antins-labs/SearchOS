@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_sight_info": "proxy"
+  },
+  "aliases": {
+    "get_sight_info": "get_sight_info",
+    "run": "get_sight_info"
+  }
+}

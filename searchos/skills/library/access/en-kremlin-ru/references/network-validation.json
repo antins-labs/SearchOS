@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "f6bbf639174a0c077691701ae8b459d90c70a39a5060e12ff3aae1ac6800a981",
+  "capabilities": {
+    "get_press_release": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_press_release\", \"news_id\": \"69922\", \"page\": 1, \"category\": \"president/news\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.604613+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://en.kremlin.ru/events/president/news/69922",
+          "status": 200
+        }
+      ]
+    },
+    "list_press_releases": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_press_releases\", \"page\": 1, \"category\": \"president/news\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.605318+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://en.kremlin.ru/events/president/news",
+          "status": 200
+        }
+      ]
+    },
+    "search_press_releases": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_press_releases\", \"query\": \"CSTO summit\", \"page\": 1, \"category\": \"president/news\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.605383+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://en.kremlin.ru/search",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

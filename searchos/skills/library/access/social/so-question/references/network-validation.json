@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ba655b19440959cfc06fc4a0f04b532e05fe015c4d3734b170cb68354b38f4fb",
+  "capabilities": {
+    "package": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"query\": \"information retrieval\", \"site\": \"stackoverflow\", \"num_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.863128+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.stackexchange.com/2.3/search/advanced",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

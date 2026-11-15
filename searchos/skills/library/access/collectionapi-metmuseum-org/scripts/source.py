@@ -8,6 +8,9 @@ Provides structured access to the Met's public collection API:
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any
@@ -48,7 +51,7 @@ async def get_object(object_id: int) -> dict[str, Any]:
     """
     url = f"{BASE_URL}/objects/{object_id}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch_json(session, url)
         
         if "error" in data:
@@ -149,7 +152,7 @@ async def search_objects(
     if date_end is not None:
         params["dateEnd"] = str(date_end)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch_json(session, url, params)
         
         if "error" in data:
@@ -173,7 +176,7 @@ async def get_departments() -> dict[str, Any]:
     """
     url = f"{BASE_URL}/departments"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch_json(session, url)
         
         if "error" in data:
@@ -195,7 +198,7 @@ async def get_objects_batch(object_ids: list[int]) -> dict[str, Any]:
     Returns:
         List of object records
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         results = []
         errors = []
         
@@ -227,6 +230,7 @@ async def get_objects_batch(object_ids: list[int]) -> dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the Met Collection API skill.

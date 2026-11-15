@@ -9,6 +9,9 @@ This skill provides access to NatureScot (www.nature.scot) content, including:
 NOTE: The site employs Cloudflare protection that may block automated requests.
 This skill handles those conditions gracefully and provides diagnostic information.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import hashlib
@@ -69,7 +72,7 @@ class NatureScotAccess:
                 'Connection': 'keep-alive',
             }
             timeout = aiohttp.ClientTimeout(total=self.timeout)
-            self.session = aiohttp.ClientSession(headers=headers, timeout=timeout)
+            self.session = _skill_network.aiohttp_session(headers=headers, timeout=timeout)
         return self.session
     
     async def close(self):
@@ -206,7 +209,7 @@ class NatureScotAccess:
         
         try:
             async with async_playwright() as p:
-                browser = await p.chromium.launch(
+                browser = await _skill_network.browser_launch(p.chromium, 
                     headless=True,
                     args=[
                         '--disable-blink-features=AutomationControlled',
@@ -215,7 +218,7 @@ class NatureScotAccess:
                     ]
                 )
                 
-                context = await browser.new_context(
+                context = await _skill_network.browser_new_context(browser, 
                     viewport={'width': 1920, 'height': 1080},
                     user_agent=self.USER_AGENTS[2],  # Use standard browser UA
                     locale='en-GB',
@@ -228,7 +231,7 @@ class NatureScotAccess:
                     });
                 """)
                 
-                page = await context.new_page()
+                page = await _skill_network.browser_new_page(context)
                 
                 try:
                     await page.goto(url, wait_until='domcontentloaded', timeout=self.timeout * 1000)
@@ -420,6 +423,7 @@ def get_access(timeout: int = 30) -> NatureScotAccess:
     return _access
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Execute NatureScot access operations.

@@ -3,6 +3,9 @@ Autohome Vehicle Configuration Extractor
 
 Extracts detailed vehicle specifications and configurations from car.autohome.com.cn
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 import json
@@ -190,7 +193,7 @@ async def fetch_vehicle_config(
         'Cache-Control': 'max-age=0',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=timeout)) as response:
                 if response.status != 200:
@@ -349,6 +352,7 @@ def get_parameter_comparison(
     return comparison
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the Autohome vehicle configuration extractor

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch_articles": "direct",
+    "fetch_article": "direct",
+    "extract_doi": "direct"
+  },
+  "aliases": {
+    "fetch_article": "fetch_article",
+    "fetch_articles": "fetch_articles",
+    "extract_doi": "extract_doi",
+    "run": "extract_doi"
+  }
+}

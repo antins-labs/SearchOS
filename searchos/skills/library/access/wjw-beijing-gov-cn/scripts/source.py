@@ -4,6 +4,9 @@ Beijing Health Commission (wjw.beijing.gov.cn) Access Skill
 Provides access to healthcare notices, approvals, and official documents
 from the Beijing Municipal Health Commission website.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -191,7 +194,7 @@ def extract_document_id(url: str) -> str:
 
 async def get_article(url: str, ctx: Any = None) -> dict[str, Any]:
     """Fetch and parse a single article."""
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         timeout=30.0,
         follow_redirects=True,
         limits=httpx.Limits(max_connections=10)
@@ -231,7 +234,7 @@ async def list_articles(
     else:
         url = f"{BASE_URL}/zwgk_20040/{category}/index_{page}.html"
     
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         timeout=30.0,
         follow_redirects=True,
         limits=httpx.Limits(max_connections=10)
@@ -284,7 +287,7 @@ async def search_by_keyword(
     keyword = keyword.strip().lower()
     all_matches = []
     
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         timeout=30.0,
         follow_redirects=True,
         limits=httpx.Limits(max_connections=10)
@@ -339,7 +342,7 @@ async def get_batch_articles(
     
     results = []
     
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         timeout=30.0,
         follow_redirects=True,
         limits=httpx.Limits(max_connections=10)
@@ -370,6 +373,7 @@ async def get_batch_articles(
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Beijing Health Commission access skill.

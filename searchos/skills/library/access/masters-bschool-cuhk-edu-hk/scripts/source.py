@@ -17,6 +17,9 @@ Programs available:
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -59,7 +62,7 @@ async def create_stealth_browser():
     
     p = await async_playwright().start()
     
-    browser = await p.chromium.launch(
+    browser = await _skill_network.browser_launch(p.chromium, 
         headless=True,
         args=[
             '--disable-blink-features=AutomationControlled',
@@ -71,7 +74,7 @@ async def create_stealth_browser():
         ]
     )
     
-    context = await browser.new_context(
+    context = await _skill_network.browser_new_context(browser, 
         viewport={'width': 1920, 'height': 1080},
         user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
         locale='en-US',
@@ -427,7 +430,7 @@ async def get_program(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]
     try:
         # Create browser
         p, browser, context = await create_stealth_browser()
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         
         # Extract program data
         url = PROGRAM_SLUGS[slug]["url"]
@@ -512,7 +515,7 @@ async def get_multiple_programs(params: Dict[str, Any], ctx: Any = None) -> Dict
     p = None
     try:
         p, browser, context = await create_stealth_browser()
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         
         results = []
         for slug in slugs:
@@ -552,6 +555,7 @@ async def get_multiple_programs(params: Dict[str, Any], ctx: Any = None) -> Dict
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """Main entry point for the skill"""
     

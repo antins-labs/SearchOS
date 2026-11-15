@@ -27,20 +27,23 @@ def _registry():
     return _skill_registry_var.get()
 
 
-@tool
+@tool(parse_docstring=True)
 async def list_skills(category: str = "", availability: str = "", query: str = "", offset: int = 0, limit: int = 5) -> str:
-    """Discover skills for your current task, source or missing capability.
+    """Find skills for a task, source or capability. Returns names, descriptions, match reasons for
+    ranked results, the match count and next_offset. Use load_skill to read instructions and limits
+    before selecting a skill.
 
-    query accepts a natural-language need in any language, an exact skill name,
-    or a source domain/URL. Results are ranked candidates with match reasons;
-    load_skill to check instructions and limitations before deciding to use one.
-    Empty query browses the directory without model selection. No match is fine:
-    continue with ordinary web tools. An error is not evidence of no matching skill.
+    An empty result can be followed by ordinary web retrieval. On a discovery error, retry or
+    browse with an empty query.
 
     Args:
-        category (str): ``"strategy"`` | ``"access"`` | ``"orchestrator"`` — empty = access + strategy.
-        availability (str): ``"enabled"`` | ``"disabled"`` — empty = all.
-            The runtime registry contains enabled Skills only.
+        category: access, strategy or orchestrator. Omit to browse access and strategy skills.
+        availability: enabled or disabled. Omit to include the whole visible registry, which
+            contains enabled skills at runtime.
+        query: Natural-language need in any language, exact skill name, or source domain/URL (up to
+            2000 characters). Omit to browse without ranking.
+        offset: Zero-based starting index. Use next_offset for the next page.
+        limit: Number of skills per page, 1–50 (default 5).
     """
     from searchos.config.settings import settings
     if not settings.enable_skills:
@@ -65,7 +68,7 @@ async def list_skills(category: str = "", availability: str = "", query: str = "
         candidates.append(s)
     matches = {}
     if query.strip():
-        from searchos.skills.catalog.router import discover_skills
+        from searchos.skills.catalog.discovery import discover_skills
         try:
             ranked = await discover_skills(query, candidates, limit=settings.skill_router_top_k,
                 cache=getattr(reg, 'discovery_cache', None), semantic=settings.enable_skill_router)
@@ -92,14 +95,15 @@ async def list_skills(category: str = "", availability: str = "", query: str = "
     )
 
 
-@tool
+@tool(parse_docstring=True)
 async def load_anti_patterns(skill_name: str, context: str = "") -> str:
-    """Return full anti-pattern entries for a Skill.
+    """Read a skill's recorded failures and suggested alternatives before retrying an approach.
+    Returns the entries and their count.
 
     Args:
-        skill_name (str): name of a skill from ``list_skills``.
-        context (str): optional description of the planned or failed attempt;
-            when set, entries are reordered by relevance.
+        skill_name: Exact skill name from list_skills.
+        context: Optional description of the planned or failed attempt. Supplying it ranks entries
+            by relevance.
     """
     reg = _registry()
     if reg is None:

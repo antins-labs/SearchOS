@@ -2,12 +2,16 @@
 ICC (International Criminal Court) Access Skill
 Fetches news articles, court records, and search results from www.icc-cpi.int
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 from typing import Any
 from playwright.async_api import async_playwright
 import re
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute ICC website access functions.
@@ -65,15 +69,15 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
 async def get_news_article(url: str) -> dict[str, Any]:
     """Fetch a single news article from ICC website."""
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 viewport={'width': 1920, 'height': 1080},
                 locale='en-US',
                 timezone_id='America/New_York'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until='domcontentloaded', timeout=60000)
             await page.wait_for_timeout(3000)
@@ -124,15 +128,15 @@ async def get_news_article(url: str) -> dict[str, Any]:
 async def list_news(limit: int = 20) -> dict[str, Any]:
     """List recent news articles from ICC."""
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 viewport={'width': 1920, 'height': 1080},
                 locale='en-US',
                 timezone_id='America/New_York'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto('https://www.icc-cpi.int/news', wait_until='domcontentloaded', timeout=60000)
             await page.wait_for_timeout(3000)
@@ -165,15 +169,15 @@ async def list_news(limit: int = 20) -> dict[str, Any]:
 async def search(query: str, limit: int = 20) -> dict[str, Any]:
     """Search ICC website for documents and pages."""
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 viewport={'width': 1920, 'height': 1080},
                 locale='en-US',
                 timezone_id='America/New_York'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # URL encode the query
             encoded_query = query.replace(' ', '+')
@@ -217,15 +221,15 @@ async def search(query: str, limit: int = 20) -> dict[str, Any]:
 async def get_document(url: str) -> dict[str, Any]:
     """Fetch a court record or document from ICC."""
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 viewport={'width': 1920, 'height': 1080},
                 locale='en-US',
                 timezone_id='America/New_York'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Use shorter timeout and retry logic
             max_retries = 2
@@ -299,15 +303,15 @@ async def get_document(url: str) -> dict[str, Any]:
 async def get_rss(feed_type: str = "news", limit: int = 20) -> dict[str, Any]:
     """Fetch RSS feed from ICC."""
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 viewport={'width': 1920, 'height': 1080},
                 locale='en-US',
                 timezone_id='America/New_York'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # RSS feed URLs
             if feed_type == "records":

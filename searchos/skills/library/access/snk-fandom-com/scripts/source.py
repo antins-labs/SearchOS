@@ -4,6 +4,9 @@ SNK Fandom Wiki Access Skill
 Extracts structured character information from snk.fandom.com using the MediaWiki API.
 Bypasses Cloudflare protection by using the API endpoint directly.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -12,6 +15,7 @@ from typing import Any
 from urllib.parse import quote
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute SNK Fandom wiki queries.
@@ -56,7 +60,7 @@ async def _fetch_api(params: dict, timeout: int = 30) -> dict:
         'Accept': 'application/json',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(api_url, params=default_params, headers=headers, timeout=timeout) as resp:
             if resp.status != 200:
                 return {"error": f"API returned status {resp.status}"}

@@ -13,14 +13,14 @@ def _json(path, root):
         return {}
 
 
-def _events(path, root):
+def _events(path, root, *, tail_bytes=512_000):
     try:
         if path.is_symlink() or not path.resolve().is_relative_to(root.resolve()):
             return []
         with path.open('rb') as handle:
             size = handle.seek(0, 2)
-            handle.seek(max(0, size - 512_000))
-            if size > 512_000:
+            handle.seek(max(0, size - tail_bytes) if tail_bytes else 0)
+            if tail_bytes and size > tail_bytes:
                 handle.readline()
             lines = handle.read().decode('utf-8', errors='replace').splitlines()
         events = []
@@ -62,7 +62,7 @@ def _activity(event):
     return {'at': event.get('at'), 'role': action[0], 'action': action[1]}
 
 
-def creation_progress(job, root: Path, index: int):
+def _trial(job, root: Path, index: int):
     requests = job.get('requests', [])
     if index < 0 or (requests and index >= len(requests)) or (not requests and index != 0):
         raise ValueError('请求序号不存在')
@@ -77,6 +77,13 @@ def creation_progress(job, root: Path, index: int):
             if saved.get('name') == request.get('name') and saved.get('category') == request.get('category'):
                 folders.append(path.parent)
     folder = max(folders, key=lambda p: p.stat().st_mtime) if folders else owned / '_pending'
+    return folder, owned, bool(folders)
+
+
+def creation_progress(job, root: Path, index: int):
+    folder, owned, folders = _trial(job, root, index)
+    requests = job.get('requests', [])
+    request = requests[index] if requests else {}
     planner = _json(folder / 'site-session.json', owned)
     builder = _json(folder / 'builder.json', owned)
     draft = _json(folder / 'draft.json', owned)
@@ -111,11 +118,13 @@ def creation_progress(job, root: Path, index: int):
     for current in reviews:
         for observation in current.get('observations', []):
             args, output = observation.get('args', {}), observation.get('result', {})
-            if observation.get('tool') == 'exec' and args.get('argv') and output.get('execution_id'):
-                executions[output['execution_id']] = args.get('capability_id')
+            if (observation.get('tool') == 'exec' and (args.get('argv') or args.get('code'))
+                    and output.get('execution_id') and output.get('started') is not False):
+                executions.setdefault(output['execution_id'], set()).add(args.get('capability_id'))
         for case in current.get('case_results', []):
-            if execution_id := case.get('execution', {}).get('execution_id'):
-                executions[execution_id] = case.get('capability_id')
+            execution = case.get('execution', {})
+            if (execution_id := execution.get('execution_id')) and execution.get('started') is not False:
+                executions.setdefault(execution_id, set()).add(case.get('capability_id'))
     plan = planner.get('plan') or review.get('plan') or {}
     purposes = {cap['id']: cap.get('purpose', cap['id']) for cap in plan.get('capabilities', []) if cap.get('id')}
     capabilities = []
@@ -128,7 +137,7 @@ def creation_progress(job, root: Path, index: int):
             'deterministic': 'incomplete' if editing else state.get('deterministic', 'incomplete'),
             'semantic': 'incomplete' if editing else state.get('semantic', 'incomplete'),
             'reason': state.get('reason', ''),
-            'executions': sum(value == cap for value in executions.values()),
+            'executions': sum(cap in owners for owners in executions.values()),
             'external_blocked': bool(state.get('external_blocked'))})
     pending = report.get('regression_commands', [])
     return {'job_id': job['id'], 'request_index': index, 'phase': phase,
@@ -141,3 +150,58 @@ def creation_progress(job, root: Path, index: int):
                       'builder': max([builder.get('turns_attempted', 0), *[e.get('turn', 0) for e in events
                                      if e.get('event') == 'model_started']])},
             'events': timeline[-18:]}
+
+
+def creation_rounds(job, root: Path, index: int):
+    """读取角色每轮回复与工具调用；历史记录按调用内容匹配已保存回执。"""
+    folder, owned, found = _trial(job, root, index)
+    events = _events(folder / 'events.jsonl', owned, tail_bytes=None)
+    planner = _json(folder / 'site-session.json', owned)
+    reviews = ([_json(path, owned) for path in sorted(folder.glob('validation-*.json'),
+                                                    key=lambda path: path.stat().st_mtime)] if found else [])
+    observations = {
+        'planner': [item for item in planner.get('observations', []) if item.get('actor') == 'planner'],
+        'validator': [],
+    }
+    seen = set()
+    for review in reviews:
+        for item in review.get('observations', []):
+            if item.get('id') not in seen:
+                observations['validator'].append(item)
+                seen.add(item.get('id'))
+    receipts = {event.get('call_id'): event.get('content') for event in events
+                if event.get('event') in {'tool_result', 'agent_tool_result'} and event.get('call_id')}
+    roles = {'site_intent_response': 'planner', 'model_completed': 'builder',
+             'access_validation_response': 'validator'}
+    rounds = {role: [] for role in roles.values()}
+    for event in events:
+        role = roles.get(event.get('event'))
+        if not role:
+            continue
+        calls = []
+        for call in event.get('tool_calls') or []:
+            if not isinstance(call, dict):
+                continue
+            name, args = call.get('name', ''), call.get('args') or {}
+            if isinstance(args, str):
+                try:
+                    args = json.loads(args)
+                except ValueError:
+                    pass
+            result = receipts.get(call.get('id'))
+            if result is None and role in observations:
+                match = next((item for item in observations[role]
+                              if item.get('tool') == name and item.get('args') == args), None)
+                if match is not None:
+                    result = match.get('result')
+                    observations[role].remove(match)
+            if isinstance(result, str):
+                try:
+                    result = json.loads(result)
+                except ValueError:
+                    pass
+            calls.append({'name': name, 'id': call.get('id'), 'args': args, 'result': result})
+        rounds[role].append({'number': len(rounds[role]) + 1, 'at': event.get('at'),
+                             'content': event.get('content'), 'reasoning': event.get('reasoning'),
+                             'tool_calls': calls})
+    return {'job_id': job['id'], 'request_index': index, 'roles': rounds}

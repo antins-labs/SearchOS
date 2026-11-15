@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_recipe": "direct",
+    "search_recipes": "direct",
+    "list_recipes": "direct"
+  },
+  "aliases": {
+    "get_recipe": "get_recipe",
+    "list_recipes": "list_recipes",
+    "search_recipes": "search_recipes",
+    "run": "search_recipes"
+  }
+}

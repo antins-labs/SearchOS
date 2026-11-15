@@ -11,6 +11,9 @@ Provides access to UK legislation data including:
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 import asyncio
 import csv
 import io
@@ -22,6 +25,7 @@ from xml.etree import ElementTree as ET
 from playwright.async_api import async_playwright
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute legislation.gov.uk access functions.
@@ -52,14 +56,14 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
 async def _create_browser_session():
     """Create a browser session with proper context for legislation.gov.uk"""
     p = await async_playwright().start()
-    browser = await p.chromium.launch(headless=True)
-    context = await browser.new_context(
+    browser = await _skill_network.browser_launch(p.chromium, headless=True)
+    context = await _skill_network.browser_new_context(browser, 
         user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
         locale='en-GB',
         timezone_id='Europe/London',
         viewport={'width': 1920, 'height': 1080}
     )
-    page = await context.new_page()
+    page = await _skill_network.browser_new_page(context)
     
     # Visit home page first to establish session
     await page.goto("https://www.legislation.gov.uk/", wait_until='networkidle', timeout=60000)

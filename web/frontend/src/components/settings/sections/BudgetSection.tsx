@@ -14,11 +14,11 @@ const KNOB_LABELS: Record<string, { zh: string; en: string }> = {
   max_searches_per_sub_agent: { zh: "单智能体默认检索次数", en: "Default searches per agent" },
   max_searches_per_sub_agent_ceiling: { zh: "单智能体检索硬上限", en: "Search hard cap per agent" },
   max_finds_per_sub_agent: { zh: "单智能体页内查找次数", en: "Find calls per agent" },
-  max_skills_per_sub_agent: { zh: "单智能体技能调用次数", en: "Skill calls per agent" },
+  max_skills_per_sub_agent: { zh: "单智能体技能编排次数", en: "Skill batches per agent" },
   default_max_time_s: { zh: "运行时间上限（秒）", en: "Run time limit (seconds)" },
   skill_router_top_k: { zh: "候选技能上限", en: "Candidate skill limit" },
   max_search_agents_per_session: { zh: "检索智能体总数上限", en: "Search agent session cap" },
-  search_agent_no_progress_tool_limit: { zh: "单智能体连续无进展调用上限", en: "No-progress calls per agent" },
+  search_agent_no_progress_tool_limit: { zh: "单智能体连续无进展上限", en: "No-progress limit per agent" },
 };
 
 const KNOB_HINTS: Record<string, { zh: string; en: string }> = {
@@ -27,11 +27,11 @@ const KNOB_HINTS: Record<string, { zh: string; en: string }> = {
   max_searches_per_sub_agent: { zh: "每个子智能体默认可执行的联网检索次数。", en: "Default web searches assigned to each sub-agent." },
   max_searches_per_sub_agent_ceiling: { zh: "任务请求更多检索次数时仍不能超过该值。", en: "Hard upper bound when a task requests more searches." },
   max_finds_per_sub_agent: { zh: "每个子智能体在已打开页面中查找文本的次数。", en: "Maximum text searches inside opened pages per agent." },
-  max_skills_per_sub_agent: { zh: "每个子智能体可调用的访问技能次数。", en: "Maximum access-skill calls per agent." },
+  max_skills_per_sub_agent: { zh: "每个执行访问技能的 Exec 计一次，包含其中的全部技能子步骤。", en: "Each Exec that runs an access skill counts once, including all its skill steps." },
   default_max_time_s: { zh: "该档位采用的任务总时长限制。", en: "Wall-clock limit applied by this effort level." },
   skill_router_top_k: { zh: "每次按需查询最多返回多少个相关候选技能。", en: "Maximum relevant candidates per on-demand skill query." },
   max_search_agents_per_session: { zh: "一次研究中最多创建多少个检索智能体；0 表示不限制。", en: "Maximum search agents created in one run; 0 disables the cap." },
-  search_agent_no_progress_tool_limit: { zh: "单个检索智能体连续调用工具但没有新增阅读或事实后，触发收尾的次数。", en: "Finalize an agent after this many tool calls add no reading or facts." },
+  search_agent_no_progress_tool_limit: { zh: "连续多少个抽取批次没有进展时结束检索。同一 Exec 的技能子步骤合计一批。关闭证据抽取时按工具调用计数。", en: "End retrieval after this many settled extraction batches without progress. All skill steps in one Exec count as one batch. With extraction off, count tool calls." },
 };
 
 const LEVEL_COPY: Record<EffortLevel, { zh: string; en: string; zhSummary: string; enSummary: string }> = {

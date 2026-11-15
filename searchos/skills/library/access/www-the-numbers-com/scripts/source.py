@@ -8,6 +8,9 @@ Fetches movie financial data from The-Numbers.com including:
 - Weekly box office charts
 - Franchise data with all movies
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -324,7 +327,7 @@ async def get_movie(params: dict, ctx: Any = None) -> dict:
             # Try without year
             movie_url = f"{BASE_URL}/movie/{slug}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, movie_url)
         
         if status != 200:
@@ -361,7 +364,7 @@ async def get_franchise(params: dict, ctx: Any = None) -> dict:
         slug = format_franchise_slug(name)
         franchise_url = f"{BASE_URL}/movies/franchise/{slug}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, franchise_url)
         
         if status != 200:
@@ -412,7 +415,7 @@ async def get_box_office_chart(params: dict, ctx: Any = None) -> dict:
             'error': f"Invalid chart_type: {chart_type}. Must be 'weekend', 'daily', or 'weekly'",
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(session, url)
         
         if status != 200:
@@ -474,6 +477,7 @@ async def get_box_office_chart(params: dict, ctx: Any = None) -> dict:
         return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for The-Numbers.com data extraction.

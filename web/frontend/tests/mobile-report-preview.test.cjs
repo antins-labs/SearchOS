@@ -6,9 +6,16 @@ const test = require("node:test");
 const vm = require("node:vm");
 const ts = require("typescript");
 const api = {};
-vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/mobileReportPreview.ts"), "utf8"), {
-  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
-}).outputText, { exports: api, URL });
+const refs = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/socmRefs.ts"), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports: refs });
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/components/mobile/MobileReport.tsx"), "utf8"), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX },
+}).outputText, { exports: api, URL, require(name) {
+  if (name === "@/lib/socmRefs") return refs;
+  if (["react", "react/jsx-runtime", "lucide-react"].includes(name)) return require(name);
+  if (["./MobileSheet", "./mobile-assistant.module.css", "@/lib/coverageTables", "@/lib/localCitations", "@/components/conversation/Answer", "@/components/settings/SettingsProvider"].includes(name)) return {};
+  throw new Error(`Unexpected import: ${name}`);
+} });
 
 test("phone report preview excludes legacy empty placeholders, table syntax and source appendix", () => {
   const report = "# test query\n\n_(empty body)_\n## 数据对比表\n| 名称 | 时间 |\n|---|---|\n| A | 10:00 |\n## 信息来源\n1. https://example.com";
@@ -24,16 +31,16 @@ test("phone report preview is bounded without modifying the original report", ()
 });
 
 test("all 16 entries retain independent fields and exact table/row identity", () => {
-  const entities = Array.from({ length: 16 }, (_, i) => `item.${i}/name`);
+  const entities = Array.from({ length: 16 }, (_, i) => JSON.stringify([`item.${i}/name`]));
   const table = { table_id: "news", entities, attributes: ["标题", "事件概述", "来源URL", "发布时间", "重要性原因"] };
   const cells = {};
   for (const entity of entities) {
-    cells[`news/${entity}.标题`] = { value: `标题 ${entity}`, status: "filled" };
-    cells[`news/${entity}.事件概述`] = { value: ["第一段", "第二段"], status: "filled" };
-    cells[`news/${entity}.来源URL`] = { value: "[原文](https://example.com/article)", status: "filled" };
+    cells[refs.cellKey("news", entity, "标题")] = { value: `标题 ${entity}`, status: "filled" };
+    cells[refs.cellKey("news", entity, "事件概述")] = { value: ["第一段", "第二段"], status: "filled" };
+    cells[refs.cellKey("news", entity, "来源URL")] = { value: "[原文](https://example.com/article)", status: "filled" };
   }
-  cells[`other/${entities[0]}.事件概述`] = { value: "another table", status: "filled" };
-  cells[`news/${entities[15]}.重要性原因`] = { value: "不同说法", status: "uncertain", has_conflict: true };
+  cells[refs.cellKey("other", entities[0], "事件概述")] = { value: "another table", status: "filled" };
+  cells[refs.cellKey("news", entities[15], "重要性原因")] = { value: "不同说法", status: "uncertain", has_conflict: true };
   const rows = api.reportRows(table, cells);
   assert.equal(rows.length, 16);
   assert.equal(rows[15].title, `标题 ${entities[15]}`);
@@ -49,9 +56,10 @@ test("source actions accept web and local references but reject executable or cr
 });
 
 test("generic schemas and missing values do not become invented summaries", () => {
-  const rows = api.reportRows({ table_id: "products", entities: ["A"], attributes: ["价格", "来源"] }, {
-    "products/A.价格": { value: "旧数据", status: "missing" },
-    "products/A.来源": { value: "javascript:alert(1)", status: "filled" },
+  const entity = JSON.stringify(["A"]);
+  const rows = api.reportRows({ table_id: "products", entities: [entity], attributes: ["价格", "来源"] }, {
+    [refs.cellKey("products", entity, "价格")]: { value: "旧数据", status: "missing" },
+    [refs.cellKey("products", entity, "来源")]: { value: "javascript:alert(1)", status: "filled" },
   });
   assert.equal(rows[0].title, "A");
   assert.equal(rows[0].summary, "");

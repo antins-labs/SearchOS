@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch_history_article": "direct",
+    "fetch_mission_details": "proxy",
+    "fetch_page_auto": "direct"
+  },
+  "aliases": {
+    "fetch_mission_details": "fetch_mission_details",
+    "fetch_history_article": "fetch_history_article",
+    "fetch_page_auto": "fetch_page_auto",
+    "run": "fetch_page_auto"
+  }
+}

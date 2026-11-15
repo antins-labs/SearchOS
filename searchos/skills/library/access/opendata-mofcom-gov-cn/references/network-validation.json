@@ -1,0 +1,291 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5eb01eedfc7a2679f67beaee146c5190e2d2e0c1322bb901ce432d513f03d4c7",
+  "capabilities": {
+    "list_datasets": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_datasets\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.832247+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://opendata.mofcom.gov.cn/front/data",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/edi/edi.base.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/edi/edi.reset.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/app/app.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/app/module.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/app/barrierfree.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/edi/edi.function.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/layer/skin/default/layer.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/validform/css/validform.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/validform/plugin/passwordStrength/passwordStrength.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/powerFloat/css/powerFloat.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/img/wxdy.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/basic/js/edi/core/zf_monitor.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/js/app/barrierfree/edi_accessible.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/js/app/barrierfree/EasyReader.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.mofcom.gov.cn/cms_files/filemanager/1077459795/script/20233/102bc67246094b949a2f0515bdaf44aa.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/validform/plugin/passwordStrength/passwordStrength.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/validform/js/Validform.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/js/app/barrierfree/jquery.jplayer.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/ajax/ajaxFun.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_dataset": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_dataset\", \"dataset_id\": \"WM006\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.641990+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://opendata.mofcom.gov.cn/front/data/detail",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/edi/edi.base.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/edi/edi.reset.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/edi/edi.function.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/app/module.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/app/app.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/app/barrierfree.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/layer/skin/default/layer.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/validform/css/validform.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/validform/plugin/passwordStrength/passwordStrength.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/powerFloat/css/powerFloat.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.mofcom.gov.cn/cms_files/filemanager/1077459795/script/20233/d9e950c10e9041749d2f4a76d4c986f7.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/upload/img/WM006.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mofcom.gov.cn/cms_files/filemanager/1077459795/script/20233/102bc67246094b949a2f0515bdaf44aa.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/img/wxdy.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/basic/js/edi/core/zf_monitor.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/js/app/barrierfree/EasyReader.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/js/app/barrierfree/edi_accessible.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/js/app/barrierfree/jquery.jplayer.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/js/edi/core/edi.jq.min.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_download_urls": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_download_urls\", \"dataset_id\": \"WM006\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:30.813762+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://opendata.mofcom.gov.cn/front/data/detail",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/edi/edi.base.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/edi/edi.reset.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/edi/edi.function.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/app/module.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/app/app.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/layer/skin/default/layer.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/validform/css/validform.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/validform/plugin/passwordStrength/passwordStrength.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/css/app/barrierfree.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/basic/js/edi/modules/powerFloat/css/powerFloat.css",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/js/edi/core/edi.jq.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/upload/img/WM006.png",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/img/wxdy.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.mofcom.gov.cn/cms_files/filemanager/1077459795/script/20233/102bc67246094b949a2f0515bdaf44aa.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/basic/js/edi/core/zf_monitor.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/js/app/barrierfree/edi_accessible.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/img/bg/head-img.png",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/js/app/barrierfree/EasyReader.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://opendata.mofcom.gov.cn/resources/new/js/app/barrierfree/jquery.jplayer.min.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

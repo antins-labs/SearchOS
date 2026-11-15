@@ -3,6 +3,9 @@ Berlinale (www.berlinale.de) Access Skill
 
 Fetches awards data and jury information from the Berlin International Film Festival website.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -338,6 +341,7 @@ async def fetch_biography_detail(biography_url: str, session: aiohttp.ClientSess
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Berlinale data retrieval
@@ -357,7 +361,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
             'error': 'Missing required parameter: function'
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'awards_by_year':
             year = params.get('year')
             if not year:

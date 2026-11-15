@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "70163fc21bd3805e8e9a291a2503aaa2045a565016f7338dfbf3b6fd76053196",
+  "capabilities": {
+    "list_categories": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_categories\", \"language\": \"en-US\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.018062+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dsec.gov.mo/StatisticsJSON/AllReleases_en-US_TourismAndServices.json",
+          "status": 200
+        },
+        {
+          "url": "https://www.dsec.gov.mo/StatisticsJSON/AllReleases_en-US_General.json",
+          "status": 200
+        },
+        {
+          "url": "https://www.dsec.gov.mo/StatisticsJSON/AllReleases_en-US_NationalAccounts.json",
+          "status": 200
+        },
+        {
+          "url": "https://www.dsec.gov.mo/StatisticsJSON/AllReleases_en-US_Demographic.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_key_indicators": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_key_indicators\", \"language\": \"en-US\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.019677+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dsec.gov.mo/StatisticsJSON/KeyIndicator_en-US.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_statistical_releases": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_statistical_releases\", \"category\": \"TourismAndServices\", \"topic\": \"VisitorArrivals\", \"period_type\": \"Monthly\", \"year\": 2026, \"language\": \"en-US\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.019878+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dsec.gov.mo/StatisticsJSON/AllReleases_en-US_TourismAndServices.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_release_detail": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_release_detail\", \"release_id\": \"31632\", \"language\": \"en-US\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.019982+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.dsec.gov.mo/StatisticsJSON/AllReleases_en-US_TourismAndServices.json",
+          "status": 200
+        }
+      ]
+    },
+    "search_indicators": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_indicators\", \"query\": \"visitor\", \"language\": \"en-US\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.020130+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.dsec.gov.mo/StatisticsJSON/KeyIndicator_en-US.json",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

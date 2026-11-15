@@ -7,6 +7,9 @@ from the League of Legends Fandom wiki using the MediaWiki API.
 The site uses Cloudflare protection that blocks direct browser automation,
 so we use the Fandom MediaWiki API instead.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -15,6 +18,7 @@ from typing import Any, Optional
 import re
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute a function to fetch data from lol.fandom.com
@@ -105,7 +109,7 @@ async def get_player_statistics(params: dict[str, Any]) -> dict[str, Any]:
     # Construct page path
     page = f"{tournament}/Player_Statistics"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await fetch_page_content(session, page)
         
         if "error" in result:
@@ -189,7 +193,7 @@ async def get_tournament_info(params: dict[str, Any]) -> dict[str, Any]:
     """
     tournament = params.get("tournament", "LPL/2025_Season/Split_3")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await fetch_page_content(session, tournament, prop="text|sections")
         
         if "error" in result:
@@ -237,7 +241,7 @@ async def get_standings(params: dict[str, Any]) -> dict[str, Any]:
     """
     tournament = params.get("tournament", "LPL/2025_Season/Split_3")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await fetch_page_content(session, tournament)
         
         if "error" in result:
@@ -306,7 +310,7 @@ async def get_team_rosters(params: dict[str, Any]) -> dict[str, Any]:
     """
     tournament = params.get("tournament", "LPL/2025_Season/Split_3")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await fetch_page_content(session, tournament)
         
         if "error" in result:
@@ -365,7 +369,7 @@ async def get_match_schedule(params: dict[str, Any]) -> dict[str, Any]:
     tournament = params.get("tournament", "LPL/2025_Season/Split_3")
     limit = params.get("limit", 50)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await fetch_page_content(session, tournament)
         
         if "error" in result:
@@ -442,7 +446,7 @@ async def get_awards(params: dict[str, Any]) -> dict[str, Any]:
     """
     tournament = params.get("tournament", "LPL/2025_Season/Split_3")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await fetch_page_content(session, tournament)
         
         if "error" in result:
@@ -530,7 +534,7 @@ async def search_pages(params: dict[str, Any]) -> dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(base_url, params=params_dict) as resp:
                 if resp.status != 200:
                     return {"error": f"HTTP {resp.status}"}

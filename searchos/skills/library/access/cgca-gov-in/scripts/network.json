@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_holidays": "direct"
+  },
+  "aliases": {
+    "get_holidays": "get_holidays",
+    "run": "get_holidays"
+  }
+}

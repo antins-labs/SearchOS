@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_company_info": "direct",
+    "get_cik_lookup": "proxy",
+    "get_financial_data": "direct",
+    "get_concept_history": "proxy",
+    "parse_filing_url": "direct",
+    "get_filing_document": "direct",
+    "get_filings_by_type": "direct",
+    "get_company_by_ticker": "direct",
+    "get_company_facts": "direct"
+  },
+  "aliases": {
+    "get_company_by_ticker": "get_company_by_ticker",
+    "get_cik_lookup": "get_cik_lookup",
+    "get_company_info": "get_company_info",
+    "get_company_facts": "get_company_facts",
+    "get_financial_data": "get_financial_data",
+    "get_concept_history": "get_concept_history",
+    "get_filing_document": "get_filing_document",
+    "get_filings_by_type": "get_filings_by_type",
+    "parse_filing_url": "parse_filing_url",
+    "run": "parse_filing_url"
+  }
+}

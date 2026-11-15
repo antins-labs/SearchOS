@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_institutions": "inherit",
+    "get_rankings": "inherit",
+    "list_available_years": "inherit",
+    "get_institution": "inherit"
+  },
+  "aliases": {
+    "get_rankings": "get_rankings",
+    "get_institution": "get_institution",
+    "search_institutions": "search_institutions",
+    "list_available_years": "list_available_years",
+    "run": "list_available_years"
+  }
+}

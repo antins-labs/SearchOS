@@ -2,6 +2,9 @@
 InvestingNews.com Access Skill
 Extracts rare earth reserves data and article listings from investingnews.com
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -297,6 +300,7 @@ async def get_article(session: aiohttp.ClientSession, url: str) -> Dict[str, Any
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx=None) -> Dict[str, Any]:
     """
     Main entry point for the skill
@@ -308,7 +312,7 @@ async def execute(params: Dict[str, Any], ctx=None) -> Dict[str, Any]:
     """
     function = params.get('function', '')
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_reserves':
             return await get_rare_earth_reserves(session)
         

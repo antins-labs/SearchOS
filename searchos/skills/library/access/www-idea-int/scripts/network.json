@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_datastudio_info": "direct",
+    "get_all": "direct",
+    "search": "direct",
+    "get_sva_type": "direct",
+    "get_overview": "direct"
+  },
+  "aliases": {
+    "get_overview": "get_overview",
+    "get_sva_type": "get_sva_type",
+    "get_all": "get_all",
+    "get_datastudio_info": "get_datastudio_info",
+    "search": "search",
+    "run": "search"
+  }
+}

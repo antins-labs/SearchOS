@@ -21,7 +21,7 @@ from searchos.harness.middleware.extraction import (
 )
 from searchos.harness.middleware.models import SourceContext, TaskContext
 from searchos.harness.middleware.sensor.budget_middleware import BudgetMiddleware
-from searchos.harness.middleware.sensor.core.models import BudgetState, ControlState
+from searchos.harness.middleware.sensor.core.run_state import BudgetState, ControlState
 from searchos.harness.middleware.sensor.detection_middleware import (
     CoverageStallMiddleware,
     DispatchRoundMiddleware,
@@ -38,17 +38,16 @@ from searchos.harness.middleware.sensor.progress_middleware import (
     ReadingProgressMiddleware,
     ToolProgressMiddleware,
 )
-from searchos.harness.middleware.sensor.route_middleware import RetryRouteMiddleware
+from searchos.harness.middleware.sensor.retry_route_middleware import RetryRouteMiddleware
 
 ORCHESTRATOR_DRAIN_TOOLS = frozenset(
     {
         "check_agents",
-        "set_research_plan",
         "add_entities",
         "edit_entities",
         "remove_entities",
         "inspect_table",
-        "python",
+        "exec",
         "stop_task",
     }
 )
@@ -80,14 +79,14 @@ SEARCH_RESULT_LIMITS = dict.fromkeys(
 
 
 def _graph(model, tools, system_prompt, middleware, *, pipeline,
-           steer_queue=None, enforce_budget=False, **graph_options):
+           steer_queue=None, enforce_budget=False, required=(), **graph_options):
     from searchos.agents.runtime import create_search_agent_graph
     from searchos.harness.middleware.context.compaction_context_middleware import (
         CompactionContextMiddleware,
     )
-    from searchos.harness.middleware.context.utils.messages import model_input_limit
+    from searchos.harness.middleware.context.utils.token_counts import model_input_limit
 
-    required_middleware = []
+    required_middleware = list(required)
     for item in middleware:
         if isinstance(item, BudgetMiddleware):
             item.drain_tools = item.drain_tools | graph_options.get("drain_tools", frozenset())
@@ -259,7 +258,9 @@ def web_search_pipeline(
         system_prompt,
         middleware,
         pipeline="web_search",
-        steer_queue=steer_queue, enforce_budget=enforce_budget,
+        steer_queue=steer_queue, enforce_budget=(enforce_budget or any(
+            tool.name == 'exec' and 'code' in tool.args for tool in tools
+        )),
         control=control,
         workspace=workspace,
         trajectory_logger=trajectory_logger,
@@ -450,14 +451,40 @@ def orchestrator_pipeline(
 ):
     budget = budget or BudgetState(max_queries=0, max_iterations=settings.orch_max_iterations)
     control = control or ControlState()
+
+    async def collect_for_summary():
+        import asyncio
+        import json
+
+        pending = dict(task_pool or {})
+        for aid, task in pending.items():
+            if task.done():
+                continue
+            worker_control = (agent_graphs or {}).get(aid, {}).get("control")
+            if worker_control is not None:
+                worker_control.summarize()
+        results = await asyncio.gather(*pending.values(), return_exceptions=True)
+        # 同一个 Agent 可能已续派，收尾时也要保留其先前未交付的报告。
+        from searchos.agents.runtime import _ctx
+        queued = list(_ctx.report_inbox) if task_pool is not None else []
+        queued_ids = {r.agent_id for r in queued if _ctx.completed.get(r.agent_id) is r}
+        reports = [(r.agent_id, r) for r in queued]
+        reports.extend((aid, result) for aid, result in zip(pending, results) if aid not in queued_ids)
+        return json.dumps([
+            {"agent_id": aid, "status": getattr(report, "status", "error"),
+             "summary": getattr(report, "last_message", str(report))}
+            for aid, report in reports
+        ], ensure_ascii=False) if reports else ""
+
     middleware = [
         BudgetMiddleware(
             budget,
             control=control,
             drain_tools=ORCHESTRATOR_DRAIN_TOOLS,
             on_exhausted=on_exhausted,
+            before_summary=collect_for_summary,
             warn_iterations=True,
-            wrap_up="Drain running agents with check_agents, inspect the live table, then answer.",
+            wrap_up="Review delivered reports and the live table, then answer.",
         ),
         RetryRouteMiddleware(workspace, agent_id="orchestrator"),
         DispatchRoundMiddleware(control, max_rounds=settings.orch_max_dispatches),
@@ -469,11 +496,12 @@ def orchestrator_pipeline(
         ),
         ToolResultLimitMiddleware(SEARCH_RESULT_LIMITS),
     ]
-    if steer_queue is not None:
-        from searchos.harness.middleware.context.steering_middleware import SteeringMiddleware
-
-        middleware.insert(0, SteeringMiddleware(steer_queue, trajectory_logger=trajectory_logger))
     selected = selection("orchestrator", settings)
+    from searchos.harness.middleware.context.agent_report_middleware import AgentReportMiddleware
+
+    stall = next((m for m in middleware if isinstance(m, CoverageStallMiddleware)
+                  and m.name in selected), None)
+    delivery = AgentReportMiddleware(task_pool, budget, control, stall.observe if stall else None)
     if "FailureRecordingMiddleware" in selected:
         index = next(i for i, item in enumerate(middleware) if isinstance(item, RetryRouteMiddleware))
         middleware.insert(index + 1, FailureRecordingMiddleware(workspace, task=TaskContext(agent_id="orchestrator")))
@@ -515,5 +543,8 @@ def orchestrator_pipeline(
         policy=policy,
         drain_tools=ORCHESTRATOR_DRAIN_TOOLS,
         finish_without_tools=False,
+        enforce_budget=True,
+        required=[delivery] if task_pool is not None else [],
+        steer_queue=steer_queue,
         **graph_options,
     )

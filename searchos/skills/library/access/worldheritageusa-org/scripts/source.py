@@ -2,6 +2,9 @@
 World Heritage USA - Access Skill
 Fetches data about U.S. World Heritage Sites from worldheritageusa.org
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -177,7 +180,7 @@ async def get_site_list(session: aiohttp.ClientSession = None) -> list:
     """Fetch and return list of all World Heritage Sites."""
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -192,7 +195,7 @@ async def get_site(slug: str, session: aiohttp.ClientSession = None) -> dict:
     """Fetch details for a specific site by slug."""
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -209,7 +212,7 @@ async def get_site(slug: str, session: aiohttp.ClientSession = None) -> dict:
 
 async def get_all_sites() -> list:
     """Fetch details for all World Heritage Sites."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         urls = await get_site_list(session)
         results = []
         
@@ -270,6 +273,7 @@ async def search_sites(query: str) -> list:
     return results
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the skill.

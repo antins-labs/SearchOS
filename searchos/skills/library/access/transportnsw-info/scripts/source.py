@@ -9,6 +9,9 @@ Fetches route information from Transport NSW including:
 
 Uses the internal GraphQL API at transportnsw.info/api/graphql
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from typing import Any, Optional
@@ -191,7 +194,7 @@ async def get_route_by_number(
         "query": f"operating_branch_route_number:({route_number})"
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await _make_graphql_request(
             session,
             "RouteSearchQuery",
@@ -299,7 +302,7 @@ async def get_page_alerts(path: str) -> dict[str, Any]:
     
     variables = {"path": path}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await _make_graphql_request(
             session,
             "pageAlerts",
@@ -366,7 +369,7 @@ async def search_routes(
         "query": search_query
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await _make_graphql_request(
             session,
             "RouteSearchQuery",
@@ -407,6 +410,7 @@ async def search_routes(
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Transport NSW skill.

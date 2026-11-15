@@ -25,7 +25,7 @@ from searchos.harness.middleware.pipelines import (
     writer_pipeline,
 )
 from searchos.harness.middleware.sensor.budget_middleware import BudgetMiddleware
-from searchos.harness.middleware.sensor.core.models import BudgetState, ControlState
+from searchos.harness.middleware.sensor.core.run_state import BudgetState, ControlState
 from searchos.harness.middleware.sensor.detection_middleware import (
     CoverageStallMiddleware,
     DispatchRoundMiddleware,
@@ -42,7 +42,7 @@ from searchos.harness.middleware.sensor.progress_middleware import (
     ReadingProgressMiddleware,
     ToolProgressMiddleware,
 )
-from searchos.harness.middleware.sensor.route_middleware import RetryRouteMiddleware
+from searchos.harness.middleware.sensor.retry_route_middleware import RetryRouteMiddleware
 
 __all__ = [
     "CompactionContextMiddleware",

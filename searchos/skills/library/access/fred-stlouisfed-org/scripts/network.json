@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_series_data": "direct",
+    "search_series": "direct",
+    "get_series_full": "direct",
+    "get_series_metadata": "direct"
+  },
+  "aliases": {
+    "get_series_data": "get_series_data",
+    "get_series_metadata": "get_series_metadata",
+    "get_series_full": "get_series_full",
+    "search_series": "search_series",
+    "run": "search_series"
+  }
+}

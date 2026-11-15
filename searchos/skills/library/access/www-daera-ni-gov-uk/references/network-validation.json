@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "88bb6fc6df3035d3f59a474a63714623b96247c0b44aab043d60e85c857d7f50",
+  "capabilities": {
+    "get_aonb_list": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_aonb_list\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.006217+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.daera-ni.gov.uk/topics/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "get_aonb_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_aonb_article\", \"slug\": \"antrim-coast-and-glens-aonb\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.006782+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.daera-ni.gov.uk/articles/antrim-coast-and-glens-aonb",
+          "status": 200
+        }
+      ]
+    },
+    "search_aonb_content": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_aonb_content\", \"query\": \"geology\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.006896+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

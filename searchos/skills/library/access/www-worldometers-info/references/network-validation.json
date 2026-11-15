@@ -1,0 +1,259 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "8966380ec5fcd0169a992445c15fd212ab222b68c3c116f19529abdce72deb1a",
+  "capabilities": {
+    "get_largest_countries": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_largest_countries\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.168823+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.worldometers.info/geography/largest-countries-in-the-world/",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worldometers.info/img/worldometers-logo.gif",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worldometers.info/assets/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://cdn.worldometers.info/assets/page.B9k6RjYL.js",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610200101/show_ads_impl_fy2021.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worldometers.info/assets/datatable.astro_astro_type_script_index_0_lang.EcSnhqRi.js",
+          "status": 200
+        },
+        {
+          "url": "https://stats.g.doubleclick.net/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://a.pub.network/worldometers-info/cls.css",
+          "status": 200
+        }
+      ]
+    },
+    "get_population_by_country": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_population_by_country\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.170949+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.worldometers.info/world-population/population-by-country/",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
+          "status": 200
+        },
+        {
+          "url": "https://stats.g.doubleclick.net/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610210101/show_ads_impl_fy2021.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worldometers.info/assets/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worldometers.info/img/worldometers-logo.gif",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worldometers.info/assets/datatable.astro_astro_type_script_index_0_lang.EcSnhqRi.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worldometers.info/assets/page.B9k6RjYL.js",
+          "status": 200
+        },
+        {
+          "url": "https://a.pub.network/worldometers-info/cls.css",
+          "status": 200
+        },
+        {
+          "url": "https://googleads.g.doubleclick.net/pagead/html/r20261020/r20190131/zrt_lookup_fy2021.html",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worldometers.info/assets/index.DdXmWbEB.js",
+          "status": 200
+        },
+        {
+          "url": "https://googleads.g.doubleclick.net/pagead/ads",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worldometers.info/assets/module.esm.L4ggBBWN.js",
+          "status": 200
+        },
+        {
+          "url": "https://securepubads.g.doubleclick.net/pagead/managed/js/gpt/m202610190101/pubads_impl.js",
+          "status": 200
+        },
+        {
+          "url": "https://securepubads.g.doubleclick.net/pagead/managed/dict/m202610220101/gpt",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldometers.info/cf-fonts/v/noto-sans/5.2.10/latin/wght/normal.woff2",
+          "status": 200
+        }
+      ]
+    },
+    "get_country_population_details": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country_population_details\", \"country\": \"india\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.171175+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.worldometers.info/world-population/india-population/",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://stats.g.doubleclick.net/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610200101/show_ads_impl_fy2021.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worldometers.info/assets/page.B9k6RjYL.js",
+          "status": 200
+        },
+        {
+          "url": "https://a.pub.network/worldometers-info/cls.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worldometers.info/assets/datatable.astro_astro_type_script_index_0_lang.EcSnhqRi.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.gstatic.com/charts/loader.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worldometers.info/img/worldometers-logo.gif",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worldometers.info/assets/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.realtimestatistics.net/rts/RTS-pop.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.realtimestatistics.net/rts/RTSp.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://code.jquery.com/jquery-3.7.1.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://a.pub.network/worldometers-info/pubfig.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.worldometers.info/assets/index.DdXmWbEB.js",
+          "status": 200
+        },
+        {
+          "url": "https://googleads.g.doubleclick.net/pagead/html/r20261020/r20190131/zrt_lookup_fy2021.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

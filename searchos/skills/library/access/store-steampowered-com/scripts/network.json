@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_apps": "direct",
+    "get_multiple_apps": "direct",
+    "get_app_details": "direct"
+  },
+  "aliases": {
+    "get_app_details": "get_app_details",
+    "get_multiple_apps": "get_multiple_apps",
+    "search_apps": "search_apps",
+    "run": "search_apps"
+  }
+}

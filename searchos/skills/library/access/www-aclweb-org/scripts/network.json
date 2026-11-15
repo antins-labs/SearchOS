@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_conferences": "direct",
+    "list_awards": "direct",
+    "get_awards_by_year": "direct"
+  },
+  "aliases": {
+    "list_conferences": "list_conferences",
+    "list_awards": "list_awards",
+    "get_awards_by_year": "get_awards_by_year",
+    "run": "get_awards_by_year"
+  }
+}

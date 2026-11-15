@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_post": "proxy",
+    "parse_url": "direct"
+  },
+  "aliases": {
+    "get_post": "get_post",
+    "parse_url": "parse_url",
+    "run": "parse_url"
+  }
+}

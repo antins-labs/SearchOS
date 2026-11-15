@@ -10,6 +10,9 @@ focusing on:
 
 Uses MediaWiki Action API: https://zh.wikipedia.org/w/api.php
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -529,6 +532,7 @@ async def get_page_extract(
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the Chinese Wikipedia access skill.
@@ -559,7 +563,7 @@ async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
             "valid_functions": ["search", "get_page", "get_extract"]
         }
     
-    async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
+    async with _skill_network.httpx_async_client(timeout=REQUEST_TIMEOUT) as client:
         if func == "search":
             query = params.get("query")
             if not query:

@@ -4,6 +4,9 @@ Omega Timing Live Results Extractor
 Fetches live timing results from Omega Timing's official website for
 Olympic Games, World Championships, and other major sporting events.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -268,6 +271,7 @@ async def search_events(client: httpx.AsyncClient, query: str) -> List[Dict[str,
     return results
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main execution function.
@@ -289,7 +293,7 @@ async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     if not function:
         return {"error": "Missing required parameter: function"}
     
-    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0, follow_redirects=True) as client:
         try:
             if function == "list_events":
                 year = params.get("year")
@@ -351,7 +355,7 @@ if __name__ == "__main__":
     import json
     
     async def test():
-        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        async with _skill_network.httpx_async_client(timeout=30.0, follow_redirects=True) as client:
             # Test list events
             print("=== Testing list_events ===")
             result = await execute({"function": "list_events", "year": 2026})

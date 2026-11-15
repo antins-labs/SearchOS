@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ba95fa3745f03a73326ac3c0c866749d0652438ce24d08a07cee34389d1d607d",
+  "capabilities": {
+    "get_by_country": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_country\", \"country\": \"Qatar\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.768004+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://leafwell.com/blog/is-marijuana-legal-in-qatar",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_url": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_url\", \"url\": \"https://leafwell.com/blog/is-marijuana-legal-in-albania\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.768669+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://leafwell.com/blog/is-marijuana-legal-in-albania",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"marijuana laws europe\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.768748+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/leafwell-com/scripts/source.py",
+        "line": 307,
+        "end_line": 317,
+        "implementation": "search_countries",
+        "source_sha256": "2a9cbe9a28d0e34cb9bc66dbee49813a7af02484b7cb026616e9649ef208fe1a",
+        "implementation_sha256": "933ee576c7cbcaa2776a7ba531bb38a78d5f2194ed8c6809c4ef78c05a8bccf7"
+      }
+    }
+  }
+}

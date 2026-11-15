@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5f84cd546902203e5db5c8d9bb292e2eb5568b8fabf8f511befa1095de1f816f",
+  "capabilities": {
+    "get_homepage": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_homepage\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.097700+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.hiro-tsuitokinenkan.go.jp/en/",
+          "status": 200
+        }
+      ]
+    },
+    "get_visitor_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_visitor_info\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.101591+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.hiro-tsuitokinenkan.go.jp/en/visit/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_floor_guide": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_floor_guide\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.102256+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.hiro-tsuitokinenkan.go.jp/en/floormap/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_about_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_about_info\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.102489+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.hiro-tsuitokinenkan.go.jp/en/about/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_faq": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_faq\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.102570+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.hiro-tsuitokinenkan.go.jp/en/qa/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_notices": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_notices\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.102781+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.hiro-tsuitokinenkan.go.jp/en/announcement/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_projects": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_projects\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.102870+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.hiro-tsuitokinenkan.go.jp/en/project/index.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

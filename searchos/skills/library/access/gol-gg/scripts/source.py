@@ -5,6 +5,9 @@ This skill retrieves data from gol.gg, a League of Legends esports statistics da
 It provides access to tournament statistics, player rankings, champion statistics,
 and team data.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -708,6 +711,7 @@ async def get_team_stats(params: dict, session: aiohttp.ClientSession) -> dict:
         return {"error": f"Error parsing team stats: {str(e)}"}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute a GOL.gg data retrieval function.
@@ -725,7 +729,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     if not function:
         return {"error": "function parameter is required"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_tournament_stats':
             return await get_tournament_stats(params, session)
         elif function == 'get_tournament_ranking':

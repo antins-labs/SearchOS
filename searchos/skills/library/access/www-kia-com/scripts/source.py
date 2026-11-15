@@ -4,6 +4,9 @@ Kia Vehicle Specs Extractor
 Fetches vehicle specifications and trim comparison data from kia.com.
 Supports both individual trim specs and full trim comparison pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -13,7 +16,7 @@ from playwright.async_api import async_playwright, Browser, Page
 
 async def fetch_page_content(url: str, browser: Browser) -> str:
     """Fetch page content with scrolling to load all specs."""
-    page = await browser.new_page()
+    page = await _skill_network.browser_new_page(browser)
     try:
         await page.goto(url, wait_until='domcontentloaded', timeout=45000)
         await asyncio.sleep(3)
@@ -278,7 +281,7 @@ async def get_vehicle_specs(model: str, year: int = None, trim: str = None) -> d
     url = build_url(model, year, trim, compare=False)
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
             text = await fetch_page_content(url, browser)
             return parse_specs_page(text)
@@ -293,7 +296,7 @@ async def get_trim_comparison(model: str) -> dict:
     url = build_url(model, compare=True)
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
             text = await fetch_page_content(url, browser)
             return parse_compare_page(text)
@@ -303,6 +306,7 @@ async def get_trim_comparison(model: str) -> dict:
             await browser.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main executor function for Kia vehicle specs extraction.

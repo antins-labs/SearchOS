@@ -8,6 +8,9 @@ Provides access to Macau gaming statistics including:
 
 Data sources are XML files served directly from www.dicj.gov.mo
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import httpx
@@ -241,7 +244,7 @@ async def get_monthly_revenue(
     
     own_client = client is None
     if own_client:
-        client = httpx.AsyncClient(timeout=30.0, verify=False)
+        client = _skill_network.httpx_async_client(timeout=30.0, verify=False)
     
     try:
         result = await fetch_url(url, client)
@@ -297,7 +300,7 @@ async def get_quarterly_statistics(
     
     own_client = client is None
     if own_client:
-        client = httpx.AsyncClient(timeout=30.0, verify=False)
+        client = _skill_network.httpx_async_client(timeout=30.0, verify=False)
     
     try:
         result = await fetch_url(url, client)
@@ -351,7 +354,7 @@ async def get_concessionaire_reports_list(
     
     own_client = client is None
     if own_client:
-        client = httpx.AsyncClient(timeout=30.0, verify=False)
+        client = _skill_network.httpx_async_client(timeout=30.0, verify=False)
     
     try:
         result = await fetch_url(url, client)
@@ -431,7 +434,7 @@ async def get_concessionaire_financial_report(
     
     own_client = client is None
     if own_client:
-        client = httpx.AsyncClient(timeout=30.0, verify=False)
+        client = _skill_network.httpx_async_client(timeout=30.0, verify=False)
     
     try:
         result = await fetch_url(url, client)
@@ -504,7 +507,7 @@ async def get_available_years(
     """
     own_client = client is None
     if own_client:
-        client = httpx.AsyncClient(timeout=30.0, verify=False)
+        client = _skill_network.httpx_async_client(timeout=30.0, verify=False)
     
     try:
         current_year = datetime.now().year
@@ -533,6 +536,7 @@ async def get_available_years(
             await client.aclose()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for DICJ data access skill

@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "fa10ae6d69d0e652484ccb406acf11141efaf2ac3afef9993b8a7ee8609d133e",
+  "capabilities": {
+    "get_municipality": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_municipality\", \"state\": \"GO\", \"name\": \"Palmelo\", \"periods\": \"-1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.480746+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_by_id": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_id\", \"municipality_id\": 5215801, \"periods\": \"-1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.481738+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_districts": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_districts\", \"municipality_id\": 5215801, \"periods\": \"-1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.481812+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_population_area": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_population_area\", \"municipality_id\": 5215801, \"periods\": \"-1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.481886+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_gdp": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_gdp\", \"municipality_id\": 5215801, \"periods\": \"-5\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.481956+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_stats": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_stats\", \"municipality_id\": 5215801, \"periods\": \"-1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.482018+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "list_states": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_states\", \"periods\": \"-1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.482077+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "list_municipalities": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_municipalities\", \"state\": \"GO\", \"periods\": \"-1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.482163+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

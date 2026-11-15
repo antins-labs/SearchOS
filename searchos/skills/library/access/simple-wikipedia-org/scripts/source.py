@@ -11,6 +11,9 @@ Functions:
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 from typing import Any
@@ -26,7 +29,7 @@ USER_AGENT = "SearchOSSkill/1.0 (https://github.com/searchos; contact@example.co
 
 def _get_client() -> httpx.Client:
     """Create an HTTP client with proper headers."""
-    return httpx.Client(
+    return _skill_network.httpx_client(
         timeout=30.0,
         follow_redirects=True,
         headers={"User-Agent": USER_AGENT}
@@ -466,6 +469,7 @@ def search_awards(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
 
 # ========== Entry Point ==========
 
+@_skill_network.entrypoint
 def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the SearchOS skill.

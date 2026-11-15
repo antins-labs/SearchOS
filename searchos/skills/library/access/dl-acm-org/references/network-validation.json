@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "59602a1c49910dac0ddb88a9c02a2111f6e9ba22a9dc34edd3d13cca9fc00cbb",
+  "capabilities": {
+    "get_paper": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_paper\", \"doi\": \"10.1145/3641519.3657495\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.590887+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.semanticscholar.org/graph/v1/paper/DOI:10.1145/3641519.3657495",
+          "status": 429
+        },
+        {
+          "url": "https://api.crossref.org/works/10.1145/3641519.3657495",
+          "status": 200
+        }
+      ]
+    },
+    "search_papers": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_papers\", \"query\": \"differentiable rendering lens design\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:18:58.873067+00:00",
+      "reason": "JSON decode error: Expecting value: line 1 column 1 (char 0)",
+      "source_responses": [
+        {
+          "url": "https://api.semanticscholar.org/graph/v1/paper/search",
+          "status": 429
+        }
+      ]
+    },
+    "get_citations": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_citations\", \"doi\": \"10.1145/3641519.3657495\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:26.121275+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.semanticscholar.org/graph/v1/paper/DOI:10.1145/3641519.3657495/citations",
+          "status": 200
+        }
+      ]
+    },
+    "get_references": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_references\", \"doi\": \"10.1145/3641519.3657495\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:26.172057+00:00",
+      "reason": "JSON decode error: Expecting value: line 1 column 1 (char 0)",
+      "source_responses": [
+        {
+          "url": "https://api.semanticscholar.org/graph/v1/paper/DOI:10.1145/3641519.3657495/references",
+          "status": 429
+        }
+      ]
+    }
+  }
+}

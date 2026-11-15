@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_tournament_classification": "direct",
+    "get_team_info": "direct",
+    "get_team_tournaments": "direct"
+  },
+  "aliases": {
+    "get_tournament_classification": "get_tournament_classification",
+    "get_team_tournaments": "get_team_tournaments",
+    "get_team_info": "get_team_info",
+    "run": "get_team_info"
+  }
+}

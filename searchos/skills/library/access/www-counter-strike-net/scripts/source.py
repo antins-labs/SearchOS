@@ -5,6 +5,9 @@ Fetches news and updates from Counter-Strike 2 via the Steam News API.
 The counter-strike.net website uses a React frontend that requires browser rendering,
 but the Steam News API provides direct JSON access to the same content.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import httpx
 from datetime import datetime
@@ -22,7 +25,7 @@ async def _fetch_news(count: int = 20, maxlength: int = 50000) -> dict:
     """Fetch news items from Steam News API."""
     url = f"{STEAM_NEWS_API}?appid={CS2_APP_ID}&count={count}&maxlength={maxlength}"
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0) as client:
         resp = await client.get(url)
         
         if resp.status_code != 200:
@@ -172,6 +175,7 @@ async def search_updates(params: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the Counter-Strike 2 News skill.

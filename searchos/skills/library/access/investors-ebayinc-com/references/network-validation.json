@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3a3c97ff67435e65fa0f402b6ed8cb274de5982cce0c227dfc6af7e87bcd6ed0",
+  "capabilities": {
+    "get_financial_reports": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_financial_reports\", \"report_type\": \"quarterly\", \"year\": 2024}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.719851+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://investors.ebayinc.com/financial-information/financial-summary/default.aspx",
+          "status": 200
+        },
+        {
+          "url": "https://investors.ebayinc.com/feed/FinancialReport.svc/GetFinancialReportList",
+          "status": 200
+        }
+      ]
+    },
+    "get_quarterly_earnings": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_quarterly_earnings\", \"quarters\": 2, \"include_tables\": \"true\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.720498+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://investors.ebayinc.com/financial-information/financial-summary/default.aspx",
+          "status": 200
+        },
+        {
+          "url": "https://investors.ebayinc.com/Services/PressReleaseService.svc/GetPressReleaseList",
+          "status": 200
+        }
+      ]
+    },
+    "parse_financial_statement": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"parse_financial_statement\", \"quarter\": \"Q1\", \"year\": 2025, \"statement_type\": \"income\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.720689+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://investors.ebayinc.com/financial-information/financial-summary/default.aspx",
+          "status": 200
+        },
+        {
+          "url": "https://investors.ebayinc.com/Services/PressReleaseService.svc/GetPressReleaseList",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

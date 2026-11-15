@@ -4,6 +4,9 @@ NBA.com Access Skill for SearchOS
 Fetches news articles, games, and statistics from NBA.com by extracting
 data from Next.js __NEXT_DATA__ payloads.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -23,7 +26,7 @@ async def fetch_page(url: str, headers: dict = None) -> tuple[int, str]:
             'Connection': 'keep-alive',
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, headers=headers, timeout=20) as resp:
             html = await resp.text()
             return resp.status, html
@@ -335,6 +338,7 @@ async def fetch_stats(params: dict) -> dict:
         return {'error': f'Error fetching stats: {str(e)}', 'success': False}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the NBA.com access skill.

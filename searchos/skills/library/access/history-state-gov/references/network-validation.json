@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "76968f0b5084189a4572a50e509219290f2c588fe50a44f47d2860a93ba504da",
+  "capabilities": {
+    "get_person": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_person\", \"slug\": \"tillerson-rex-w\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.705523+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://history.state.gov/departmenthistory/people/tillerson-rex-w",
+          "status": 200
+        }
+      ]
+    },
+    "search_people": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_people\", \"query\": \"kissinger\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.706072+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://history.state.gov/search",
+          "status": 200
+        }
+      ]
+    },
+    "list_secretaries": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_secretaries\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.706377+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://history.state.gov/departmenthistory/people/secretaries",
+          "status": 200
+        }
+      ]
+    },
+    "list_by_name": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_by_name\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.706581+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://history.state.gov/departmenthistory/people/by-name",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_name_letter": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_name_letter\", \"letter\": \"a\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.706803+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://history.state.gov/departmenthistory/people/by-name/a",
+          "status": 200
+        }
+      ]
+    },
+    "list_by_year": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_by_year\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.706871+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://history.state.gov/departmenthistory/people/by-year",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_year": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_year\", \"year\": 2020}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.706941+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://history.state.gov/departmenthistory/people/by-year/2020",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

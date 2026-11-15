@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "8137015cf53592664a5c79678fda9d1dfab86b478748e3d7c4a1c8dad068a0ee",
+  "capabilities": {
+    "get_page": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"page_title\": \"Reputation_Stadium_Tour\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.874074+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://taylorswift.fandom.com/wiki/Reputation_Stadium_Tour",
+          "status": 403
+        }
+      ]
+    },
+    "search": {
+      "status": "offline_business_passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"Taylor_Swift\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.874761+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/taylorswift-fandom-com/scripts/source.py",
+        "line": 334,
+        "end_line": 377,
+        "implementation": "search_pages",
+        "source_sha256": "ae9a8772e355b4d472a308cea48af8d70b24cd59578376d428a1ba5589abdd6c",
+        "implementation_sha256": "c93d1d7123d151d9c9313bd39ca8858aeafc81d228b9244cb8046ca9ff4b2591"
+      }
+    },
+    "get_infobox": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_infobox\", \"page_title\": \"Taylor_Swift\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.874860+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://taylorswift.fandom.com/wiki/Taylor_Swift",
+          "status": 403
+        }
+      ]
+    },
+    "get_tables": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tables\", \"page_title\": \"Reputation_Stadium_Tour\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.874945+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_tour_dates": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tour_dates\", \"page_title\": \"Reputation_Stadium_Tour\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.875038+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://taylorswift.fandom.com/wiki/Reputation_Stadium_Tour",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

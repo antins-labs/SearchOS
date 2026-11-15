@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_list": "direct",
+    "search_records": "direct"
+  },
+  "aliases": {
+    "get_list": "get_list",
+    "search_records": "search_records",
+    "run": "search_records"
+  }
+}

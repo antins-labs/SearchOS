@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "0a80e5f7bb5891edfdf6a37645f0fcfb1fa6bb6c8e0740d4102abf6c1c23db36",
+  "capabilities": {
+    "get_holidays": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_holidays\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.479418+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

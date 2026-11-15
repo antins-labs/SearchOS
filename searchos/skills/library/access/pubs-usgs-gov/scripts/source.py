@@ -4,6 +4,9 @@ USGS Mineral Commodity Summaries PDF Extractor
 Extracts structured mineral statistics from USGS Mineral Commodity Summaries publications.
 Supports both individual commodity PDFs and the full annual report.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import io
@@ -44,7 +47,7 @@ COMMODITY_PAGES = {
 
 async def fetch_pdf(url: str) -> bytes:
     """Download PDF content from URL."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url) as resp:
             resp.raise_for_status()
             return await resp.read()
@@ -441,6 +444,7 @@ async def get_rare_earths() -> dict:
         return {"error": str(e)}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for USGS MCS PDF extraction.

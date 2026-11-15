@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import type { FrontierTask } from "@/lib/types";
+import { cellRef } from "@/lib/socmRefs";
 
 type Filter = "all" | "active" | "done";
 
@@ -70,7 +71,7 @@ function TaskRow({ task }: { task: FrontierTask }) {
             <div className="mb-2 flex flex-wrap gap-1">
               {(task.target_cells ?? []).map((cell, index) => (
                 <span key={`${cell}:${index}`} className="max-w-full truncate rounded-md bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-ink-dim" title={cell}>
-                  {task.table_id ? `${task.table_id}/${cell}` : cell}
+                  {(() => { const ref = cellRef(cell); return `${ref.key.join(" · ")} · ${ref.attribute}`; })()}
                 </span>
               ))}
             </div>

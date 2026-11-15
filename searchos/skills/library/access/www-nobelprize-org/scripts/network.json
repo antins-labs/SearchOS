@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_summary": "inherit",
+    "get_bibliography": "direct",
+    "search_entries": "inherit"
+  },
+  "aliases": {
+    "get_bibliography": "get_bibliography",
+    "get_summary": "get_summary",
+    "search_entries": "search_entries",
+    "run": "search_entries"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "710d69f25983317c3833bcc1b92c95ccc535ada77ec1768d10e1aaa62e0f5bc1",
+  "capabilities": {
+    "get_tweet": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/get_tweet.py",
+        "--id",
+        "20"
+      ],
+      "checked_at": "2026-10-23T07:01:37.410829+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://publish.twitter.com/oembed",
+          "status": 301
+        },
+        {
+          "url": "https://publish.x.com/oembed",
+          "status": 200
+        }
+      ]
+    },
+    "get_user": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/get_user.py",
+        "--username",
+        "NASA"
+      ],
+      "checked_at": "2026-10-23T07:01:37.411909+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://x.com/NASA",
+          "status": 200
+        }
+      ]
+    },
+    "get_tweets": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/get_tweets.py",
+        "--ids",
+        "20,21"
+      ],
+      "checked_at": "2026-10-23T07:01:37.413514+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://publish.twitter.com/oembed",
+          "status": 301
+        },
+        {
+          "url": "https://publish.x.com/oembed",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

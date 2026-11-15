@@ -4,6 +4,9 @@ Gaokao (高考) Data Extraction Skill for gaokao.eol.cn
 Extracts admission lines (投档线) and score distribution tables (一分一段表) 
 from the Chinese college entrance examination portal.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -32,7 +35,7 @@ async def fetch_page(url: str, session: Optional[aiohttp.ClientSession] = None) 
     
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -193,6 +196,7 @@ def parse_score_distribution(table_data: List[List[str]]) -> List[Dict[str, Any]
     return records
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the gaokao.eol.cn data extraction skill.

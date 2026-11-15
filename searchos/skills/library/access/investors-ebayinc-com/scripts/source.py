@@ -6,6 +6,9 @@ Provides access to eBay's investor relations financial data including:
 - Quarterly earnings press releases with parsed financial tables
 - Financial metrics extraction (revenue, EPS, guidance, etc.)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -193,7 +196,7 @@ async def get_financial_reports(
     Returns:
         Dict with 'reports' list containing report metadata and download links
     """
-    async with httpx.AsyncClient(headers=HEADERS, timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(headers=HEADERS, timeout=30.0) as client:
         await _init_session(client)
         
         params = {
@@ -265,7 +268,7 @@ async def get_quarterly_earnings(
     Returns:
         Dict with quarterly earnings data including financial metrics
     """
-    async with httpx.AsyncClient(headers=HEADERS, timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(headers=HEADERS, timeout=30.0) as client:
         await _init_session(client)
         
         payload = {
@@ -346,7 +349,7 @@ async def parse_financial_statement(
     Returns:
         Dict with parsed financial statement data
     """
-    async with httpx.AsyncClient(headers=HEADERS, timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(headers=HEADERS, timeout=30.0) as client:
         await _init_session(client)
         
         # Get the specific quarter's press release
@@ -439,6 +442,7 @@ async def parse_financial_statement(
         return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main execution entry point

@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "338da00bb8a60b69e5108b9a3204da6aab8d090c5db81b6781fe3e32f7b19be2",
+  "capabilities": {
+    "get_riaa_diamond_albums": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_riaa_diamond_albums\", \"min_year\": 2020, \"max_year\": 2023}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.935192+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://worldmusicviews.com/riaadiamond/",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/plugins/jetpack/jetpack_vendor/automattic/jetpack-forms/dist/contact-form/css/jetpack-forms-layout.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/plugins/jetpack/jetpack_vendor/automattic/jetpack-search/build/search-blocks/filter-wc-attribute.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/plugins/jetpack/jetpack_vendor/automattic/jetpack-search/build/search-blocks/results-list.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/plugins/contact-form-7/includes/css/styles.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/plugins/gn-publisher/assets/css/gn-frontend-gnfollow.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/themes/fox/css56/header-above.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/themes/fox/css56/icon56-loading.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/themes/fox/css56/common-below.css",
+          "status": 200
+        },
+        {
+          "url": "https://c0.wp.com/c/7.1.3/wp-includes/css/dashicons.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/themes/fox/css56/header-below.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/themes/fox/css56/footer.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/themes/fox/css56/common.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/themes/fox/css56/widgets.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/themes/fox/css56/builder/common.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/themes/fox/css56/builder/list.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/themes/fox/css56/builder/grid.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/themes/fox/css56/builder/masonry.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/themes/fox/css56/builder/carousel.css",
+          "status": 200
+        },
+        {
+          "url": "https://worldmusicviews.com/wp-content/themes/fox/css56/builder/group.css",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

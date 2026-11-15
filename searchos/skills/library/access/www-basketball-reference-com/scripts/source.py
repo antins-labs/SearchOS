@@ -8,6 +8,9 @@ Fetches basketball statistics data from www.basketball-reference.com including:
 
 Uses Playwright for browser automation as the site blocks direct HTTP requests.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -20,13 +23,13 @@ async def _fetch_page(url: str, timeout_ms: int = 45000):
     
     pw = async_playwright()
     playwright = await pw.start()
-    browser = await playwright.chromium.launch(headless=True)
+    browser = await _skill_network.browser_launch(playwright.chromium, headless=True)
     
     try:
-        context = await browser.new_context(
+        context = await _skill_network.browser_new_context(browser, 
             user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         )
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         
         await page.goto(url, wait_until='domcontentloaded', timeout=timeout_ms)
         await page.wait_for_timeout(2000)  # Wait for dynamic content
@@ -541,6 +544,7 @@ async def list_tables(params: dict) -> dict:
             await browser.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Basketball Reference skill functions.

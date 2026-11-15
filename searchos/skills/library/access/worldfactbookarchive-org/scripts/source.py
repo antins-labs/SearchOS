@@ -2,12 +2,16 @@
 World Factbook Archive - Access Skill
 Retrieves historical field data for countries from worldfactbookarchive.org
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 from typing import Any
 import re
 from playwright.async_api import async_playwright
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute function for World Factbook Archive access skill.
@@ -52,10 +56,10 @@ async def get_field_history(params: dict[str, Any]) -> dict[str, Any]:
     
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
             try:
-                context = await browser.new_context()
-                page = await context.new_page()
+                context = await _skill_network.browser_new_context(browser)
+                page = await _skill_network.browser_new_page(context)
                 
                 # Use domcontentloaded for faster loading
                 await page.goto(url, wait_until="domcontentloaded", timeout=120000)
@@ -165,10 +169,10 @@ async def get_field_metadata(params: dict[str, Any]) -> dict[str, Any]:
     
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
             try:
-                context = await browser.new_context()
-                page = await context.new_page()
+                context = await _skill_network.browser_new_context(browser)
+                page = await _skill_network.browser_new_page(context)
                 
                 # Use domcontentloaded for faster loading
                 await page.goto(url, wait_until="domcontentloaded", timeout=120000)

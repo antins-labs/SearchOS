@@ -1,0 +1,205 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "cf7fcfd3b3841875764c6384b3a0a6b2e7fd9437aae1464c4fc8690794bd1ff1",
+  "capabilities": {
+    "get_slip_opinions": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_slip_opinions\", \"term\": \"24\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.884133+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.supremecourt.gov/opinions/slipopinion/24",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/assets/fontawesome/css/fontawesome.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/assets/fontawesome/css/brands.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/css/bootstrap.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/fonts/Cinzel-Regular.ttf",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/assets/fontawesome/css/solid.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/css/bootstrap-theme.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/styles/newBootStrap2.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/js/bootstrap.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/js/jquery-3.7.1.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://s.go-mpulse.net/boomerang/T5V7Y-Q8M8U-BKDFY-XWX7C-XPH3U",
+          "status": 200
+        },
+        {
+          "url": "https://c.go-mpulse.net/api/config.json",
+          "status": 204
+        }
+      ]
+    },
+    "get_relating_to_orders": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_relating_to_orders\", \"term\": \"24\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.887001+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.supremecourt.gov/opinions/relatingtoorders/24",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/assets/fontawesome/webfonts/fa-solid-900.woff2",
+          "status": 200
+        }
+      ]
+    },
+    "download_pdf": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"download_pdf\", \"pdf_url\": \"https://www.supremecourt.gov/opinions/24pdf/606us2r67_8nka.pdf\", \"term\": \"24\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.887289+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.supremecourt.gov/opinions/slipopinion/24",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/fonts/Cinzel-Regular.ttf",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/assets/fontawesome/webfonts/fa-solid-900.woff2",
+          "status": 200
+        }
+      ]
+    },
+    "search_opinions": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_opinions\", \"query\": \"Trump\", \"term\": \"24\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.887773+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.supremecourt.gov/opinions/slipopinion/24",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/assets/fontawesome/css/fontawesome.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/assets/fontawesome/css/brands.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/assets/fontawesome/css/solid.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/css/bootstrap.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/css/bootstrap-theme.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/styles/newBootStrap2.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/assets/fontawesome/webfonts/fa-solid-900.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/fonts/Cinzel-Regular.ttf",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/fonts/SourceSansPro-Regular.ttf",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/js/jquery-3.7.1.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/js/bootstrap.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/images/scous_seal.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/ScriptResource.axd",
+          "status": 200
+        },
+        {
+          "url": "https://s.go-mpulse.net/boomerang/T5V7Y-Q8M8U-BKDFY-XWX7C-XPH3U",
+          "status": 200
+        },
+        {
+          "url": "https://c.go-mpulse.net/api/config.json",
+          "status": 204
+        },
+        {
+          "url": "https://www.supremecourt.gov/fonts/glyphicons-halflings-regular.woff",
+          "status": 200
+        },
+        {
+          "url": "https://www.supremecourt.gov/images/banners/Opinions_l.jpg",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

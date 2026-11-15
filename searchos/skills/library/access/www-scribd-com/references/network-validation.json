@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "227a5ea9e7f35dc3c5811b2cec5008d2403713efa9516cc7e88bc6c27cf5d4b1",
+  "capabilities": {
+    "get_document": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_document\", \"url\": \"https://www.scribd.com/document/880794922/2025-QS-World-University-Rankings\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.638312+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.scribd.com/document/880794922/[redacted]",
+          "status": 403
+        }
+      ]
+    },
+    "extract_tables": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_tables\", \"table_data\": [{\"Rank\": \"1\", \"University\": \"MIT\", \"Country\": \"USA\"}, {\"Rank\": \"2\", \"University\": \"Stanford\", \"Country\": \"USA\"}]}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.640415+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-scribd-com/scripts/source.py",
+        "line": 541,
+        "end_line": 549,
+        "implementation": "extract_tables",
+        "source_sha256": "d48d9a61f922e937e78b0ccda0941006f9af9721a514e31fb4407c2f25ae809a",
+        "implementation_sha256": "441706dcac0d62e95c01115567a56fb6c90cef2c41d44e4af9997745a0861939"
+      }
+    }
+  }
+}

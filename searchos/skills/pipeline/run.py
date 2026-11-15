@@ -9,10 +9,26 @@ from pathlib import Path
 from typing import Any, Literal
 
 from searchos.skills.intent.models import SkillRequest
-from searchos.skills.pipeline.store import publish_package
-from searchos.skills.pipeline.valid import validate_request_package
+from searchos.skills.packaging import publish_package, validate_package
 
 logger = logging.getLogger(__name__)
+
+
+def validate_request_package(candidate: Path, request: SkillRequest):
+    skill = validate_package(candidate, expected_name=request.name)
+    if skill.meta.category != request.category or not skill.body.strip():
+        raise ValueError('generated package category/body does not match the request')
+    if request.category.value == 'access':
+        from searchos.skills.pipeline.access.validation.checks import validate_access_structure
+        report = validate_access_structure(candidate, request.name, require_host=bool(request.host),
+                                           expected_host=request.host or None)
+        if not report.get('package_valid'):
+            raise ValueError(report.get('error', 'access package structure is invalid'))
+    if skill.meta.metadata.get('searchos-category') != request.category.value:
+        raise ValueError('metadata.searchos-category must match the request')
+    if request.host and str(skill.meta.metadata.get('host', '')).lower() != request.host:
+        raise ValueError('generated host does not match the request')
+    return skill
 
 
 @dataclass(frozen=True)
@@ -153,7 +169,7 @@ async def run_pipeline(request: SkillRequest, *, library_path: str | Path,
                     await on_stage('pipeline')
                 from searchos.skills.packaging import package_files
                 from searchos.skills.pipeline.drafts import save_draft
-                from searchos.skills.pipeline.text.run import build_text_skill
+                from searchos.skills.pipeline.text import build_text_skill
                 def checkpoint(validation):
                     save_draft(record_dir, candidate, package_files(candidate), name=request.name,
                                examples=[], require_host=False, validation=validation)

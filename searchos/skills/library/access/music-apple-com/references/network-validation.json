@@ -1,0 +1,505 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e25a61f0b65a98ca2ae3308a5fdb9cf5920cb7ee0722d15fd1455b5a58d01262",
+  "capabilities": {
+    "get_album": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_album\", \"album_id\": \"1721453996\", \"limit\": 3, \"include_tracks\": true, \"include_albums\": true, \"storefront\": \"us\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.814933+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://music.apple.com/us/browse",
+          "status": 302
+        },
+        {
+          "url": "https://music.apple.com/cn",
+          "status": 301
+        },
+        {
+          "url": "https://music.apple.com/cn/new",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/index~815bd2067a.css",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/includes/js-cdn/musickit/v3/components/musickit-components/musickit-components.esm.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/includes/js-cdn/musickit/v3/components/musickit-components/p-c0ac75ee.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/includes/js-cdn/musickit/v3/components/musickit-components/p-70a2b3a8.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/index~ea66e33958.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.apple.com/wss/fonts",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/GetLibraryPinsIntentController~ba0687db18.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/version~4e0a6d5aa6.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-metricskit-processor-performance.esm~239b7d59eb.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/index~762120a866.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/libraryPinsAPI~c9fc5123b8.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-client-logger-core.esm~df6778647d.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/ae-client-kit-core.esm~dd1d01a397.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/impressionsObserver.esm~9626c68dca.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-metricskit-delegates-web.esm~6faf0943e9.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-metricskit-processor-clickstream.esm~c32f8a1028.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-metricskit-utils-private.esm~643fbaa2cd.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_artist": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_artist\", \"artist_id\": \"300117743\", \"limit\": 3, \"include_tracks\": true, \"include_albums\": true, \"storefront\": \"us\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.444930+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://music.apple.com/us/browse",
+          "status": 302
+        },
+        {
+          "url": "https://music.apple.com/cn",
+          "status": 301
+        },
+        {
+          "url": "https://music.apple.com/cn/new",
+          "status": 200
+        },
+        {
+          "url": "https://www.apple.com/wss/fonts",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/includes/js-cdn/musickit/v3/components/musickit-components/musickit-components.esm.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/index~ea66e33958.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/index~815bd2067a.css",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/includes/js-cdn/musickit/v3/components/musickit-components/p-70a2b3a8.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/includes/js-cdn/musickit/v3/components/musickit-components/p-c0ac75ee.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/index~762120a866.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/version~4e0a6d5aa6.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/GetLibraryPinsIntentController~ba0687db18.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-metricskit-processor-performance.esm~239b7d59eb.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-metricskit-utils-private.esm~643fbaa2cd.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/ae-client-kit-core.esm~dd1d01a397.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/impressionsObserver.esm~9626c68dca.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-client-logger-core.esm~df6778647d.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/translations~2fa5294358.js",
+          "status": 200
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/3e/5e/73/[redacted]/4e67e5eb-46bf-42ea-a124-186864d7dcaa.png/300x172sr.webp",
+          "status": 200
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/ff/e6/a2/[redacted]/2b07404d-17ca-4e16-82b2-198bbbb1a10b.png/300x172sr.webp",
+          "status": 200
+        }
+      ]
+    },
+    "get_song": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_song\", \"song_id\": \"1721454007\", \"limit\": 3, \"include_tracks\": true, \"include_albums\": true, \"storefront\": \"us\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:30.433320+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://music.apple.com/us/browse",
+          "status": 302
+        },
+        {
+          "url": "https://music.apple.com/cn",
+          "status": 301
+        },
+        {
+          "url": "https://music.apple.com/cn/new",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/index~815bd2067a.css",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/includes/js-cdn/musickit/v3/components/musickit-components/musickit-components.esm.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/index~ea66e33958.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.apple.com/wss/fonts",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/includes/js-cdn/musickit/v3/components/musickit-components/p-c0ac75ee.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/includes/js-cdn/musickit/v3/components/musickit-components/p-70a2b3a8.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/index~762120a866.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/version~4e0a6d5aa6.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-metricskit-processor-performance.esm~239b7d59eb.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/GetLibraryPinsIntentController~ba0687db18.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/libraryPinsAPI~c9fc5123b8.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/ae-client-kit-core.esm~dd1d01a397.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-metricskit-utils-private.esm~643fbaa2cd.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-client-logger-core.esm~df6778647d.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-metricskit-delegates-web.esm~6faf0943e9.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-metricskit-processor-clickstream.esm~c32f8a1028.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/translations~2fa5294358.js",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"周杰伦\", \"types\": \"albums,artists,songs\", \"limit\": 3, \"include_tracks\": true, \"include_albums\": true, \"storefront\": \"us\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:30.436025+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://music.apple.com/us/browse",
+          "status": 302
+        },
+        {
+          "url": "https://music.apple.com/cn",
+          "status": 301
+        },
+        {
+          "url": "https://music.apple.com/cn/new",
+          "status": 200
+        }
+      ]
+    },
+    "get_artist_albums": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_artist_albums\", \"artist_id\": \"300117743\", \"limit\": 3, \"include_tracks\": true, \"include_albums\": true, \"storefront\": \"us\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:30.436405+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://music.apple.com/us/browse",
+          "status": 302
+        },
+        {
+          "url": "https://music.apple.com/cn",
+          "status": 301
+        },
+        {
+          "url": "https://music.apple.com/cn/new",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/index~815bd2067a.css",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/includes/js-cdn/musickit/v3/components/musickit-components/musickit-components.esm.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.apple.com/wss/fonts",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/includes/js-cdn/musickit/v3/components/musickit-components/p-70a2b3a8.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/includes/js-cdn/musickit/v3/components/musickit-components/p-c0ac75ee.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.apple.com/wss/fonts/SF-Pro/v4/SFPro.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/2b/fc/2c/[redacted]/534d48dd-9fc5-4657-9117-2caa28b08b3f.png/300x172sr.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.apple.com/wss/fonts/SF-Pro-Icons/v1/SFProIcons_regular.woff",
+          "status": 200
+        },
+        {
+          "url": "https://www.apple.com/wss/fonts/SF-Pro-Icons/v1/SFProIcons_semibold.woff",
+          "status": 200
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/de/33/56/[redacted]/d329903c-84b5-4f5e-9000-ee52afabac7b.png/300x172sr.webp",
+          "status": 200
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/d3/aa/84/[redacted]/4896043579667.jpg/48x48bb.webp",
+          "status": 200
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/15/c3/df/[redacted]/4896043570343.jpg/48x48bb.webp",
+          "status": 200
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/ce/bc/15/[redacted]/6933014763262.jpg/48x48bb.webp",
+          "status": 200
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/3e/5e/73/[redacted]/4e67e5eb-46bf-42ea-a124-186864d7dcaa.png/300x172sr.webp",
+          "status": 200
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Features/v4/ff/e6/a2/[redacted]/2b07404d-17ca-4e16-82b2-198bbbb1a10b.png/300x172sr.webp",
+          "status": 200
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/1d/de/67/[redacted]/196874712696.jpg/60x60cc.webp",
+          "status": 200
+        },
+        {
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/8c/a4/0b/[redacted]/3000.jpg/48x48bb.webp",
+          "status": 200
+        }
+      ]
+    },
+    "get_charts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_charts\", \"storefront\": \"us\", \"limit\": 3, \"include_tracks\": true, \"include_albums\": true}"
+      ],
+      "checked_at": "2026-10-23T07:23:30.436763+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://music.apple.com/us/browse",
+          "status": 302
+        },
+        {
+          "url": "https://music.apple.com/cn",
+          "status": 301
+        },
+        {
+          "url": "https://music.apple.com/cn/new",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/index~815bd2067a.css",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/index~ea66e33958.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/includes/js-cdn/musickit/v3/components/musickit-components/musickit-components.esm.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.apple.com/wss/fonts",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/includes/js-cdn/musickit/v3/components/musickit-components/p-70a2b3a8.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/index~762120a866.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/GetLibraryPinsIntentController~ba0687db18.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/libraryPinsAPI~c9fc5123b8.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-metricskit-utils-private.esm~643fbaa2cd.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-metricskit-processor-performance.esm~239b7d59eb.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/ae-client-kit-core.esm~dd1d01a397.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-client-logger-core.esm~df6778647d.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/translations~2fa5294358.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/version~4e0a6d5aa6.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/impressionsObserver.esm~9626c68dca.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-metricskit-delegates-web.esm~6faf0943e9.js",
+          "status": 200
+        },
+        {
+          "url": "https://music.apple.com/assets/mt-metricskit-processor-clickstream.esm~c32f8a1028.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

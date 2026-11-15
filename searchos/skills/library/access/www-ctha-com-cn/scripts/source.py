@@ -5,6 +5,9 @@ Website: http://www.ctha.com.cn
 This skill accesses the National Star-Rated Hotel Directory from the official
 China Tourism Hotel Association website via their internal API endpoints.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -37,7 +40,7 @@ async def _fetch_provinces() -> Dict[str, Any]:
     timeout = aiohttp.ClientTimeout(total=30)
     
     try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with _skill_network.aiohttp_session(timeout=timeout) as session:
             async with session.post(
                 url,
                 headers=HEADERS,
@@ -120,7 +123,7 @@ async def _fetch_hotels(
     timeout = aiohttp.ClientTimeout(total=30)
     
     try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with _skill_network.aiohttp_session(timeout=timeout) as session:
             async with session.post(
                 url,
                 headers=HEADERS,
@@ -199,6 +202,7 @@ async def _fetch_hotels(
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main execution function for the CTHA hotel directory skill.

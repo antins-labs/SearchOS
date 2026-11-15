@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "f77bc2573132dc2ae075dede3803c7e368cd22f198b80ad36bd44561cfc46714",
+  "capabilities": {
+    "search": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"马龙 乒乓球\", \"limit\": 3, \"include_html\": true, \"sentences\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.429372+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://zh.wikipedia.org/w/api.php",
+          "status": 200
+        }
+      ]
+    },
+    "get_page": {
+      "status": "timed_out",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"title\": \"张继科\", \"limit\": 3, \"include_html\": true, \"sentences\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.443967+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_extract": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_extract\", \"title\": \"张继科\", \"sentences\": 2, \"limit\": 3, \"include_html\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.444378+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://zh.wikipedia.org/w/api.php",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

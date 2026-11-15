@@ -13,6 +13,9 @@ current parked state gracefully.
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -386,7 +389,7 @@ async def get_article(article_path: str) -> dict[str, Any]:
     timeout = aiohttp.ClientTimeout(total=TIMEOUT_SECONDS, connect=5)
     
     try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with _skill_network.aiohttp_session(timeout=timeout) as session:
             status, html = await fetch_article(session, article_path)
             
             if status == 0:
@@ -454,7 +457,7 @@ async def search_articles(query: str, limit: int = 10) -> dict[str, Any]:
     timeout = aiohttp.ClientTimeout(total=TIMEOUT_SECONDS, connect=5)
     
     try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with _skill_network.aiohttp_session(timeout=timeout) as session:
             async with session.get(search_url, params=params) as resp:
                 html = await resp.text()
                 
@@ -522,7 +525,7 @@ async def get_service_status() -> dict[str, Any]:
     timeout = aiohttp.ClientTimeout(total=TIMEOUT_SECONDS, connect=5)
     
     try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with _skill_network.aiohttp_session(timeout=timeout) as session:
             status, html = await fetch_article(session, "A/Main_Page")
             
             if status == 0:
@@ -566,6 +569,7 @@ async def get_service_status() -> dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the Kiwix Wikipedia mirror access skill.

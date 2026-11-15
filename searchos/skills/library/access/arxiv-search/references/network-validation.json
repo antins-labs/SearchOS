@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d65636487f4ed5c28953ab1decfc8b921e5535c0d78ec7de447336f656705a33",
+  "capabilities": {
+    "search": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/search.py",
+        "--query",
+        "all:retrieval",
+        "--limit",
+        "2"
+      ],
+      "checked_at": "2026-10-23T07:01:35.866189+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://export.arxiv.org/api/query",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

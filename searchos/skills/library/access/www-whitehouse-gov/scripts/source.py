@@ -5,6 +5,9 @@ Fetches and downloads budget historical tables from the White House OMB website.
 These tables provide comprehensive historical data on U.S. government receipts,
 outlays, debt, and other budget metrics going back to 1789.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -135,7 +138,7 @@ async def list_tables(params: dict, ctx: Any = None) -> dict:
         dict with 'tables' list, 'count', 'fiscal_year', and 'sections'
     """
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_html(session, BASE_URL)
             tables = parse_tables_from_html(html)
             
@@ -179,7 +182,7 @@ async def get_table_info(params: dict, ctx: Any = None) -> dict:
     table_number = table_number.strip()
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_html(session, BASE_URL)
             tables = parse_tables_from_html(html)
             
@@ -219,7 +222,7 @@ async def download_table(params: dict, ctx: Any = None) -> dict:
     table_number = table_number.strip()
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_html(session, BASE_URL)
             tables = parse_tables_from_html(html)
             
@@ -275,7 +278,7 @@ async def search_tables(params: dict, ctx: Any = None) -> dict:
         return {'success': False, 'error': 'Missing required parameter: query'}
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_html(session, BASE_URL)
             tables = parse_tables_from_html(html)
             
@@ -338,7 +341,7 @@ async def get_tables_by_section(params: dict, ctx: Any = None) -> dict:
         return {'success': False, 'error': 'Invalid section number'}
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_html(session, BASE_URL)
             tables = parse_tables_from_html(html)
             
@@ -377,7 +380,7 @@ async def get_intro_pdf(params: dict, ctx: Any = None) -> dict:
     return_content = params.get('return_content', False)
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_html(session, BASE_URL)
             intro_info = parse_intro_pdf_url(html)
             
@@ -413,7 +416,7 @@ async def get_sections(params: dict, ctx: Any = None) -> dict:
     Get all available sections with their topics and table counts.
     """
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_html(session, BASE_URL)
             tables = parse_tables_from_html(html)
             
@@ -441,6 +444,7 @@ async def get_sections(params: dict, ctx: Any = None) -> dict:
         return {'success': False, 'error': str(e)}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the White House OMB Historical Tables skill.

@@ -14,6 +14,7 @@ def get_orchestrator_tools(*, source_mode: str = "") -> list:
     Skill / browser tools belong to sub-agents only — exposing them here lets
     a confused orchestrator hop across them at budget exhaustion.
     """
+    from searchos.tools.exec import exec_code
     from searchos.tools.schema import (
         add_columns,
         add_entities,
@@ -24,22 +25,19 @@ def get_orchestrator_tools(*, source_mode: str = "") -> list:
     )
     from searchos.tools.socm_read import list_frontier, read_evidence
     from searchos.tools.tasks import check_agents, enqueue_tasks, stop_task
-    from searchos.tools.python import python
-    from searchos.tools.tasks import set_research_plan
 
     # Extraction owns extraction, evidence binding and cell projection.
     return [
-        set_research_plan,
         create_schema,
         add_columns,
         add_entities,
         remove_entities,
         edit_entities,
         inspect_table,
-        python,
+        exec_code,
         enqueue_tasks,
-        stop_task,
         check_agents,
+        stop_task,
         read_evidence,
         list_frontier,
     ]

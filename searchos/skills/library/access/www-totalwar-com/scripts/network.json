@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_dlc_info": "direct",
+    "get_patch_notes": "direct",
+    "get_game_info": "direct"
+  },
+  "aliases": {
+    "get_patch_notes": "get_patch_notes",
+    "get_dlc_info": "get_dlc_info",
+    "run": "get_game_info",
+    "get_game_info": "get_game_info"
+  }
+}

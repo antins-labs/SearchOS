@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "21b5be60ea56481e7be53e4f3865ba2c40729dd79332867621a2ba6eaf7cf17e",
+  "capabilities": {
+    "get_game_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_game_info\", \"url\": \"https://www.totalwar.com/games/total-war-warhammer-iii/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.375433+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.totalwar.com/games/total-war-warhammer-iii",
+          "status": 200
+        }
+      ]
+    },
+    "get_patch_notes": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_patch_notes\", \"url\": \"https://www.totalwar.com/news/total-war-warhammer-iii-update-210\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.374130+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.totalwar.com/news/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "get_dlc_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_dlc_info\", \"url\": \"https://www.totalwar.com/games/total-war-warhammer-iii/total-war-warhammer-iii-thrones-of-decay\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.375327+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.totalwar.com/games/total-war-warhammer-iii/[redacted]",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -13,7 +13,7 @@ import tempfile
 import yaml
 
 from searchos.skills.core.models import Skill, SkillCategory, SkillMeta
-from searchos.skills.core.schema import parse_skill_file
+from searchos.skills.core.skill_markdown import parse_skill_file
 from searchos.skills.packaging import validate_package
 
 DISTRIBUTIONS = {'bs4': 'beautifulsoup4', 'PIL': 'Pillow', 'dateutil': 'python-dateutil'}

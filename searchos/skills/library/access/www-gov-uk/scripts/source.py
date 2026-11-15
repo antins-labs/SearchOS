@@ -8,6 +8,9 @@ Provides access to:
 
 All data is fetched directly via HTTP without browser automation.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -110,7 +113,7 @@ async def get_collection_items(url: str) -> dict:
     
     Returns document items including statistics reports and data download links.
     """
-    async with aiohttp.ClientSession(headers=HEADERS) as session:
+    async with _skill_network.aiohttp_session(headers=HEADERS) as session:
         status, html = await _fetch_page(session, url)
         
         if status != 200:
@@ -163,7 +166,7 @@ async def get_data_downloads(url: str) -> dict:
     
     Returns CSV download links for UK HPI data files.
     """
-    async with aiohttp.ClientSession(headers=HEADERS) as session:
+    async with _skill_network.aiohttp_session(headers=HEADERS) as session:
         status, html = await _fetch_page(session, url)
         
         if status != 200:
@@ -228,7 +231,7 @@ async def download_csv(url: str, max_bytes: int = 100 * 1024 * 1024) -> dict:
     
     headers = {"User-Agent": "Mozilla/5.0 (compatible; SearchOS/1.0)"}
     
-    async with aiohttp.ClientSession(headers=headers) as session:
+    async with _skill_network.aiohttp_session(headers=headers) as session:
         async with session.get(clean_url) as response:
             if response.status != 200:
                 return {
@@ -332,7 +335,7 @@ async def search_hpi_data(year: int = None, month: int = None, data_type: str = 
         "validated": {},
     }
     
-    async with aiohttp.ClientSession(headers=HEADERS) as session:
+    async with _skill_network.aiohttp_session(headers=HEADERS) as session:
         # Build URLs to check
         urls_to_check = []
         
@@ -427,7 +430,7 @@ async def get_latest_hpi_release() -> dict:
     """
     url = f"{BASE_URL}/government/collections/uk-house-price-index-reports"
     
-    async with aiohttp.ClientSession(headers=HEADERS) as session:
+    async with _skill_network.aiohttp_session(headers=HEADERS) as session:
         status, html = await _fetch_page(session, url)
         
         if status != 200:
@@ -481,6 +484,7 @@ async def get_latest_hpi_release() -> dict:
         return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute GOV.UK UK HPI data access operations.

@@ -3,6 +3,9 @@ gunrf.ru weapon specification fetcher
 
 Fetches weapon specifications from gunrf.ru English pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -12,6 +15,7 @@ from urllib.parse import urljoin
 import re
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute gunrf.ru weapon specification fetch.
@@ -61,7 +65,7 @@ async def get_weapon_specs(params: dict[str, Any]) -> dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as resp:
                 if resp.status != 200:
                     return {"error": f"HTTP {resp.status}", "url": url}
@@ -205,7 +209,7 @@ async def search_weapons(params: dict[str, Any]) -> dict[str, Any]:
         weapons = []
         seen_urls = set()
         
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             for seed_url in seed_urls:
                 try:
                     async with session.get(seed_url, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as resp:

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_page": "direct",
+    "get_department_scores": "direct",
+    "list_known_pages": "direct",
+    "get_basic_scores": "direct"
+  },
+  "aliases": {
+    "get_department_scores": "get_department_scores",
+    "get_basic_scores": "get_basic_scores",
+    "get_page": "get_page",
+    "list_known_pages": "list_known_pages",
+    "run": "list_known_pages"
+  }
+}

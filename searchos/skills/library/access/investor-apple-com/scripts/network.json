@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_events": "direct",
+    "get_additional_reports": "direct",
+    "get_stock_history": "direct",
+    "get_event_years": "direct",
+    "get_financial_reports": "direct",
+    "get_financial_report_years": "direct",
+    "get_stock_quote": "direct",
+    "get_sec_filings": "direct",
+    "get_sec_filing_years": "direct"
+  },
+  "aliases": {
+    "get_financial_reports": "get_financial_reports",
+    "get_financial_report_years": "get_financial_report_years",
+    "get_sec_filings": "get_sec_filings",
+    "get_sec_filing_years": "get_sec_filing_years",
+    "get_stock_quote": "get_stock_quote",
+    "get_stock_history": "get_stock_history",
+    "get_events": "get_events",
+    "get_event_years": "get_event_years",
+    "get_additional_reports": "get_additional_reports",
+    "run": "get_additional_reports"
+  }
+}

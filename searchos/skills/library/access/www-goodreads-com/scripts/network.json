@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "parse_choice_awards": "inherit",
+    "parse_book": "inherit",
+    "parse_author": "inherit"
+  },
+  "aliases": {
+    "parse_book": "parse_book",
+    "parse_author": "parse_author",
+    "parse_choice_awards": "parse_choice_awards",
+    "run": "parse_choice_awards"
+  }
+}

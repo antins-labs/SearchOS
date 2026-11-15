@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "9a4e0aee9a85958876312130fdf7d4ec7ad753f7626b25cf01cac078b6b51e0d",
+  "capabilities": {
+    "get_media_info": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_media_info\", \"url\": \"https://www.instagram.com/reel/DZaHhB1Jx1I/\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.706579+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.instagram.com/reel/DZaHhB1Jx1I/",
+          "status": 200
+        },
+        {
+          "url": "https://www.instagram.com/ajax/qm/",
+          "status": 200
+        },
+        {
+          "url": "https://static.cdninstagram.com/rsrc.php/v5/y8/l/0,cross/ixjJ3DY5VeXXq3ROleCoYfrUATrAFUTj1qtZ0uQySF1RF8momuZ_hrPfgQe914iiBfONMKn3YhINqU49pVNahkCks97xFZK--hB.css",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

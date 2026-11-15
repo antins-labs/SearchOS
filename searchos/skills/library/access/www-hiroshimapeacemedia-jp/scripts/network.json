@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_museum": "direct",
+    "get_regions": "direct",
+    "list_museums": "direct",
+    "search_museums": "direct"
+  },
+  "aliases": {
+    "list_museums": "list_museums",
+    "get_museum": "get_museum",
+    "search_museums": "search_museums",
+    "get_regions": "get_regions",
+    "run": "get_regions"
+  }
+}

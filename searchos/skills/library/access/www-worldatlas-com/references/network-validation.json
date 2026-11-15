@@ -1,0 +1,291 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d28b04036e9bac2dd6a3a358e8d277225a644a875c7cd0b244b01b45ccfbccf4",
+  "capabilities": {
+    "fetch_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_article\", \"url\": \"https://www.worldatlas.com/articles/what-countries-border-norway.html\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.155038+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.worldatlas.com/articles/what-countries-border-norway.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/build/editorial-article-desktop.e7f8e222.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w960-q80/upload/d6/fe/ea/shutterstock-713674480.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/nwa_assets/fonts/fontello/fontello.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/nwa_assets/img/site/wa2_logo_text_white.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/41/14/aa/711/the-rake-john-f-kennedy-00006.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/build/editorial-article-desktop.13b0ca01.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/build/runtime.d94b3b43.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/08/ef/7b/shutterstock-659571949.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/53/e6/1b/374/russian-coat-of-arms-n-sky.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/33/aa/41/shutterstock-2415909913-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/0a/e0/17/shutterstock-2514249307-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/cc/b1/6b/276/shutterstock-540682498.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/5b/ed/68/government-shutdowns-s3cdn.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/dd/e8/d5/shutterstock-2727279071-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/53/54/d7/istock-97993125-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/82/56/50/shutterstock-1022227009.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/9e/90/a8/g7-countries.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/fc/d2/c4/shutterstock-2058817973-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/e2/18/a0/shutterstock-446643325-s3cdn.jpg",
+          "status": 200
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"query\": \"countries border france\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.157343+00:00",
+      "reason": "source returned failure",
+      "source_responses": [
+        {
+          "url": "https://www.worldatlas.com/search",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/build/resource-search.53f98735.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/nwa_assets/fonts/fontello/fontello.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/nwa_assets/img/site/wa2_logo_text_white.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/build/runtime.d94b3b43.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/81/68/23/statue-of-alexander-the-great-inthessaloniki-city-greece-s3cdn-s3cdn-s3cdn-s3cdn-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/57/49/be/shutterstock-2572054589-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/60/e0/ef/shutterstock-26767-s3cdn-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://stats.g.doubleclick.net/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://ad.doubleclick.net/ccm/s/collect",
+          "status": 204
+        },
+        {
+          "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/11131398327/",
+          "status": 200
+        },
+        {
+          "url": "https://cse.google.com/cse.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/0c/8a/91/shutterstock-651460171-s3cdn-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/61/65/32/shutterstock-2176358283-s3cdn-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/e0/0a/47/2026-05-12-dragonfly-suspended-tap-test-in-vtl-8415-copy-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/a4/0d/9b/shutterstock-2356465327-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/9b/35/d5/shutterstock-2452611807-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/2b/4b/74/oregon-s3cdn.jpg",
+          "status": 200
+        }
+      ]
+    },
+    "get_bordering_countries": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_bordering_countries\", \"country\": \"Norway\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.157594+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.worldatlas.com/articles/what-countries-border-norway.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/build/editorial-article-desktop.e7f8e222.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w960-q80/upload/d6/fe/ea/shutterstock-713674480.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/nwa_assets/fonts/fontello/fontello.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/nwa_assets/img/site/wa2_logo_text_white.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/11131398327/",
+          "status": 200
+        },
+        {
+          "url": "https://stats.g.doubleclick.net/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://ad.doubleclick.net/ccm/s/collect",
+          "status": 204
+        },
+        {
+          "url": "https://apis.google.com/js/platform.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.google.com/ccm/collect",
+          "status": 200
+        },
+        {
+          "url": "https://www.google.com/rmkt/collect/11131398327/",
+          "status": 200
+        },
+        {
+          "url": "https://apis.google.com/_/scs/abc-static/_/js/k=gapi.lb.en.etOqPKhAhvg.O/m=auth/exm=sharetoclassroom/rt=j/sv=1/d=1/ed=1/rs=AHpOoo-l5JrVgGKVELwC844E6riBHX86-w/cb=gapi.loaded_1",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/41/14/aa/711/the-rake-john-f-kennedy-00006.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/cc/b1/6b/276/shutterstock-540682498.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/e2/18/a0/shutterstock-446643325-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/82/56/50/shutterstock-1022227009.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/0a/e0/17/shutterstock-2514249307-s3cdn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.worldatlas.com/r/w400-h225-q40/upload/fc/d2/c4/shutterstock-2058817973-s3cdn.jpg",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

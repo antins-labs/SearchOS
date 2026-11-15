@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch_games": "direct",
+    "fetch_article": "proxy",
+    "fetch_stats": "direct"
+  },
+  "aliases": {
+    "fetch_article": "fetch_article",
+    "fetch_games": "fetch_games",
+    "fetch_stats": "fetch_stats",
+    "run": "fetch_stats"
+  }
+}

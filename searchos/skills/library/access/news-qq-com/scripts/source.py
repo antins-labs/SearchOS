@@ -2,6 +2,9 @@
 SearchOS access skill for news.qq.com (Tencent News)
 Extracts article content and comments from Tencent News articles
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -29,7 +32,7 @@ async def fetch_article(article_id: str) -> dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=15)) as resp:
                 if resp.status != 200:
                     return {'error': f'HTTP {resp.status}', 'article_id': article_id}
@@ -122,7 +125,7 @@ async def fetch_comments(article_id: str, req_num: int = 20) -> dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, params=params, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as resp:
                 if resp.status != 200:
                     return {'error': f'HTTP {resp.status}', 'article_id': article_id}
@@ -226,6 +229,7 @@ def extract_article_id(url_or_id: str) -> str:
     return url_or_id
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute news.qq.com skill functions

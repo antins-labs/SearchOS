@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3431e25e9caea230f52d3d82e16ab33b257e5dc5757dd201dfaaa8e2a2a73aa6",
+  "capabilities": {
+    "list_papers": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_papers\", \"conference\": \"siggraph\", \"year\": \"2024\", \"track\": \"main\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.834400+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://papercopilot.com/wp-admin/admin-ajax.php",
+          "status": 200
+        }
+      ]
+    },
+    "search_paper": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_paper\", \"conference\": \"siggraph\", \"year\": \"2024\", \"title\": \"neural\", \"track\": \"main\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.834980+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://papercopilot.com/wp-admin/admin-ajax.php",
+          "status": 200
+        }
+      ]
+    },
+    "filter_by_session": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"filter_by_session\", \"conference\": \"siggraph\", \"year\": \"2024\", \"session\": \"3D Fabrication\", \"track\": \"main\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.835066+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://papercopilot.com/wp-admin/admin-ajax.php",
+          "status": 200
+        }
+      ]
+    },
+    "filter_by_status": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"filter_by_status\", \"conference\": \"siggraph\", \"year\": \"2024\", \"status\": \"Technical Paper\", \"track\": \"main\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.835126+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://papercopilot.com/wp-admin/admin-ajax.php",
+          "status": 200
+        }
+      ]
+    },
+    "list_conferences": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_conferences\", \"track\": \"main\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.835182+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/papercopilot-com/scripts/source.py",
+        "line": 232,
+        "end_line": 248,
+        "implementation": "_list_available_conferences",
+        "source_sha256": "96fdedffc46abf49e43068483d519a700b92bcb4effd1e20a190cf4b52be32d1",
+        "implementation_sha256": "0e70d8c8d7a304546d378ac13d87d44cde4b10d139f1630984141012f878dda4"
+      }
+    }
+  }
+}

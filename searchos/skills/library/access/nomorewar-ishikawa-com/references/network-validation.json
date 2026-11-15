@@ -1,0 +1,304 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "6c09a9e4086c08088cdb3ef6338342fbd563108d42ca8f7fe3373cb89caf58aa",
+  "capabilities": {
+    "list_all": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_all\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.825744+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://nomorewar-ishikawa.com/heiwahakubutukann/",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/themes/nomorewar_wt/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-includes/css/dist/block-library/style.min.css",
+          "status": 200
+        },
+        {
+          "url": "blob:https://nomorewar-ishikawa.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-includes/js/mediaelement/wp-mediaelement.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/uploads/2014/08/top-logo.gif",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/uploads/2015/06/subtopimg.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://stats.wp.com/e-202643.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.youtube.com/embed/x6qZAfKwr6s",
+          "status": 200
+        },
+        {
+          "url": "https://www.youtube.com/s/player/cbcfbf2f/www-player.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.youtube.com/s/_/ytembeds/_/ss/k=ytembeds.base.dwAWnvNaGxA.L.W.O/am=AAAAQABj/d=1/br=1/rs=AGKMywFYuJLFEvAt25qeLpwSMVYZjL5Ilw/m=root,base",
+          "status": 200
+        },
+        {
+          "url": "https://www.youtube.com/s/_/ytembeds/_/js/k=ytembeds.base.en_US.YC574kADYo0.es5.O/am=AAAAQABj/d=1/excm=base,root/br=1/rs=AGKMywE9Lrb6gmE9r-LsVAPjz69yml-AhQ/m=root,base",
+          "status": 200
+        },
+        {
+          "url": "https://www.youtube.com/s/player/cbcfbf2f/player_embed.vflset/ja_JP/base.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.youtube.com/api/stats/qoe",
+          "status": 204
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/uploads/2020/09/kioku_banner.png",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/uploads/2016/04/sirenbanaimg.png",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/themes/nomorewar_wt/images/body_bg.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/themes/nomorewar_wt/images/container_bg_wt.jpg",
+          "status": 404
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/themes/nomorewar_wt/images/header_bg.jpg",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"広島\", \"field\": \"all\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.563135+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://nomorewar-ishikawa.com/heiwahakubutukann/",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/themes/nomorewar_wt/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-includes/css/dist/block-library/style.min.css",
+          "status": 200
+        },
+        {
+          "url": "blob:https://nomorewar-ishikawa.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-includes/js/mediaelement/wp-mediaelement.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/uploads/2014/08/top-logo.gif",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/uploads/2015/06/subtopimg.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/uploads/2020/09/kioku_banner.png",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/uploads/2016/04/sirenbanaimg.png",
+          "status": 200
+        },
+        {
+          "url": "https://stats.wp.com/e-202643.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.youtube.com/embed/x6qZAfKwr6s",
+          "status": 200
+        },
+        {
+          "url": "https://www.youtube.com/s/_/ytembeds/_/ss/k=ytembeds.base.dwAWnvNaGxA.L.W.O/am=AAAAQA/d=1/br=1/rs=AGKMywG9DvjGwvMYvEoTj5Z0PVbOyKsIsw/m=root,base",
+          "status": 200
+        },
+        {
+          "url": "https://www.youtube.com/s/player/dce23b30/www-player.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.youtube.com/s/_/ytembeds/_/js/k=ytembeds.base.en_US.YC574kADYo0.es5.O/am=AAAAQA/d=1/excm=base,root/br=1/rs=AGKMywFXs25lunWgVaALdHg3enPvnbWr1w/m=root,base",
+          "status": 200
+        },
+        {
+          "url": "https://pixel.wp.com/g.gif",
+          "status": 200
+        },
+        {
+          "url": "https://www.youtube.com/s/player/dce23b30/player_embed.vflset/ja_JP/base.js",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWub2bVmUiA8.ttf",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiA8.ttf",
+          "status": 200
+        },
+        {
+          "url": "https://www.youtube.com/api/stats/qoe",
+          "status": 204
+        }
+      ]
+    },
+    "get_by_id": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_id\", \"id\": 59}"
+      ],
+      "checked_at": "2026-10-23T07:23:30.702101+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://nomorewar-ishikawa.com/heiwahakubutukann/",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/themes/nomorewar_wt/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-includes/css/dist/block-library/style.min.css",
+          "status": 200
+        },
+        {
+          "url": "blob:https://nomorewar-ishikawa.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-includes/js/mediaelement/wp-mediaelement.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/uploads/2014/08/top-logo.gif",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/uploads/2015/06/subtopimg.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://stats.wp.com/e-202643.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.youtube.com/embed/x6qZAfKwr6s",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/uploads/2020/09/kioku_banner.png",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/uploads/2016/04/sirenbanaimg.png",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/themes/nomorewar_wt/images/body_bg.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/themes/nomorewar_wt/images/content_inner_bg_wt.jpg",
+          "status": 404
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/themes/nomorewar_wt/images/s_calender_h3.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/themes/nomorewar_wt/images/header_bg.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/themes/nomorewar_wt/images/m_archive-content_h1_2cl.gif",
+          "status": 200
+        },
+        {
+          "url": "https://nomorewar-ishikawa.com/wp/wp-content/themes/nomorewar_wt/images/container_bg_wt.jpg",
+          "status": 404
+        },
+        {
+          "url": "https://www.youtube.com/s/player/cbcfbf2f/www-player.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.youtube.com/s/_/ytembeds/_/ss/k=ytembeds.base.dwAWnvNaGxA.L.W.O/am=AAAAQA/d=1/br=1/rs=AGKMywG9DvjGwvMYvEoTj5Z0PVbOyKsIsw/m=root,base",
+          "status": 200
+        }
+      ]
+    },
+    "list_by_prefecture": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_by_prefecture\", \"prefecture\": \"東京都\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:30.704172+00:00",
+      "reason": "Page.goto: net::ERR_CONNECTION_CLOSED at https://nomorewar-ishikawa.com/heiwahakubutukann/\nCall log:\n  - navigating to \"https://nomorewar-ishikawa.com/heiwahakubutukann/\", waiting until \"domcontentloaded\"\n",
+      "source_responses": []
+    }
+  }
+}

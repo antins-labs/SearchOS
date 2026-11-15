@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "fd83df24483565c45eaba4e8f4f63dfcfd00403061a366c83af3bb591f6f0a76",
+  "capabilities": {
+    "get_event": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_event\", \"url\": \"https://www.fisu.net/events/11th-summer-universiade/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.052756+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.fisu.net/events/11th-summer-universiade/",
+          "status": 200
+        }
+      ]
+    },
+    "get_spotlight": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_spotlight\", \"url\": \"https://www.fisu.net/2019/11/01/spotlight-take-a-look-back-to-the-torino-1959-summer-universiade/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.054191+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.fisu.net/2019/11/01/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "list_events": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_events\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.054339+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.fisu.net/events/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

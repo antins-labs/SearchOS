@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "cbd428eb81aaa80bcc9baf3495bed68e0072f2a6f103e1088d98656896284250",
+  "capabilities": {
+    "get_faculty_list": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_faculty_list\", \"last_initial\": \"l\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.987295+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_faculty_profile": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_faculty_profile\", \"url\": \"ann-lee\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.988717+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search_faculty": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_faculty\", \"query\": \"lee\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.988918+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

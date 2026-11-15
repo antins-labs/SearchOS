@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "64d39cf8f37e4e50d524c89be1f32de7ddace13806002a89bc9ff9ab917b7433",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"slug\": \"khufu\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.626440+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ancientegyptonline.co.uk/khufu/",
+          "status": 200
+        }
+      ]
+    },
+    "get_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_articles\", \"slugs\": [\"menkauhor\", \"intefii\"]}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.653163+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ancientegyptonline.co.uk/intefii/",
+          "status": 200
+        },
+        {
+          "url": "https://ancientegyptonline.co.uk/menkauhor/",
+          "status": 200
+        }
+      ]
+    },
+    "get_navigation": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_navigation\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.653281+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ancientegyptonline.co.uk/",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"great pyramid\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.653364+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ancientegyptonline.co.uk/great-pyramid/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

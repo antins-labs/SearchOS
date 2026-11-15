@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_survivors_page": "direct",
+    "get_photo_gallery": "direct",
+    "get_home_page": "direct",
+    "get_records_page": "direct",
+    "get_about_atomic_bomb": "direct",
+    "get_survivor_story": "direct",
+    "get_page": "direct",
+    "get_reference_page": "direct",
+    "get_museum_info": "direct"
+  },
+  "aliases": {
+    "get_home_page": "get_home_page",
+    "get_museum_info": "get_museum_info",
+    "get_records_page": "get_records_page",
+    "get_photo_gallery": "get_photo_gallery",
+    "get_survivors_page": "get_survivors_page",
+    "get_survivor_story": "get_survivor_story",
+    "get_reference_page": "get_reference_page",
+    "get_about_atomic_bomb": "get_about_atomic_bomb",
+    "get_page": "get_page",
+    "run": "get_page"
+  }
+}

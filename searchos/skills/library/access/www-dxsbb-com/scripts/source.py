@@ -2,6 +2,9 @@
 SearchOS Skill for dxsbb.com (大学生必备网)
 Extracts Chinese college admission scores and related data from www.dxsbb.com
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -323,6 +326,7 @@ async def get_list_page(session: aiohttp.ClientSession, category_id: str) -> dic
     return parse_list_page(soup, url)
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main execution function for the dxsbb.com skill.
@@ -355,7 +359,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             'available_functions': ['search', 'get_article', 'get_list', 'get_categories']
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             if function == 'search':
                 province = params.get('province')

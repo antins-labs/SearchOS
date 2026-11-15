@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "191acf7ac8484653412f689bd412692ca2bdb28644efc6b728ce675ffa80b426",
+  "capabilities": {
+    "get_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.npr.org/2020/12/08/944152693/everest-gets-a-growth-spurt-as-china-nepal-revise-offici\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.303859+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.npr.org/2020/12/08/944152693/[redacted]",
+          "status": 301
+        },
+        {
+          "url": "https://www.npr.org/2020/12/08/944152693/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.cookielaw.org/opt-out/otCCPAiab.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.cookielaw.org/scripttemplates/otSDKStub.js",
+          "status": 200
+        },
+        {
+          "url": "https://prod-eks-bundles.npr.org/dist/bundles/persistent_large-css-405a55537a14cc4545bb.css",
+          "status": 200
+        },
+        {
+          "url": "https://prod-eks-bundles.npr.org/dist/bundles/persistent_medium-css-66b5223ff026a810cf64.css",
+          "status": 200
+        },
+        {
+          "url": "https://prod-eks-bundles.npr.org/dist/bundles/fonts-css-260ea5ee9219a3ba68d8.css",
+          "status": 200
+        },
+        {
+          "url": "https://prod-eks-bundles.npr.org/dist/bundles/globalNavigationDropdowns-1215e1bfe021dba2e79a.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.cookielaw.org/consent/[redacted]/OtAutoBlock.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.npr.org/assets/img/2020/12/08/ap_19227031231622_wide-e8b31fcf6459396293511f3e2a39cc8d092ed6ae.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://prod-eks-bundles.npr.org/dist/bundles/persistent-css-127df0fb2f001f54f6a1.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.cookielaw.org/consent/[redacted]/82089dfe-410c-4e1b-a7f9-698174b62a86.json",
+          "status": 200
+        },
+        {
+          "url": "https://prod-eks-static-assets.npr.org/chrome_svg/npr-logo-2025.svg",
+          "status": 200
+        },
+        {
+          "url": "https://prod-eks-static-assets.npr.org/static/javascript/lib/modernizr/modernizr.custom.js",
+          "status": 200
+        },
+        {
+          "url": "https://prod-eks-static-assets.npr.org/static/javascript/lib/svg-loader.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://prod-eks-bundles.npr.org/dist/bundles/newsStory-css-7ac2ed31f931493d718d.css",
+          "status": 200
+        },
+        {
+          "url": "https://geolocation.onetrust.com/cookieconsentpub/v1/geo/location",
+          "status": 200
+        }
+      ]
+    },
+    "get_section": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_section\", \"section\": \"science\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.307904+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.npr.org/sections/science",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

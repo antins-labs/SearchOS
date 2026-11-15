@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_race_results": "direct",
+    "get_athlete_bio": "direct"
+  },
+  "aliases": {
+    "get_athlete_bio": "get_athlete_bio",
+    "get_race_results": "get_race_results",
+    "run": "get_race_results"
+  }
+}

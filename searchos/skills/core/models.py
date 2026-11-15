@@ -7,7 +7,7 @@ from typing import Any
 
 from pydantic import AliasChoices, Field, field_validator
 
-from searchos.util.base_model import CamelModel
+from searchos.utils.base_model import CamelModel
 
 
 class SkillCategory(StrEnum):

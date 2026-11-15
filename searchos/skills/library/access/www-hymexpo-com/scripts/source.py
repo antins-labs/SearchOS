@@ -2,6 +2,9 @@
 HymExpo Beijing Exhibition Schedule Fetcher
 Fetches and parses exhibition schedule data from www.hymexpo.com
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -19,7 +22,7 @@ async def fetch_html(url: str, headers: Optional[Dict] = None) -> str:
             'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
         }
     
-    async with aiohttp.ClientSession(trust_env=False) as session:
+    async with _skill_network.aiohttp_session(trust_env=False) as session:
         async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=30)) as response:
             response.raise_for_status()
             return await response.text()
@@ -267,6 +270,7 @@ async def get_exhibitions_by_month(month: int, url: Optional[str] = None) -> Dic
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the HymExpo Beijing Exhibition Schedule skill.

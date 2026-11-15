@@ -8,6 +8,9 @@ Fetches airport traffic rankings from ACI World blog including:
 - International passenger rankings
 - Key statistics and insights
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -101,7 +104,7 @@ NOTABLE_HIGHLIGHTS = [
 async def fetch_article(url: str) -> dict:
     """Fetch and parse the ACI blog article."""
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, timeout=30) as response:
                 if response.status != 200:
                     return {"error": f"HTTP {response.status}", "success": False}
@@ -301,6 +304,7 @@ async def get_article_content(url: str = None) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute ACI World airport rankings query.

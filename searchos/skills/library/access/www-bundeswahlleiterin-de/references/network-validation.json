@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d367113935d1117e08896ebc01d9691a8f9568ec4ebe0a18faa62c03d8d1102b",
+  "capabilities": {
+    "get_national_results": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_national_results\", \"election_year\": \"2025\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.969654+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bundeswahlleiterin.de/en/bundestagswahlen/2025/ergebnisse/bund-99.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_state_results": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_state_results\", \"election_year\": \"2025\", \"state\": \"bayern\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.970342+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bundeswahlleiterin.de/en/bundestagswahlen/2025/ergebnisse/bund-99/land-9.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_press_release": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_press_release\", \"url\": \"https://www.bundeswahlleiterin.de/en/info/presse/mitteilungen/bundestagswahl-2025/29_25_endgueltiges-ergebnis.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.970404+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bundeswahlleiterin.de/en/info/presse/mitteilungen/bundestagswahl-2025/29_25_endgueltiges-ergebnis.html",
+          "status": 200
+        }
+      ]
+    },
+    "list_states": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_states\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.970680+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-bundeswahlleiterin-de/scripts/source.py",
+        "line": 400,
+        "end_line": 406,
+        "implementation": "list_available_states",
+        "source_sha256": "0d346ab4e09a984ac6e3aed09251ca1bab7672d4a8733873ff3205bfaf065eba",
+        "implementation_sha256": "204f27489a623afe4de13244e94e23efb1e4fca2a6522234017b75357b641e23"
+      }
+    },
+    "list_years": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_years\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.970745+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

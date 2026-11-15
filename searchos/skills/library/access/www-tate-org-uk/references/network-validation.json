@@ -1,0 +1,201 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "0ad9d13e56db84ca798a2f50a0d3a8064a75d9a1e05ecd09c235d31bcb7fb1e0",
+  "capabilities": {
+    "get_turner_prize_years": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_turner_prize_years\", \"start_year\": 2010, \"end_year\": 2022}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.918522+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.tate.org.uk/art/turner-prize",
+          "status": 200
+        },
+        {
+          "url": "https://try.abtasty.com/03d869a33f572dd77e62594449ebd8cb.js",
+          "status": 200
+        },
+        {
+          "url": "https://try.abtasty.com/shared/commons.da270bceb96c948905e2.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.tate.org.uk/[redacted]/original_images/Lead_image_-_Le_Rodeur_Lubaina_Himid_.original_1.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://try.abtasty.com/shared/me.56490845629cd5ac3849.js",
+          "status": 200
+        },
+        {
+          "url": "https://try.abtasty.com/[redacted]/main.4f8fe8525f40523c4a4c.js",
+          "status": 200
+        },
+        {
+          "url": "https://dcinfos-cache.abtasty.com/v1/geoip",
+          "status": 200
+        },
+        {
+          "url": "https://dcinfos-cache.abtasty.com/v1/ua-parser",
+          "status": 200
+        },
+        {
+          "url": "https://www.tate.org.uk/static/css/styles.5c8c36ffb131.css",
+          "status": 200
+        }
+      ]
+    },
+    "get_winners_grid": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_winners_grid\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.920745+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.tate.org.uk/art/turner-prize",
+          "status": 200
+        }
+      ]
+    },
+    "get_bursary_recipients": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_bursary_recipients\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.921092+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.tate.org.uk/art/turner-prize/turner-bursaries",
+          "status": 200
+        },
+        {
+          "url": "https://try.abtasty.com/03d869a33f572dd77e62594449ebd8cb.js",
+          "status": 200
+        },
+        {
+          "url": "https://try.abtasty.com/shared/commons.da270bceb96c948905e2.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.tate.org.uk/[redacted]/original_images/TateDraw-20230127-4864-WEB.original_1.jpg",
+          "status": 200
+        }
+      ]
+    },
+    "get_year_details": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_year_details\", \"year\": 2019}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.921386+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.tate.org.uk/art/turner-prize",
+          "status": 200
+        },
+        {
+          "url": "https://www.tate.org.uk/static/css/styles.5c8c36ffb131.css",
+          "status": 200
+        },
+        {
+          "url": "https://media.tate.org.uk/[redacted]/images/ar01148_10_0w5CAfQ.width-1440.format-webp.webp",
+          "status": 200
+        },
+        {
+          "url": "https://media.tate.org.uk/[redacted]/original_images/Lead_image_-_Le_Rodeur_Lubaina_Himid_.original_1.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://media.tate.org.uk/[redacted]/original_images/TateDraw-20230127-4864-WEB.original_1.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://media.tate.org.uk/[redacted]/images/tate_britain_exterior_1_nuJ6H7o.max-500x500.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://media.tate.org.uk/[redacted]/images/tate_modern_1jpg.max-500x500.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://media.tate.org.uk/[redacted]/images/Tate_Liverpool__RIBA_North_banner__Tate_Bria.max-500x500.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.tate.org.uk/static/js/runtime.4dd7b512b3f0.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.tate.org.uk/static/js/vendors.ca70294dc4a5.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.tate.org.uk/static/js/TateUI.6cdb75acf458.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.tate.org.uk/[redacted]/images/tate_st_ives_building_766TEk1.max-500x500.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.tate.org.uk/static/images/tate-logo.21bf83bab79c.svg",
+          "status": 200
+        },
+        {
+          "url": "https://media.tate.org.uk/[redacted]/images/.width-420_pMGbx9g.format-webp.webp",
+          "status": 200
+        },
+        {
+          "url": "https://media.tate.org.uk/[redacted]/images/charlotte_prodger_bridgit_2016_st.width-420.format-webp.webp",
+          "status": 200
+        },
+        {
+          "url": "https://media.tate.org.uk/[redacted]/images/.width-420_pu1bZlO.format-webp.webp",
+          "status": 200
+        },
+        {
+          "url": "https://try.abtasty.com/03d869a33f572dd77e62594449ebd8cb.js",
+          "status": 200
+        },
+        {
+          "url": "https://media.tate.org.uk/[redacted]/images/helenmartenturnerprize_1_ILcn1pK.width-420.format-webp.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.tate.org.uk/static/icons/tiktok-icon.e1a47cdb3d4d.svg",
+          "status": 200
+        },
+        {
+          "url": "https://media.tate.org.uk/[redacted]/images/tate_britain_XjAB17O.width-420.format-webp.webp",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

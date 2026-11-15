@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "9622ec21427f06164f4aa485414f2c6cca5ee4dd272fd298c5ac0cb9dab3c191",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"title\": \"Ricardo_Pun_Chong\", \"limit\": 3, \"include_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.614053+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://es.wikipedia.org/api/rest_v1/page/summary/Ricardo_Pun_Chong",
+          "status": 200
+        },
+        {
+          "url": "https://es.wikipedia.org/w/api.php",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"CNN Heroes Perú\", \"limit\": 3, \"include_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.615273+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://es.wikipedia.org/w/api.php",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -47,7 +47,7 @@ async def main():
     from dotenv import load_dotenv
 
     load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=False)
-    from searchos.config.web_overlay import load_and_apply
+    from searchos.config.settings_overlay import load_and_apply
 
     load_and_apply()
     tools = get_orchestrator_tools(source_mode="hybrid")
@@ -81,7 +81,7 @@ async def main():
             for call in calls:
                 if call["name"] == "enqueue_tasks":
                     agents.extend(
-                        item.get("agent_type") for item in json.loads(call["args"]["items_json"])
+                        item.get("agent_type") for item in call["args"]["items"]
                     )
             ok = (
                 case["expected"] in agents
@@ -122,33 +122,16 @@ async def main():
                         ),
                     }
                 ]
-                queued_ids = []
                 for _ in range(8):
+                    queued_ids = []
                     for call in reply.tool_calls:
                         if call["name"] == "enqueue_tasks":
-                            queued_ids = [
-                                item.get("id", "atlas")
-                                for item in json.loads(call["args"]["items_json"])
+                            batch = [
+                                item.get("task_id") or f"atlas-{index}"
+                                for index, item in enumerate(call["args"]["items"])
                             ]
-                            result = {"queued": queued_ids, "pool": {"running": len(queued_ids)}}
-                        elif call["name"] == "check_agents":
-                            result = {
-                                "remaining": 0,
-                                "reports": [
-                                    {
-                                        "task_id": task_id,
-                                        "kind": "search",
-                                        "status": "completed",
-                                        "grounded_findings": facts,
-                                        "agent_report": (
-                                            "Read the implementation overview "
-                                            "and design tradeoffs; "
-                                            "source facts committed."
-                                        ),
-                                    }
-                                    for task_id in queued_ids
-                                ],
-                            }
+                            queued_ids.extend(batch)
+                            result = {"queued": batch, "pool": {"running": len(queued_ids)}}
                         elif call["name"] == "read_evidence":
                             result = {"nodes": facts, "count": len(facts)}
                         elif call["name"] == "create_schema":
@@ -158,6 +141,12 @@ async def main():
                         messages.append(
                             ToolMessage(content=json.dumps(result), tool_call_id=call["id"])
                         )
+                    if queued_ids:
+                        reports = [{"task_ids": [task_id], "kind": "search", "status": "completed",
+                                    "grounded_findings": facts} for task_id in queued_ids]
+                        messages.append(HumanMessage(name="agent_reports", content=json.dumps({
+                            "remaining": 0, "reports": reports,
+                        })))
                     reply = await asyncio.wait_for(model.ainvoke(messages), 120)
                     messages.append(reply)
                     continuation.extend(reply.tool_calls)
@@ -165,7 +154,7 @@ async def main():
                         item
                         for call in reply.tool_calls
                         if call["name"] == "enqueue_tasks"
-                        for item in json.loads(call["args"]["items_json"])
+                        for item in call["args"]["items"]
                         if item.get("agent_type") in {"search_agent", "explore_agent"}
                     ]
                     if web_tasks or not reply.tool_calls:

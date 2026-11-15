@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "66481f1f4db50ffa61ef75228d59f310bd44bddc70dc1bb8d3422ce027138d43",
+  "capabilities": {
+    "list_companies": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_companies\", \"region\": \"flanders\", \"verified\": true, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.627126+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gameindustry.be/api/companies",
+          "status": 200
+        }
+      ]
+    },
+    "get_company": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_company\", \"slug\": \"larian-studios\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.630546+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gameindustry.be/api/companies/larian-studios",
+          "status": 200
+        }
+      ]
+    },
+    "search_companies": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_companies\", \"query\": \"larian\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.630968+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gameindustry.be/api/companies",
+          "status": 200
+        }
+      ]
+    },
+    "get_summary": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_summary\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.631079+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gameindustry.be/api/companies",
+          "status": 200
+        }
+      ]
+    },
+    "list_by_region": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_by_region\", \"region\": \"brussels\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.631273+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gameindustry.be/api/companies",
+          "status": 200
+        }
+      ]
+    },
+    "list_verified": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_verified\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.631890+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gameindustry.be/api/companies",
+          "status": 200
+        }
+      ]
+    },
+    "list_defunct": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_defunct\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.635368+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gameindustry.be/api/companies",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

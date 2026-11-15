@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_states": "direct",
+    "search_governors": "direct",
+    "get_governors": "direct"
+  },
+  "aliases": {
+    "list_states": "list_states",
+    "get_governors": "get_governors",
+    "search_governors": "search_governors",
+    "run": "search_governors"
+  }
+}

@@ -9,6 +9,9 @@ Supports:
 - list_awards: Get all best paper awards, optionally filtered by conference
 - get_awards_by_year: Get awards for a specific year
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -90,7 +93,7 @@ def parse_awards_page(html: str) -> dict[str, list[dict]]:
 async def list_conferences(params: dict) -> dict:
     """List all available conferences with best paper awards."""
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_page(session, BASE_URL)
             awards = parse_awards_page(html)
         
@@ -122,7 +125,7 @@ async def list_awards(params: dict) -> dict:
     conference = params.get("conference")
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_page(session, BASE_URL)
             awards = parse_awards_page(html)
         
@@ -175,7 +178,7 @@ async def get_awards_by_year(params: dict) -> dict:
     year = str(year)
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_page(session, BASE_URL)
             awards = parse_awards_page(html)
         
@@ -218,6 +221,7 @@ async def get_awards_by_year(params: dict) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute ACL Wiki best paper awards query.

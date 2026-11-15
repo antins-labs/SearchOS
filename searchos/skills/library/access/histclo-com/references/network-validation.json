@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "026299a1c7ff8fe4ad2c7f8313ec45eecc0c8c6513789c5bcf853f58bdba01ae",
+  "capabilities": {
+    "get_essay": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_essay\", \"url\": \"https://histclo.com/essay/war/ww2/camp/pac/cbi/burma/cbi-bur42.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.703621+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://histclo.com/essay/war/ww2/camp/pac/cbi/burma/cbi-bur42.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_essays": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_essays\", \"keyword\": \"burma\", \"topic_area\": \"ww2\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.704302+00:00",
+      "reason": "results is empty",
+      "source_responses": [
+        {
+          "url": "https://histclo.com/essay/war/ww2/ww2.html",
+          "status": 404
+        },
+        {
+          "url": "https://histclo.com/essay/war/ww2/camp/pac/pac.html",
+          "status": 404
+        },
+        {
+          "url": "https://histclo.com/essay/war/ww2/cou/cou.html",
+          "status": 404
+        }
+      ]
+    }
+  }
+}

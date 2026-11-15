@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "85233d5656da2ef988fefaf7ab92e0cbe67269b68516fcf415798acdb178153d",
+  "capabilities": {
+    "list_studies": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_studies\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:02.796451+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-jdpower-com/scripts/source.py",
+        "line": 264,
+        "end_line": 296,
+        "implementation": "list_available_studies",
+        "source_sha256": "4d3dd0b5d986548f50f55d2b5d5fcb5232b17dc7a49aa4515a361b626a2debd5",
+        "implementation_sha256": "1130383139824cfaf42b98fc15995bb9a002ef5948328b6a419490d9367499bf"
+      }
+    },
+    "get_ratings": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ratings\", \"study\": \"dependability\", \"year\": 2025}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.750512+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.jdpower.com/cars/ratings/dependability/2025",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtm.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googleadservices.com/pagead/conversion.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.jdpower.com/_next/static/chunks/3ef0f384779d45c9.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.jdpower.com/redesign/assets/awards/trophy-small.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.jdpower.com/_next/static/chunks/f589e0fb7c7a04ad.css",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.jdpower.com/_next/static/media/Ge2003_Bd-s.p.364eabcd.woff",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.jdpower.com/jdp-web/ui-icons/social-linkedin.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.jdpower.com/redesign/assets/rebrand/privacy-icon2.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.jdpower.com/ChromeImageGallery/Expanded/Transparent/320/2022TOC35_320/2022TOC350016_320_01.png",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.jdpower.com/logos_makes/transparent/buick.png",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.jdpower.com/jdp-web/ui-icons/social-twitter.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.jdpower.com/jdp-web/ui-icons/social-youtube.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.jdpower.com/jdp-web/ui-icons/social-facebook.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.jdpower.com/logos_makes/transparent/lexus.png",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.adsafeprotected.com/iasPET.1.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.jdpower.com/_next/static/media/Ge2003_Bd-s.p.9b8a2d93.ttf",
+          "status": 200
+        },
+        {
+          "url": "https://www.jdpower.com/_next/static/media/Ge2003_Bd-s.p.f6a0f29e.woff2",
+          "status": 200
+        }
+      ]
+    },
+    "get_vehicle": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_vehicle\", \"year\": 2022, \"make\": \"toyota\", \"model\": \"corolla\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.752340+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.jdpower.com/cars/2022/toyota/corolla",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_holidays": "direct",
+    "get_holidays_2025": "direct"
+  },
+  "aliases": {
+    "get_holidays_2025": "get_holidays_2025",
+    "search_holidays": "search_holidays",
+    "run": "search_holidays"
+  }
+}

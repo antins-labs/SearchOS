@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7831145068bdec34dcef4d26485574c0f58b40160da5f669a7f77e3dc7dcb7c9",
+  "capabilities": {
+    "get_tournament_info": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tournament_info\", \"url\": \"https://liquipedia.net/dota2/The_International/2011\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.776941+00:00",
+      "reason": "No infobox found on page",
+      "source_responses": [
+        {
+          "url": "https://liquipedia.net/dota2/The_International/2011",
+          "status": 403
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/api.js",
+          "status": 302
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/ety19/0x4AAAAAAAAxC1uxZs7TFcOi/auto/fbE/new/normal",
+          "status": 200
+        }
+      ]
+    },
+    "get_prize_pool": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_prize_pool\", \"url\": \"https://liquipedia.net/dota2/The_International/2021\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.038749+00:00",
+      "reason": "No prize pool table found",
+      "source_responses": [
+        {
+          "url": "https://liquipedia.net/dota2/The_International/2021",
+          "status": 403
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/api.js",
+          "status": 302
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/gevtb/0x4AAAAAAAAxC1uxZs7TFcOi/auto/fbE/new/normal",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/fo/2425580051:1792735516:RUlw5eP8DMQu0c-QvGL7lXMBneL91MvjjBeH4XWvNCY/a4eefa2beb81a724/rAs22OS3yBu9l10d3iY9zXO6jBCUszUP2MM9uSmREek-1792740005-1.2.1.1-mYKfELNhYYrUyTVRFOmvvu.MR1Y7RDOcexjnvqpux570FBBx5rkVd7zDrUzy1UsY",
+          "status": 200
+        }
+      ]
+    },
+    "get_group_standings": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_group_standings\", \"url\": \"https://liquipedia.net/dota2/The_International/2011\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:29.367416+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://liquipedia.net/dota2/The_International/2011",
+          "status": 403
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/api.js",
+          "status": 302
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/489tl/0x4AAAAAAAAxC1uxZs7TFcOi/auto/fbE/new/normal",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/fo/2425580051:1792735516:RUlw5eP8DMQu0c-QvGL7lXMBneL91MvjjBeH4XWvNCY/a4eeffac7ac023a9/ZRYiqFAe4sfndib_IcXoKs43zHIHmypbTDjzlQKxOUM-1792740231-1.2.1.1-k34SeqkVzvbK8.3NVhfrNTyVsnDW6LBehU_rbFEBu7uc6ePvwO1CgLfee18nm4MT",
+          "status": 200
+        }
+      ]
+    },
+    "get_all_data": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_data\", \"url\": \"https://liquipedia.net/dota2/The_International/2021\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:29.442305+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://liquipedia.net/dota2/The_International/2021",
+          "status": 403
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/api.js",
+          "status": 302
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/6fukq/0x4AAAAAAAAxC1uxZs7TFcOi/auto/fbE/new/normal",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

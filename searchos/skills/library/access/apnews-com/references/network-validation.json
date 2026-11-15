@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "17d440dc5e284a87cbb4bae8be37eeb6e49d6a9baa1fcf5054ba54cd7bbe9b5d",
+  "capabilities": {
+    "get_article": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://apnews.com/article/iran-us-hormuz-strait-war-july-21-2026-1664f6a4dad005a99771b2ad15213585\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.706409+00:00",
+      "reason": "Failed to fetch article: HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://apnews.com/article/[redacted]",
+          "status": 403
+        }
+      ]
+    },
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"iran war\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.739818+00:00",
+      "reason": "Search failed: HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://apnews.com/search",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

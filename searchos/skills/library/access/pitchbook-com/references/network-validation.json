@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "cc7f6ca7235892116f5ba2749d5621e83363d64ac49d72315b9ff3d9d404f47d",
+  "capabilities": {
+    "get_profile": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_profile\", \"url\": \"https://pitchbook.com/profiles/company/123241-33\", \"cookies\": [{\"name\": \"session_id\", \"value\": \"your_session_value\", \"domain\": \".pitchbook.com\"}, {\"name\": \"auth_token\", \"value\": \"your_auth_token\", \"domain\": \".pitchbook.com\"}], \"headless\": true, \"max_wait\": 40}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.839865+00:00",
+      "reason": "cookie_error",
+      "source_responses": []
+    }
+  }
+}

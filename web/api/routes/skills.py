@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import Literal
 from pydantic import BaseModel, Field
-from api.skills.creation import CreationInput, jobs
+from api.skills.creation_jobs import CreationInput, jobs
 
 router = APIRouter(prefix='/api/skills/creations', tags=['skills'])
 
@@ -95,6 +95,17 @@ async def get_creation_progress(job_id: str, index: int = Query(default=0, ge=0)
     from api.skills.progress import creation_progress
     try:
         return creation_progress(jobs.read(job_id), jobs.root, index)
+    except FileNotFoundError:
+        raise HTTPException(404, '创建作业不存在')
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+
+
+@router.get('/{job_id}/rounds')
+async def get_creation_rounds(job_id: str, index: int = Query(default=0, ge=0)):
+    from api.skills.progress import creation_rounds
+    try:
+        return creation_rounds(jobs.read(job_id), jobs.root, index)
     except FileNotFoundError:
         raise HTTPException(404, '创建作业不存在')
     except ValueError as exc:

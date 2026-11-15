@@ -129,7 +129,7 @@ export default function SkillCreationPanel({ disabled, zh }: { disabled: boolean
         </label>
         {kind === "site" && <label className="block text-[12px] leading-6 text-ink-dim">
           <span className="flex items-center gap-2"><input type="checkbox" checked={allowInteraction} onChange={(e) => setAllowInteraction(e.target.checked)} className="accent-accent" />{zh ? "允许登录与验证交互" : "Allow login and verification interaction"}</span>
-          <span className="mt-1 block text-[11px] text-ink-faint">{zh ? "需要时打开运行 SearchOS 的本机专用浏览器。登录态在本机按站点保存，供后续复用；单次等待15分钟。" : "Opens a dedicated browser on the SearchOS computer when needed. Sessions are saved locally per site. Each action allows 15 minutes."}</span>
+          <span className="mt-1 block text-[11px] text-ink-faint">{zh ? "仅在页面要求登录或验证时等待你操作，单次等待15分钟。浏览器显示方式由宿主按站点配置，登录态在本机保存并复用。" : "Waits up to 15 minutes when the page requires login or verification. The host configures browser visibility per site and saves sessions locally for reuse."}</span>
         </label>}
         {kind !== "site" && <details className="group border-t border-line pt-4">
           <summary className="flex cursor-pointer list-none items-center gap-2 text-[12px] text-ink-dim [&::-webkit-details-marker]:hidden"><SlidersHorizontal size={14} />{zh ? "生成选项" : "Generation options"}<ChevronDown size={13} className="ml-auto transition-transform group-open:rotate-180" /></summary>

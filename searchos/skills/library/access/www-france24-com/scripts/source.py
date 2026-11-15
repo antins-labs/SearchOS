@@ -2,12 +2,16 @@
 France24.com access skill for SearchOS.
 Fetches article content and section listings from France24 English edition.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 from typing import Any
 from playwright.async_api import async_playwright
 import re
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute France24 access skill.
@@ -48,14 +52,14 @@ async def get_article(params: dict[str, Any]) -> dict[str, Any]:
         return {"error": "URL must be from france24.com domain"}
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 locale="en-US",
                 viewport={"width": 1280, "height": 720}
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate to article with domcontentloaded for faster response
             response = await page.goto(url, wait_until="domcontentloaded", timeout=45000)
@@ -179,14 +183,14 @@ async def get_section(params: dict[str, Any]) -> dict[str, Any]:
     url = f"https://www.france24.com/en/{section}/"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 locale="en-US",
                 viewport={"width": 1280, "height": 720}
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate to section
             response = await page.goto(url, wait_until="domcontentloaded", timeout=45000)

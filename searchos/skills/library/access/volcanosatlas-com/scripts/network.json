@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_country_volcanoes": "direct",
+    "list_countries": "direct",
+    "get_volcano_detail": "direct"
+  },
+  "aliases": {
+    "list_countries": "list_countries",
+    "get_country_volcanoes": "get_country_volcanoes",
+    "get_volcano_detail": "get_volcano_detail",
+    "run": "get_volcano_detail"
+  }
+}

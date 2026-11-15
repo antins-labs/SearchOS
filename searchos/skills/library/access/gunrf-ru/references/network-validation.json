@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e83e373a559e3c68e5e06c9f0faf61a0c006029c7b9b196f88abd155527fb98f",
+  "capabilities": {
+    "get_weapon_specs": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_weapon_specs\", \"url\": \"https://gunrf.ru/rg_avtomat_aks-74u_eng.html\", \"category\": \"avtomat\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.702424+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gunrf.ru/rg_avtomat_aks-74u_eng.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_weapons": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_weapons\", \"category\": \"avtomat\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.703397+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://gunrf.ru/rg_avtomat_ak108_eng.html",
+          "status": 200
+        },
+        {
+          "url": "https://gunrf.ru/rg_avtomat_aks-74u_eng.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

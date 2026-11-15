@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "compare": "direct",
+    "get_config": "direct",
+    "get_multiple": "direct"
+  },
+  "aliases": {
+    "get_config": "get_config",
+    "get_multiple": "get_multiple",
+    "compare": "compare",
+    "run": "compare"
+  }
+}

@@ -9,6 +9,9 @@ Yahoo Finance 历史价格查询工具
     python history.py AAPL --start 2026-09-01 --end 2026-10-12
     python history.py MSFT --days 5 --interval 1h --output history.json
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import argparse
 import json
@@ -68,7 +71,7 @@ def fetch_history(symbol: str, period1: int, period2: int, interval: str = '1d')
     )
     
     try:
-        with urllib.request.urlopen(request, context=ctx, timeout=30) as response:
+        with _skill_network.urllib_urlopen(request, context=ctx, timeout=30) as response:
             data = json.loads(response.read().decode('utf-8'))
     except urllib.error.HTTPError as e:
         if e.code == 404:
@@ -139,6 +142,7 @@ def fetch_history(symbol: str, period1: int, period2: int, interval: str = '1d')
     }
 
 
+@_skill_network.entrypoint(capability_id='history', cli=True)
 def main():
     parser = argparse.ArgumentParser(
         description='从 Yahoo Finance 获取股票历史价格',

@@ -1,7 +1,5 @@
-"""Portable package validation, deterministic snapshots, and atomic installation.
+"""通用技能包检查、确定性快照、安装与发布回滚。"""
 
-No archive extraction or code execution takes place in this module.
-"""
 from __future__ import annotations
 
 import hashlib
@@ -85,14 +83,14 @@ def snapshot_package(skill_dir: str | Path, destination: str | Path) -> Path:
 
 def validate_package(skill_dir: str | Path, *, expected_name: str | None = None):
     """Validate a standard package and return its parsed Skill."""
-    from searchos.skills.core.schema import parse_skill_file, find_skill_entry
+    from searchos.skills.core.skill_markdown import find_skill_entry, parse_skill_file
     root = Path(skill_dir)
     package_files(root)
     entry = find_skill_entry(root)
     if entry.name != 'SKILL.md':
         raise ValueError('Portable packages require SKILL.md; legacy packages must be migrated')
     skill = parse_skill_file(entry, expected_name=expected_name)
-    from searchos.skills.runtime.browser_session import validate_metadata, current_session
+    from searchos.skills.runtime.browser_session import current_session, validate_metadata
     validate_metadata(skill.meta.metadata)
     session = current_session.get()
     if session:
@@ -114,3 +112,22 @@ def export_package(skill_dir: str | Path, destination: str | Path) -> Path:
     if dest.name != skill.meta.name:
         raise ValueError('Export directory must match the skill name')
     return snapshot_package(skill_dir, dest)
+
+
+def publish_package(candidate: Path, final_dir: Path) -> None:
+    """发布完整包；替换失败时恢复旧版本。校验由调用方先完成。"""
+    final_dir.parent.mkdir(parents=True, exist_ok=True)
+    if final_dir.exists():
+        # Unique backup names avoid clobbering another pending publication.
+        backup = Path(tempfile.mkdtemp(prefix=f'.old_{final_dir.name}_', dir=final_dir.parent))
+        backup.rmdir()
+        final_dir.rename(backup)
+        try:
+            candidate.rename(final_dir)
+        except BaseException:
+            backup.rename(final_dir)
+            raise
+        else:
+            shutil.rmtree(backup)
+    else:
+        candidate.rename(final_dir)

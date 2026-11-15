@@ -5,6 +5,9 @@ Returns structured article metadata. No browser tools needed.
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import logging
 import os
@@ -21,6 +24,7 @@ logger = logging.getLogger(__name__)
 _TIMEOUT = 30.0
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: SkillContext) -> dict[str, Any]:
     """Search for recent news articles.
 
@@ -38,7 +42,7 @@ async def execute(params: dict[str, Any], ctx: SkillContext) -> dict[str, Any]:
     num_results = min(params.get("num_results", 5), 10)
     days_back = min(params.get("days_back", 7), 30)
 
-    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+    async with _skill_network.httpx_async_client(timeout=_TIMEOUT) as client:
         articles = await _search_newsapi(client, query, num_results, days_back)
         if not articles:
             articles = await _search_google_news_rss(client, query, num_results)

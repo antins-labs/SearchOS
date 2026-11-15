@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1cd219c43912f09a4ee56c7f6dda76779d38f61e0643a273c8424f1dfdbcd0b1",
+  "capabilities": {
+    "get_tournament_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tournament_info\", \"tournament_slug\": \"blasttv-austin-major-2025\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.820576+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://navi.gg/en/tournaments/blasttv-austin-major-2025",
+          "status": 307
+        },
+        {
+          "url": "https://navi.gg/en/tournaments/blasttv-austin-major-2025",
+          "status": 403
+        },
+        {
+          "url": "https://navi.gg/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://navi.gg/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eeef0aa8febb5f/chZzVrXUOcDI4RfW6bL7UERWT_jZj2PyPg4MpHnufu8-1792739549-1.2.1.1-9lW24PedFWASmY7vPPzVWN3kxVc.KRtcjakBQf3SLltZIaoI9uowsO3lCwbOHPu3",
+          "status": 200
+        },
+        {
+          "url": "blob:https://navi.gg/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/msp07/0x4AAAAAAADnOjc0PNeA8qVm/light/fbE/new/normal",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/fo/2425580051:1792735516:RUlw5eP8DMQu0c-QvGL7lXMBneL91MvjjBeH4XWvNCY/a4eeef196f96f3db/sT895z5uCoJIrFR5pmEsoNZ10XX1SQix1tBntOw7vaU-1792739552-1.2.1.1-zXPgJkmPiQzX5R4848UdVJY7delkeMQroCPearfws3jIYIkTZRKN.z9dq4ybqV2A",
+          "status": 200
+        },
+        {
+          "url": "blob:https://challenges.cloudflare.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/pat/a4eeef196f96f3db/1792739552865/[redacted]/1HtccE0SGtM9G4DE31PZUGwasQf1_eTpyJ.bLZ3Sw.g-1792739552-1.3.1.1-9ZVvo35L1ktyKqakOI_es9KkgMS5UTby29lb27BKPajpDJE5CYPzbJuOgJVJS45KZyol9D2hvy7zH2Dj69pZIqRYFEBbdmhEH5ydRPbYLzE5qJPK39EvScSU2Wf5qIAdz9mR5r0ik1SB7DwrWSA1Dp65_PpKHiTVY7bXq68.adHBLXdKmJadlIbQEHEs07kw.LoQwjRkaZk0xrVzSO8dpX3C_bHzdFXmZCW9DLBncXjhcuI_yaLOoV8DbiI.1l0hadB9l7UcZDlsKp5iHPV1RkIDHOEyCP8HxbVcpLclRgw28gMmtM1iuucaI9uct7iUj0G7j_kJtamqlaldX.3pCQFRCuDsBm31PTALQWp0pv2Gm2wXUolPE4DtmuJpn7bNg5aALC4NHh_D1ow75X..2_3UkKjltRXM.3VCRKPf5FpOUsDagxSVEnsEUf08cmwBffNl0HFYEkSkcjuaOXtlxr9tH_FHGwWfxO4xfEEaxYHHDL3qlxT5N0leVzwRnaeDcwSGHNVtDu4X6m5HxGKXi1_bnUyffIhieE5z4O5B3bOfzRrUYl9Lrl.cNZPG31Iv5lRUI2G0fuDSrQudqQxaRI00uM9yk8hF62eF0sh4L0hM5Z0.rCZOsa83i9NK6IjvntLftfLs0SPjFeIsT.SVaPonC3niRJG6YLiItOHvh.upPsWPrckQJsgkzflGp3AppasJKPILumO1hqWO.5JsKI5VjNQ0ZXGqUMv0ZVu5oChIbH0ik1UzN9lYZavaBrQYzGxiwDWq8.NBH9ii3rWtXZafFf2vDM4jxnzDoeNuhsozf2xXf7Yy6gwvKYHI0mhB9jkwmDvXepb2EnRFB2iQtg",
+          "status": 401
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/ci/a4eeef196f96f3db/1792739552866/tVevh3hai1VOlbVzrMFwVKPQ0gAP3aM_dUzm3FWutEw-1792739552-1.3.1.1-VdrzQvGH.DgqhJ9M7rOdTYqSbc_hrpJrADjWFhssC7ccDALHoY3_C_f_4HUO6bBaOJx2BQHsFVxFF8CoyothcbKdfRtoEsCKTVDKY0mxsq3RKzet6APkdOGhIzwPwEq.UX8ySIvg4HUoaAQ4sqwLx5luB4GiQNTSfQ0rNw0VKY7zh.LqGfS7DwnWlYOI4bQokyzkm6mA5MzdZnUdIS1ZTVWrGMzRT7wrnOZdguTARSdT6lPQRC_Pl0ISI26E1PLYghrlSO9et.VFzHBhArj.yvhj_lGe6b0XPCRk96x488iBbLvG3btWVJUNnwbyAzmSSiGyiXLhBEyO3igMFOHGt_bIChHsbyLWifHUzAaKpOj9xQ1v_DwKCDMBQ6UPyZC5Phl.PbZ9msl1xtoXVY4fjkj6vtfgTLmgXOmCMuLWQY5kM_oMmDtZNFrJvdWxnJ46Xl8zvAfP7Qno.UJkK.CzdOR85Q79YgpCisx4L62XH3LRGslX6XytfybjR1rXTU2EVjnG3xm_uBpfPpnd9aXw.hGOHqk8fX4YjP7jeoPa.YM9wShUOh9m29lOfBL5NL3IpkUoxiZX9NJ8kWdp1_d1zvdlN96.ZJPUgxhaa2YbHGWL9veVKAXbOi3HIuc2msJfps5rO5K45c3.8EH31pV1v58vTMIMpqlESmDB.jfAIil7n3q1RKfzRBtXyM9lyhakP.EugH4VG1OjTnjB18EUM0YkNdnN07TDJE0cx.Vchwlo8xURhmQmqv4hXCwuduRw",
+          "status": 200
+        }
+      ]
+    },
+    "get_matches": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_matches\", \"tournament_slug\": \"blasttv-austin-major-2025\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.509571+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://navi.gg/en/tournaments/blasttv-austin-major-2025/matches",
+          "status": 307
+        },
+        {
+          "url": "https://navi.gg/en/tournaments/blasttv-austin-major-2025/matches",
+          "status": 403
+        },
+        {
+          "url": "https://navi.gg/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://navi.gg/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eefa557fae79fb/REbZ48B.1Ix.OycdoUAuwif4cL61jXvC7qWTiSSGKSU-1792740012-1.2.1.1-tvcmrP6if7KSdTI1GLAK33METMVQdzNt5nENRU.WDoWTa5eyEpGQZLkVehXEb4YI",
+          "status": 200
+        },
+        {
+          "url": "blob:https://navi.gg/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/9edvj/0x4AAAAAAADnOjc0PNeA8qVm/light/fbE/new/normal",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/fo/2425580051:1792735516:RUlw5eP8DMQu0c-QvGL7lXMBneL91MvjjBeH4XWvNCY/a4eefa61df2a23fd/IroQpXoBvcp2IwdbvYCb5GGp8EGBwyuDy5yBOC9zWeE-1792740014-1.2.1.1-EU6NJ82UwvbzkU7mtvCfhyPnqa_nCabFqys9Bdu9abznjVlePBUcwcjJwNgT04T9",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

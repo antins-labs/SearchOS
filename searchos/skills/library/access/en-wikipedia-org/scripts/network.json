@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_billionaires": "proxy",
+    "get_years": "inherit",
+    "search_billionaire": "proxy"
+  },
+  "aliases": {
+    "get_billionaires": "get_billionaires",
+    "search_billionaire": "search_billionaire",
+    "get_years": "get_years",
+    "run": "get_years"
+  }
+}

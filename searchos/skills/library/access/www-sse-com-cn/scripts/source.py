@@ -9,6 +9,9 @@ Provides access to:
 
 API: https://query.sse.com.cn/commonQuery.do (JSONP)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 import json
@@ -84,7 +87,7 @@ async def get_ipo_inquiry_info(security_code: str, session: aiohttp.ClientSessio
     """
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -130,7 +133,7 @@ async def get_ipo_process_status(security_code: str, session: aiohttp.ClientSess
     """
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -181,7 +184,7 @@ async def get_ipo_list(
     """
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -241,7 +244,7 @@ async def get_financing_info(
     """
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -302,7 +305,7 @@ async def get_dividend_info(
     """
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -354,7 +357,7 @@ async def get_rights_issue_info(
     """
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -387,6 +390,7 @@ async def get_rights_issue_info(
             await session.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the SSE access skill.
@@ -427,7 +431,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             ]
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "get_ipo_inquiry_info":
             security_code = params.get("security_code") or params.get("company_code", "")
             if not security_code:

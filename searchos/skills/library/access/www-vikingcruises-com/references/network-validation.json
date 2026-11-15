@@ -1,0 +1,162 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5a1cb64606508adf58c96c7d0d577b786f02b0291a5653333e7540500acb93fe",
+  "capabilities": {
+    "get_cruise_details": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_cruise_details\", \"cruise_name\": \"alaska-inside-passage\", \"region\": \"caribbean-americas\", \"start_location\": \"vancouver-british-columbia\", \"end_location\": \"seward\", \"year\": \"2028\", \"product_line\": \"oceans\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.097674+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.vikingcruises.com/oceans/cruise-destinations/caribbean-americas/alaska-inside-passage/index.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/oceans/bundles/agentUrlId_js",
+          "status": 200
+        },
+        {
+          "url": "https://player.vimeo.com/api/player.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/Content/fonts/open-sans/VikingOpenSans-Regular.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/oceans/Content/css/v3/general_site_cruisetest_css",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/Content/fonts/open-sans/VikingOpenSans-Italic.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/oceans/Content/css/v3/itinerary_video_css",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/oceans/Content/css/v3/bundle_whyviking_css",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/Content/fonts/open-sans/VikingOpenSans-SemiBold.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/Content/fonts/open-sans/VikingOpenSans-Bold.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/oceans/bundles/preventDoubleSubmit",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/oceans/Content/css/v3/itinerary_content_css",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/Content/images/v3/MenuChevBlueLeft.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/Content/fonts/open-sans/VikingOpenSans-SemiBoldItalic.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/oceans/Scripts/cruiseoverview/v4/itinerary_content_js",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/oceans/Scripts/jquery_bundle_js",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/content/css/v3/font_open_sans",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/oceans/bundles/itinerary_video_js",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/oceans/Scripts/core_bundle_js",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/Content/fonts/open-sans/VikingOpenSans-BoldItalic.woff2",
+          "status": 200
+        }
+      ]
+    },
+    "get_pricing": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_pricing\", \"cruise_name\": \"alaska-inside-passage\", \"region\": \"caribbean-americas\", \"start_location\": \"vancouver-british-columbia\", \"end_location\": \"seward\", \"year\": \"2028\", \"product_line\": \"oceans\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.100673+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.vikingcruises.com/oceans/cruise-destinations/caribbean-americas/alaska-inside-passage/pricing.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/Content/fonts/open-sans/VikingOpenSans-Regular.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/oceans/Content/css/V3/Pricing_Table_V3A_css",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/Content/fonts/open-sans/VikingOpenSans-Italic.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.vikingcruises.com/oceans/Content/css/v3/general_site_cruisetest_css",
+          "status": 200
+        },
+        {
+          "url": "https://player.vimeo.com/api/player.js",
+          "status": 200
+        }
+      ]
+    },
+    "search_cruises": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_cruises\", \"year\": \"2028\", \"product_line\": \"oceans\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.100810+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-vikingcruises-com/scripts/source.py",
+        "line": 198,
+        "end_line": 228,
+        "implementation": "search_cruises",
+        "source_sha256": "0d64288782063860a8d06e9b3e0ebc6824a36217270a6b82468484b815c390b3",
+        "implementation_sha256": "12db110c5d244bb3be235bb388f21cdc066bdeaa7d57b18b17a74bb9495dcec4"
+      }
+    }
+  }
+}

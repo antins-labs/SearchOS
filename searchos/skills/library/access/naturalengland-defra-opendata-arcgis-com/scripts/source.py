@@ -8,6 +8,9 @@ Dataset: Areas of Outstanding Natural Beauty (England)
 Source: Natural England / Defra
 ArcGIS Service: services.arcgis.com/JJzESW51TqeY9uat
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -38,6 +41,7 @@ def _escape_sql_string(value: str) -> str:
     return value.replace("'", "''")
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute a request to the Natural England AONB dataset.
@@ -81,7 +85,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             'error': "Missing required parameter 'function'. Must be one of: list_aonbs, get_aonb, search, get_metadata"
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if func == 'list_aonbs':
             return await _list_aonbs(session, params)
         elif func == 'get_aonb':

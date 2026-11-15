@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c41e474bb3218dfb448d74c7bc49218664d106983d6e16519f0a54f886e4cc67",
+  "capabilities": {
+    "get_setlist": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_setlist\", \"setlist_url\": \"https://www.setlist.fm/setlist/taylor-swift/2010/chiba-marine-stadium-chiba-japan-23c544ff.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.681060+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.setlist.fm/setlist/taylor-swift/2010/chiba-marine-stadium-chiba-japan-23c544ff.html",
+          "status": 202
+        },
+        {
+          "url": "https://9f3a81a29eb8.368bc827.us-west-1.token.awswaf.com/9f3a81a29eb8/8b43781430ec/390f498286c1/challenge.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_average_setlist": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_average_setlist\", \"average_setlist_url\": \"https://www.setlist.fm/stats/average-setlist/taylor-swift-3bd6bc5c.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.684593+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.setlist.fm/stats/average-setlist/taylor-swift-3bd6bc5c.html",
+          "status": 202
+        }
+      ]
+    }
+  }
+}

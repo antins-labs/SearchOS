@@ -2,6 +2,9 @@
 UCAS Course Access Skill
 Fetches course details from UCAS (Universities and Colleges Admissions Service)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import httpx
@@ -11,6 +14,7 @@ from bs4 import BeautifulSoup
 from typing import Any, Dict, List, Optional
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any) -> Dict[str, Any]:
     """
     Main entry point for UCAS course access
@@ -57,7 +61,7 @@ async def get_course(params: Dict[str, Any]) -> Dict[str, Any]:
         }
     
     try:
-        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        async with _skill_network.httpx_async_client(timeout=30.0, follow_redirects=True) as client:
             # Build URL
             url = f"https://www.ucas.com/explore/courses/{course_id}"
             if course_slug:
@@ -202,7 +206,7 @@ async def search_courses(params: Dict[str, Any]) -> Dict[str, Any]:
         }
     
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with _skill_network.httpx_async_client(timeout=30.0) as client:
             # Build Algolia query
             search_params = []
             

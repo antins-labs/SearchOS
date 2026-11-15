@@ -4,6 +4,9 @@ Spotify Newsroom Wrapped Data Extractor
 Extracts Spotify Wrapped ranking data from newsroom.spotify.com.
 Supports multiple years (2023, 2024) and various ranking categories.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -229,7 +232,7 @@ async def get_wrapped_data(year: str = "2024") -> dict[str, Any]:
     
     url = WRAPPED_URLS[year]
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, status = await fetch_page(session, url)
         
         if status != 200:
@@ -260,7 +263,7 @@ async def get_all_wrapped_data() -> dict[str, Any]:
     """
     results = {}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Create list of (year, url, task) tuples
         tasks = []
         for year, url in WRAPPED_URLS.items():
@@ -416,6 +419,7 @@ async def get_top_n(
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Spotify Newsroom Wrapped skill.

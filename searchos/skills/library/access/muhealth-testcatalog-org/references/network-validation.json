@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b49042f46180afd5ecf02f6dfd8d6434fb8100451d982fa66f6935435c1f2a7d",
+  "capabilities": {
+    "get_test_reference_ranges": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_test_reference_ranges\", \"test_code\": \"CBCREF\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.812839+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://muhealth.testcatalog.org/show/CBCREF",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css",
+          "status": 200
+        },
+        {
+          "url": "https://d2xk4h2me8pjt2.cloudfront.net/webjc/logos/mu-offcial-logo-1623362989.png",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.google-analytics.com/ga.js",
+          "status": 200
+        },
+        {
+          "url": "https://ssl.google-analytics.com/r/__utm.gif",
+          "status": 200
+        },
+        {
+          "url": "https://s.go-mpulse.net/boomerang/N8AH3-XYYRJ-8MC6T-GQVJM-TW44K",
+          "status": 200
+        }
+      ]
+    },
+    "search_test": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_test\", \"test_name\": \"CBC\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.439415+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://muhealth.testcatalog.org/show/CBCREF",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css",
+          "status": 200
+        },
+        {
+          "url": "https://d2xk4h2me8pjt2.cloudfront.net/webjc/logos/mu-offcial-logo-1623362989.png",
+          "status": 200
+        },
+        {
+          "url": "https://d3b6ik53zt4tlx.cloudfront.net/assets/mobile-6f406ad38d885cdf7c70258f069318f616d3aef8a0c7792913d3f7ecfc1199f4.css",
+          "status": 301
+        },
+        {
+          "url": "https://d3b6ik53zt4tlx.cloudfront.net/assets/application-54ee3b8e44dbb003fff1b5d297610d662aacef282acfa68f3bb75166e1175b2d.css",
+          "status": 301
+        },
+        {
+          "url": "https://d3b6ik53zt4tlx.cloudfront.net/assets/application-a8f1a6b9057f08f4ebf3354bcbc61158d78102f667f5d63e74fd98305b52e5cd.js",
+          "status": 301
+        },
+        {
+          "url": "https://d3b6ik53zt4tlx.cloudfront.net/assets/mobile_responsive-506f4b1a6cd9ce953d9d4bdda6232a4deea58855c44aeca6c6ab32976bba3db5.js",
+          "status": 301
+        },
+        {
+          "url": "https://d3b6ik53zt4tlx.cloudfront.net/assets/icons/help-e1a0adcc730364a9892789d5578d721e1c9048e750dd53a5a4b668d4b00ff21b.png",
+          "status": 301
+        },
+        {
+          "url": "https://d3b6ik53zt4tlx.cloudfront.net/assets/icons/arrow-left-16-3bd1996977387818eb3aa07ebaf5edec6be55116331c4eebd4c57c2ae1d019bc.gif",
+          "status": 301
+        },
+        {
+          "url": "https://mml.testcatalog.org/assets/application-54ee3b8e44dbb003fff1b5d297610d662aacef282acfa68f3bb75166e1175b2d.css",
+          "status": 200
+        },
+        {
+          "url": "https://mml.testcatalog.org/assets/mobile-6f406ad38d885cdf7c70258f069318f616d3aef8a0c7792913d3f7ecfc1199f4.css",
+          "status": 200
+        },
+        {
+          "url": "https://d3b6ik53zt4tlx.cloudfront.net/assets/black-50-07ef75f9e026543a952dfd74e1ddcb91efd6fe881c4d26119b587965885ef8fc.png",
+          "status": 301
+        },
+        {
+          "url": "https://mml.testcatalog.org/assets/icons/help-e1a0adcc730364a9892789d5578d721e1c9048e750dd53a5a4b668d4b00ff21b.png",
+          "status": 200
+        },
+        {
+          "url": "https://mml.testcatalog.org/assets/icons/arrow-left-16-3bd1996977387818eb3aa07ebaf5edec6be55116331c4eebd4c57c2ae1d019bc.gif",
+          "status": 200
+        },
+        {
+          "url": "https://mml.testcatalog.org/assets/mobile_responsive-506f4b1a6cd9ce953d9d4bdda6232a4deea58855c44aeca6c6ab32976bba3db5.js",
+          "status": 200
+        },
+        {
+          "url": "https://mml.testcatalog.org/assets/application-a8f1a6b9057f08f4ebf3354bcbc61158d78102f667f5d63e74fd98305b52e5cd.js",
+          "status": 200
+        },
+        {
+          "url": "https://d3b6ik53zt4tlx.cloudfront.net/assets/print-e0a0d2960152012d51eb663bf38f9bf888107b019521c74aa1bfc9fff5d4c585.css",
+          "status": 301
+        },
+        {
+          "url": "https://d3b6ik53zt4tlx.cloudfront.net/assets/yellow-gradient-c93ebe170f450fcb0cb42888aac47ecdc6d64f4c71a9297a34b14dd3b2ae264b.png",
+          "status": 301
+        },
+        {
+          "url": "https://d3b6ik53zt4tlx.cloudfront.net/assets/button-grey-f7811beb88aaf746f40caaf6a00f772552fd9002c1e574c52c5339324bcdec08.png",
+          "status": 301
+        },
+        {
+          "url": "https://mml.testcatalog.org/assets/black-50-07ef75f9e026543a952dfd74e1ddcb91efd6fe881c4d26119b587965885ef8fc.png",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "a183d68081c95f7bc0f10a0192c95d5dd3c835d8538a5a7d5c5bd881696cd5da",
+  "capabilities": {
+    "get_bosses": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_bosses\", \"saga\": \"NESTS\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.757038+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://kof.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_character": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_character\", \"name\": \"Rugal Bernstein\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.757948+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://kof.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_characters": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_characters\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.758166+00:00",
+      "reason": "no business data in result",
+      "source_responses": [
+        {
+          "url": "https://kof.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_teams": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_teams\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.758781+00:00",
+      "reason": "no business data in result",
+      "source_responses": [
+        {
+          "url": "https://kof.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_team": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_team\", \"name\": \"Fatal Fury Team\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.759315+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"Orochi\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.759453+00:00",
+      "reason": "results is empty",
+      "source_responses": [
+        {
+          "url": "https://kof.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_page": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"title\": \"The King of Fighters '94\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.759630+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://kof.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

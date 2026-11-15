@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 """Reddit RSS feed reader - fetches subreddit posts via official RSS feeds."""
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import argparse
 import json
@@ -95,7 +98,7 @@ def fetch_subreddit_rss(subreddit: str, limit: int = 25) -> dict[str, Any]:
     req = urllib.request.Request(url, headers=headers)
     
     try:
-        with urllib.request.urlopen(req, timeout=20) as response:
+        with _skill_network.urllib_urlopen(req, timeout=20) as response:
             if response.status != 200:
                 return {
                     'success': False,
@@ -193,6 +196,7 @@ def fetch_subreddit_rss(subreddit: str, limit: int = 25) -> dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint(capability_id='reddit_rss', cli=True)
 def main():
     parser = argparse.ArgumentParser(description='Fetch Reddit subreddit posts via RSS')
     parser.add_argument('--subreddit', '-s', required=True, help='Subreddit name (with or without r/)')

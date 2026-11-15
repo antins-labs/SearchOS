@@ -2,6 +2,9 @@
 HKU Business School Masters Programmes Access Skill
 Extracts structured data on tuition fees, admissions schedules, and scholarships.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any, Dict, List, Optional
@@ -12,7 +15,7 @@ import re
 
 async def fetch_page(url: str, timeout: int = 20) -> str:
     """Fetch HTML content from a URL."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
             resp.raise_for_status()
             return await resp.text()
@@ -356,6 +359,7 @@ async def search_programme_fees(programme_name: str) -> Dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the HKU Business School Masters skill.

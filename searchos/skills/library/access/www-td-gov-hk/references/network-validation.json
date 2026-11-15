@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1b8c0bb5b05cda76e249e8bbaca51649db145bdc6e4123125ea7b48e430fdf28",
+  "capabilities": {
+    "get_time_varying_tolls": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_time_varying_tolls\", \"vehicle_type\": \"Private Car\", \"time_slot\": \"peak\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.284079+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.td.gov.hk/en/transport_in_hong_kong/tunnels_and_bridges_n/tvt/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_tunnels_bridges": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tunnels_bridges\", \"name\": \"Cross Harbour\", \"toll_type\": \"free\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.286526+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.td.gov.hk/en/transport_in_hong_kong/tunnels_and_bridges_n/location_map/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_tunnels": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_tunnels\", \"query\": \"Lion Rock\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.286950+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.td.gov.hk/en/transport_in_hong_kong/tunnels_and_bridges_n/location_map/index.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

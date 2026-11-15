@@ -2,6 +2,9 @@
 Car and Driver vehicle data extractor.
 Extracts specs, pricing, ratings, and trim data from carandriver.com vehicle pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -300,7 +303,7 @@ def parse_json_ld_vehicle(json_ld_list: list[dict]) -> Optional[dict]:
 
 async def get_vehicle_data(url: str) -> dict:
     """Fetch and parse vehicle data from a Car and Driver URL."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(url, session)
         
         if status != 200:
@@ -406,6 +409,7 @@ def get_year_data(data: dict, year: int) -> Optional[dict]:
     return None
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Car and Driver data extraction.

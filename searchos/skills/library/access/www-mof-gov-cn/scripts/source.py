@@ -6,6 +6,9 @@ Provides access to:
 - Financial news and policy documents
 - Official reports and announcements
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -95,7 +98,7 @@ async def list_transfer_categories(params: dict[str, Any]) -> dict[str, Any]:
     """
     List transfer payment categories from the Central to Local Transfer Payment Platform
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, status = await fetch_html(session, TRANSFER_PLATFORM_URL)
         
         if not html:
@@ -149,7 +152,7 @@ async def list_category_documents(params: dict[str, Any]) -> dict[str, Any]:
             'documents': [],
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, status = await fetch_html(session, category_url)
         
         if not html:
@@ -195,7 +198,7 @@ async def list_news(params: dict[str, Any]) -> dict[str, Any]:
     else:
         url = base_url
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, status = await fetch_html(session, url)
         
         if not html:
@@ -246,7 +249,7 @@ async def get_article(params: dict[str, Any]) -> dict[str, Any]:
     if url.startswith('https://'):
         url = url.replace('https://', 'http://')
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, status = await fetch_html(session, url)
         
         if not html:
@@ -371,7 +374,7 @@ async def search_site(params: dict[str, Any]) -> dict[str, Any]:
         categories = [c for c in categories if category in c.get('name', '')]
     
     # Get documents from matching categories
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for cat in categories[:3]:  # Limit to first 3 matching categories
             if len(results) >= max_results:
                 break
@@ -395,6 +398,7 @@ async def search_site(params: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the skill

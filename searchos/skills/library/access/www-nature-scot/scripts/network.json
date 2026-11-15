@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "check_access_health": "direct",
+    "fetch_page": "direct"
+  },
+  "aliases": {
+    "fetch_page": "fetch_page",
+    "check_access_health": "check_access_health",
+    "run": "check_access_health"
+  }
+}

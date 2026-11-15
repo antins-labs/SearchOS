@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "58b3ee7b1fc00f3fd11e44f1c823ffbb4ee9f67e07f4720e8dbe611fcf13b4b1",
+  "capabilities": {
+    "get_aonb_data": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_aonb_data\", \"table_class\": \"wikitable\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.907073+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://wiki.openstreetmap.org/w/api.php",
+          "status": 200
+        }
+      ]
+    },
+    "get_page_tables": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page_tables\", \"page_title\": \"United_Kingdom\", \"table_class\": \"wikitable\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.908229+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://wiki.openstreetmap.org/w/api.php",
+          "status": 200
+        }
+      ]
+    },
+    "search_pages": {
+      "status": "timed_out",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_pages\", \"search_term\": \"national park\", \"limit\": 3, \"table_class\": \"wikitable\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.908346+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "dfab80a3771d17259f1e067bdb073a519c4456273794e8cde790aad529b44d37",
+  "capabilities": {
+    "list_products": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_products\", \"category_id\": \"15\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.169126+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.lzljglobal.com/col15/list",
+          "status": 200
+        }
+      ]
+    },
+    "get_product": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_product\", \"category_id\": \"15\", \"product_id\": \"11\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.169897+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.lzljglobal.com/col15/11",
+          "status": 200
+        }
+      ]
+    },
+    "search_products": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_products\", \"query\": \"国窖\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.169970+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.lzljglobal.com/col15/list",
+          "status": 200
+        },
+        {
+          "url": "https://www.lzljglobal.com/col16/list",
+          "status": 200
+        },
+        {
+          "url": "https://www.lzljglobal.com/col17/list",
+          "status": 200
+        },
+        {
+          "url": "https://www.lzljglobal.com/col18/list",
+          "status": 200
+        }
+      ]
+    },
+    "get_categories": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_categories\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.170046+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-lzljglobal-com/scripts/source.py",
+        "line": 279,
+        "end_line": 293,
+        "implementation": "get_categories",
+        "source_sha256": "0b1cba579628d3f284727083bb0fd108ca11454d733d4778f9e81c30c84bcb1f",
+        "implementation_sha256": "7de646681fa3b1658fbcbe6d7c648d9763c8c279b79559accc1ca21070d961af"
+      }
+    }
+  }
+}

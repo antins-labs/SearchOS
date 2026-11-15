@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "93985d0644d92d6acedc1ad2134e8f28aa6f975ecbfa3285f87c779953323736",
+  "capabilities": {
+    "get_directors": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_directors\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.384070+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.vam.ac.uk/info/va-directors",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_track_basic": "inherit",
+    "get_track": "inherit"
+  },
+  "aliases": {
+    "get_track": "get_track",
+    "run": "get_track_basic",
+    "get_track_basic": "get_track_basic"
+  }
+}

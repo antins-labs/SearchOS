@@ -2,6 +2,9 @@
 Modern Firearms (modernfirearms.net) access skill.
 Extracts firearm technical specifications from dedicated record pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -19,7 +22,7 @@ async def fetch_page(url: str, timeout: int = 30) -> str:
         'Accept-Language': 'en-US,en;q=0.5',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, headers=headers, timeout=timeout) as response:
             if response.status != 200:
                 raise Exception(f"HTTP {response.status} for {url}")
@@ -285,6 +288,7 @@ async def search_firearms(query: str, limit: int = 10) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the modernfirearms.net access skill.

@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_person": "inherit",
+    "list_secretaries": "proxy",
+    "search_people": "inherit",
+    "get_by_year": "inherit",
+    "list_by_year": "inherit",
+    "get_by_name_letter": "proxy",
+    "list_by_name": "inherit"
+  },
+  "aliases": {
+    "get_person": "get_person",
+    "search_people": "search_people",
+    "list_secretaries": "list_secretaries",
+    "list_by_name": "list_by_name",
+    "get_by_name_letter": "get_by_name_letter",
+    "list_by_year": "list_by_year",
+    "get_by_year": "get_by_year",
+    "run": "get_by_year"
+  }
+}

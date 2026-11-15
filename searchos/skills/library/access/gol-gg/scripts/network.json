@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_teams_list": "direct",
+    "get_player_stats": "direct",
+    "get_tournament_ranking": "direct",
+    "get_champions_list": "direct",
+    "get_team_stats": "direct",
+    "get_tournament_stats": "direct",
+    "get_players_list": "direct"
+  },
+  "aliases": {
+    "get_tournament_stats": "get_tournament_stats",
+    "get_tournament_ranking": "get_tournament_ranking",
+    "get_players_list": "get_players_list",
+    "get_player_stats": "get_player_stats",
+    "get_champions_list": "get_champions_list",
+    "get_teams_list": "get_teams_list",
+    "get_team_stats": "get_team_stats",
+    "run": "get_team_stats"
+  }
+}

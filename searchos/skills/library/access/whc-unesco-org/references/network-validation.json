@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "8f66792781acce5017a16a756114ceb26a00c74d5a834febf19f838b3aa7b622",
+  "capabilities": {
+    "list_sites": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_sites\", \"category\": \"natural\", \"in_danger\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.901764+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://whc.unesco.org/en/list/",
+          "status": 403
+        }
+      ]
+    },
+    "get_site": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_site\", \"site_id\": 1466}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.903950+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://whc.unesco.org/en/list/",
+          "status": 403
+        }
+      ]
+    },
+    "get_country_stats": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country_stats\", \"country_code\": \"fr\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.904082+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://whc.unesco.org/en/statesparties/fr",
+          "status": 200
+        }
+      ]
+    },
+    "get_statistics": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_statistics\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.904433+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://whc.unesco.org/en/list/",
+          "status": 403
+        }
+      ]
+    },
+    "search_sites": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_sites\", \"query\": \"pyramid\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.904656+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://whc.unesco.org/en/list/",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

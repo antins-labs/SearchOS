@@ -7,21 +7,21 @@ import math
 from typing import Any, NotRequired
 
 from langchain.agents.middleware.types import AgentMiddleware, AgentState
-from langchain_core.messages import HumanMessage, RemoveMessage
+from langchain_core.messages import RemoveMessage, SystemMessage
 from langgraph.graph.message import REMOVE_ALL_MESSAGES
 
-from searchos.harness.middleware.context.utils.compaction import (
+from searchos.harness.middleware.context.core.history import (
     TokenCounter,
     count_context_tokens,
     pinned,
     render_history,
     split_history,
+    summarize_history,
 )
-from searchos.harness.middleware.context.utils.messages import (
+from searchos.harness.middleware.context.utils.token_counts import (
     model_input_limit,
     request_overhead_tokens,
 )
-from searchos.harness.middleware.context.utils.summarize import summarize_history
 
 
 class _ContextState(AgentState):
@@ -104,8 +104,8 @@ class CompactionContextMiddleware(AgentMiddleware):
             summary = await self._summarize(
                 render_history(prefix), render_history([*anchors, *tail])
             )
-        handoff = HumanMessage(
-            content="[Context handoff — historical summary, not a new user request]\n" + summary,
+        handoff = SystemMessage(
+            content="Conversation summary:\n" + summary,
             additional_kwargs={"sf_synthetic": True, "sf_kind": "context_compaction"},
         )
         compacted = [*anchors, handoff, *tail]

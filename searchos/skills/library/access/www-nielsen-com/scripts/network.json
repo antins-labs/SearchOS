@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "extract_article": "proxy",
+    "get_super_bowl_data": "direct",
+    "search_articles": "direct",
+    "get_latest_articles": "direct"
+  },
+  "aliases": {
+    "extract_article": "extract_article",
+    "search_articles": "search_articles",
+    "get_latest_articles": "get_latest_articles",
+    "get_super_bowl_data": "get_super_bowl_data",
+    "run": "get_super_bowl_data"
+  }
+}

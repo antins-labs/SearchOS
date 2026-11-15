@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_group_standings": "proxy",
+    "get_prize_pool": "direct",
+    "get_tournament_info": "direct",
+    "get_all_data": "direct"
+  },
+  "aliases": {
+    "get_tournament_info": "get_tournament_info",
+    "get_prize_pool": "get_prize_pool",
+    "get_group_standings": "get_group_standings",
+    "get_all_data": "get_all_data",
+    "run": "get_all_data"
+  }
+}

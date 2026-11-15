@@ -5,6 +5,9 @@ Fetches TV show information, critic reviews, and details from Metacritic.
 Uses Playwright to handle JavaScript rendering and extracts structured data
 from JSON-LD schema and DOM elements.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import json
 import re
@@ -15,13 +18,13 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 async def _fetch_page(url: str, wait_ms: int = 5000) -> tuple[str, dict | None]:
     """Fetch a page and return its HTML content and JSON-LD data."""
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 viewport={"width": 1920, "height": 1080}
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             try:
                 await page.goto(url, wait_until="domcontentloaded", timeout=30000)
@@ -191,13 +194,13 @@ async def _get_critic_reviews(params: dict[str, Any]) -> dict[str, Any]:
     
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
             try:
-                context = await browser.new_context(
+                context = await _skill_network.browser_new_context(browser, 
                     user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                     viewport={"width": 1920, "height": 1080}
                 )
-                page = await context.new_page()
+                page = await _skill_network.browser_new_page(context)
                 
                 try:
                     await page.goto(url, wait_until="domcontentloaded", timeout=30000)
@@ -323,13 +326,13 @@ async def _get_show_details(params: dict[str, Any]) -> dict[str, Any]:
     
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
             try:
-                context = await browser.new_context(
+                context = await _skill_network.browser_new_context(browser, 
                     user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                     viewport={"width": 1920, "height": 1080}
                 )
-                page = await context.new_page()
+                page = await _skill_network.browser_new_page(context)
                 
                 try:
                     await page.goto(url, wait_until="domcontentloaded", timeout=30000)
@@ -471,6 +474,7 @@ async def _get_show_details(params: dict[str, Any]) -> dict[str, Any]:
         return {"error": f"Failed to fetch show details: {str(e)}", "url": url}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Metacritic access skill.

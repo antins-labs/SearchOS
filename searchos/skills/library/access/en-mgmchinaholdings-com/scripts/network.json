@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_interim": "direct",
+    "get_by_year": "direct",
+    "get_latest": "direct",
+    "resolve_url": "direct",
+    "list_all": "direct",
+    "list_annual": "direct"
+  },
+  "aliases": {
+    "list_all": "list_all",
+    "list_annual": "list_annual",
+    "list_interim": "list_interim",
+    "get_by_year": "get_by_year",
+    "get_latest": "get_latest",
+    "resolve_url": "resolve_url",
+    "run": "resolve_url"
+  }
+}

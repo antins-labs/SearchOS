@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_report": "direct",
+    "list_reports": "direct",
+    "get_latest": "direct"
+  },
+  "aliases": {
+    "list_reports": "list_reports",
+    "get_report": "get_report",
+    "get_latest": "get_latest",
+    "run": "get_latest"
+  }
+}

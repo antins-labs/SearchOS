@@ -14,7 +14,7 @@ from langchain_core.utils.json import parse_partial_json
 
 from searchos.agents.local_search import create_qa_graph
 from searchos.harness.answer_stream import message_chunk_text
-from searchos.harness.middleware.context.utils.messages import model_input_limit
+from searchos.harness.middleware.context.utils.token_counts import model_input_limit
 from searchos.local.index.source_registry import SourceRecord
 from searchos.local.models import locator_group_label
 from searchos.local.reader.references import build_ref_id, parse_ref_id, resolve_reference

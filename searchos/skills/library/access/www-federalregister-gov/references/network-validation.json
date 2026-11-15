@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "01e68a04c260ccc006bdd63ac128e896af28a7ad19e834fdb350b238236bafd7",
+  "capabilities": {
+    "get_document": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_document\", \"document_number\": \"2025-02096\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.047929+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.federalregister.gov/api/v1/documents/2025-02096.json",
+          "status": 200
+        }
+      ]
+    },
+    "search_documents": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_documents\", \"president\": \"donald-trump\", \"publication_year\": 2025, \"type\": \"PRESDOCU\", \"order\": \"newest\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.048948+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.federalregister.gov/api/v1/documents.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_agency": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_agency\", \"agency_slug\": \"executive-office-of-the-president\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.049315+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.federalregister.gov/api/v1/agencies.json",
+          "status": 200
+        },
+        {
+          "url": "https://www.federalregister.gov/api/v1/agencies/538.json",
+          "status": 200
+        }
+      ]
+    },
+    "list_agencies": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_agencies\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.049466+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.federalregister.gov/api/v1/agencies.json",
+          "status": 200
+        }
+      ]
+    },
+    "list_topics": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_topics\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.049646+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.federalregister.gov/api/v1/topics.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_public_inspection": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_public_inspection\", \"available_on\": \"2025-01-31\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.049952+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.federalregister.gov/api/v1/public-inspection-documents.json",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

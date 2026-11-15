@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2127894390092380602500a4f24fe00a4ce4531f848e4cac6a3d2d81e1a9a783",
+  "capabilities": {
+    "get_current_leadership": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_current_leadership\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.404835+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.zg.org.cn/zgdjj/ljld/dsljld/",
+          "status": 200
+        }
+      ]
+    },
+    "get_leader_profile": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_leader_profile\", \"profile_url\": \"https://www.zg.org.cn/zgdjj/ljld/dsljld/202212/t20221216_75309.htm\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.405323+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.zg.org.cn/zgdjj/ljld/dsljld/202212/t20221216_75309.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_central_news": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_central_news\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.405389+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.zg.org.cn/zyyw/",
+          "status": 200
+        }
+      ]
+    },
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"article_url\": \"https://www.zg.org.cn/zyyw/202607/t20260719_77645.htm\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.405448+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.zg.org.cn/zyyw/202607/t20260719_77645.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_leadership_history": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_leadership_history\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.405506+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.zg.org.cn/zgdjj/ljld/",
+          "status": 200
+        }
+      ]
+    },
+    "get_term_leadership": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_term_leadership\", \"term_url\": \"https://www.zg.org.cn/zgdjj/ljld/dyjld/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.405557+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.zg.org.cn/zgdjj/ljld/dyjld/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

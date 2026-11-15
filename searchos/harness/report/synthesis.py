@@ -200,6 +200,8 @@ def _render_cell_with_citation(
 
     Empty cell: `—`.
     """
+    if cell and cell.inferred:
+        return cell.value.replace("|", "\\|").replace("\n", " ") + "（推断）"
     if cell is None or not cell.supporting_evidence_ids:
         return "—"
     findings = cell_findings(cell, evidence_by_id, binding)
@@ -214,6 +216,8 @@ def _raw_cell_value(
     cell: Any, evidence_by_id: dict,
     binding: tuple[Any, str, str, str] | None = None,
 ) -> str:
+    if cell and cell.inferred:
+        return cell.value
     findings = cell_findings(cell, evidence_by_id, binding)
     if findings:
         best = max(findings, key=evidence_rank)
@@ -231,7 +235,7 @@ def _row_raw_value(
     attr: str,
     evidence_by_id: dict,
 ) -> str:
-    pk_vals = entity_pk_values(schema, entity)
+    pk_vals = entity_pk_values(cmap, schema, entity)
     if attr in pk_vals and pk_vals[attr]:
         return pk_vals[attr]
     tid = schema_table_id(schema)
@@ -247,9 +251,9 @@ def _render_row_attr(
     evidence_by_id: dict,
     url_map: dict[str, int],
 ) -> str:
-    pk_vals = entity_pk_values(schema, entity)
+    pk_vals = entity_pk_values(cmap, schema, entity)
     if attr in pk_vals and pk_vals[attr]:
-        return pk_vals[attr]
+        return pk_vals[attr].replace("|", "\\|").replace("\n", " ")
     tid = schema_table_id(schema)
     cell = cmap.cells.get(cmap.cell_key(tid, entity, attr))
     return _render_cell_with_citation(
@@ -307,9 +311,8 @@ def _render_single_coverage_table_with_citations(
             if rendered != "—":
                 filled += 1
         if pk:
-            pk_vals = entity.split("|") if "|" in entity else [entity]
-            pk_vals = pk_vals + [""] * (len(pk) - len(pk_vals))
-            key_cells = pk_vals[:len(pk)]
+            pk_vals = entity_pk_values(cmap, schema, entity)
+            key_cells = [pk_vals[attr].replace("|", "\\|").replace("\n", " ") for attr in pk]
         else:
             key_cells = [entity]
         rows.append("| " + " | ".join(key_cells + cells) + " |")

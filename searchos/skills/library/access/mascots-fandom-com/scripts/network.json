@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_mascots": "direct",
+    "get_page_categories": "direct",
+    "list_categories": "direct",
+    "list_pages": "direct",
+    "get_mascot": "direct",
+    "list_category": "direct"
+  },
+  "aliases": {
+    "get_mascot": "get_mascot",
+    "search_mascots": "search_mascots",
+    "list_category": "list_category",
+    "list_categories": "list_categories",
+    "list_pages": "list_pages",
+    "get_page_categories": "get_page_categories",
+    "run": "get_page_categories"
+  }
+}

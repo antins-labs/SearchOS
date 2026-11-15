@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch_gpu": "inherit",
+    "search_by_id": "inherit",
+    "fetch_multiple": "inherit"
+  },
+  "aliases": {
+    "fetch_gpu": "fetch_gpu",
+    "fetch_multiple": "fetch_multiple",
+    "search_by_id": "search_by_id",
+    "run": "search_by_id"
+  }
+}

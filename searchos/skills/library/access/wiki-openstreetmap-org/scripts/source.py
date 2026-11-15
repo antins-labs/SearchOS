@@ -7,6 +7,9 @@ Uses MediaWiki API for efficient data retrieval.
 Primary use case: Extract UK Areas of Outstanding Natural Beauty (AONB) and 
 National Scenic Areas (NSA) data with OSM relation IDs.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any
@@ -47,7 +50,7 @@ async def _fetch_page_content(
         params["section"] = section
     
     try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
+        async with _skill_network.httpx_async_client(timeout=timeout) as client:
             response = await client.get(BASE_URL, params=params)
             response.raise_for_status()
             data = response.json()
@@ -372,7 +375,7 @@ async def search_pages(
     }
     
     try:
-        async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
+        async with _skill_network.httpx_async_client(timeout=DEFAULT_TIMEOUT) as client:
             response = await client.get(BASE_URL, params=params)
             response.raise_for_status()
             data = response.json()
@@ -411,6 +414,7 @@ async def search_pages(
         return {"success": False, "error": f"Search failed: {str(e)}"}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """Main entry point for the OSM Wiki skill.
     

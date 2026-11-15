@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b035a5302b54a199c0001e22317ece867199d16b44904795f4e23907346d5616",
+  "capabilities": {
+    "get_project": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_project\", \"url\": \"https://transitcosts.com/hongkong-eastern-harbour-crossing/\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.881440+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://transitcosts.com/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "list_projects": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_projects\", \"country\": \"US\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.882111+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://transitcosts.com/projects/",
+          "status": 200
+        }
+      ]
+    },
+    "search_projects": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_projects\", \"query\": \"subway\", \"city\": \"New York\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.882182+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://transitcosts.com/projects/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

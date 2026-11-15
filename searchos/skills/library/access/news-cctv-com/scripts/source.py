@@ -4,6 +4,9 @@ CCTV News (news.cctv.com) Access Skill
 Extracts news article content and special topic page information from CCTV's news portal.
 Handles both standard news articles and special topic/feature pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -14,6 +17,7 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin, urlparse
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Execute the CCTV News access skill.
@@ -60,7 +64,7 @@ async def _fetch_html(url: str, session: Optional[aiohttp.ClientSession] = None)
     
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession(headers=headers)
+        session = _skill_network.aiohttp_session(headers=headers)
         close_session = True
     
     try:

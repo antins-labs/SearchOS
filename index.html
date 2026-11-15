@@ -2438,7 +2438,7 @@ searchos --setup
                     <div class="mini-ico"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h16.9a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17"/></svg></div>
                     <h4>Strategy Log <span class="mini-sub">the lessons</span></h4>
                     <p>A record of what isn't working — repeated queries, dead-end sources — so the system stops digging in the same dry hole.</p>
-                    <div class="details"><code>StrategyMemory</code> (state attr <code>strategy_log</code>): <code>StrategyPattern</code> anti-patterns + <code>FailureMemory</code>. Feeds the Sensor layer and post-mortem distillation.</div>
+                    <div class="details"><code>FailureStore</code> (state attr <code>failure_memory</code>): scoped query, source, skill and path memories. Direct observations and post-mortem share one writer and SOCM projection.</div>
                 </div>
             </div>
             <p class="subsec-foot">All four are persisted to <code>searchos_workspace/&lt;session&gt;/search_state.json</code> with atomic file locking, so multiple sub-agents can update them in parallel without clobbering each other. <span class="hint-toggle">Tap a card for the real class names.</span></p>

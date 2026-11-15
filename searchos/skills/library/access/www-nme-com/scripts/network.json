@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch_article": "proxy"
+  },
+  "aliases": {
+    "fetch_article": "fetch_article",
+    "run": "fetch_article"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5de26279d5f93443a6380a23a1a207039b83d96c47d337f87fd14986f62e2210",
+  "capabilities": {
+    "fetch_gmsl_timeseries": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_gmsl_timeseries\", \"release\": \"2026_rel1\", \"start_year\": 2020, \"end_year\": 2025}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.855462+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://sealevel.colorado.edu/files/2026_rel1/gmsl_2026rel1_seasons_rmvd.txt",
+          "status": 200
+        }
+      ]
+    },
+    "list_releases": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_releases\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.856020+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://sealevel.colorado.edu/data",
+          "status": 200
+        }
+      ]
+    },
+    "get_release_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_release_info\", \"release\": \"2026_rel1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.856091+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://sealevel.colorado.edu/files/2026_rel1/gmsl_2026rel1_seasons_rmvd.txt",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_event": "proxy",
+    "get_spotlight": "direct",
+    "list_events": "direct"
+  },
+  "aliases": {
+    "get_event": "get_event",
+    "get_spotlight": "get_spotlight",
+    "list_events": "list_events",
+    "run": "list_events"
+  }
+}

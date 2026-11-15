@@ -3,7 +3,7 @@
 from collections.abc import Callable
 from typing import Any
 
-from searchos.harness.middleware.sensor.core.models import ControlState
+from searchos.harness.middleware.sensor.core.run_state import ControlState
 from searchos.harness.middleware.utils.messages import (
     blocked_result,
     call_with_context,

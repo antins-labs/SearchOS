@@ -1,5 +1,7 @@
 "use client";
 
+import { cellKey, cellRef, rowKey, rowValues, rowLabel } from "@/lib/socmRefs";
+
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -16,7 +18,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { importNetworkSource, listLocalLibraries, listNetworkImports } from "@/lib/api";
-import { localCitationLabels } from "@/lib/localCitations";
+import { evidenceSourceUrls, localCitationLabels } from "@/lib/localCitations";
 import Select from "@/components/ui/Select";
 import type {
   CoverageMap,
@@ -145,11 +147,6 @@ export function groupEvidenceByEntity(nodes: EvidenceNode[]): EntityEvidenceGrou
     .sort((a, b) => a.entity.localeCompare(b.entity));
 }
 
-export function evidenceSourceUrls(node: EvidenceNode): string[] {
-  return [...new Set((/^(https?:|local:)\/\//.test(node.source)
-    ? [node.source] : (node.source_urls ?? [])).filter((url) => /^(https?:|local:)\/\//.test(url)))];
-}
-
 export function groupEvidenceBySource(nodes: EvidenceNode[]): SourcePage[] {
   const pages = new Map<string, SourcePage>();
   for (const node of nodes) {
@@ -183,14 +180,8 @@ function buildConflictGroups(
       for (const id of cell.supporting_evidence_ids ?? []) ids.add(id);
     }
     if (ids.size < 2) continue;
-    const [tableId, rest = ""] = cellKey.split("/", 2);
-    const schema = coverageMap?.tables[tableId];
-    const attribute = schema?.attributes.find((name) => rest.endsWith(`.${name}`)
-      && schema.entities.includes(rest.slice(0, -(name.length + 1))));
-    const dot = attribute ? rest.length - attribute.length - 1 : rest.lastIndexOf(".");
-    if (dot < 0) continue;
     groups.set(cellKey, {
-      target: { table_id: tableId, entity: rest.slice(0, dot), attribute: rest.slice(dot + 1) },
+      target: cellRef(cellKey),
       ids,
       primaryId: cell.primary_evidence_id,
       cellConflict: !!cell.has_conflict,
@@ -203,9 +194,10 @@ function buildConflictGroups(
     const to = byId.get(edge.to_id);
     if (!from || !to) continue;
     const tableId = effectiveTable(from, primaryTable);
-    const key = `${tableId}/${from.entity}.${from.attribute}`;
+    if (!from.entity || !from.attribute) continue;
+    const key = cellKey(tableId, from.entity, from.attribute);
     const group = groups.get(key) ?? {
-      target: { table_id: tableId, entity: from.entity, attribute: from.attribute },
+      target: { table_id: tableId, key: rowValues(from.entity), attribute: from.attribute },
       ids: new Set<string>(),
     };
     group.ids.add(from.id);
@@ -218,7 +210,7 @@ function buildConflictGroups(
       const node = byId.get(id);
       const binding = coverageMap?.evidence_bindings?.[key]?.find((item) => item.evidence_id === id);
       return node && binding ? { ...node, value: binding.value, alignment: binding.alignment,
-        table_id: group.target.table_id, entity: group.target.entity, attribute: group.target.attribute,
+        table_id: group.target.table_id, entity: rowKey(group.target.key), attribute: group.target.attribute,
         status: node.status && node.status !== "active" ? node.status : binding.status } : node;
     }).filter((node): node is EvidenceNode => !!node);
     const activeValues = new Set(
@@ -518,8 +510,8 @@ function EntityEvidenceGroups({ groups, onOpenLocalSource }: {
               />
               <div className="min-w-0 flex-1">
                 <div className="flex min-w-0 items-center gap-2">
-                  <h3 className="truncate text-[13px] font-semibold text-ink" title={group.entity}>
-                    {group.entity}
+                  <h3 className="truncate text-[13px] font-semibold text-ink" title={group.nodes[0]?.entity ? rowLabel(group.entity) : group.entity}>
+                    {group.nodes[0]?.entity ? rowLabel(group.entity) : group.entity}
                   </h3>
                   <span className="shrink-0 rounded bg-surface-2 px-1.5 py-0.5 text-[10px] text-ink-dim">
                     {group.nodes.length}
@@ -575,7 +567,7 @@ function ConflictSection({
           : <AlertTriangle className="mt-0.5 shrink-0 text-err" size={15} />}
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-[13px] font-semibold text-ink" title={group.key}>
-            {group.target.entity} · {group.target.attribute}
+            {group.target.key.join(" · ")} · {group.target.attribute}
           </h3>
           <p className="text-[11px] text-ink-faint">
             {group.target.table_id} · {group.resolved ? "Resolved" : `${group.nodes.length} competing sources`}
@@ -717,7 +709,7 @@ function EvidenceRow({ node, compactEntity = false, onOpenLocalSource }: {
         <div className="min-w-0 flex-1">
           <p className="text-[13px] leading-5 text-ink">{node.claim}</p>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10.5px] text-ink-dim">
-            {node.entity && <span>{compactEntity ? node.attribute : `${node.entity}.${node.attribute}`}</span>}
+            {node.entity && <span>{compactEntity ? node.attribute : `${rowLabel(node.entity)} · ${node.attribute}`}</span>}
             {node.alignment_note === "source_support_verified"
               ? <span>原文支持已核验</span>
               : <span>Quality {(quality(node) * 100).toFixed(0)}%</span>}

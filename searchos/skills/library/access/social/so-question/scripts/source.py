@@ -1,6 +1,9 @@
 """so_question — agent-called public-API access skill (auto-generated)."""
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import json
 import logging
@@ -38,12 +41,13 @@ def _extract_field(item: Any, path: list[str]) -> Any:
     return str(val)[:2000]
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: SkillContext) -> dict[str, Any]:
     url = _URL_TEMPLATE
     for k, v in params.items():
         url = url.replace("{" + k + "}", str(v))
     timeout = aiohttp.ClientTimeout(total=25.0)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(timeout=timeout) as session:
         try:
             async with session.get(url, headers=_HEADERS) as resp:
                 if resp.status >= 400:

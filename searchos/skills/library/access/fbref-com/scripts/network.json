@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_competition_stats": "direct",
+    "get_squad_stats": "direct",
+    "get_player_stats": "direct",
+    "search_teams": "direct"
+  },
+  "aliases": {
+    "get_squad_stats": "get_squad_stats",
+    "get_competition_stats": "get_competition_stats",
+    "get_player_stats": "get_player_stats",
+    "search_teams": "search_teams",
+    "run": "search_teams"
+  }
+}

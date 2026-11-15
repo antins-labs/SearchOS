@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_gazetted_holidays": "direct",
+    "get_restricted_holidays": "direct",
+    "get_all_holidays": "direct"
+  },
+  "aliases": {
+    "get_gazetted_holidays": "get_gazetted_holidays",
+    "get_restricted_holidays": "get_restricted_holidays",
+    "get_all_holidays": "get_all_holidays",
+    "run": "get_all_holidays"
+  }
+}

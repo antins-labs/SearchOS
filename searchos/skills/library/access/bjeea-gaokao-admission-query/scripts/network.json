@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_batches": "direct",
+    "list_elective_subjects": "direct",
+    "list_art_exam_types": "direct",
+    "query_score_lines": "direct",
+    "list_years": "direct",
+    "list_provinces": "direct"
+  },
+  "aliases": {
+    "list_years": "list_years",
+    "list_batches": "list_batches",
+    "list_provinces": "list_provinces",
+    "list_elective_subjects": "list_elective_subjects",
+    "list_art_exam_types": "list_art_exam_types",
+    "query_score_lines": "query_score_lines",
+    "run": "query_score_lines"
+  }
+}

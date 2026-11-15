@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_rankings": "direct",
+    "parse_html": "direct",
+    "get_finals": "direct",
+    "get_groups": "direct",
+    "get_tournament": "proxy"
+  },
+  "aliases": {
+    "get_tournament": "get_tournament",
+    "parse_html": "parse_html",
+    "get_finals": "get_finals",
+    "get_rankings": "get_rankings",
+    "get_groups": "get_groups",
+    "run": "get_groups"
+  }
+}

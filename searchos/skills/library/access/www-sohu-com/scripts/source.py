@@ -4,6 +4,9 @@ Sohu Article Fetcher - SearchOS Access Skill
 Fetches article content and extracts rankings from Sohu.com travel ranking articles.
 Supports extracting "Top N" lists and individual rank mentions from article text.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import httpx
 import asyncio
@@ -50,7 +53,7 @@ async def fetch_article(params: Dict[str, Any], ctx: Any = None) -> Dict[str, An
     }
     
     try:
-        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        async with _skill_network.httpx_async_client(timeout=30.0, follow_redirects=True) as client:
             response = await client.get(url, headers=headers)
             
             if response.status_code != 200:
@@ -256,6 +259,7 @@ async def search_articles(params: Dict[str, Any], ctx: Any = None) -> Dict[str, 
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the Sohu article fetcher skill.

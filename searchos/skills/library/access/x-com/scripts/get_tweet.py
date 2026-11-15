@@ -5,6 +5,9 @@
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import argparse
 import html
@@ -113,7 +116,7 @@ def fetch_oembed(tweet_id: str, timeout: int = DEFAULT_TIMEOUT) -> dict:
     last_error = None
     for attempt in range(MAX_RETRIES):
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
+            with _skill_network.urllib_urlopen(req, timeout=timeout) as resp:
                 if resp.status != 200:
                     raise ValueError(f'意外的 HTTP 状态: {resp.status}')
                 data = resp.read()
@@ -182,6 +185,7 @@ def get_tweet(tweet_id: str, expected_username: str | None = None, timeout: int 
     }
 
 
+@_skill_network.entrypoint(capability_id='get_tweet', cli=True)
 def main() -> int:
     parser = argparse.ArgumentParser(
         description='获取 X/Twitter 公开帖子详情',

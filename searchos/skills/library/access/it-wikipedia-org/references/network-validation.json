@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2d2a9b9698c104e7498735c2287b25eeec62b8c4a40067986ffd872cede4b59a",
+  "capabilities": {
+    "get_page": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"title\": \"Grazia_Deledda\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.744292+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://it.wikipedia.org/w/api.php",
+          "status": 200
+        }
+      ]
+    },
+    "get_sections": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sections\", \"title\": \"Luigi_Pirandello\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.750897+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://it.wikipedia.org/w/api.php",
+          "status": 200
+        }
+      ]
+    },
+    "get_bibliography": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_bibliography\", \"title\": \"Grazia_Deledda\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.751581+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://it.wikipedia.org/w/api.php",
+          "status": 200
+        }
+      ]
+    },
+    "get_infobox": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_infobox\", \"title\": \"Luigi_Pirandello\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.751974+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://it.wikipedia.org/w/api.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Special:EntityData/Q1403.json",
+          "status": 200
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Special:EntityData/Q5.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_wikidata": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_wikidata\", \"title\": \"Grazia_Deledda\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.752389+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://it.wikipedia.org/w/api.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Special:EntityData/Q7728.json",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"Nobel letteratura italiano\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.752451+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://it.wikipedia.org/w/api.php",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

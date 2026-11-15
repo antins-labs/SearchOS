@@ -9,6 +9,9 @@ at presidency.ucsb.edu, including:
 
 Supported election years: all US presidential elections (every 4 years from 1788)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import httpx
 from bs4 import BeautifulSoup
@@ -29,7 +32,7 @@ async def _fetch_page(url: str) -> tuple[int, str]:
         'Accept-Language': 'en-US,en;q=0.9',
     }
     
-    async with httpx.AsyncClient(follow_redirects=True, timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(follow_redirects=True, timeout=30.0) as client:
         response = await client.get(url, headers=headers)
         return response.status_code, response.text
 
@@ -286,6 +289,7 @@ async def get_state_results(params: dict[str, Any], ctx: Any = None) -> dict[str
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the SearchOS skill.

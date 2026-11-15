@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3593e25e6a9380bc3ea625d8eba87d9e2afa125bd12c6cacd97eacb8a55f9068",
+  "capabilities": {
+    "get_fortune_500": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_fortune_500\", \"year\": 2024, \"limit\": 3, \"lang\": \"zh-tw\", \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.905342+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://wiki.mbalib.com/zh-tw/2024%E5%B9%B4%E3%80%8A%E8%B4%A2%E5%AF%8C%E3%80%8B%E4%B8%96%E7%95%8C500%E5%BC%BA",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_rank": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_rank\", \"rank\": 1, \"year\": 2024, \"lang\": \"zh-tw\", \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.906133+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://wiki.mbalib.com/zh-tw/2024%E5%B9%B4%E3%80%8A%E8%B4%A2%E5%AF%8C%E3%80%8B%E4%B8%96%E7%95%8C500%E5%BC%BA",
+          "status": 200
+        }
+      ]
+    },
+    "search_by_company": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_company\", \"query\": \"蘋果\", \"year\": 2024, \"lang\": \"zh-tw\", \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.906239+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://wiki.mbalib.com/zh-tw/2024%E5%B9%B4%E3%80%8A%E8%B4%A2%E5%AF%8C%E3%80%8B%E4%B8%96%E7%95%8C500%E5%BC%BA",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_country": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_country\", \"country\": \"美國\", \"year\": 2024, \"lang\": \"zh-tw\", \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.906363+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://wiki.mbalib.com/zh-tw/2024%E5%B9%B4%E3%80%8A%E8%B4%A2%E5%AF%8C%E3%80%8B%E4%B8%96%E7%95%8C500%E5%BC%BA",
+          "status": 200
+        }
+      ]
+    },
+    "list_countries": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_countries\", \"year\": 2024, \"lang\": \"zh-tw\", \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.906845+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://wiki.mbalib.com/zh-tw/2024%E5%B9%B4%E3%80%8A%E8%B4%A2%E5%AF%8C%E3%80%8B%E4%B8%96%E7%95%8C500%E5%BC%BA",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

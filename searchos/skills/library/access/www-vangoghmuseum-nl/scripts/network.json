@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_artwork": "direct",
+    "get_iiif_url": "direct"
+  },
+  "aliases": {
+    "get_artwork": "get_artwork",
+    "get_iiif_url": "get_iiif_url",
+    "run": "get_iiif_url"
+  }
+}

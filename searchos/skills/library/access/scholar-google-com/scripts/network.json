@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_publications": "direct",
+    "get_author_profile": "direct"
+  },
+  "aliases": {
+    "get_author_profile": "get_author_profile",
+    "get_publications": "get_publications",
+    "run": "get_publications"
+  }
+}

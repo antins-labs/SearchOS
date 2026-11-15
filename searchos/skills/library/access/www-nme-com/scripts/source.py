@@ -3,6 +3,9 @@ NME.com Article Extractor
 
 Extracts article content (title, published time, markdown content) from NME.com news articles.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -33,7 +36,7 @@ async def fetch_article(url: str) -> dict[str, Any]:
     
     timeout = aiohttp.ClientTimeout(total=30)
     
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(timeout=timeout) as session:
         try:
             async with session.get(url, headers=headers) as response:
                 if response.status != 200:
@@ -169,6 +172,7 @@ async def fetch_article(url: str) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the NME.com article extractor.

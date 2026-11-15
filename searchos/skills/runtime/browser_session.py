@@ -15,6 +15,7 @@ import tempfile
 from urllib.parse import urlsplit, urlunsplit
 
 current_session = ContextVar('skill_browser_session', default=None)
+RPC_TIMEOUT_S = 20
 AUTH_FIELD = re.compile(r'^(authorization|cookies?|set-cookie|password|passwd|api[_-]?key|access_token|refresh_token|id_token|auth_token|secret|storage_state|browser_cdp_url)$', re.I)
 
 
@@ -58,11 +59,21 @@ def _lock(site):
     return fd
 
 
+async def wait_for_profile(site, timeout_s=300):
+    """等待站点锁；调用方取消或时限结束时停止等待。"""
+    async with asyncio.timeout(timeout_s):
+        while True:
+            try:
+                return _lock(site)
+            except ValueError as exc:
+                if not str(exc).startswith('browser_profile_busy:'):
+                    raise
+                await asyncio.sleep(.1)
+
+
 def list_sessions():
     results = []
-    paths = {path.name: path for path in _folder('profiles').iterdir()
-             if path.is_dir() and not path.is_symlink()}
-    paths.update({path.stem: path for path in _folder('vaults').glob('*.enc') if not path.is_symlink()})
+    paths = {path.stem: path for path in _folder('vaults').glob('*.enc') if not path.is_symlink()}
     for site, path in sorted(paths.items()):
         try:
             fd = _lock(site)
@@ -79,11 +90,6 @@ def clear_session(site):
     site = normalize_site(site)
     fd = _lock(site)
     try:
-        path = _folder('profiles') / site
-        if path.is_symlink():
-            raise ValueError('browser profile must not be a symbolic link')
-        if path.exists():
-            shutil.rmtree(path)
         vault = _folder('vaults') / (site + '.enc')
         if vault.is_symlink():
             raise ValueError('browser vault must not be a symbolic link')
@@ -125,7 +131,13 @@ def command_profile(package, argv):
     if len(parts) != 3:
         return None
     host, entries = validate_metadata((yaml.safe_load(parts[1]) or {}).get('metadata', {}))
-    return host if len(argv) > 1 and argv[1] in entries and not {'--help', '-h'}.intersection(argv) else None
+    candidates = [argv[0]] if argv else []
+    if len(argv) > 1:
+        candidates.append(argv[1])
+    if len(argv) > 2 and argv[0] in {'python', 'python3'} and argv[1] == '-m':
+        module = argv[2].replace('.', '/')
+        candidates.extend([module + '.py', module + '/__main__.py'])
+    return host if any(entry in entries for entry in candidates) and not {'--help', '-h'}.intersection(argv) else None
 
 
 def user_action(result):
@@ -166,86 +178,112 @@ def clean_private(value, secrets=()):
 
 
 class BrowserSession:
-    def __init__(self, site, *, allow_interaction=False, on_action=None, checkpoint=None):
+    def __init__(self, site, *, allow_interaction=False, on_action=None, checkpoint=None, wait_timeout=None):
+        from searchos.config.settings import settings
         self.site = normalize_site(site)
+        self.mode = settings.browser_modes.get(self.site, 'headless')
         self.allow_interaction, self.on_action = allow_interaction, on_action
         self.checkpoint = checkpoint or (lambda: None)
         self.process = self.temporary = self.lock_fd = None
-        self.vault = self.network_proxy = self.profile = None
-        self.endpoint = self.proxy_mode = None
+        self.vault = self.profile = None
+        self.network_policy = self.network_context = self.network_port = None
+        self.endpoint = None
         self.action_url = None
         self.secrets = set()
         self.blocked = {}
         self.blocked_requests = {}
         self.rpc_lock = asyncio.Lock()
+        self.wait_timeout = wait_timeout
+        self.diagnostic = ''
 
     async def _rpc(self, action):
         async with self.rpc_lock:
-            self.process.stdin.write((json.dumps(action) + '\n').encode())
-            await self.process.stdin.drain()
-            line = await asyncio.wait_for(self.process.stdout.readline(), 20)
-            if not line:
-                if self.process.stderr is not None:
-                    self.diagnostic = self.clean((await self.process.stderr.read(8000)).decode(errors='replace'))
-                raise ValueError('browser_unavailable: 浏览器工作进程已退出')
-            result = json.loads(line)
-            if result.get('error'):
-                if not getattr(self, 'diagnostic', None):
-                    self.diagnostic = self.clean(result.get('detail', result['error']))
-                raise ValueError('browser_unavailable: ' + result['error'])
-            return result
+            try:
+                async with asyncio.timeout(RPC_TIMEOUT_S):
+                    self.process.stdin.write((json.dumps(action) + '\n').encode())
+                    await self.process.stdin.drain()
+                    line = await self.process.stdout.readline()
+                    if not line:
+                        detail = ''
+                        if self.process.returncode is not None and self.process.stderr is not None:
+                            detail = (await self.process.stderr.read(8000)).decode(errors='replace')
+                        raise ConnectionError('浏览器工作进程已退出' + (': ' + detail if detail else ''))
+                    result = json.loads(line)
+                    if result.get('error'):
+                        raise ConnectionError(f"{result['error']}: {result.get('detail', '')}")
+                    return result
+            except (Exception, asyncio.CancelledError) as exc:
+                detail = str(exc) or (f'等待浏览器响应超过 {RPC_TIMEOUT_S} 秒'
+                                      if isinstance(exc, TimeoutError) else '浏览器调用已中断')
+                self.diagnostic = self.clean(f"{action['action']}: {type(exc).__name__}: {detail}")
+                if action['action'] != 'close':
+                    # 旧管道可能随后返回响应；先回收会话，再允许下一次调用。
+                    self.endpoint = None
+                    cleanup = asyncio.create_task(self.close(force=True))
+                    try:
+                        while not cleanup.done():
+                            try:
+                                await asyncio.shield(cleanup)
+                            except asyncio.CancelledError:
+                                continue
+                        cleanup.result()
+                    except Exception as cleanup_error:
+                        self.diagnostic += self.clean(
+                            f'; cleanup: {type(cleanup_error).__name__}: {cleanup_error}')
+                if isinstance(exc, asyncio.CancelledError):
+                    raise
+                error_type = TimeoutError if isinstance(exc, TimeoutError) else ConnectionError
+                raise error_type('browser_unavailable: ' + self.diagnostic) from exc
 
-    async def ensure(self, proxy_mode='inherit'):
+    async def ensure(self):
+        from searchos.network import current_context, proxy_url
+        self.diagnostic = ''
+        context = current_context()
         if self.process is not None:
-            if self.proxy_mode != proxy_mode:
-                raise ValueError('browser_network_changed: 当前会话须沿用已选浏览器线路')
-            if self.process.returncode is not None:
-                raise ValueError('browser_unavailable: 浏览器工作进程已退出')
-            return {'BROWSER_CDP_URL': self.endpoint}
+            if (self.network_context is not context
+                    or self.network_context.config.fingerprint != context.config.fingerprint):
+                raise ValueError('browser_network_changed: 网络配置已改变，请重新打开当前会话')
+            if self.process.returncode is None and self.endpoint is not None:
+                await self._rpc({'action': 'ensure'})
+                return {'BROWSER_CDP_URL': self.endpoint}
+            await self.close(force=True)
         from searchos.skills.runtime.command_runtime import _backend, _environment
-        from searchos.skills.runtime.network import browser_proxy_options
         from searchos.skills.runtime.browser_vault import ProfileVault
-        from searchos.skills.runtime.browser_gateway import BrowserPolicy, NetworkProxy
+        from searchos.skills.runtime.browser_gateway import BrowserPolicy
         from searchos.config.settings import settings
-        options = browser_proxy_options(proxy_mode)
         engine_roots = ()
         chrome = Path('/Applications/Google Chrome.app')
         if sys.platform == 'darwin' and chrome.is_dir():
             engine_roots = (chrome.resolve(),)
-        self.lock_fd = _lock(self.site)
+        self.lock_fd = (await wait_for_profile(self.site, self.wait_timeout)
+                        if self.wait_timeout is not None else _lock(self.site))
         try:
-            legacy = _folder('profiles') / self.site
-            if legacy.is_symlink():
-                raise ValueError('browser profile must not be a symbolic link')
             self.vault = await asyncio.to_thread(ProfileVault, storage_root(), self.site)
             self.temporary = tempfile.TemporaryDirectory(prefix='searchos-browser-')
             work = Path(self.temporary.name).resolve()
             profile = work / 'profile'
-            if legacy.is_dir() and not self.vault.path.exists():
-                await asyncio.to_thread(self.vault.save, legacy)
             await asyncio.to_thread(self.vault.restore, profile)
             self.profile = profile
             self.secrets.add(str(profile))
-            if legacy.is_dir():
-                await asyncio.to_thread(shutil.rmtree, legacy)
             domains = settings.browser_allowed_domains.get(self.site, [self.site.removeprefix('www.')])
             if not domains:
                 raise ValueError('browser network domain allowlist is empty')
             domains = [normalize_site(value) for value in domains]
-            self.network_proxy = NetworkProxy(BrowserPolicy(domains), options.get('proxy', {}).get('server'))
-            await self.network_proxy.start()
+            self.network_policy = BrowserPolicy(domains)
+            self.network_context = context
+            self.network_port = urlsplit(proxy_url(policy=self.network_policy)).port
             listener = socket.socket()
             listener.bind(('127.0.0.1', 0))
             gateway_port = listener.getsockname()[1]
             script = Path(__file__).resolve()
             command, _ = _backend([sys.executable, '-I', str(script), '--worker'], script, work, True,
                                   (*engine_roots, script.with_name('browser_gateway.py')), browser_profile=profile,
-                                  network_ports=(self.network_proxy.port, gateway_port), listen_loopback=True,
-                                  desktop=self.allow_interaction or bool(engine_roots))
-            env = _environment(work, network=True, proxy_mode=proxy_mode)
+                                  network_ports=(self.network_port, gateway_port), listen_loopback=True,
+                                  desktop=self.mode == 'headed' or bool(engine_roots))
+            env = _environment(work, network=True, network_policy=self.network_policy)
             if sys.platform == 'darwin':
                 env['MAC_CHROMIUM_TMPDIR'] = str(work)
-            if self.allow_interaction:
+            if self.mode == 'headed':
                 for key in ('DISPLAY', 'WAYLAND_DISPLAY', 'XDG_RUNTIME_DIR'):
                     if key in os.environ:
                         env[key] = os.environ[key]
@@ -254,12 +292,12 @@ class BrowserSession:
                     stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE, start_new_session=True, pass_fds=(listener.fileno(),))
                 response = await self._rpc({'action': 'start', 'profile': str(profile),
-                    'headless': not self.allow_interaction, 'domains': domains,
-                    'proxy_port': self.network_proxy.port, 'listener_fd': listener.fileno(),
+                    'headless': self.mode == 'headless', 'domains': domains,
+                    'proxy_port': self.network_port, 'listener_fd': listener.fileno(),
                     'executable': str(chrome / 'Contents/MacOS/Google Chrome') if engine_roots else None})
             finally:
                 listener.close()
-            self.endpoint, self.proxy_mode = response['endpoint'], proxy_mode
+            self.endpoint = response['endpoint']
             self.secrets.update((self.endpoint, str(profile)))
             await self.refresh_secrets()
             return {'BROWSER_CDP_URL': self.endpoint}
@@ -268,14 +306,17 @@ class BrowserSession:
             raise
 
     async def show(self):
-        if not self.allow_interaction or self.process is None:
-            raise ValueError('该任务没有可交互浏览器')
+        if self.mode != 'headed' or self.process is None:
+            raise ValueError('该任务没有可见浏览器；请将站点 browser_modes 配置为 headed 后重新执行')
         await self._rpc({'action': 'show', 'url': self.action_url})
 
     async def refresh_secrets(self):
         if self.process and self.process.returncode is None:
             response = await self._rpc({'action': 'secrets'})
             self.secrets.update(response.get('values', []))
+            if self.network_context:
+                for item in response.get('network_responses', []):
+                    self.network_context.confirm_url(item['url'], status=item['status'])
 
     def clean(self, value):
         return clean_private(value, self.secrets)
@@ -289,11 +330,13 @@ class BrowserSession:
         blocked = {**result, 'status': 'blocked', 'external_blocked': True,
                   'next_action': 'wait_external', 'user_action': action,
                   'error': action['message']}
+        if self.mode == 'headless':
+            blocked['error'] += '；当前为 headless，请将站点 browser_modes 配置为 headed 后重新执行'
         self.checkpoint()
         if after_confirmation:
             return False, {**blocked, 'user_action_completed': True,
                 'error': '用户确认后重试仍要求操作。请检查当前页面和脚本逻辑，再决定是否需要新的用户操作。'}
-        if key not in self.blocked and self.allow_interaction and self.on_action:
+        if key not in self.blocked and self.mode == 'headed' and self.allow_interaction and self.on_action:
             decision = await self.on_action(action, self, self.clean(request))
             if decision == 'continue':
                 if request.get('code') is not None:
@@ -307,27 +350,29 @@ class BrowserSession:
 
     @staticmethod
     def request_key(request):
-        return json.dumps({key: value for key, value in request.items() if key != 'role'}, sort_keys=True)
+        from searchos.network import current_context
+        return json.dumps({'network': current_context().config.fingerprint,
+            'request': {key: value for key, value in request.items() if key != 'role'}}, sort_keys=True)
 
-    async def close(self):
+    async def close(self, *, force=False):
         from searchos.skills.runtime.command_runtime import _kill
-        persisted = False
-        try:
-            if self.process:
+        process = self.process
+        if process:
+            if not force and process.returncode is None:
                 try:
-                    await asyncio.wait_for(self._rpc({'action': 'close'}), 20)
+                    await self._rpc({'action': 'close'})
                 except (Exception, asyncio.CancelledError):
                     pass
-                await _kill(self.process)
+            await _kill(process)
+        persisted = False
+        try:
             if self.profile is not None and self.vault is not None:
                 await asyncio.to_thread(self.vault.save, self.profile)
             persisted = True
         finally:
             self.process = None
             self.endpoint = None
-            if self.network_proxy is not None:
-                await self.network_proxy.close()
-                self.network_proxy = None
+            self.network_policy = self.network_context = self.network_port = None
             if self.temporary:
                 if not persisted and self.profile is not None:
                     recovery = _folder('recovery') / (self.site + '-' + os.urandom(6).hex())
@@ -350,6 +395,13 @@ async def _worker():
     BrowserGateway, BrowserPolicy = gateway_module.BrowserGateway, gateway_module.BrowserPolicy
     os.umask(0o077)
     context = gateway = browser = None
+    network_responses = {}
+
+    def observe_response(response):
+        parsed = urlsplit(response.url)
+        if parsed.scheme in {'http', 'https'} and len(network_responses) < 1000:
+            origin = urlunsplit((parsed.scheme, parsed.netloc, '', '', ''))
+            network_responses[origin] = response.status
     async with async_playwright() as playwright:
         try:
             while line := await asyncio.to_thread(sys.stdin.readline):
@@ -365,6 +417,7 @@ async def _worker():
                             listener_fd=request['listener_fd'])
                         browser = await playwright.chromium.connect_over_cdp(gateway.owner_endpoint)
                         context = browser.contexts[0]
+                        context.on('response', observe_response)
                     elif action == 'show':
                         matches = [page for page in context.pages
                             if urlunsplit((*urlsplit(page.url)[:3], '', '')) == request.get('url')]
@@ -375,13 +428,23 @@ async def _worker():
                             'bounds': {'windowState': 'normal'}})
                         await page.bring_to_front()
                         await cdp.detach()
+                    elif action == 'ensure':
+                        if not browser.is_connected():
+                            raise ConnectionError('浏览器连接已断开')
+                        if not context.pages:
+                            await context.new_page()
                     elif action == 'secrets':
+                        if not context.pages:
+                            await context.new_page()
                         state = await context.storage_state()
                         values = [item['value'] for item in state['cookies']
                                   if item['name'].lower() != 'xsectoken']
                         values.extend(item['value'] for origin in state['origins']
                             for item in origin['localStorage'] if AUTH_FIELD.fullmatch(item['name']))
                         result['values'] = [value for value in values if len(value) >= 4]
+                        result['network_responses'] = [{'url': url, 'status': status}
+                            for url, status in network_responses.items()]
+                        network_responses.clear()
                     elif action == 'close':
                         if browser:
                             await browser.close()

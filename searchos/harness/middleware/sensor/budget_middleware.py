@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import asdict, replace
 from typing import Any, Literal, NotRequired
 from uuid import uuid4
@@ -12,18 +12,19 @@ from langchain.agents.middleware.types import AgentMiddleware, AgentState
 from langchain_core.messages import AIMessage, ToolMessage
 
 from searchos.harness.middleware.models import TaskContext
-from searchos.harness.middleware.sensor.core.models import (
+from searchos.harness.middleware.sensor.core.run_state import (
     BudgetState,
     ControlState,
     mark_agent_status,
 )
+from searchos.harness.middleware.tool_costs import tool_costs
 from searchos.harness.middleware.utils.messages import (
     append_feedback,
     blocked_result,
     extract_tool_name,
     is_blocked,
+    unwrap_ai_message,
 )
-from searchos.harness.middleware.utils.tools import tool_costs
 
 
 class _BudgetCheckpointState(AgentState):
@@ -44,6 +45,7 @@ class BudgetMiddleware(AgentMiddleware):
         task: TaskContext = TaskContext(),
         drain_tools: frozenset[str] = frozenset(),
         on_exhausted: Callable[[], None] | None = None,
+        before_summary: Callable[[], Awaitable[str]] | None = None,
         wrap_up: str = "Summarize findings and unresolved limitations.",
         warn_iterations: bool = False,
         scope: Literal["run", "thread"] = "run",
@@ -54,9 +56,6 @@ class BudgetMiddleware(AgentMiddleware):
         self._thread_id = None
         self._epoch = uuid4().hex
         self._accounted_tools: set[str] = set()
-        # A cancelled duplicate can settle an execution before its owner returns.
-        # This only coordinates in-flight callbacks; checkpoints retain the charge.
-        self._cancelled_exec_charges: set[str] = set()
         self._has_run = False
         self._resuming = False
         self.workspace = workspace
@@ -65,6 +64,8 @@ class BudgetMiddleware(AgentMiddleware):
         self.control = control
         self.drain_tools = drain_tools
         self.on_exhausted = on_exhausted
+        self.before_summary = before_summary
+        self._prepared_summary_id = ""
         self.wrap_up = wrap_up
         self.warn_iterations = warn_iterations
         self._reserved = dict.fromkeys(self._fields, 0)
@@ -97,6 +98,8 @@ class BudgetMiddleware(AgentMiddleware):
             "forced": self.control.forced,
             "blocked_tools": sorted(self.control.blocked_tools),
             "stop_message": self.control.stop_message,
+            "summarizing": self.control.summarizing,
+            "summary_id": self.control.summary_id,
         }
 
     def _rejection_snapshot(self):
@@ -147,7 +150,6 @@ class BudgetMiddleware(AgentMiddleware):
                     setattr(self.budget, key, value)
             self._restore_control(saved.get("control", {}))
             self._accounted_tools = set(saved.get("accounted_tools", ()))
-            self._cancelled_exec_charges.clear()
             self._notified = set(saved.get("notified", ()))
             self._exhausted = bool(saved.get("exhausted"))
             self._restore_rejections(saved.get("rejections", {}))
@@ -172,7 +174,8 @@ class BudgetMiddleware(AgentMiddleware):
                 for dimension, cost in receipt.get("costs", {}).items():
                     field = "consumed_" + self._fields[dimension]
                     setattr(self.budget, field, getattr(self.budget, field) + cost)
-                self._accounted_tools.add(call_id)
+                if receipt.get("costs"):
+                    self._accounted_tools.add(call_id)
                 self._round_rejected |= bool(receipt.get("rejected"))
                 self._round_executed |= any(receipt.get("costs", {}).values())
                 if receipt.get("control", {}).get("forced"):
@@ -183,7 +186,6 @@ class BudgetMiddleware(AgentMiddleware):
             self._restore_control(asdict(ControlState()))
             self._epoch = uuid4().hex
             self._accounted_tools.clear()
-            self._cancelled_exec_charges.clear()
             self._notified.clear()
             self._exhausted = False
             self._restore_rejections({})
@@ -206,20 +208,28 @@ class BudgetMiddleware(AgentMiddleware):
     async def aafter_agent(self, state, runtime):
         return await self.abefore_model(state, runtime)
 
-    def _settle_exhaustion(self) -> None:
+    def _settle_exhaustion(self, *, tool_round: bool = False) -> None:
         if not self.budget.fully_exhausted or self._exhausted:
+            return
+        if tool_round and self.budget.exhaustion_reason == "time":
             return
         self._exhausted = True
         mark_agent_status(self.workspace, self.task, "budget_exhausted")
-        self.control.stop(
-            "budget_exhausted",
-            message=(
-                f"HARD STOP — {self.budget.exhaustion_reason.upper()} LIMIT REACHED\n"
-                f"Budget exhausted ({self.budget.exhaustion_detail()}). "
-                f"Tools still allowed: {', '.join(sorted(self.drain_tools)) or 'none'}. "
-                f"{self.wrap_up}"
-            ),
-        )
+        if self.budget.exhaustion_reason == "time" or self.before_summary is not None:
+            self.control.summarize(
+                "time_budget_exhausted" if self.budget.exhaustion_reason == "time"
+                else "budget_exhausted"
+            )
+        else:
+            self.control.stop(
+                "budget_exhausted",
+                message=(
+                    f"HARD STOP — {self.budget.exhaustion_reason.upper()} LIMIT REACHED\n"
+                    f"Budget exhausted ({self.budget.exhaustion_detail()}). "
+                    f"Tools still allowed: {', '.join(sorted(self.drain_tools)) or 'none'}. "
+                    f"{self.wrap_up}"
+                ),
+            )
         if self.on_exhausted is not None:
             self.on_exhausted()
 
@@ -252,9 +262,18 @@ class BudgetMiddleware(AgentMiddleware):
             if caps:
                 self.control.messages.append(
                     "[Harness BUDGET] Tool action limits: " + ", ".join(caps) + ". "
-                    "Batch calls consume their underlying action counts. " + self.wrap_up
+                    "Browser batches consume their underlying action counts. "
+                    "Each Exec that starts one or more skills consumes one skill unit. " + self.wrap_up
                 )
         self._settle_exhaustion()
+        if (self.control.summarizing and self.before_summary is not None
+                and self._prepared_summary_id != self.control.summary_id
+                and not any(m.id == self.control.summary_id
+                            for m in request.messages)):
+            reports = await self.before_summary()
+            if reports:
+                self.control.stop_message += "\n\nCompleted agent reports:\n" + reports
+            self._prepared_summary_id = self.control.summary_id
         # 保持模型目录稳定：部分网关会直接拒绝模型生成已移除工具的调用，
         # 使 awrap_tool_call 的预算回执和拒绝轮次计数无法执行。
         # 额度只影响执行权限；仍有额度的工具继续可用。
@@ -305,6 +324,9 @@ class BudgetMiddleware(AgentMiddleware):
                 f"{self.budget.max_iterations} ({remaining} left). Begin converging."
             )
         response = await handler(request)
+        # 已生成的工具轮完整执行；纯文本生成期间到期则补一次收尾消息。
+        if not getattr(unwrap_ai_message(response), "tool_calls", None):
+            self._settle_exhaustion()
         receipt = {
             "epoch": self._epoch,
             "iteration": self.budget.current_iteration,
@@ -334,9 +356,8 @@ class BudgetMiddleware(AgentMiddleware):
             await self.abefore_model(state, None)
         self.budget._ensure_started()
         name = extract_tool_name(request)
-        costs = tool_costs(name, request.tool_call.get("args", {}))
-        self._settle_exhaustion()
-        if self._exhausted and name not in self.drain_tools:
+        self._settle_exhaustion(tool_round=True)
+        if self._exhausted and not self.control.summarizing and name not in self.drain_tools:
             return blocked_result(
                 request,
                 (
@@ -346,6 +367,9 @@ class BudgetMiddleware(AgentMiddleware):
                     f"Only drain tools remain: {', '.join(sorted(self.drain_tools)) or 'none'}."
                 ),
             )
+        if name == "exec":
+            return await self._wrap_exec(request, handler)
+        costs = tool_costs(name, request.tool_call.get("args", {}))
         for dimension, cost in costs.items():
             field = self._fields[dimension]
             cap = getattr(self.budget, f"max_{field}")
@@ -368,40 +392,63 @@ class BudgetMiddleware(AgentMiddleware):
             self._reserved[dimension] += cost
         try:
             result = await handler(request)
-        except asyncio.CancelledError:
-            if name == "exec":
-                from searchos.tools.skills.execution import execution_started
-
-                call_id = request.tool_call.get("id", "")
-                if call_id not in self._accounted_tools and execution_started(call_id):
-                    for dimension, cost in costs.items():
-                        field = "consumed_" + self._fields[dimension]
-                        setattr(self.budget, field, getattr(self.budget, field) + cost)
-                    self._accounted_tools.add(call_id)
-                    self._cancelled_exec_charges.add(call_id)
-                    self._round_executed = True
-                    # No ToolMessage exists on cancellation. This charge is captured
-                    # by the next normal checkpoint; it is not a cross-store transaction.
-            raise
         finally:
             for dimension, cost in costs.items():
                 self._reserved[dimension] -= cost
         if is_blocked(result):
             return result
-        artifact = getattr(result, "artifact", None)
-        execution = artifact.get("execution", {}) if isinstance(artifact, dict) else {}
-        if (
-            name == "exec"
-            and isinstance(execution, dict)
-            and (execution.get("started") is False or execution.get("replayed") is True)
-        ):
-            return result
-        already_charged = name == "exec" and request.tool_call.get("id", "") in self._cancelled_exec_charges
+        return self._settle_tool(result, request, costs)
+
+    async def _wrap_exec(self, request, handler):
+        from searchos.tools.exec.skill_bridge import nested_execution
+        from searchos.tools.skills.execution import execution_started
+
+        reserved = started = rejected = False
+        call_id = request.tool_call.get("id", "")
+
+        async def child_call(identifier, _arguments, execute):
+            nonlocal reserved, started, rejected
+            # All children of this Exec share one reservation, including concurrent children.
+            if not reserved:
+                used = self.budget.consumed_skills + self._reserved["skill"]
+                cap = self.budget.max_skills
+                if cap > 0 and used >= cap:
+                    rejected = True
+                    return {
+                        "status": "blocked", "started": False, "exit_code": None,
+                        "error": f"Skill orchestration budget exhausted ({used}/{cap} used or reserved).",
+                    }
+                self._reserved["skill"] += 1
+                reserved = True
+            try:
+                execution = await execute()
+            except (Exception, asyncio.CancelledError):
+                started |= execution_started(identifier)
+                raise
+            started |= execution.get("started") is True and not execution.get("replayed")
+            return execution
+
+        token = nested_execution.set(child_call)
+        try:
+            result = await handler(request)
+        except (Exception, asyncio.CancelledError):
+            if started and call_id not in self._accounted_tools:
+                self.budget.consume_skill()
+                self._accounted_tools.add(call_id)
+                self._round_executed = True
+            raise
+        finally:
+            nested_execution.reset(token)
+            if reserved:
+                self._reserved["skill"] -= 1
+        costs = {"skill": 1} if started and call_id not in self._accounted_tools else {}
+        return self._settle_tool(result, request, costs, rejected=rejected and not started)
+
+    def _settle_tool(self, result, request, costs, *, rejected=False):
         for dimension, cost in costs.items():
             field = self._fields[dimension]
             attribute = f"consumed_{field}"
-            if not already_charged:
-                setattr(self.budget, attribute, getattr(self.budget, attribute) + cost)
+            setattr(self.budget, attribute, getattr(self.budget, attribute) + cost)
             cap = getattr(self.budget, f"max_{field}")
             if (
                 cap > 0
@@ -418,14 +465,15 @@ class BudgetMiddleware(AgentMiddleware):
                     ),
                 )
         self._settle_exhaustion()
-        return self._receipt(result, request, costs)
+        return self._receipt(result, request, costs, rejected=rejected)
 
     def _receipt(self, result, request, costs, *, rejected=False):
         self._round_rejected |= rejected
         self._round_executed |= any(costs.values())
         if isinstance(result, ToolMessage) and (costs or rejected):
             call_id = request.tool_call.get("id", "")
-            self._accounted_tools.add(call_id)
+            if costs:
+                self._accounted_tools.add(call_id)
             receipt = {
                 "epoch": self._epoch,
                 "costs": costs,

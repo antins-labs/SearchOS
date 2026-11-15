@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "bc628b677b996049db91c33dba165a6d989959b624f0406d08f43ef9b2bfeadf",
+  "capabilities": {
+    "get_params": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_params\", \"url\": \"https://detail.zol.com.cn/1393/1392178/param.shtml\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.587002+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://detail.zol.com.cn/1393/1392178/param.shtml",
+          "status": 200
+        }
+      ]
+    },
+    "get_params_flat": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_params_flat\", \"url\": \"https://detail.zol.com.cn/1393/1392178/param.shtml\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.587578+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://detail.zol.com.cn/1393/1392178/param.shtml",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_id": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_id\", \"product_id\": \"1392178\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.587647+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://detail.zol.com.cn/1393/1392178/param.shtml",
+          "status": 200
+        }
+      ]
+    },
+    "get_category": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_category\", \"url\": \"https://detail.zol.com.cn/1393/1392178/param.shtml\", \"category\": \"硬件\"}"
+      ],
+      "checked_at": "2026-10-23T07:35:11.280999+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://detail.zol.com.cn/1393/1392178/param.shtml",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

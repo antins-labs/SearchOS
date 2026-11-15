@@ -1,6 +1,6 @@
 # Middleware 用途与用法
 
-Middleware 在 agent 运行中执行一个可独立选择的功能。将实例放入 `middleware=[...]` 即可启用；每个 subagent 应创建自己的实例和可变状态。本文介绍根包导出的全部 20 种 middleware，内部基类和辅助函数不作为装配组件。
+Middleware 在 agent 运行中执行一个可独立选择的功能。将实例放入 `middleware=[...]` 即可启用；每个 subagent 应创建自己的实例和可变状态。
 
 ## 1. 从一个基本组合开始
 
@@ -50,7 +50,7 @@ result = await graph.ainvoke(
 | `ControlState` | 停止状态、工具限制和待注入的提醒 |
 | `ExtractionCoordinator` | 接收观测、批量抽取、提交证据及记录进展 |
 
-`ExtractionCoordinator` 默认使用 `policy="task_rows"`；需要依据 schema 路由并从原文窗口提交事实时，可显式传 `policy="schema_facts"`。这些共享对象本身不是 middleware。
+`ExtractionCoordinator` 按当前 schema 选择行抽取或独立事实抽取。默认的 `policy="task_rows"` 与可选的 `policy="schema_facts"` 决定来源窗口处理与提交方式。
 
 ## 2. Extraction：证据抽取
 
@@ -107,13 +107,21 @@ mw.FinalSummaryEvidenceMiddleware(extraction)
 
 在已触发的证据抽取提交后读取 workspace，生成当前角色的证据与缺口视图。没有相关表、任务或可用证据时不注入；路由预置计划不单独触发注入。模型调用成功后将最新投影保存为 checkpoint 中的一条固定 ID 消息，内容变化时原位更新，未变时直接复用，状态清空时删除。
 
-完整对话日志保持追加语义：每次投影变化，都在当前轮的注入位置追加一条包含完整内容的 user 消息，位于此前工具回执之后、本轮模型回答之前。历史版本与各自的注入位置全部保留；checkpoint 只保存最新投影，不覆盖或删除这些日志记录。内容未变时不产生新的注入记录。
+完整对话日志保持追加语义：每次投影变化，都在当前轮的注入位置追加一条包含完整内容的 system 消息，位于此前工具回执之后、本轮模型回答之前。历史版本与各自的注入位置全部保留；checkpoint 只保存最新投影，不覆盖或删除这些日志记录。内容未变时不产生新的注入记录。
 
 ```python
 mw.SOCMContextMiddleware(workspace, task=task)
 ```
 
 `view` 可选 `"task"`、`"overview"`、`"writing"`，分别面向任务执行、调度和写作。未显式传 `control` 时，图入口绑定列表中唯一的共享控制状态；同一 agent 的组件和运行层必须共享同一个 control，传入多个不同实例会报错。
+
+调度和写作视图保留全表统计，每表展示最多 30 个缺口实体，优先展示尚未分配的可处理目标；窗口注明展示数与匹配总数。调度视图展示运行中任务、最多 20 个待执行或阻塞任务及最近 5 个结束任务，各状态总数覆盖完整 Frontier。发现任务额外显示最近收集的 30 个实体。显式 Search 任务继续展示全部分配目标、值预览及未匹配目标。所有实体、字段和来源完整保存在 CoverageMap。完成统计要求值和证据比较均已确定，不可获取字段单列，待比较字段等待比较结果。
+
+Main Agent 先根据最新 SOCM 更新分派任务。需要窗口外的记录、完整值或引用时，再用 `inspect_table` 按行或字段查询。列表与 SOCM 使用同一列序，默认每页 30 行，字符预算按整行分页。用同一筛选条件和 `next_cursor` 继续读取。开启 `with_values` 可取页内完整原值，额外指定 `row` 可取其引用。所有查询都不占用目标。单批约 50 个实体或 200 个目标单元格仅作为分派建议。Writer 按需使用 `read_coverage` 和 `read_evidence`。
+
+抽取计划先解析观察记录和当前任务的目标交集，再将可处理实体划分成至多 200 行的窗口。FILL 和合并模式遍历全部窗口，逐窗口提交；无显式目标时沿用 DISCOVER。窗口复用原始来源内容，失败和取消保留已提交结果，并沿用观测日志重放。表头保留建表模式及当前已知行口径；列定义随 schema 更新。Web UI 的 CSV、Excel 和研究包继续从完整 CoverageMap 导出。
+
+每张表的列名集中在表头，后续行仅列出同顺序的值；缺失使用 `null`，特殊状态附在单元格上。Search 可见目标实体各字段，任务范围按零起始行列下标标记。抽取输入采用同样的布局，输出沿用 JSON 行对象。主键字段从已保存的单元格读取，字段内的分隔符保留原文。
 
 后续模型请求始终携带最新投影；DynamicTrim 和 Compaction 保留该消息。恢复执行图时按 workspace 校准 checkpoint 中的投影，没有 checkpoint 时也可从 workspace 重建。取消或失败的模型调用不提交投影更新。SOCM 只展示状态，操作方法来自角色提示词，停止约束由执行层处理。这里减少的是重复消息和更新事件，保留的状态仍会作为模型输入发送。
 
@@ -191,12 +199,14 @@ mw.RetryRouteMiddleware(workspace, agent_id=task.agent_id)
 
 按底层实际动作计算工具消耗，对并发调用预留额度，并产生预算提示与耗尽信号。单项额度不足时拦截相应调用；整体耗尽时进入收尾状态。
 
-运行层把动态预算、策略切换和停止信号追加为 user 消息，模型调用成功后按发送顺序保存到执行历史；相同内容保持原位，变化时追加新消息，不改写 system prompt。Explore 波次提示采用相同机制。日志在新消息实际发送的位置记录一次，回写历史不重复记录；工具额度与硬停止仍由执行层强制检查。
+动态预算和策略切换保存为系统上下文。时间到期时，BudgetMiddleware 等待当前完整工具轮结束，运行层追加一次英文 user 收尾消息并保存到执行历史。research 总预算耗尽时，先通知在途 Agent 收尾并等待其摘要，再让原 Orchestrator 在当前对话中回答。收尾消息标记为合成 `budget_summary`，日志仅记录一次，用户追问历史忽略该标记。收尾模型调用使用 `tool_choice="none"`，保留历史工具定义。
 
-单项预算耗尽后，从下一轮模型的可选工具中移除对应工具，并提示剩余额度。
+单项预算耗尽后保留工具定义，由工具执行层拒绝超额调用，并提示剩余额度。
 若出现 3 个有预算拒绝、且未执行其他计费动作的轮次，则以 `budget_rejection_loop`
 强制收尾；同一轮并发拒绝只计一次。实际执行其他检索动作会清零计数，辅助工具不清零。
 预算拒绝不产生抽取批次，因此由预算组件独立处理，拒绝记录和计数随 checkpoint 恢复。
+
+simple 时间上限为 120 秒，并受会话剩余时间约束；到期后直接总结。路径时间到期不截短已开始的 Exec 调用，也不设置额外的 60 秒收尾取消窗口。Exec 自身的 `timeout_s`、网络请求超时、模型请求超时和用户取消继续生效。
 
 ```python
 mw.BudgetMiddleware(
@@ -214,7 +224,7 @@ mw.BudgetMiddleware(budget, control=control, scope="thread")
 
 ### QueryRepetitionMiddleware：重复查询检测
 
-在滑动窗口内归一化查询并检测重复，产生更换查询方式的提醒。提供 workspace 和 task 时，还会记录反模式；达到升级条件后标记 agent 为 `looped`。当前实现不会自行强制停止。
+在滑动窗口内归一化查询并检测重复，产生更换查询方式的提醒。提供 workspace 和 task 时，达到升级条件后标记 agent 为 `looped`，为任务报告和复盘保留线索。重复本身不证明查询无效，不直接写入 Failure Memory。当前实现不会自行强制停止。
 
 ```python
 mw.QueryRepetitionMiddleware(
@@ -233,13 +243,21 @@ mw.ReadingReminderMiddleware(control, threshold=3)
 
 ### EmptyResultMiddleware：连续空结果提醒
 
-连续出现结构化空结果或失败时，产生切换策略的信号；可以将相关反模式写入 workspace。优先读取工具状态与 artifact，旧工具回退到明确错误标记，不再用长度或正文是否包含 error 判断成功。它不判断事实是否成立。
+连续出现结构化空结果或失败时，产生切换策略的信号。优先读取工具状态与 artifact，旧工具回退到明确错误标记，不用长度或正文是否包含 error 判断成功。该信号不直接形成失败记忆。
 
 ```python
-mw.EmptyResultMiddleware(
-    control, workspace=workspace, task=task, threshold=5,
-)
+mw.EmptyResultMiddleware(control, threshold=5)
 ```
+
+### FailureRecordingMiddleware：搜索失败记忆采集
+
+从成功空查询、明确来源限制和正确启动后的版本化技能失效中提取局部经验，调用 SOCM 唯一写入口。不收集模型请求、参数错误、取消、预算或抽取内部错误；不把重复和无单元格增量判为失败。批量探索逐子操作记录，回放与未启动执行不累计。
+
+```python
+mw.FailureRecordingMiddleware(workspace, task=task)
+```
+
+提取规则位于 `searchos/socm/failure_memory/extraction.py`。路径与需要阅读判断的经验由任务结束后的可选 post-mortem 提炼，scope 与 attempt 在调度时固定；该 middleware 没有后台资源，不改变原工具结果或异常。失败记忆通过已有 `SOCMContextMiddleware` 动态注入，不额外发送上下文消息。自定义组合可显式移除该组件；`enable_failure_memory=False` 同时关闭采集、复盘与失败投影。
 
 ### StateStallMiddleware：任务状态停滞记录
 
@@ -290,11 +308,11 @@ mw.ReadingProgressMiddleware(source_progress)
 mw.DispatchRoundMiddleware(control, max_rounds=5)
 ```
 
-通常用于 orchestrator，在图入口通过 `drain_tools` 允许 `check_agents` 等收尾工具。
+通常用于 Orchestrator，在图入口通过 `drain_tools` 保留收尾所需的工具。
 
 ### CoverageStallMiddleware：判断多轮调度是否停滞
 
-在 `check_agents` 返回一轮已完成的检索任务报告时，比较新增阅读、事实、任务关联、行和已填充单元格。连续若干完整轮次没有增长后，发出停止信号并限制新派发；仍有运行任务时不据此判定停滞。
+运行时交付已完成的检索任务报告时，比较新增阅读、事实、任务关联、行和已填充单元格。连续若干完整轮次没有增长后，发出停止信号并限制新派发；仍有运行任务时等待本轮剩余报告。
 
 ```python
 # agent_graphs 是调度运行时的 {agent_id: info} 映射，
@@ -364,7 +382,7 @@ graph = create_search_agent_graph(
 
 `image_fallback=True` 在模型明确拒绝图片输入时，将图片工具结果转换为识别文本并重试一次，需要已有图片识别配置。默认值 `None` 遵循当前运行配置，仅在图片阅读开启且模式为 `auto` 时启用。
 
-调度或写作 agent 可在图入口设置 `drain_tools=frozenset({"check_agents"})` 和 `finish_without_tools=False`，保留收尾工具。若装载 Budget，也需为它配置一致的 `drain_tools`。这些参数只规定停止后的执行方式。
+调度 Agent 可在图入口设置 `drain_tools=frozenset({"inspect_table"})` 和 `finish_without_tools=False`，保留收尾工具。若装载 Budget，也需为它配置一致的 `drain_tools`。这些参数只规定停止后的执行方式。
 
 探索轮次和运行池提醒属于角色策略，由默认 pipeline 装配；手写组合也可通过图入口的 `policy` 参数指定：
 
@@ -386,3 +404,8 @@ dispatch_policy = DispatchPolicy(
 这两个策略是普通对象。框架需要的模型与工具钩子由运行层内部接入，不要求调用方将日志、图片兼容或角色策略放入 `middleware` 列表。`middleware=[]` 表示不装载这三类业务机制，session 基础设施仍可正常工作。图入口直接使用 LangChain 的 ReAct 工厂，不隐式加载 DeepAgents 的自动摘要、文件卸载或默认工具；只有显式传入 skills/subagents 时才装配对应可选能力。
 
 [目录导航](README.md) · [组合与生命周期说明](../../../docs/middleware-composition.md)
+
+
+## 实现位置
+
+根目录的 `*_middleware.py` 管理可装载组件和框架钩子，`core/` 管理领域规则与状态，`utils/` 管理复用解析和计量。基类按所属层就近放在 `base.py`。三个功能目录均遵循这一规则，详见 [目录导航](README.md)。

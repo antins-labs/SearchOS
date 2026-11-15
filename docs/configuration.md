@@ -152,7 +152,7 @@ L4 supports two forms of model customization:
   [Provider configuration](providers.md)
 - `searchos/config/env_file.py` — atomic `.env` reads/writes, value validation,
   and `remove_env_keys`
-- `searchos/config/web_overlay.py` — overlay model, `apply_to_runtime()`, and
+- `searchos/config/settings_overlay.py` — overlay model, `apply_to_runtime()`, and
   migration
 - `searchos/config/effort.py` — effort presets shared by the TUI and Web UI
 - `web/api/settings/store.py` — L4 write transaction, validation rollback, and

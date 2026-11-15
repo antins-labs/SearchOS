@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_sectors": "direct",
+    "get_current_events": "direct",
+    "get_event": "direct",
+    "search_companies": "direct",
+    "get_past_events": "direct"
+  },
+  "aliases": {
+    "get_event": "get_event",
+    "get_current_events": "get_current_events",
+    "get_past_events": "get_past_events",
+    "get_sectors": "get_sectors",
+    "search_companies": "search_companies",
+    "run": "search_companies"
+  }
+}

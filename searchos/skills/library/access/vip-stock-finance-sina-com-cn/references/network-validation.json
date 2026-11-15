@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e77fd08a6d38e476352a2fd20b5715181cbecae728f28bcdfa97b0e73dd51c7c",
+  "capabilities": {
+    "get_bulletin_detail": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_bulletin_detail\", \"stockid\": \"688710\", \"bulletin_id\": \"11079368\", \"page\": 1, \"limit\": 3, \"include_html\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.885841+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php",
+          "status": 200
+        }
+      ]
+    },
+    "list_bulletins": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_bulletins\", \"stockid\": \"688710\", \"page\": 1, \"limit\": 3, \"include_html\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.888149+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://vip.stock.finance.sina.com.cn/corp/go.php/vCB_AllBulletin/stockid/688710.phtml",
+          "status": 200
+        }
+      ]
+    },
+    "list_annual_reports": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_annual_reports\", \"stockid\": \"688710\", \"page\": 1, \"limit\": 3, \"include_html\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.888235+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://vip.stock.finance.sina.com.cn/corp/go.php/vCB_Bulletin/stockid/688710/page_type/ndbg.phtml",
+          "status": 200
+        }
+      ]
+    },
+    "list_quarterly_reports": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_quarterly_reports\", \"stockid\": \"688710\", \"report_type\": \"yjdbg\", \"page\": 1, \"limit\": 3, \"include_html\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.888692+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://vip.stock.finance.sina.com.cn/corp/go.php/vCB_BulletinYi/stockid/688710/page_type/yjdbg.phtml",
+          "status": 200
+        }
+      ]
+    },
+    "search_bulletins": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_bulletins\", \"stockid\": \"688710\", \"keyword\": \"年报\", \"limit\": 3, \"page\": 1, \"include_html\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.888988+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://vip.stock.finance.sina.com.cn/corp/go.php/vCB_AllBulletin/stockid/688710.phtml",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

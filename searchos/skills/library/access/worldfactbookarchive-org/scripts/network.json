@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_field_metadata": "direct",
+    "get_field_history": "direct"
+  },
+  "aliases": {
+    "get_field_history": "get_field_history",
+    "get_field_metadata": "get_field_metadata",
+    "run": "get_field_metadata"
+  }
+}

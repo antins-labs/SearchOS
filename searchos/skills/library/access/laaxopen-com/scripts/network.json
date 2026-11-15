@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_event": "direct",
+    "list_results": "direct",
+    "get_years": "direct",
+    "search": "direct"
+  },
+  "aliases": {
+    "list_results": "list_results",
+    "get_event": "get_event",
+    "search": "search",
+    "get_years": "get_years",
+    "run": "get_years"
+  }
+}

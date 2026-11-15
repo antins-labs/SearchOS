@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_tournament_info": "direct",
+    "get_awards": "direct",
+    "search_pages": "direct",
+    "get_match_schedule": "direct",
+    "get_standings": "direct",
+    "get_player_statistics": "direct",
+    "get_team_rosters": "direct"
+  },
+  "aliases": {
+    "get_player_statistics": "get_player_statistics",
+    "get_tournament_info": "get_tournament_info",
+    "get_standings": "get_standings",
+    "get_team_rosters": "get_team_rosters",
+    "get_match_schedule": "get_match_schedule",
+    "get_awards": "get_awards",
+    "search_pages": "search_pages",
+    "run": "search_pages"
+  }
+}

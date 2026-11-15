@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2684afb729a77a42443a03bbbe2415e34b42483825769258c96f5504067ecfc0",
+  "capabilities": {
+    "get_object": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_object\", \"object_id\": 922250}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.171578+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://collectionapi.metmuseum.org/public/collection/v1/objects/922250",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"van gogh\", \"has_images\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.172412+00:00",
+      "reason": "Search failed with status 410",
+      "source_responses": [
+        {
+          "url": "https://collectionapi.metmuseum.org/public/collection/v1/search",
+          "status": 410
+        }
+      ]
+    },
+    "departments": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"departments\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.172588+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://collectionapi.metmuseum.org/public/collection/v1/departments",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

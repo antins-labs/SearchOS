@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "033d114529c4928377e532aa7d6844976dc60b3c28151278eb7db916d1eb7b07",
+  "capabilities": {
+    "get_case_detail": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_case_detail\", \"case_number\": \"ICTR-97-23\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.884558+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ucr.irmct.org/api/Summary/ByCaseDetail",
+          "status": 200
+        }
+      ]
+    },
+    "get_documents": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_documents\", \"case_number\": \"ICTR-97-23\", \"language\": \"ENG\", \"doc_type\": \"Jdg\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.885639+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ucr.irmct.org/api/Summary/ByCaseDocsByLang",
+          "status": 200
+        }
+      ]
+    },
+    "get_documents_by_category": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_documents_by_category\", \"case_number\": \"ICTR-97-23\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.885704+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ucr.irmct.org/api/Summary/ByCaseRelatedDocs",
+          "status": 200
+        }
+      ]
+    },
+    "search_documents": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_documents\", \"case_number\": \"ICTR-97-23\", \"query\": \"appeal\", \"date_from\": \"01/01/2000\", \"date_to\": \"31/12/2000\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.885768+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://ucr.irmct.org/api/Summary/ByCaseRelatedDocs",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

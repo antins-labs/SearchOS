@@ -10,6 +10,9 @@ in the Trump administration, including:
 - Serial turnover tracking
 - Cabinet departures list
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import csv
@@ -267,7 +270,7 @@ async def get_article_info(params: dict, session: aiohttp.ClientSession = None) 
     """
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -305,7 +308,7 @@ async def get_cabinet_turnover_comparison(params: dict, session: aiohttp.ClientS
     """
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -340,7 +343,7 @@ async def get_ateam_turnover_comparison(params: dict, session: aiohttp.ClientSes
     """
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -378,7 +381,7 @@ async def get_ateam_departures(params: dict, session: aiohttp.ClientSession = No
     """
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -435,7 +438,7 @@ async def get_serial_turnover(params: dict, session: aiohttp.ClientSession = Non
     """
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -489,7 +492,7 @@ async def get_cabinet_departures(params: dict, session: aiohttp.ClientSession = 
     """
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -533,7 +536,7 @@ async def get_all_data(params: dict, session: aiohttp.ClientSession = None) -> d
     """
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -639,6 +642,7 @@ FUNCTIONS = {
 }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Brookings turnover tracker skill.

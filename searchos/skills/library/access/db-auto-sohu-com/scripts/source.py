@@ -5,6 +5,9 @@ Provides programmatic access to Sohu's automotive database at db.auto.sohu.com.
 Direct API calls to portal.auto.sohu.com for car model data, pricing, sales,
 and dealer information.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -42,7 +45,7 @@ async def get_model_stats(model_id: int) -> dict[str, Any]:
     Returns model details (name, brand, price range) and historical sales data
     including monthly retail sales and rankings.
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch(session, f"/sales/v2/model/statistic?model_id={model_id}")
         if data is None:
             return {"error": "Model not found", "model_id": model_id}
@@ -61,7 +64,7 @@ async def get_model_prices(model_ids: list[int]) -> dict[str, Any]:
         return {"error": "model_ids list is required"}
     
     ids_str = ",".join(str(mid) for mid in model_ids)
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch(session, f"/price/model-prices?model_ids={ids_str}")
         if data is None:
             return {"error": "No price data found", "model_ids": model_ids}
@@ -84,7 +87,7 @@ async def get_trim_prices(model_id: int, city_code: str = "110100") -> dict[str,
     - 440100: Guangzhou
     - 440300: Shenzhen
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch(session, f"/price/trim-group-prices?model_id={model_id}&city_code={city_code}")
         if data is None:
             return {"error": "Trim prices not found", "model_id": model_id}
@@ -100,7 +103,7 @@ async def get_city_prices(model_id: int) -> dict[str, Any]:
     Returns prices organized by province and city with dealer counts
     and min/max prices.
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch(session, f"/price/model-city-prices?model_id={model_id}")
         if data is None:
             return {"error": "City prices not found", "model_id": model_id}
@@ -116,7 +119,7 @@ async def get_dealer_prices(model_id: int, city_code: str = "110100", size: int 
     Returns dealer information including name, address, phone, location,
     and offered prices.
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch(session, f"/price/model-dealer-prices?model_id={model_id}&city_code={city_code}&size={size}")
         if data is None:
             return {"error": "Dealer prices not found", "model_id": model_id}
@@ -133,7 +136,7 @@ async def get_model_news(model_id: int, limit: int = 10) -> dict[str, Any]:
     author info, and publication date.
     """
     limit = min(limit, 50)  # Cap at 50
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch(session, f"/media/news?model_id={model_id}&limit={limit}&last_score=")
         if data is None:
             return {"error": "News not found", "model_id": model_id}
@@ -149,7 +152,7 @@ async def get_competitor_ranking(model_id: int) -> dict[str, Any]:
     Returns competitors with evaluation scores across dimensions:
     looking (exterior), stuff (features), space, power, expense, overall.
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch(session, f"/eval/same-level-rank?model_id={model_id}")
         if data is None:
             return {"error": "Competitor ranking not found", "model_id": model_id}
@@ -165,7 +168,7 @@ async def get_related_trims(model_id: int, limit: int = 6) -> dict[str, Any]:
     Returns similar car trims with pricing, year, and model info.
     """
     limit = min(limit, 20)
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch(session, f"/model/related-trims?model_id={model_id}&limit={limit}")
         if data is None:
             return {"error": "Related trims not found", "model_id": model_id}
@@ -180,7 +183,7 @@ async def get_hot_models() -> dict[str, Any]:
     
     Returns list of currently popular car models on the platform.
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _fetch(session, "//search/hot-cars")
         if data is None:
             return {"error": "Hot models not found"}
@@ -195,7 +198,7 @@ async def get_full_model_info(model_id: int, city_code: str = "110100") -> dict[
     
     Aggregates basic info, pricing, trims, sales stats, and news.
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Fetch multiple endpoints in parallel
         tasks = [
             _fetch(session, f"/sales/v2/model/statistic?model_id={model_id}"),
@@ -225,6 +228,7 @@ async def get_full_model_info(model_id: int, city_code: str = "110100") -> dict[
         return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Sohu Auto API calls based on function parameter.

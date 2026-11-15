@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """兼容旧接口的 RSS 转发入口。仅支持 get_subreddit，拒绝其他功能。"""
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import argparse
 import json
@@ -15,6 +18,7 @@ except ImportError:
     fetch_subreddit_rss = None
 
 
+@_skill_network.entrypoint(capability_id='run', cli=True)
 def main(argv=None):
     parser = argparse.ArgumentParser(
         description='Reddit RSS Reader - 兼容旧接口。仅支持 get_subreddit，其他功能不可用。'

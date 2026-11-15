@@ -1,0 +1,323 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ef6aa9e15702fe23434d62e8e0e6ecb9c01fc4711bffbd64eb1e403567ce1f10",
+  "capabilities": {
+    "get_page_info": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page_info\", \"title\": \"Jacques Chaban-Delmas\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.622527+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://fr.wikipedia.org/wiki/Jacques_Chaban-Delmas",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/w/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-fr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-fr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/icons/wikipedia.png",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/w/skins/Vector/resources/skins.vector.styles/images/arrow-down-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/w/resources/src/mediawiki.skinning/images/magnify-clip-ltr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/w/skins/Vector/resources/skins.vector.styles/images/link-external-small-ltr-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Wikiquote-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Wiktionary-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Wikisource-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/6/61/Searchtool.svg",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Logo_disambig.svg/20px-Logo_disambig.svg.png",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/59/Arrows-move.svg/20px-Arrows-move.svg.png",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c6/EEG-conferentie_Den_Haag_Jacques_Chaban-Delmas_%28cropped%29.jpg/250px-EEG-conferentie_Den_Haag_Jacques_Chaban-Delmas_%28cropped%29.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/Plaque%2C_gare_Montparnasse%2C_Lib%C3%A9ration_de_Paris%2C_2017.jpg/250px-Plaque%2C_gare_Montparnasse%2C_Lib%C3%A9ration_de_Paris%2C_2017.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/wiki/Special:CentralAutoLogin/start",
+          "status": 302
+        },
+        {
+          "url": "https://meta.wikimedia.org/w/index.php",
+          "status": 200
+        },
+        {
+          "url": "https://auth.wikimedia.org/metawiki/wiki/Special:CentralAutoLogin/checkLoggedIn",
+          "status": 200
+        }
+      ]
+    },
+    "get_infobox": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_infobox\", \"url\": \"https://fr.wikipedia.org/wiki/Michel_Debre\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:18:59.524535+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://fr.wikipedia.org/wiki/Michel_Debre",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/w/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/icons/wikipedia.png",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-fr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-fr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/w/skins/Vector/resources/skins.vector.styles/images/arrow-down-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/w/resources/src/mediawiki.skinning/images/magnify-clip-ltr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/w/skins/Vector/resources/skins.vector.styles/images/link-external-small-ltr-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/8/84/Michel_Debr%C3%A9.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/6/61/Searchtool.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Wikidata_Favicon_color.svg",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Logo_disambig.svg/20px-Logo_disambig.svg.png",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/Confusion_colour.svg/20px-Confusion_colour.svg.png",
+          "status": 200
+        }
+      ]
+    },
+    "get_tables": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tables\", \"title\": \"Jacques Chaban-Delmas\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:26.779202+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://fr.wikipedia.org/wiki/Jacques_Chaban-Delmas",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-fr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/w/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/icons/wikipedia.png",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-fr.svg",
+          "status": 200
+        }
+      ]
+    },
+    "get_section": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_section\", \"title\": \"Démission du gouvernement français\", \"section\": \"Présidence de Charles de Gaulle\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:26.861333+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://fr.wikipedia.org/wiki/D%C3%A9mission_du_gouvernement_fran%C3%A7ais",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/w/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-fr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/icons/wikipedia.png",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-fr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/w/skins/Vector/resources/skins.vector.styles/images/arrow-down-progressive.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/w/skins/Vector/resources/skins.vector.styles/images/link-external-small-ltr-progressive.svg",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"Premier ministre France\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:26.861658+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://fr.wikipedia.org/w/index.php",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/w/load.php",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-fr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/icons/wikipedia.png",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-fr.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/static/images/footer/wikimedia-button.svg",
+          "status": 200
+        },
+        {
+          "url": "https://fr.wikipedia.org/w/resources/assets/poweredby_mediawiki.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/8/80/Wikipedia-logo-v2.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Wikidata-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bd/Premier_of_Qu%C3%A9bec_PSPP.jpg/250px-Premier_of_Qu%C3%A9bec_PSPP.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6c/Coat_of_arms_of_the_United_Kingdom_%282024%2C_lesser_arms%29.svg/250px-Coat_of_arms_of_the_United_Kingdom_%282024%2C_lesser_arms%29.svg.png",
+          "status": 200
+        },
+        {
+          "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b8/Coat_of_arms_of_Ontario.svg/250px-Coat_of_arms_of_Ontario.svg.png",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Wiktionary-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Wikisource-logo.svg",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

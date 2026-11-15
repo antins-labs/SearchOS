@@ -12,6 +12,9 @@ Functions:
 - get_latest: Get the most recent report
 - resolve_url: Resolve a PDF URL to its final CDN location
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -98,6 +101,7 @@ async def _resolve_pdf_url(session: aiohttp.ClientSession, url: str) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute MGM China Holdings report queries.
@@ -112,7 +116,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     function = params.get('function', 'list_all')
     
     connector = aiohttp.TCPConnector(ssl=False)
-    async with aiohttp.ClientSession(connector=connector) as session:
+    async with _skill_network.aiohttp_session(connector=connector) as session:
         if function == 'list_all':
             reports = await _fetch_reports(session)
             reports = sorted(reports, key=lambda x: (x['year'] or 0, x['type'] or ''), reverse=True)

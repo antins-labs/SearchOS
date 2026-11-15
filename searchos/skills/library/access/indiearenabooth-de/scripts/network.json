@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_games": "direct",
+    "search_games": "direct",
+    "get_game": "direct"
+  },
+  "aliases": {
+    "list_games": "list_games",
+    "get_game": "get_game",
+    "search_games": "search_games",
+    "run": "search_games"
+  }
+}

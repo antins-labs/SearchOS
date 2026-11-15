@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_permanent_exhibitions": "direct",
+    "get_homepage": "direct",
+    "get_exhibit_page": "direct",
+    "get_info_page": "direct",
+    "get_exhibit_toc": "direct"
+  },
+  "aliases": {
+    "get_info_page": "get_info_page",
+    "get_exhibit_page": "get_exhibit_page",
+    "get_exhibit_toc": "get_exhibit_toc",
+    "get_permanent_exhibitions": "get_permanent_exhibitions",
+    "get_homepage": "get_homepage",
+    "run": "get_homepage"
+  }
+}

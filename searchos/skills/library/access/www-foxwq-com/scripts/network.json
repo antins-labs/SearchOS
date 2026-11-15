@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_news": "direct",
+    "get_comments": "direct",
+    "get_article": "direct"
+  },
+  "aliases": {
+    "get_article": "get_article",
+    "list_news": "list_news",
+    "get_comments": "get_comments",
+    "run": "get_comments"
+  }
+}

@@ -7,6 +7,9 @@ Supports:
 - Technical papers awards (Best Papers, Honorable Mentions, Test-of-Time)
 - Search functionality
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -16,6 +19,7 @@ from urllib.parse import urljoin, urlencode
 import re
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute SIGGRAPH Blog access functions.
@@ -52,7 +56,7 @@ async def _fetch_page(url: str, headers: dict = None) -> tuple[int, str]:
             "Accept-Language": "en-US,en;q=0.5",
         }
     
-    async with aiohttp.ClientSession(headers=headers) as session:
+    async with _skill_network.aiohttp_session(headers=headers) as session:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as response:
             html = await response.text()
             return response.status, html

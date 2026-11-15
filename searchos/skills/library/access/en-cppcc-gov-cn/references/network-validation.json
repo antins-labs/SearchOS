@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "93229de419c2db99273c81a39952b901b2c123220e17f2486feb8eadf0a019b1",
+  "capabilities": {
+    "get_roster": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_roster\", \"url\": \"http://en.cppcc.gov.cn/2023-03/08/c_867239.htm\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.603242+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://en.cppcc.gov.cn/2023-03/08/c_867239.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_categories": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_categories\", \"url\": \"http://en.cppcc.gov.cn/2023-03/08/c_867239.htm\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.604013+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://en.cppcc.gov.cn/2023-03/08/c_867239.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_category": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_category\", \"category_name\": \"Communist Party\", \"url\": \"http://en.cppcc.gov.cn/2023-03/08/c_867239.htm\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.604084+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://en.cppcc.gov.cn/2023-03/08/c_867239.htm",
+          "status": 200
+        }
+      ]
+    },
+    "search_members": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_members\", \"query\": \"Wang\", \"url\": \"http://en.cppcc.gov.cn/2023-03/08/c_867239.htm\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.604156+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://en.cppcc.gov.cn/2023-03/08/c_867239.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_metadata": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_metadata\", \"url\": \"http://en.cppcc.gov.cn/2023-03/08/c_867239.htm\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.604406+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://en.cppcc.gov.cn/2023-03/08/c_867239.htm",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

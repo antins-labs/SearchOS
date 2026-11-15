@@ -64,8 +64,8 @@ class EvidenceObservation:
     target_table: str = ""
     local_source_metadata: dict[str, Any] | None = None
     task_id: str = ""
-    result_mode: str = ""
     task_text: str = ""
+    referring_page: tuple[str, str] | None = None  # 已读取且明确链接该附件的页面地址和标题。
 
 
 @dataclass(frozen=True, slots=True)

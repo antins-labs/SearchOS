@@ -9,6 +9,9 @@ Supports retrieving sight information including:
 - Attraction introduction/description
 - Talent notes (traveler reviews/tips)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import json
@@ -158,7 +161,7 @@ async def fetch_sight_info(sight_id: str, timeout: int = 15) -> dict:
     payload = {"businessId": int(extracted_id)}
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.post(
                 SIGHT_API_URL,
                 json=payload,
@@ -195,6 +198,7 @@ async def fetch_sight_info(sight_id: str, timeout: int = 15) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main execution function for the Ctrip attraction skill.

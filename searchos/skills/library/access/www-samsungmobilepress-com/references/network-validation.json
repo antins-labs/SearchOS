@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "f3f50b80fff52134491b67eeca0e18d7eb5789ce04aa11ff5fd153af39f5fbe6",
+  "capabilities": {
+    "get_specs": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_specs\", \"slug\": \"galaxy_note20\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.590298+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.samsungmobilepress.com/media-assets/galaxy_note20",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://www.samsungmobilepress.com/_next/static/chunks/2fc181a1a18d4740.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.samsungmobilepress.com/_next/static/chunks/a77487e6b0f70e6b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.samsungmobilepress.com/asset/image/logo.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.samsungmobilepress.com/_next/static/chunks/6db9bdcc267d6ad6.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.samsungmobilepress.com/asset/image/see_all_arrow.png",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"fold\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.593856+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.samsungmobilepress.com/media-assets",
+          "status": 200
+        }
+      ]
+    },
+    "list": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.594042+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-samsungmobilepress-com/scripts/source.py",
+        "line": 229,
+        "end_line": 265,
+        "implementation": "list_galaxy_devices",
+        "source_sha256": "c7fe9d1d144684f802f104661cb0b83d8daceced7e2eb67851af9c651d1c7cf6",
+        "implementation_sha256": "e88747c98ec316b51b619484f997816f8d4f763b8ec7fc5520f23f24de7170c8"
+      }
+    }
+  }
+}

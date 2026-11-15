@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "9b3a474293dcddb3e183db936455074ee8b844ba7ac68e07cba8056d12bef359",
+  "capabilities": {
+    "get_rankings": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rankings\", \"list_type\": \"managers\", \"year\": 2025, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.211432+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nmhc.org/research-insight/the-nmhc-50/top-50-lists/2025-top-managers-list/",
+          "status": 200
+        }
+      ]
+    },
+    "search_companies": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_companies\", \"query\": \"Greystar\", \"year\": 2025, \"list_type\": \"managers\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.214519+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nmhc.org/research-insight/the-nmhc-50/top-50-lists/2025-top-managers-list/",
+          "status": 200
+        }
+      ]
+    },
+    "get_company_details": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_company_details\", \"company_name\": \"MAA\", \"year\": 2025, \"list_type\": \"managers\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.215087+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nmhc.org/research-insight/the-nmhc-50/top-50-lists/2025-top-managers-list/",
+          "status": 200
+        },
+        {
+          "url": "https://www.nmhc.org/research-insight/the-nmhc-50/top-50-lists/2025-top-owners-list/",
+          "status": 200
+        },
+        {
+          "url": "https://www.nmhc.org/research-insight/the-nmhc-50/top-50-lists/2025-top-builders-list/",
+          "status": 200
+        }
+      ]
+    },
+    "get_list_info": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_list_info\", \"list_type\": \"managers\", \"year\": 2025}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.215229+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.nmhc.org/research-insight/the-nmhc-50/top-50-lists/2020-top-managers-list/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

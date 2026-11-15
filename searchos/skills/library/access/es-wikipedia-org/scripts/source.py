@@ -2,6 +2,9 @@
 Spanish Wikipedia Infobox Extractor
 Extracts structured data from Wikipedia infoboxes and article content.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any
@@ -207,7 +210,7 @@ async def get_wikipedia_article(title: str, include_content: bool = True) -> dic
     # Normalize title
     title = title.replace(' ', '_')
     
-    async with httpx.AsyncClient(timeout=30.0, headers=DEFAULT_HEADERS) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0, headers=DEFAULT_HEADERS) as client:
         # Fetch both HTML and summary in parallel
         html_task = fetch_page_html(client, title)
         summary_task = fetch_page_summary(client, title)
@@ -271,7 +274,7 @@ async def search_wikipedia(query: str, limit: int = 10) -> dict:
         'formatversion': 2
     }
     
-    async with httpx.AsyncClient(timeout=30.0, headers=DEFAULT_HEADERS) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0, headers=DEFAULT_HEADERS) as client:
         resp = await client.get(BASE_API_URL, params=params)
         resp.raise_for_status()
         data = resp.json()
@@ -299,6 +302,7 @@ async def search_wikipedia(query: str, limit: int = 10) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Wikipedia skill.

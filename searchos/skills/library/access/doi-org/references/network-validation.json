@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c647e88b7d5ae3f1258e7a03f1545704258a36715cdfa14e426597823e53e1bc",
+  "capabilities": {
+    "get_metadata": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_metadata\", \"doi\": \"10.5066/P13XCP3R\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.592559+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.sciencebase.gov/catalog/item/677eaf95d34e760b392c4970",
+          "status": 403
+        },
+        {
+          "url": "https://data.crosscite.org/10.5066%2FP13XCP3R",
+          "status": 200
+        }
+      ]
+    },
+    "list_files": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_files\", \"doi\": \"10.5066/P13XCP3R\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.593400+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.sciencebase.gov/catalog/item/677eaf95d34e760b392c4970",
+          "status": 200
+        }
+      ]
+    },
+    "resolve_doi": {
+      "status": "live_access_unconfirmed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"resolve_doi\", \"doi\": \"10.5066/P13XCP3R\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.593465+00:00",
+      "reason": "business output returned without a confirmed successful source response",
+      "source_responses": [
+        {
+          "url": "https://www.sciencebase.gov/catalog/item/677eaf95d34e760b392c4970",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

@@ -3,6 +3,9 @@ APA News Agency (en.apa.az) Access Skill
 
 This skill fetches news articles and content from APA News Agency's English edition.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -140,7 +143,7 @@ def parse_news_list(html: str, category: Optional[str] = None) -> list[dict]:
 
 async def get_article(url: str) -> dict:
     """Fetch and parse a single article"""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             status, html = await fetch_html(session, url)
             if status != 200:
@@ -164,7 +167,7 @@ async def get_latest_news(category: Optional[str] = None, page: int = 1) -> dict
         if page > 1:
             url += f"?page={page}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             status, html = await fetch_html(session, url)
             if status != 200:
@@ -189,7 +192,7 @@ async def search_news(query: str) -> dict:
     """Search for news articles"""
     url = f"https://en.apa.az/search?query={quote(query)}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             status, html = await fetch_html(session, url)
             if status != 200:
@@ -209,6 +212,7 @@ async def search_news(query: str) -> dict:
             return {'error': str(e), 'query': query, 'url': url}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main execution function for APA News Agency skill.

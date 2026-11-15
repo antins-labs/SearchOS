@@ -9,6 +9,9 @@ Functions:
 - list_posts: List recent blog posts
 - extract_lists: Extract ordered lists from a post
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -155,7 +158,7 @@ async def get_post(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     identifier = str(post_id) if post_id else slug
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             post = await fetch_post(session, identifier)
             
             if not post:
@@ -204,7 +207,7 @@ async def list_posts(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     page = int(params.get('page', 1))
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             api_params = {
                 "per_page": per_page,
                 "page": page,
@@ -266,7 +269,7 @@ async def extract_lists(params: dict[str, Any], ctx: Any = None) -> dict[str, An
     identifier = str(post_id) if post_id else slug
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             post = await fetch_post(session, identifier)
             
             if not post:
@@ -324,7 +327,7 @@ async def search_posts(params: dict[str, Any], ctx: Any = None) -> dict[str, Any
     per_page = min(int(params.get('per_page', 10)), 100)
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             api_params = {
                 "search": search_term,
                 "per_page": per_page,
@@ -363,6 +366,7 @@ async def search_posts(params: dict[str, Any], ctx: Any = None) -> dict[str, Any
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """Execute a RouteNote blog function.
     

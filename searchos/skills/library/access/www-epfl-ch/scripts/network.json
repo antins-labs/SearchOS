@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_page_content": "direct",
+    "get_contact_info": "direct",
+    "search_pages": "inherit",
+    "get_campus_location": "inherit"
+  },
+  "aliases": {
+    "get_contact_info": "get_contact_info",
+    "get_campus_location": "get_campus_location",
+    "get_page_content": "get_page_content",
+    "search_pages": "search_pages",
+    "run": "search_pages"
+  }
+}

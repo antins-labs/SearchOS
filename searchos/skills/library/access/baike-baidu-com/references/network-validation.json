@@ -1,0 +1,291 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "70e61ff446e736d1837194e8bacd72909dc3f5239bec72b63eb38389a2e576d5",
+  "capabilities": {
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"keyword\": \"八佰\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.956015+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://baike.baidu.com/search/word",
+          "status": 302
+        },
+        {
+          "url": "https://baike.baidu.com/item/%E5%85%AB%E4%BD%B0",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/common/antispam/middle/paris.challenge.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/common/antispam/middle/paris.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://dlswbr.baidu.com/heicha/mm/2020/acs-2020.js",
+          "status": 200
+        },
+        {
+          "url": "https://baike.baidu.com/item/%E5%85%AB%E4%BD%B0",
+          "status": 302
+        },
+        {
+          "url": "https://baike.baidu.com/item/%E5%85%AB%E4%BD%B0/20785278",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/lemma/lemma_f5aeb575.css",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/lemma/runtime_5a2ec152.js",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/pic/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/superman/img/copy_rignt_24.png",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/63d9f2d3572c11dfa9ec5631507c75d0f703918f64d7-bkimg-process,v_1,rw_1080,rh_720,maxl_426",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/03087bf40ad162d9f2d38e0e2284beec8a13632767d7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/b21bb051f8198618367a1a9679b639738bd4b31c48d7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/4b90f603738da97739120839830aef198618367a45d7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/728da9773912b31bb051453bb543217adab44aed4bd7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/f9198618367adab44aedec51b88fa41c8701a18b4ed7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/b151f8198618367adab48bcf1d289cd4b31c87014fd7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/dbb44aed2e738bd4b31c422392d090d6277f9e2f53d7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/f703738da9773912b31b0c73cb429118367adab444d7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        }
+      ]
+    },
+    "get_lemma": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_lemma\", \"keyword\": \"你好，李焕英\"}"
+      ],
+      "checked_at": "2026-10-23T07:18:58.179740+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://baike.baidu.com/search/word",
+          "status": 302
+        },
+        {
+          "url": "https://baike.baidu.com/item/%E4%BD%A0%E5%A5%BD%EF%BC%8C%E6%9D%8E%E7%84%95%E8%8B%B1",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/common/antispam/middle/paris.challenge.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/common/antispam/middle/paris.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://dlswbr.baidu.com/heicha/mm/2020/acs-2020.js",
+          "status": 200
+        },
+        {
+          "url": "https://baike.baidu.com/item/%E4%BD%A0%E5%A5%BD%EF%BC%8C%E6%9D%8E%E7%84%95%E8%8B%B1",
+          "status": 302
+        },
+        {
+          "url": "https://baike.baidu.com/item/%E4%BD%A0%E5%A5%BD%EF%BC%8C%E6%9D%8E%E7%84%95%E8%8B%B1/20427874",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/lemma/lemma_f5aeb575.css",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/lemma/runtime_5a2ec152.js",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/pic/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/superman/img/copy_rignt_24.png",
+          "status": 200
+        },
+        {
+          "url": "https://baikebcs.bdimg.com/baike-react/common/logo-baike.svg",
+          "status": 200
+        },
+        {
+          "url": "https://baikebcs.bdimg.com/baike-react/common/new.png",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/lemma/images/bd3ad5a1c4bda1d5bd71.png",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/lemma/lemma_8e586fa9.js",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/lemma/images/b718be4a6f63dd02768f.png",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/7af40ad162d9f2d3572c29577cba9d13632762d06676-bkimg-process,v_1,rw_16,rh_9,maxl_504",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/0b7b02087bf40ad162d9c45b827a06dfa9ec8a136076-bkimg-process,v_1,rw_1080,rh_675,maxl_454",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/562c11dfa9ec8a1363275e582255868fa0ec08fa6a76-bkimg-process,v_1,rw_1080,rh_717,maxl_427",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/lemma/images/ab588bda9383a04c021c.png",
+          "status": 200
+        }
+      ]
+    },
+    "get_movie_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_movie_info\", \"keyword\": \"八佰\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:25.592219+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://baike.baidu.com/search/word",
+          "status": 302
+        },
+        {
+          "url": "https://baike.baidu.com/item/%E5%85%AB%E4%BD%B0",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/common/antispam/middle/paris.challenge.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/common/antispam/middle/paris.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://dlswbr.baidu.com/heicha/mm/2020/acs-2020.js",
+          "status": 200
+        },
+        {
+          "url": "https://baike.baidu.com/item/%E5%85%AB%E4%BD%B0",
+          "status": 302
+        },
+        {
+          "url": "https://baike.baidu.com/item/%E5%85%AB%E4%BD%B0/20785278",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/lemma/lemma_f5aeb575.css",
+          "status": 200
+        },
+        {
+          "url": "https://bkssl.bdimg.com/resource/lemma/runtime_5a2ec152.js",
+          "status": 200
+        },
+        {
+          "url": "https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/superman/img/copy_rignt_24.png",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/pic/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/63d9f2d3572c11dfa9ec5631507c75d0f703918f64d7-bkimg-process,v_1,rw_1080,rh_720,maxl_426",
+          "status": 200
+        },
+        {
+          "url": "https://baikebcs.bdimg.com/baike-react/common/logo-baike.svg",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/03087bf40ad162d9f2d38e0e2284beec8a13632767d7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/b21bb051f8198618367a1a9679b639738bd4b31c48d7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/4b90f603738da97739120839830aef198618367a45d7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/728da9773912b31bb051453bb543217adab44aed4bd7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/f9198618367adab44aedec51b88fa41c8701a18b4ed7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/b151f8198618367adab48bcf1d289cd4b31c87014fd7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        },
+        {
+          "url": "https://bkimg.cdn.bcebos.com/smart/dbb44aed2e738bd4b31c422392d090d6277f9e2f53d7-bkimg-process,v_1,rw_1080,rh_693,maxl_442",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

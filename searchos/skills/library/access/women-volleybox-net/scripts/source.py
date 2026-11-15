@@ -2,6 +2,9 @@
 Volleybox access skill for women.volleybox.net
 Extracts tournament classifications, team tournaments, and team information.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -22,9 +25,9 @@ class VolleyboxClient:
         """Initialize browser if not already initialized."""
         if not self.browser:
             playwright = await async_playwright().start()
-            self.browser = await playwright.chromium.launch(headless=True)
-            context = await self.browser.new_context()
-            self.page = await context.new_page()
+            self.browser = await _skill_network.browser_launch(playwright.chromium, headless=True)
+            context = await _skill_network.browser_new_context(self.browser)
+            self.page = await _skill_network.browser_new_page(context)
     
     async def close(self):
         """Close the browser."""
@@ -288,6 +291,7 @@ class VolleyboxClient:
 _client: Optional[VolleyboxClient] = None
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Execute volleybox data extraction.

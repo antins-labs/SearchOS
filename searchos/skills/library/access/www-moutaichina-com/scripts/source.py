@@ -4,6 +4,9 @@ Moutai China Product Catalog Access Skill
 Provides access to Moutai China's product catalog (www.moutaichina.com).
 This is a static HTML site that can be scraped with direct HTTP requests.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -351,6 +354,7 @@ async def search_products(session: aiohttp.ClientSession, query: str, category: 
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Moutai China access skill.
@@ -384,7 +388,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             "error": "Missing required parameter: 'function'. Valid functions: list_products, get_product, get_categories, search"
         }
     
-    async with aiohttp.ClientSession(headers=HEADERS) as session:
+    async with _skill_network.aiohttp_session(headers=HEADERS) as session:
         if function == "list_products":
             category = params.get("category", "all")
             page = params.get("page", 1)

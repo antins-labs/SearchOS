@@ -4,6 +4,9 @@ Ke-Sen Huang's Computer Graphics Paper Collection Access Skill
 Fetches and parses paper listings from Ke-Sen Huang's manually maintained
 graphics conference paper collection at kesen.realtimerendering.com.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -132,6 +135,7 @@ async def list_conferences(session: aiohttp.ClientSession) -> list[dict]:
     return sorted(conferences, key=lambda x: x['year'], reverse=True)
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute skill functions.
@@ -154,7 +158,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     if not function:
         return {"error": "Missing required parameter: function"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "list_conferences":
             try:
                 conferences = await list_conferences(session)

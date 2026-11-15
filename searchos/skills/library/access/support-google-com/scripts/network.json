@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_spec_summary": "direct",
+    "get_all_specs": "direct",
+    "compare_devices": "direct",
+    "list_available_devices": "direct",
+    "get_device_details": "direct"
+  },
+  "aliases": {
+    "get_all_specs": "get_all_specs",
+    "get_device_details": "get_device_details",
+    "compare_devices": "compare_devices",
+    "get_spec_summary": "get_spec_summary",
+    "list_available_devices": "list_available_devices",
+    "run": "list_available_devices"
+  }
+}

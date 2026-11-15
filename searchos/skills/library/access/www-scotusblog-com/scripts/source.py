@@ -12,6 +12,9 @@ Key document types:
 - docketNumber: Docket numbers
 - author: Opinion authors (justices)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import httpx
 from typing import Any, Optional
@@ -94,7 +97,7 @@ def format_case(case: dict, proceedings: list = None) -> dict:
 
 async def run_groq_query(query: str) -> dict:
     """Execute a GROQ query against the Sanity API."""
-    async with httpx.AsyncClient(headers=HEADERS, timeout=30) as client:
+    async with _skill_network.httpx_async_client(headers=HEADERS, timeout=30) as client:
         try:
             response = await client.get(SANITY_API_URL, params={"query": query})
             response.raise_for_status()
@@ -422,6 +425,7 @@ async def get_upcoming_arguments(params: dict) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute SCOTUSblog skill functions.

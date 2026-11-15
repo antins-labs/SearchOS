@@ -28,6 +28,7 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
   const [name, setName] = useState("");
   const [model, setModel] = useState("");
   const [temp, setTemp] = useState("");
+  const [inputLimit, setInputLimit] = useState("");
   const [rpm, setRpm] = useState("0");
   const [tpm, setTpm] = useState("0");
   const [enableThinking, setEnableThinking] = useState(false);
@@ -52,11 +53,13 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
   const tempValid = temp.trim() === "" || !Number.isNaN(Number(temp));
   const quotaValue = (value: string) => value.trim() === "" ? 0 : Number(value);
   const quotaValid = (value: string) => Number.isSafeInteger(quotaValue(value)) && quotaValue(value) >= 0;
-  const limitsValid = quotaValid(rpm) && quotaValid(tpm);
+  const inputLimitValid = inputLimit === "" || (/^\d+$/.test(inputLimit) && Number.isSafeInteger(Number(inputLimit)) && Number(inputLimit) >= 256);
+  const limitsValid = quotaValid(rpm) && quotaValid(tpm) && inputLimitValid;
   const nameOk = NAME_RE.test(name.trim()) && !(name.trim() in profiles);
   const canCreate = nameOk && model.trim() !== "" && providerRef !== "" && tempValid && limitsValid && !busy;
 
   const reset = () => {
+    setInputLimit("");
     setProviderRef(""); setKeyEnv(""); setName(""); setModel(""); setTemp(""); setRpm("0"); setTpm("0"); setEnableThinking(false);
   };
 
@@ -70,6 +73,7 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
         api_key_env: keyEnv && keyEnv !== primaryEnv ? keyEnv : undefined,
         temperature: temp.trim() === "" ? null : Number(temp),
         rpm: quotaValue(rpm), tpm: quotaValue(tpm),
+        max_input_tokens: inputLimit === "" ? null : Number(inputLimit),
         enable_thinking: thinkingControllable && enableThinking,
       }),
       merge: (s, models: ModelsView) => ({ ...s, models }),
@@ -133,6 +137,12 @@ export default function NewProfileCard({ disabled = false }: { disabled?: boolea
               placeholder={zh ? "名称，如 antchat-qwen" : "Name, e.g. antchat-qwen"} aria-label={zh ? "模型名称" : "Model name"} spellCheck={false} className={inputCls} />
             <input value={model} onChange={(e) => setModel(e.target.value)} disabled={busy}
               placeholder={zh ? "模型标识，如 qwen3-max" : "Model id, e.g. qwen3-max"} aria-label={zh ? "模型标识" : "Model id"} spellCheck={false} className={inputCls} />
+            <label className="block">
+              <span className="mb-1 block text-[11px] text-ink-faint">{zh ? "最大输入长度（token）" : "Maximum input tokens"}</span>
+              <input value={inputLimit} onChange={(e) => setInputLimit(e.target.value)} disabled={busy}
+                inputMode="numeric" placeholder={zh ? "自动（可填写 256 或更大的整数）" : "Automatic (integer ≥ 256)"}
+                aria-invalid={!inputLimitValid} className={`${inputCls} ${inputLimitValid ? "" : "border-err"}`} />
+            </label>
             <input value={temp} onChange={(e) => setTemp(e.target.value)} disabled={busy}
               placeholder={zh ? "温度（留空不发送）" : "Temperature (empty means omitted)"} aria-label={zh ? "温度" : "Temperature"} inputMode="decimal"
               spellCheck={false} className={`${inputCls} ${tempValid ? "" : "border-err"}`} />

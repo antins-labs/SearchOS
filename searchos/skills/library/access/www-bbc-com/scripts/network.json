@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_top_countries": "inherit",
+    "get_country_medals": "inherit",
+    "get_medal_table": "proxy"
+  },
+  "aliases": {
+    "get_medal_table": "get_medal_table",
+    "get_country_medals": "get_country_medals",
+    "get_top_countries": "get_top_countries",
+    "run": "get_top_countries"
+  }
+}

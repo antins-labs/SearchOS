@@ -80,7 +80,7 @@ middleware = [
 
 共享一个 extraction 时，Web 和 Local 复用抽取批次、提交记录及任务上下文。不同 extraction 可分别指定任务或抽取策略。
 
-`ExtractionCoordinator(..., policy="task_rows")` 根据任务目标抽取并提交表格行；`policy="schema_facts"` 依据 schema 路由、保留原文窗口并提交事实。两者是显式抽取策略，不会读取 agent 角色来切换功能。核心的 store、routing、preparer 等注入接口用于内部扩展和测试，常规使用只需 model、workspace、task。
+Web、Local 和 Hybrid 均由 `ExtractionCoordinator` 按当前 schema 选择抽取路径。无表时记录独立事实，已有表时按表抽取。Main 通过 `target_table` 和 `target_cells` 限定写入范围。`policy="task_rows"` 与 `policy="schema_facts"` 分别保留各自的来源窗口处理与提交流程。
 
 ## 默认 pipeline
 
@@ -130,3 +130,8 @@ Pipeline 返回可运行的 graph，和手写列表使用同一个 `create_searc
 框架内部仍通过私有钩子适配模型和工具调用，但这些适配器不导出为业务组件，也不出现在 `graph.middleware` 中。完整参数示例见 [用途与用法](../searchos/harness/middleware/USAGE.md)。
 
 新增 [CompactionContextMiddleware](../searchos/harness/middleware/context/COMPACTION_CONTEXT.md) 可在同一实例列表中装载。它通过 before-model 钩子持久化续接摘要，区别于只修改单次请求的上下文裁剪。
+
+
+## 实现目录
+
+Context、Extraction、Sensor 统一在根目录 `*_middleware.py` 定义装载入口和钩子，在 `core/` 按对象组织领域实现，在 `utils/` 放置共用解析与计量。基类就近使用 `base.py`。公开类、配置 ID 和默认装配顺序沿用当前接口。

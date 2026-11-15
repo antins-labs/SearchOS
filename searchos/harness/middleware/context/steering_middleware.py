@@ -23,7 +23,7 @@ class SteeringMiddleware(AgentMiddleware):
         for item in drain_steering(self.inbox, immediate_only=immediate_only):
             self.delivered.append(item.text)
             messages.append(HumanMessage(
-                content=f"[用户追问 — 实时插入]\n{item.text}",
+                content=item.text,
                 id=f"steer-{item.id}",
                 additional_kwargs={
                     "sf_steer_id": item.id, "sf_steer_mode": item.mode, "sf_steer_text": item.text,

@@ -11,7 +11,7 @@ from typing import Any, Literal
 
 from pydantic import Field, PrivateAttr, computed_field
 
-from searchos.util.base_model import CamelModel
+from searchos.utils.base_model import CamelModel
 
 
 class EvidenceRelation(str, Enum):
@@ -22,6 +22,7 @@ class EvidenceRelation(str, Enum):
 
 class EvidenceStatus(str, Enum):
     ACTIVE = "active"          # eligible for citation / coverage aggregation
+    CANDIDATE = "candidate"    # retained for inspection while source or scope is incomplete
     REJECTED = "rejected"      # ruled wrong; kept for audit, not cited
     SUPERSEDED = "superseded"  # replaced by a better source; kept for provenance
 
@@ -105,10 +106,12 @@ class SourceObservation(CamelModel):
     text_hash: str
     local_source_metadata: dict[str, Any] | None = None
     source_urls: list[str] = Field(default_factory=list)
+    referring_page: tuple[str, str] | None = None
 
     @classmethod
     def capture(
-        cls, source: str, text: str, metadata: dict[str, Any] | None = None, *, source_urls=()
+        cls, source: str, text: str, metadata: dict[str, Any] | None = None, *,
+        source_urls=(), referring_page: tuple[str, str] | None = None,
     ) -> "SourceObservation":
         import hashlib
         import json
@@ -117,6 +120,8 @@ class SourceObservation(CamelModel):
         identity_parts = [source, digest, metadata]
         if source_urls:
             identity_parts.append(list(source_urls))
+        if referring_page:
+            identity_parts.append(referring_page)
         identity = json.dumps(identity_parts, sort_keys=True, ensure_ascii=False)
         return cls(
             id="obs_" + hashlib.sha256(identity.encode()).hexdigest()[:24],
@@ -125,6 +130,7 @@ class SourceObservation(CamelModel):
             text_hash="sha256:" + digest,
             local_source_metadata=metadata,
             source_urls=list(source_urls),
+            referring_page=referring_page,
         )
 
 
@@ -164,13 +170,15 @@ class EvidenceGraph(CamelModel):
         # Same fact + same source = duplicate. ``source`` stays in the key so
         # corroborating evidence from different pages is kept distinct.
         body = (node.value or node.finding or "").strip().lower()
-        return (
+        identity = (
             node.table_id,
             node.entity.strip().lower(),
             node.attribute.strip().lower(),
             body,
             node.source,
         )
+        # A later verified extraction from the same page can support this exact value.
+        return (*identity, "candidate") if node.status == EvidenceStatus.CANDIDATE else identity
 
     def add_node(self, node: EvidenceNode) -> bool:
         """兼容只关心新增数量的调用方。"""

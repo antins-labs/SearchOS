@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "dbd556c67f78ac3928d89ee34a83c460e910bbfc4ef655b85e35b581ef5e83be",
+  "capabilities": {
+    "get_rankings": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rankings\", \"list_type\": \"global500\", \"year\": 2024, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.975631+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.caifuzhongwen.com/fortune500/rankings/global500/2024/",
+          "status": 200
+        }
+      ]
+    },
+    "get_company_detail": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_company_detail\", \"company_id\": \"252\", \"year\": 2024, \"list_type\": \"global500\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.976472+00:00",
+      "reason": "Failed to parse company data",
+      "source_responses": [
+        {
+          "url": "https://www.caifuzhongwen.com/fortune500/company/global500/252/",
+          "status": 200
+        }
+      ]
+    },
+    "get_company_by_rank": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_company_by_rank\", \"rank\": 1, \"year\": 2024, \"list_type\": \"global500\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.976582+00:00",
+      "reason": "Could not find company_id for the specified rank",
+      "source_responses": [
+        {
+          "url": "https://www.caifuzhongwen.com/fortune500/rankings/global500/2024/",
+          "status": 200
+        }
+      ]
+    },
+    "search_company": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_company\", \"query\": \"银行\", \"year\": 2024, \"limit\": 3, \"list_type\": \"global500\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.976655+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.caifuzhongwen.com/fortune500/rankings/global500/2024/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

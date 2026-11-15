@@ -4,6 +4,9 @@ CDTFHR (天府菁英网) Job Announcements Access Skill
 This skill fetches job recruitment announcements from the Tianfu Elite Network (天府菁英网)
 via their public API at api.cdtfhr.com.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any
@@ -90,7 +93,7 @@ async def list_announcements(
     Returns:
         Dictionary with announcements list and pagination metadata
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await _fetch_announcements(session, page=page, name="")
         
         if "error" in result:
@@ -153,7 +156,7 @@ async def search_announcements(
             "details": "Please provide a non-empty search keyword"
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await _fetch_announcements(session, page=page, name=keyword.strip())
         
         if "error" in result:
@@ -196,6 +199,7 @@ async def search_announcements(
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute function dispatcher for CDTFHR skill.

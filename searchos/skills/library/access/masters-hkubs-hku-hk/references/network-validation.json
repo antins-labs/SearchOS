@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "17b4542ff4211db834348bf1b9a11990ae808e7163f926a649ec317dad55ddb1",
+  "capabilities": {
+    "get_tuition_fees": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tuition_fees\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.796681+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://masters.hkubs.hku.hk/admissions/",
+          "status": 200
+        }
+      ]
+    },
+    "get_admissions_schedule": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_admissions_schedule\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.797648+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://masters.hkubs.hku.hk/admissions/",
+          "status": 200
+        }
+      ]
+    },
+    "get_scholarships": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_scholarships\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.798912+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_all_programmes": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_programmes\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.800385+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://masters.hkubs.hku.hk/admissions/",
+          "status": 200
+        }
+      ]
+    },
+    "search_programme_fees": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_programme_fees\", \"programme_name\": \"finance\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.801052+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://masters.hkubs.hku.hk/admissions/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

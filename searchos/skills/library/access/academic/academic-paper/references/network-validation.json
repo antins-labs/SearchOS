@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "048b45671cff6c9c55d758846f2c8ec1126dcc6d85489d61e92131b34de7700a",
+  "capabilities": {
+    "package": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"query\": \"large language model alignment\", \"num_results\": 3, \"year_range\": \"2023-2025\", \"source\": \"all\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:35.515819+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.semanticscholar.org/graph/v1/paper/search",
+          "status": 429
+        },
+        {
+          "url": "https://dblp.org/search/publ/api",
+          "status": 200
+        },
+        {
+          "url": "https://export.arxiv.org/api/query",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

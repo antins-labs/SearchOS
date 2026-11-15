@@ -11,6 +11,9 @@ Supported functions:
 - get_citations: Get papers that cite a given DOI
 - get_references: Get papers referenced by a given DOI
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -22,10 +25,10 @@ from playwright.async_api import async_playwright
 async def fetch_json(url: str, timeout: int = 30000) -> dict:
     """Fetch JSON from a URL using Playwright."""
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context()
-            page = await context.new_page()
+            context = await _skill_network.browser_new_context(browser)
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until='domcontentloaded', timeout=timeout)
             body = await page.query_selector('body')
@@ -324,6 +327,7 @@ async def get_references(doi: str, limit: int = 20) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute ACM Digital Library access functions.

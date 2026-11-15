@@ -2,6 +2,9 @@
 SearchOS Access Skill for contest.stickeryou.com
 Extracts article content, news listings, and related posts from Stickeryou News Review.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -264,7 +267,7 @@ def extract_news_listing(html: str, url: str, page: int = 1) -> Dict[str, Any]:
 
 async def get_article(url: str) -> Dict[str, Any]:
     """Fetch and extract a single article."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_html(url, session)
             return extract_article_data(html, url)
@@ -281,7 +284,7 @@ async def get_news_listing(page: int = 1) -> Dict[str, Any]:
     base_url = "https://contest.stickeryou.com/news"
     url = f"{base_url}?page={page}" if page > 1 else base_url
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_html(url, session)
             return extract_news_listing(html, url, page)
@@ -306,7 +309,7 @@ async def search_articles(query: str, max_pages: int = 3) -> Dict[str, Any]:
     
     query_lower = query.lower()
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             for page in range(1, max_pages + 1):
                 url = f"https://contest.stickeryou.com/news?page={page}" if page > 1 else "https://contest.stickeryou.com/news"
@@ -339,6 +342,7 @@ async def search_articles(query: str, max_pages: int = 3) -> Dict[str, Any]:
     return results
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx=None) -> Dict[str, Any]:
     """
     Main entry point for the skill.

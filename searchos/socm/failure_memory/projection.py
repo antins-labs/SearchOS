@@ -8,6 +8,7 @@ from typing import Any, Literal
 
 from searchos.socm.failure_memory.memory import scope_for_task, source_scope_key
 from searchos.socm.failure_memory.models import FailureKind, FailureMemory, FailureScope
+from searchos.socm.refs import cell_parts, cell_ref, row_values
 
 
 def _cells(state: Any, scope: FailureScope) -> set[str]:
@@ -16,9 +17,6 @@ def _cells(state: Any, scope: FailureScope) -> set[str]:
         resolved = state.coverage_map.resolve_cell_reference(raw, table_id=scope.table_id)
         if resolved:
             keys.add(resolved)
-        elif scope.table_id and not raw.startswith(f"{scope.table_id}/"):
-            # 未建立的目标仍保留表边界，不把同名短引用跨表匹配。
-            keys.add(f"{scope.table_id}/{raw}")
         else:
             keys.add(raw)
     return keys
@@ -26,7 +24,7 @@ def _cells(state: Any, scope: FailureScope) -> set[str]:
 
 def _tables(state: Any, scope: FailureScope) -> set[str]:
     tables = {scope.table_id} if scope.table_id else set()
-    tables.update(key.split("/", 1)[0] for key in _cells(state, scope) if "/" in key)
+    tables.update(cell_parts(key)[0] for key in _cells(state, scope))
     return tables
 
 
@@ -74,10 +72,10 @@ def _task_scopes(state: Any, task_id: str, agent_id: str, target_table: str) -> 
 
 def _scope_label(scope: FailureScope) -> str:
     if scope.target_cells:
-        label = "cells=" + json.dumps(scope.target_cells[:5], ensure_ascii=False)
+        label = "cells=" + json.dumps([cell_ref(key) for key in scope.target_cells[:5]], ensure_ascii=False)
         return label + (f" (+{len(scope.target_cells) - 5})" if len(scope.target_cells) > 5 else "")
     if scope.entities:
-        label = "entities=" + json.dumps(scope.entities[:5], ensure_ascii=False)
+        label = "keys=" + json.dumps([row_values(key) for key in scope.entities[:5]], ensure_ascii=False)
         return label + (f" (+{len(scope.entities) - 5})" if len(scope.entities) > 5 else "")
     if scope.task_id:
         return "task=" + json.dumps(scope.task_id, ensure_ascii=False)
@@ -153,7 +151,7 @@ def render_failure_memory(
     records.sort(key=lambda memory: memory.last_seen or memory.created_at, reverse=True)
     if not records:
         return ""
-    lines = ["Search failure memory (scope and conditions apply):"]
+    lines = ["Failure memory:"]
     for memory in records[:settings.failure_memory_max_inject]:
         scope = _scope_label(memory.scope)
         target = json.dumps(memory.target[:200], ensure_ascii=False)
@@ -176,5 +174,5 @@ def render_failure_memory(
             f"({scope}{detail})."
         )
         if memory.guidance and view != "writing":
-            lines.append(f"  Conditional guidance: {memory.guidance[:300]}")
+            lines.append(f"  Guidance: {memory.guidance[:300]}")
     return "\n".join(lines)

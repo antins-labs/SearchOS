@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_hospital_campuses": "direct",
+    "get_hospital_ranking": "direct",
+    "get_hospital_departments": "proxy",
+    "get_hospital_basic_info": "direct"
+  },
+  "aliases": {
+    "get_hospital_basic_info": "get_hospital_basic_info",
+    "get_hospital_ranking": "get_hospital_ranking",
+    "get_hospital_departments": "get_hospital_departments",
+    "get_hospital_campuses": "get_hospital_campuses",
+    "run": "get_hospital_campuses"
+  }
+}

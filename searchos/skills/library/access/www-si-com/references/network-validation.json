@@ -1,0 +1,227 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "bbaa0c9e54cd2d88d06e257160ee9e0d082ab89448054dfe6efebd55b1d4d009",
+  "capabilities": {
+    "get_section_articles": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_section_articles\", \"section\": \"nba\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.737735+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.si.com/nba/",
+          "status": 301
+        },
+        {
+          "url": "https://www.si.com/nba",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        },
+        {
+          "url": "https://assets.minutemediacdn.com/vl-prod/assets/CHXOu62N-bundle-graph.json",
+          "status": 200
+        },
+        {
+          "url": "https://assets.minutemediacdn.com/vl-prod/assets/D6MbXbo1-style.css",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/ptserif/v19/EJRSQgYoZZY2vCFuvAnt66qSVys.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/ptserif/v19/EJRVQgYoZZY2vCFuvAFWzr8.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.cookielaw.org/opt-out/otCCPAiab.js",
+          "status": 200
+        },
+        {
+          "url": "https://p.typekit.net/p.css",
+          "status": 200
+        },
+        {
+          "url": "https://images2.minutemediacdn.com/image/upload/video/thumbnail/mmsport/01m5fdvx8drbb7v02fmg/01m5fdvx8drbb7v02fmg-fd8b59f861c174de0b4dc035187b9bb0.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://assets.minutemediacdn.com/vl-prod/build/q-RFD0BxB0.js",
+          "status": 200
+        },
+        {
+          "url": "https://assets.minutemediacdn.com/vl-prod/build/q-XYi0b4s7.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn-ukwest.onetrust.com/scripttemplates/otSDKStub.js",
+          "status": 200
+        },
+        {
+          "url": "https://images2.minutemediacdn.com/image/upload/c_crop,x_0,y_0,w_1799,h_1011/c_fill,w_600,ar_16:9,f_auto,q_auto,g_auto/images%2FvoltaxMediaLibrary%2Fmmsport%2Fsi%2F01m5f738fk0jnmycsevn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://assets.minutemediacdn.com/vl-prod/build/q-DGRjx-LV.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn-ukwest.onetrust.com/consent/[redacted]/01948995-2b4d-78dc-a8c2-9a61ad90edd4.json",
+          "status": 200
+        },
+        {
+          "url": "https://use.typekit.net/af/d4a916/000000000000000077519a49/31/l",
+          "status": 200
+        },
+        {
+          "url": "https://use.typekit.net/af/b5de44/000000000000000077519a42/31/l",
+          "status": 200
+        },
+        {
+          "url": "https://use.typekit.net/af/7828d8/000000000000000077519a3d/31/l",
+          "status": 200
+        },
+        {
+          "url": "https://use.typekit.net/af/3db612/000000000000000077519a43/31/l",
+          "status": 200
+        }
+      ]
+    },
+    "get_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.si.com/nba/free-agency/where-shaq-believes-lebron-james-should-sign-lakers-departure\", \"section\": \"nba\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.740148+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.si.com/nba/free-agency/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        },
+        {
+          "url": "https://p.typekit.net/p.css",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/ptserif/v19/EJRSQgYoZZY2vCFuvAnt66qSVys.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/ptserif/v19/EJRVQgYoZZY2vCFuvAFWzr8.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://assets.minutemediacdn.com/vl-prod/assets/CHXOu62N-bundle-graph.json",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.cookielaw.org/opt-out/otCCPAiab.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn-ukwest.onetrust.com/scripttemplates/otSDKStub.js",
+          "status": 200
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"query\": \"LeBron James\", \"section\": \"nba\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.740394+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.si.com/nba/",
+          "status": 301
+        },
+        {
+          "url": "https://www.si.com/nba",
+          "status": 200
+        },
+        {
+          "url": "https://p.typekit.net/p.css",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/ptserif/v19/EJRSQgYoZZY2vCFuvAnt66qSVys.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/ptserif/v19/EJRVQgYoZZY2vCFuvAFWzr8.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://images2.minutemediacdn.com/image/upload/c_crop,x_0,y_0,w_1799,h_1011/c_fill,w_600,ar_16:9,f_auto,q_auto,g_auto/images%2FvoltaxMediaLibrary%2Fmmsport%2Fsi%2F01m5f738fk0jnmycsevn.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn-ukwest.onetrust.com/scripttemplates/otSDKStub.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.cookielaw.org/opt-out/otCCPAiab.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn-ukwest.onetrust.com/consent/[redacted]/01948995-2b4d-78dc-a8c2-9a61ad90edd4.json",
+          "status": 200
+        },
+        {
+          "url": "https://players.voltaxservices.io/players/vertical/99/code",
+          "status": 200
+        },
+        {
+          "url": "https://assets.minutemediacdn.com/vl-prod/assets/CHXOu62N-bundle-graph.json",
+          "status": 200
+        },
+        {
+          "url": "https://assets.minutemediacdn.com/vl-prod/build/q-RFD0BxB0.js",
+          "status": 200
+        },
+        {
+          "url": "https://geolocation.onetrust.com/cookieconsentpub/v1/geo/location",
+          "status": 200
+        },
+        {
+          "url": "https://cookies-data.onetrust.io/bannersdk/v1/domaingroupcheck",
+          "status": 200
+        },
+        {
+          "url": "https://assets.minutemediacdn.com/vl-prod/build/q-XYi0b4s7.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

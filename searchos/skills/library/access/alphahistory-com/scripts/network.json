@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_documents": "direct",
+    "get_article": "direct",
+    "list_timeline": "direct",
+    "search": "direct",
+    "list_topics": "direct",
+    "list_people": "direct"
+  },
+  "aliases": {
+    "get_article": "get_article",
+    "list_topics": "list_topics",
+    "list_documents": "list_documents",
+    "list_timeline": "list_timeline",
+    "list_people": "list_people",
+    "search": "search",
+    "run": "search"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "dc65d26989d2bb72939944c4aeb31f917c1e0df56198e184cc75387297ab7f61",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://trackandfieldnews.com/article/2025-mens-1500-world-rankings/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.880129+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://trackandfieldnews.com/article/2025-mens-1500-world-rankings/",
+          "status": 200
+        }
+      ]
+    },
+    "get_index": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_index\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.881243+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://trackandfieldnews.com/mens-world-rankings-by-event/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

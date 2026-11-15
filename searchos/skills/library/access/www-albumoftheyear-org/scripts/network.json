@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_user": "direct",
+    "get_list": "direct"
+  },
+  "aliases": {
+    "get_list": "get_list",
+    "get_user": "get_user",
+    "run": "get_user"
+  }
+}

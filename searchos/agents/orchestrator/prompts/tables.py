@@ -3,7 +3,7 @@
 TABLE_DESIGN = (
     "## Organize results\n"
     "\n"
-    "Use findings for sourced explanations and facts. Create a schema with `create_schema` "
+    "Create a schema with `create_schema` "
     "when tracking entities and attributes helps comparison, collection, deduplication, or "
     "gap assessment. Define entities and useful dimensions before table-bound retrieval. "
     "Derive them from the request and observed sources. Internal tables organize evidence; "
@@ -27,6 +27,11 @@ TABLE_DESIGN = (
     "reusable identity-mapping tables.\n"
     "\n"
     "### Primary keys\n"
+    "\n"
+    "Create and discover rows as objects with a separate value for every primary-key field. "
+    "For exact operations, form RowRef {table_id, key: [values in primary_key order]} "
+    "from the table header and row. Add the column name as attribute to form a CellRef. "
+    "A single-column key still uses an array. Preserve punctuation inside field values.\n"
     "\n"
     "Choose the smallest stable key that uniquely identifies a row and is recognizable to "
     "the user. Prefer, in order:\n"
@@ -53,8 +58,16 @@ TABLE_DESIGN = (
     "subject-score cutoff; earliest release across all regions/platforms versus one regional "
     "release. Record explicit formats such as YYYY, MM-DD-YYYY, or USD with commas. Keep "
     "URLs and excerpts in evidence metadata unless the user requests them as data.\n"
+    "When creating a table or adding columns, explicitly choose requires_search for every "
+    "non-primary-key column. Set requires_search=false for stable fields inferable from an established "
+    "row identity or known facts. For example, a university's home province may follow "
+    "from its identity; a program's cutoff for a given year requires a source. Keep "
+    "requires_search=true for variable facts and fields the user wants sourced.\n"
     "\n"
-    "Reuse existing tables. Use `add_columns` for newly required attributes and create "
+    "Use `add_columns` to add an attribute or revise an existing data column by exact name. "
+    "Send just the fields that change. If established row facts reliably determine a column, "
+    "you can set requires_search=false and fill its values with `edit_entities`. Keep a "
+    "user-requested source requirement in force. Reuse existing tables and create "
     "another table only when a distinct entity type or granularity requires it.\n"
 )
 
@@ -86,15 +99,16 @@ TABLE_WORK = (
     "available and dispatch focused discovery. Retry failed discovery only with a concrete "
     "new route or reason to expect progress.\n"
     "\n"
-    "After each result batch, check for newly established in-scope row keys and use "
-    "`add_entities` before the next table-bound dispatch. An estimated count is a review "
-    "hint, never a reason to invent rows. Set `target_table` for table-specific work, "
-    "explicitly when multiple tables exist, and exact `target_cells` for targeted fill or "
-    "backfill; leave cell targets open only for discovery. Table-bound tasks require a "
-    "declared schema.\n"
+    "After each result batch, review the rows in the latest SOCM update. Use `add_entities` for "
+    "established in-scope row keys still missing from the table. Set `target_table` to "
+    "focus retrieval on a particular table. Supply exact `target_cells` for targeted "
+    "fill or backfill. Leave cell targets open when discovering new members.\n"
+    "Fill requires_search=false fields inline with seed_entities or add_entities, or use "
+    "edit_entities without evidence_ids for existing rows. Leave ambiguous campus or "
+    "other uncertain mappings null. Dispatch searches for source-required fields.\n"
     "\n"
-    "Use `inspect_table` and source evidence to assess missing values, conflicting claims, "
-    "and membership. Use `edit_entities` to correct row-key typos or replace values while "
+    "Check source evidence when resolving conflicting claims or membership. "
+    "Use `edit_entities` to correct row-key typos or replace values while "
     "preserving attribution; clear a disproved value to leave an explicit gap. Use "
     "`remove_entities` only when authoritative evidence positively excludes a row, such as "
     "absence from a complete official inventory, or when it fails an explicit task filter. "
@@ -107,11 +121,10 @@ TABLE_WORK = (
     "before claiming an exhaustive result.\n"
 )
 
-HYBRID_EXTRACTION = (
-    "With a declared schema, Evidence Extraction also fills supported cells from "
-    "observations collected by findings tasks. A table target focuses extraction; untargeted "
-    "observations are checked against the declared tables. Without a schema, extraction "
-    "records independent findings.\n"
+EXTRACTION = (
+    "Evidence Extraction checks each observation against the current schema and writes "
+    "source-supported rows and cells. An empty declared table is ready for discovery. "
+    "Without a schema, it records independent findings."
 )
 
 REPAIR = (
@@ -119,16 +132,14 @@ REPAIR = (
     "\n"
     "The selected cells in the user message define the allowed scope. Dispatch retrieval "
     "tasks for those cells with explicit `target_table` and `target_cells`. Group work by "
-    "evidence needs and dependencies. Collect results with `check_agents`, inspect the "
-    "selected cells with `inspect_table`, and report changes and remaining gaps. Keep the "
+    "evidence needs and dependencies. When reports arrive, review the "
+    "selected cells in the latest SOCM update, and report changes and remaining gaps. Keep the "
     "declared tables, columns, and entity set fixed.\n"
 )
 
 
-def render_tables(*, fixed: bool, repair: bool, hybrid: bool) -> str:
+def render_tables(*, fixed: bool, repair: bool) -> str:
     if repair:
         return "\n\n".join(section.strip() for section in (REPAIR, VALUE_CONTRACT))
-    sections = [FIXED_TABLES if fixed else TABLE_DESIGN, VALUE_CONTRACT, TABLE_WORK]
-    if hybrid:
-        sections.append(HYBRID_EXTRACTION)
+    sections = [FIXED_TABLES if fixed else TABLE_DESIGN, EXTRACTION, VALUE_CONTRACT, TABLE_WORK]
     return "\n\n".join(section.strip() for section in sections)

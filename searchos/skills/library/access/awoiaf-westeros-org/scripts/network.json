@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_character": "direct",
+    "search_characters": "direct"
+  },
+  "aliases": {
+    "get_character": "get_character",
+    "search_characters": "search_characters",
+    "run": "search_characters"
+  }
+}

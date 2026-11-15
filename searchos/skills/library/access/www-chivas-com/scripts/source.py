@@ -4,6 +4,9 @@ Chivas Regal Product Data Access Skill
 Fetches product information from chivas.com via Internet Archive
 (live site is protected by Cloudflare).
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -210,7 +213,7 @@ async def get_product(slug: str, use_archive: bool = True) -> dict[str, Any]:
     
     product_info = KNOWN_PRODUCTS[slug]
     
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         headers=DEFAULT_HEADERS,
         timeout=30.0,
         follow_redirects=True
@@ -245,7 +248,7 @@ async def get_all_products() -> dict[str, Any]:
     products = []
     errors = []
     
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         headers=DEFAULT_HEADERS,
         timeout=30.0,
         follow_redirects=True
@@ -291,6 +294,7 @@ def list_products() -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Chivas product skill.

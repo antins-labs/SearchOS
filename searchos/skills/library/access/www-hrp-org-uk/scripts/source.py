@@ -4,6 +4,9 @@ Fetches opening times and ticket prices from www.hrp.org.uk
 Handles Cloudflare protection with extended wait times and proper browser configuration
 Includes fallback sample data for testing when Cloudflare blocks access
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -181,7 +184,7 @@ async def create_browser_context():
     """Create a browser context with proper configuration to bypass Cloudflare"""
     p = await async_playwright().start()
     
-    browser = await p.chromium.launch_persistent_context(
+    browser = await _skill_network.browser_launch_persistent_context(p.chromium, 
         user_data_dir='/tmp/hrp_browser_session',
         headless=True,
         user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -218,7 +221,7 @@ async def fetch_page_with_retry(browser: Browser, url: str, max_wait: int = 45) 
     Fetch page with retry and wait for Cloudflare challenge
     Returns (html_content, error_message)
     """
-    page = browser.pages[0] if browser.pages else await browser.new_page()
+    page = browser.pages[0] if browser.pages else await _skill_network.browser_new_page(browser)
     
     try:
         response = await page.goto(url, wait_until='domcontentloaded', timeout=30000)
@@ -622,6 +625,7 @@ async def list_palaces(params: dict[str, Any], ctx: Any) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any) -> dict[str, Any]:
     """
     Main entry point for HRP access skill

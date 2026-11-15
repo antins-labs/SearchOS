@@ -3,6 +3,9 @@ SearchOS Access Skill for theolympicdesign.com
 
 Fetches Olympic design records (mascots and emblems) with structured data extraction.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -171,7 +174,7 @@ async def get_record(params: dict) -> dict:
         return {'error': 'Either url or slug parameter is required', 'success': False}
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_page(session, url)
             data = extract_record_data(html, url)
             return {'success': True, 'data': data}
@@ -190,7 +193,7 @@ async def list_records(params: dict) -> dict:
     sample_url = f"{BASE_URL}/olympic-games/{category}/atlanta-1996/"
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             html = await fetch_page(session, sample_url)
             links = extract_navigation_links(html, category)
             return {
@@ -212,7 +215,7 @@ async def search_records(params: dict) -> dict:
         return {'error': 'query parameter is required', 'success': False}
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             results = []
             categories = [category] if category else ['mascots', 'emblems']
             
@@ -256,7 +259,7 @@ async def get_multiple_records(params: dict) -> dict:
     results = []
     errors = []
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for url in target_urls:
             try:
                 html = await fetch_page(session, url)
@@ -273,6 +276,7 @@ async def get_multiple_records(params: dict) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the skill.

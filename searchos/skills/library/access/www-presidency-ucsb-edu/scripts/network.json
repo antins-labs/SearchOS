@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_election": "direct",
+    "list_elections": "inherit",
+    "get_state_results": "direct"
+  },
+  "aliases": {
+    "get_election": "get_election",
+    "get_state_results": "get_state_results",
+    "list_elections": "list_elections",
+    "run": "list_elections"
+  }
+}

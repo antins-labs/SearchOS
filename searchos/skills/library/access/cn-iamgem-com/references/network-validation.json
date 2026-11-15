@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2c99dfc406afef030a2e472c0a5f04ea197c9aabfc946cc0f042aa4edb392fc7",
+  "capabilities": {
+    "get_tours": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tours\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.483045+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cn.iamgem.com/tours/",
+          "status": 200
+        }
+      ]
+    },
+    "get_albums": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_albums\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.483691+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cn.iamgem.com/wp-json/wp/v2/categories",
+          "status": 200
+        }
+      ]
+    },
+    "get_album_tracks": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_album_tracks\", \"album_id\": 37}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.483778+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cn.iamgem.com/wp-json/wp/v2/categories/37",
+          "status": 200
+        },
+        {
+          "url": "https://cn.iamgem.com/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    },
+    "get_posts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_posts\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.483851+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cn.iamgem.com/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    },
+    "get_post": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_post\", \"post_id\": 39609}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.483930+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cn.iamgem.com/wp-json/wp/v2/posts/39609",
+          "status": 200
+        }
+      ]
+    },
+    "get_categories": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_categories\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.484002+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cn.iamgem.com/wp-json/wp/v2/categories",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"Grace\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.484187+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cn.iamgem.com/wp-json/wp/v2/posts",
+          "status": 200
+        }
+      ]
+    },
+    "get_videos": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_videos\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.558432+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cn.iamgem.com/videos/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

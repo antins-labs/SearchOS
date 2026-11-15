@@ -25,6 +25,7 @@ from searchos.socm.evidence import (
     EvidenceRelation,
     EvidenceStatus,
 )
+from searchos.socm.evidence.provenance import resolve_cell_provenance
 from searchos.socm.failure_memory import (
     FailureKind,
     FailureMemory,
@@ -55,7 +56,6 @@ from searchos.socm.views import (
     SearchStateSnapshot,
     TableSnapshot,
 )
-from searchos.socm.views.trace import resolve_cell_provenance
 
 __all__ = [
     # Frontier

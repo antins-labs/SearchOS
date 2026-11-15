@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3ae9e32e61594c70e344fd4ae8f0851e6d85969aca5a48c619e92576c07ffb9c",
+  "capabilities": {
+    "get_mission_details": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_mission_details\", \"mission_id\": \"SZ19\", \"page_type\": \"current\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.986191+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.cmse.gov.cn/fxrw/SZ19/",
+          "status": 200
+        }
+      ]
+    },
+    "get_timeline": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_timeline\", \"article_url\": \"https://www.cmse.gov.cn/fxrw/szwh/jchg_193/200809/t20080917_23556.html\", \"page_type\": \"current\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.986811+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.cmse.gov.cn/fxrw/szwh/jchg_193/200809/t20080917_23556.html",
+          "status": 200
+        }
+      ]
+    },
+    "list_missions": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_missions\", \"page_type\": \"current\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.986953+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.cmse.gov.cn/col/col9/index.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"article_url\": \"https://www.cmse.gov.cn/xwzx/202507/t20250709_56720.html\", \"page_type\": \"current\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.987137+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.cmse.gov.cn/xwzx/202507/t20250709_56720.html",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"keyword\": \"神舟十九号\", \"page_type\": \"current\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.987225+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.cmse.gov.cn/col/col9/index.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

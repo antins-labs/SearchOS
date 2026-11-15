@@ -6,6 +6,9 @@ Note: Bloomberg.com uses PerimeterX anti-bot protection that blocks
 automated access. This skill attempts multiple strategies and provides
 detailed error reporting.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -17,7 +20,7 @@ from playwright.async_api import async_playwright, Browser, BrowserContext, Page
 
 async def create_stealth_context(browser: Browser) -> BrowserContext:
     """Create a browser context with anti-detection measures"""
-    context = await browser.new_context(
+    context = await _skill_network.browser_new_context(browser, 
         user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         viewport={'width': 1366, 'height': 768},
         device_scale_factor=1,
@@ -66,7 +69,7 @@ async def fetch_with_browser(url: str, timeout: int = 30000) -> dict[str, Any]:
     
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(
+            browser = await _skill_network.browser_launch(p.chromium, 
                 headless=True,
                 args=[
                     '--disable-blink-features=AutomationControlled',
@@ -91,7 +94,7 @@ async def fetch_with_browser(url: str, timeout: int = 30000) -> dict[str, Any]:
                 };
             """)
             
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Capture API responses
             async def capture_response(response):
@@ -193,7 +196,7 @@ async def fetch_with_aiohttp(url: str, timeout: int = 10) -> dict[str, Any]:
     
     try:
         timeout_obj = aiohttp.ClientTimeout(total=timeout)
-        async with aiohttp.ClientSession(timeout=timeout_obj) as session:
+        async with _skill_network.aiohttp_session(timeout=timeout_obj) as session:
             async with session.get(url, headers=headers) as resp:
                 status = resp.status
                 content = await resp.text()
@@ -448,6 +451,7 @@ async def check_access() -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for Bloomberg quote extraction.

@@ -12,6 +12,9 @@ API Endpoints:
 - Metadata: https://fred.stlouisfed.org/graph/api/series/?id=SERIES_ID
 - Series page: https://fred.stlouisfed.org/series/SERIES_ID
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -431,6 +434,7 @@ async def get_series_full(params: dict[str, Any], session: aiohttp.ClientSession
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute FRED data access operations.
@@ -456,7 +460,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     function = params.get('function') or 'get_series_full'
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_series_data':
             return await get_series_data(params, session)
         elif function == 'get_series_metadata':

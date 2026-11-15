@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "feaee8256957f93ec158abdc76507936190201c4b7008211fb614dbc29e54245",
+  "capabilities": {
+    "get_award_history": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_award_history\", \"category_id\": \"berlin_best_actor\", \"include_empty\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.050162+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.filmaffinity.com/en/awards-history.php",
+          "status": 307
+        },
+        {
+          "url": "https://www.filmaffinity.com/en/awards-history.php",
+          "status": 403
+        },
+        {
+          "url": "https://www.filmaffinity.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://www.filmaffinity.com/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eef62be8c72580/RecM8M.V7IP3GfRZuP71.r1SStedfSdiFB_QCJ3hR5U-1792739841-1.2.1.1-SvrE_.NtHYaIezAFWaGJ1S5AFZo_6y1pcxnuVO6OU46zDFHsd2QLuN2P7R76T9TW",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.filmaffinity.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_categories": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_categories\", \"category_id\": \"berlin_best_actor\", \"include_empty\": false}"
+      ],
+      "checked_at": "2026-10-23T07:19:02.348168+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.filmaffinity.com/en/awards-history.php",
+          "status": 307
+        },
+        {
+          "url": "https://www.filmaffinity.com/en/awards-history.php",
+          "status": 403
+        },
+        {
+          "url": "https://www.filmaffinity.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://www.filmaffinity.com/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eefdf63846d378/bOicKsobTpbvQFJmsNz2UxdPuotk1TMLwn3_iNAotNY-1792740161-1.2.1.1-jugrNzoVTLMVID_kw5Ghd9yo30._w4dFDkSiRCQm60OSc0EnR4oiCNTjwYpm1f6.",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.filmaffinity.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -8,6 +8,9 @@ Supported functions:
 - get_athlete_bio: Get athlete biography and results history
 - get_race_results: Get detailed results for a specific race
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -383,6 +386,7 @@ async def get_race_results(params: dict, session: aiohttp.ClientSession) -> dict
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the FIS-SKI access skill
@@ -414,7 +418,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             'available_functions': ['get_athlete_bio', 'get_race_results']
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_athlete_bio':
             return await get_athlete_bio(params, session)
         elif function == 'get_race_results':

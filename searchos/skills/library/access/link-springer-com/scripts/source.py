@@ -8,6 +8,9 @@ Provides structured access to:
 
 Uses direct HTTP requests with HTML parsing (no API required).
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -18,6 +21,7 @@ import aiohttp
 from bs4 import BeautifulSoup
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute a Springer Link query.
@@ -353,7 +357,7 @@ async def get_article(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]
     connector = aiohttp.TCPConnector(limit=10)
     
     try:
-        async with aiohttp.ClientSession(timeout=timeout, connector=connector) as session:
+        async with _skill_network.aiohttp_session(timeout=timeout, connector=connector) as session:
             status, html, final_url = await _fetch_html(session, url)
             
             if status == 404:
@@ -465,7 +469,7 @@ async def get_issue(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     connector = aiohttp.TCPConnector(limit=10)
     
     try:
-        async with aiohttp.ClientSession(timeout=timeout, connector=connector) as session:
+        async with _skill_network.aiohttp_session(timeout=timeout, connector=connector) as session:
             status, html, final_url = await _fetch_html(session, url)
             
             if status == 404:
@@ -553,7 +557,7 @@ async def list_issues(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]
     connector = aiohttp.TCPConnector(limit=10)
     
     try:
-        async with aiohttp.ClientSession(timeout=timeout, connector=connector) as session:
+        async with _skill_network.aiohttp_session(timeout=timeout, connector=connector) as session:
             status, html, final_url = await _fetch_html(session, url)
             
             if status == 404:

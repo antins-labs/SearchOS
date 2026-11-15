@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_player": "direct",
+    "search": "direct",
+    "get_hero": "direct",
+    "get_page": "direct",
+    "get_tournament": "direct"
+  },
+  "aliases": {
+    "search": "search",
+    "get_tournament": "get_tournament",
+    "get_hero": "get_hero",
+    "get_player": "get_player",
+    "get_page": "get_page",
+    "run": "get_page"
+  }
+}

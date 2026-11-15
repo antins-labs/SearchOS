@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "76518fd4844f7e5efc7d93dc9f9066f0b06cfe8d24d76c5f64d37e3557afb4ab",
+  "capabilities": {
+    "get_tunnel_summary": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tunnel_summary\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.982627+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.checkerboardhill.com/2017/05/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.checkerboardhill.com/2020/03/mtr-cross-harbour-tunnel-flood-gates/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.983586+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.checkerboardhill.com/2020/03/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "search_posts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_posts\", \"query\": \"immersed tube\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.983658+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.checkerboardhill.com/",
+          "status": 200
+        }
+      ]
+    },
+    "list_mtr_posts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_mtr_posts\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.983741+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.checkerboardhill.com/tag/mtr/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

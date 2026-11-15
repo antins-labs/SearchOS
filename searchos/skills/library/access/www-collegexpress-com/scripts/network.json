@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_lists": "direct",
+    "get_list": "direct"
+  },
+  "aliases": {
+    "get_list": "get_list",
+    "search_lists": "search_lists",
+    "run": "search_lists"
+  }
+}

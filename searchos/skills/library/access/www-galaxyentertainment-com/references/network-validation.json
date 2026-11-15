@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "a4e37bbad9771c805ed86860842cc9c11cf9d570542e6f7008daff99fa742d7e",
+  "capabilities": {
+    "financial_reports": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"financial_reports\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.069313+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.galaxyentertainment.com/en/investor/financial-reports",
+          "status": 200
+        }
+      ]
+    },
+    "financial_results": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"financial_results\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.070274+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.galaxyentertainment.com/en",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

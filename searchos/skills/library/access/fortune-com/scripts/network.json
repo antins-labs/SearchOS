@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_global500_ranking": "direct",
+    "search_companies": "direct",
+    "get_company_profile": "direct"
+  },
+  "aliases": {
+    "get_global500_ranking": "get_global500_ranking",
+    "get_company_profile": "get_company_profile",
+    "search_companies": "search_companies",
+    "run": "search_companies"
+  }
+}

@@ -15,12 +15,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from searchos.socm.storage.workspace import new_session_id
-
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from api.deps import session_directory, WORKSPACE_ROOT, sessions
+from api.deps import WORKSPACE_ROOT, session_directory, sessions
+from api.research.events import timeline_events
+from searchos.socm.storage.workspace import new_session_id
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
@@ -172,7 +172,7 @@ def _load_turn_resources(ws: Path) -> dict[int, dict[str, Any]]:
         resources[turn_index] = {
             key: record.get(key)
             for key in (
-                "elapsed_s", "total_queries", "total_steps", "tool_counts",
+                "elapsed_s", "total_queries", "total_steps", "tool_counts", "skill_execution_count",
                 "token_usage", "token_phases", "model_distribution", "timestamp",
             )
             if record.get(key) is not None
@@ -197,11 +197,8 @@ def _trajectory_records_for_turn(
         return []
 
     segments: list[list[dict[str, Any]]] = []
-    for line in trajectory.read_text(encoding="utf-8", errors="replace").splitlines():
-        try:
-            record = json.loads(line)
-        except json.JSONDecodeError:
-            continue
+    for event in timeline_events(ws, {}):
+        record = event["data"]
         if record.get("type") == "task_start" or not segments:
             segments.append([])
         segments[-1].append(record)
@@ -298,7 +295,7 @@ def _turn_views(
                 "completed_at": resource.get("timestamp"),
             })
         for key in (
-            "elapsed_s", "total_queries", "total_steps", "tool_counts",
+            "elapsed_s", "total_queries", "total_steps", "tool_counts", "skill_execution_count",
             "token_usage", "token_phases", "model_distribution",
         ):
             value = (
@@ -431,18 +428,7 @@ async def load_history(session_id: str):
         title = _read_intent_fast(state_file)
 
     # Replay the full trajectory in the same envelope the WebSocket uses.
-    events: list[dict[str, Any]] = []
-    traj = ws / "trajectory.jsonl"
-    if traj.exists():
-        with traj.open("rb") as stream:
-            while line := stream.readline():
-                if not line.endswith(b"\n"):
-                    break
-                try:
-                    events.append({"type": "trajectory", "data": json.loads(line),
-                                   "event_id": f"trajectory:{stream.tell()}"})
-                except json.JSONDecodeError:
-                    pass
+    events = timeline_events(ws, {})
 
     mem = sessions.get(session_id)
     status = "running" if (mem and mem.get("status") == "running") else (
@@ -450,7 +436,7 @@ async def load_history(session_id: str):
     )
 
     # Full user↔AI dialogue so a reload shows every turn, not title + last answer.
-    from searchos.harness.telemetry.conversation_context import conversation_turns
+    from searchos.harness.telemetry.conversation import conversation_turns
     turns = _turn_views(
         conversation_turns(ws),
         _load_turn_snapshots(ws),
@@ -531,7 +517,7 @@ def _write_branch_conversation(ws: Path, query: str, answer: str) -> None:
 )
 async def branch_history_turn(session_id: str, turn_index: int):
     """Copy one historical turn into a new, independently editable session."""
-    from searchos.harness.telemetry.conversation_context import conversation_turns
+    from searchos.harness.telemetry.conversation import conversation_turns
     from searchos.socm.state import SearchState
     from searchos.socm.storage.workspace import WorkspaceManager
 

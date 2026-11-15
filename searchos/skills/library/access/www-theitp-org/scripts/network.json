@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_volume": "direct",
+    "list_volumes": "direct"
+  },
+  "aliases": {
+    "get_volume": "get_volume",
+    "list_volumes": "list_volumes",
+    "run": "list_volumes"
+  }
+}

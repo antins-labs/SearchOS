@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_issues": "direct",
+    "get_issue": "direct",
+    "get_article": "direct"
+  },
+  "aliases": {
+    "get_article": "get_article",
+    "get_issue": "get_issue",
+    "list_issues": "list_issues",
+    "run": "list_issues"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_turner_prize_years": "direct",
+    "get_year_details": "direct",
+    "get_winners_grid": "direct",
+    "get_bursary_recipients": "direct"
+  },
+  "aliases": {
+    "get_turner_prize_years": "get_turner_prize_years",
+    "get_winners_grid": "get_winners_grid",
+    "get_bursary_recipients": "get_bursary_recipients",
+    "get_year_details": "get_year_details",
+    "run": "get_year_details"
+  }
+}

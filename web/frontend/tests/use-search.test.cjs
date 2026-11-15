@@ -15,6 +15,7 @@ function load(source, dependencies = {}, globals = {}) {
   vm.runInNewContext(code, {
     exports,
     require(name) {
+      if (name === "./socmRefs" || name === "@/lib/socmRefs") return load("lib/socmRefs.ts");
       assert.ok(name in dependencies, `Unexpected import: ${name}`);
       return dependencies[name];
     },
@@ -23,8 +24,8 @@ function load(source, dependencies = {}, globals = {}) {
   return exports;
 }
 
-const derive = load("lib/derive.ts");
-const liveUpdates = load("lib/liveUpdates.ts");
+const derive = load("lib/runState.ts");
+const liveUpdates = derive;
 const conversation = load("lib/conversation.ts");
 
 test("completed local follow-ups reuse the local conversation session", () => {
@@ -94,7 +95,7 @@ function harness() {
     },
   };
   const { useSearch } = load("hooks/useSearch.ts", {
-    react, "@/lib/api": api, "@/lib/derive": derive, "@/lib/liveUpdates": liveUpdates,
+    react, "@/lib/api": api, "@/lib/runState": derive,
   }, {
     WebSocket: { CLOSING: 2 },
     setInterval(fn, ms) { intervals.set(ms, fn); return ms; },
@@ -309,20 +310,20 @@ test("Hybrid mode switches preserve conversation identity", () => {
 test("新增表格维度只标记新单元格，保留原值和证据", () => {
   const { diffCoverageMaps } = load("lib/coverageDiff.ts");
   const before = {
-    tables: { programmes: { table_id: "programmes", entities: ["Alpha"], attributes: ["Name", "Credits"] } },
-    cells: { "programmes/Alpha.Credits": { status: "filled", value: "120", supporting_evidence_ids: ["credits"] } },
+    tables: { programmes: { table_id: "programmes", entities: [JSON.stringify(["Alpha"])], attributes: ["Name", "Credits"] } },
+    cells: { [JSON.stringify(["programmes", ["Alpha"], "Credits"])]: { status: "filled", value: "120", supporting_evidence_ids: ["credits"] } },
   };
   const after = {
     tables: { programmes: { ...before.tables.programmes, attributes: ["Name", "Credits", "Duration.Years"] } },
-    cells: { ...before.cells, "programmes/Alpha.Duration.Years": { status: "missing", value: "", supporting_evidence_ids: [] } },
+    cells: { ...before.cells, [JSON.stringify(["programmes", ["Alpha"], "Duration.Years"])]: { status: "missing", value: "", supporting_evidence_ids: [] } },
   };
   const changes = diffCoverageMaps(before, after);
   assert.equal(changes.length, 1);
   assert.equal(changes[0].kind, "added");
-  assert.equal(changes[0].entity, "Alpha");
+  assert.equal(changes[0].entity, JSON.stringify(["Alpha"]));
   assert.equal(changes[0].attribute, "Duration.Years");
   assert.equal(changes[0].after.status, "missing");
-  assert.equal(after.cells["programmes/Alpha.Credits"].supporting_evidence_ids[0], "credits");
+  assert.equal(after.cells[JSON.stringify(["programmes", ["Alpha"], "Credits"])].supporting_evidence_ids[0], "credits");
 });
 
 test("incomplete history is an interrupted run, never a completed answer", () => {
@@ -361,7 +362,7 @@ test("local execution card labels a budget-limited answer", () => {
     react: React,
     "react/jsx-runtime": require("react/jsx-runtime"),
     "lucide-react": require("lucide-react"),
-    "@/lib/derive": derive, "@/lib/liveUpdates": liveUpdates,
+    "@/lib/runState": derive,
     "@/lib/exploreProgress": { deriveExploreProgress: () => ({ present: false }) },
     "@/components/workbench/OrchestratorTimeline": { default: () => null },
   }).default;
@@ -427,4 +428,55 @@ test("socket deltas apply to their baseline and cannot regress newer REST versio
   assert.equal(h.state.events.length, 0, "snapshots must not become transcript events");
   await respond(h.polls[0], "running", filled);
   assert.equal(h.state.liveState.evidence_graph.nodes.length, 0, "in-flight older REST cannot undo socket state");
+});
+
+test("full replay and incremental answers share normalized stream identities", () => {
+  const event = (data) => ({ type: "trajectory", data: { phase: "final_answer", ...data } });
+  const events = [
+    event({ type: "answer_stream_delta", stream_id: 7, delta: "before start" }),
+    event({ type: "answer_stream_start", stream_id: 7 }),
+    event({ type: "answer_stream_delta", stream_id: 7, delta: "A" }),
+    event({ type: "answer_stream_delta", stream_id: "7", delta: "B" }),
+    event({ type: "answer_stream_delta", stream_id: 8, delta: "wrong stream" }),
+    event({ type: "answer_stream_delta", stream_id: "7", delta: 12 }),
+    event({ type: "answer_stream_delta", stream_id: "7", phase: "progress", delta: "draft" }),
+  ];
+  let cursor = { streamId: "", answer: "" };
+  for (const batch of [events.slice(0, 3), events.slice(3, 5), events.slice(5)]) {
+    cursor = derive.advanceAnswer(cursor, batch);
+  }
+  assert.equal(cursor.streamId, "7");
+  assert.equal(cursor.answer, "AB");
+  assert.equal(derive.deriveLiveAnswer(events), "AB");
+});
+
+test("empty stream identities reset answers and cannot accept deltas", () => {
+  const event = (data) => ({ type: "trajectory", data: { phase: "final_answer", ...data } });
+  for (const streamId of [undefined, null, "", 0, false]) {
+    const events = [
+      event({ type: "answer_stream_start", stream_id: "old" }),
+      event({ type: "answer_stream_delta", stream_id: "old", delta: "old answer" }),
+      event({ type: "answer_stream_start", stream_id: streamId }),
+      event({ type: "answer_stream_delta", stream_id: streamId, delta: "invalid" }),
+      event({ type: "answer_stream_delta", stream_id: "old", delta: "stale" }),
+    ];
+    const cursor = derive.advanceAnswer(derive.advanceAnswer({ streamId: "", answer: "" }, events.slice(0, 2)), events.slice(2));
+    assert.equal(cursor.streamId, "");
+    assert.equal(cursor.answer, "");
+    assert.equal(derive.deriveLiveAnswer(events), null);
+  }
+  assert.equal(derive.deriveLiveAnswer([
+    event({ type: "answer_stream_start", stream_id: "0" }),
+    event({ type: "answer_stream_delta", stream_id: 0, delta: "invalid" }),
+    event({ type: "answer_stream_delta", stream_id: "0", delta: "valid" }),
+  ]), "valid");
+});
+
+test("a new final-answer stream replaces the previous stream in replay and live batches", () => {
+  const event = (data) => ({ type: "trajectory", data: { phase: "final_answer", ...data } });
+  const oldEvents = [event({ type: "answer_stream_start", stream_id: "one" }), event({ type: "answer_stream_delta", stream_id: "one", delta: "first" })];
+  const newEvents = [event({ type: "answer_stream_start", stream_id: "two" }), event({ type: "answer_stream_delta", stream_id: "one", delta: "stale" }), event({ type: "answer_stream_delta", stream_id: "two", delta: "second" })];
+  const cursor = derive.advanceAnswer(derive.advanceAnswer({ streamId: "", answer: "" }, oldEvents), newEvents);
+  assert.equal(cursor.answer, "second");
+  assert.equal(derive.deriveLiveAnswer([...oldEvents, ...newEvents]), "second");
 });

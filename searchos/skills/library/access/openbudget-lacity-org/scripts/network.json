@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_fund_sources": "direct",
+    "get_programs": "direct",
+    "get_historical": "direct",
+    "get_years": "direct",
+    "get_appropriations": "proxy",
+    "get_budget_total": "direct",
+    "get_entity_counts": "direct",
+    "get_departments": "direct",
+    "search_entities": "direct"
+  },
+  "aliases": {
+    "get_years": "get_years",
+    "get_departments": "get_departments",
+    "get_programs": "get_programs",
+    "get_appropriations": "get_appropriations",
+    "get_budget_total": "get_budget_total",
+    "get_fund_sources": "get_fund_sources",
+    "get_historical": "get_historical",
+    "get_entity_counts": "get_entity_counts",
+    "search_entities": "search_entities",
+    "run": "search_entities"
+  }
+}

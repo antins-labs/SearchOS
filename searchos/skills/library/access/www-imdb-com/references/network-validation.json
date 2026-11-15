@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "77a8eacb7f8f7f27e38d6517e8f8674b2e65547fbc9e960c460ac04681d14de8",
+  "capabilities": {
+    "get_name_awards": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_name_awards\", \"name_id\": \"nm0000149\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.691449+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.imdb.com/name/nm0000149/awards/",
+          "status": 202
+        },
+        {
+          "url": "https://fb423e1ef94f.6277d64d.us-east-1.token.awswaf.com/fb423e1ef94f/c3382d439950/916d943f6a58/challenge.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_title_awards": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_title_awards\", \"title_id\": \"tt0944835\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.694520+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.imdb.com/title/tt0944835/awards/",
+          "status": 202
+        }
+      ]
+    },
+    "get_awards": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_awards\", \"imdb_id\": \"nm0000149\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.694657+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.imdb.com/name/nm0000149/awards/",
+          "status": 202
+        },
+        {
+          "url": "https://fb423e1ef94f.6277d64d.us-east-1.token.awswaf.com/fb423e1ef94f/c3382d439950/916d943f6a58/challenge.js",
+          "status": 200
+        },
+        {
+          "url": "https://fb423e1ef94f.6277d64d.us-east-1.token.awswaf.com/fb423e1ef94f/c3382d439950/916d943f6a58/inputs",
+          "status": 200
+        },
+        {
+          "url": "https://fb423e1ef94f.6277d64d.us-east-1.token.awswaf.com/fb423e1ef94f/c3382d439950/916d943f6a58/verify",
+          "status": 200
+        },
+        {
+          "url": "https://www.imdb.com/name/nm0000149/awards/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

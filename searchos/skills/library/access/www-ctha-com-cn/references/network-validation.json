@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3707b45c822ad04617c1fec05b0745665df1f907e8d74a8f3745d29cf20b8bf8",
+  "capabilities": {
+    "get_provinces": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_provinces\", \"page\": 1, \"page_size\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.005399+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.ctha.com.cn/index/index/getprovince.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_5star_hotels": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_5star_hotels\", \"page\": 1, \"page_size\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.005991+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.ctha.com.cn/index/index/gethotel.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_1to4star_hotels": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_1to4star_hotels\", \"page\": 1, \"page_size\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.006063+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.ctha.com.cn/index/index/gethotel.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_hotels": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_hotels\", \"keyword\": \"北京王府\", \"page\": 1, \"page_size\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.006126+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.ctha.com.cn/index/index/gethotel.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

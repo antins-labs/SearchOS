@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_security_council": "inherit",
+    "get_icj_judges": "proxy",
+    "get_member_states": "direct",
+    "get_organ_overview": "inherit"
+  },
+  "aliases": {
+    "get_member_states": "get_member_states",
+    "get_security_council": "get_security_council",
+    "get_icj_judges": "get_icj_judges",
+    "get_organ_overview": "get_organ_overview",
+    "run": "get_organ_overview"
+  }
+}

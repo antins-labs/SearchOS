@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_time_varying_tolls": "direct",
+    "get_tunnels_bridges": "direct",
+    "search_tunnels": "direct"
+  },
+  "aliases": {
+    "get_time_varying_tolls": "get_time_varying_tolls",
+    "get_tunnels_bridges": "get_tunnels_bridges",
+    "search_tunnels": "search_tunnels",
+    "run": "search_tunnels"
+  }
+}

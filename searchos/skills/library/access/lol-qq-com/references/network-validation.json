@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d4d3d829bb4dd4c2eefecbf203228af3c0f2bec20f699dbf39e3b67298d97f7d",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"docid\": \"10255542153636928057\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.784384+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://apps.game.qq.com/cmc/zmMcnContentInfo",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

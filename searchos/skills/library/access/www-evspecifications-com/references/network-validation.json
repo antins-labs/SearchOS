@@ -1,0 +1,291 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1503ba9e2ca9c38ec126498fe898e874580a9b85bdbd943abe9c149b56294186",
+  "capabilities": {
+    "get_model": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_model\", \"url\": \"https://www.evspecifications.com/en/model/53a43ea\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.042013+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.evspecifications.com/en/model/53a43ea",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/fonts.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/store/amazon.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/responsive.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/javascript/interface.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/captcha/string.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/inlets/inlet_200.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/facebook.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/fonts/roboto/KFOmCnqEu92Fr1Mu4mxK.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/fonts/roboto/KFOlCnqEu92Fr1MmWUlfBBc4.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/arrows.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/pencil.svg",
+          "status": 200
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610200101/show_ads_impl_fy2021.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/model/53a43ea/640/main.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/twitter.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/google_logo.svg",
+          "status": 200
+        }
+      ]
+    },
+    "get_section": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_section\", \"url\": \"https://www.evspecifications.com/en/model/53a43ea\", \"section\": \"battery\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:02.316183+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.evspecifications.com/en/model/53a43ea",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/fonts.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/responsive.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/store/amazon.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/sections/info.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/javascript/interface.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/inlets/inlet_200.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/telegram.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/captcha/string.php",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/rss.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/fonts/roboto/KFOlCnqEu92Fr1MmWUlfBBc4.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/model/53a43ea/640/main.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/fonts/roboto/KFOmCnqEu92Fr1Mu4mxK.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/pencil.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/arrows.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/google_logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/twitter.svg",
+          "status": 200
+        }
+      ]
+    },
+    "get_key_specs": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_key_specs\", \"url\": \"https://www.evspecifications.com/en/model/53a43ea\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.260817+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.evspecifications.com/en/model/53a43ea",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/fonts.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/responsive.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/sections/info.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/store/amazon.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/javascript/interface.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/inlets/inlet_200.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/pencil.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/fonts/roboto/KFOlCnqEu92Fr1MmWUlfBBc4.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/model/53a43ea/640/main.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/css/fonts/roboto/KFOmCnqEu92Fr1Mu4mxK.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/arrows.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/google_logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/telegram.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/rss.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/facebook.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/images/ui/twitter.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.evspecifications.com/captcha/string.php",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

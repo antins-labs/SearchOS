@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_report": "direct",
+    "get_page_image": "direct"
+  },
+  "aliases": {
+    "get_report": "get_report",
+    "get_page_image": "get_page_image",
+    "run": "get_page_image"
+  }
+}

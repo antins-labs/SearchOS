@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_report_data": "direct",
+    "list_options": "direct",
+    "list_reports": "direct"
+  },
+  "aliases": {
+    "list_reports": "list_reports",
+    "get_report_data": "get_report_data",
+    "list_options": "list_options",
+    "run": "list_options"
+  }
+}

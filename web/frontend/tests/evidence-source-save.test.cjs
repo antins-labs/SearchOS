@@ -5,6 +5,10 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 const ts = require("typescript");
+const refs = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/socmRefs.ts"), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports: refs });
+const citations = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/localCitations.ts"), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, { exports: citations });
 
 function loadEvidenceList() {
   const source = fs.readFileSync(
@@ -24,8 +28,9 @@ function loadEvidenceList() {
     URL,
     require(name) {
       if (name === "@/lib/api") return {};
-      if (name === "@/lib/localCitations") return { localCitationLabels: () => ({}) };
+      if (name === "@/lib/localCitations") return citations;
       if (name === "@/components/ui/Select") return { __esModule: true, default: "test-select" };
+      if (name === "@/lib/socmRefs") return refs;
       return require(name);
     },
   });
@@ -70,11 +75,11 @@ test("保存页面区域独立于证据视图，证据数不被路径挤掉", ()
 });
 
 test("内部观测链接追溯原文，不把执行快照当作原文缓存", () => {
-  const { groupEvidenceBySource, evidenceSourceUrls } = loadEvidenceList();
+  const { groupEvidenceBySource } = loadEvidenceList();
   const node = { id: "fact", claim: "A", source: "skill://lookup/run", page_id: "snapshot",
     source_urls: ["https://example.org/a", "https://example.org/b", "javascript:alert(1)"],
     confidence: 0.8, entity: "", attribute: "" };
-  assert.deepEqual(Array.from(evidenceSourceUrls(node)), ["https://example.org/a", "https://example.org/b"]);
+  assert.deepEqual(Array.from(citations.evidenceSourceUrls(node)), ["https://example.org/a", "https://example.org/b"]);
   const pages = groupEvidenceBySource([node]);
   assert.equal(pages.length, 2);
   assert.ok(pages.every((page) => page.pageId === ""));

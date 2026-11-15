@@ -4,12 +4,16 @@ IMDb Access Skill via r.jina.ai
 Fetches and parses IMDb content (movies, lists, names) through the r.jina.ai reader service.
 Uses Playwright to access r.jina.ai which renders the content as markdown.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 from typing import Any
 from playwright.async_api import async_playwright
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute IMDb data extraction via r.jina.ai
@@ -54,12 +58,12 @@ async def _fetch_via_jina(imdb_url: str) -> tuple[bool, str]:
     jina_url = f"https://r.jina.ai/{imdb_url}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             response = await page.goto(jina_url, wait_until='domcontentloaded', timeout=30000)
             

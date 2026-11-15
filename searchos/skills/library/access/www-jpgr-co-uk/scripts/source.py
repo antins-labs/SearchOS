@@ -2,6 +2,9 @@
 SearchOS Access Skill for www.jpgr.co.uk
 Beatles UK discography database - extracts structured release information
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -280,7 +283,7 @@ async def get_release(catalogue_number: str) -> dict[str, Any]:
         # Default to 'r' prefix
         url = f"https://www.jpgr.co.uk/r{cat_clean}.html"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_page(url, session)
             return parse_release_page(html, url)
@@ -353,7 +356,7 @@ async def get_index_page(page_type: str = 'beatles_singles') -> dict[str, Any]:
     
     url = page_urls.get(page_type, page_urls['beatles_singles'])
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_page(url, session)
             return parse_index_page(html, url)
@@ -396,6 +399,7 @@ async def search_releases(query: str) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the SearchOS skill.

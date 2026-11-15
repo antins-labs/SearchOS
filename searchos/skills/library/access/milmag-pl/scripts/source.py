@@ -9,6 +9,9 @@ SIPRI Top 100 arms producers reports, with structured extraction of:
 - Regional statistics
 - Links to source documents (PDFs)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -19,7 +22,7 @@ from typing import Any, Optional
 
 async def fetch_page(url: str, headers: dict) -> tuple[int, str]:
     """Fetch a page with timeout and error handling."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             async with session.get(
                 url, 
@@ -228,6 +231,7 @@ def search_milmag(html: str, query: str) -> dict:
     return results
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the milmag.pl access skill.

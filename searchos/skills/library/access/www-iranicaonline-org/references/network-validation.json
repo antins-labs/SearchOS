@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2ff0c91eeb0aa26116d563eea5c8571e949a7865431f399ae31c2226079cfa1e",
+  "capabilities": {
+    "get_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.iranicaonline.org/articles/ayyubids/\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.725250+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.iranicaonline.org/articles/ayyubids/",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/c5b503f6f5f5530b6a251266718fb7b6.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/4298b92dd6547c81759c3e3f31c658bd.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/6479fa9710bd90fcb4a8503d485f06c8.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/f66b4097bc0144437c4f10e783cbd934.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/03ac7205e9a90ba2b67d2c6bb0069ba5.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/a8c8277d708720620f2abe0e0fac7f96.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/b8b0d00b11443eb13afeb9047504abd1.css",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/df850ef390114e534c79ab8bf978b141.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/4a2e7f70093da4afd99eed850bcd6300.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/d1291a20657ee4f4369543c75422ab81.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/4afbfa01fa9ee16a8dc5203bfbea4c18.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/ae5387826fa7e3620cd61039627cbaa4.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/ab5826a4607320b9dd4a9602795880f0.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/d2400433c9bbe298b62114781f43fb9e.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/6aa0d030c9f734a9e87764f915ac9d18.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/fc184c834da490ad693df6fea2ee5c3c.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/e633ff5f340dccd49a2d6908ebbb473b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/cache/ls/css/f8852441dbbd793f669b31a68b0b18d2.css",
+          "status": 200
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"query\": \"saladin\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.729401+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.iranicaonline.org/",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/plugins/ultimate-image-gallery/assets/css/viewer.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/plugins/give/build/assets/dist/css/design-system/foundation.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/themes/eir/css/build/grid-system.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/plugins/give-recurring/assets/css/give-recurring.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/themes/eir/css/build/third-party/wpforms.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/plugins/eir-sg-tools/assets/eir-sg-tools.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/themes/eir/css/build/responsive.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/plugins/foobox-image-lightbox/free/css/foobox.free.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/themes/eir/css/nectar-brands.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/plugins/wp-views/vendor/toolset/toolset-common/res/lib/font-awesome/css/font-awesome.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/themes/eir/css/build/skin-material.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/themes/eir/css/build/elements/element-testimonial.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/plugins/wp-views/public/css/views-frontend.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/themes/eir/css/build/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/plugins/give/build/assets/dist/css/give.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/plugins/give-form-field-manager/assets/dist/css/give-ffm-datepicker.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/themes/eir/css/build/plugins/flickity.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.iranicaonline.org/wp-content/plugins/give-form-field-manager/assets/dist/css/give-ffm-frontend.css",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

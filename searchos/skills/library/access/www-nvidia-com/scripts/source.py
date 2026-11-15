@@ -4,6 +4,9 @@ NVIDIA GeForce Graphics Card Specifications Scraper
 Extracts detailed GPU specifications from NVIDIA's official GeForce product pages.
 The data is embedded directly in the HTML response using a 'coloredTable' structure.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -168,7 +171,7 @@ async def fetch_gpu_specs(url: str, timeout: int = 30) -> dict[str, Any]:
         return {'error': 'aiohttp is not installed', 'url': url}
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, headers=HEADERS, timeout=aiohttp.ClientTimeout(total=timeout)) as response:
                 if response.status == 404:
                     return {
@@ -261,6 +264,7 @@ def extract_key_specs(specs: dict[str, Any]) -> dict[str, Any]:
     return key_specs
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the NVIDIA GPU specifications skill.

@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "cf5b4beb54b663a09028fee67ef518e302fee7b63ca18c0e50f8c501241b864e",
+  "capabilities": {
+    "get_release_info": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_release_info\", \"url\": \"https://rateyourmusic.com/release/album/radiohead/ok-computer/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.850315+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://rateyourmusic.com/release/album/radiohead/ok-computer/",
+          "status": 403
+        },
+        {
+          "url": "https://rateyourmusic.com/release/album/radiohead/ok-computer/",
+          "status": 307
+        },
+        {
+          "url": "https://rateyourmusic.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        },
+        {
+          "url": "https://rateyourmusic.com/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eef118af3bfa26/TZIvO4t03JbNn21zWw5DutYsEb5uW3ThX4m6iMrz_.0-1792739634-1.2.1.1-BNAP1Yd_5yt1LIcHgUYfzuiZRlOifgcm3p9PA02CrIzobxCr4yo2qmQi8sRyXKMU",
+          "status": 200
+        },
+        {
+          "url": "blob:https://rateyourmusic.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/yxe3z/0x4AAAAAAADnPIDROrmt1Wwj/light/fbE/new/normal",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/fo/2425580051:1792735516:RUlw5eP8DMQu0c-QvGL7lXMBneL91MvjjBeH4XWvNCY/a4eef14948bbb625/ERUhvJw3AEQeTR47wkbhhjbBpIQprEpZfSmJ.._la7U-1792739641-1.2.1.1-OkaWbt3NKWO9bo.sqdj6WdlVR5T6Pn2H4Qnw3Y2jtxa9ipsXH_tqnwnsFWJXdNNM",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"Pink Floyd Dark Side of the Moon\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.815260+00:00",
+      "reason": "RateYourMusic search is protected by Cloudflare anti-bot measures.",
+      "source_responses": []
+    }
+  }
+}

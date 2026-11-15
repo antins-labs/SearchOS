@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5a5a23882affebb1b58ca9d0f3ae564d1d66556c6896670de27a080fd45ee48d",
+  "capabilities": {
+    "list_conferences": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_conferences\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.942293+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.aclweb.org/aclwiki/Best_paper_awards",
+          "status": 200
+        }
+      ]
+    },
+    "list_awards": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_awards\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.943330+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.aclweb.org/aclwiki/Best_paper_awards",
+          "status": 200
+        }
+      ]
+    },
+    "get_awards_by_year": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_awards_by_year\", \"year\": \"2019\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.943570+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.aclweb.org/aclwiki/Best_paper_awards",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

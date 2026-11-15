@@ -73,7 +73,7 @@ class TraceSkillGeneration:
         temporary.replace(self.directory / "status.json")
 
     def _snapshot_skill(self, item: dict, report: dict, library: Path) -> None:
-        from searchos.skills.core.schema import find_skill_entry, parse_skill_file
+        from searchos.skills.core.skill_markdown import find_skill_entry, parse_skill_file
 
         try:
             package = Path(report["path"]).resolve()

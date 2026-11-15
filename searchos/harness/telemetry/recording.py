@@ -6,7 +6,56 @@ from datetime import UTC, datetime
 from typing import Any
 
 from searchos.harness.middleware.utils.messages import extract_tool_name, unwrap_ai_message
-from searchos.harness.telemetry.state_delta import capture_state, state_delta
+from searchos.harness.telemetry.trajectory import StateDelta
+
+
+def capture_state(workspace) -> dict[str, Any]:
+    """Capture a lightweight snapshot of current search state for delta computation."""
+    if workspace is None:
+        return {}
+    try:
+        state = workspace.state
+        resolved_ids = {q.id for q in state.frontier.questions if q.status.value == "completed"}
+        return {
+            "coverage": state.coverage_map.coverage_score,
+            "evidence_count": state.evidence_graph.node_count,
+            "frontier_resolved": resolved_ids,
+            "frontier_count": len(state.frontier.questions),
+            "conflict_count": len(state.evidence_graph.get_conflicts()),
+        }
+    except Exception:
+        return {}
+
+
+def state_delta(
+    before: dict[str, Any],
+    after: dict[str, Any],
+) -> StateDelta:
+    """Compute the state delta between two snapshots."""
+    if not before or not after:
+        return StateDelta()
+
+    resolved_before = before.get("frontier_resolved", set())
+    resolved_after = after.get("frontier_resolved", set())
+    newly_resolved = list(resolved_after - resolved_before)
+
+    conflicts_before = before.get("conflict_count", 0)
+    conflicts_after = after.get("conflict_count", 0)
+    new_conflicts = max(0, conflicts_after - conflicts_before)
+    resolved_conflicts = max(0, conflicts_before - conflicts_after)
+
+    return StateDelta(
+        coverage_before=before.get("coverage", 0.0),
+        coverage_after=after.get("coverage", 0.0),
+        new_evidence_count=max(
+            0,
+            after.get("evidence_count", 0) - before.get("evidence_count", 0),
+        ),
+        frontier_resolved=newly_resolved,
+        frontier_added=[],  # hard to track without IDs
+        conflicts_detected=new_conflicts,
+        conflicts_resolved=resolved_conflicts,
+    )
 
 
 class AgentRecorder:
@@ -34,12 +83,23 @@ class AgentRecorder:
 
     def model_completed(self, response):
         self._reasoning = reasoning_text(response)[:800]
-        if self._reasoning and not getattr(unwrap_ai_message(response), "tool_calls", None):
+        message = unwrap_ai_message(response)
+        if getattr(message, "tool_calls", None):
+            return
+        content = getattr(message, "content", "")
+        if isinstance(content, list):
+            content = "\n".join(
+                block if isinstance(block, str) else block["text"]
+                for block in content
+                if isinstance(block, str) or (isinstance(block, dict) and block.get("type") == "text" and isinstance(block.get("text"), str))
+            )
+        if isinstance(content, str) and content.strip():
             self.logger._append_raw(
                 {
                     "type": "agent_final",
                     "agent": self.agent_id,
-                    "reasoning": self._reasoning,
+                    "reasoning": content,
+                    "message_id": getattr(message, "id", None),
                 }
             )
 
@@ -86,7 +146,22 @@ class AgentRecorder:
                 "step_value": self.logger._compute_step_value(delta),
             }
         )
-        self.logger._step_count += 1
+
+    def skill_execution(self, *, execution_id, skill, argv, parent_execution_id,
+                        parent_tool_call_id, status, result=None, error=""):
+        record = {
+            "type": "skill_execution", "agent": self.agent_id,
+            "execution_id": execution_id, "skill": skill, "argv": argv,
+            "parent_execution_id": parent_execution_id,
+            "parent_tool_call_id": parent_tool_call_id, "status": status,
+        }
+        if result is not None:
+            from searchos.tools.exec.tool import response
+
+            record["observation"] = response(result)[0]
+        if error:
+            record["error"] = error
+        self.logger._append_raw(record)
 
     def tool_failed(self, request, error, started, *, cancelled=False):
         self.logger._append_raw({
@@ -195,12 +270,12 @@ class ContextRecorder:
             except Exception:
                 logger.warning("Context trajectory write failed", exc_info=True)
         if self.conversation is not None:
-            from searchos.harness.telemetry.trajectory import ConversationMessage
+            from searchos.harness.telemetry.conversation import ConversationMessage
 
             try:
                 self.conversation.log(
                     ConversationMessage(
-                        role="user",
+                        role="user" if kind == "budget_summary" else "system",
                         content=content,
                         agent_name=self.agent_id,
                         metadata={"synthetic": kind},

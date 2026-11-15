@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_timeline": "direct",
+    "get_article": "direct",
+    "search": "direct",
+    "list_missions": "direct",
+    "get_mission_details": "direct"
+  },
+  "aliases": {
+    "get_mission_details": "get_mission_details",
+    "get_timeline": "get_timeline",
+    "list_missions": "list_missions",
+    "get_article": "get_article",
+    "search": "search",
+    "run": "search"
+  }
+}

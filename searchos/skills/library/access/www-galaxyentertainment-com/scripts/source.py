@@ -8,6 +8,9 @@ Endpoints:
 - Financial Reports: /en/investor/financial-reports (Annual & Interim Reports since 2005)
 - Financial Results: /en/investor/financial-results (Quarterly data, meeting results, exchange filings)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -210,7 +213,7 @@ async def get_financial_reports(
     Returns:
         Dict with 'reports' list or 'error' string
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, error = await fetch_page(session, FINANCIAL_REPORTS_PATH)
         if error:
             return {'error': error, 'reports': []}
@@ -251,7 +254,7 @@ async def get_financial_results(
     Returns:
         Dict with 'announcements' list or 'error' string
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         html, error = await fetch_page(session, FINANCIAL_RESULTS_PATH)
         if error:
             return {'error': error, 'announcements': []}
@@ -275,6 +278,7 @@ async def get_financial_results(
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Galaxy Entertainment investor relations skill.

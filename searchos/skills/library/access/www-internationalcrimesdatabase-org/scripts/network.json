@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_case": "direct",
+    "search_cases": "direct",
+    "list_cases": "direct",
+    "list_categories": "direct"
+  },
+  "aliases": {
+    "get_case": "get_case",
+    "list_cases": "list_cases",
+    "list_categories": "list_categories",
+    "search_cases": "search_cases",
+    "run": "search_cases"
+  }
+}

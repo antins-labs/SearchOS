@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_apps": "direct",
+    "lookup_app": "direct",
+    "lookup_by_bundle_id": "direct"
+  },
+  "aliases": {
+    "lookup_app": "lookup_app",
+    "lookup_by_bundle_id": "lookup_by_bundle_id",
+    "search_apps": "search_apps",
+    "run": "search_apps"
+  }
+}

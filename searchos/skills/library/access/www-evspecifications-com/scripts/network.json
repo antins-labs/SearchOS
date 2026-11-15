@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_model": "direct",
+    "get_key_specs": "direct",
+    "get_section": "direct"
+  },
+  "aliases": {
+    "get_model": "get_model",
+    "get_section": "get_section",
+    "get_key_specs": "get_key_specs",
+    "run": "get_key_specs"
+  }
+}

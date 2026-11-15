@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ea6054c974a704ea2e66ef5d88741b089b701859b99d89690b8b0b38cb2953b6",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"article_id\": \"14371\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.060935+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.foxwq.com/news/14371.html",
+          "status": 200
+        }
+      ]
+    },
+    "list_news": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_news\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.063545+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.foxwq.com/news/",
+          "status": 200
+        }
+      ]
+    },
+    "get_comments": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_comments\", \"article_id\": \"14371\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.063841+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.foxwq.com/news/ajaxGetCommentPc.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

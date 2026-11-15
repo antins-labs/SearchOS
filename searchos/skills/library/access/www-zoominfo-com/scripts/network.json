@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_company_profile": "inherit",
+    "get_public_page": "inherit",
+    "search_companies": "inherit",
+    "get_sitemap": "inherit"
+  },
+  "aliases": {
+    "get_company_profile": "get_company_profile",
+    "get_public_page": "get_public_page",
+    "search_companies": "search_companies",
+    "get_sitemap": "get_sitemap",
+    "run": "get_sitemap"
+  }
+}

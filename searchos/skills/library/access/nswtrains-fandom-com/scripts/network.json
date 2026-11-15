@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_stations": "direct",
+    "get_line": "direct",
+    "search": "direct",
+    "list_lines": "direct"
+  },
+  "aliases": {
+    "search": "search",
+    "get_line": "get_line",
+    "get_stations": "get_stations",
+    "list_lines": "list_lines",
+    "run": "list_lines"
+  }
+}

@@ -4,6 +4,9 @@
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import argparse
 import html
@@ -86,7 +89,7 @@ def fetch_oembed(tweet_id: str, timeout: int = DEFAULT_TIMEOUT) -> dict | None:
     
     for attempt in range(MAX_RETRIES):
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
+            with _skill_network.urllib_urlopen(req, timeout=timeout) as resp:
                 if resp.status != 200:
                     return None
                 return json.loads(resp.read().decode('utf-8'))
@@ -140,6 +143,7 @@ def get_tweet(tweet_id: str, timeout: int = DEFAULT_TIMEOUT) -> dict | None:
     }
 
 
+@_skill_network.entrypoint(capability_id='get_tweets', cli=True)
 def main() -> int:
     parser = argparse.ArgumentParser(description='批量获取 X/Twitter 公开帖子详情')
     parser.add_argument('--ids', '-i', help='帖子 ID 列表，逗号分隔')

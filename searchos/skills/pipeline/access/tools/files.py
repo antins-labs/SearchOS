@@ -14,19 +14,17 @@ READ_FILE_TOOL = {
         "name": "read_file",
         "description": (
             "Read a UTF-8 package file, a saved output path returned by a tool, "
-            "or a file in the execution work_dir. Use package-relative paths such as scripts/access.py; "
-            "use returned absolute paths for saved results. Copy function read_file arguments from next_actions. "
-            "Offsets count Unicode characters; line numbers cannot be used as offsets. "
-            "Default limit is 16000; maximum is 24000; the encoded response is also "
-            "bounded to 24000 UTF-8 bytes. Returns total_chars, truncated "
-            "and next_offset; follow next_offset to continue."
+            "or a file in the execution work_dir. Copy read_file arguments from next_actions when provided. "
+            "Returns content, total_chars, truncated and next_offset. Follow next_offset to continue. "
+            "The encoded response is capped at 24000 UTF-8 bytes."
         ),
         "parameters": {
             "type": "object",
             "properties": {
-                "path": {"type": "string"},
-                "offset": {"type": "integer", "default": 0},
-                "limit": {"type": "integer", "default": 16000, "minimum": 1, "maximum": 24000},
+                "path": {"type": "string", "description": "Package-relative path such as scripts/access.py, or the returned absolute path for a saved result."},
+                "offset": {"type": "integer", "default": 0, "description": "Zero-based Unicode character offset. Use next_offset from the previous window."},
+                "limit": {"type": "integer", "default": 16000, "minimum": 1, "maximum": 24000,
+                          "description": "Maximum Unicode characters in this window, default 16000 and capped at 24000."},
             },
             "required": ["path"],
         },
@@ -40,11 +38,15 @@ def _tool(name, description, properties, required=()):
                        'required': list(required), 'additionalProperties': False}}}
 
 
-WRITE_FILE_TOOL = _tool('write_file', '在候选技能包内写入 UTF-8 文件。', {
-    'path': {'type': 'string'}, 'content': {'type': 'string'}}, ['path', 'content'])
-EDIT_FILE_TOOL = _tool('edit_file', '替换文件中的精确文本；多处替换须显式指定 replace_all。', {
-    'path': {'type': 'string'}, 'old_text': {'type': 'string'}, 'new_text': {'type': 'string'},
-    'replace_all': {'type': 'boolean', 'default': False}}, ['path', 'old_text', 'new_text'])
+WRITE_FILE_TOOL = _tool('write_file', '创建或覆盖候选技能包中的 UTF-8 文件，返回路径和字符数。', {
+    'path': {'type': 'string', 'description': '包内相对路径，例如 SKILL.md 或 scripts/access.py。'},
+    'content': {'type': 'string', 'description': '要保存的完整文件正文。'}}, ['path', 'content'])
+EDIT_FILE_TOOL = _tool('edit_file', '替换候选技能包文件中的精确文本，返回修改后的路径和字符数。', {
+    'path': {'type': 'string', 'description': '已有包文件的相对路径。'},
+    'old_text': {'type': 'string', 'description': '要匹配的非空原文，默认必须恰好出现一次。'},
+    'new_text': {'type': 'string', 'description': '替换文本，空字符串表示删除匹配原文。'},
+    'replace_all': {'type': 'boolean', 'default': False, 'description': '需要替换全部匹配时显式设为 true。'}},
+    ['path', 'old_text', 'new_text'])
 
 
 class PackageFiles:

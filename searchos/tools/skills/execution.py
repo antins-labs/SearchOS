@@ -9,10 +9,10 @@ import json
 import math
 import re
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Any
 from uuid import uuid4
 
-from langchain_core.tools import InjectedToolCallId, tool
+from langchain_core.tools import tool
 
 from searchos.skills.core.capabilities import read_capability_results
 from searchos.skills.runtime.paths import resolve_resource_file, skill_workspace_dir
@@ -148,7 +148,8 @@ def load_package(name: str) -> dict[str, Any]:
         "resources": resources[:200], "resources_truncated": len(resources) > 200,
         "work_directory": str(skill_workspace_dir(root, "work") / key),
         "execution": "cli",
-        "invocation": "exec(skill=name, argv=[interpreter, package_relative_script, ...arguments])",
+        "invocation": "Pass command_prefix + [command, package_relative_script, ...business_arguments] to exec argv, or orchestrate calls with subprocess in code.",
+        "command_prefix": ["searchanything", "run", name, "--"],
     }
     if results := read_capability_results(frozen):
         answer["capability_results"] = results
@@ -186,14 +187,19 @@ def execution_started(tool_call_id: str) -> bool:
         return False
 
 
-@tool
+@tool(parse_docstring=True)
 async def load_skill(skill_name: str) -> str:
-    """Read instructions and freeze a skill package for this task before exec."""
+    """Load and pin a skill version for this task. Returns its instructions, resources and, for
+    executable skills, the SearchAnything command_prefix to use in exec.
+
+    Args:
+        skill_name: Exact registered name from list_skills or the task's skill catalog.
+    """
     try:
         package = load_package(skill_name)
         fields = (
             "name", "body", "category", "description", "compatibility", "resources",
-            "execution", "invocation", "capability_results",
+            "execution", "invocation", "command_prefix", "capability_results",
         )
         visible = {key: package[key] for key in fields if key in package}
         if package.get("resources_truncated"):
@@ -203,15 +209,19 @@ async def load_skill(skill_name: str) -> str:
         return json.dumps({"error": str(exc)}, ensure_ascii=False)
 
 
-@tool
+@tool(parse_docstring=True)
 async def read_skill_file(
     skill: str, path: str,
     offset: int = 0, limit: int = 12000,
 ) -> str:
-    """Read a loaded skill package reference. Read execution results with open/find.
+    """Read a text resource from a loaded skill package. Returns path, text and next_offset for
+    paging. Read saved execution results with open or find.
 
-    Paths are relative to the loaded skill package.
-    Text is bounded; use offset to read the next window.
+    Args:
+        skill: Name of the skill already pinned by load_skill.
+        path: Resource path relative to that skill package.
+        offset: Zero-based character offset. Use the returned next_offset to continue.
+        limit: Characters per window, from 1 to 24000, default 12000.
     """
     try:
         binding = _loaded(skill)
@@ -256,17 +266,12 @@ def _execution_response(result: dict) -> tuple[str, dict]:
     return _json(visible), {"execution": result, "outcome": {"status": result["status"]}}
 
 
-@tool("exec", response_format="content_and_artifact")
-async def exec_skill(
-    skill: str, argv: list[str], tool_call_id: Annotated[str, InjectedToolCallId],
+async def _run_skill(
+    skill: str, argv: list[str], tool_call_id: str,
     stdin: str = "", timeout_s: float = 60,
+    *, execution_id: str | None = None, parent_execution_id: str | None = None,
 ) -> tuple[str, dict]:
-    """Run a bundled Python, Shell or Node script from a loaded skill.
-
-    argv starts with python/python3, bash/sh or node and a package-relative script path. No shell strings or inline code. cwd is the task work directory. Concurrent calls within one task wait for this directory; different tasks run independently.
-    Returns an execution receipt with read_result and saved page URLs. Follow read_result with open, then use find or open(loc=...) to inspect relevant windows before further retrieval. exec itself does not extract evidence.
-    Pass the documented business arguments. Package functions manage data access, network configuration, and failures using their validated defaults.
-    """
+    """SearchAnything 的宿主执行后端，负责固定版本、工作目录、回执和结果页面。"""
     try:
         if (_source_scope_var.get() or {}).get("mode") == "local":
             raise ValueError("Access Skill execution is unavailable in Local source mode")
@@ -274,7 +279,7 @@ async def exec_skill(
         root, key = _context()
         if not math.isfinite(timeout_s):
             raise ValueError("timeout must be finite")
-        timeout = min(120.0, max(0.1, timeout_s))
+        timeout = min(300.0, max(0.001, timeout_s))
         if not argv or not all(isinstance(a, str) and "\x00" not in a for a in argv):
             raise ValueError("argv must contain nonempty command arguments without NUL")
         if len(_json(argv)) + len(stdin) > 128_000:
@@ -282,6 +287,8 @@ async def exec_skill(
         receipt = skill_workspace_dir(root, "calls") / key / (hashlib.sha256(tool_call_id.encode()).hexdigest() + ".json")
         request = {"skill": skill, "package_hash": binding["package_hash"],
                    "argv": argv, "stdin": stdin, "timeout": timeout}
+        from searchos.network import current_context
+        request['network_fingerprint'] = current_context().config.fingerprint
         request_hash = hashlib.sha256(_json(request).encode()).hexdigest()
         work = skill_workspace_dir(root, "work") / key
         work.mkdir(parents=True, exist_ok=True)
@@ -298,40 +305,36 @@ async def exec_skill(
         try:
             if receipt.exists():
                 previous = json.loads(receipt.read_text())
-                previous_hash = previous.get("request_hash")
-                # 旧回执含工具级线路；匹配相同业务请求后直接回放，避免升级后重复执行。
-                matches = previous_hash == request_hash or any(
-                    previous_hash == hashlib.sha256(
-                        _json({**request, "proxy_mode": mode}).encode()
-                    ).hexdigest()
-                    for mode in ("inherit", "direct", "proxy")
-                )
-                if not matches:
+                if previous.get("request_hash") != request_hash:
                     raise ValueError("tool call id was already used with a different request")
                 result = previous.get("result") or {
                     "status": "blocked", "error": "previous execution outcome unknown; inspect saved runs before retrying",
                 }
                 result = {**result, "started": False, "replayed": True}
                 return _execution_response(result)
-            execution_id = 'exec-' + uuid4().hex
+            execution_id = execution_id or 'exec-' + uuid4().hex
             _write_json(receipt, {"state": "pending", "request_hash": request_hash, "execution_id": execution_id,
                                  "skill": skill, "package_hash": binding["package_hash"]})
             accepted = True
             from searchos.skills.runtime.command_runtime import run_command
+            from searchos.tools.exec.tool import source_network_policy
             result = await run_command(
                 Path(binding["directory"]), argv, work_dir=work,
                 execution_dir=skill_workspace_dir(root, "executions"), stdin=stdin, timeout_s=timeout, network=True,
                 execution_id=execution_id,
+                wait_for_browser=True, network_policy=source_network_policy(),
             )
             result["package_hash"] = binding["package_hash"]
+            if parent_execution_id:
+                result["parent_execution_id"] = parent_execution_id
             if result.get("execution_id"):
                 _write_json(skill_workspace_dir(root, "executions") / result["execution_id"] / "binding.json",
-                            {**binding, "task_key": key})
+                            {**binding, "task_key": key, "parent_execution_id": parent_execution_id})
             if result.get("execution_id"):
-                from searchos.tools.simple_browser.result_pages import register_execution_pages
+                from searchos.tools.simple_browser.session import register_execution_pages
                 try:
                     result.update(register_execution_pages(result, binding,
-                        skill_workspace_dir(root, "executions") / result["execution_id"], key))
+                        skill_workspace_dir(root, "executions") / result["execution_id"], key, all_pages=True))
                 except (ValueError, OSError, TypeError) as exc:
                     # Execution already happened: preserve its status and budget.
                     result["page_error"] = str(exc)

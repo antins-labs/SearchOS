@@ -15,7 +15,7 @@ from searchos.skills.pipeline.access import CONTRACT_VERSION
 def modules(monkeypatch, tmp_path):
     monkeypatch.setattr(os, "environ", os.environ.copy())
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / 'web'))
-    from api.skills import creation as module
+    from api.skills import creation_jobs as module
     from api.routes import skills
     from searchos.config.settings import settings
     instance = module.CreationJobs(tmp_path / 'jobs')
@@ -314,7 +314,8 @@ def seed_site_session(module, jobs, identifier='a' * 32):
 
 
 @pytest.mark.parametrize('kind', ['draft', 'session'])
-def test_old_contract_is_readable_and_rejected_before_queueing(modules, tmp_path, kind):
+@pytest.mark.parametrize('old_version', [1, 2, 3])
+def test_old_contract_is_readable_and_rejected_before_queueing(modules, tmp_path, kind, old_version):
     from api.skills.drafts import detail
     from searchos.skills.pipeline.drafts import save_draft
     module, jobs, _ = modules
@@ -323,10 +324,11 @@ def test_old_contract_is_readable_and_rejected_before_queueing(modules, tmp_path
         source = tmp_path / 'old-source'
         source.mkdir()
         (source / 'SKILL.md').write_text('旧草稿')
-        save_draft(record, source, ['SKILL.md'], name=request.name, examples=[], require_host=True)
+        save_draft(record, source, ['SKILL.md'], name=request.name, examples=[], require_host=True,
+                   contract_version=old_version)
         assert detail(parent, jobs.root, 0)['files'] == ['SKILL.md']
     else:
-        session['version'] = 1
+        session['version'] = old_version
         (record / 'site-session.json').write_text(json.dumps(session))
         assert jobs.read(parent['id'])['requests'][0]['has_site_session']
     before = {path.name for path in jobs.root.glob('*.json')}

@@ -18,6 +18,9 @@ Note: Direct access to cbo.gov returns 403 Forbidden due to DataDome protection.
 The skill uses the Internet Archive's cached version which provides full access to
 historical data and downloadable XLSX files.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -354,6 +357,7 @@ async def get_sitemap_urls(session: aiohttp.ClientSession, pattern: Optional[str
         return {"error": f"Failed to parse sitemap: {e}"}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for CBO data access.
@@ -378,7 +382,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     function = params.get('function', 'list_categories')
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'list_categories':
             return await list_categories(session)
         

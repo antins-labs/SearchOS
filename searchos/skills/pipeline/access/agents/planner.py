@@ -18,8 +18,9 @@ from searchos.skills.pipeline.access.session import (
 )
 from searchos.skills.pipeline.access.tools.execute import PLANNER_EXEC_TOOL as EXEC_TOOL
 from searchos.skills.pipeline.access.tools.execute import execute_research as execute
+from searchos.skills.pipeline.access.tools.network import NETWORK_CHECK_TOOL, check_network
 from searchos.skills.pipeline.access.tools.web import RESEARCH_TOOLS
-from searchos.util.json_extract import extract_json_object
+from searchos.utils.json_extract import extract_json_object
 
 
 def usable_observation(observation):
@@ -179,10 +180,12 @@ class SitePlannerAgent:
         return oid
 
     async def dispatch(self, name, args):
+        if name == 'network_check':
+            return await check_network(**args)
         if name == 'exec':
             return await execute(self.workspace, **args)
         if name not in {'search', 'open', 'find'}:
-            raise ValueError('planner tools are limited to search, find, open and exec')
+            raise ValueError('planner tools are limited to search, find, open, exec and network_check')
         args = dict(args)
         if name == 'open':
             target = str(args['id_or_url'])
@@ -209,7 +212,7 @@ class SitePlannerAgent:
             self.state.pop('failure', None)
         research_turns = max(1, turns - 2)
         # 工具目录保持稳定；整理阶段由执行层拒绝研究调用并回传纠正信息。
-        model = self.model.bind_tools([*RESEARCH_TOOLS, EXEC_TOOL])
+        model = self.model.bind_tools([*RESEARCH_TOOLS, EXEC_TOOL, NETWORK_CHECK_TOOL])
         for turn in range(turns + 1):
             finalizing = turn >= research_turns
             if finalizing:
@@ -241,7 +244,9 @@ class SitePlannerAgent:
                                   error=self.record.clean(str(exc)))
                 messages.append(HumanMessage(content='网关拒绝了工具调用。' + final_instruction('planner')))
                 continue
-            self.record.event('site_intent_response', content=answer.content, tool_calls=answer.tool_calls,
+            self.record.event('site_intent_response', content=answer.content,
+                              reasoning=(getattr(answer, 'additional_kwargs', {}) or {}).get('reasoning_content'),
+                              tool_calls=answer.tool_calls,
                               usage=getattr(answer, 'usage_metadata', None))
             messages.append(answer)
             calls = answer.tool_calls or []
@@ -272,6 +277,8 @@ class SitePlannerAgent:
                 shown = {'observation_id': oid, **result}
                 shown = (self.result_store.clean(shown) if result.get('content_source') == 'artifact'
                          else self.result_store.present(shown))
+                self.record.event('agent_tool_result', role='planner', name=call.get('name'),
+                                  call_id=call.get('id'), content=shown)
                 messages.append(ToolMessage(content=json.dumps(shown, ensure_ascii=False),
                                             tool_call_id=call['id']))
         reason = contract_error or last_error
@@ -392,7 +399,7 @@ class SitePlannerAgent:
         refs = {ref for cap in plan['capabilities'] for ref in cap['evidence_ids']}
         evidence = [o for o in self.state['observations'] if o['id'] in refs]
         return ('\n## 站点开发计划\n在一个技能包内实现计划中的能力，按任务选择实现与验证方式。'
-                '\nBuilder 自主设计 CLI、参数、字段与 JSON 结构，并向 Validator 提交实际执行声明。--help 离线成功。'
+                '\nBuilder 自主设计业务函数、CLI、参数、字段与 JSON 结构，编写使用说明并交付候选。--help 离线成功。'
                 '\n无匹配或非法输入可返回空结果或明确失败，建议附状态与诊断；错误标签及退出码形式差异只作提示。'
                 '边界观察按需进行，验收检查声明范围内正常输入的可用性、参数效果、数据真实性和来源。'
                 + '\n能力计划：\n' + json.dumps(plan, ensure_ascii=False)

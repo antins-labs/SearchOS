@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b660303bdff278561bc2a65f1125363f6b416769f64d48cd4cf00c16e24bee4c",
+  "capabilities": {
+    "get_athlete": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_athlete\", \"athlete_id\": \"93860\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.226241+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.olympedia.org/athletes/93860",
+          "status": 200
+        }
+      ]
+    },
+    "get_results": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_results\", \"event_id\": \"8466\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.226730+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.olympedia.org/results/8466",
+          "status": 200
+        }
+      ]
+    },
+    "search_athletes": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_athletes\", \"query\": \"Bolt\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.226799+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.olympedia.org/",
+          "status": 200
+        },
+        {
+          "url": "https://www.olympedia.org/athletes/quick_search",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

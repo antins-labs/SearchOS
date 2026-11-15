@@ -8,6 +8,9 @@ Extracts structured data including:
 - Section list
 - Full text content
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import httpx
 import re
@@ -45,6 +48,7 @@ WD_PROPERTIES = {
 }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any) -> dict[str, Any]:
     """Main entry point for the Wikipedia skill."""
     
@@ -68,7 +72,7 @@ async def execute(params: dict[str, Any], ctx: Any) -> dict[str, Any]:
 
 async def _make_request(params: dict) -> dict:
     """Make a request to the Wikipedia API."""
-    async with httpx.AsyncClient(timeout=30.0, headers=HEADERS) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0, headers=HEADERS) as client:
         response = await client.get(BASE_URL, params=params)
         response.raise_for_status()
         return response.json()
@@ -76,7 +80,7 @@ async def _make_request(params: dict) -> dict:
 
 async def _make_wikidata_request(entity_id: str) -> dict:
     """Make a request to the Wikidata API."""
-    async with httpx.AsyncClient(timeout=30.0, headers=HEADERS) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0, headers=HEADERS) as client:
         url = f"{WIKIDATA_URL}/{entity_id}.json"
         response = await client.get(url)
         response.raise_for_status()

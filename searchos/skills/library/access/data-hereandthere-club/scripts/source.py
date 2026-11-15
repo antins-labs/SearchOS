@@ -6,6 +6,9 @@ This skill extracts visitation statistics from National Park Service data hosted
 data.hereandthere.club, which provides historical and current visitation data for
 all NPS units (national parks, monuments, memorials, etc.).
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -372,6 +375,7 @@ async def fetch_page(session: aiohttp.ClientSession, url: str) -> tuple[int, str
         return 500, str(e)
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute the national park visitation data extraction.
@@ -398,7 +402,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     function = params.get("function", "get_park_data")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "get_park_data":
             park = params.get("park", "").lower().strip()
             if not park:

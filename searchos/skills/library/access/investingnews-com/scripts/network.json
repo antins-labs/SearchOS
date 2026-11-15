@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_reserves": "direct",
+    "get_articles": "direct",
+    "get_article": "direct"
+  },
+  "aliases": {
+    "get_reserves": "get_reserves",
+    "get_articles": "get_articles",
+    "get_article": "get_article",
+    "run": "get_article"
+  }
+}

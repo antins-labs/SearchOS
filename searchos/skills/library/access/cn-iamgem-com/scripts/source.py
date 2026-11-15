@@ -5,6 +5,9 @@ Extracts tours, music albums, songs, and videos from cn.iamgem.com
 Site uses WordPress with REST API for music/videos content and 
 dynamic loading for tour dates.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -30,7 +33,7 @@ class GemSiteAccessor:
     async def _ensure_session(self):
         """Ensure aiohttp session exists."""
         if self.session is None or self.session.closed:
-            self.session = aiohttp.ClientSession(headers=self.headers)
+            self.session = _skill_network.aiohttp_session(headers=self.headers)
     
     async def close(self):
         """Close the session."""
@@ -538,6 +541,7 @@ async def get_accessor() -> GemSiteAccessor:
     return _accessor
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the G.E.M. website access skill.

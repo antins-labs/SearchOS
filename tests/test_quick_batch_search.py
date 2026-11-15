@@ -9,9 +9,9 @@ from langchain_core.messages import AIMessage, ToolMessage
 from searchos.config.settings import settings
 from searchos.harness.middleware.extraction.web_middleware import WebEvidenceMiddleware
 from searchos.harness.middleware.models import TaskContext
-from searchos.tools.simple_browser import batch
-from searchos.tools.simple_browser.render import PageContents
-from searchos.tools.simple_browser.search.base import SearchResult
+from searchos.tools.simple_browser import tools as batch
+from searchos.tools.simple_browser.pages import PageContents
+from searchos.tools.simple_browser.search_providers.base import SearchResult
 from tests.test_simple_search import ANSWER, FACT, URL, call, run
 from tests.test_simple_search import setup as setup  # noqa: F401
 
@@ -135,34 +135,31 @@ async def test_batch_observations_keep_separate_original_sources():
 
 
 @pytest.mark.asyncio
-async def test_batch_simple_worker_reuses_explore_pipeline(setup, pages, monkeypatch):
+async def test_simple_worker_uses_search_pipeline_with_explore_enabled(setup, monkeypatch):
     async def handler(count, messages):
-        queries = ["Widget official release", "Widget date",
-                   "Widget announcement", "Widget archive"]
-        return (call("explore_web", {"queries": queries}) if count == 1
+        return (call("open", {"url": URL}) if count == 1
                 else AIMessage(content=ANSWER))
 
     from searchos.agents.runtime import _ctx
     from searchos.harness.middleware import pipelines
 
-    original = pipelines.explore_pipeline
+    original = pipelines.web_search_pipeline
     invocations = []
 
     def observed(*args, **kwargs):
         invocations.append(kwargs)
         return original(*args, **kwargs)
 
-    monkeypatch.setattr(pipelines, "explore_pipeline", observed)
+    monkeypatch.setattr(pipelines, "web_search_pipeline", observed)
     workspace, model, extraction = setup(handler)
     monkeypatch.setattr(settings, "enable_explore", True)
     result = await run(workspace)
-    assert not result.escalate, result.reason
     assert result.answer == ANSWER and extraction.calls
-    assert set(model.tool_names) == {"explore_web", "open", "find", "escalate_to_research"}
+    assert set(model.tool_names) == {"open"}
     assert len(model.calls) == 2
     assert len(invocations) == 1 and invocations[0]["extraction_model"] is extraction
     info = next(iter(_ctx.agent_graphs.values()))
-    assert info["agent_type"] == "explore_agent" and info["task_kind"] == "search"
+    assert info["agent_type"] == "search_agent" and info["task_kind"] == "search"
     assert not workspace.load_state().pending_agent_summaries
     report = next(iter(_ctx.completed.values()))
     assert report.kind == "search" and report.task_ids and report.evidence_nodes_added

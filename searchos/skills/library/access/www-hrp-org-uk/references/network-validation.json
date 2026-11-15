@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "6888686b95a330c765a6c0954161c1e9e54e360d985404e5369a685eee0e7e97",
+  "capabilities": {
+    "list_palaces": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_palaces\", \"palace\": \"tower-of-london\", \"max_wait\": 45, \"use_sample\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.111056+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-hrp-org-uk/scripts/source.py",
+        "line": 579,
+        "end_line": 625,
+        "implementation": "list_palaces",
+        "source_sha256": "a0c32565c7990c952a5cf0ed5d25fcecda490533c1ad2834e112b7967c06dfda",
+        "implementation_sha256": "2d0479e6d881bf6b62395ae0567a01619b7af86b70d569c20c9b98ab06205928"
+      }
+    },
+    "get_opening_times": {
+      "status": "invalid_output",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_opening_times\", \"palace\": \"tower-of-london\", \"max_wait\": 45, \"use_sample\": false}"
+      ],
+      "checked_at": "2026-10-23T07:19:02.675286+00:00",
+      "reason": "Error: BrowserType.launch_persistent_context: EPERM: operation not permitted, mkdir '/tmp/hrp_browser_session'\n",
+      "source_responses": []
+    },
+    "get_ticket_prices": {
+      "status": "invalid_output",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ticket_prices\", \"palace\": \"kensington-palace\", \"max_wait\": 45, \"use_sample\": false}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.554747+00:00",
+      "reason": "Error: BrowserType.launch_persistent_context: EPERM: operation not permitted, mkdir '/tmp/hrp_browser_session'\n",
+      "source_responses": []
+    }
+  }
+}

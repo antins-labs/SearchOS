@@ -5,6 +5,8 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 const ts = require("typescript");
+const refs = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/socmRefs.ts"), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports: refs });
 
 function load() {
   const source = fs.readFileSync(path.join(__dirname, "../src/lib/localCitations.ts"), "utf8");
@@ -31,6 +33,7 @@ async function loadAnswer() {
       if (name === "react-markdown") return { __esModule: true, ...markdown };
       if (name === "remark-gfm") return { __esModule: true, ...gfm };
       if (name === "@/lib/localCitations") return load();
+      if (name === "@/lib/socmRefs") return refs;
       return require(name);
     },
   });
@@ -50,7 +53,8 @@ function loadCellPopover() {
     if (name === "react-dom") return { createPortal: (element) => element };
     if (name === "@/hooks/useDialogFocus") return { __esModule: true, default: () => {} };
     if (name === "@/lib/localCitations") return load();
-    return require(name);
+    if (name === "@/lib/socmRefs") return refs;
+      return require(name);
   } });
   return exports;
 }
@@ -59,7 +63,7 @@ test("共享事实按当前格的投影显示，不修改任务事实", () => {
   const { evidenceForCell } = loadCellPopover();
   const node = { id: "fact", claim: "Alpha has 120000 residents.", value: "", source: "https://example.org",
     entity: "", attribute: "", status: "active" };
-  const ref = { tableId: "b", entity: "Alpha", attribute: "Thousands", cell: {} };
+  const ref = { tableId: "b", entity: JSON.stringify(["Alpha"]), attribute: "Thousands", cell: {} };
   const result = evidenceForCell([node], ref, [{ evidence_id: "fact", value: "120", alignment: "full", status: "superseded" }]);
   assert.equal(result[0].value, "120");
   assert.equal(result[0].status, "superseded");
@@ -72,7 +76,7 @@ test("表格中的本地证据按钮使用文件名和位置，并打开原文�
   const node = { id: "fact", claim: "课程安排", entity: "", attribute: "", source: REF, confidence: 0.8,
     local_source_metadata: { file_name: "方案.pdf", locators: [{ kind: "pdf_region", page_start: 7, page_end: 10 }] } };
   let opened;
-  const tree = Popover({ nodes: [node], cellRef: { tableId: "t", entity: "A", attribute: "课程", cell: { value: "课程安排", primary_evidence_id: "fact" } },
+  const tree = Popover({ nodes: [node], cellRef: { tableId: "t", entity: JSON.stringify(["A"]), attribute: "课程", cell: { value: "课程安排", primary_evidence_id: "fact" } },
     bindings: [{ evidence_id: "fact", value: "课程安排", alignment: "full", status: "active" }],
     onClose() {}, onOpenLocalSource(ref) { opened = ref; } });
   function findButton(element) {
@@ -222,7 +226,8 @@ test("Hybrid task evidence renders task relations and filename plus location", (
       listLocalLibraries: async () => [],
       listNetworkImports: async () => [],
     };
-    return require(name);
+    if (name === "@/lib/socmRefs") return refs;
+      return require(name);
   } });
   const node = { id: "fact", claim: "需要 120 学分", source: REF, confidence: 0.5,
     entity: "", attribute: "", status: "active", alignment_note: "source_support_verified",
@@ -253,6 +258,7 @@ test("Hybrid source limitations remain visible when the execution card is collap
     }).outputText, { exports, require: (name) => {
       if (name === "@/components/workbench/OrchestratorTimeline") return { __esModule: true, default: () => null };
       if (name.startsWith("@/lib/")) return moduleAt(name.slice(2) + ".ts");
+      if (name === "@/lib/socmRefs") return refs;
       return require(name);
     } });
     return exports;

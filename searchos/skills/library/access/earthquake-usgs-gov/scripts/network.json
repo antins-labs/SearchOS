@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "query": "direct",
+    "count": "direct",
+    "detail": "direct"
+  },
+  "aliases": {
+    "query": "query",
+    "count": "count",
+    "detail": "detail",
+    "run": "detail"
+  }
+}

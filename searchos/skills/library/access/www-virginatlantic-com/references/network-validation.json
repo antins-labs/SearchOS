@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "76b75f63d3938e71a2952d58d935ff3693a6ab5bbb018282f64e6ac759a67d55",
+  "capabilities": {
+    "get_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.virginatlantic.com/en-BB/help/articles/what-is-my-hand-baggage-allowance----a5a24d4c-a652-4fbd-925d-57d0ead2ed5e\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.100934+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.virginatlantic.com/en-BB/help/articles/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/next-header-footer/assets/6ba066462ba8f43491f4.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/next-header-footer/assets/fa6e596f9b0a69192fc8.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/next-header-footer/headerBundle.6807d0cd.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/_next/static/css/5748e2a3d9b02724.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/_next/static/css/45f5c4f8a87ee460.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/_next/static/css/779a1054003486bc.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/next-header-footer/footerBundle.6807d0cd.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/_next/static/media/gotham-book.868ce376.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/_next/static/media/gotham-light.bb5a1021.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/_next/static/media/gotham-medium.ab8335e5.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/static/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/_next/static/chunks/webpack-4b71bc5584cd94b8.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/_next/static/chunks/framework-f85f8da102d2e9df.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/P3Yfu3/Cym8/-9Dp/Se3h/q3ea30gVs/7DurXSY3ruhuzhOS/fgMKIwUl/Gkphb/Ex9az8",
+          "status": 200
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"query\": \"baggage\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.102966+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.virginatlantic.com/en-BB/help",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/next-header-footer/assets/6ba066462ba8f43491f4.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/next-header-footer/157.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/next-header-footer/assets/fa6e596f9b0a69192fc8.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/next-header-footer/278.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/next-header-footer/footerBundle.6807d0cd.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/next-header-footer/headerBundle.6807d0cd.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/next-header-footer/server.6807d0cd.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/_next/static/css/5748e2a3d9b02724.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/_next/static/css/45f5c4f8a87ee460.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/_next/static/css/779a1054003486bc.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/_next/static/media/gotham-book.868ce376.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/_next/static/media/gotham-light.bb5a1021.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/_next/static/media/gotham-medium.ab8335e5.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.virginatlantic.com/static/[redacted]",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

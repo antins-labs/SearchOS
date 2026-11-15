@@ -6,6 +6,9 @@ Supports country-specific volcano data and global eruption statistics.
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 import asyncio
 from typing import Any
 from playwright.async_api import async_playwright
@@ -14,6 +17,7 @@ from playwright.async_api import async_playwright
 BASE_URL = "https://www.worlddata.info"
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute WorldData volcano data retrieval.
@@ -101,12 +105,12 @@ async def get_country_volcanoes(params: dict[str, Any]) -> dict[str, Any]:
         ]
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Try each region
             for try_region in regions_to_try:
@@ -263,12 +267,12 @@ async def get_global_eruptions(params: dict[str, Any]) -> dict[str, Any]:
     limit = params.get("limit")
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             url = f"{BASE_URL}/volcanoes.php"
             await page.goto(url, wait_until="domcontentloaded", timeout=20000)
@@ -329,12 +333,12 @@ async def get_latest_activity(params: dict[str, Any]) -> dict[str, Any]:
     limit = params.get("limit")
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             url = f"{BASE_URL}/volcanoes.php"
             await page.goto(url, wait_until="domcontentloaded", timeout=20000)

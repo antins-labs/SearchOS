@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3f45e5b8f19d09cc18dbe78a1dd4bfdec2c124446ae9184f66ae2ab5fbc0bec2",
+  "capabilities": {
+    "get_list": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_list\", \"url\": \"https://www.nhc.gov.cn/wjw/fzszjg/list.shtml\", \"page\": 1, \"max_items\": 20, \"timeout\": 60, \"max_retries\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.236357+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.nhc.gov.cn/wjw/fzszjg/list.shtml",
+          "status": 412
+        },
+        {
+          "url": "https://www.nhc.gov.cn/DMKKXCmjbm3S/lk8SN0vgmfwQ.a27bebb.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.nhc.gov.cn/wjw/fzszjg/list.shtml",
+          "status": 400
+        }
+      ]
+    },
+    "get_detail": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_detail\", \"url\": \"https://www.nhc.gov.cn/fys/c100077/202411/xxxxx.shtml\", \"page\": 1, \"timeout\": 60, \"max_retries\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.238984+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"keyword\": \"医疗机构执业登记\", \"max_items\": 10, \"page\": 1, \"timeout\": 60, \"max_retries\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.239142+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.nhc.gov.cn/search.shtml",
+          "status": 412
+        },
+        {
+          "url": "https://www.nhc.gov.cn/DMKKXCmjbm3S/lk8SN0vgmfwQ.a27bebb.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.nhc.gov.cn/search.shtml",
+          "status": 400
+        }
+      ]
+    }
+  }
+}

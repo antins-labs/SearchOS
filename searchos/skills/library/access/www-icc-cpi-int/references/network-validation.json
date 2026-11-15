@@ -1,0 +1,222 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "620538423afde1fbd5e4d7584f9ab3a86e336095211d890378e603b414311463",
+  "capabilities": {
+    "get_news_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_news_article\", \"url\": \"https://www.icc-cpi.int/news/icc-appeals-chamber-confirms-trial-chamber-decision-acquitting-laurent-gbagbo-and-charles-ble\", \"limit\": 3, \"feed_type\": \"news\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.672943+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.icc-cpi.int/news/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/sites/default/files/css/css_3ZOm0WcLdbfVhE12RG9RtyEF3VLZXm97ARDQMwK0PMc.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/sites/default/files/css/css_XguEtP7iywuYcGgSWXqe4G8SzRZelVdwv-smao7UkNg.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/themes/custom/icccpi/logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/core/assets/vendor/jquery/jquery.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/sites/default/files/js/js_JSJcbVcV3gza4DMA9z117kamA2VHnc-VJUUvYgkZ-28.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.google-analytics.com/analytics.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://www.icc-cpi.int/sbbi/",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/sites/default/files/styles/press_release/public/pr1583.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/sites/default/files/20210331-gbagbo-ble-goude-appeals-judgment-03.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/log-report-uri/reportOnly",
+          "status": 403
+        },
+        {
+          "url": "https://www.icc-cpi.int/themes/custom/icccpi/fonts/Inter18pt-Light.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/themes/custom/icccpi/fonts/Inter18pt-Regular.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/themes/custom/icccpi/fonts/Inter18pt-Bold.woff2",
+          "status": 200
+        }
+      ]
+    },
+    "list_news": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_news\", \"limit\": 3, \"feed_type\": \"news\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.677375+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"war crimes Ukraine\", \"limit\": 3, \"feed_type\": \"news\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.678176+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.icc-cpi.int/search",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/sites/default/files/css/css_XguEtP7iywuYcGgSWXqe4G8SzRZelVdwv-smao7UkNg.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/sites/default/files/css/css_pJEYFqZjsmVgxzjpWFWnB7kUWWzd12aN0IrSQ9yvLZg.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://www.google-analytics.com/analytics.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/themes/custom/icccpi/logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/core/assets/vendor/jquery/jquery.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/sbbi/",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/sites/default/files/js/js_-jSqfEjImPhLZQRC33wZHpBSFc-56JH4MOLfqe3CjbU.js",
+          "status": 200
+        },
+        {
+          "url": "https://code.jquery.com/jquery-3.6.4.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/log-report-uri/reportOnly",
+          "status": 403
+        },
+        {
+          "url": "https://www.icc-cpi.int/themes/custom/icccpi/fonts/Inter18pt-Regular.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/themes/custom/icccpi/fonts/Inter18pt-Light.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/themes/custom/icccpi/fonts/Inter18pt-Bold.woff2",
+          "status": 200
+        }
+      ]
+    },
+    "get_document": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_document\", \"url\": \"https://www.icc-cpi.int/Pages/record.aspx?docNo=ICC-02/11-01/15-1400\", \"limit\": 3, \"feed_type\": \"news\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.678282+00:00",
+      "reason": "no business data in result",
+      "source_responses": [
+        {
+          "url": "https://www.icc-cpi.int/Pages/record.aspx",
+          "status": 301
+        },
+        {
+          "url": "https://www.icc-cpi.int/court-record/icc-02/11-01/15-1400",
+          "status": 200
+        },
+        {
+          "url": "https://www.icc-cpi.int/sbbi/",
+          "status": 200
+        }
+      ]
+    },
+    "get_rss": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rss\", \"feed_type\": \"news\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.678590+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.icc-cpi.int/rss/news/all",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

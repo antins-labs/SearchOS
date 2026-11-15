@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b9a5f57c720ee01407847a6274d4ee4f78244f95ed252a3f074ed6cdf3ce37c0",
+  "capabilities": {
+    "get_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_data\", \"year_month\": \"2026-02\", \"data_type\": \"average-prices\", \"region_exact\": \"London\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.846289+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://publicdata.landregistry.gov.uk/market-trend-data/house-price-index-data/Average-prices-2026-02.csv",
+          "status": 200
+        }
+      ]
+    },
+    "list_regions": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_regions\", \"year_month\": \"2026-02\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.847830+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://publicdata.landregistry.gov.uk/market-trend-data/house-price-index-data/Average-prices-2026-02.csv",
+          "status": 200
+        }
+      ]
+    },
+    "get_metadata": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_metadata\", \"year_month\": \"2026-02\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.847894+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://publicdata.landregistry.gov.uk/market-trend-data/house-price-index-data/Average-prices-2026-02.csv",
+          "status": 200
+        }
+      ]
+    },
+    "get_timeseries": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_timeseries\", \"region\": \"London\", \"months\": [\"2025-01\", \"2025-02\", \"2025-03\", \"2025-04\"]}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.847948+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://publicdata.landregistry.gov.uk/market-trend-data/house-price-index-data/Average-prices-2025-01.csv",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

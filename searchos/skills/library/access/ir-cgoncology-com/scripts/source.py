@@ -7,6 +7,9 @@ as the main site is blocked and returns HTTP/2 protocol errors for automated acc
 The site is built on a Drupal-based investor relations platform (NIR - Nasdaq Investor Relations)
 with press releases at /news-releases/news-release-details/[slug]
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -194,7 +197,7 @@ async def get_press_release_by_slug(slug: str, client: Optional[httpx.AsyncClien
     
     close_client = False
     if client is None:
-        client = httpx.AsyncClient(
+        client = _skill_network.httpx_async_client(
             timeout=30,
             verify=False,
             follow_redirects=True,
@@ -249,7 +252,7 @@ async def list_press_releases(
     
     close_client = False
     if client is None:
-        client = httpx.AsyncClient(
+        client = _skill_network.httpx_async_client(
             timeout=30,
             verify=False,
             follow_redirects=True,
@@ -364,6 +367,7 @@ async def get_press_release_full(url_or_slug: str) -> dict:
     return await get_press_release_by_slug(url_or_slug)
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the CG Oncology IR skill.
@@ -387,7 +391,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             "error_message": "The 'function' parameter is required. Supported: get_press_release, list_press_releases"
         }
     
-    async with httpx.AsyncClient(
+    async with _skill_network.httpx_async_client(
         timeout=30,
         verify=False,
         follow_redirects=True,

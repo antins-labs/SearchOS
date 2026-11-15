@@ -128,10 +128,12 @@ def _case(example: dict, index: int) -> dict:
     case = {
         "capability_id": example.get("capability_id") or "package",
         "example": index, "status": "incomplete", "valid": False,
-        "argv": deepcopy(example.get("argv", [])), "proxy_mode": "inherit",
+        "argv": deepcopy(example.get("argv", [])),
         "check_kind": example.get("check_kind", "positive"),
         "contract": deepcopy(example),
     }
+    if 'code' in example:
+        case['code'] = example['code']
     if "expected_status" in example:
         case["expected_status"] = example["expected_status"]
     return case
@@ -139,14 +141,12 @@ def _case(example: dict, index: int) -> dict:
 
 def _example_contract(example: dict) -> None:
     argv = example.get("argv")
-    if (not isinstance(argv, list) or len(argv) < 2
-            or any(not isinstance(value, str) or '\0' in value for value in argv)):
-        raise ValueError("argv must contain an interpreter and a skill script")
-    if example.get("proxy_mode", "inherit") != "inherit":
-        raise ValueError("validation requires package network defaults; configure network access "
-                         "inside package functions and submit business arguments")
-    if any(value == "--proxy-mode" or value.startswith("--proxy-mode=") for value in argv):
-        raise ValueError("validation accepts business arguments only; bind the route and remove --proxy-mode")
+    if example.get('code') is not None:
+        if not isinstance(example['code'], str) or not example['code'].strip() or argv:
+            raise ValueError('provide one execution input: argv or code')
+    elif (not isinstance(argv, list) or not argv
+          or any(not isinstance(value, str) or '\0' in value for value in argv)):
+        raise ValueError("argv must contain a command and optional arguments")
     if example.get("expected_status", "ok") not in ("ok", "empty", "invalid_input"):
         raise ValueError("expected_status must be ok, empty or invalid_input")
     if not isinstance(example.get("output", ""), str):
@@ -585,7 +585,7 @@ def _record_summary(records: list[dict], example: dict) -> dict:
 
 def validate_execution_result(example: dict, result: dict, *, work_dir: Path,
                               execution_dir: Path | None = None, artifact_store=None,
-                              example_index: int = 0, check_records: bool = True) -> dict:
+                              example_index: int = 0, check_records: bool = True, check_json: bool = True) -> dict:
     """检查同一次命令回执和完整产物，不启动或重跑 CLI。"""
     case = _case(example, example_index)
     execution = _execution_feedback(result, execution_root=execution_dir, artifact_store=artifact_store)
@@ -618,17 +618,27 @@ def validate_execution_result(example: dict, result: dict, *, work_dir: Path,
         output = example.get("output", "")
         if output:
             if result.get("output_unchanged"):
-                raise ValueError("declared output was not updated by this execution")
+                raise ValueError('declared output was not updated by this execution. '
+                    'output must name a JSON file written by the script in its work directory. '
+                    'stdout_file and saved_files are host copies for reading; for JSON stdout use output="". '
+                    'If this case is now in pending_regressions, rerun its original input and submit the new '
+                    'execution_id with regression_of referencing that pending execution.')
             relative = Path(output)
             if relative.is_absolute() or ".." in relative.parts:
                 raise ValueError("output must remain within the work directory")
-            text = _controlled_text(Path(work_dir) / relative, [Path(work_dir)])
+            saved = result.get('artifact_files', {}).get(relative.as_posix())
+            text = (_controlled_text(Path(saved), [Path(artifact_store.root)])
+                    if saved and artifact_store is not None else
+                    _controlled_text(Path(work_dir) / relative, [Path(work_dir)]))
             case.update(output=output, output_text=text)
         else:
             text = execution["stdout"]
         try:
             data = json.loads(text)
         except json.JSONDecodeError as exc:
+            if not check_json:
+                case.update(status='passed', valid=True)
+                return _persist_case(case, artifact_store)
             raise ValueError(
                 f"CLI output is not valid JSON (line {exc.lineno}, column {exc.colno}); "
                 "keep logs on stderr, select the correct JSON output file, "
@@ -711,7 +721,7 @@ async def validate_examples(
                     raise ValueError("CLI --help failed: " + _failure_reason(help_result))
                 execution = await run_command(output_dir, example["argv"], work_dir=work,
                     execution_dir=root / "executions", timeout_s=ACCESS_TIMEOUT_S,
-                    network=True, proxy_mode="inherit")
+                    network=True)
                 captured = execution
                 streams = execution.get("streams")
                 if (execution.get("truncated") and isinstance(streams, dict) and streams

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_name_awards": "direct",
+    "get_awards": "direct",
+    "get_title_awards": "direct"
+  },
+  "aliases": {
+    "get_name_awards": "get_name_awards",
+    "get_title_awards": "get_title_awards",
+    "get_awards": "get_awards",
+    "run": "get_awards"
+  }
+}

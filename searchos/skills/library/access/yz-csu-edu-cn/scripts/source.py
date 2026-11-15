@@ -9,6 +9,9 @@ Pagination note: This site uses reverse pagination where page numbers in URLs
 count down from newest to oldest content. Page 1 (tzgg.htm) shows newest articles,
 while higher numeric URLs (tzgg/8.htm, etc.) show older content.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -395,6 +398,7 @@ async def search_articles(
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the CSU Graduate Admissions access skill.
@@ -419,7 +423,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
         "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
     }
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0) as client:
         if function == "list_categories":
             return {
                 "success": True,

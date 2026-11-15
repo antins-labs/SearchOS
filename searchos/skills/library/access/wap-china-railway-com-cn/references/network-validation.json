@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ae26f0e0e2e46164a9ae2346e27ed7bbb70326cfdf8326a0bb2493d5a864bd3e",
+  "capabilities": {
+    "list_reports": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_reports\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.896238+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://wap.china-railway.com.cn/wnfw/sjfw/",
+          "status": 200
+        }
+      ]
+    },
+    "get_report": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_report\", \"url\": \"http://wap.china-railway.com.cn/wnfw/sjfw/202602/t20260225_153132.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.901367+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://wap.china-railway.com.cn/wnfw/sjfw/202602/t20260225_153132.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_latest": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_latest\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.901681+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://wap.china-railway.com.cn/wnfw/sjfw/",
+          "status": 200
+        },
+        {
+          "url": "http://wap.china-railway.com.cn/wnfw/sjfw/202602/t20260225_153132.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

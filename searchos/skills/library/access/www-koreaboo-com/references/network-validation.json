@@ -1,0 +1,185 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7a41d68a03775ad370d389aac03e3a86cc079ee296627950c5c45017041a4cbe",
+  "capabilities": {
+    "fetch_listicle": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_listicle\", \"url\": \"https://www.koreaboo.com/lists/11-kpop-idols-started-record-labels/\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:02.886761+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.koreaboo.com/lists/[redacted]/",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/js/kbos.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/plugins/kba8/kba8.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://btloader.com/tag",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/css/global.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/css/search.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/css/article.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.confiant-integrations.net/aY9HONrrd_qDVbDZpkTS5MaQe38/gpt_and_prebid/config.js",
+          "status": 200
+        },
+        {
+          "url": "https://ad.doubleclick.net/favicon.ico",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/img/icon/koreaboo-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/img/icon/search.svg",
+          "status": 200
+        },
+        {
+          "url": "https://lh3.googleusercontent.com/Ysg7jby1-560b-1YxibdC_fHDVnESzS3ID7Av03CmKt4V_aTsgJf8GEoZpxsnV23xAMlbdAjQTkQKN-caumpPA30_IiOSqI_Ug=nu-e365-rj-q80-w925",
+          "status": 200
+        },
+        {
+          "url": "https://btloader.com/trustedIframe.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/css/lightbox.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/css/taxonomy.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/img/site_icon/koreaboo36.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/img/logo.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/img/icon/arrow-up-solid.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/js/asc.koreaboo.js",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_lists_category": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_lists_category\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.813272+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.koreaboo.com/lists/",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/img/icon/koreaboo-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/js/kbos.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/plugins/kba8/kba8.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/css/global.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/css/search.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/img/icon/search.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/img/icon/arrow-up-solid.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/wp-content/themes/KbooOS2/js/asc.koreaboo.js",
+          "status": 200
+        },
+        {
+          "url": "https://btloader.com/tag",
+          "status": 200
+        },
+        {
+          "url": "https://www.koreaboo.com/zmwl/",
+          "status": 200
+        },
+        {
+          "url": "https://clcksrv.com/o.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.confiant-integrations.net/aY9HONrrd_qDVbDZpkTS5MaQe38/gpt_and_prebid/config.js",
+          "status": 200
+        },
+        {
+          "url": "https://btloader.com/trustedIframe.html",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.btloader.com/cchecker.html",
+          "status": 200
+        },
+        {
+          "url": "https://socialcanvas-cdn.kargo.com/js/rh.min.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

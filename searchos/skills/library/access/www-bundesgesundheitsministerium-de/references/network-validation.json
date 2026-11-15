@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "9a98f259a5e6143a8b74f3b9e516bf3d76bbdcfb7a7dcb15173375bcf74f46d8",
+  "capabilities": {
+    "get_all": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.968127+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bundesgesundheitsministerium.de/en/themen/cannabis/faq-cannabis-act",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"cultivation\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.968769+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bundesgesundheitsministerium.de/en/themen/cannabis/faq-cannabis-act",
+          "status": 200
+        }
+      ]
+    },
+    "get_section": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_section\", \"section\": \"cultivation associations\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.968834+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bundesgesundheitsministerium.de/en/themen/cannabis/faq-cannabis-act",
+          "status": 200
+        }
+      ]
+    },
+    "get_qa": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_qa\", \"section_index\": 0, \"qa_index\": 0, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.968897+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bundesgesundheitsministerium.de/en/themen/cannabis/faq-cannabis-act",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

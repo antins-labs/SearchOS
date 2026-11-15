@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_programs": "direct",
+    "get_program": "direct",
+    "search_courses": "direct"
+  },
+  "aliases": {
+    "get_program": "get_program",
+    "list_programs": "list_programs",
+    "search_courses": "search_courses",
+    "run": "search_courses"
+  }
+}

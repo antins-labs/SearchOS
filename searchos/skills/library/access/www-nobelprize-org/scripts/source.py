@@ -6,6 +6,9 @@ Supports two page types:
 1. Individual laureate bibliography pages
 2. Prize-year bio-bibliography pages (biography + bibliography)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -24,7 +27,7 @@ async def fetch_page(url: str) -> tuple[int, str | None]:
         "Accept-Language": "en-US,en;q=0.5",
     }
     
-    async with httpx.AsyncClient(follow_redirects=True, timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(follow_redirects=True, timeout=30.0) as client:
         try:
             response = await client.get(url, headers=headers)
             return response.status_code, response.text
@@ -529,6 +532,7 @@ async def search_entries(url: str, query: str) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """Main entry point for the Nobel Prize bibliography skill.
     

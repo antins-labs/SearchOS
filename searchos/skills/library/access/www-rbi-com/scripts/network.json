@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "filter_reports": "direct",
+    "list_reports": "direct",
+    "list_years": "direct",
+    "get_document_urls": "proxy"
+  },
+  "aliases": {
+    "list_reports": "list_reports",
+    "list_years": "list_years",
+    "filter_reports": "filter_reports",
+    "get_document_urls": "get_document_urls",
+    "run": "get_document_urls"
+  }
+}

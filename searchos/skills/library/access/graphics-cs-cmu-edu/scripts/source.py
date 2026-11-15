@@ -3,6 +3,9 @@ CMU Graphics Lab Publications Access Skill
 
 Fetches publication data from graphics.cs.cmu.edu/publications/
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -300,6 +303,7 @@ async def get_years(
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """Main entry point for the skill."""
     function = params.get("function", "")
@@ -310,7 +314,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     ssl_context.verify_mode = ssl.CERT_NONE
     connector = aiohttp.TCPConnector(ssl=ssl_context)
     
-    async with aiohttp.ClientSession(connector=connector) as session:
+    async with _skill_network.aiohttp_session(connector=connector) as session:
         if function == "list_publications":
             year = params.get("year")
             limit = params.get("limit")

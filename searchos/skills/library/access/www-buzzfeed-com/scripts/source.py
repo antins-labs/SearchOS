@@ -9,6 +9,9 @@ The skill parses the __NEXT_DATA__ JSON embedded in BuzzFeed pages to extract:
 - Checklist items with names, years, images, and credits
 - Quiz questions and answers
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -28,7 +31,7 @@ async def fetch_page(url: str) -> tuple[int, str]:
     }
     
     timeout = aiohttp.ClientTimeout(total=30)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(timeout=timeout) as session:
         async with session.get(url, headers=headers) as resp:
             html = await resp.text()
             return resp.status, html
@@ -374,6 +377,7 @@ async def get_quiz_results(params: dict[str, Any]) -> dict[str, Any]:
         return {"error": f"Failed to fetch quiz: {str(e)}", "success": False}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute BuzzFeed skill functions.

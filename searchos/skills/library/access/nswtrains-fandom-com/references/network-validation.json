@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ae06127e45d43482fdcbd58638663a0f91014f3d7441ae1ac9e474a365e43442",
+  "capabilities": {
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"North Shore\", \"limit\": 3, \"prefix\": \"T\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.826888+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://nswtrains.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_line": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_line\", \"title\": \"T7 Olympic Park line\", \"limit\": 3, \"prefix\": \"T\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.827515+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://nswtrains.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_stations": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_stations\", \"title\": \"T1 North Shore and Western line\", \"limit\": 3, \"prefix\": \"T\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.827579+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://nswtrains.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "list_lines": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_lines\", \"prefix\": \"T\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.827643+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://nswtrains.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

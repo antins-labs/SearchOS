@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "8793cfc252edb71c5c9adeb77cc527740a0d7699d0861d94adeb244bac5604dd",
+  "capabilities": {
+    "get_artwork": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_artwork\", \"object_id\": \"s0160V1962\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.384692+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.vangoghmuseum.nl/en/collection/s0160V1962",
+          "status": 200
+        }
+      ]
+    },
+    "get_iiif_url": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_iiif_url\", \"iiif_base_url\": \"https://iiif.micr.io/ugeeH\", \"width\": 2560}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.385200+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-vangoghmuseum-nl/scripts/source.py",
+        "line": 152,
+        "end_line": 163,
+        "implementation": "get_iiif_image_url",
+        "source_sha256": "81e18e9094130686e04766efa43207ba5a4c021577fe09c430f66605b912a25a",
+        "implementation_sha256": "f4baa22b4b8ccbfeb3bafcd170b64790021a35e0a644764b5ee706b4bddc6822"
+      }
+    }
+  }
+}

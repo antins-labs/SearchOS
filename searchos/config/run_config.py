@@ -18,7 +18,6 @@ class EffectiveRunConfig:
     source: Literal["product", "eval"] = "product"
     explore_on_start: bool = False
     execution_path: Literal["auto", "unified"] = "auto"
-    enable_research_plan_tool: bool = True
 
     @classmethod
     def from_settings(cls, *, for_eval: bool = False) -> EffectiveRunConfig:

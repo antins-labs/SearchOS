@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e401979f2808b0d131349dc60a32bb636a0541718835c007fdb03fc6d7fa809e",
+  "capabilities": {
+    "get_place": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_place\", \"place_id\": \"5bc7f4cf080b851f908bb5d1\", \"category_id\": \"sjyljg\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.793619+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://map.beijing.gov.cn/map-web/place",
+          "status": 200
+        }
+      ]
+    },
+    "get_place_by_url": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_place_by_url\", \"url\": \"https://map.beijing.gov.cn/map-web/place?placeId=5bc7f4cf080b851f908bb5d1&categoryId=sjyljg\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.794204+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://map.beijing.gov.cn/map-web/place",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

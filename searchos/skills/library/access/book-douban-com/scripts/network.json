@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_author_books": "direct",
+    "get_press_books": "direct",
+    "get_book": "direct",
+    "search": "direct"
+  },
+  "aliases": {
+    "get_book": "get_book",
+    "get_press_books": "get_press_books",
+    "get_author_books": "get_author_books",
+    "search": "search",
+    "run": "search"
+  }
+}

@@ -2,6 +2,9 @@
 V&A Museum Directors Access Skill
 Fetches the list of Victoria and Albert Museum directors from the V&A website.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -25,7 +28,7 @@ async def fetch_directors() -> dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, headers=headers, ssl=False, timeout=aiohttp.ClientTimeout(total=30)) as resp:
                 if resp.status != 200:
                     return {"error": f"HTTP {resp.status}", "directors": [], "count": 0}
@@ -141,6 +144,7 @@ async def fetch_directors() -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the V&A Directors skill.

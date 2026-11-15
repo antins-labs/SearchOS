@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "db3fa2e36956d3ea58c5145c7ee2a8ead0b9ef26142fdd692febebcd7f5bf0ad",
+  "capabilities": {
+    "get_author_profile": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_author_profile\", \"user_id\": \"loPoqyy0AAAAJ\", \"max_publications\": 100}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.854354+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://scholar.google.com/citations",
+          "status": 403
+        }
+      ]
+    },
+    "get_publications": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_publications\", \"user_id\": \"loPoqyy0AAAAJ\", \"max_publications\": 50}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.905768+00:00",
+      "reason": "Google Scholar blocked the request (403 Forbidden)",
+      "source_responses": [
+        {
+          "url": "https://scholar.google.com/citations",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

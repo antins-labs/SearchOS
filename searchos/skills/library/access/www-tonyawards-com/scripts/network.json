@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "winners": "direct",
+    "press_release": "direct",
+    "nominees": "direct",
+    "press_releases": "direct"
+  },
+  "aliases": {
+    "winners": "winners",
+    "nominees": "nominees",
+    "press_releases": "press_releases",
+    "press_release": "press_release",
+    "run": "press_release"
+  }
+}

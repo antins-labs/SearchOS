@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1dc000cacb93da34fee543ce139c40d004ee79f1551b8f2f0da43cee62e8ab0c",
+  "capabilities": {
+    "extract_article": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_article\", \"url\": \"https://www.nielsen.com/news-center/2025/super-bowl-lix-makes-tv-history-with-over-127-million-viewers/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.209289+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nielsen.com/news-center/2025/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"query\": \"Super Bowl\", \"max_results\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.209964+00:00",
+      "reason": "results is empty",
+      "source_responses": [
+        {
+          "url": "https://www.nielsen.com/news-center/feed/",
+          "status": 200
+        }
+      ]
+    },
+    "get_latest_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_latest_articles\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.210306+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nielsen.com/news-center/feed/",
+          "status": 200
+        }
+      ]
+    },
+    "get_super_bowl_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_super_bowl_data\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.210454+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nielsen.com/news-center/2025/[redacted]/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

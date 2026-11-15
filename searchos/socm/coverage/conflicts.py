@@ -10,7 +10,8 @@ from itertools import combinations
 from typing import Any
 
 from searchos.socm.evidence.graph import EvidenceNode
-from searchos.socm.evidence.values import is_missing_value
+from searchos.socm.evidence.missing_values import is_missing_value
+from searchos.socm.refs import row_values
 
 COMPARISON_VERSION = "cell-semantics-v1"
 
@@ -60,7 +61,7 @@ def cell_pairs(state: Any, key: str) -> list[EvidencePair]:
     schema = cmap.tables[tid]
     column = schema.column_desc.get(attribute)
     context = {
-        "entity": entity,
+        "entity": row_values(entity),
         "attribute": attribute,
         "column": column.model_dump() if column is not None else {},
         "table": schema.table_label,
@@ -99,6 +100,18 @@ def cell_pairs(state: Any, key: str) -> list[EvidencePair]:
         ).hexdigest()
         pairs.append(EvidencePair(key, fingerprint, left, right, context))
     return pairs
+
+
+def rekey_comparisons(state: Any, key: str, previous_key: str, previous_entity: str | list[str]) -> None:
+    """引用变化时仅重编码内容仍匹配的判定指纹。"""
+    records = state.coverage_map.evidence_comparisons.get(key, {})
+    for pair in cell_pairs(state, key):
+        context = {**pair.context, "entity": previous_entity}
+        content = [COMPARISON_VERSION, previous_key, state.source_scope, context,
+                   pair.left.id, _claim(pair.left), pair.right.id, _claim(pair.right)]
+        previous = hashlib.sha256(json.dumps(content, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+        if previous in records:
+            records[pair.fingerprint] = records.pop(previous)
 
 
 def reconcile_conflicts(state: Any, keys: set[str]) -> None:

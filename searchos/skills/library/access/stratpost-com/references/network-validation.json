@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "bb77519ba50e9b011f03b1a1bbb628b7bffb17c8a11415b0b2027a7014b176fa",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://stratpost.com/sipri-wars-push-global-arms-sales-to-all-time-high/\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.870070+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://stratpost.com/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "get_latest": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_latest\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.870690+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://stratpost.com/",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"ukraine\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.870817+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://stratpost.com/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

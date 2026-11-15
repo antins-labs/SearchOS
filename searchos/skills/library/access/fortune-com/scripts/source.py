@@ -4,6 +4,9 @@ Fortune.com Access Skill
 Provides access to Fortune Global 500 rankings and company profile data.
 Data is extracted from server-side rendered __NEXT_DATA__ JSON embedded in pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import json
@@ -331,6 +334,7 @@ async def search_companies(params: dict[str, Any], session: aiohttp.ClientSessio
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for Fortune.com skill.
@@ -360,7 +364,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             ]
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if func == 'get_global500_ranking':
             return await get_global500_ranking(params, session)
         elif func == 'get_company_profile':

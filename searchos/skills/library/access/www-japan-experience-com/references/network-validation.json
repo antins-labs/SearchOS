@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "8b9009ecbf196732e91dd2ea97f46c2d7e2c2e41dd44434359de510202480698",
+  "capabilities": {
+    "get_listing": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_listing\", \"url\": \"https://www.japan-experience.com/all-about-japan/nagasaki/museums-and-galleries/nagasaki-museums-listing\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.136288+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.japan-experience.com/all-about-japan/nagasaki/museums-and-galleries/nagasaki-museums-listing",
+          "status": 200
+        }
+      ]
+    },
+    "get_museum_detail": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_museum_detail\", \"url\": \"https://www.japan-experience.com/all-about-japan/nagasaki/museums-galleries/nagasaki-bomb-museum\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.137140+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.japan-experience.com/all-about-japan/nagasaki/museums-galleries/nagasaki-bomb-museum",
+          "status": 200
+        }
+      ]
+    },
+    "search_museums": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_museums\", \"url\": \"https://www.japan-experience.com/all-about-japan/nagasaki/museums-and-galleries/nagasaki-museums-listing\", \"query\": \"atomic\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.137369+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.japan-experience.com/all-about-japan/nagasaki/museums-and-galleries/nagasaki-museums-listing",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

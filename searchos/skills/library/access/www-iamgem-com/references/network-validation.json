@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "58b7124dfe2725807552fd8b03eacfb5a14aa7b201ccf0ef0005772cf5100bc5",
+  "capabilities": {
+    "list_tours": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_tours\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.116134+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.iamgem.com/tours/",
+          "status": 200
+        }
+      ]
+    },
+    "get_tours": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tours\", \"tour_name\": \"GLORIA\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.118536+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.iamgem.com/tours/",
+          "status": 200
+        }
+      ]
+    },
+    "search_by_city": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_city\", \"city\": \"上海\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.118660+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.iamgem.com/tours/",
+          "status": 200
+        }
+      ]
+    },
+    "search_by_year": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_year\", \"year\": 2025}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.118888+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.iamgem.com/tours/",
+          "status": 200
+        }
+      ]
+    },
+    "search_by_venue": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_venue\", \"venue\": \"紅磡\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.119137+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.iamgem.com/tours/",
+          "status": 200
+        }
+      ]
+    },
+    "get_statistics": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_statistics\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.119311+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.iamgem.com/tours/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -2,6 +2,9 @@
 EV Specifications Access Skill
 Extracts detailed electric vehicle specifications from evspecifications.com
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any
@@ -167,12 +170,12 @@ def _find_section_by_keyword(specs: dict, keyword: str) -> dict:
 async def _get_model_specifications(url: str) -> dict:
     """Fetch and extract specifications from a model page."""
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate with timeout
             await page.goto(url, wait_until="domcontentloaded", timeout=45000)
@@ -212,12 +215,12 @@ async def _get_model_specifications(url: str) -> dict:
 async def _get_section_data(url: str, section_keyword: str) -> dict:
     """Extract specifications from a specific section."""
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until="domcontentloaded", timeout=45000)
             await page.wait_for_timeout(2000)
@@ -248,6 +251,7 @@ async def _get_section_data(url: str, section_keyword: str) -> dict:
             await browser.close()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute EV specifications lookup.

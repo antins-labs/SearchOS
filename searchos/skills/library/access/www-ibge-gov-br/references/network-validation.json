@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e98993bfbf7bd4abfbb208eddb4bddb33d74f786ff0ce6e4517fe62a87c49ce3",
+  "capabilities": {
+    "search_municipalities": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_municipalities\", \"query\": \"rio de janeiro\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.120352+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_municipality": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_municipality\", \"municipality_id\": 5215801}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.120924+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_municipality_statistics": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_municipality_statistics\", \"municipality_id\": 5215801}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.121036+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_municipality_full": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_municipality_full\", \"municipality_id\": 3304557}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.121107+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_state_municipalities": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_state_municipalities\", \"state\": \"GO\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.121566+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "get_states": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_states\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.121642+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

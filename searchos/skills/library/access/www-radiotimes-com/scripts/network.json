@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_page_info": "direct",
+    "get_album_list": "direct"
+  },
+  "aliases": {
+    "get_album_list": "get_album_list",
+    "run": "get_page_info",
+    "get_page_info": "get_page_info"
+  }
+}

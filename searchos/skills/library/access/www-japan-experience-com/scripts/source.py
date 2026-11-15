@@ -4,6 +4,9 @@ Japan Experience Museum Listings Access Skill
 Fetches museum listing pages from www.japan-experience.com and extracts
 structured museum information including names, descriptions, links, and images.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -187,7 +190,7 @@ def extract_table_of_contents(html: str, base_url: str) -> List[Dict[str, str]]:
 
 async def get_museum_listing(url: str) -> Dict[str, Any]:
     """Fetch and parse a museum listing page."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(url, session)
         
         if status != 200:
@@ -224,7 +227,7 @@ async def get_museum_listing(url: str) -> Dict[str, Any]:
 
 async def get_museum_detail(url: str) -> Dict[str, Any]:
     """Fetch and parse a single museum detail page."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await fetch_page(url, session)
         
         if status != 200:
@@ -309,6 +312,7 @@ async def search_museums(url: str, query: str) -> Dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx=None) -> Dict[str, Any]:
     """
     Execute the Japan Experience museum listings skill.

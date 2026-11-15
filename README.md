@@ -374,7 +374,7 @@ flowchart TD
 
 The Orchestrator selects the next action from the question and current evidence. In ordinary runs, **Explore is optional**: it resolves uncertainties about identity, scope, candidate sets, or sources, and can be dispatched again during research. The evaluation runner defaults to an initial Explore step.
 
-**Source selection and result structure are separate decisions.** Hybrid research can collect findings before creating a table. Tables organize comparisons and expose missing cells when useful; table-bound Web search still requires a schema. Existing evidence can support additional tasks or cells without replacing the original facts.
+**Evidence Extraction follows the current schema.** Web, Local, and Hybrid research record independent findings until a table exists. Once a table is declared, extraction discovers rows and fills supported cells from source observations. The orchestrator can focus retrieval on a table or specific cells.
 
 The **Context, Sensor, and Extraction** middleware handle context assembly, budgets and progress, and evidence intake. The Orchestrator normally produces the final answer; the optional Writer and synthesis fallback support other delivery paths. Session workspaces retain state, reading records, and execution logs for follow-ups and inspection.
 

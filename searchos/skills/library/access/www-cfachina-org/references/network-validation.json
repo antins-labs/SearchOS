@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "662a79b329e0c8bfcfd1b6cecfd6ed7a1e3a0baf461ba09ae257c5e1500fc161",
+  "capabilities": {
+    "list_reports": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_reports\", \"page\": 1, \"max_pages\": 2}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.981358+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.cfachina.org/servicesupport/researchandpublishin/statisticalsdata/monthlytransactiondata/index.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.cfachina.org/servicesupport/researchandpublishin/statisticalsdata/monthlytransactiondata/index_1.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_report": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_report\", \"report_id\": \"202506/t20250611_80854\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.982248+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.cfachina.org/servicesupport/researchandpublishin/statisticalsdata/monthlytransactiondata/202506/t20250611_80854.html",
+          "status": 200
+        }
+      ]
+    },
+    "download_excel": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"download_excel\", \"url\": \"https://www.cfachina.org/servicesupport/researchandpublishin/statisticalsdata/monthlytransactiondata/202506/P020250611501774429093.xlsx\", \"month\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.982331+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.cfachina.org/servicesupport/researchandpublishin/statisticalsdata/monthlytransactiondata/202506/P020250611501774429093.xlsx",
+          "status": 200
+        }
+      ]
+    },
+    "search_reports": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_reports\", \"year\": 2025, \"month\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.982460+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.cfachina.org/servicesupport/researchandpublishin/statisticalsdata/monthlytransactiondata/index.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.cfachina.org/servicesupport/researchandpublishin/statisticalsdata/monthlytransactiondata/index_1.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.cfachina.org/servicesupport/researchandpublishin/statisticalsdata/monthlytransactiondata/index_2.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.cfachina.org/servicesupport/researchandpublishin/statisticalsdata/monthlytransactiondata/index_3.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.cfachina.org/servicesupport/researchandpublishin/statisticalsdata/monthlytransactiondata/index_4.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

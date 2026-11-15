@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d45916d09bc68b7c857124b976714939b941cadc3e9f1399d3aedda36e5afb6b",
+  "capabilities": {
+    "get_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_data\", \"indicator_id\": \"EMI00106130\", \"page_size\": 3, \"page_number\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.578978+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://datacenter-web.eastmoney.com/api/data/v1/get",
+          "status": 200
+        }
+      ]
+    },
+    "list_indicators": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_indicators\", \"page_size\": 3, \"page_number\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.581370+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://datacenter-web.eastmoney.com/api/data/v1/get",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"keyword\": \"客运\", \"page_size\": 3, \"page_number\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.581457+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://datacenter-web.eastmoney.com/api/data/v1/get",
+          "status": 200
+        }
+      ]
+    },
+    "get_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_info\", \"indicator_id\": \"EMI00106130\", \"page_size\": 3, \"page_number\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.581645+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://datacenter-web.eastmoney.com/api/data/v1/get",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

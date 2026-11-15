@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_quotes": "direct",
+    "check_access": "direct",
+    "get_quote": "direct"
+  },
+  "aliases": {
+    "get_quote": "get_quote",
+    "auto": "check_access",
+    "get_quotes": "get_quotes",
+    "check_access": "check_access",
+    "run": "check_access"
+  }
+}

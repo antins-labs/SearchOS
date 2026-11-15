@@ -13,6 +13,7 @@ from searchos.harness.middleware.extraction import (
     InMemoryEvidenceStore,
 )
 from searchos.socm import SearchState
+from searchos.socm.refs import cell_key, row_key
 
 
 @pytest.mark.asyncio
@@ -84,7 +85,7 @@ async def test_url_cells_require_observed_addresses(
 ):
     state = SearchState(intent="Collect news with original article links")
     state.coverage_map.initialize(
-        entities=["Acme release"],
+        entities=[row_key(["Acme release"])],
         attributes=["Title", "Summary", "Original URL"],
         primary_key=["Title"],
         table_id="news",
@@ -129,8 +130,8 @@ async def test_url_cells_require_observed_addresses(
 
     assert receipt.accepted
     cells = store.state.coverage_map.cells
-    assert cells["news/Acme release.Summary"].status.value == "filled"
-    url_cell = cells["news/Acme release.Original URL"]
+    assert cells[cell_key("news", row_key(["Acme release"]), "Summary")].status.value == "filled"
+    url_cell = cells[cell_key("news", row_key(["Acme release"]), "Original URL")]
     assert url_cell.status.value == ("filled" if accepted else "missing")
     urls = [store.state.evidence_graph.get_node(fid) for fid in url_cell.supporting_evidence_ids]
     assert len(urls) == int(accepted)

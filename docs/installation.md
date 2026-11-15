@@ -38,7 +38,7 @@ provider and saves the required credentials to `.env`.
 ```bash
 ./install.sh --core          # Core Python dependencies for the CLI/TUI and Web API only
 ./install.sh                 # Default: core + all Access Skills + Chromium + Web frontend
-./install.sh --all           # Also install evaluation, optional search/browser, and observability dependencies
+./install.sh --all           # Also install evaluation, optional browser, and observability dependencies
 ./install.sh --dev           # Add pytest and Ruff to the default installation
 ./install.sh --all --dev     # Complete development environment
 ./install.sh --no-web        # Skip Web frontend dependencies

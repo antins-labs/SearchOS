@@ -17,6 +17,8 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from searchos.config.settings import BrowserModes
+
 from api.settings import store as settings_store
 from api.skills import catalog as skills_catalog
 from api.settings.store import EffortLevel
@@ -25,6 +27,7 @@ from api.settings.views import (
     aggregate_view,
     effort_view,
     models_view,
+    network_view,
     run_defaults_view,
     skills_view,
 )
@@ -65,16 +68,19 @@ class MiscUpdate(BaseModel, extra="forbid"):
 
 
 class AdvancedUpdate(BaseModel, extra="forbid"):
-    """First-class runtime knobs (see settings_views.advanced_view). Only fields
-    actually sent are touched (model_fields_set). A field sent as null clears the
-    override back to the env/code default; ``https_proxy`` sent as "" forces
-    no-proxy (unsets HTTP(S)_PROXY). Proxy / cache dir are not secrets."""
+    """只更新显式提交的运行参数。"""
     llm_max_retries: int | None = Field(default=None, ge=0, le=20)
     orch_coverage_stall_rounds: int | None = Field(default=None, ge=0, le=100)
     browser_disk_cache_dir: str | None = None
-    https_proxy: str | None = None
+    browser_modes: BrowserModes | None = None
     search_max_results: int | None = Field(default=None, gt=0)
     use_layered_context: bool | None = None
+
+
+class NetworkUpdate(BaseModel, extra="forbid"):
+    proxy_url: str | None = None
+    auto_route: bool | None = None
+    routes: dict[str, Literal["direct", "proxy"]] | None = None
 
 
 class MiddlewareUpdate(BaseModel, extra="forbid"):
@@ -86,6 +92,32 @@ class MiddlewareUpdate(BaseModel, extra="forbid"):
 @router.get("")
 async def get_settings():
     return aggregate_view()
+
+
+@router.put("/network")
+async def put_network(req: NetworkUpdate):
+    from searchos.config.settings_overlay import NetworkOverlay, ensure_network_overlay, set_network_proxy
+
+    ensure_network_overlay()
+    values = settings_store.store.network.model_dump()
+    values.update(req.model_dump(exclude_none=True))
+    values["source"] = "settings"
+    try:
+        validated = NetworkOverlay.model_validate(values)
+    except ValueError:
+        raise HTTPException(422, "网络配置无效，请检查代理地址和主机规则") from None
+
+    def patch(s):
+        if req.proxy_url is not None:
+            set_network_proxy(req.proxy_url, network=validated)
+        else:
+            s.network = validated
+
+    try:
+        await settings_store.update(patch)
+    except ValueError:
+        raise HTTPException(422, "网络配置无效，请检查代理地址和认证配置") from None
+    return network_view()
 
 
 @router.put("/middleware/{pipeline}")
@@ -261,7 +293,7 @@ async def put_misc(req: MiscUpdate):
 @router.post("/web-image-capability/detect")
 async def detect_web_image_capability():
     """Run the same image-message probe used by auto mode, bypassing its TTL."""
-    from searchos.tools.simple_browser.image_reading import detect_native_image_support
+    from searchos.tools.simple_browser.images import detect_native_image_support
 
     try:
         await detect_native_image_support(force=True)
@@ -284,9 +316,8 @@ async def put_advanced(req: AdvancedUpdate):
             s.advanced.orch_coverage_stall_rounds = req.orch_coverage_stall_rounds
         if "browser_disk_cache_dir" in sent:
             s.advanced.browser_disk_cache_dir = req.browser_disk_cache_dir
-        if "https_proxy" in sent:
-            # "" is a real value here — force no-proxy; only null clears the override.
-            s.advanced.https_proxy = req.https_proxy
+        if "browser_modes" in sent:
+            s.advanced.browser_modes = req.browser_modes
         if "search_max_results" in sent:
             s.run_defaults.search_max_results = req.search_max_results
         if "use_layered_context" in sent:

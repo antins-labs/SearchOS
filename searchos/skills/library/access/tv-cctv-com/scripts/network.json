@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_album_videos": "direct",
+    "scrape_page": "direct",
+    "get_video_info": "direct",
+    "get_album_info": "direct"
+  },
+  "aliases": {
+    "scrape_page": "scrape_page",
+    "get_video_info": "get_video_info",
+    "get_album_info": "get_album_info",
+    "get_album_videos": "get_album_videos",
+    "run": "get_album_videos"
+  }
+}

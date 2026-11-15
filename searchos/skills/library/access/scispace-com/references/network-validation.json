@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "023cc68ea63b924c78c21f1ee91f1a48f8c369d1cee67dd446fd6b96790d03e8",
+  "capabilities": {
+    "get_journal_info": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_journal_info\", \"journal_slug\": \"journal-of-the-institute-of-telecommunications-professionals-3jwh2biv\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.854872+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://scispace.com/journals/[redacted]",
+          "status": 202
+        }
+      ]
+    },
+    "check_captcha_status": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"check_captcha_status\", \"url\": \"https://scispace.com/journals/example-journal\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.916300+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://scispace.com/journals/example-journal",
+          "status": 405
+        },
+        {
+          "url": "https://c67d66c175ac.413ce3cb.eu-central-1.token.awswaf.com/c67d66c175ac/2c76fa3b092f/1568e5b47fde/challenge.js",
+          "status": 200
+        },
+        {
+          "url": "https://c67d66c175ac.413ce3cb.eu-central-1.captcha.awswaf.com/c67d66c175ac/2c76fa3b092f/1568e5b47fde/captcha.js",
+          "status": 200
+        }
+      ]
+    },
+    "extract_journal_slug": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_journal_slug\", \"url\": \"https://scispace.com/journals/journal-of-the-institute-of-telecommunications-professionals-3jwh2biv\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:31.333072+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/scispace-com/scripts/source.py",
+        "line": 283,
+        "end_line": 312,
+        "implementation": "extract_journal_slug",
+        "source_sha256": "eb3093e8ce2ea89c42828234d1e52e1e6e852cb609c3a3912d3a18d79b3c0a1c",
+        "implementation_sha256": "a9b4cfc6188bc650070154b0bac6b6b75201b72b3a218ffc68e2a98a81f01c64"
+      }
+    }
+  }
+}

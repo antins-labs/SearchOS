@@ -19,8 +19,9 @@ from pydantic import BaseModel, ConfigDict
 
 from api.deps import LOCAL_DATA_ROOT, WORKSPACE_ROOT
 from searchos.local.library import LocalLibraryService
+from searchos.network import aiohttp_session
 from searchos.socm.storage.workspace import WorkspaceManager
-from searchos.tools.simple_browser.image_reading import validate_public_url
+from searchos.tools.simple_browser.images import validate_public_url
 
 ImportStatus = Literal["queued", "running", "completed", "failed", "cancelled"]
 _MAX_BYTES = 150 * 1024 * 1024
@@ -161,7 +162,7 @@ def _saved_page(job: NetworkImportJob) -> tuple[bytes, str, str] | None:
 
 
 async def _fetch_web_markdown(job: NetworkImportJob) -> tuple[bytes, str, str]:
-    from searchos.tools.simple_browser.backend.jina import JinaReaderBackend
+    from searchos.tools.simple_browser.fetchers.jina import JinaReaderBackend
 
     result = await JinaReaderBackend(retain_images="all").fetch(job.source_url, timeout=90)
     if not result.ok or not result.markdown.strip():
@@ -178,14 +179,13 @@ async def _download(job: NetworkImportJob) -> tuple[Path, str, str]:
         content, content_type, name = cached
         final_url = job.source_url
     else:
-        proxy = os.getenv("HTTPS_PROXY") or os.getenv("HTTP_PROXY")
         timeout = aiohttp.ClientTimeout(total=90)
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp_session() as session:
             current_url = job.source_url
             for _ in range(6):
                 await validate_public_url(current_url)
                 async with session.get(
-                    current_url, timeout=timeout, proxy=proxy, allow_redirects=False,
+                    current_url, timeout=timeout, allow_redirects=False,
                 ) as response:
                     if response.status in {301, 302, 303, 307, 308}:
                         location = response.headers.get("Location", "")
@@ -279,7 +279,12 @@ def start_network_import(job: NetworkImportJob, store: NetworkImportJobStore) ->
             if temporary is not None:
                 temporary.unlink(missing_ok=True)
 
-    task = asyncio.create_task(run(), name=f"network-import:{job.job_id}")
+    async def scoped_run() -> None:
+        from searchos.network import network_context
+        with network_context(reuse=False):
+            await run()
+
+    task = asyncio.create_task(scoped_run(), name=f"network-import:{job.job_id}")
     _tasks[job.job_id] = task
     task.add_done_callback(lambda done: _tasks.pop(job.job_id, None)
                            if _tasks.get(job.job_id) is done else None)

@@ -4,6 +4,9 @@ GameIndustry.be Company Directory Access Skill
 Fetches company data from the Belgian game industry directory at gameindustry.be.
 Provides functions to list companies, get company details, and search/filter.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from typing import Any
@@ -14,7 +17,7 @@ BASE_URL = "https://gameindustry.be/api/companies"
 
 async def _fetch_json(url: str, timeout: int = 20) -> dict[str, Any]:
     """Fetch JSON from URL and return parsed data."""
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, ssl=False, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
             if resp.status != 200:
                 text = await resp.text()
@@ -200,6 +203,7 @@ async def list_defunct(limit: int = 50) -> dict[str, Any]:
     return await list_companies(defunct=True, limit=limit)
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute a function from the GameIndustry.be access skill.

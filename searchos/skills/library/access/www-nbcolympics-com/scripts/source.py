@@ -5,6 +5,9 @@ Fetches content from NBC Olympics website including:
 - Olympic mascots gallery with structured data
 - General article content extraction
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -304,6 +307,7 @@ async def get_mascot_by_year(params: dict, session: aiohttp.ClientSession) -> di
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict, ctx=None) -> dict:
     """
     Main entry point for the NBC Olympics access skill.
@@ -315,7 +319,7 @@ async def execute(params: dict, ctx=None) -> dict:
     """
     function = params.get('function', '')
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_mascots':
             return await get_mascots(params, session)
         

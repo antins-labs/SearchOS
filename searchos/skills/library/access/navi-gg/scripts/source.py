@@ -6,6 +6,9 @@ specifically for NAVI (Natus Vincere) esports tournaments.
 
 The site uses Cloudflare protection, so Playwright browser automation is required.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -14,6 +17,7 @@ from typing import Any, Dict, List, Optional
 from playwright.async_api import async_playwright, Page
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx=None) -> Dict[str, Any]:
     """
     Execute the navi.gg skill.
@@ -62,13 +66,13 @@ async def get_tournament_info(tournament_slug: str) -> Dict[str, Any]:
     url = f"https://navi.gg/en/tournaments/{tournament_slug}"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 viewport={'width': 1920, 'height': 1080}
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate with timeout handling
             try:
@@ -168,13 +172,13 @@ async def get_matches(tournament_slug: str, limit: int = 50) -> Dict[str, Any]:
     url = f"https://navi.gg/en/tournaments/{tournament_slug}/matches"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 viewport={'width': 1920, 'height': 1080}
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate with timeout handling
             try:

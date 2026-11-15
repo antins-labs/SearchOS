@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "82c252a3b13ceeb8668808ed6000359c3112df26571b5c3c90502161a368be0c",
+  "capabilities": {
+    "query": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/query.py",
+        "--query",
+        "research",
+        "--limit",
+        "3"
+      ],
+      "checked_at": "2026-10-23T07:01:35.653453+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.datamuse.com/words",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

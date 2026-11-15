@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d6d6d7db7aa9f5f87fd889e99787bf83ed926152cf30125efb2302ab829cf40f",
+  "capabilities": {
+    "fetch_announcement": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_announcement\", \"url\": \"https://www.bjeea.cn/html/gkgz/tzgg/2024/0720/85632.html\", \"category\": \"gkgz\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.958714+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bjeea.cn/html/gkgz/tzgg/2024/0720/85632.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_announcements": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_announcements\", \"category\": \"gkgz\", \"year\": 2023}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.959514+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.bjeea.cn/html/gkgz/tzgg/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

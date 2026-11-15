@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_states": "direct",
+    "get_state_results": "direct",
+    "get_national_results": "direct",
+    "list_years": "direct",
+    "get_press_release": "direct"
+  },
+  "aliases": {
+    "get_national_results": "get_national_results",
+    "get_state_results": "get_state_results",
+    "get_press_release": "get_press_release",
+    "list_states": "list_states",
+    "list_years": "list_years",
+    "run": "list_years"
+  }
+}

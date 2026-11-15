@@ -9,6 +9,9 @@ Provides access to Macau official statistics including:
 - Price indices
 - Labour statistics
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -96,7 +99,7 @@ async def list_categories(params: dict[str, Any], ctx: Any = None) -> dict[str, 
     """
     language = params.get("language", "en-US")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         results = {"categories": {}, "language": language}
         
         # Fetch each category file
@@ -135,7 +138,7 @@ async def get_key_indicators(params: dict[str, Any], ctx: Any = None) -> dict[st
     language = params.get("language", "en-US")
     indicator_id = params.get("indicator_id")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         indicators = await _client._get_key_indicators(session, language)
         
         if indicators is None:
@@ -193,7 +196,7 @@ async def get_statistical_releases(params: dict[str, Any], ctx: Any = None) -> d
     if period_type and period_type not in valid_periods:
         return {"success": False, "error": f"period_type must be one of {valid_periods}"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await _client._get_all_releases(session, category, language)
         
         if data is None:
@@ -287,7 +290,7 @@ async def get_release_detail(params: dict[str, Any], ctx: Any = None) -> dict[st
         return {"success": False, "error": "release_id parameter is required"}
     
     # Need to search through all categories to find the release
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Search in all known categories
         languages = ["en-US"]
         
@@ -356,7 +359,7 @@ async def search_indicators(params: dict[str, Any], ctx: Any = None) -> dict[str
     if not query:
         return {"success": False, "error": "query parameter is required"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         indicators = await _client._get_key_indicators(session, language)
         
         if indicators is None:
@@ -388,6 +391,7 @@ async def search_indicators(params: dict[str, Any], ctx: Any = None) -> dict[str
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the DSEC access skill

@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b9480687360a524936a558a55393289e735fb324ec0cc7248fdac91e0ddd441e",
+  "capabilities": {
+    "get_category": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_category\", \"category\": \"best-melodic-rap-performance\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.877681+00:00",
+      "reason": "Could not find content",
+      "source_responses": [
+        {
+          "url": "https://totalmusicawards.com/grammy-awards/[redacted]/",
+          "status": 202
+        },
+        {
+          "url": "https://totalmusicawards.com/.well-known/sgcaptcha/",
+          "status": 200
+        }
+      ]
+    },
+    "list_categories": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_categories\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.151009+00:00",
+      "reason": "no business data in result",
+      "source_responses": [
+        {
+          "url": "https://totalmusicawards.com/grammy-awards-winners-archive/",
+          "status": 403
+        },
+        {
+          "url": "https://fonts.googleapis.com/css",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "927bfaef7f500cf3173d1d2986c30538ce8fe517e2c13196cc6cfea6a429809f",
+  "capabilities": {
+    "get_movie_detail": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_movie_detail\", \"subject_id\": \"1292052\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.808131+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://movie.douban.com/subject/1292052/",
+          "status": 302
+        },
+        {
+          "url": "https://sec.douban.com/c",
+          "status": 200
+        },
+        {
+          "url": "https://sec.douban.com/c",
+          "status": 302
+        },
+        {
+          "url": "https://movie.douban.com/subject/1292052/",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/vendors/css/douban.d574f4d637c8.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/vendors/css/separation/_all.4011b6908a98.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/vendors/css/ui/dialog.9555696fa4ab.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/nav/2.0.0/movie/bundle.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/movie-static/common/show.7a78b.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/nav/2.0.0/shire/bundle.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/movie-static/charts/top250.24c18.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/movie-static/base/init.15f4b.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/vendors/js/separation/_all.f77f13f86381.js",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/vendors/js/douban.751471eacdfd.js",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/vendors/js/jquery-1.10.2.min.c3a7b608ebfa.js",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/movie-static/download-output-image/index.7aaa3.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/movie-static/pics/reference.png",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/movie-static/download-output-image/index.5461d.js",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/movie-static/pics/short-comment.gif",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/movie-static/pics/add-review.gif",
+          "status": 200
+        }
+      ]
+    },
+    "get_movie_celebrities": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_movie_celebrities\", \"subject_id\": \"1292052\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.410893+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://movie.douban.com/subject/1292052/celebrities",
+          "status": 302
+        },
+        {
+          "url": "https://sec.douban.com/c",
+          "status": 200
+        },
+        {
+          "url": "https://sec.douban.com/c",
+          "status": 302
+        },
+        {
+          "url": "https://movie.douban.com/subject/1292052/celebrities",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/movie-static/base/init.15f4b.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/vendors/css/douban.d574f4d637c8.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/nav/2.0.0/movie/bundle.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/vendors/css/separation/_all.4011b6908a98.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/vendors/css/usercard.c04d6d11a8e9.css",
+          "status": 200
+        },
+        {
+          "url": "https://img3.doubanio.com/view/photo/s_ratio_poster/public/p2934829882.webp",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/nav/2.0.0/shire/bundle.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/movie-static/subject/btn_complete_video.3d5bf.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/vendors/js/separation/_all.f77f13f86381.js",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/vendors/js/jquery-1.10.2.min.c3a7b608ebfa.js",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/movie-static/celebrity/subject_celebrities.a9416.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/vendors/css/ui/dialog.9555696fa4ab.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/vendors/js/douban.751471eacdfd.js",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/movie-static/mod/login_pop.b2f60.css",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/vendors/js/ui/dialog.06a98628f9c7.js",
+          "status": 200
+        },
+        {
+          "url": "https://asset.doubanio.com/cuphead/nav/2.0.0/movie/bundle.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

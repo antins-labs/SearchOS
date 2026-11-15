@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "46cbad99f1a87332fef13da00d2608cff2799d7783b7ab721c79666a361265b1",
+  "capabilities": {
+    "get_post": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_post\", \"url\": \"https://www.facebook.com/groups/472793529775085/posts/3111868022534276/\", \"timeout\": 30000}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.044141+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://m.facebook.com/groups/472793529775085/posts/3111868022534276/",
+          "status": 200
+        }
+      ]
+    },
+    "parse_url": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"parse_url\", \"url\": \"https://www.facebook.com/groups/12345/posts/67890/\", \"timeout\": 30000}"
+      ],
+      "checked_at": "2026-10-23T07:19:02.324864+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-facebook-com/scripts/source.py",
+        "line": 18,
+        "end_line": 103,
+        "implementation": "parse_facebook_url",
+        "source_sha256": "4b5c375e9e84b655c8266ce63e64ec8eb4e4afc3824c238d71f970de71478c55",
+        "implementation_sha256": "8ed9918eed95ad95ff05f910ce37e8e250bbb65fb03d7be18b5833d5d90774b4"
+      }
+    }
+  }
+}

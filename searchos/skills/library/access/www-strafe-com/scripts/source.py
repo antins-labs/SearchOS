@@ -6,6 +6,9 @@ for award/roster announcements containing structured player and team data.
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 from typing import Any
@@ -25,13 +28,13 @@ async def _fetch_and_extract(url: str, extract_fn, wait_ms: int = 3000) -> dict:
         Extracted data as dict
     """
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 viewport={"width": 1280, "height": 800},
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             try:
                 await page.goto(url, wait_until="load", timeout=60000)
@@ -412,6 +415,7 @@ async def get_awards_article(params: dict[str, Any]) -> dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """Main entry point for Strafe.com news access skill.
     

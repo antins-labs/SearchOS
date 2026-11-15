@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b8a6e8a01cede4a9ac03fdc3a3dd33111d60b194f19e4666061badbe35193f17",
+  "capabilities": {
+    "get_vehicle": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_vehicle\", \"url\": \"https://www.caranddriver.com/ford/bronco-2021\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.977499+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.caranddriver.com/ford/bronco-2021",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"make\": \"ford\", \"model\": \"ranger\", \"year\": 2019}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.978053+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.caranddriver.com/ford/ranger-2019",
+          "status": 200
+        }
+      ]
+    },
+    "get_specs": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_specs\", \"make\": \"ford\", \"model\": \"mustang-mach-e\", \"year\": 2021}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.978121+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.caranddriver.com/ford/mustang-mach-e-2021",
+          "status": 200
+        }
+      ]
+    },
+    "list_years": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_years\", \"make\": \"ford\", \"model\": \"bronco\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.978190+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.caranddriver.com/ford/bronco",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

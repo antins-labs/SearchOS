@@ -6,6 +6,9 @@ Department of Agriculture, Environment and Rural Affairs website.
 This skill provides access to structured information about Northern Ireland's AONBs,
 including their geology, natural heritage, cultural heritage, and built heritage.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -182,7 +185,7 @@ async def get_aonb_list(ctx: Any = None) -> dict[str, Any]:
     Returns:
         dict with 'aonbs' list containing title, url, and slug for each AONB
     """
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await _fetch_page(session, AONB_LISTING_URL)
         
         if status != 200:
@@ -230,7 +233,7 @@ async def get_aonb_article(slug: str | None = None, url: str | None = None, ctx:
     else:
         article_url = f"{BASE_URL}/articles/{slug}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         status, html = await _fetch_page(session, article_url)
         
         if status == 404:
@@ -268,7 +271,7 @@ async def search_aonb_content(query: str, ctx: Any = None) -> dict[str, Any]:
     query_lower = query.lower()
     results = []
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # First get the list of all AONBs
         status, html = await _fetch_page(session, AONB_LISTING_URL)
         if status != 200:
@@ -342,6 +345,7 @@ async def search_aonb_content(query: str, ctx: Any = None) -> dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the DAERA-NI AONB access skill.

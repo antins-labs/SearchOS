@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7b45d5c74c58c44a32a5109cbaa38c6250d6872f5fca3fe0da712d96039520a5",
+  "capabilities": {
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"location\": \"93728\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.232049+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.plannedparenthood.org/health-center/api/_validate_location",
+          "status": 200
+        },
+        {
+          "url": "https://www.plannedparenthood.org/health-center/api/search",
+          "status": 200
+        }
+      ]
+    },
+    "hours": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"hours\", \"facility_ids\": [192, 1122]}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.232958+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "services": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"services\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.233164+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-plannedparenthood-org/scripts/source.py",
+        "line": 195,
+        "end_line": 249,
+        "implementation": "get_services_list",
+        "source_sha256": "6e106be0e02607b6c82e3aaacf83849ed1cebd6570bfbed548626e7cd3c2442b",
+        "implementation_sha256": "a861a57c9170cbe9f96ab126b8193858e3729592c818b0a615f140226f58c733"
+      }
+    }
+  }
+}

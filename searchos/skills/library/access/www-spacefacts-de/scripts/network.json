@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_iss_commanders": "direct",
+    "get_relocations": "direct",
+    "get_taikonauts": "direct",
+    "get_deceased": "direct",
+    "get_active_astronauts": "direct",
+    "list_available_pages": "direct",
+    "get_time_in_space": "direct",
+    "get_international": "direct",
+    "get_by_first_mission": "direct",
+    "get_all_alphabetical": "direct"
+  },
+  "aliases": {
+    "list_available_pages": "list_available_pages",
+    "get_iss_commanders": "get_iss_commanders",
+    "get_time_in_space": "get_time_in_space",
+    "get_active_astronauts": "get_active_astronauts",
+    "get_by_first_mission": "get_by_first_mission",
+    "get_deceased": "get_deceased",
+    "get_international": "get_international",
+    "get_taikonauts": "get_taikonauts",
+    "get_relocations": "get_relocations",
+    "get_all_alphabetical": "get_all_alphabetical",
+    "run": "get_all_alphabetical"
+  }
+}

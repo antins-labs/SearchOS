@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "83b57f8e5bc42a047fe6373cb7105e7cc330c4ab6d82a8c8c972095a82265a92",
+  "capabilities": {
+    "get_all_papers": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_papers\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.752522+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://jeffhuang.com/best_paper_awards/",
+          "status": 200
+        }
+      ]
+    },
+    "get_papers_by_conference": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_papers_by_conference\", \"conference\": \"ICML\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.754178+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://jeffhuang.com/best_paper_awards/",
+          "status": 200
+        }
+      ]
+    },
+    "get_papers_by_year": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_papers_by_year\", \"year\": \"2023\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.754410+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://jeffhuang.com/best_paper_awards/",
+          "status": 200
+        }
+      ]
+    },
+    "search_papers": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_papers\", \"query\": \"transformer\", \"search_in\": \"title\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.754736+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://jeffhuang.com/best_paper_awards/",
+          "status": 200
+        }
+      ]
+    },
+    "get_statistics": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_statistics\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.754815+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://jeffhuang.com/best_paper_awards/",
+          "status": 200
+        }
+      ]
+    },
+    "get_conferences": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_conferences\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.754897+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://jeffhuang.com/best_paper_awards/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

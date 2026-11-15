@@ -3,6 +3,9 @@ Indie Arena Booth - Gamescom 2025 Games Access Skill
 
 Fetches game listings and detailed game information from indiearenabooth.de/gamescom2025/games
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -216,6 +219,7 @@ async def search_games(session: aiohttp.ClientSession, query: str) -> list[dict]
     return results
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the Indie Arena Booth skill.
@@ -227,7 +231,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     function = params.get('function', '')
     
-    async with aiohttp.ClientSession(headers=HEADERS) as session:
+    async with _skill_network.aiohttp_session(headers=HEADERS) as session:
         try:
             if function == 'list_games':
                 games = await list_games(session)

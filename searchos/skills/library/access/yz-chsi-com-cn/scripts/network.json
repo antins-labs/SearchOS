@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_34_universities": "inherit",
+    "get_score_line_detail": "inherit",
+    "list_national_lines": "inherit",
+    "get_schools_by_province": "inherit",
+    "list_provinces": "inherit",
+    "search_universities": "inherit"
+  },
+  "aliases": {
+    "list_34_universities": "list_34_universities",
+    "list_national_lines": "list_national_lines",
+    "list_provinces": "list_provinces",
+    "get_schools_by_province": "get_schools_by_province",
+    "get_score_line_detail": "get_score_line_detail",
+    "search_universities": "search_universities",
+    "run": "search_universities"
+  }
+}

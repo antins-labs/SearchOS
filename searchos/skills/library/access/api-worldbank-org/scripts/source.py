@@ -7,6 +7,9 @@ countries and indicators, and retrieving most recent values.
 
 API Documentation: https://datahelpdesk.worldbank.org/knowledgebase/articles/898581
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any, Optional
@@ -245,7 +248,7 @@ async def get_indicator_data(
     
     params["per_page"] = str(per_page)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await _fetch_api(session, endpoint, params)
         
         if not result["success"]:
@@ -305,7 +308,7 @@ async def list_countries(
     if lending_type:
         params["lendingType"] = lending_type.upper()
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await _fetch_api(session, endpoint, params)
         
         if not result["success"]:
@@ -353,7 +356,7 @@ async def list_indicators(
     if topic:
         params["topic"] = str(topic)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await _fetch_api(session, endpoint, params)
         
         if not result["success"]:
@@ -388,7 +391,7 @@ async def get_indicator_info(indicator_code: str) -> dict[str, Any]:
     """
     endpoint = f"/indicator/{indicator_code}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await _fetch_api(session, endpoint, {})
         
         if not result["success"]:
@@ -427,7 +430,7 @@ async def get_country_info(country_code: str) -> dict[str, Any]:
     """
     endpoint = f"/country/{country_code.upper()}"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         result = await _fetch_api(session, endpoint, {})
         
         if not result["success"]:
@@ -449,6 +452,7 @@ async def get_country_info(country_code: str) -> dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the World Bank API skill.

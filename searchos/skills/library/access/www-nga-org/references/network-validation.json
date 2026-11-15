@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "35bcadfe6a26e7e856896709ed924d763b31e94f20c66092e2534f12b1809a71",
+  "capabilities": {
+    "list_states": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_states\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.206358+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-nga-org/scripts/source.py",
+        "line": 271,
+        "end_line": 399,
+        "implementation": "execute branch",
+        "source_sha256": "ecce9b393109666305cbe193140e0ebb1002fa3d961993d85b8801dcad952970",
+        "implementation_sha256": "011106cf335017f145c32f465a52a2b7f1b4cfd48bf7613c1e31b4fa6b67f67e"
+      }
+    },
+    "get_governors": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_governors\", \"state\": \"North Carolina\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.207540+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nga.org/former-governors/north-carolina/",
+          "status": 200
+        }
+      ]
+    },
+    "search_governors": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_governors\", \"party\": \"democratic\", \"state_filter\": \"california\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.207813+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.nga.org/former-governors/california/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

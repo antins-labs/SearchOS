@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_historical_data": "direct",
+    "list_supported_instruments": "direct",
+    "search_instrument": "direct"
+  },
+  "aliases": {
+    "get_historical_data": "get_historical_data",
+    "search_instrument": "search_instrument",
+    "list_supported_instruments": "list_supported_instruments",
+    "run": "list_supported_instruments"
+  }
+}

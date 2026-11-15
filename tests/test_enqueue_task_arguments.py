@@ -12,6 +12,7 @@ from langchain_core.utils.function_calling import convert_to_openai_tool
 from searchos.agents.runtime import create_search_agent_graph
 from searchos.config.settings import settings
 from searchos.socm import SearchState
+from searchos.socm.refs import cell_key, cell_ref, row_key
 from searchos.socm.storage.workspace import WorkspaceManager
 from searchos.tools.search_state import _source_scope_var
 from searchos.tools.tasks import queue
@@ -61,7 +62,116 @@ def dispatch(tmp_path, monkeypatch):
 
 
 def task(brief=BRIEF):
-    return {"agent_type": "search_agent", "task": brief, "result_mode": "findings"}
+    return {"agent_type": "search_agent", "task": brief}
+
+
+@pytest.mark.asyncio
+async def test_named_prerequisite_and_generated_dependent_id(dispatch):
+    workspace, _ = dispatch
+    result = json.loads(await queue.enqueue_tasks.ainvoke({"items": [
+        {**task("Identify available editions."), "task_id": "editions"},
+        {**task("Compare their release dates."), "blocked_by": ["editions"]},
+    ]}))
+    prerequisite, dependent = workspace.load_state().frontier.questions
+    assert result["queued"] == [prerequisite.id, dependent.id]
+    assert prerequisite.id == "editions" and dependent.id.startswith("t_")
+    assert dependent.blocked_by == [prerequisite.id]
+    assert dependent.status.value == "blocked"
+    duplicate = json.loads(await queue.enqueue_tasks.ainvoke({"items": [
+        {**task("Some other question."), "task_id": "editions"},
+    ]}))
+    assert duplicate["queued"] == []
+    assert "task id already exists" in duplicate["rejected"][0]["reason"]
+
+
+@pytest.mark.asyncio
+async def test_unscoped_task_remains_unrestricted_after_schema_creation(dispatch):
+    workspace, _ = dispatch
+    async def enqueue(**scope):
+        return json.loads(await queue.enqueue_tasks.ainvoke({"items": [{**task("Compare providers"), **scope}]}))
+
+    first = await enqueue()
+    state = workspace.load_state()
+    for tid in ("providers", "prices"):
+        state.coverage_map.add_table(tid, ["Name", "Value"], primary_key=["Name"], entities=[row_key(["A"])])
+    # Load a task saved by the previous version and deduplicate it after schema creation.
+    payload = state.model_dump()
+    payload["frontier"]["questions"][0]["result_mode"] = "findings"
+    workspace.save_state(SearchState.model_validate(payload))
+    duplicate = await enqueue()
+    assert duplicate["deduped"] == [{"index": 0, "existing_id": first["queued"][0]}]
+    cell = {"table_id": "prices", "key": ["A"], "attribute": "Value"}
+    scoped = await enqueue(target_cells=[cell])
+    assert scoped["queued"]
+    assert (await enqueue(target_table="providers", target_cells=[cell]))["rejected"]
+    assert (await enqueue(target_cells=[cell, {**cell, "table_id": "providers"}]))["rejected"]
+    stored = workspace.load_state().frontier.questions
+    assert [t.table_id for t in stored] == ["", "prices"]
+    assert stored[1].target_cells == [cell_key("prices", row_key(["A"]), "Value")]
+
+
+@pytest.mark.asyncio
+async def test_inferred_columns_stay_out_of_search_dispatch_and_extraction(dispatch):
+    from searchos.harness.middleware.extraction.core.tables.rows import RowExtractor
+    from searchos.harness.middleware.extraction.core.models import ExtractionConfig
+    from searchos.socm import ColumnDesc
+
+    workspace, _ = dispatch
+    state = workspace.load_state()
+    school = row_key(["北京大学"])
+    state.coverage_map.add_table("schools", ["学校", "省份", "分数线"], primary_key=["学校"],
+        entities=[school], column_desc={"省份": ColumnDesc(requires_search=False)})
+    workspace.save_state(state)
+    province, score = [cell_key("schools", school, col) for col in ("省份", "分数线")]
+    extraction = RowExtractor(None, ExtractionConfig(dual_mode=True))
+    assert extraction.plan_calls("schools", state, []) == [("fill", {score}), ("discover", None)]
+    item = {"agent_type": "search_agent", "task": "查分数线", "target_cells": [cell_ref(province), cell_ref(score)]}
+    receipt = json.loads(await queue.enqueue_tasks.ainvoke({"items": [item]}))
+    assert not receipt["queued"] and receipt["rejected"][0]["target_cells"] == [cell_ref(province)]
+    item["target_cells"] = [cell_ref(score)]
+    assert json.loads(await queue.enqueue_tasks.ainvoke({"items": [item]}))["queued"]
+
+
+@pytest.mark.asyncio
+async def test_large_target_batches_normalize_and_reject_partial_overlaps(dispatch, monkeypatch):
+    from searchos.agents.orchestrator import lifecycle
+
+    workspace, _ = dispatch
+    monkeypatch.setattr(lifecycle, "_ctx", queue._ctx)
+    state = workspace.load_state()
+    state.coverage_map.add_table("t", ["Name", "Value"], primary_key=["Name"],
+                                 entities=[row_key([f"E{i:04d}"]) for i in range(1001)])
+    workspace.save_state(state)
+
+    def item(keys, **extra):
+        return {"agent_type": "search_agent", "task": "Collect each assigned value.",
+                "target_table": "t", "target_cells": [cell_ref(cell_key("t", row_key([key]), "Value")) for key in keys], **extra}
+
+    first = json.loads(await queue.enqueue_tasks.ainvoke({"items": [
+        item([f"E{i:04d}" for i in range(1000)]),
+    ]}))
+    assert len(first["queued"]) == 1
+    stored = workspace.load_state().frontier.questions[0]
+    assert len(stored.target_cells) == 1000
+    assert stored.target_cells[0] == cell_key("t", row_key(["E0000"]), "Value")
+    # 已到创建额度时仍可返回已存在的任务。
+    monkeypatch.setattr(settings, "max_search_agents_per_session", 1)
+    duplicate = json.loads(await queue.enqueue_tasks.ainvoke({"items": [
+        item(["E0000"]),
+    ]}))
+    assert duplicate["deduped"] == [{"index": 0, "existing_id": stored.id}]
+    overlap = json.loads(await queue.enqueue_tasks.ainvoke({"items": [
+        item(["E0999", "E1000"]),
+    ]}))
+    assert overlap["rejected"][0]["overlaps"] == [
+        {"task_id": stored.id, "cells": [cell_ref(cell_key("t", row_key(["E0999"]), "Value"))]},
+    ]
+    assert len(workspace.load_state().frontier.questions) == 1
+    monkeypatch.setattr(settings, "max_search_agents_per_session", 0)
+    independent = json.loads(await queue.enqueue_tasks.ainvoke({"items": [
+        item(["E0000"], blocked_by=[stored.id]),
+    ]}))
+    assert len(independent["queued"]) == 1
 
 
 class Model(FakeMessagesListChatModel):
@@ -70,24 +180,23 @@ class Model(FakeMessagesListChatModel):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("qualified", [False, True])
-async def test_repair_targets_allow_slashes_in_column_names(dispatch, qualified, monkeypatch):
+@pytest.mark.parametrize("table_id", ["migration", "m/igration"])
+async def test_repair_targets_allow_slashes_in_column_names(dispatch, table_id, monkeypatch):
     from searchos.agents.orchestrator import lifecycle
 
     workspace, scheduler = dispatch
     monkeypatch.setattr(lifecycle, "_ctx", queue._ctx)
     state = workspace.load_state()
     state.coverage_map.add_table(
-        "migration", ["Requirement", "API/Behavior"],
-        primary_key=["Requirement"], entities=["M1", "M2"],
+        table_id, ["Requirement", "API/Behavior"],
+        primary_key=["Requirement"], entities=[row_key(["M1"]), row_key(["M2"])],
     )
     workspace.save_state(state)
-    queue._ctx.repair_target_allowlist = {"migration/M1.API/Behavior"}
-    prefix = "migration/" if qualified else ""
+    queue._ctx.repair_target_allowlist = {cell_key(table_id, row_key(["M1"]), "API/Behavior")}
     result = json.loads(await queue.enqueue_tasks.ainvoke({"items": [
         {
             "agent_type": "search_agent", "task": "Verify the selected API behavior.",
-            "target_table": "migration", "target_cells": [f"{prefix}{row}.API/Behavior"],
+            "target_table": table_id, "target_cells": [{"table_id": table_id, "key": [row], "attribute": "API/Behavior"}],
         }
         for row in ("M1", "M2")
     ]}))
@@ -95,7 +204,7 @@ async def test_repair_targets_allow_slashes_in_column_names(dispatch, qualified,
     assert not result["errors"]
     assert "outside repair allowlist" in result["rejected"][0]["reason"]
     stored = workspace.load_state().frontier.questions
-    assert len(stored) == 1 and stored[0].target_cells == ["M1.API/Behavior"]
+    assert len(stored) == 1 and stored[0].target_cells == [cell_key(table_id, row_key(["M1"]), "API/Behavior")]
     scheduler.allow_tasks.assert_called_once_with(result["queued"])
 
 
@@ -123,7 +232,7 @@ async def test_graph_enqueues_multiline_brief_without_a_table(dispatch):
     state = workspace.load_state()
     assert not state.coverage_map.tables
     assert state.frontier.questions[0].task_prompt == BRIEF
-    assert state.frontier.questions[0].result_mode == "findings"
+    assert state.frontier.questions[0].table_id == ""
     scheduler.allow_tasks.assert_called_once_with(payload["queued"])
     scheduler.tick.assert_awaited_once()
 
@@ -166,7 +275,8 @@ async def test_invalid_payload_never_enqueues(dispatch, arguments, path):
     ("task", {"prompt": "not text"}),
     ("task", 123),
     ("agent_type", "unknown_agent"),
-    ("result_mode", "entities"),
+    ("result_mode", "findings"),
+    ("result_mode", "table"),
     ("priority", "high"),
     ("priority", True),
     ("priority", -0.1),
@@ -179,9 +289,11 @@ async def test_invalid_payload_never_enqueues(dispatch, arguments, path):
     ("max_searches", 1.5),
     ("blocked_by", "task-a,task-b"),
     ("blocked_by", [123]),
-    ("skills", "skill-a,skill-b"),
-    ("skills", [{}]),
-    ("skills", [f"skill-{i}" for i in range(6)]),
+    ("skills", ["skill-a"]),
+    ("id", "old-task-name"),
+    ("parent_id", "parent"),
+    ("depth", 0),
+    ("task_id", "  "),
     ("target_table", {}),
     ("target_cells", "Alpha.Credits"),
     ("target_cells", ["Alpha"]),
@@ -191,8 +303,6 @@ async def test_invalid_payload_never_enqueues(dispatch, arguments, path):
     ("text", "old alias"),
     ("table_id", "old alias"),
     ("created_by", "user"),
-    ("depth", -1),
-    ("depth", True),
 ])
 async def test_invalid_item_rejects_entire_batch_before_mutation(dispatch, field, value):
     workspace, scheduler = dispatch
@@ -259,6 +369,10 @@ def test_model_tool_schema_defines_item_fields_and_constraints():
     item = array["items"]
     assert set(item["required"]) == {"agent_type", "task"}
     assert item["additionalProperties"] is False
+    assert set(item["properties"]) == {
+        "agent_type", "task", "task_id", "agent_id", "priority", "blocked_by",
+        "target_table", "target_cells", "max_searches",
+    }
     assert item["properties"]["priority"]["minimum"] == 0
     assert item["properties"]["priority"]["maximum"] == 1
     assert all(field.get("description") for field in item["properties"].values())

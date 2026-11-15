@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "27beddd8b6754cdaa664386c13bc1185f57780265cdd736b1e4fc28809b0741d",
+  "capabilities": {
+    "get_overview": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_overview\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.123815+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.idea.int/data-tools/tools/special-voting-arrangements",
+          "status": 200
+        }
+      ]
+    },
+    "get_sva_type": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sva_type\", \"sva_type\": \"postal_in_country\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.125081+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.idea.int/data-tools/tools/special-voting-arrangements/postal-in-country",
+          "status": 200
+        }
+      ]
+    },
+    "get_all": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.125249+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.idea.int/data-tools/tools/special-voting-arrangements",
+          "status": 200
+        },
+        {
+          "url": "https://www.idea.int/data-tools/tools/special-voting-arrangements/postal-in-country",
+          "status": 200
+        }
+      ]
+    },
+    "get_datastudio_info": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_datastudio_info\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.125391+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-idea-int/scripts/source.py",
+        "line": 274,
+        "end_line": 292,
+        "implementation": "get_datastudio_info",
+        "source_sha256": "afe640db6580e19e02a9337206e1981f20d85e8fc5e66a4af64336c387195664",
+        "implementation_sha256": "6d839b6d273e754d418860c06e8fd175f75e1e53573408d08bfbcd6a2054264e"
+      }
+    },
+    "search": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"methodology\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.125456+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.idea.int/data-tools/tools/special-voting-arrangements",
+          "status": 200
+        },
+        {
+          "url": "https://www.idea.int/data-tools/tools/special-voting-arrangements/postal-in-country",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

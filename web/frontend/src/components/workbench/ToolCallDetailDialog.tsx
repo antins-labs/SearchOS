@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Check, Copy, X } from "lucide-react";
 
 import useDialogFocus from "@/hooks/useDialogFocus";
+import { getFileContent } from "@/lib/api";
 
 export interface ToolCallDetail {
   tool: string;
@@ -13,6 +14,8 @@ export interface ToolCallDetail {
   agent?: string;
   timestamp?: string;
   status?: "running" | "completed" | "error" | "cancelled";
+  kind?: "skill";
+  executionId?: string;
 }
 
 function prettyPayload(value: string): string {
@@ -61,13 +64,18 @@ function PayloadPane({
 export default function ToolCallDetailDialog({
   detail,
   onClose,
+  sessionId,
 }: {
   detail: ToolCallDetail | null;
   onClose: () => void;
+  sessionId?: string | null;
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const [copied, setCopied] = useState<"arguments" | "output" | null>(null);
+  const [savedOutput, setSavedOutput] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   useDialogFocus({
     containerRef: dialogRef,
@@ -77,6 +85,21 @@ export default function ToolCallDetailDialog({
   });
 
   if (!detail) return null;
+
+  const readSaved = async (stream: "stdout" | "stderr") => {
+    if (!sessionId || !detail.executionId) return;
+    setLoading(true);
+    setLoadError("");
+    try {
+      const file = await getFileContent(sessionId, `skills/executions/${detail.executionId}/${stream}.log`);
+      setSavedOutput(file.content || "（输出为空）");
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "读取失败");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const output = savedOutput ?? detail.output;
 
   const copy = async (kind: "arguments" | "output", value: string) => {
     try {
@@ -101,7 +124,7 @@ export default function ToolCallDetailDialog({
       >
         <div className="flex items-center gap-3 border-b border-line px-4 py-3">
           <div className="min-w-0 flex-1">
-            <div className="text-[10px] font-medium uppercase tracking-wider text-ink-faint">Tool call</div>
+            <div className="text-[10px] font-medium uppercase tracking-wider text-ink-faint">{detail.kind === "skill" ? "技能执行 · Exec 子步骤" : "Tool call"}</div>
             <h2 id="tool-call-detail-title" className="mt-0.5 truncate font-mono text-[14px] font-semibold text-ink">{detail.tool}</h2>
           </div>
           <div className="hidden min-w-0 text-right text-[10.5px] text-ink-faint sm:block">
@@ -119,6 +142,19 @@ export default function ToolCallDetailDialog({
           </button>
         </div>
 
+        {detail.executionId && sessionId && (
+          <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-2 text-xs">
+            {(["stdout", "stderr"] as const).map(stream => (
+              <button key={stream} type="button" disabled={loading || detail.status === "running"}
+                onClick={() => void readSaved(stream)} className="text-accent-ink underline disabled:opacity-50">
+                读取保存的 {stream}
+              </button>
+            ))}
+            {savedOutput != null && <button type="button" onClick={() => setSavedOutput(null)} className="text-ink-dim underline">返回回执预览</button>}
+            {loading && <span>读取中…</span>}
+            {loadError && <span role="alert" className="text-err">{loadError}</span>}
+          </div>
+        )}
         <div className="flex min-h-0 flex-1 flex-col md:flex-row">
           <PayloadPane
             title="Parameters"
@@ -128,10 +164,10 @@ export default function ToolCallDetailDialog({
           />
           <PayloadPane
             title="Output"
-            value={detail.output}
+            value={output}
             pending={detail.status === "running"}
             copied={copied === "output"}
-            onCopy={() => void copy("output", detail.output)}
+            onCopy={() => void copy("output", output)}
           />
         </div>
       </div>

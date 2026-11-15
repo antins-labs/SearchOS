@@ -18,7 +18,7 @@ from searchos.local.index.locks import AsyncAdvisoryLock, advisory_lock
 from searchos.local.models import DocumentRecap, ParsedDocument
 from searchos.local.parsers.vision import _message_text
 from searchos.local.storage_io import atomic_write_text
-from searchos.util.json_extract import extract_json_object
+from searchos.utils.json_extract import extract_json_object
 
 CATALOG_PROMPT_VERSION = "local-catalog-v4"
 _SUBINDEX_LINK_RE = re.compile(

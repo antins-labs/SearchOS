@@ -1,0 +1,243 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "39a490aab8b42412b219b225c74eb0c811cdf06bc7df03350ca9ad00def8d1d9",
+  "capabilities": {
+    "list_countries": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_countries\", \"income_level\": \"HIC\", \"per_page\": 3, \"page\": 1, \"countries\": \"all\", \"gap_fill\": false, \"fetch_all\": false, \"max_pages\": 100}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.582701+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/country",
+          "status": 200
+        }
+      ]
+    },
+    "get_country": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country\", \"country_code\": \"US\", \"per_page\": 3, \"page\": 1, \"countries\": \"all\", \"gap_fill\": false, \"fetch_all\": false, \"max_pages\": 100}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.583467+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/country/US",
+          "status": 200
+        }
+      ]
+    },
+    "list_indicators": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_indicators\", \"per_page\": 3, \"page\": 1, \"countries\": \"all\", \"gap_fill\": false, \"fetch_all\": false, \"max_pages\": 100}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.583555+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/indicator",
+          "status": 200
+        }
+      ]
+    },
+    "get_indicator": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_indicator\", \"indicator_code\": \"NY.GDP.MKTP.CD\", \"per_page\": 3, \"page\": 1, \"countries\": \"all\", \"gap_fill\": false, \"fetch_all\": false, \"max_pages\": 100}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.583762+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/indicator/NY.GDP.MKTP.CD",
+          "status": 200
+        }
+      ]
+    },
+    "get_indicator_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_indicator_data\", \"indicator_code\": \"NY.GDP.MKTP.CD\", \"countries\": \"US\", \"date\": \"2020:2024\", \"per_page\": 3, \"page\": 1, \"gap_fill\": false, \"fetch_all\": false, \"max_pages\": 100}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.583917+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/country/US/indicator/NY.GDP.MKTP.CD",
+          "status": 200
+        }
+      ]
+    },
+    "list_topics": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_topics\", \"per_page\": 3, \"page\": 1, \"countries\": \"all\", \"gap_fill\": false, \"fetch_all\": false, \"max_pages\": 100}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.583987+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/topic",
+          "status": 200
+        }
+      ]
+    },
+    "get_topic": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_topic\", \"topic_id\": \"1\", \"per_page\": 3, \"page\": 1, \"countries\": \"all\", \"gap_fill\": false, \"fetch_all\": false, \"max_pages\": 100}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.584057+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/topic/1",
+          "status": 200
+        }
+      ]
+    },
+    "list_sources": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_sources\", \"per_page\": 3, \"page\": 1, \"countries\": \"all\", \"gap_fill\": false, \"fetch_all\": false, \"max_pages\": 100}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.584120+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/source",
+          "status": 200
+        }
+      ]
+    },
+    "list_regions": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_regions\", \"per_page\": 3, \"page\": 1, \"countries\": \"all\", \"gap_fill\": false, \"fetch_all\": false, \"max_pages\": 100}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.584186+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/region",
+          "status": 200
+        }
+      ]
+    },
+    "list_income_levels": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_income_levels\", \"per_page\": 3, \"page\": 1, \"countries\": \"all\", \"gap_fill\": false, \"fetch_all\": false, \"max_pages\": 100}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.584338+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/incomeLevel",
+          "status": 200
+        }
+      ]
+    },
+    "list_lending_types": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_lending_types\", \"per_page\": 3, \"page\": 1, \"countries\": \"all\", \"gap_fill\": false, \"fetch_all\": false, \"max_pages\": 100}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.584495+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/lendingType",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"illiteracy\", \"per_page\": 3, \"page\": 1, \"countries\": \"all\", \"gap_fill\": false, \"fetch_all\": false, \"max_pages\": 100}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.584568+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/indicator",
+          "status": 200
+        }
+      ]
+    },
+    "compare_countries": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"compare_countries\", \"indicator_code\": \"SP.POP.TOTL\", \"countries\": \"US;CN;IN;BR\", \"date\": \"2023\", \"per_page\": 3, \"page\": 1, \"gap_fill\": false, \"fetch_all\": false, \"max_pages\": 100}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.584632+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.worldbank.org/v2/country/US;CN;IN;BR/indicator/SP.POP.TOTL",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

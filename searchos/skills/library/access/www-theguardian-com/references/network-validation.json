@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "35e4197a8cf4cbe903489d4877b3e84be4d45e737b14fa9305bca3978cdbb540",
+  "capabilities": {
+    "extract_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_article\", \"url\": \"https://www.theguardian.com/world/2005/may/30/france.eu\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.951210+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.theguardian.com/world/2005/may/30/france.eu",
+          "status": 200
+        }
+      ]
+    },
+    "get_sections": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sections\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:34.953788+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-theguardian-com/scripts/source.py",
+        "line": 174,
+        "end_line": 225,
+        "implementation": "get_sections",
+        "source_sha256": "0f1721e1b156646c8750e5993ac9194ab4d52d238dae793c2a8cb4cda5ab877d",
+        "implementation_sha256": "6d7e505bcb8ec50fd788764519129b2601609281b86b73486fcf58c8e594ae84"
+      }
+    }
+  }
+}

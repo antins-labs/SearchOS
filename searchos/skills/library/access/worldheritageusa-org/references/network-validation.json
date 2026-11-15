@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "0fed27e616178ebac9d76fa7dc3a2e6097c8ba299bbb39441801d9efb447caee",
+  "capabilities": {
+    "list_sites": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_sites\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.926365+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://worldheritageusa.org/sites/",
+          "status": 200
+        }
+      ]
+    },
+    "get_site": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_site\", \"slug\": \"yellowstone\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.928049+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://worldheritageusa.org/sites/yellowstone-national-park/",
+          "status": 200
+        }
+      ]
+    },
+    "get_all_sites": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_sites\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.931553+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"California\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.932492+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://worldheritageusa.org/sites/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

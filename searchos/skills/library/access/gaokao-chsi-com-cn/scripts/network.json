@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_external_data": "inherit",
+    "search_list": "inherit",
+    "get_article": "inherit"
+  },
+  "aliases": {
+    "get_article": "get_article",
+    "get_external_data": "get_external_data",
+    "search_list": "search_list",
+    "run": "search_list"
+  }
+}

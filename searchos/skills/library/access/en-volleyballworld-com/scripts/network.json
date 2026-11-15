@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "matches": "direct",
+    "tournament_info": "direct",
+    "standings": "direct",
+    "list_competitions": "direct",
+    "teams": "direct"
+  },
+  "aliases": {
+    "list_competitions": "list_competitions",
+    "tournament_info": "tournament_info",
+    "teams": "teams",
+    "matches": "matches",
+    "standings": "standings",
+    "run": "standings"
+  }
+}

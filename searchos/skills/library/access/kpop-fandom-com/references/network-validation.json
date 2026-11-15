@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1e86e5914269723a6d8e4b06ef23864bcf622e17d963ad195560f8d69abcdab9",
+  "capabilities": {
+    "get_artist": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_artist\", \"title\": \"Lee Hi\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.759714+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://kpop.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "search": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"IU\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.761495+00:00",
+      "reason": "results is empty",
+      "source_responses": [
+        {
+          "url": "https://kpop.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_by_ids": {
+      "status": "empty_result",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_ids\", \"page_ids\": [7691, 2603, 3024], \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.761657+00:00",
+      "reason": "results is empty",
+      "source_responses": [
+        {
+          "url": "https://kpop.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

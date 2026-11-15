@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_list": "direct",
+    "get_name": "proxy",
+    "get_movie": "proxy",
+    "search": "direct"
+  },
+  "aliases": {
+    "get_movie": "get_movie",
+    "get_list": "get_list",
+    "get_name": "get_name",
+    "search": "search",
+    "run": "search"
+  }
+}

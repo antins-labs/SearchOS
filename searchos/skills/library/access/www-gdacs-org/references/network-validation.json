@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2a558a5f52207c49bc0fb1074263ba349f494f13b08189694662d1bd19600152",
+  "capabilities": {
+    "get_event_report": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_event_report\", \"event_type\": \"EQ\", \"event_id\": \"1500799\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.070584+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.gdacs.org/contentdata/resources/EQ/1500799/rss_1500799.xml",
+          "status": 200
+        },
+        {
+          "url": "https://www.gdacs.org/contentdata/resources/EQ/1500799/geojson_1500799_1661013.geojson",
+          "status": 200
+        },
+        {
+          "url": "https://www.gdacs.org/contentdata/resources/EQ/1500799/rss_1500799_1661013.xml",
+          "status": 200
+        },
+        {
+          "url": "https://www.gdacs.org/contentdata/resources/EQ/1500799/aftershock.json",
+          "status": 200
+        },
+        {
+          "url": "https://www.gdacs.org/contentdata/resources/EQ/1500799/cap_1500799.xml",
+          "status": 200
+        }
+      ]
+    },
+    "get_current_alerts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_current_alerts\", \"event_type\": \"EQ\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.071343+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.gdacs.org/xml/rss.xml",
+          "status": 200
+        }
+      ]
+    },
+    "search_events": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_events\", \"query\": \"Indonesia\", \"event_type\": \"EQ\", \"alert_level\": \"Green\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.071555+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.gdacs.org/xml/rss.xml",
+          "status": 200
+        }
+      ]
+    },
+    "get_cap_alert": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_cap_alert\", \"event_type\": \"EQ\", \"event_id\": \"1500799\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.071787+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.gdacs.org/contentdata/resources/EQ/1500799/cap_1500799.xml",
+          "status": 200
+        }
+      ]
+    },
+    "get_geojson": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_geojson\", \"event_type\": \"EQ\", \"event_id\": \"1500799\", \"episode_id\": \"1661013\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.071919+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.gdacs.org/contentdata/resources/EQ/1500799/geojson_1500799_1661013.geojson",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

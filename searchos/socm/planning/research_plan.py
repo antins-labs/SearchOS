@@ -5,7 +5,9 @@ from __future__ import annotations
 import json
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from searchos.socm.refs import RowRef, row_ref
 
 
 class SetScope(BaseModel):
@@ -14,9 +16,20 @@ class SetScope(BaseModel):
     boundary: str = Field(min_length=1)
     kind: Literal["closed", "open"] = "open"
     table_id: str = ""
-    expected_members: list[str] = Field(default_factory=list)
+    expected_members: list[RowRef] = Field(default_factory=list)
     expected_count: int | None = Field(default=None, ge=0)
     basis_evidence_ids: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_member_tables(self):
+        tables = {member.table_id for member in self.expected_members}
+        if self.table_id:
+            tables.add(self.table_id)
+        if len(tables) > 1:
+            raise ValueError("Each membership scope must refer to one table")
+        if tables:
+            self.table_id = next(iter(tables))
+        return self
 
 
 class ResearchPlan(BaseModel):
@@ -44,7 +57,7 @@ def membership_review(state) -> list[dict]:
         if not tid and len(state.coverage_map.tables) == 1:
             tid = state.coverage_map.primary_table_id
         table = state.coverage_map.tables.get(tid)
-        expected = list(dict.fromkeys(scope.expected_members))
+        expected = list(dict.fromkeys(member.row_key() for member in scope.expected_members))
         present = list(table.entities) if table else []
         matched = (
             {name: state.coverage_map.resolve_entity(name, table_id=tid) for name in expected}
@@ -63,9 +76,9 @@ def membership_review(state) -> list[dict]:
                 "basis_evidence_ids": scope.basis_evidence_ids,
                 "comparison": "members_compared" if table and expected else "needs_review",
                 "missing_members": [
-                    name for name, canonical in matched.items() if canonical is None
+                    row_ref(tid, name) for name, canonical in matched.items() if canonical is None
                 ],
-                "unexpected_members": [name for name in present if name not in matched.values()]
+                "unexpected_members": [row_ref(tid, name) for name in present if name not in matched.values()]
                 if expected
                 else [],
                 "expected_count_hint": scope.expected_count,

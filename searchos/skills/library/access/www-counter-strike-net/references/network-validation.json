@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ae99823ef9e27d8b7b249c4b319a06c02b90cd1da6580602ba7a3ebcb3f491e2",
+  "capabilities": {
+    "list_updates": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_updates\", \"count\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.000341+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/",
+          "status": 200
+        }
+      ]
+    },
+    "get_news_entry": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_news_entry\", \"gid\": \"1838407329267700\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.001297+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/",
+          "status": 200
+        }
+      ]
+    },
+    "search_updates": {
+      "status": "empty_result",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_updates\", \"query\": \"patch\", \"count\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.001377+00:00",
+      "reason": "items is empty",
+      "source_responses": [
+        {
+          "url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

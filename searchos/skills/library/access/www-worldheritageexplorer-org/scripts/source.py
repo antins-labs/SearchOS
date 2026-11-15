@@ -2,6 +2,9 @@
 World Heritage Explorer access skill.
 Fetches UNESCO World Heritage Site data from www.worldheritageexplorer.org.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -206,7 +209,7 @@ async def get_site(params: dict, ctx: Any = None) -> dict:
     else:
         url = site_path
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await _fetch_html(session, url)
             data = _parse_site_page(html)
@@ -229,7 +232,7 @@ async def list_sites(params: dict, ctx: Any = None) -> dict:
     
     url = f"{BASE_URL}/toc.html"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await _fetch_html(session, url)
             sites = _parse_toc_page(html)
@@ -266,7 +269,7 @@ async def search_sites(params: dict, ctx: Any = None) -> dict:
     
     url = f"{BASE_URL}/toc.html"
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await _fetch_html(session, url)
             sites = _parse_toc_page(html)
@@ -308,6 +311,7 @@ async def get_site_by_wh_id(params: dict, ctx: Any = None) -> dict:
 
 
 # Main dispatcher
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute a function on the World Heritage Explorer skill.

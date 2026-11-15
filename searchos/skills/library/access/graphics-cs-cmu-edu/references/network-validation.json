@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "959b6c0828e146d956642eadaa0c2102e2c73d3e3f95ad4efac6efb35fa08ecd",
+  "capabilities": {
+    "list_publications": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_publications\", \"year\": \"2024\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.692914+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://graphics.cs.cmu.edu/publications/",
+          "status": 200
+        }
+      ]
+    },
+    "get_publication": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_publication\", \"page_id\": \"2759\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.694180+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://graphics.cs.cmu.edu/",
+          "status": 200
+        }
+      ]
+    },
+    "search_publications": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_publications\", \"query\": \"Crane\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.694271+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://graphics.cs.cmu.edu/publications/",
+          "status": 200
+        }
+      ]
+    },
+    "get_years": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_years\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.694362+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://graphics.cs.cmu.edu/publications/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

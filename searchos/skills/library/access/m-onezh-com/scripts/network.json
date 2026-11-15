@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_by_keyword": "inherit",
+    "search_by_date": "inherit",
+    "get_detail": "inherit",
+    "search": "inherit"
+  },
+  "aliases": {
+    "get_detail": "get_detail",
+    "search": "search",
+    "search_by_keyword": "search_by_keyword",
+    "search_by_date": "search_by_date",
+    "run": "search_by_date"
+  }
+}

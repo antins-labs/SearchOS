@@ -23,7 +23,7 @@ def bind_cell_evidence(state: SearchState, bindings: list[tuple[str, CellEvidenc
                        *, overwrite: bool = False,
                        validation_values: dict[tuple[str, str], Any] | None = None) -> int:
     """提交已核验的投影。调用方负责语义支持检查；这里校验身份、范围和列约束。"""
-    from searchos.socm.evidence.values import is_missing_value
+    from searchos.socm.evidence.missing_values import is_missing_value
 
     cmap = state.coverage_map
     allowed = {node.id for node in answer_evidence(state)}
@@ -38,9 +38,7 @@ def bind_cell_evidence(state: SearchState, bindings: list[tuple[str, CellEvidenc
             raise ValueError("A non-empty value and valid alignment are required")
         tid, entity, attr = target
         if attr in cmap.tables[tid].primary_key:
-            index = cmap.tables[tid].primary_key.index(attr)
-            parts = entity.split("|")
-            expected = parts[index] if index < len(parts) else entity
+            expected = cmap.primary_key_values(entity, table_id=tid)[attr]
             if binding.value != expected:
                 raise ValueError("Cell projection cannot redefine row identity")
         desc = cmap.tables[tid].column_desc.get(attr)
@@ -196,11 +194,10 @@ def refresh_cells(state: SearchState, keys: set[str]) -> None:
         schema = cmap.tables[tid]
         cell = CoverageCell()
         if attr in schema.primary_key:
-            values = entity.split("|")
-            index = schema.primary_key.index(attr)
             cell.status = CellStatus.FILLED
             cell.best_alignment = "full"
-            cell.display_hint = values[index] if index < len(values) else entity
+            cell.full_value = cmap.primary_key_values(entity, table_id=tid)[attr]
+            cell.display_hint = cell.full_value
         nodes = [
             projected
             for fid in dict.fromkeys(old.supporting_evidence_ids)
@@ -210,6 +207,8 @@ def refresh_cells(state: SearchState, keys: set[str]) -> None:
         ]
         if not nodes and old.status in {CellStatus.UNCERTAIN, CellStatus.HARD_CELL}:
             cell.status = old.status
+        if not nodes and old.inferred:
+            continue
         cmap.cells[key] = cell
         cmap.fill_from_evidence(nodes)
         cell.conflict_history_evidence_ids = list(dict.fromkeys([
@@ -228,7 +227,7 @@ def commit_evidence(
     validation_values: dict[str, Any] | None = None,
 ) -> EvidenceCommit:
     """验证、去重、挂载一次完成；只有显式覆盖可重新启用旧证据。"""
-    from searchos.socm.evidence.values import is_missing_value
+    from searchos.socm.evidence.missing_values import is_missing_value
 
     result = EvidenceCommit()
     cmap = state.coverage_map

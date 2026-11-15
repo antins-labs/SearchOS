@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_company_details": "direct",
+    "get_list_info": "direct",
+    "search_companies": "direct",
+    "get_rankings": "direct"
+  },
+  "aliases": {
+    "get_rankings": "get_rankings",
+    "search_companies": "search_companies",
+    "get_company_details": "get_company_details",
+    "get_list_info": "get_list_info",
+    "run": "get_list_info"
+  }
+}

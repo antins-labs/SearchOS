@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_by_keyword": "inherit",
+    "list_articles": "inherit",
+    "get_batch_articles": "inherit",
+    "get_article": "inherit"
+  },
+  "aliases": {
+    "get_article": "get_article",
+    "list_articles": "list_articles",
+    "search_by_keyword": "search_by_keyword",
+    "get_batch_articles": "get_batch_articles",
+    "run": "get_batch_articles"
+  }
+}

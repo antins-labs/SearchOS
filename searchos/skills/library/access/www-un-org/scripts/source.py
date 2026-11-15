@@ -9,6 +9,9 @@ Fetches structured data from United Nations official website:
 Uses direct HTTP requests for member states (reliable) and Playwright
 for pages that may require JavaScript rendering.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -30,7 +33,7 @@ async def fetch_member_states() -> dict[str, Any]:
     """
     url = "https://www.un.org/en/about-us/member-states"
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0) as client:
         response = await client.get(
             url,
             headers={
@@ -84,13 +87,13 @@ async def fetch_security_council() -> dict[str, Any]:
     url = "https://www.un.org/securitycouncil/content/current-members"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                 locale='en-US'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             await page.goto(url, wait_until='networkidle')
             
             body = await page.query_selector('body')
@@ -168,13 +171,13 @@ async def fetch_icj_judges() -> dict[str, Any]:
     url = "https://www.icj-cij.org/en/current-members"
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                 locale='en-US'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             await page.goto(url, wait_until='networkidle')
             
             body = await page.query_selector('body')
@@ -242,7 +245,7 @@ async def fetch_organ_membership_overview() -> dict[str, Any]:
     """
     url = "https://www.un.org/en/about-us/membership-of-principal-un-organs"
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0) as client:
         response = await client.get(
             url,
             headers={
@@ -292,6 +295,7 @@ async def fetch_organ_membership_overview() -> dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute UN data retrieval functions.

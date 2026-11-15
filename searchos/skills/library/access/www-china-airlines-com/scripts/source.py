@@ -5,6 +5,9 @@ Fetches baggage policy information from China Airlines website including:
 - Carry-on baggage regulations
 - Checked baggage allowances by class and route
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any
@@ -13,7 +16,7 @@ from playwright.async_api import async_playwright, Browser, BrowserContext, Page
 
 async def _create_browser_context(p) -> tuple[Browser, BrowserContext, Page]:
     """Create browser with anti-detection measures."""
-    browser = await p.chromium.launch(
+    browser = await _skill_network.browser_launch(p.chromium, 
         headless=True,
         args=[
             '--disable-blink-features=AutomationControlled',
@@ -24,7 +27,7 @@ async def _create_browser_context(p) -> tuple[Browser, BrowserContext, Page]:
         ]
     )
     
-    context = await browser.new_context(
+    context = await _skill_network.browser_new_context(browser, 
         user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         viewport={'width': 1920, 'height': 1080},
         locale='en-US',
@@ -44,7 +47,7 @@ async def _create_browser_context(p) -> tuple[Browser, BrowserContext, Page]:
         window.chrome = { runtime: {} };
     """)
     
-    page = await context.new_page()
+    page = await _skill_network.browser_new_page(context)
     return browser, context, page
 
 
@@ -320,6 +323,7 @@ async def _fetch_checked_baggage(page: Page) -> dict[str, Any]:
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute China Airlines baggage policy fetch.

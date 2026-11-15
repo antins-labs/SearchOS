@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "eb6ab18489c088bfb6e210ec916605e17e71d0d96722bf8669791842b51ec2b5",
+  "capabilities": {
+    "list_subjects": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_subjects\", \"year\": 2024, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.252708+00:00",
+      "reason": "Expecting value: line 1 column 1 (char 0)",
+      "source_responses": [
+        {
+          "url": "https://www.shanghairanking.com/rankings/gras/2024",
+          "status": 200
+        },
+        {
+          "url": "https://www.shanghairanking.com/_nuxt/static/1792478922/rankings/gras/2024/payload.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_rankings": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rankings\", \"subject_code\": \"AS0101\", \"year\": 2024, \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.254513+00:00",
+      "reason": "Expecting value: line 1 column 1 (char 0)",
+      "source_responses": [
+        {
+          "url": "https://www.shanghairanking.com/rankings/gras/2024",
+          "status": 200
+        },
+        {
+          "url": "https://www.shanghairanking.com/_nuxt/static/1792478922/rankings/gras/2024/AS0101/payload.js",
+          "status": 200
+        }
+      ]
+    },
+    "search_universities": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_universities\", \"query\": \"Stanford\", \"year\": 2024, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.254603+00:00",
+      "reason": "Expecting value: line 1 column 1 (char 0)",
+      "source_responses": [
+        {
+          "url": "https://www.shanghairanking.com/rankings/gras/2024",
+          "status": 200
+        },
+        {
+          "url": "https://www.shanghairanking.com/_nuxt/static/1792478922/rankings/gras/2024/payload.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

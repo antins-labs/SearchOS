@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "48b79710ceb66c4d1009625e1b8280a6531bd00a038ada386f74838916dfc088",
+  "capabilities": {
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"The International\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.593531+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://dota2.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_tournament": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tournament\", \"page\": \"The_International_2014\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.594332+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://dota2.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_hero": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_hero\", \"page\": \"Invoker\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.594403+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://dota2.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_player": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player\", \"page\": \"N0tail\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.594552+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://dota2.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    },
+    "get_page": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"page\": \"The_International_2014\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.594632+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://dota2.fandom.com/api.php",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

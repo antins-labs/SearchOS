@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ec2576c4c6edb544d85291d612fda4b8017cf117246b0837d53c88feeafc07f3",
+  "capabilities": {
+    "fetch_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_article\", \"url\": \"https://www.ithome.com/0/663/928.htm\", \"format_summary\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.134741+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.ithome.com/0/663/928.htm",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_articles\", \"urls\": [\"https://www.ithome.com/0/663/928.htm\", \"https://www.ithome.com/0/521/657.htm\"], \"format_summary\": false}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.136061+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.ithome.com/0/521/657.htm",
+          "status": 200
+        },
+        {
+          "url": "https://www.ithome.com/0/663/928.htm",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

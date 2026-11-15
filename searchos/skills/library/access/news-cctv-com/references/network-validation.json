@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ec3a1a1eeb2db6e3c0a78cb535ce169a23ee938e78b5deb9836dde50b9303fa7",
+  "capabilities": {
+    "fetch_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_article\", \"url\": \"https://news.cctv.com/2026/06/21/ARTIfijga2NsiX2aPmT87RwX260621.shtml\", \"max_articles\": 20}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.822175+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://news.cctv.com/2026/06/21/ARTIfijga2NsiX2aPmT87RwX260621.shtml",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_special_page": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_special_page\", \"url\": \"https://news.cctv.com/special/gdzg2021/syPAGEA3BHYvYOUoOLJXa11wbt220115/\", \"max_articles\": 20}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.822871+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://news.cctv.com/special/gdzg2021/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"max_articles\": 5}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.822949+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://news.cctv.com",
+          "status": 200
+        }
+      ]
+    },
+    "extract_metadata": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"extract_metadata\", \"url\": \"https://news.cctv.com/2026/06/21/ARTI...\", \"max_articles\": 20}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.823013+00:00",
+      "reason": "HTTP 404",
+      "source_responses": [
+        {
+          "url": "https://news.cctv.com/2026/06/21/ARTI...",
+          "status": 404
+        }
+      ]
+    }
+  }
+}

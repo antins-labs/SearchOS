@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_page_content": "direct",
+    "get_text_archive_article": "direct",
+    "get_seat_distribution": "direct"
+  },
+  "aliases": {
+    "get_seat_distribution": "get_seat_distribution",
+    "get_text_archive_article": "get_text_archive_article",
+    "get_page_content": "get_page_content",
+    "run": "get_page_content"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_dataset": "direct",
+    "list_datasets": "direct"
+  },
+  "aliases": {
+    "get_dataset": "get_dataset",
+    "list_datasets": "list_datasets",
+    "run": "list_datasets"
+  }
+}

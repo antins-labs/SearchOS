@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_release_info": "direct",
+    "fetch_gmsl_timeseries": "direct",
+    "list_releases": "direct"
+  },
+  "aliases": {
+    "fetch_gmsl_timeseries": "fetch_gmsl_timeseries",
+    "list_releases": "list_releases",
+    "get_release_info": "get_release_info",
+    "run": "get_release_info"
+  }
+}

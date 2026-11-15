@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "extract_profile": "direct",
+    "check_urls": "direct",
+    "extract_profiles": "direct"
+  },
+  "aliases": {
+    "extract_profile": "extract_profile",
+    "extract_profiles": "extract_profiles",
+    "check_urls": "check_urls",
+    "run": "check_urls"
+  }
+}

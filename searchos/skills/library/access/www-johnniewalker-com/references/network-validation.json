@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "2f8d0e29c5d238f73ca783293b5fc50413eb2a946f62c40bc46050414a5f433b",
+  "capabilities": {
+    "search_products": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_products\", \"query\": \"black\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.138629+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.johnniewalker.com/api/search",
+          "status": 200
+        }
+      ]
+    },
+    "get_all_products": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_products\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.139286+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.johnniewalker.com/api/search",
+          "status": 200
+        }
+      ]
+    },
+    "get_products_by_group": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_products_by_group\", \"group\": \"limited-editions\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.139495+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.johnniewalker.com/api/search",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

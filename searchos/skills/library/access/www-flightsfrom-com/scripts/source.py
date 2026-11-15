@@ -9,6 +9,9 @@ Functions:
 - get_airport_info: Get basic airport information
 - search_destinations: Search for destinations by country or city
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -181,7 +184,7 @@ async def get_airport_routes(params: dict) -> dict:
             "airport_code": airport_code
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_page(session, airport_code)
             
@@ -250,7 +253,7 @@ async def get_airport_info(params: dict) -> dict:
             "airport_code": airport_code
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_page(session, airport_code)
             
@@ -310,7 +313,7 @@ async def search_destinations(params: dict) -> dict:
             "error": "Must provide at least one filter: 'country' or 'city'"
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_page(session, airport_code)
             
@@ -382,7 +385,7 @@ async def get_route_details(params: dict) -> dict:
             "error": "Invalid destination airport code"
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             html = await fetch_page(session, from_code)
             
@@ -421,6 +424,7 @@ async def get_route_details(params: dict) -> dict:
             }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the FlightsFrom.com access skill.

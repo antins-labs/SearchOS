@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_nba_players": "direct",
+    "get_nba_news": "direct",
+    "get_article": "proxy"
+  },
+  "aliases": {
+    "get_article": "get_article",
+    "get_nba_news": "get_nba_news",
+    "get_nba_players": "get_nba_players",
+    "run": "get_nba_players"
+  }
+}

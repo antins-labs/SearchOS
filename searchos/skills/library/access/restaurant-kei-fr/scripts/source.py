@@ -2,6 +2,9 @@
 Restaurant KEI (Paris) Access Skill
 Fetches restaurant information and product/gift card catalog via HTTP.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import re
@@ -22,7 +25,7 @@ async def _fetch_html(url: str, timeout: int = 15) -> dict:
         'Accept-Language': 'en-US,en;q=0.9',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             async with session.get(url, headers=headers, 
                                   timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
@@ -53,7 +56,7 @@ async def _query_shopify(query: str, timeout: int = 15) -> dict:
         'Content-Type': 'application/json',
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             async with session.post(api_url, 
                                    headers=headers, 
@@ -685,6 +688,7 @@ async def get_contact_info(params: dict, ctx: Any = None) -> dict:
 
 
 # Exported function dispatcher
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute a function call for the Restaurant KEI skill.

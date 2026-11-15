@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_universities": "inherit",
+    "search_courses": "inherit",
+    "get_course_detail": "inherit"
+  },
+  "aliases": {
+    "search_courses": "search_courses",
+    "get_course_detail": "get_course_detail",
+    "search_universities": "search_universities",
+    "run": "search_universities"
+  }
+}

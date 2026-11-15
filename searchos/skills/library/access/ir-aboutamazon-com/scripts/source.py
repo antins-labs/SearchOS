@@ -7,6 +7,9 @@ press releases, events, and stock quotes from ir.aboutamazon.com.
 The site uses Cloudflare protection, so Playwright is used to bypass it
 and capture the JSON API responses from their Q4 Inc. platform.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -50,9 +53,9 @@ async def fetch_with_playwright(
     
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context()
-            page = await context.new_page()
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
+            context = await _skill_network.browser_new_context(browser)
+            page = await _skill_network.browser_new_page(context)
             
             # Capture the API response
             api_data = {}
@@ -336,6 +339,7 @@ async def get_stock_quote() -> Dict[str, Any]:
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the Amazon IR skill.

@@ -41,10 +41,6 @@ def read_capability_results(skill_or_meta) -> dict[str, dict]:
         return {}
 
 
-def _cell(value: str) -> str:
-    return value.replace("\\", "\\\\").replace("|", "\\|").replace("\n", " ").replace("\r", " ")
-
-
 def annotate_package(package_dir: str | Path, capability_results: dict[str, dict]) -> None:
     """只注解传入的发布副本，保留其余元数据和正文；普通包校验仍由调用方完成。"""
     results = _normalize(capability_results)
@@ -65,14 +61,6 @@ def annotate_package(package_dir: str | Path, capability_results: dict[str, dict
     if results:
         metadata[_KEY] = json.dumps(
             results, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-        rows = [
-            _START, "## 能力验收状态", "",
-            "| 能力 | 可用性 |",
-            "| --- | --- |",
-        ]
-        for name, item in sorted(results.items()):
-            rows.append(f"| {_cell(name)} | {_STATUS[item['status']]} |")
-        body += "\n\n" + "\n".join([*rows, _END]) + "\n"
     else:
         metadata.pop(_KEY, None)
     frontmatter["metadata"] = metadata

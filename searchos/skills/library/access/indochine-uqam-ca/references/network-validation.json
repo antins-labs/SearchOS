@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ca5401021ccfe9ff9ecee362ce88a54202d30f2936a74bd22b474519e1faa185",
+  "capabilities": {
+    "get_entry": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_entry\", \"url\": \"https://indochine.uqam.ca/fr/le-dictionnaire/320-coup-de-force-of-9-march-1945.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.711782+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://indochine.uqam.ca/fr/le-dictionnaire/320-coup-de-force-of-9-march-1945.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

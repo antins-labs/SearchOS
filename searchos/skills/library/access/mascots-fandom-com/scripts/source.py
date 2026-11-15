@@ -2,6 +2,9 @@
 SearchOS Access Skill for mascots.fandom.com
 Fetches mascot information from the Fandom wiki via MediaWiki API.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -106,7 +109,7 @@ async def get_mascot(params: dict) -> dict:
     include_sections = params.get('include_sections', True)
     max_content_paragraphs = params.get('max_content_paragraphs', 10)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Build request params
         api_params = {
             'action': 'parse',
@@ -162,7 +165,7 @@ async def search_mascots(params: dict) -> dict:
     
     limit = params.get('limit', 20)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         # Use opensearch for quick results
         api_params = {
             'action': 'opensearch',
@@ -216,7 +219,7 @@ async def list_category(params: dict) -> dict:
     
     limit = params.get('limit', 50)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         api_params = {
             'action': 'query',
             'list': 'categorymembers',
@@ -262,7 +265,7 @@ async def list_categories(params: dict) -> dict:
     limit = params.get('limit', 100)
     min_size = params.get('min_size', 1)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         api_params = {
             'action': 'query',
             'list': 'allcategories',
@@ -300,7 +303,7 @@ async def list_pages(params: dict) -> dict:
     limit = params.get('limit', 50)
     prefix = params.get('prefix', '')
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         api_params = {
             'action': 'query',
             'list': 'allpages',
@@ -345,7 +348,7 @@ async def get_page_categories(params: dict) -> dict:
     if not name:
         return {'error': 'Missing required parameter: name'}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         api_params = {
             'action': 'query',
             'titles': name,
@@ -382,6 +385,7 @@ async def get_page_categories(params: dict) -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the mascot wiki skill.

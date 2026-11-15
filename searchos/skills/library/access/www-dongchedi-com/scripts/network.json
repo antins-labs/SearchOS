@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_sales_ranking": "direct",
+    "get_article": "direct"
+  },
+  "aliases": {
+    "get_sales_ranking": "get_sales_ranking",
+    "get_article": "get_article",
+    "run": "get_article"
+  }
+}

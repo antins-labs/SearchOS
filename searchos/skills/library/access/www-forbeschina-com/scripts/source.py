@@ -10,6 +10,9 @@ Supported lists include:
 
 No API calls required - data is server-side rendered in HTML tables.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -42,7 +45,7 @@ async def fetch_page(url: str, session: Optional[aiohttp.ClientSession] = None) 
     own_session = False
     if session is None:
         connector = aiohttp.TCPConnector(ssl=False)  # Ignore SSL errors for https
-        session = aiohttp.ClientSession(connector=connector)
+        session = _skill_network.aiohttp_session(connector=connector)
         own_session = True
     
     try:
@@ -342,6 +345,7 @@ async def search_records(
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the Forbes China lists skill.

@@ -9,6 +9,9 @@ Features:
 - Retrieve detailed airport statistics from specific reports
 - Parse structured data (passenger throughput, cargo, flights)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -242,6 +245,7 @@ def parse_available_options(html: str) -> dict:
     return options
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main execution function.
@@ -259,7 +263,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             'available_functions': ['list_reports', 'get_report_data', 'list_options']
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'list_reports':
             return await _list_reports(session, params)
         elif function == 'get_report_data':

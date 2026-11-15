@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_carry_on_spanish": "direct",
+    "check_status": "direct",
+    "get_by_url": "direct",
+    "get_carry_on_english": "direct"
+  },
+  "aliases": {
+    "get_carry_on_english": "get_carry_on_english",
+    "get_carry_on_spanish": "get_carry_on_spanish",
+    "get_by_url": "get_by_url",
+    "check_status": "check_status",
+    "run": "check_status"
+  }
+}

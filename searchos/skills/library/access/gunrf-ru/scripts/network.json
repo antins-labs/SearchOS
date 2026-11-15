@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_weapons": "direct",
+    "get_weapon_specs": "direct"
+  },
+  "aliases": {
+    "get_weapon_specs": "get_weapon_specs",
+    "search_weapons": "search_weapons",
+    "run": "search_weapons"
+  }
+}

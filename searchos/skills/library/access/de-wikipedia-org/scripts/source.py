@@ -7,6 +7,9 @@ for award nomination/winner tables and other structured data presentations.
 This skill uses Playwright to fetch pages since Wikipedia's anti-bot protection
 blocks direct HTTP requests without a proper browser context.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -28,11 +31,11 @@ async def fetch_page_html(url: str, timeout: int = 60000) -> dict[str, Any]:
     """
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context(
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until='networkidle', timeout=timeout)
             
@@ -360,6 +363,7 @@ async def extract_awards(params: dict[str, Any], ctx: Any = None) -> dict[str, A
     return awards_data
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for Wikipedia German skill.

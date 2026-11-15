@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "e1d35b571ab7241295d1a61a4553638c6244932f3d9a7d0a1acc54505c559b64",
+  "capabilities": {
+    "list_bulletins": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_bulletins\", \"category\": \"monthly_production\", \"max_size_mb\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.974406+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.caac.gov.cn/XXGK/XXGK/TJSJ/index_1215.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_bulletin": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_bulletin\", \"url\": \"https://www.caac.gov.cn/XXGK/XXGK/TJSJ/202503/t20250314_226932.html\", \"category\": \"monthly_production\", \"max_size_mb\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.975116+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.caac.gov.cn/XXGK/XXGK/TJSJ/202503/t20250314_226932.html",
+          "status": 200
+        }
+      ]
+    },
+    "download_attachment": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"download_attachment\", \"url\": \"https://www.caac.gov.cn/XXGK/XXGK/TJSJ/202503/P020250314353469776556.pdf\", \"max_size_mb\": 20, \"category\": \"monthly_production\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.975227+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.caac.gov.cn/XXGK/XXGK/TJSJ/202503/P020250314353469776556.pdf",
+          "status": 200
+        }
+      ]
+    },
+    "search_bulletins": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_bulletins\", \"year\": \"2024\", \"category\": \"monthly_production\", \"max_size_mb\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.975425+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.caac.gov.cn/XXGK/XXGK/TJSJ/index_1215.html",
+          "status": 200
+        },
+        {
+          "url": "http://www.caac.gov.cn/XXGK/XXGK/TJSJ/index_1214.html",
+          "status": 200
+        },
+        {
+          "url": "http://www.caac.gov.cn/XXGK/XXGK/TJSJ/index_1216.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

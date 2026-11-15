@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "721c8ca645396b32a538d03fdff6d15f627560e71f336a0f46e51418db6a7e51",
+  "capabilities": {
+    "list_years": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_years\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.875146+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/thegameawards-com/scripts/source.py",
+        "line": 284,
+        "end_line": 301,
+        "implementation": "list_available_years",
+        "source_sha256": "00f91c65304b1fd285bf398590d641ded86c5177a6fe73227666ab5030e6240d",
+        "implementation_sha256": "8b0696be34699d1f9e9062b18da98e54392d80c16fcde0fb7bea5d5980988921"
+      }
+    },
+    "get_rewind": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_rewind\", \"year\": 2014}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.875721+00:00",
+      "reason": "HTTP 404: Failed to fetch rewind data for year 2014",
+      "source_responses": [
+        {
+          "url": "https://thegameawards.com/rewind/year-2014",
+          "status": 404
+        }
+      ]
+    },
+    "get_winners": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_winners\", \"year\": 2019}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.875805+00:00",
+      "reason": "Failed to parse rewind data for year 2019",
+      "source_responses": [
+        {
+          "url": "https://thegameawards.com/rewind/year-2019",
+          "status": 200
+        }
+      ]
+    },
+    "get_highlights": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_highlights\", \"year\": 2019}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.875890+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://thegameawards.com/rewind/year-2019",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

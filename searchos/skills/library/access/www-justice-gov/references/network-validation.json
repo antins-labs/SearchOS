@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "f598b23cadf62d7ba0d039c501307803a65e252a49fdba6e724626d017df61a6",
+  "capabilities": {
+    "list_jobs": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_jobs\", \"state\": \"VA\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.144134+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.justice.gov/usao/career-center/job-openings/attorneys",
+          "status": 200
+        }
+      ]
+    },
+    "get_job_detail": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_job_detail\", \"job_url\": \"/legal-careers/job/assistant-united-states-attorney-civil-77\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.144840+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.justice.gov/legal-careers/job/[redacted]",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b36c9f571e662546a1d6004c476aa3ae72a02ce6b0ddb4268d32cbfbd7cada02",
+  "capabilities": {
+    "fetch_page": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_page\", \"data_path\": \"most-popular-apps\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.971497+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://www.businessofapps.com/data/most-popular-apps/",
+          "status": 403
+        }
+      ]
+    },
+    "get_popular_apps": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_popular_apps\", \"category\": \"social\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.972322+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://www.businessofapps.com/data/most-popular-apps/",
+          "status": 403
+        }
+      ]
+    },
+    "get_app_revenue": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_app_revenue\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.972382+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.businessofapps.com/data/app-revenue/",
+          "status": 403
+        }
+      ]
+    },
+    "list_pages": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_pages\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.972449+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://www.businessofapps.com/data/",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

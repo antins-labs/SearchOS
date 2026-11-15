@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "84c2542ce25f565c7f0f132a49934cbb0e5b977e53391053c6fd1f2dd4e108d4",
+  "capabilities": {
+    "get_company_profile": {
+      "status": "live_access_unconfirmed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_company_profile\", \"url\": \"https://www.zoominfo.com/c/hawthorne-residential-partners-llc/348143237\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:04.204630+00:00",
+      "reason": "business output returned without a confirmed successful source response",
+      "source_responses": [
+        {
+          "url": "https://www.zoominfo.com/c/[redacted]/348143237",
+          "status": 403
+        }
+      ]
+    },
+    "get_public_page": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_public_page\", \"url\": \"https://www.zoominfo.com/about\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:04.250203+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.zoominfo.com/about",
+          "status": 200
+        }
+      ]
+    },
+    "search_companies": {
+      "status": "offline_business_passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_companies\", \"query\": \"Hawthorne Residential Partners\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:04.251106+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-zoominfo-com/scripts/source.py",
+        "line": 245,
+        "end_line": 283,
+        "implementation": "search_companies",
+        "source_sha256": "f185803b295f72dee3cbd9b2412b61bab3273c2ddc5b8e09803a6e033fe90223",
+        "implementation_sha256": "b2b84ab5d43e2413d16cd33484137a3f030ab27a1f13ab9d66de0049051a3cab"
+      }
+    },
+    "get_sitemap": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sitemap\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:04.251604+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.zoominfo.com/cws/general-sitemap.xml",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

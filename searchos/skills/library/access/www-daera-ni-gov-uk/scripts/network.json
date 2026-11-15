@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_aonb_content": "direct",
+    "get_aonb_list": "direct",
+    "get_aonb_article": "direct"
+  },
+  "aliases": {
+    "get_aonb_list": "get_aonb_list",
+    "get_aonb_article": "get_aonb_article",
+    "search_aonb_content": "search_aonb_content",
+    "run": "search_aonb_content"
+  }
+}

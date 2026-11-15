@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_info": "direct",
+    "list_indicators": "direct",
+    "get_data": "direct",
+    "search": "direct"
+  },
+  "aliases": {
+    "get_data": "get_data",
+    "list_indicators": "list_indicators",
+    "search": "search",
+    "get_info": "get_info",
+    "run": "get_info"
+  }
+}

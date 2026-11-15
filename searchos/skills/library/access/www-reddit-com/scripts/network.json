@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "proxy",
+  "functions": {
+    "reddit_rss": "inherit"
+  },
+  "aliases": {
+    "reddit_rss": "reddit_rss",
+    "run": "package"
+  }
+}

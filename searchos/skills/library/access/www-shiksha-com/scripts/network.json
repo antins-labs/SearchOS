@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_university_info": "proxy",
+    "get_rankings": "inherit"
+  },
+  "aliases": {
+    "get_rankings": "get_rankings",
+    "get_university_info": "get_university_info",
+    "run": "get_university_info"
+  }
+}

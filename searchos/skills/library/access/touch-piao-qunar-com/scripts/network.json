@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "batch": "direct",
+    "get_detail": "inherit"
+  },
+  "aliases": {
+    "get_detail": "get_detail",
+    "batch": "batch",
+    "run": "batch"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d6c41fd3748984e7bb37454afa8318a67724878d16919f6fed7f1aca98759a86",
+  "capabilities": {
+    "get_sales_ranking": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sales_ranking\", \"ranking_type\": \"sale\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.012222+00:00",
+      "reason": "No ranking data found on page",
+      "source_responses": [
+        {
+          "url": "https://www.dongchedi.com/login-required",
+          "status": 200
+        }
+      ]
+    },
+    "get_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"article_id\": \"7583347830648078873\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:02.135255+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.dongchedi.com/article/7583347830648078873",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

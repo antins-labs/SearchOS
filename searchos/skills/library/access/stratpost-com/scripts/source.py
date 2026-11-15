@@ -2,6 +2,9 @@
 StratPost Access Skill
 Extracts defense and security news articles from stratpost.com
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -11,6 +14,7 @@ from urllib.parse import urljoin, urlparse, parse_qs
 import re
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute StratPost access skill.
@@ -43,7 +47,7 @@ async def _fetch_html(url: str, timeout: int = 30) -> tuple[int, str]:
     
     client_timeout = aiohttp.ClientTimeout(total=timeout, connect=10)
     
-    async with aiohttp.ClientSession(timeout=client_timeout) as session:
+    async with _skill_network.aiohttp_session(timeout=client_timeout) as session:
         async with session.get(url, headers=headers, allow_redirects=True) as response:
             html = await response.text()
             return response.status, html

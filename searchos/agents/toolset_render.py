@@ -8,6 +8,7 @@ and the prompt stays in sync automatically.
 
 from __future__ import annotations
 
+import inspect
 from typing import Any
 
 
@@ -22,7 +23,9 @@ def _first_paragraph(text: str) -> str:
 
 
 def _render_args(tool: Any) -> str:
-    schema = getattr(tool, "args_schema", None)
+    schema = getattr(tool, "tool_call_schema", None)
+    if schema is None:
+        schema = getattr(tool, "args_schema", None)
     fields = getattr(schema, "model_fields", None) if schema is not None else None
     if not fields:
         return ""
@@ -48,7 +51,11 @@ def render_toolset(tools: list, *, header: str = "## Available Tools") -> str:
     lines: list[str] = [header, ""]
     for t in tools:
         name = getattr(t, "name", None) or getattr(t, "__name__", "<anonymous>")
-        desc = _first_paragraph(getattr(t, "description", "") or "")
+        description = getattr(t, "description", "") or ""
+        # LangChain joins prose paragraphs when it parses parameter descriptions.
+        impl = getattr(t, "coroutine", None) or getattr(t, "func", None)
+        summary = _first_paragraph(inspect.getdoc(impl) or "") if impl else ""
+        desc = summary if summary and description.startswith(summary) else _first_paragraph(description)
         args = _render_args(t)
         lines.append(f"### {name}({args})")
         if desc:

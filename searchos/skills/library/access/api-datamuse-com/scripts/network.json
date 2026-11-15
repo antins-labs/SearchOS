@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "query": "inherit"
+  },
+  "aliases": {
+    "query": "query"
+  }
+}

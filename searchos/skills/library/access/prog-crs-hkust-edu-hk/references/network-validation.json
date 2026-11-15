@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "bb51f65402548b9fce767630851403dfabf5efb0c3119e36237bab5c76df807f",
+  "capabilities": {
+    "get_program": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_program\", \"program_code\": \"msc-fofb\", \"academic_year\": \"2026-27\", \"include_courses\": true, \"include_deadlines\": true, \"level\": \"pgprog\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.841929+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://prog-crs.hkust.edu.hk/pgprog/2026-27/msc-fofb",
+          "status": 200
+        },
+        {
+          "url": "https://prog-crs.hkust.edu.hk/program/ajax/courseInfo.php",
+          "status": 200
+        }
+      ]
+    },
+    "list_programs": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_programs\", \"academic_year\": \"2026-27\", \"include_courses\": true, \"include_deadlines\": true, \"level\": \"pgprog\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.843358+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/prog-crs-hkust-edu-hk/scripts/source.py",
+        "line": 576,
+        "end_line": 596,
+        "implementation": "list_programs",
+        "source_sha256": "616d3ce62e6bb1a5a86d0fea32c56baaed7bf7af5e705a693421f6c1f63547c1",
+        "implementation_sha256": "4e1163d22daa810b672cfc3acd52f8239af04c832d74868ef7888d766307979a"
+      }
+    },
+    "search_courses": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_courses\", \"program_code\": \"msc-fofb\", \"academic_year\": \"2026-27\", \"include_courses\": true, \"include_deadlines\": true, \"level\": \"pgprog\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.843506+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://prog-crs.hkust.edu.hk/pgprog/2026-27/msc-fofb",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

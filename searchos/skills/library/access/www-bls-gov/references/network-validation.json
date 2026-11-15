@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b42bd8efae93775b23f467bee2a8c6bbb2017521fb5170782415eff283859ca3",
+  "capabilities": {
+    "get_state": {
+      "status": "empty_result",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_state\", \"state\": \"CA\", \"measure\": \"03\", \"start_year\": 2020, \"end_year\": 2024}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.575609+00:00",
+      "reason": "data is empty",
+      "source_responses": [
+        {
+          "url": "https://api.bls.gov/publicAPI/v2/timeseries/data/",
+          "status": 200
+        }
+      ]
+    },
+    "get_all_states": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_states\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.624203+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.bls.gov/publicAPI/v2/timeseries/data/",
+          "status": 200
+        }
+      ]
+    },
+    "get_county": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_county\", \"state\": \"CA\", \"county_fips\": \"037\", \"measure\": \"03\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.624453+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search": {
+      "status": "offline_business_passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"California\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.624576+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-bls-gov/scripts/source.py",
+        "line": 415,
+        "end_line": 454,
+        "implementation": "search_series",
+        "source_sha256": "e8508c824618c67770471146d4858e97bef0ec75582725c1a4917e4788fb113c",
+        "implementation_sha256": "0253ed50f1491660c9797642b32f9ea105d9be2ca724292a1752940535650d56"
+      }
+    },
+    "get_latest_rates": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_latest_rates\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.624689+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.bls.gov/publicAPI/v2/timeseries/data/",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_series": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_series\", \"series_ids\": [\"LAUST060000000000003\", \"LAUST360000000000003\"], \"start_year\": 2023, \"end_year\": 2024}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.624810+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.bls.gov/publicAPI/v2/timeseries/data/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

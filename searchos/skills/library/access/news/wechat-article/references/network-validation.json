@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "97bb7075905991cd8eeb645c8423f95c8490f46001fa151324dd7bc915cd9109",
+  "capabilities": {
+    "package": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"query\": \"大模型 RAG 技术\", \"num_results\": 3, \"fetch_content\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.821186+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://weixin.sogou.com/weixin",
+          "status": 200
+        },
+        {
+          "url": "https://weixin.sogou.com/link",
+          "status": 200
+        },
+        {
+          "url": "https://mp.weixin.qq.com/s",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

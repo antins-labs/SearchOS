@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3ccb0851a6ecae5b5ce63e0c49c10f25a5d5a150ac9755dd53edd1cfdc99642d",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://en.apa.az/foreign-policy/Countries-which-Azerbaijan-established-diplomatic-relations-with-named-304245\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.600287+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.apa.az/foreign-policy/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "get_latest_news": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_latest_news\", \"category\": \"foreign-policy\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.601396+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.apa.az/",
+          "status": 200
+        }
+      ]
+    },
+    "search_news": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_news\", \"query\": \"Azerbaijan diplomatic relations\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.601485+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.apa.az/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

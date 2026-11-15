@@ -12,8 +12,10 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+from searchos.network import network_scoped
 from searchos.skills.core.capabilities import annotate_package
 from searchos.skills.intent.models import name_for_host
+from searchos.skills.packaging import publish_package
 from searchos.skills.pipeline.access import CONTRACT_VERSION
 from searchos.skills.pipeline.access.agents.builder import TOOL_DEFINITIONS
 from searchos.skills.pipeline.access.agents.planner import research_observation_index
@@ -26,7 +28,6 @@ from searchos.skills.pipeline.access.validation.checks import (
     validate_access_structure,
 )
 from searchos.skills.pipeline.access.validation.progress import ValidationProgress
-from searchos.skills.pipeline.store import publish_package
 
 
 class AccessPipeline:
@@ -117,7 +118,8 @@ class AccessPipeline:
         progress = self.validation
         fingerprint = progress.validation_fingerprint()
         previous = progress.last_validation
-        same_version = previous.get('candidate_fingerprint') == fingerprint
+        same_version = (previous.get('candidate_fingerprint') == fingerprint
+                        and previous.get('network_fingerprint') == progress.network_fingerprint)
         incomplete = any(item.get('status') != 'available' for item in previous.get('capability_results', {}).values())
         if (same_version and not previous.get('cancelled') and not previous.get('semantic_error')
                 and not incomplete and not previous.get('regression_commands') and previous.get('report_complete', True)):
@@ -178,6 +180,9 @@ class AccessPipeline:
         return progress.validation_feedback(progress.last_validation)
 
     async def dispatch(self, tool_name, tool_input):
+        if tool_name == 'network_check':
+            from searchos.skills.pipeline.access.tools.network import check_network
+            return await check_network(**tool_input)
         if tool_name in {'search', 'find', 'open'}:
             return await self.browser.dispatch(tool_name, tool_input)
         if tool_name == 'send_message':
@@ -255,6 +260,7 @@ logger = logging.getLogger(__name__)
 MAX_TURNS = 50
 
 
+@network_scoped
 async def build_skill(
     host: str,
     probe_urls: list[str],
@@ -555,7 +561,7 @@ def main(argv: list[str] | None = None) -> int:
                 break
     except Exception:
         pass
-    from searchos.config.web_overlay import load_and_apply
+    from searchos.config.settings_overlay import load_and_apply
 
     load_and_apply()
 

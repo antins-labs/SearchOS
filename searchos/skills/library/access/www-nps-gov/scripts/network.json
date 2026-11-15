@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_all_states": "direct",
+    "get_national_data": "proxy",
+    "get_available_years": "direct",
+    "get_all_parks": "direct",
+    "get_state_data": "direct",
+    "get_park_data": "direct",
+    "search_parks": "direct"
+  },
+  "aliases": {
+    "get_national_data": "get_national_data",
+    "get_state_data": "get_state_data",
+    "get_all_states": "get_all_states",
+    "get_park_data": "get_park_data",
+    "get_all_parks": "get_all_parks",
+    "search_parks": "search_parks",
+    "get_available_years": "get_available_years",
+    "run": "get_available_years"
+  }
+}

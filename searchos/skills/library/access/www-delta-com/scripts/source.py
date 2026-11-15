@@ -8,6 +8,9 @@ Fetches baggage policy information from Delta.com including:
 
 Uses direct HTTP requests to fetch HTML content as the site renders server-side.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -282,6 +285,7 @@ async def get_baggage_overview(session: aiohttp.ClientSession) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Delta baggage information query.
@@ -301,7 +305,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     function = params.get('function', '')
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             if function == 'get_carry_on_info':
                 data = await get_carry_on_info(session)
                 return {

@@ -7,22 +7,112 @@ import hashlib
 import json
 import logging
 import uuid
-from typing import Any
+from typing import Annotated, Any, Literal
 
 from langchain_core.tools import tool
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    ValidationError,
+    field_validator,
+)
 
 from searchos.agents.orchestrator.lifecycle import (
     _KIND_FROM_AGENT,
-    _check_schema_exists,
     _compute_agent_report,
     _task_redundancy_reason,
 )
 from searchos.agents.runtime import _ctx, _scheduler
-from searchos.skills.catalog.registry import SKILL_BLACKLIST
-from searchos.tools.tasks.arguments import EnqueueTask, EnqueueTasksInput, task_argument_error
+from searchos.socm.refs import CellRef, cell_ref
 from searchos.tools.tasks.reports import _compact_scheduler_actions, _empty_table_warning
 
 logger = logging.getLogger(__name__)
+
+NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+
+
+class EnqueueTask(BaseModel):
+    """一个任务只使用当前工具声明的字段，正文不做类型转换或转义修复。"""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    agent_type: Literal[
+        "search_agent", "local_search_agent", "explore_agent", "writer_agent",
+    ] = Field(
+        description="Role from the available agent catalog. Determines the task kind.",
+    )
+    task: str = Field(
+        min_length=1, description="Self-contained task brief. Multiline text and code are preserved verbatim.",
+    )
+    task_id: NonEmptyString | None = Field(
+        default=None,
+        description="Optional unique task ID for references such as blocked_by. Generated when omitted.",
+    )
+    agent_id: NonEmptyString | None = Field(
+        default=None,
+        description=(
+            "Optional idle Search Agent ID in the latest agent reports. Reuse its history, "
+            "browser and loaded skills for this new task. agent_type and source scope "
+            "must match. Omit to create a new agent."
+        ),
+    )
+    target_table: NonEmptyString | None = Field(
+        default=None,
+        description="Optional existing table ID to restrict the task to one table. Omit for unrestricted retrieval.",
+    )
+    target_cells: list[CellRef] = Field(
+        default_factory=list,
+        description=(
+            "CellRefs of existing cells, formed from the table ID, row key in primary_key order, "
+            "and column name, as {table_id, key, attribute}. For a search task, include cells "
+            "requiring source evidence. Fill inferable cells with edit_entities. Selection restricts extraction and "
+            "deduplicates overlapping tasks. Leave empty for open enumeration."
+        ),
+    )
+    priority: float = Field(
+        default=0.5, ge=0, le=1, allow_inf_nan=False,
+        description="Scheduling priority from 0 to 1. Higher priority dispatches first.",
+    )
+    blocked_by: list[NonEmptyString] = Field(
+        default_factory=list, description="Predecessor task IDs that must finish first.",
+    )
+    max_searches: int | None = Field(
+        default=None, ge=1,
+        description="Positive retrieval budget capped by runtime settings. Omit for the default.",
+    )
+
+    @field_validator("task")
+    @classmethod
+    def require_nonblank_task(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("task must contain non-whitespace text")
+        return value
+
+
+class EnqueueTasksInput(BaseModel):
+    """一次工具调用的完整参数；先校验整批，再进入入队逻辑。"""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    items: list[EnqueueTask] = Field(
+        min_length=1,
+        description="Non-empty JSON array of task objects.",
+    )
+
+
+def task_argument_error(error: ValidationError) -> str:
+    """返回字段位置，供模型修正参数；不回显完整任务正文。"""
+    return json.dumps({
+        "error": "invalid task arguments",
+        "queued": [],
+        "errors": [
+            {"path": ".".join(map(str, issue["loc"])), "message": issue["msg"]}
+            for issue in error.errors(include_input=False, include_url=False, include_context=False)
+        ],
+    }, ensure_ascii=False)
+
 
 def _agent_creation_limit_for_frontier_kind(settings: Any, kind: str) -> int:
     """Search 创建受会话总限约束；Explore 只受通用预算和并发约束。"""
@@ -43,58 +133,29 @@ def _agent_creation_slots_used_for_frontier_kind(state: Any, kind: str) -> int:
     )
 
 
-def _task_result_mode(state: Any, item: EnqueueTask) -> str:
-    if item.result_mode:
-        return item.result_mode
-    if item.target_table or item.target_cells:
-        return "table"
-    plan = state.research_plan
-    if plan and (plan.table_policy == "none" or not state.coverage_map.tables):
-        return "findings"
-    return state.research_mode
-
-
 @tool(args_schema=EnqueueTasksInput)
 async def enqueue_tasks(items: list[EnqueueTask]) -> str:
-    r"""Queue tasks and start eligible agents. Pass a JSON object with an `items`
-    array of task objects. Each task requires `agent_type` and `task`.
+    r"""Queue research tasks, start eligible workers and return the dispatch receipt.
 
-    Args:
-        items: Non-empty array; task fields and constraints are defined in the
-            parameter schema. Task text is an ordinary string, including multiline
-            prose and code. Set execution options such as result_mode, target_table,
-            and blocked_by as fields on the task object.
+    Pass a JSON object with an items array. Each item requires agent_type and task.
+    For multiline prose or code, pass the full brief in task. For example:
+    {"items":[{"agent_type":"search_agent","task":"Verify the behavior.\n\nCite primary sources."}]}
 
-    Example:
-        {"items": [{"agent_type": "search_agent",
-                    "task": "Verify the behavior.\n\nCite primary sources.",
-                    "result_mode": "findings"}]}
+    Use target_table or target_cells to restrict scope. Set task_id when another item's
+    blocked_by refers to it. To reuse context and loaded skills, pass the agent_id of an
+    idle compatible Search Agent from the latest reports.
 
-    Invalid fields, types, or ranges reject the entire call before any task is saved;
-    the error lists field paths to correct. Workspace/schema preflight failures also
-    reject the call. Other runtime constraints are checked per task. Inspect queued,
-    deduped, rejected, and errors before retrying.
-    The Scheduler starts eligible tasks immediately, subject to concurrency limits,
-    priority, and blocked_by. Set agent_id to an idle compatible Search Agent
-    from check_agents to reuse its context and loaded skills for a new task.
-    Omit agent_id to create a new agent. Use check_agents to collect results.
-
-    Returns: ``{"queued": [...ids], "deduped": [...], "rejected": [...], "errors": [...]}``.
+    A malformed field, type or range rejects the entire batch and returns the invalid
+    paths. Runtime checks apply per task. Inspect the receipt before retrying. For
+    example, {"queued":["t_123"],"deduped":[],"rejected":[],"errors":[]}.
+    Eligible work starts in priority order as dependencies and slots allow. After dispatch,
+    continue independent work. Reports arrive one at a time. When idle, call check_agents.
     """
     from searchos.config.settings import settings as _settings
     if _ctx.workspace is None:
         return json.dumps({"error": "workspace not initialized"})
     from searchos.agents.orchestrator.catalog import _is_agent_enabled
     from searchos.socm import FrontierTask
-
-    dispatch_state = _ctx.workspace.load_state()
-    if any(
-        item.agent_type != "explore_agent" and _task_result_mode(dispatch_state, item) == "table"
-        for item in items
-    ):
-        preflight = _check_schema_exists()
-        if preflight:
-            return json.dumps({"error": preflight, "status": "error"})
 
     queued: list[str] = []
     deduped: list[dict[str, Any]] = []
@@ -120,42 +181,13 @@ async def enqueue_tasks(items: list[EnqueueTask]) -> str:
                 if reason:
                     rejected.append({"index": i, "reason": reason})
                     continue
-            agent_creation_limit = _agent_creation_limit_for_frontier_kind(
-                _settings, kind
+            target_table = item.target_table or (
+                item.target_cells[0].table_id if item.target_cells else ""
             )
-            if agent_creation_limit > 0 and not item.agent_id:
-                slots_used = agent_creation_slots_used.get(kind, 0)
-                if slots_used >= agent_creation_limit:
-                    rejected.append({
-                        "index": i,
-                        "reason": (
-                            f"{kind}_agent creation limit reached "
-                            f"({slots_used}/{agent_creation_limit} for this "
-                            "SearchSession). This is enforced at enqueue_tasks "
-                            "by counting existing non-cancelled Frontier tasks "
-                            f"of kind={kind!r}. Inspect existing Frontier reports "
-                            "and reuse an idle Search Agent with agent_id or synthesize."
-                        ),
-                    })
-                    continue
-            target_table = item.target_table or ""
-            result_mode = _task_result_mode(s, item)
-            if (result_mode == "findings" and (target_table or item.target_cells)
-                    and (s.source_scope or {}).get("mode") != "hybrid"):
-                errors.append(f"item[{i}]: findings tasks do not bind table cells")
-                continue
             if target_table and target_table not in s.coverage_map.tables:
                 errors.append(f"item[{i}]: unknown target_table {target_table!r}")
                 continue
-            if kind == "search" and result_mode == "table" and not s.coverage_map.tables:
-                errors.append(f"item[{i}]: table tasks require a declared schema")
-                continue
-            if kind == "search" and result_mode == "table":
-                if not target_table and len(s.coverage_map.tables) > 1:
-                    errors.append(f"item[{i}]: multi-table tasks require target_table")
-                    continue
-                target_table = target_table or next(iter(s.coverage_map.tables))
-            tcells = item.target_cells
+            tcells = [ref.cell_key() for ref in item.target_cells]
 
             repair_scope = _ctx.repair_target_allowlist
             if repair_scope is not None:
@@ -186,7 +218,7 @@ async def enqueue_tasks(items: list[EnqueueTask]) -> str:
                     if key is None or key not in repair_scope:
                         outside.append(cell)
                     else:
-                        normalized_cells.append(key.removeprefix(f"{target_table}/"))
+                        normalized_cells.append(key)
                 if outside:
                     rejected.append({
                         "index": i,
@@ -194,14 +226,23 @@ async def enqueue_tasks(items: list[EnqueueTask]) -> str:
                     })
                     continue
                 tcells = normalized_cells
-            # Drop blacklisted / unknown skill names early.
-            skills: list[str] = []
-            for sn in item.skills:
-                if sn in SKILL_BLACKLIST:
+            if tcells:
+                resolved = [s.coverage_map.resolve_cell_reference(c, table_id=target_table)
+                            for c in tcells]
+                invalid = [cell_ref(raw) for raw, key in zip(tcells, resolved) if key is None]
+                if invalid:
+                    rejected.append({"index": i, "reason": "unknown or out-of-table target cells",
+                                     "target_cells": invalid})
                     continue
-                if _ctx.skill_registry is not None and _ctx.skill_registry.get(sn) is None:
-                    continue
-                skills.append(sn)
+                tcells = list(dict.fromkeys(resolved))
+                if kind == "search" and repair_scope is None:
+                    table = s.coverage_map.tables[target_table]
+                    inferred = [cell_ref(key) for key in tcells
+                                if not table.requires_search(s.coverage_map.parse_cell_key(key)[2])]
+                    if inferred:
+                        rejected.append({"index": i, "reason": "Fill inferred columns with edit_entities; dispatch source-required cells separately",
+                                         "target_cells": inferred})
+                        continue
             task_max_searches = (
                 max(1, min(item.max_searches, _settings.max_searches_per_sub_agent_ceiling))
                 if item.max_searches is not None else None
@@ -220,12 +261,12 @@ async def enqueue_tasks(items: list[EnqueueTask]) -> str:
                     rejected.append({
                         "index": i,
                         "reason": (
-                            f"redundant — {reason}. Pick rows still listed "
-                            "as missing in the SOCM block"
+                            f"redundant — {reason}. Choose an unassigned gap in the latest SOCM update. "
+                            "For more rows, use inspect_table(status='actionable', unassigned_only=True)."
                         ),
                     })
                     continue
-            new_id = item.id or f"t_{uuid.uuid4().hex[:8]}"
+            new_id = item.task_id or f"t_{uuid.uuid4().hex[:8]}"
             if any(task.id == new_id for task in s.frontier.questions):
                 rejected.append({"index": i, "reason": f"task id already exists: {new_id}"})
                 continue
@@ -236,21 +277,50 @@ async def enqueue_tasks(items: list[EnqueueTask]) -> str:
                 kind=kind,  # type: ignore[arg-type]
                 priority=item.priority,
                 max_searches=task_max_searches,
-                parent_id=item.parent_id or "",
-                depth=item.depth,
                 blocked_by=item.blocked_by,
                 target_cells=tcells,
                 table_id=target_table,
                 agent_type=agent_type,
                 requested_agent_id=item.agent_id or "",
-                result_mode=result_mode,
                 source_scope_key=hashlib.sha256(
                     json.dumps(s.source_scope, sort_keys=True).encode()
                 ).hexdigest() if s.source_scope else "",
-                skills=skills,
                 created_by="orchestrator",
                 planner="orchestrator" if repair_scope is not None else "",
             )
+            overlaps = []
+            if kind == "search" and tcells:
+                targets = set(tcells)
+                for other in s.frontier.questions:
+                    if other.status not in {"pending", "running", "blocked"}:
+                        continue
+                    if s.frontier._dispatch_key(other) != s.frontier._dispatch_key(ft):
+                        continue
+                    other_keys = {c if c in s.coverage_map.cells else
+                                  s.coverage_map.resolve_cell_reference(c, table_id=other.table_id)
+                                  for c in other.target_cells}
+                    shared = targets & other_keys
+                    if shared:
+                        overlaps.append({"task_id": other.id, "cells": [cell_ref(key) for key in sorted(shared)]})
+                    if targets <= other_keys:
+                        other.priority = max(other.priority, ft.priority)
+                        deduped.append({"index": i, "existing_id": other.id})
+                        break
+                else:
+                    if overlaps:
+                        rejected.append({"index": i, "reason": "overlapping active targets",
+                                         "overlaps": overlaps})
+                        continue
+                if deduped and deduped[-1]["index"] == i:
+                    continue
+            agent_creation_limit = _agent_creation_limit_for_frontier_kind(_settings, kind)
+            if (agent_creation_limit > 0 and not item.agent_id
+                    and agent_creation_slots_used.get(kind, 0) >= agent_creation_limit):
+                rejected.append({"index": i, "reason": (
+                    f"{kind}_agent creation limit reached ({agent_creation_limit} for this "
+                    "SearchSession). Reuse an idle Search Agent with agent_id or synthesize."
+                )})
+                continue
             accepted = s.frontier.add(ft)
             if accepted is None:
                 rejected.append({"index": i, "reason": "depth exceeded"})
@@ -265,8 +335,7 @@ async def enqueue_tasks(items: list[EnqueueTask]) -> str:
         return s
 
     _ctx.workspace.atomic_update_state(_apply)
-    # 主动 tick：让刚入队的任务立刻起跑，而不是等下一次 check_agents
-    # （否则任务会一直躺在队列里直到 orchestrator 想起来调 check_agents）。
+    # 入队即启动可运行的任务。
     response: dict[str, Any] = {
         "queued": queued, "deduped": deduped,
         "rejected": rejected, "errors": errors,
@@ -300,32 +369,21 @@ async def enqueue_tasks(items: list[EnqueueTask]) -> str:
 enqueue_tasks.handle_validation_error = task_argument_error
 
 
-@tool
+@tool(parse_docstring=True)
 async def stop_task(task_ids_json: str, reason: str = "") -> str:
-    """Stop Frontier tasks whose work is no longer needed — e.g. a peer's
-    report already covered the same rows, or a task turned out to be
-    mis-scoped.
+    """Cancel Frontier tasks when a peer has covered the same rows or a task is outside scope.
+    Returns per-task results, remaining and running_ids.
 
-    Keyed by TASK id (the ids you got back from ``enqueue_tasks`` /
-    see in scheduler_actions), not agent id — the task is what you
-    created and track. Effects per task:
-    - PENDING / BLOCKED: removed from the queue (marked CANCELLED).
-    - RUNNING: its assigned sub-agent is cancelled too, freeing the pool
-      slot immediately; the Scheduler backfills on the next tick.
-      Evidence the agent already flushed stays in the state, and a
-      "cancelled" report (with its delta so far) is registered.
-    - COMPLETED / CANCELLED: rejected (already terminal).
-
-    Do NOT stop a kind=write task unless you intend to respawn the writer.
+    Pending and blocked tasks become cancelled. Cancelling a running task stops its worker,
+    preserves committed evidence, and registers a cancellation report with its progress. The
+    scheduler can refill the slot on its next tick. Terminal tasks return a per-task error. Stop a
+    writer only when you intend to respawn it.
 
     Args:
-        task_ids_json: JSON array of task ids, e.g. '["t_a1b2c3d4"]'.
-        reason: short note recorded on the task resolution and the
-            cancelled report, e.g. "rows already filled by t_99's agent".
-
-    Returns:
-        JSON ``{"results": [{task_id, status, agent_cancelled?, ...}],
-        "remaining": N, "running_ids": [...]}``.
+        task_ids_json: String encoding a non-empty JSON array of task IDs from enqueue_tasks
+            or scheduler_actions, e.g. '["t_a1b2c3d4"]'.
+        reason: Short note for the task resolution and cancellation report, e.g.
+            "rows already filled by t_99's agent".
     """
     import time as _time
     if _ctx.workspace is None:
@@ -379,9 +437,7 @@ async def stop_task(task_ids_json: str, reason: str = "") -> str:
                 await asyncio.wait({t}, timeout=10.0)
             except Exception:  # noqa: BLE001 — cancellation is best-effort
                 pass
-            # 取消后的抽取收尾可能仍在运行，保留容量占用直到真正结束。
-            if t.done():
-                _ctx.task_pool.pop(aid, None)
+            # 已结束任务保留至报告交付；调度器只统计仍在运行的任务。
             info = _ctx.agent_graphs.get(aid) or {}
             # State-diff report so whatever the agent DID land before the
             # cancel (evidence, cells) is visible in its delta.
@@ -395,7 +451,7 @@ async def stop_task(task_ids_json: str, reason: str = "") -> str:
                 result=note,
                 scope_entities=info.get("scope_entities"),
             )
-            _ctx.completed[aid] = report
+            _ctx.publish_report(report)
             entry["agent_cancelled"] = aid
             ev = getattr(report, "evidence_nodes_added", None)
             if ev is not None:
@@ -411,8 +467,9 @@ async def stop_task(task_ids_json: str, reason: str = "") -> str:
             })
         results.append(entry)
 
+    running_ids = [aid for aid, task in _ctx.task_pool.items() if not task.done()]
     return json.dumps({
         "results": results,
-        "remaining": sum(1 for t in _ctx.task_pool.values() if not t.done()),
-        "running_ids": list(_ctx.task_pool.keys()),
+        "remaining": len(running_ids),
+        "running_ids": running_ids,
     }, ensure_ascii=False)

@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_athlete_results": "direct",
+    "get_competition_events": "direct",
+    "get_competition_medals": "direct",
+    "get_athlete": "direct",
+    "get_competition": "direct",
+    "get_athlete_medals": "direct",
+    "get_live_results": "direct",
+    "list_competitions": "direct",
+    "search_athletes": "direct"
+  },
+  "aliases": {
+    "get_athlete": "get_athlete",
+    "get_athlete_medals": "get_athlete_medals",
+    "get_athlete_results": "get_athlete_results",
+    "search_athletes": "search_athletes",
+    "get_competition": "get_competition",
+    "get_competition_events": "get_competition_events",
+    "get_competition_medals": "get_competition_medals",
+    "list_competitions": "list_competitions",
+    "get_live_results": "get_live_results",
+    "run": "get_live_results"
+  }
+}

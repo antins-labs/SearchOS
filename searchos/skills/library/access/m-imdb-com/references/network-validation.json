@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c588145d44a6550e53e067ef195b848c2afd48217c07e8ada50d9c3429c403ad",
+  "capabilities": {
+    "get_movie": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_movie\", \"url\": \"https://www.imdb.com/title/tt0133093/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.790716+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.imdb.com/title/tt0133093/",
+          "status": 202
+        },
+        {
+          "url": "https://fb423e1ef94f.6277d64d.us-east-1.token.awswaf.com/fb423e1ef94f/c3382d439950/916d943f6a58/challenge.js",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

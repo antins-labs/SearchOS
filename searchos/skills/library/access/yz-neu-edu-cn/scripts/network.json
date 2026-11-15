@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_programs": "inherit",
+    "get_score_requirements": "inherit",
+    "get_program_catalog": "inherit"
+  },
+  "aliases": {
+    "get_score_requirements": "get_score_requirements",
+    "get_program_catalog": "get_program_catalog",
+    "search_programs": "search_programs",
+    "run": "search_programs"
+  }
+}

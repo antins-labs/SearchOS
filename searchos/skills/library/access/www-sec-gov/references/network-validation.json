@@ -1,0 +1,174 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3eb7039e1a5b08243b2fbfc38c1d388db2c017d824f7c61649173a8e5c6202d8",
+  "capabilities": {
+    "get_company_by_ticker": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_company_by_ticker\", \"ticker\": \"AAPL\", \"taxonomy\": \"us-gaap\", \"form_type\": \"10-K\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.247243+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.sec.gov/files/company_tickers.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_cik_lookup": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_cik_lookup\", \"query\": \"upstream\", \"taxonomy\": \"us-gaap\", \"form_type\": \"10-K\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.248044+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.sec.gov/files/company_tickers.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_company_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_company_info\", \"cik\": \"2022626\", \"taxonomy\": \"us-gaap\", \"form_type\": \"10-K\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.248268+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://data.sec.gov/submissions/CIK0002022626.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_company_facts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_company_facts\", \"cik\": \"2022626\", \"taxonomy\": \"us-gaap\", \"form_type\": \"10-K\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.248348+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0002022626.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_financial_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_financial_data\", \"cik\": \"2022626\", \"taxonomy\": \"us-gaap\", \"form_type\": \"10-K\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.248486+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0002022626.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_concept_history": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_concept_history\", \"cik\": \"320193\", \"concept\": \"RevenueFromContractWithCustomerExcludingAssessedTax\", \"taxonomy\": \"us-gaap\", \"form_type\": \"10-K\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.248628+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json",
+          "status": 200
+        }
+      ]
+    },
+    "get_filing_document": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_filing_document\", \"url\": \"https://www.sec.gov/Archives/edgar/data/2022626/000119312524236714/d843142d424b4.htm\", \"taxonomy\": \"us-gaap\", \"form_type\": \"10-K\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.248795+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/2022626/000119312524236714/d843142d424b4.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_filings_by_type": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_filings_by_type\", \"cik\": \"2022626\", \"form_type\": \"10-K\", \"limit\": 3, \"taxonomy\": \"us-gaap\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.248976+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://data.sec.gov/submissions/CIK0002022626.json",
+          "status": 200
+        }
+      ]
+    },
+    "parse_filing_url": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"parse_filing_url\", \"url\": \"https://www.sec.gov/Archives/edgar/data/2022626/000119312524236714/d843142d424b4.htm\", \"taxonomy\": \"us-gaap\", \"form_type\": \"10-K\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.249120+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-sec-gov/scripts/source.py",
+        "line": 624,
+        "end_line": 641,
+        "implementation": "parse_filing_url",
+        "source_sha256": "4aefbe7642df4f94eca7f8b8f533a6cfb596cb2a7ba5955b74cfa40ca76fba27",
+        "implementation_sha256": "035fca5d3394ea7d28e64a14e2d33effe137940b8e568140f49c9731b924d388"
+      }
+    }
+  }
+}

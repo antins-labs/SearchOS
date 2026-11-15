@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "ee1698437202ec5e690b745cbbcaca2c350b7446bee4fbce9be43ba6b8e01644",
+  "capabilities": {
+    "get_article": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"article_id\": \"667602045\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.308906+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.zhihu.com/",
+          "status": 302
+        },
+        {
+          "url": "https://www.zhihu.com/signin",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/heifetz/3964.216a26f4.c32174efee7c50f0616c.css",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/heifetz/main-signin-routes.216a26f4.af8a83f168051e46e1a4.css",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/heifetz/main.216a26f4.0c48e7971bbf94806b97.css",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/heifetz/assets/wechat-share-logo.39ea9ecd.png",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/heifetz/lib-75fc9c18.app.3db651c252e14ef6658e.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/heifetz/vendor.92ed966b299812d66d9f.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/heifetz/runtime.app.6d730a625d78a3bdf290.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/event/react@17.0.2/umd/react.production.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/event/react-dom@17.0.2/umd/react-dom-server.browser.production.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/heifetz/lib-2ec050f6.app.bab17b62fce0eb964af4.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/heifetz/lib-fae4f1f9.app.2a53c780e75bf169b2e0.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/heifetz/lib-f3572862.app.6a0660d646c34c296ccc.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/heifetz/assets/sign_bg.47eec442.png",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/event/wza/4633_1/aria.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/heifetz/chunks/shared-1dffcf43329e08de9bcf385e1895bae6667163e6.8761cf1ec3d8a31ee5e1.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/heifetz/lib-0e5ce61e.app.e94cd4d937158eb6ccc8.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/heifetz/lib-330004dc.app.dd0acc0107ebdb1bc7b8.js",
+          "status": 200
+        },
+        {
+          "url": "https://static.zhihu.com/event/react-dom@17.0.2/umd/react-dom.production.min.js",
+          "status": 200
+        }
+      ]
+    },
+    "close": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"close\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.310937+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/zhuanlan-zhihu-com/scripts/source.py",
+        "line": 301,
+        "end_line": 305,
+        "implementation": "execute branch",
+        "source_sha256": "8583385aba0afe4c0c548d5d3e60806616bce4811c26dc7f4353d97c1e2cdd89",
+        "implementation_sha256": "f7ca400c43fa29404472464d9646db2c7e071f6002f6a55410b29da1a5f87fce"
+      }
+    }
+  }
+}

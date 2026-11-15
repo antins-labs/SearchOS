@@ -1,10 +1,12 @@
 "use client";
 
+import { rowLabel } from "@/lib/socmRefs";
+
 import { useRef } from "react";
 import { createPortal } from "react-dom";
 import { ExternalLink, X, Quote } from "lucide-react";
 import type { CoverageCell, EvidenceNode, CellEvidenceBinding } from "@/lib/types";
-import { localCitationLabels } from "@/lib/localCitations";
+import { evidenceSourceUrls, localCitationLabels } from "@/lib/localCitations";
 import useDialogFocus from "@/hooks/useDialogFocus";
 
 export interface CellRef {
@@ -129,7 +131,7 @@ export default function CellEvidencePopover({
         <div className="flex items-start justify-between gap-3 border-b border-line px-4 py-3">
           <div className="min-w-0">
             <div id="cell-evidence-title" className="text-[11px] uppercase tracking-wider text-ink-dim">
-              {cellRef.entity.replace(/\|/g, " / ")} · {cellRef.attribute}
+              {rowLabel(cellRef.entity)} · {cellRef.attribute}
             </div>
             <div className="mt-0.5 truncate text-[14px] font-medium text-ink" title={values.join("; ")}>
               {values.join("; ")}
@@ -145,7 +147,7 @@ export default function CellEvidencePopover({
         <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
           {matched.length === 0 ? (
             <div className="text-[13px] text-ink-faint">
-              No evidence nodes recorded for this cell.
+              {cell.inferred ? "此值由已知行信息推断。" : "No evidence nodes recorded for this cell."}
               {(cellUrls.length > 0 || cellPlainSources.length > 0) && (
                 <div className="mt-2 space-y-1">
                   {cellUrls.map((u) => (
@@ -162,7 +164,7 @@ export default function CellEvidencePopover({
             </div>
           ) : (
             matched.map((n) => {
-              const origins = /^(https?:|local:)\/\//.test(n.source) ? [n.source] : (n.source_urls ?? []);
+              const origins = evidenceSourceUrls(n);
               const urls = extractUrls(origins);
               const localRefs = origins.filter((url) => url.startsWith("local://"));
               const excerpt = n.source_excerpt ? cleanExcerpt(n.source_excerpt) : "";

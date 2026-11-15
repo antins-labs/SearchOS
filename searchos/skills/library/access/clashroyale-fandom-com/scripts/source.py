@@ -4,6 +4,9 @@ Clash Royale Fandom Wiki Access Skill
 Retrieves structured card statistics from clashroyale.fandom.com using the MediaWiki API.
 Extracts infobox data, attribute tables, and level statistics for Clash Royale cards.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -13,6 +16,7 @@ import re
 import html
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the Clash Royale Fandom skill.
@@ -204,7 +208,7 @@ async def get_card(card_name: str) -> dict[str, Any]:
     # Normalize card name (replace spaces with underscores)
     card_name = card_name.replace(' ', '_')
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         page_data = await fetch_page(card_name, session)
         
         if page_data is None:
@@ -283,7 +287,7 @@ async def search_cards(query: str) -> dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(api_url, params=params, headers=headers,
                                    timeout=aiohttp.ClientTimeout(total=30)) as resp:
                 if resp.status != 200:
@@ -350,7 +354,7 @@ async def list_cards(category: str = 'Troop_Cards', limit: int = 100) -> dict[st
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(api_url, params=params, headers=headers,
                                    timeout=aiohttp.ClientTimeout(total=30)) as resp:
                 if resp.status != 200:

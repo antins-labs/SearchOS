@@ -7,12 +7,16 @@ by parsing Open Graph and Twitter Card meta tags embedded in the page HTML.
 This approach works even with login walls because Instagram renders these
 meta tags server-side for SEO and social sharing purposes.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
 from typing import Any, Dict, Optional
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx=None) -> Dict[str, Any]:
     """
     Execute Instagram media page data extraction.
@@ -153,14 +157,14 @@ async def fetch_page_metadata(url: str) -> Optional[Dict[str, str]]:
     from playwright.async_api import async_playwright
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 locale='en-US',
                 viewport={'width': 1920, 'height': 1080}
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Use networkidle for more reliable page load detection
             # This helps with pages that might have slow resources

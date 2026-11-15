@@ -3,6 +3,9 @@ EDMO (European Directory of Marine Organisations) Access Skill
 
 Fetches organization data from the SeaDataNet EDMO database.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -351,7 +354,7 @@ async def get_organization_by_id(edmo_id: str, session: Optional[aiohttp.ClientS
     url = f"{BASE_URL}/report/{edmo_id}"
     
     async def _fetch():
-        async with aiohttp.ClientSession() as s:
+        async with _skill_network.aiohttp_session() as s:
             return await _fetch_html(url, s)
     
     html = await (_fetch() if session is None else _fetch_html(url, session))
@@ -386,7 +389,7 @@ async def search_organizations(
     url = f"{BASE_URL}/v_edmo/browse_export.asp?step={step}"
     
     async def _fetch():
-        async with aiohttp.ClientSession() as s:
+        async with _skill_network.aiohttp_session() as s:
             return await _fetch_csv(url, s)
     
     csv_text = await (_fetch() if session is None else _fetch_csv(url, session))
@@ -457,6 +460,7 @@ async def get_country_list() -> Dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Execute EDMO query based on function parameter.

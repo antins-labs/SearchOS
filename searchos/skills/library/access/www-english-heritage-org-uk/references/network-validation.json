@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "8c040714fda2de91a6065138d6023b2340ab9df88da60e82ddf26db49e41a38f",
+  "capabilities": {
+    "get_property_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_property_info\", \"url\": \"https://www.english-heritage.org.uk/visit/places/stonehenge/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.033416+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.english-heritage.org.uk/visit/places/stonehenge/prices-and-opening-times/",
+          "status": 200
+        },
+        {
+          "url": "https://www.english-heritage.org.uk/api/propertypricesopeningtimes/191605",
+          "status": 200
+        },
+        {
+          "url": "https://www.english-heritage.org.uk/visit/places/stonehenge/",
+          "status": 200
+        }
+      ]
+    },
+    "get_properties_list": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_properties_list\", \"properties\": [{\"slug\": \"stonehenge\"}, {\"slug\": \"dover-castle\"}, {\"url\": \"https://www.english-heritage.org.uk/visit/places/jewel-tower/\"}]}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.036482+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.english-heritage.org.uk/visit/places/dover-castle/prices-and-opening-times/",
+          "status": 200
+        },
+        {
+          "url": "https://www.english-heritage.org.uk/api/propertypricesopeningtimes/185849",
+          "status": 200
+        },
+        {
+          "url": "https://www.english-heritage.org.uk/visit/places/jewel-tower/prices-and-opening-times/",
+          "status": 200
+        },
+        {
+          "url": "https://www.english-heritage.org.uk/visit/places/stonehenge/prices-and-opening-times/",
+          "status": 200
+        },
+        {
+          "url": "https://www.english-heritage.org.uk/api/propertypricesopeningtimes/181968",
+          "status": 200
+        },
+        {
+          "url": "https://www.english-heritage.org.uk/visit/places/dover-castle/",
+          "status": 200
+        },
+        {
+          "url": "https://www.english-heritage.org.uk/visit/places/jewel-tower/",
+          "status": 200
+        },
+        {
+          "url": "https://www.english-heritage.org.uk/api/propertypricesopeningtimes/191605",
+          "status": 200
+        },
+        {
+          "url": "https://www.english-heritage.org.uk/visit/places/stonehenge/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -8,6 +8,9 @@ Extracts structured tournament data from todor66.com volleyball pages including:
 - Group stage standings and match results
 - Team rosters
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -20,7 +23,7 @@ async def fetch_page(url: str, session: Optional[aiohttp.ClientSession] = None) 
     """Fetch HTML content from a URL"""
     close_session = False
     if session is None:
-        session = aiohttp.ClientSession()
+        session = _skill_network.aiohttp_session()
         close_session = True
     
     try:
@@ -443,6 +446,7 @@ def discover_tournament_urls(base_url: str, html: str) -> list:
     return urls[:20]  # Limit to 20
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Todor66 volley data extractor.

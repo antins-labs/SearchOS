@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_aonb": "direct",
+    "list_aonbs": "direct",
+    "search": "direct",
+    "get_metadata": "direct"
+  },
+  "aliases": {
+    "list_aonbs": "list_aonbs",
+    "get_aonb": "get_aonb",
+    "search": "search",
+    "get_metadata": "get_metadata",
+    "run": "get_metadata"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_infobox": "inherit",
+    "get_tables": "inherit",
+    "get_tour_dates": "inherit",
+    "search": "inherit",
+    "get_page": "inherit"
+  },
+  "aliases": {
+    "get_page": "get_page",
+    "search": "search",
+    "get_infobox": "get_infobox",
+    "get_tables": "get_tables",
+    "get_tour_dates": "get_tour_dates",
+    "run": "get_tour_dates"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_documents": "direct",
+    "get_agency": "direct",
+    "list_topics": "direct",
+    "list_agencies": "direct",
+    "get_public_inspection": "direct",
+    "get_document": "direct"
+  },
+  "aliases": {
+    "get_document": "get_document",
+    "search_documents": "search_documents",
+    "get_agency": "get_agency",
+    "list_agencies": "list_agencies",
+    "list_topics": "list_topics",
+    "get_public_inspection": "get_public_inspection",
+    "run": "get_public_inspection"
+  }
+}

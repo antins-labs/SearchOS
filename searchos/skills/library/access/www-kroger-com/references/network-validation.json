@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b5ce39ff22d1d597567c41e9b6aaa69ffdd98ee4386221221e0069dbd2c0f79e",
+  "capabilities": {
+    "get_product": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_product\", \"url\": \"https://www.kroger.com/p/simple-truth-organic-kombucha-ginger/0001111087699\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.814992+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search_products": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_products\", \"query\": \"organic kombucha\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.817145+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

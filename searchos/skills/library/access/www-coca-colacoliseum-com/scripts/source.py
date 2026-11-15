@@ -7,6 +7,9 @@ Supports:
 - Individual event detail pages
 - Event search by title/keyword
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -389,6 +392,7 @@ async def search_events(query: str, session: aiohttp.ClientSession) -> dict:
         return {'error': str(e), 'query': query}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Coca-Cola Coliseum scraper
@@ -403,7 +407,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     function = params.get('function', 'get_events')
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'get_events':
             url = params.get('url', 'https://www.coca-colacoliseum.com/events')
             return await get_events_list(url, session)

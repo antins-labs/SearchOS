@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3867f1adb90804ce426cf8a6e7d682f07aaa51b4ddfcbd4db21b6e6e98d08764",
+  "capabilities": {
+    "get_company": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_company\", \"slug\": \"thyssenkrupp\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.476395+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://data.caat.org.uk/data-hub/api/summary/org/search/thyssenkrupp",
+          "status": 200
+        },
+        {
+          "url": "https://caat.org.uk/data/companies/thyssenkrupp/",
+          "status": 200
+        }
+      ]
+    },
+    "get_company_by_name": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_company_by_name\", \"name\": \"BAE Systems\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.477422+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://data.caat.org.uk/data-hub/api/summary/org/search/bae-systems",
+          "status": 200
+        },
+        {
+          "url": "https://caat.org.uk/data/companies/bae-systems/",
+          "status": 200
+        }
+      ]
+    },
+    "search_companies": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_companies\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.477512+00:00",
+      "reason": "Company search not yet implemented",
+      "source_responses": []
+    }
+  }
+}

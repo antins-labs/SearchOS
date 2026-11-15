@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch_documents": "direct",
+    "list_documents": "direct",
+    "fetch_document": "direct"
+  },
+  "aliases": {
+    "fetch_document": "fetch_document",
+    "fetch_documents": "fetch_documents",
+    "list_documents": "list_documents",
+    "run": "list_documents"
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "05e99dbbf2ba0629725840c0c10cd3e87985419d365afa4fd4fa7e2681c0660f",
+  "capabilities": {
+    "get_wrapped": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_wrapped\", \"year\": \"2024\", \"limit\": 3, \"n\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.824528+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://newsroom.spotify.com/2024-12-04/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "get_all": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all\", \"year\": \"2024\", \"limit\": 3, \"n\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.825549+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://newsroom.spotify.com/2024-12-04/[redacted]/",
+          "status": 200
+        },
+        {
+          "url": "https://newsroom.spotify.com/2023-11-29/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"year\": \"2024\", \"query\": \"Taylor\", \"limit\": 3, \"n\": 10}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.825624+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://newsroom.spotify.com/2024-12-04/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "get_top": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_top\", \"year\": \"2024\", \"category\": \"songs\", \"region\": \"global\", \"n\": 5, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.825685+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://newsroom.spotify.com/2024-12-04/[redacted]/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

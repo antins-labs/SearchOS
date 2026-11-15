@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_riaa_diamond_albums": "direct"
+  },
+  "aliases": {
+    "get_riaa_diamond_albums": "get_riaa_diamond_albums",
+    "run": "get_riaa_diamond_albums"
+  }
+}

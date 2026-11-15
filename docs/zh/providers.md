@@ -146,7 +146,7 @@ SF_ROLES__SKILL_ROUTER=myprof
 | `SF_SEARCH_PROVIDER` | 服务 | Key 环境变量 | 说明 |
 |---|---|---|---|
 | `serper` | Serper.dev | `SERPER_API_KEY` | Google 结果，推荐；serper.dev 注册 |
-| `tavily` | Tavily | `TAVILY_API_KEY` | 需 `pip install 'searchos[tavily]'` |
+| `tavily` | Tavily | `TAVILY_API_KEY` | 基础安装已包含 |
 | `ragflow` | RagFlow | — | 蚂蚁内网接口，外部不可用 |
 
 不设 `SF_SEARCH_PROVIDER` 时按已有 key 自动推断（serper → tavily），都没有则回落 ragflow（向后兼容内部用法）。页面抓取后端另由 `SF_BROWSER_BACKEND` 控制（默认 `jina`，建议配 `SF_JINA_API_KEY`）。

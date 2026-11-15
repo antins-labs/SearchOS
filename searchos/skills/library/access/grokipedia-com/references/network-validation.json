@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3c8a47d52beeff72544b12cf703ded2e348a40364d37c516c5b44032c2ab890b",
+  "capabilities": {
+    "get_page": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_page\", \"slug\": \"i_am_gloria_world_tour\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.695188+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://grokipedia.com/page/i_am_gloria_world_tour",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

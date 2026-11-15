@@ -7,6 +7,9 @@ annual report, CEO letter, proxy statement, and financial highlights.
 
 URL Pattern: https://s2.q4cdn.com/890585342/files/doc_financials/{year}/ar/annual-report-{year}/
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -26,7 +29,7 @@ KNOWN_YEARS = ["2024", "2023", "2022", "2021", "2020"]
 async def fetch_url(url: str, timeout: int = 30) -> tuple[int, str | bytes | None, dict]:
     """Fetch a URL and return status, content, and headers."""
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as response:
                 headers = dict(response.headers)
                 
@@ -46,7 +49,7 @@ async def fetch_url(url: str, timeout: int = 30) -> tuple[int, str | bytes | Non
 async def head_url(url: str, timeout: int = 10) -> tuple[int, dict]:
     """Send HEAD request to check URL accessibility without downloading."""
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.head(url, timeout=aiohttp.ClientTimeout(total=timeout), allow_redirects=True) as response:
                 return response.status, dict(response.headers)
     except asyncio.TimeoutError:
@@ -493,6 +496,7 @@ async def get_download_sizes(params: dict[str, Any], ctx: Any = None) -> dict[st
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Yum! Brands Annual Reports skill.

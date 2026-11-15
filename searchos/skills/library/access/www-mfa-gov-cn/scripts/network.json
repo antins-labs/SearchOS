@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_visa_agreements": "direct",
+    "search_by_country": "direct",
+    "get_by_passport_type": "direct"
+  },
+  "aliases": {
+    "get_visa_agreements": "get_visa_agreements",
+    "search_by_country": "search_by_country",
+    "get_by_passport_type": "get_by_passport_type",
+    "run": "get_by_passport_type"
+  }
+}

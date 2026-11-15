@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "afbafae3fd8eb57124b52eb01fe33619a2e301da27a4806083bc252bba1b19d5",
+  "capabilities": {
+    "fetch_document": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_document\", \"url\": \"https://zwgk.mct.gov.cn/zfxxgkml/zykf/202412/t20241227_957450.html\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.450968+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://zwgk.mct.gov.cn/zfxxgkml/zykf/202412/t20241227_957450.html",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_documents": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_documents\", \"urls\": [\"https://zwgk.mct.gov.cn/zfxxgkml/zykf/202402/t20240206_951222.html\", \"https://zwgk.mct.gov.cn/zfxxgkml/zykf/202412/t20241227_957450.html\"], \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.452151+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://zwgk.mct.gov.cn/zfxxgkml/zykf/202402/t20240206_951222.html",
+          "status": 200
+        },
+        {
+          "url": "https://zwgk.mct.gov.cn/zfxxgkml/zykf/202412/t20241227_957450.html",
+          "status": 200
+        }
+      ]
+    },
+    "list_documents": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_documents\", \"category\": \"zykf\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.452454+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://zwgk.mct.gov.cn/zfxxgkml/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

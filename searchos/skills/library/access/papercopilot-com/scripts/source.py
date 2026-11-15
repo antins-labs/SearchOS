@@ -1,6 +1,9 @@
 """
 PaperCopilot Access Skill - Extract paper lists from papercopilot.com
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -110,7 +113,7 @@ async def _fetch_all_papers(
     """Fetch all papers by iterating through batches."""
     all_papers = []
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         for batch in range(max_batches):
             result = await _fetch_papers(session, conf, year, track, batch)
             
@@ -245,6 +248,7 @@ async def _list_available_conferences() -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute PaperCopilot skill.

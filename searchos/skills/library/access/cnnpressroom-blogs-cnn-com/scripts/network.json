@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_posts": "direct",
+    "list_posts": "direct",
+    "get_post": "direct",
+    "get_category": "direct",
+    "extract_announcement": "direct",
+    "list_categories": "direct"
+  },
+  "aliases": {
+    "get_post": "get_post",
+    "list_posts": "list_posts",
+    "search_posts": "search_posts",
+    "list_categories": "list_categories",
+    "get_category": "get_category",
+    "extract_announcement": "extract_announcement",
+    "run": "extract_announcement"
+  }
+}

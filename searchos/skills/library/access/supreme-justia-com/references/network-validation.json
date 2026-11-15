@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "f73e1855f1ccf7ea6435809ebda154f5f6ae57ef475a13d4420f43925348c401",
+  "capabilities": {
+    "get_year_cases": {
+      "status": "business_failure",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_year_cases\", \"year\": 2025}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.872940+00:00",
+      "reason": "Access denied (Cloudflare challenge)",
+      "source_responses": [
+        {
+          "url": "https://supreme.justia.com/cases/federal/us/year/2025.html",
+          "status": 403
+        }
+      ]
+    },
+    "get_case": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_case\", \"volume\": \"605\", \"docket\": \"24-394\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.873585+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://supreme.justia.com/cases/federal/us/605/24-394/",
+          "status": 200
+        }
+      ]
+    },
+    "get_volume_cases": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_volume_cases\", \"volume\": \"600\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.873661+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://supreme.justia.com/cases/federal/us/600/",
+          "status": 200
+        }
+      ]
+    },
+    "search_cases": {
+      "status": "business_failure",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_cases\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.873872+00:00",
+      "reason": "Search requires either a year parameter or query. Use get_year_cases for year-based browsing.",
+      "source_responses": []
+    }
+  }
+}

@@ -1,0 +1,311 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "3c0947d8db5af84fe10f15088928098248c0e3ef64b29ebfd1b787b1edad07fe",
+  "capabilities": {
+    "get_sports_changes": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sports_changes\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.040559+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.topendsports.com/events/summer/sports/changes.htm",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/fonts/montserrat-400-700.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/cdn-cgi/image/format=auto,width=35,height=36,quality=60,fit=scale-down/global/images/images_letter-icon.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/global/images/images_header-bg.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/wiki/randomstuff.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/wiki/_scripts/all-header.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/global/images/images_tes-right-arrow.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/global/images/images_arrow-up.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/global/images/images_tes-logo-white.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/fonts/Inter-VariableFont_opsz-wght.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/cdn-cgi/challenge-platform/scripts/jsd/main.js",
+          "status": 302
+        },
+        {
+          "url": "https://www.topendsports.com/cdn-cgi/zaraz/s.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/cdn-cgi/challenge-platform/h/b/scripts/jsd/d2d3316b729e/main.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtm.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/cdn-cgi/challenge-platform/h/b/jsd/oneshot/d2d3316b729e/0.628670174050007:1792735521:LkuVcGaSlTLU-CaoikZbuK7ZuqBaOmveRtVGxoomvKM/a4ef03392c22c67f",
+          "status": 200
+        }
+      ]
+    },
+    "get_sports_count": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sports_count\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.042624+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.topendsports.com/events/summer/sports/number.htm",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/fonts/montserrat-400-700.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/wiki/randomstuff.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/global/images/images_arrow-up.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/global/images/images_tes-right-arrow.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/global/images/images_header-bg.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/wiki/_scripts/all-header.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/cdn-cgi/image/format=auto,width=35,height=36,quality=60,fit=scale-down/global/images/images_letter-icon.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/global/images/images_tes-logo-white.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/fonts/Inter-VariableFont_opsz-wght.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtm.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://stats.g.doubleclick.net/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        },
+        {
+          "url": "https://www.topendsports.com/cdn-cgi/challenge-platform/scripts/jsd/main.js",
+          "status": 302
+        },
+        {
+          "url": "https://cse.google.com/cse.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_discontinued": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_discontinued\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.042800+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.topendsports.com/events/discontinued/index.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_sport_detail": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sport_detail\", \"sport_slug\": \"athletics\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.042945+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.topendsports.com/events/summer/sports/athletics.htm",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/fonts/montserrat-400-700.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtm.js",
+          "status": 200
+        },
+        {
+          "url": "https://cse.google.com/cse.js",
+          "status": 302
+        },
+        {
+          "url": "https://www.topendsports.com/global/images/images_header-bg.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/cdn-cgi/image/width=700,height=421,quality=60,fit=scale-down/global/images/sport_athletics_images_olympics-sydney-2000.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/global/images/images_tes-right-arrow.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/global/images/images_arrow-up.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/fonts/Inter-VariableFont_opsz-wght.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/wiki/_scripts/all-header.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/wiki/randomstuff.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/global/images/images_tes-logo-white.webp",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/cdn-cgi/image/width=234,height=350,quality=60,fit=scale-down/global/images/sport_athletics_images_athletics-track.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/cdn-cgi/challenge-platform/scripts/jsd/main.js",
+          "status": 302
+        },
+        {
+          "url": "https://cse.google.com.hk/url",
+          "status": 302
+        },
+        {
+          "url": "https://cse.google.com.hk/cse.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.topendsports.com/cdn-cgi/zaraz/s.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_all_sports": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_sports\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:35.043065+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.topendsports.com/events/summer/sports/index.htm",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

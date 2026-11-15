@@ -19,7 +19,6 @@ from searchos.harness.report.tables import (
 from searchos.socm import SearchState
 from searchos.socm.coverage import answer_evidence, evidence_rank
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -58,6 +57,8 @@ def _render_cell_raw(
     binding: tuple[Any, str, str, str] | None = None,
 ) -> str:
     """Render a single cell as plain text (no hedge, no citation)."""
+    if cell and cell.inferred:
+        return cell.value.replace("|", "\\|").replace("\n", " ")
     findings = cell_findings(cell, evidence_by_id, binding)
     if not findings:
         return ""
@@ -71,7 +72,7 @@ def _render_row(
 ) -> list[str]:
     """Render all data columns for one entity row."""
     tid = schema_table_id(schema)
-    pk_vals = entity_pk_values(schema, entity)
+    pk_vals = entity_pk_values(cmap, schema, entity)
     cells: list[str] = []
     for attr in data_cols:
         if attr in pk_vals and pk_vals[attr]:
@@ -107,9 +108,8 @@ def _build_single_table(
     for entity in sorted(schema.entities):
         data_cells = _render_row(cmap, schema, entity, evidence_by_id, list(data_cols))
         if pk:
-            pk_parts = entity.split("|") if "|" in entity else [entity]
-            pk_parts = pk_parts + [""] * (len(pk) - len(pk_parts))
-            key_cells = pk_parts[:len(pk)]
+            pk_values = entity_pk_values(cmap, schema, entity)
+            key_cells = [pk_values[attr].replace("|", "\\|").replace("\n", " ") for attr in pk]
         else:
             key_cells = [entity]
         rows.append("| " + " | ".join(key_cells + data_cells) + " |")
@@ -161,13 +161,15 @@ def _build_joined_table(
         return True
 
     def _row_raw_val(cm: Any, sch: Any, ent: str, attr: str, evi: dict) -> str:
-        pk_vals = entity_pk_values(sch, ent)
+        pk_vals = entity_pk_values(cm, sch, ent)
         if attr in pk_vals and pk_vals[attr]:
             return pk_vals[attr]
         tid = schema_table_id(sch)
         cell = cm.cells.get(cm.cell_key(tid, ent, attr))
         if cell is None:
             return ""
+        if cell.inferred:
+            return cell.value
         findings = cell_findings(cell, evi, (cm, tid, ent, attr))
         if not findings:
             return ""
@@ -262,9 +264,9 @@ def _build_joined_table(
             if not entity:
                 rendered_cells.append("")
             else:
-                pk_vals = entity_pk_values(schema, entity)
+                pk_vals = entity_pk_values(cmap, schema, entity)
                 if attr in pk_vals and pk_vals[attr]:
-                    rendered_cells.append(pk_vals[attr])
+                    rendered_cells.append(pk_vals[attr].replace("|", "\\|").replace("\n", " "))
                 else:
                     cell = cmap.cells.get(cmap.cell_key(tid, entity, attr))
                     rendered_cells.append(

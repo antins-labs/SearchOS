@@ -11,7 +11,7 @@ from uuid import uuid4
 
 from pydantic import Field, model_validator
 
-from searchos.util.base_model import CamelModel
+from searchos.utils.base_model import CamelModel
 
 
 class FailureKind(StrEnum):

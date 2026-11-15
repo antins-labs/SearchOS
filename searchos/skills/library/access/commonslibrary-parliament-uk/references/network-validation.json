@@ -1,0 +1,255 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "8203eb6f263df75334fa798cd56435e8ba85a84a7df7fbd1175cca9fe5200632",
+  "capabilities": {
+    "get_briefing": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_briefing\", \"briefing_id\": \"SN04678\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.574204+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://commonslibrary.parliament.uk/research-briefings/sn04678/",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/plugins/svg-support/vendor/DOMPurify/DOMPurify.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/js/libraries/ls.print.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/house-of-commons-library/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/styles/styles.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/js/app.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/js/printLinkAddresses.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/js/libraries/lazysizes.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/plugins/svg-support/css/svgs-attachment.css",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/plugins/duracelltomi-google-tag-manager/build/gtm4wp-form-move-tracker.js",
+          "status": 200
+        },
+        {
+          "url": "https://cookiemanager.parliament.uk/cookie-manager-v2.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtm.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/svg/bg_tag.svg",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/svg/icon-user.svg",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/svg/icon-breadcrumb.svg",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/svg/icon-chevron.svg",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/fonts/national/national-lfs-semibold.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://cookiemanager.parliament.uk/cookie-manager-v2.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtag/js",
+          "status": 200
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect",
+          "status": 204
+        }
+      ]
+    },
+    "list_briefings": {
+      "status": "invalid_output",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_briefings\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:18:58.631397+00:00",
+      "reason": "ValueError: Out of range float values are not JSON compliant\n",
+      "source_responses": [
+        {
+          "url": "https://commonslibrary.parliament.uk/research-briefings/",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/plugins/svg-support/css/svgs-attachment.css",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/styles/styles.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/plugins/svg-support/vendor/DOMPurify/DOMPurify.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/house-of-commons-library/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/js/libraries/lazysizes.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/js/libraries/ls.print.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/js/app.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/plugins/duracelltomi-google-tag-manager/build/gtm4wp-form-move-tracker.js",
+          "status": 200
+        },
+        {
+          "url": "https://cookiemanager.parliament.uk/cookie-manager-v2.css",
+          "status": 200
+        },
+        {
+          "url": "https://cookiemanager.parliament.uk/cookie-manager-v2.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.googletagmanager.com/gtm.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/svg/icon-breadcrumb.svg",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/svg/icon-chevron.svg",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"brexit consumer protection\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:23:25.874502+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://commonslibrary.parliament.uk/",
+          "status": 301
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/search/",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/house-of-commons-library/style.css",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/plugins/svg-support/css/svgs-attachment.css",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/styles/styles.min.css",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/js/libraries/ls.print.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/js/libraries/lazysizes.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/js/app.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/plugins/svg-support/vendor/DOMPurify/DOMPurify.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://cookiemanager.parliament.uk/cookie-manager-v2.css",
+          "status": 200
+        },
+        {
+          "url": "https://cookiemanager.parliament.uk/cookie-manager-v2.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/js/libraries/moment.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/js/libraries/pikaday.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/plugins/duracelltomi-google-tag-manager/build/gtm4wp-form-move-tracker.js",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/fonts/national/national-lfs-semibold.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/svg/icon-breadcrumb.svg",
+          "status": 200
+        },
+        {
+          "url": "https://commonslibrary.parliament.uk/content/themes/parliament-design-system/dist/assets/fonts/national/national-lfs-book.woff2",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

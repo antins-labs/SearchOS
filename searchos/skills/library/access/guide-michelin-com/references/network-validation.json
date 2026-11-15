@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7285472f92110aef26a7ec3f0b86d88e49368d716310a68ad35f6f8dadc362c1",
+  "capabilities": {
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"country\": \"france\", \"cuisine\": \"japanese\", \"distinction\": \"1-star\", \"page\": 0, \"limit\": 3, \"radius\": 5000}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.701446+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://8nvhrd7onv-dsn.algolia.net/1/indexes/*/queries",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_slug": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_slug\", \"slug\": \"epicure\", \"page\": 0, \"limit\": 3, \"radius\": 5000}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.701966+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://8nvhrd7onv-dsn.algolia.net/1/indexes/*/queries",
+          "status": 200
+        }
+      ]
+    },
+    "search_by_location": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_location\", \"lat\": 48.8584, \"lng\": 2.2945, \"radius\": 2000, \"page\": 0, \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.702173+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://8nvhrd7onv-dsn.algolia.net/1/indexes/*/queries",
+          "status": 200
+        }
+      ]
+    },
+    "get_filters": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_filters\", \"page\": 0, \"limit\": 3, \"radius\": 5000}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.702334+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://8nvhrd7onv-dsn.algolia.net/1/indexes/*/queries",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

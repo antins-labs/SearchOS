@@ -6,10 +6,11 @@ import re
 from enum import Enum
 from typing import Any, ClassVar, Literal
 
-from pydantic import Field, computed_field
+from pydantic import Field, computed_field, model_validator
 
 from searchos.socm.evidence.graph import EvidenceComparison, EvidenceNode, EvidenceStatus
-from searchos.util.base_model import CamelModel
+from searchos.socm.refs import CellRef, cell_key, cell_parts, row_key, row_values
+from searchos.utils.base_model import CamelModel
 
 
 class CellStatus(str, Enum):
@@ -17,6 +18,22 @@ class CellStatus(str, Enum):
     FILLED = "filled"
     UNCERTAIN = "uncertain"
     HARD_CELL = "hard_cell"  # confirmed unreachable
+
+
+def cell_is_complete(cell: Any) -> bool:
+    """完成统计要求值和证据比较均已确定。"""
+    return bool(cell is not None and cell.status == "filled"
+                and not cell.has_conflict and cell.conflict_status == "clear")
+
+
+def cell_is_actionable(cell: Any, *, explicit_target: bool = False) -> bool:
+    """待比较的证据先等待比较完成；不可获取字段单独保留。"""
+    if cell is None:
+        return True
+    if cell.conflict_status == "pending" or (not explicit_target and not getattr(cell, "requires_search", True)):
+        return False
+    return bool(cell.has_conflict or cell.conflict_status in {"uncertain", "confirmed"}
+                or cell.status in {"missing", "uncertain"})
 
 
 class ColumnCheck(CamelModel):
@@ -60,6 +77,7 @@ class ColumnDesc(CamelModel):
     type: str = "str"     # str | int | float | date | list[str] | ...
     desc: str = ""        # format constraint + semantic clarification
     check: ColumnCheck | None = None
+    requires_search: bool = Field(default=True, strict=True)
 
 
 class CoverageCell(CamelModel):
@@ -77,6 +95,7 @@ class CoverageCell(CamelModel):
     has_conflict: bool = False
     display_hint: str = ""
     full_value: str | None = None
+    inferred: bool = False
     primary_evidence_id: str = ""
     conflict_evidence_ids: list[str] = Field(default_factory=list)
     conflict_history_evidence_ids: list[str] = Field(default_factory=list)
@@ -116,6 +135,12 @@ class TableSchema(CamelModel):
     attribute_aliases: dict[str, str] = Field(default_factory=dict)
     removed_entities: dict[str, str] = Field(default_factory=dict)  # entity → reason (soft delete)
 
+    @model_validator(mode="after")
+    def validate_row_keys(self):
+        for entity in [*self.entities, *self.removed_entities, *self.entity_aliases, *self.entity_aliases.values()]:
+            self.parse_entity_key(entity)
+        return self
+
     @property
     def is_column_only(self) -> bool:
         return self.schema_mode == SchemaMode.COLUMN_ONLY or (
@@ -127,13 +152,23 @@ class TableSchema(CamelModel):
         keys = set(self.primary_key)
         return [a for a in self.attributes if a not in keys]
 
+    def requires_search(self, attribute: str) -> bool:
+        desc = self.column_desc.get(attribute)
+        return desc is None or desc.requires_search
+
     @staticmethod
     def make_entity_key(key_values: dict[str, str], primary_key: list[str]) -> str:
-        vals = [str(key_values.get(k, "")).strip() for k in primary_key]
-        vals = [v for v in vals if v]
-        if len(vals) <= 1:
-            return vals[0] if vals else ""
-        return "|".join(vals)
+        return row_key([str(key_values[k]).strip() if key_values.get(k) is not None else ""
+                        for k in primary_key])
+
+    def parse_entity_key(self, entity: str) -> dict[str, str]:
+        """按声明的字段顺序读取规范行键。"""
+        values = row_values(entity)
+        if not self.primary_key:
+            return {}
+        if len(values) != len(self.primary_key):
+            raise ValueError("Row key must contain every primary-key field in schema order")
+        return dict(zip(self.primary_key, values))
 
 
 class RelationKind(str, Enum):
@@ -187,12 +222,11 @@ class CoverageMap(CamelModel):
         self.cells = {}
         pk = list(primary_key or [])
         for entity in entities:
-            pk_values = entity.split("|") if pk and "|" in entity else [entity] if pk else []
+            pk_values = schema.parse_entity_key(entity)
             for attr in attributes:
-                key = f"{tid}/{entity}.{attr}"
+                key = self.cell_key(tid, entity, attr)
                 if pk and attr in pk:
-                    pk_idx = pk.index(attr)
-                    val = pk_values[pk_idx] if pk_idx < len(pk_values) else entity
+                    val = pk_values[attr]
                     self.cells[key] = CoverageCell(
                         status=CellStatus.FILLED, best_alignment="full", display_hint=val,
                     )
@@ -222,7 +256,14 @@ class CoverageMap(CamelModel):
         return self.tables.get(table_id)
 
     def add_columns(self, table_id: str, columns: dict[str, ColumnDesc]) -> list[str]:
-        """原子扩展非主键列；不修改原有单元格、证据或已排除行。"""
+        """返回本次新增的列名。"""
+        added, _, _ = self.upsert_columns(table_id, columns)
+        return added
+
+    def upsert_columns(
+        self, table_id: str, columns: dict[str, ColumnDesc],
+    ) -> tuple[list[str], list[str], int]:
+        """原子新增列或修改指定字段，返回新增列、修改列和重新待查的推断格数。"""
         schema = self.tables.get(table_id)
         if schema is None:
             raise ValueError(f"Unknown table: {table_id}")
@@ -230,85 +271,110 @@ class CoverageMap(CamelModel):
             raise ValueError("At least one column is required")
         names = list(schema.attributes)
         added = []
+        changes = {}
+        require_evidence = []
         for name, description in columns.items():
             if not isinstance(name, str) or not name.strip() or name != name.strip():
                 raise ValueError("Column names must be non-empty and have no surrounding whitespace")
             if not isinstance(description, ColumnDesc):
                 raise ValueError("Column descriptions must be validated ColumnDesc values")
             if name in schema.attributes:
-                if description != schema.column_desc.get(name, ColumnDesc()):
-                    raise ValueError(f"Cannot redefine existing column: {name}")
+                current = schema.column_desc.get(name, ColumnDesc())
+                revised = ColumnDesc.model_validate({
+                    **current.model_dump(), **description.model_dump(exclude_unset=True),
+                })
+                if revised == current:
+                    continue
+                if name in schema.primary_key:
+                    raise ValueError(f"Cannot edit primary-key column: {name}")
+                changes[name] = revised
+                if revised.requires_search and not current.requires_search:
+                    require_evidence.append(name)
                 continue
             collision = self._resolve_name(name, names, schema.attribute_aliases)
             if collision is not None or name in schema.attribute_aliases:
                 raise ValueError(f"Column {name!r} conflicts with an existing name or alias")
             names.append(name)
             added.append(name)
-        # Dots in entity/attribute names are allowed; their composite keys must
-        # still identify one cell, including cells of excluded rows.
-        keys = set()
-        for entity in [*schema.entities, *schema.removed_entities]:
-            for name in names:
-                key = self.cell_key(table_id, entity, name)
-                if key in keys:
-                    raise ValueError(f"Ambiguous cell key: {key}")
-                keys.add(key)
         new_cells = {self.cell_key(table_id, entity, name): CoverageCell()
                      for entity in schema.entities for name in added}
         if any(key in self.cells or key in self.removed_cells for key in new_cells):
             raise ValueError("New columns conflict with existing cell records")
         schema.attributes.extend(added)
         schema.column_desc.update({name: columns[name].model_copy(deep=True) for name in added})
+        schema.column_desc.update(changes)
         self.cells.update(new_cells)
-        return added
+        reopened = 0
+        for name in require_evidence:
+            for entities, cells in ((schema.entities, self.cells), (schema.removed_entities, self.removed_cells)):
+                for entity in entities:
+                    cell = cells.get(self.cell_key(table_id, entity, name))
+                    if cell and cell.inferred and not cell.supporting_evidence_ids:
+                        cell.inferred = False
+                        cell.status = CellStatus.MISSING
+                        cell.full_value = None
+                        cell.display_hint = ""
+                        reopened += 1
+        return added, list(changes), reopened
 
     def _effective_table_id(self, table_id: str = "") -> str:
         return table_id or self.primary_table_id
 
     def cell_key(self, table_id: str, entity: str, attr: str) -> str:
-        return f"{table_id}/{entity}.{attr}"
+        return cell_key(table_id, entity, attr)
+
+    def primary_key_values(self, entity: str, *, table_id: str = "") -> dict[str, str]:
+        """读取已保存的主键字段原值。"""
+        tid = self._effective_table_id(table_id)
+        schema = self.tables[tid]
+        values = {}
+        for attr in schema.primary_key:
+            key = self.cell_key(tid, entity, attr)
+            cell = self.cells.get(key) or self.removed_cells.get(key)
+            if cell is not None and cell.value:
+                values[attr] = cell.value
+        if len(values) < len(schema.primary_key):
+            try:
+                fallback = schema.parse_entity_key(entity)
+            except ValueError:
+                fallback = {}
+            values = {attr: values.get(attr, fallback.get(attr, "")) for attr in schema.primary_key}
+        return values
 
     def cell_binding(self, key: str) -> tuple[str, str, str] | None:
-        """按 schema 解析归属，允许实体名和列名包含句点。"""
-        tid, separator, rest = key.partition("/")
+        """解码后验证表、行和字段归属。"""
+        try:
+            tid, entity, attr = cell_parts(key)
+        except (ValueError, TypeError):
+            return None
         schema = self.tables.get(tid)
-        if not separator or schema is None:
+        if schema is None:
             return None
         rows = {*schema.entities, *schema.removed_entities}
-        matches = [(tid, rest[:-(len(attr) + 1)], attr) for attr in schema.attributes
-                   if rest.endswith(f".{attr}") and rest[:-(len(attr) + 1)] in rows]
-        return matches[0] if len(matches) == 1 else None
+        return (tid, entity, attr) if entity in rows and attr in schema.attributes else None
 
-    def resolve_cell_reference(self, reference: str, *, table_id: str = "") -> str | None:
-        """按已有行列解析完整键或表内短引用，行列名中的 / 不表示表前缀。"""
-        if reference in self.cells and self.cell_binding(reference) is not None:
-            return reference
-        tid = table_id or (self.primary_table_id if len(self.tables) == 1 else "")
-        key = f"{tid}/{reference}"
-        if key in self.cells and self.cell_binding(key) is not None:
-            return key
-        return None
+    def resolve_cell_reference(self, reference: str | CellRef | dict, *, table_id: str = "") -> str | None:
+        """工具边界接收 CellRef；内部调用使用规范编码。"""
+        try:
+            key = reference if isinstance(reference, str) else CellRef.model_validate(reference).cell_key()
+            tid, entity, attr = cell_parts(key)
+        except (ValueError, TypeError):
+            return None
+        if table_id and tid != table_id:
+            return None
+        return self._resolve_cell_key(entity, attr, table_id=tid)
 
     @staticmethod
     def parse_cell_key(key: str) -> tuple[str, str, str]:
         """Parse cell key → (table_id, entity, attribute)."""
-        if "/" in key:
-            tid, rest = key.split("/", 1)
-        else:
-            tid, rest = "", key
-        if "." in rest:
-            # PK values may contain periods ("U.S. Bank Stadium"); the attribute
-            # is appended after the final period, so split from the right.
-            ent, attr = rest.rsplit(".", 1)
-        else:
-            ent, attr = rest, ""
-        return tid, ent, attr
+        return cell_parts(key)
 
     def add_table(
         self, table_id: str, attributes: list[str], *,
         table_label: str = "", primary_key: list[str] | None = None,
         row_label: str = "", column_desc: dict[str, ColumnDesc] | None = None,
         entities: list[str] | None = None,
+        entity_values: dict[str, dict[str, str]] | None = None,
     ) -> str:
         """Add a table. ``schema_mode`` is derived from ``entities`` (seeded →
         CLOSED, unseeded → COLUMN_ONLY) so the judge stays anchored on existing
@@ -324,7 +390,7 @@ class CoverageMap(CamelModel):
         )
         self.tables[table_id] = schema
         for ent in ents:  # add_entity's "exists" guard makes later loops no-op
-            self.add_entity(ent, table_id=table_id)
+            self.add_entity(ent, table_id=table_id, key_values=(entity_values or {}).get(ent))
         return table_id
 
     def add_relation(self, rel: Relation) -> None:
@@ -343,27 +409,32 @@ class CoverageMap(CamelModel):
         return key if key in self.cells else None
 
     @classmethod
-    def _resolve_name(cls, raw: str, names: list[str], aliases: dict[str, str]) -> str | None:
+    def _resolve_name(cls, raw: str, names: list[str], aliases: dict[str, str], *, row: bool = False) -> str | None:
         """归一化和显式别名共用同一规则，歧义时不匹配。"""
+        def normalize(value: str):
+            if row:
+                return tuple(cls._normalize_for_fuzzy(part.lower()) for part in row_values(value))
+            return cls._normalize_for_fuzzy(value.lower())
+
         seen: set[str] = set()
         while raw not in seen:
             seen.add(raw)
             if raw in names:
                 return raw
-            norm = cls._normalize_for_fuzzy(raw.lower())
+            norm = normalize(raw)
             if not norm:
                 return None
             target = aliases.get(raw)
             if target is None and raw not in names:
                 matches = {v for k, v in aliases.items()
-                           if cls._normalize_for_fuzzy(k.lower()) == norm}
+                           if normalize(k) == norm}
                 if len(matches) > 1:
                     return None
                 target = next(iter(matches), None)
             if target is not None and target != raw:
                 raw = target
                 continue
-            matches = [n for n in names if cls._normalize_for_fuzzy(n.lower()) == norm]
+            matches = [n for n in names if normalize(n) == norm]
             return matches[0] if len(matches) == 1 else None
         return None
 
@@ -372,8 +443,12 @@ class CoverageMap(CamelModel):
         schema = self.tables.get(self._effective_table_id(table_id))
         if schema is None:
             return None, "missing"
+        try:
+            schema.parse_entity_key(entity)
+        except (ValueError, TypeError):
+            return None, "missing"
         name = self._resolve_name(
-            entity, [*schema.entities, *schema.removed_entities], schema.entity_aliases,
+            entity, [*schema.entities, *schema.removed_entities], schema.entity_aliases, row=True,
         )
         if name is None:
             return None, "missing"
@@ -489,7 +564,8 @@ class CoverageMap(CamelModel):
         new_key = (tier, self._ALIGNMENT_RANK.get(alignment, 0), confidence)
         old_key = (cell.best_tier, self._ALIGNMENT_RANK.get(cell.best_alignment, 0),
                    cell.best_confidence)
-        if new_key > old_key or (bool(display_hint) and not cell.display_hint):
+        if cell.inferred or new_key > old_key or (bool(display_hint) and not cell.display_hint):
+            cell.inferred = False
             cell.best_alignment = alignment
             cell.best_confidence = confidence
             cell.best_tier = tier
@@ -508,7 +584,7 @@ class CoverageMap(CamelModel):
 
     @property
     def filled_cells(self) -> int:
-        return sum(1 for c in self.cells.values() if c.status == CellStatus.FILLED)
+        return sum(cell_is_complete(c) for c in self.cells.values())
 
     @property
     def empty_tables(self) -> list[str]:
@@ -583,6 +659,10 @@ class CoverageMap(CamelModel):
         if not new_name or new_name.strip() == canonical:
             return True, "no rename needed", canonical
         new_name = new_name.strip()
+        try:
+            key_values = schema.parse_entity_key(new_name)
+        except ValueError as exc:
+            return False, str(exc), canonical
         target, target_status = self.resolve_row(new_name, table_id=tid)
         if target_status == "active" and target != canonical:
             return False, f"target name {new_name!r} already exists", canonical
@@ -602,18 +682,19 @@ class CoverageMap(CamelModel):
             new_key = self.cell_key(tid, new_name, attr)
             if old_key in self.evidence_bindings:
                 self.evidence_bindings[new_key] = self.evidence_bindings.pop(old_key)
+            if old_key in self.evidence_comparisons:
+                self.evidence_comparisons[new_key] = self.evidence_comparisons.pop(old_key)
             cell = self.cells.pop(old_key, None)
             if cell is not None:
                 if attr in (schema.primary_key or []):
-                    pk = schema.primary_key
-                    pk_values = new_name.split("|") if pk and "|" in new_name else [new_name]
-                    pk_idx = pk.index(attr) if attr in pk else 0
-                    cell.display_hint = pk_values[pk_idx] if pk_idx < len(pk_values) else new_name
+                    cell.display_hint = key_values[attr]
                     cell.full_value = cell.display_hint
                 self.cells[new_key] = cell
         return True, f"renamed {canonical!r} → {new_name!r}", canonical
 
-    def add_entity(self, entity: str, *, table_id: str = "") -> bool:
+    def add_entity(
+        self, entity: str, *, table_id: str = "", key_values: dict[str, str] | None = None,
+    ) -> bool:
         """Add a new row with MISSING cells for all attributes."""
         tid = self._effective_table_id(table_id)
         schema = self.tables.get(tid)
@@ -626,14 +707,18 @@ class CoverageMap(CamelModel):
         # revival only goes through the add_entities tool's restore branch.
         if self.is_removed_entity(entity, table_id=tid):
             return False
+        values = schema.parse_entity_key(entity) if key_values is None else key_values
+        if schema.primary_key and (
+            any(not values.get(attr) for attr in schema.primary_key)
+            or schema.make_entity_key(values, schema.primary_key) != entity
+        ):
+            raise ValueError("Primary-key fields must match the row reference")
         schema.entities.append(entity)
         pk = schema.primary_key
-        pk_values = entity.split("|") if pk and "|" in entity else [entity] if pk else []
         for attr in schema.attributes:
             key = self.cell_key(tid, entity, attr)
             if pk and attr in pk:
-                pk_idx = pk.index(attr)
-                val = pk_values[pk_idx] if pk_idx < len(pk_values) else entity
+                val = values[attr]
                 self.cells[key] = CoverageCell(
                     status=CellStatus.FILLED, best_alignment="full", display_hint=val,
                 )
@@ -676,7 +761,7 @@ class CoverageMap(CamelModel):
     def fill_from_evidence(self, nodes: list[EvidenceNode]) -> int:
         """投影已持久化节点，返回新增挂载数。生产写入统一经过 commit_evidence。"""
         filled = 0
-        from searchos.socm.evidence.values import is_missing_value
+        from searchos.socm.evidence.missing_values import is_missing_value
 
         for node in nodes:
             if node.status != EvidenceStatus.ACTIVE:

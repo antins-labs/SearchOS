@@ -4,6 +4,9 @@ DFW Airport Traffic Statistics Access Skill
 Fetches traffic statistics (passenger, operations, cargo) from DFW Airport's website.
 The site uses Next.js with SSG, exposing data via JSON endpoints.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 from typing import Any
@@ -124,7 +127,7 @@ async def get_all_statistics() -> dict:
     
     Returns categorized lists of PDF reports for passengers, operations, cargo, and archives.
     """
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0) as client:
         return await _fetch_stats_data(client)
 
 
@@ -209,7 +212,7 @@ async def get_reports_by_period(period: str) -> dict:
 
 async def get_page_info() -> dict:
     """Get basic information about the statistics page."""
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with _skill_network.httpx_async_client(timeout=30.0) as client:
         build_id = await _get_build_id(client)
         
         stats_url = (
@@ -235,6 +238,7 @@ async def get_page_info() -> dict:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute DFW Airport traffic statistics queries.

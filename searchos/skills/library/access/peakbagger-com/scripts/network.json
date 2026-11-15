@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_peak_from_range": "direct",
+    "get_range": "direct",
+    "search_ranges": "direct"
+  },
+  "aliases": {
+    "get_peak_from_range": "get_peak_from_range",
+    "get_range": "get_range",
+    "run": "get_peak_from_range",
+    "search_ranges": "search_ranges"
+  }
+}

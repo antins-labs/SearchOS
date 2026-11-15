@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "biographies": "direct",
+    "juries": "direct",
+    "biography_detail": "direct",
+    "awards_by_year": "direct"
+  },
+  "aliases": {
+    "awards_by_year": "awards_by_year",
+    "juries": "juries",
+    "biographies": "biographies",
+    "biography_detail": "biography_detail",
+    "run": "biography_detail"
+  }
+}

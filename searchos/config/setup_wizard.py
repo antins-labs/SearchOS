@@ -27,12 +27,12 @@ from searchos.config.env_file import (
 )
 from searchos.config.providers import PRESET_GROUPS, PRESETS, ProviderPreset, resolve_preset
 
-# 搜索后端选项 — 与 searchos/tools/simple_browser/search/__init__.py 的
+# 搜索后端选项 — 与 searchos/tools/simple_browser/search_providers/__init__.py 的
 # SEARCH_PROVIDER_INFO 保持同步（不直接 import：那条链会提前构造 settings 单例）。
 _SEARCH_BACKENDS: list[tuple[str, str, str]] = [
     # (SF_SEARCH_PROVIDER 值, 说明, key 环境变量；空 = 无需 key)
     ("serper", "Serper.dev（Google 结果，推荐；serper.dev 注册）", "SERPER_API_KEY"),
-    ("tavily", "Tavily（tavily.com；需 pip install 'searchos[tavily]'）", "TAVILY_API_KEY"),
+    ("tavily", "Tavily（tavily.com）", "TAVILY_API_KEY"),
     ("ragflow", "RagFlow（蚂蚁内网接口，外部不可用）", "RAGFLOW_USER_ID"),
 ]
 
@@ -49,7 +49,7 @@ def _overlay_config_ready() -> bool:
     ——新建的 custom 卡，或对既有 profile 的 override（改绑 provider_ref，常见于
     "不新建卡，直接把老角色改连到新 provider" 的配置路径）——指向的 key 环境变量
     有值（不 import settings、不发请求）。"""
-    from searchos.config.web_overlay import WebSettings, overlay_path
+    from searchos.config.settings_overlay import WebSettings, overlay_path
 
     path = overlay_path()
     if not path.exists():
@@ -137,7 +137,7 @@ def run_setup_wizard(env_path: Path | None = None) -> bool:
     from rich.prompt import Confirm, Prompt
 
     from searchos.config.profiles import ROLE_NAMES
-    from searchos.config.web_overlay import (
+    from searchos.config.settings_overlay import (
         MIGRATABLE_ENV_KEYS,
         CustomProfile,
         ProviderConnection,

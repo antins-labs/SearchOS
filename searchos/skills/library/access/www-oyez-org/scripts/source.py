@@ -11,6 +11,9 @@ API Notes:
 - The API returns all cases when querying any term (the term in URL is ignored)
 - Cases are sorted by citation order; recent terms appear at high page numbers (~280+)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -362,6 +365,7 @@ async def get_cases_by_term(
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for Oyez case database access.
@@ -392,7 +396,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             "available_functions": ["get_case", "get_cases_by_term", "search_cases"],
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "get_case":
             term = params.get("term")
             docket = params.get("docket")

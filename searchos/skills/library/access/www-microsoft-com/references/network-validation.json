@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "972f4658945ab58e5105cd84f47b076ddef3b32a1f1cc8dccc15744ce7e1541f",
+  "capabilities": {
+    "annual_reports": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"annual_reports\", \"section\": \"press-release-webcast\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.176894+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.microsoft.com/en-us/investor/annual-reports",
+          "status": 200
+        }
+      ]
+    },
+    "annual_report_detail": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"annual_report_detail\", \"year\": 2024, \"section\": \"press-release-webcast\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.177788+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "earnings": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"earnings\", \"fiscal_year\": 2025, \"quarter\": 3, \"section\": \"income-statements\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.178001+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.microsoft.com/en-us/Investor/earnings/FY-2025-Q3/income-statements",
+          "status": 200
+        }
+      ]
+    },
+    "current_quarter": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"current_quarter\", \"section\": \"press-release-webcast\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.178183+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-microsoft-com/scripts/source.py",
+        "line": 272,
+        "end_line": 295,
+        "implementation": "get_current_quarter",
+        "source_sha256": "995cba5209fc5a13eaade1a5865f68106ce8b178d78bf81940b8cfb7eb378e5c",
+        "implementation_sha256": "ebbf59e89ade1eca30708dde0152c8dba939cb5a5f81c38ae39cc5b0aa4e855e"
+      }
+    },
+    "latest_earnings": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"latest_earnings\", \"section\": \"metrics\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.178489+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "list_earnings_sections": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_earnings_sections\", \"fiscal_year\": 2026, \"quarter\": 3, \"section\": \"press-release-webcast\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.178690+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-microsoft-com/scripts/source.py",
+        "line": 325,
+        "end_line": 356,
+        "implementation": "list_available_earnings",
+        "source_sha256": "995cba5209fc5a13eaade1a5865f68106ce8b178d78bf81940b8cfb7eb378e5c",
+        "implementation_sha256": "1bbe05b63a2b52395d4f7716837b868d5e058eecfbf4d77b67ec2aab3bbb9b8d"
+      }
+    },
+    "stock_quote": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"stock_quote\", \"section\": \"press-release-webcast\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.178850+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://api.msn.com/Finance/Quotes",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

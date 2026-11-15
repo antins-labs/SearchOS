@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7e4b2af64967f0a060c77980a49d4b9089c22242879b08377c1ada9347ea3683",
+  "capabilities": {
+    "list_all": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_all\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.605449+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.mgmchinaholdings.com/IR-Annual-and-Interim-Reports",
+          "status": 200
+        }
+      ]
+    },
+    "list_annual": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_annual\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.606020+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.mgmchinaholdings.com/IR-Annual-and-Interim-Reports",
+          "status": 200
+        }
+      ]
+    },
+    "list_interim": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_interim\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.606085+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.mgmchinaholdings.com/IR-Annual-and-Interim-Reports",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_year": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_year\", \"year\": 2024}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.606207+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.mgmchinaholdings.com/IR-Annual-and-Interim-Reports",
+          "status": 200
+        }
+      ]
+    },
+    "get_latest": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_latest\", \"report_type\": \"annual\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.606272+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://en.mgmchinaholdings.com/IR-Annual-and-Interim-Reports",
+          "status": 200
+        }
+      ]
+    },
+    "resolve_url": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"resolve_url\", \"url\": \"https://en.mgmchinaholdings.com/image/e02282_2025AR.pdf\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.606339+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://filecache.investorroom.com/mr5ir_mgmmacau_en/5703/e02282_2025AR.pdf",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

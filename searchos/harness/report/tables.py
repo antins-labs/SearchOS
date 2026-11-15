@@ -15,13 +15,8 @@ def is_list_attr(schema: Any, attr: str) -> bool:
     return "list" in col_type.lower()
 
 
-def entity_pk_values(schema: Any, entity: str) -> dict[str, str]:
-    pk = list(getattr(schema, "primary_key", []) or [])
-    if not pk:
-        return {}
-    vals = entity.split("|") if "|" in entity else [entity]
-    vals = vals + [""] * (len(pk) - len(vals))
-    return {attr: vals[i] for i, attr in enumerate(pk)}
+def entity_pk_values(cmap: Any, schema: Any, entity: str) -> dict[str, str]:
+    return cmap.primary_key_values(entity, table_id=schema_table_id(schema))
 
 
 def schema_table_id(schema: Any) -> str:

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_tours": "direct",
+    "search_by_venue": "direct",
+    "search_by_city": "direct",
+    "get_tours": "direct",
+    "get_statistics": "direct",
+    "search_by_year": "direct"
+  },
+  "aliases": {
+    "list_tours": "list_tours",
+    "get_tours": "get_tours",
+    "search_by_city": "search_by_city",
+    "search_by_year": "search_by_year",
+    "search_by_venue": "search_by_venue",
+    "get_statistics": "get_statistics",
+    "run": "get_statistics"
+  }
+}

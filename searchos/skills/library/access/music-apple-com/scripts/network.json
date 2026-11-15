@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_album": "direct",
+    "get_artist_albums": "direct",
+    "search": "direct",
+    "get_song": "direct",
+    "get_artist": "direct",
+    "get_charts": "direct"
+  },
+  "aliases": {
+    "get_album": "get_album",
+    "get_artist": "get_artist",
+    "get_song": "get_song",
+    "search": "search",
+    "get_artist_albums": "get_artist_albums",
+    "get_charts": "get_charts",
+    "run": "get_charts"
+  }
+}

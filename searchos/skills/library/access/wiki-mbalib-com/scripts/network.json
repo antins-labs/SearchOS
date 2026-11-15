@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_fortune_500": "inherit",
+    "get_by_country": "inherit",
+    "list_countries": "inherit",
+    "get_by_rank": "inherit",
+    "search_by_company": "inherit"
+  },
+  "aliases": {
+    "get_fortune_500": "get_fortune_500",
+    "get_by_rank": "get_by_rank",
+    "search_by_company": "search_by_company",
+    "get_by_country": "get_by_country",
+    "list_countries": "list_countries",
+    "run": "list_countries"
+  }
+}

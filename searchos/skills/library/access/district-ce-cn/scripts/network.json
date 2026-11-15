@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "detect_page_type": "direct",
+    "fetch_leadership_db": "direct",
+    "fetch_article": "direct"
+  },
+  "aliases": {
+    "detect_page_type": "detect_page_type",
+    "fetch_article": "fetch_article",
+    "run": "detect_page_type",
+    "fetch_leadership_db": "fetch_leadership_db"
+  }
+}

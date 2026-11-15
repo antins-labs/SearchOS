@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "1c2d86b872594c96330fc6b228eb4f78970685b9b1f2801e6b717dd87d8595fb",
+  "capabilities": {
+    "get_article": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"article_path\": \"A/Al-Mansur_Muhammad\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.769595+00:00",
+      "reason": "connection_failed",
+      "source_responses": []
+    },
+    "search": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"al-mansur\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.770370+00:00",
+      "reason": "search_failed",
+      "source_responses": []
+    },
+    "status": {
+      "status": "live_access_unconfirmed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"status\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.770442+00:00",
+      "reason": "business output returned without a confirmed successful source response",
+      "source_responses": []
+    }
+  }
+}

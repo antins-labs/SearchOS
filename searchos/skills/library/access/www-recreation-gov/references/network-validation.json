@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c5f0c0db2ba53876f94086faa19e18aca78fb9d7ef65c2d22fadbd2bad1113f9",
+  "capabilities": {
+    "get_ticket_facility": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ticket_facility\", \"facility_id\": \"233362\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.237343+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.recreation.gov/api/ticket/facility/233362",
+          "status": 200
+        }
+      ]
+    },
+    "get_ticket_tours": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ticket_tours\", \"facility_id\": \"233362\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.237824+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.recreation.gov/api/ticket/facility/233362/tour",
+          "status": 200
+        }
+      ]
+    },
+    "get_ticket_pricing": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ticket_pricing\", \"facility_id\": \"233362\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.237884+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.recreation.gov/api/ticket/facility/233362/pricing/view",
+          "status": 200
+        }
+      ]
+    },
+    "get_ticket_availability": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_ticket_availability\", \"facility_id\": \"233362\", \"year\": 2026, \"month\": 6}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.237948+00:00",
+      "reason": "HTTP 400",
+      "source_responses": [
+        {
+          "url": "https://www.recreation.gov/api/ticket/availability/facility/233362/monthlyAvailabilitySummaryView",
+          "status": 400
+        }
+      ]
+    },
+    "get_campground": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_campground\", \"facility_id\": \"232446\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.238008+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.recreation.gov/api/camps/campgrounds/232446",
+          "status": 200
+        }
+      ]
+    },
+    "get_campsites": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_campsites\", \"facility_id\": \"232446\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.238068+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.recreation.gov/api/camps/campgrounds/232446/campsites",
+          "status": 200
+        }
+      ]
+    },
+    "get_sitepass_facility": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sitepass_facility\", \"facility_id\": \"233362\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.238346+00:00",
+      "reason": "HTTP 404",
+      "source_responses": [
+        {
+          "url": "https://www.recreation.gov/api/parkpass/facilities/233362",
+          "status": 404
+        }
+      ]
+    },
+    "get_sitepass_types": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sitepass_types\", \"facility_id\": \"72144\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.238422+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.recreation.gov/api/parkpass/passtypes/facility/72144",
+          "status": 200
+        }
+      ]
+    },
+    "get_facility_search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_facility_search\", \"facility_id\": \"233362\"}"
+      ],
+      "checked_at": "2026-10-23T07:35:12.626313+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.recreation.gov/api/search",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

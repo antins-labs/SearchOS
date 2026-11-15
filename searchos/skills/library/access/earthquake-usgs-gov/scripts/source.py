@@ -5,6 +5,9 @@ Provides structured access to earthquake data from the USGS FDSN (Federation
 of Digital Seismograph Networks) web service. Supports querying earthquake 
 events, counting results, and retrieving event details.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 from typing import Any
@@ -14,6 +17,7 @@ from datetime import datetime
 BASE_URL = "https://earthquake.usgs.gov/fdsnws/event/1"
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute USGS Earthquake API requests.
@@ -177,7 +181,7 @@ async def query_events(params: dict[str, Any]) -> dict[str, Any]:
     url = f"{BASE_URL}/query"
     
     timeout = aiohttp.ClientTimeout(total=60)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(timeout=timeout) as session:
         try:
             async with session.get(url, params=query_params) as resp:
                 if resp.status == 400:
@@ -242,7 +246,7 @@ async def count_events(params: dict[str, Any]) -> dict[str, Any]:
     url = f"{BASE_URL}/count"
     
     timeout = aiohttp.ClientTimeout(total=30)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(timeout=timeout) as session:
         try:
             async with session.get(url, params=query_params) as resp:
                 if resp.status == 400:
@@ -300,7 +304,7 @@ async def get_event_detail(params: dict[str, Any]) -> dict[str, Any]:
     }
     
     timeout = aiohttp.ClientTimeout(total=30)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(timeout=timeout) as session:
         try:
             async with session.get(url, params=query_params) as resp:
                 if resp.status == 404:

@@ -10,6 +10,9 @@ Supported data types:
 - 138: 国家级旅游休闲街区 (National Tourist Leisure Districts)
 - 143: 国家工业旅游示范基地 (National Industrial Tourism Demo Bases)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -191,7 +194,7 @@ async def fetch_data_fast(type_id: int) -> dict[str, Any]:
     url = f"{BASE_URL}?type={type_id}"
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             async with session.get(url, timeout=30) as resp:
                 if resp.status != 200:
                     return None
@@ -246,9 +249,9 @@ async def fetch_data_browser(type_id: int) -> dict[str, Any]:
     
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context()
-            page = await context.new_page()
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
+            context = await _skill_network.browser_new_context(browser)
+            page = await _skill_network.browser_new_page(context)
             
             try:
                 await page.goto(url, wait_until="domcontentloaded", timeout=30000)
@@ -449,6 +452,7 @@ async def search_by_name(type_id: int, name_keyword: str) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the skill.

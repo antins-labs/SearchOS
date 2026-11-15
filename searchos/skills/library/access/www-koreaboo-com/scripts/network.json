@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch_lists_category": "direct",
+    "fetch_listicle": "direct"
+  },
+  "aliases": {
+    "fetch_listicle": "fetch_listicle",
+    "fetch_lists_category": "fetch_lists_category",
+    "run": "fetch_lists_category"
+  }
+}

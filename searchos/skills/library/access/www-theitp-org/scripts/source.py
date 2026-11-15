@@ -2,6 +2,9 @@
 ITP Journal Access Skill
 Fetches journal volume data from www.theitp.org via Storyblok API
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -201,6 +204,7 @@ async def list_volumes(session: aiohttp.ClientSession, volume: str = None, inclu
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """Main entry point for the skill"""
     
@@ -211,7 +215,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     
     timeout = aiohttp.ClientTimeout(total=30)
     
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with _skill_network.aiohttp_session(timeout=timeout) as session:
         if function == "get_volume":
             return await get_volume(
                 session,

@@ -12,7 +12,7 @@ from typing import Any
 
 from langchain.agents.middleware.types import AgentMiddleware
 
-from searchos.harness.middleware.sensor.core.models import ControlState
+from searchos.harness.middleware.sensor.core.run_state import ControlState
 from searchos.harness.middleware.utils.messages import extract_tool_name, is_blocked
 
 
@@ -45,13 +45,17 @@ class _SensorMiddleware(AgentMiddleware):
         result = await handler(request)
         if is_blocked(result):
             return result
-        signal = await self.sensor.check(
+        await self.observe(
             extract_tool_name(request),
             result,
-            tool_input=request.tool_call.get("args", {}),
+            request.tool_call.get("args", {}),
         )
+        return result
+
+    async def observe(self, name, result, tool_input=None):
+        signal = await self.sensor.check(name, result, tool_input=tool_input)
         if not signal:
-            return result
+            return
         if signal.get("force_stop"):
             self.control.stop(signal.get("reason", "sensor_forced_stop"))
         if signal.get("hard_block_tools"):
@@ -61,4 +65,3 @@ class _SensorMiddleware(AgentMiddleware):
             self.control.messages.append(signal["inject_message"])
         if signal.get("strategy_switch"):
             self.control.strategy_switch = True
-        return result

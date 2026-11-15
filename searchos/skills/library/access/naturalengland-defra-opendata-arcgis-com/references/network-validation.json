@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "a16fdd45077eb88dd193cc635e65c86f894a422d4d1ef87e096bd3a5a77ccc63",
+  "capabilities": {
+    "list_aonbs": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_aonbs\", \"include_geometry\": false, \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.819471+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://services.arcgis.com/JJzESW51TqeY9uat/arcgis/rest/services/[redacted]/FeatureServer/0/query",
+          "status": 200
+        }
+      ]
+    },
+    "get_aonb": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_aonb\", \"name\": \"Cotswolds\", \"include_geometry\": false, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.820179+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://services.arcgis.com/JJzESW51TqeY9uat/arcgis/rest/services/[redacted]/FeatureServer/0/query",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"min_area\": 1000, \"include_geometry\": false, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.820323+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://services.arcgis.com/JJzESW51TqeY9uat/arcgis/rest/services/[redacted]/FeatureServer/0/query",
+          "status": 200
+        }
+      ]
+    },
+    "get_metadata": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_metadata\", \"include_geometry\": false, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.820496+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://services.arcgis.com/JJzESW51TqeY9uat/arcgis/rest/services/[redacted]/FeatureServer",
+          "status": 200
+        },
+        {
+          "url": "https://services.arcgis.com/JJzESW51TqeY9uat/arcgis/rest/services/[redacted]/FeatureServer/0",
+          "status": 200
+        },
+        {
+          "url": "https://services.arcgis.com/JJzESW51TqeY9uat/arcgis/rest/services/[redacted]/FeatureServer/0/query",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

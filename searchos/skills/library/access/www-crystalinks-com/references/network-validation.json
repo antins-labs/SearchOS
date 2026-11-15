@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "6c552785ea60846e91aa9758b7e788d728fdfae5519d0648e3fe77b396eb33c7",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.crystalinks.com/pyrkhendjer.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.004450+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.crystalinks.com/pyrkhendjer.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_multiple_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_multiple_articles\", \"urls\": [\"pyrkhendjer\", \"zawyet\", \"pyrmazghuna\"]}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.005224+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.crystalinks.com/pyrmazghuna.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.crystalinks.com/pyrkhendjer.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.crystalinks.com/zawyet.html",
+          "status": 200
+        }
+      ]
+    },
+    "search_pyramid_pages": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_pyramid_pages\", \"keyword\": \"saqqara\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.005323+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-crystalinks-com/scripts/source.py",
+        "line": 302,
+        "end_line": 354,
+        "implementation": "search_pyramid_pages",
+        "source_sha256": "3624101dbb007f9263c296b314149eef7fe48d148472bd007a14a9ef474fa6a6",
+        "implementation_sha256": "bd9ac0dca37c5e30cb94210ccabbec2322e2e6c95a904b5d6dfbe64445a437ef"
+      }
+    }
+  }
+}

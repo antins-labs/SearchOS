@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_awards": "inherit",
+    "get_award_page": "inherit",
+    "get_winners": "inherit"
+  },
+  "aliases": {
+    "get_award_page": "get_award_page",
+    "get_winners": "get_winners",
+    "search_awards": "search_awards",
+    "run": "search_awards"
+  }
+}

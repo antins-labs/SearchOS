@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_latest_reports": "inherit",
+    "get_all_statistics": "direct",
+    "get_operations_statistics": "direct",
+    "get_page_info": "direct",
+    "get_passenger_statistics": "inherit",
+    "get_reports_by_period": "inherit",
+    "get_cargo_statistics": "direct"
+  },
+  "aliases": {
+    "get_all_statistics": "get_all_statistics",
+    "get_passenger_statistics": "get_passenger_statistics",
+    "get_operations_statistics": "get_operations_statistics",
+    "get_cargo_statistics": "get_cargo_statistics",
+    "get_latest_reports": "get_latest_reports",
+    "get_reports_by_period": "get_reports_by_period",
+    "get_page_info": "get_page_info",
+    "run": "get_page_info"
+  }
+}

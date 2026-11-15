@@ -12,6 +12,9 @@ API Structure:
 
 The payload.js files contain JSONP whose JSON arguments are parsed directly.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import json
 import re
@@ -123,7 +126,7 @@ async def list_subjects(params: Dict[str, Any], ctx: Any = None) -> Dict[str, An
     """
     year = params.get("year", 2025)
     
-    async with httpx.AsyncClient(timeout=30) as client:
+    async with _skill_network.httpx_async_client(timeout=30) as client:
         try:
             build_hash = await get_build_hash(client)
             main_data = await fetch_main_payload(client, build_hash, year)
@@ -193,7 +196,7 @@ async def get_rankings(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any
     limit = params.get("limit", 100)
     offset = params.get("offset", 0)
     
-    async with httpx.AsyncClient(timeout=30) as client:
+    async with _skill_network.httpx_async_client(timeout=30) as client:
         try:
             build_hash = await get_build_hash(client)
             subject_data = await fetch_subject_rankings(client, build_hash, year, subject_code)
@@ -277,7 +280,7 @@ async def search_universities(params: Dict[str, Any], ctx: Any = None) -> Dict[s
     subject_code = params.get("subject_code")
     limit = params.get("limit", 50)
     
-    async with httpx.AsyncClient(timeout=30) as client:
+    async with _skill_network.httpx_async_client(timeout=30) as client:
         try:
             build_hash = await get_build_hash(client)
             
@@ -355,6 +358,7 @@ async def search_universities(params: Dict[str, Any], ctx: Any = None) -> Dict[s
             }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the Shanghai Ranking GRAS skill.

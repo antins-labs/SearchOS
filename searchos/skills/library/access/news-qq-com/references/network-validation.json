@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "cc92fd87739d7eeb4967ad92034dc197595a177817ebea503e0e648c08bfe00e",
+  "capabilities": {
+    "fetch_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_article\", \"url\": \"https://news.qq.com/rain/a/20240809A0A61900\", \"article_id\": \"20240809A0A61900\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.823088+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://news.qq.com/rain/a/20240809A0A61900",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_comments": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_comments\", \"article_id\": \"20240809A0A61900\", \"req_num\": 50, \"url\": \"https://news.qq.com/rain/a/20240809A0A61900\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.824157+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://i.news.qq.com/getQQNewsComment",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_full_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_full_article\", \"url\": \"https://news.qq.com/rain/a/20240809A0A61900\", \"article_id\": \"20240809A0A61900\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.824342+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://i.news.qq.com/getQQNewsComment",
+          "status": 200
+        },
+        {
+          "url": "https://news.qq.com/rain/a/20240809A0A61900",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

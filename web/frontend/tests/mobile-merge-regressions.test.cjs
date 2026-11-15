@@ -6,6 +6,11 @@ const test = require("node:test");
 const vm = require("node:vm");
 const ts = require("typescript");
 
+const citations = {}, refs = {}, coverage = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/socmRefs.ts"), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports: refs });
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/coverageTables.ts"), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports: coverage });
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/localCitations.ts"), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, { exports: citations });
+
 function find(node, predicate) {
   if (!node || typeof node !== "object") return undefined;
   if (predicate(node)) return node;
@@ -26,6 +31,7 @@ function harness(file, props) {
       return [states[index], value => { states[index] = typeof value === "function" ? value(states[index]) : value; }];
     },
     useRef: current => ({ current }),
+    useId: () => "report-list",
     useEffect() {},
     useMemo: fn => fn(),
   };
@@ -35,10 +41,10 @@ function harness(file, props) {
     "lucide-react": {},
     "@/hooks/useHostStatus": { useHostStatus: () => ({ phase: "online", refresh() {} }) },
     "@/lib/hostStatus": { HOST_LABELS: { online: "主机在线" } },
-    "@/lib/mobileSources": { mobileSourceSelection: () => ({ mode: "web" }) },
-    "@/lib/coverageTables": { declaredCoverageTables: () => [] },
-    "@/lib/mobileReportPreview": { mobileReportExcerpt: () => "摘要" },
-    "@/lib/localCitations": { localCitationLabels: () => ({}) },
+    "@/lib/sourceSelection": { mobileSourceSelection: () => ({ mode: "web" }) },
+    "@/lib/coverageTables": coverage,
+    "@/lib/socmRefs": refs,
+    "@/lib/localCitations": citations,
     "@/components/conversation/Answer": { __esModule: true, default: "Answer", cleanAnswer: value => value },
     "@/components/settings/SettingsProvider": { useSettings: () => ({ overrides: {}, setOverride() {}, notify() {} }) },
     "./AssistantPanels": { useAssistant: () => ({ plans: [], inbox: { unread: 0 }, refresh() {} }) },
@@ -107,7 +113,7 @@ test("实时与定时报告共用的阅读组件保留同一证据的全部来�
   const h = harness("MobileReport.tsx", {
     query: "Report", answer: "Answer", inlineReader: true,
     searchState: { evidence_graph: { nodes: [
-      { id: "many", source: "https://example.org/first", source_urls: ["https://example.org/first", "https://example.org/second"] },
+      { id: "many", source: "https://example.org/first", source_urls: ["https://example.org/second"] },
       { id: "legacy", source: "https://example.org/legacy" },
       { id: "removed", source: "https://example.org/removed", status: "removed" },
     ] } },
@@ -116,6 +122,36 @@ test("实时与定时报告共用的阅读组件保留同一证据的全部来�
   const reader = find(h.render(), node => node.type === "Answer");
   assert.deepEqual(JSON.parse(JSON.stringify(reader.props.evidenceSources)), {
     many: ["https://example.org/first", "https://example.org/second"],
-    legacy: "https://example.org/legacy",
+    legacy: ["https://example.org/legacy"],
   });
+});
+
+test("报告内部卡片保留展开、详情切换和本地来源操作", () => {
+  const sources = [];
+  const entities = Array.from({ length: 4 }, (_, index) => JSON.stringify([`条目${index + 1}`]));
+  const cells = {};
+  for (const [index, entity] of entities.entries()) {
+    cells[refs.cellKey("items", entity, "标题")] = { value: `标题${index + 1}`, status: "filled" };
+    cells[refs.cellKey("items", entity, "来源")] = { value: "local://library/document", status: "filled" };
+  }
+  const h = harness("MobileReport.tsx", {
+    query: "Report", answer: "Answer", onSource: value => sources.push(value),
+    searchState: { coverage_map: { tables: { items: { table_id: "items", entities, attributes: ["标题", "来源"] } }, cells }, evidence_graph: { nodes: [] } },
+  });
+  const cards = () => {
+    const node = find(h.render(), node => node.type?.name === "MobileReportCards");
+    assert.ok(node);
+    return node.type(node.props);
+  };
+  let view = cards();
+  assert.equal(find(view, node => node.props?.["aria-label"] === "查看条目 4：标题4"), undefined);
+  find(view, node => node.props?.className === "digestMore").props.onClick();
+  view = cards();
+  find(view, node => node.props?.["aria-label"] === "查看条目 4：标题4").props.onClick();
+  view = cards();
+  const sheet = find(view, node => node.type === "MobileSheet");
+  assert.equal(sheet.props.subtitle, "研究结果 · 4 / 4");
+  find(sheet, node => node.type === "button" && node.props?.children?.[0] === "本地资料").props.onClick();
+  assert.deepEqual(sources, ["local://library/document"]);
+  assert.equal(find(cards(), node => node.type === "MobileSheet"), undefined);
 });

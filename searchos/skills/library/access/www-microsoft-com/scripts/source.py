@@ -9,6 +9,9 @@ Provides access to Microsoft's investor relations data including:
 
 No official JSON API exists; all data is extracted from HTML pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -411,6 +414,7 @@ async def get_stock_quote(session: aiohttp.ClientSession, params: dict) -> dict:
         return {"error": f"Failed to fetch stock quote: {str(e)}"}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Microsoft Investor Relations access skill.
@@ -436,7 +440,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     if not function:
         return {"error": "Missing required parameter: function"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == "annual_reports":
             return await get_annual_reports(session, params)
         elif function == "annual_report_detail":

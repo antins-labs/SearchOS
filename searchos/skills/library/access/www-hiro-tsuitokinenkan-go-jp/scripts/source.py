@@ -5,6 +5,9 @@ Access skill for www.hiro-tsuitokinenkan.go.jp
 This skill provides structured access to facility information, visiting details,
 floor guides, FAQ, and institutional data from the English section of the site.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -537,6 +540,7 @@ async def get_projects(session: aiohttp.ClientSession) -> dict[str, Any]:
     return result
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute skill functions for Hiroshima National Peace Memorial Hall.
@@ -555,7 +559,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     if not function:
         return {"error": "Missing required parameter: function"}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             if function == "get_homepage":
                 return await get_homepage(session)

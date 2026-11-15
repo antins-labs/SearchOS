@@ -11,6 +11,9 @@ The site uses WP Recipe Maker plugin which provides:
 - JSON-LD structured data in HTML pages
 - Taxonomies: wprm_course, wprm_cuisine, wprm_keyword
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -21,6 +24,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, parse_qs
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute recipe extraction from patijinich.com
@@ -59,7 +63,7 @@ async def _fetch_html(url: str, timeout: int = 45) -> tuple[int, str]:
         "Accept-Language": "en-US,en;q=0.9",
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=timeout)) as response:
             html = await response.text()
             return response.status, html
@@ -72,7 +76,7 @@ async def _fetch_json(url: str, timeout: int = 30) -> tuple[int, Any, dict]:
         "Accept": "application/json",
     }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=timeout)) as response:
             data = await response.json()
             # Get pagination headers

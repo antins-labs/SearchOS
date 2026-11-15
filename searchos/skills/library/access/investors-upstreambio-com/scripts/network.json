@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_sec_filing_detail": "direct",
+    "list_sec_filings": "direct",
+    "search_filings": "direct"
+  },
+  "aliases": {
+    "list_sec_filings": "list_sec_filings",
+    "get_sec_filing_detail": "get_sec_filing_detail",
+    "search_filings": "search_filings",
+    "run": "search_filings"
+  }
+}

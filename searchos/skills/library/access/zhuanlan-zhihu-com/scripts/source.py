@@ -7,6 +7,9 @@ with stealth mode to bypass anti-scraping protections.
 Note: Some articles may require login or CAPTCHA verification. This skill attempts
 to access publicly available content using browser automation.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -29,7 +32,7 @@ class ZhihuZhuanlanClient:
             return
         
         playwright = await async_playwright().start()
-        self.browser = await playwright.chromium.launch(
+        self.browser = await _skill_network.browser_launch(playwright.chromium, 
             headless=True,
             args=[
                 '--disable-blink-features=AutomationControlled',
@@ -38,7 +41,7 @@ class ZhihuZhuanlanClient:
             ]
         )
         
-        self.context = await self.browser.new_context(
+        self.context = await _skill_network.browser_new_context(self.browser, 
             user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             viewport={'width': 1920, 'height': 1080},
             locale='zh-CN',
@@ -62,7 +65,7 @@ class ZhihuZhuanlanClient:
         """)
         
         # Visit homepage to establish session cookies
-        page = await self.context.new_page()
+        page = await _skill_network.browser_new_page(self.context)
         try:
             await page.goto("https://www.zhihu.com/", wait_until='networkidle', timeout=30000)
             await page.wait_for_timeout(2000)
@@ -86,7 +89,7 @@ class ZhihuZhuanlanClient:
         try:
             await self._ensure_initialized()
             
-            page = await self.context.new_page()
+            page = await _skill_network.browser_new_page(self.context)
             
             try:
                 url = f"https://zhuanlan.zhihu.com/p/{article_id}"
@@ -269,6 +272,7 @@ class ZhihuZhuanlanClient:
 _client: Optional[ZhihuZhuanlanClient] = None
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Execute the Zhihu Zhuanlan skill

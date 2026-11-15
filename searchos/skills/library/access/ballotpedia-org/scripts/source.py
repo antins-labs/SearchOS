@@ -8,6 +8,9 @@ Extracts biographical and political data from Ballotpedia pages including:
 
 Note: Site uses AWS WAF protection requiring browser-based access.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -27,8 +30,8 @@ class BallotpediaScraper:
         """Initialize browser if not already running."""
         if self.browser is None:
             playwright = await async_playwright().start()
-            self.browser = await playwright.chromium.launch(headless=True)
-            self.context = await self.browser.new_context(
+            self.browser = await _skill_network.browser_launch(playwright.chromium, headless=True)
+            self.context = await _skill_network.browser_new_context(self.browser, 
                 user_agent=self.user_agent
             )
     
@@ -41,7 +44,7 @@ class BallotpediaScraper:
         """
         await self.init_browser()
         
-        page = await self.context.new_page()
+        page = await _skill_network.browser_new_page(self.context)
         try:
             # Navigate and wait for WAF challenge
             await page.goto(url, wait_until='domcontentloaded', timeout=30000)
@@ -90,7 +93,7 @@ class BallotpediaScraper:
         """
         await self.init_browser()
         
-        page = await self.context.new_page()
+        page = await _skill_network.browser_new_page(self.context)
         try:
             await page.goto(url, wait_until='domcontentloaded', timeout=30000)
             await asyncio.sleep(8)
@@ -208,7 +211,7 @@ class BallotpediaScraper:
         """
         await self.init_browser()
         
-        page = await self.context.new_page()
+        page = await _skill_network.browser_new_page(self.context)
         try:
             await page.goto(url, wait_until='domcontentloaded', timeout=30000)
             await asyncio.sleep(8)
@@ -314,7 +317,7 @@ class BallotpediaScraper:
         """
         await self.init_browser()
         
-        page = await self.context.new_page()
+        page = await _skill_network.browser_new_page(self.context)
         try:
             await page.goto(url, wait_until='domcontentloaded', timeout=30000)
             await asyncio.sleep(8)
@@ -379,6 +382,7 @@ class BallotpediaScraper:
 _scraper: Optional[BallotpediaScraper] = None
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for Ballotpedia access skill.
@@ -474,6 +478,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
 
 
 # For testing
+@_skill_network.entrypoint(capability_id='source', cli=True)
 async def main():
     """Test the executor with sample URLs."""
     test_urls = [

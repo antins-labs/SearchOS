@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_paper": "direct",
+    "get_citations": "direct",
+    "get_references": "direct",
+    "search_papers": "direct"
+  },
+  "aliases": {
+    "get_paper": "get_paper",
+    "search_papers": "search_papers",
+    "get_citations": "get_citations",
+    "get_references": "get_references",
+    "run": "get_references"
+  }
+}

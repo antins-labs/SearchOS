@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_info": "direct",
+    "get_stats": "direct",
+    "search": "proxy",
+    "get_stats_tables": "direct",
+    "get_profile": "direct"
+  },
+  "aliases": {
+    "search": "search",
+    "get_info": "get_info",
+    "get_stats": "get_stats",
+    "get_profile": "get_profile",
+    "get_stats_tables": "get_stats_tables",
+    "run": "get_stats_tables"
+  }
+}

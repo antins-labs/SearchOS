@@ -4,6 +4,9 @@ CNSA (China National Space Administration) Article Extractor
 Extracts full article content from www.cnsa.gov.cn news pages.
 Handles the specific page structure with .wz_title, .wz_rq, .wz_ly, and .wz_conten classes.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -32,7 +35,7 @@ async def fetch_article(url: str) -> dict[str, Any]:
     
     timeout = httpx.Timeout(connect=10.0, read=30.0, write=10.0, pool=10.0)
     
-    async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+    async with _skill_network.httpx_async_client(timeout=timeout, follow_redirects=True) as client:
         try:
             response = await client.get(url, headers=headers)
             
@@ -209,6 +212,7 @@ def _extract_content(content_div) -> str:
     return text.strip()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the CNSA article extractor skill.

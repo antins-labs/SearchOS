@@ -5,6 +5,9 @@
 """
 
 from __future__ import annotations
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import argparse
 import html
@@ -101,7 +104,7 @@ def fetch_head_only(url: str) -> tuple[int, str]:
     for attempt in range(MAX_RETRIES):
         try:
             # 使用 urlopen 但分块读取
-            with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT) as resp:
+            with _skill_network.urllib_urlopen(req, timeout=REQUEST_TIMEOUT) as resp:
                 status = resp.status if hasattr(resp, 'status') else 200
                 
                 # 分块读取直到找到 </head>
@@ -259,6 +262,7 @@ def get_user(username: str) -> dict | None:
     }
 
 
+@_skill_network.entrypoint(capability_id='get_user', cli=True)
 def main() -> int:
     parser = argparse.ArgumentParser(
         description='获取 X/Twitter 用户公开资料',

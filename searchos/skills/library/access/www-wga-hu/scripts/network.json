@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_gallery": "direct",
+    "get_artwork": "direct",
+    "search": "direct"
+  },
+  "aliases": {
+    "search": "search",
+    "get_artwork": "get_artwork",
+    "get_gallery": "get_gallery",
+    "run": "get_gallery"
+  }
+}

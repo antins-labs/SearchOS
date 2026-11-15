@@ -4,6 +4,9 @@ NGA Former Governors Access Skill
 Fetches historical governor data from the National Governors Association (NGA) website.
 Provides structured tables of former governors for U.S. states and territories.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -246,6 +249,7 @@ async def fetch_governors_for_state(
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
     """
     Main entry point for the NGA Former Governors skill.
@@ -294,7 +298,7 @@ async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
         
         state_slug = normalize_state_name(state)
         
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             result = await fetch_governors_for_state(session, state_slug, headers)
         
         if not result:
@@ -332,7 +336,7 @@ async def execute(params: Dict[str, Any], ctx: Any = None) -> Dict[str, Any]:
         else:
             states_to_search = STATES_AND_TERRITORIES
         
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             # Search in parallel (limit concurrency)
             semaphore = asyncio.Semaphore(5)
             

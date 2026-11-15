@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5705e246d881d85321ac2ce0d1d72828cd92a58d81ec323879d15fe814a3b147",
+  "capabilities": {
+    "list_sec_filings": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_sec_filings\", \"filing_type\": \"S-1\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.720755+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://investors.upstreambio.com/financial-information/sec-filings",
+          "status": 403
+        }
+      ]
+    },
+    "get_sec_filing_detail": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_sec_filing_detail\", \"filing_type\": \"s-1a\", \"accession_number\": \"0001193125-24-233296\"}"
+      ],
+      "checked_at": "2026-10-23T07:18:59.828558+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://investors.upstreambio.com/sec-filings/sec-filing/s1a/0001193125-24-233296/",
+          "status": 403
+        }
+      ]
+    },
+    "search_filings": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_filings\", \"query\": \"registration\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:23:28.181098+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://investors.upstreambio.com/financial-information/sec-filings",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

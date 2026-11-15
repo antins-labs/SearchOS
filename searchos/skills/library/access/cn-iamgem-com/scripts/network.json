@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_videos": "direct",
+    "get_categories": "direct",
+    "get_albums": "direct",
+    "get_post": "direct",
+    "search": "direct",
+    "get_posts": "direct",
+    "get_tours": "direct",
+    "get_album_tracks": "direct"
+  },
+  "aliases": {
+    "get_tours": "get_tours",
+    "get_albums": "get_albums",
+    "get_album_tracks": "get_album_tracks",
+    "get_posts": "get_posts",
+    "get_post": "get_post",
+    "get_categories": "get_categories",
+    "search": "search",
+    "get_videos": "get_videos",
+    "run": "get_videos"
+  }
+}

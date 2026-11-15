@@ -5,6 +5,9 @@ Extracts TOP50 ranking reports from m.cih-index.com
 The site serves reports as paginated images with signed URLs.
 Each report page is an image that requires authentication tokens.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 import json
@@ -14,6 +17,7 @@ import urllib.parse
 from typing import Any
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute CIH Index report access
@@ -59,7 +63,7 @@ async def get_report(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     url = f"https://m.cih-index.com/wy/report/{report_id}.html"
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             # Fetch the HTML page (this establishes cookies)
             async with session.get(url, headers={
                 "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
@@ -314,7 +318,7 @@ async def get_page_image(params: dict[str, Any], ctx: Any = None) -> dict[str, A
     
     try:
         # Use a single session for all requests (maintains cookies)
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             # First, fetch the HTML page to get metadata and establish cookies
             report_url = f"https://m.cih-index.com/wy/report/{report_id}.html"
             

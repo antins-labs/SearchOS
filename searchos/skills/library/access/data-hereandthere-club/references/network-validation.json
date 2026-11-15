@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "8620c8c5ed48bb31e037390d9b6b0ccfce120ce103413323f05db42af1f9e647",
+  "capabilities": {
+    "get_park_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_park_data\", \"park\": \"zion\", \"year\": 2023}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.581838+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://publiclandsdata.com/national-park-visitation/zion/2023",
+          "status": 200
+        }
+      ]
+    },
+    "list_parks": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_parks\", \"designation\": \"national-parks\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.582515+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://publiclandsdata.com/national-park-visitation/designation/national-parks",
+          "status": 200
+        }
+      ]
+    },
+    "get_summary": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_summary\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.582622+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://publiclandsdata.com/national-park-visitation",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

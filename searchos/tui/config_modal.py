@@ -86,7 +86,7 @@ def _settings():
 
 
 def _store():
-    from searchos.config.web_overlay import store
+    from searchos.config.settings_overlay import store
     return store
 
 
@@ -98,7 +98,7 @@ def _sync(reload: bool = False) -> None:
     into cards（same reason web's settings_store.update(reload=True) exists：
     plain replay can't un-mutate a field）.
     """
-    from searchos.config.web_overlay import apply_to_runtime, save_overlay
+    from searchos.config.settings_overlay import apply_to_runtime, save_overlay
     if reload:
         from searchos.config.settings import reload_settings_in_place
         reload_settings_in_place()
@@ -170,7 +170,7 @@ def _roles_menu(app) -> MenuBuilder:
 
 def _override_for(name: str):
     """Get-or-create the sparse override record for a base profile."""
-    from searchos.config.web_overlay import ProfileOverride
+    from searchos.config.settings_overlay import ProfileOverride
     st = _store()
     ov = st.models.profile_overrides.get(name)
     if ov is None:
@@ -180,7 +180,7 @@ def _override_for(name: str):
 
 
 def _prune_override(name: str) -> None:
-    from searchos.config.web_overlay import ProfileOverride
+    from searchos.config.settings_overlay import ProfileOverride
     st = _store()
     ov = st.models.profile_overrides.get(name)
     if ov is not None and all(
@@ -340,7 +340,7 @@ def _create_profile(draft: dict) -> str | None:
         return "model id 不能为空"
     if not ref or ref not in st.models.provider_connections:
         return "先选择一个 Provider 连接（没有就先去「Provider 连接」新建）"
-    from searchos.config.web_overlay import CustomProfile
+    from searchos.config.settings_overlay import CustomProfile
     conn = st.models.provider_connections[ref]
     st.models.custom_profiles[name] = CustomProfile(
         model=model, provider_ref=ref,
@@ -491,7 +491,7 @@ def _create_connection(draft: dict) -> str | None:
         return f"连接 {name!r} 已存在"
     if not _ENV_NAME_RE.fullmatch(key_env):
         return "key env 需形如 AN_ENV_VAR_NAME"
-    from searchos.config.web_overlay import ProviderConnection
+    from searchos.config.settings_overlay import ProviderConnection
     st.models.provider_connections[name] = ProviderConnection(
         protocol=draft.get("protocol") or "openai_compatible",
         api_base=(draft.get("api_base") or "").strip(),
@@ -565,7 +565,7 @@ def _model_section_items(app) -> list[Item]:
 # --------------------------------------------------------------------------
 
 def _set_search_backend(app, v: str) -> str | None:
-    from searchos.tools.simple_browser.search import SEARCH_PROVIDER_INFO
+    from searchos.tools.simple_browser.search_providers import SEARCH_PROVIDER_INFO
     name = None if v == "auto" else v
     if name in ("serper", "tavily"):
         env = SEARCH_PROVIDER_INFO[name]["api_key_env"]
@@ -576,8 +576,8 @@ def _set_search_backend(app, v: str) -> str | None:
     _sync()
     if not getattr(app, "_no_search", False):
         try:
-            from searchos.tools.simple_browser.search import build_search_provider
-            from searchos.tools.simple_browser.state import set_browser_provider
+            from searchos.tools.simple_browser.search_providers import build_search_provider
+            from searchos.tools.simple_browser.session import set_browser_provider
             set_browser_provider(build_search_provider(name or ""))
         except Exception as e:  # noqa: BLE001 — surface a bad key/backend inline
             return f"⚠ 已写入配置，但重建 provider 失败：{e}"
@@ -585,7 +585,7 @@ def _set_search_backend(app, v: str) -> str | None:
 
 
 def _search_section_items(app) -> list[Item]:
-    from searchos.tools.simple_browser.search import resolve_search_provider_name
+    from searchos.tools.simple_browser.search_providers import resolve_search_provider_name
 
     def _get_backend():
         return _store().models.search_provider or "auto"
@@ -605,13 +605,22 @@ def _search_section_items(app) -> list[Item]:
         return None
 
     def _get_proxy():
-        adv = _store().advanced
-        if adv.https_proxy is not None:
-            return adv.https_proxy or "（强制无代理）"
-        return os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY") or ""
+        from searchos.config.settings_overlay import ensure_network_overlay
+        ensure_network_overlay()
+        return _store().network.proxy_url
 
     def _set_proxy(v):
-        _store().advanced.https_proxy = v  # "" = 强制无代理（清空 env 变量）
+        from searchos.config.settings_overlay import set_network_proxy
+        try:
+            set_network_proxy(v)
+        except ValueError:
+            return "代理地址无效"
+        _sync()
+        return None
+
+    def _set_auto_route(v):
+        _get_proxy()
+        _store().network.auto_route = v
         _sync()
         return None
 
@@ -634,8 +643,12 @@ def _search_section_items(app) -> list[Item]:
              help="每次搜索取多少条结果（留空=恢复默认）"),
         Item("text", "代理 (HTTP/HTTPS)",
              get=_get_proxy, set=_set_proxy,
-             help="导出到 HTTP_PROXY/HTTPS_PROXY；留空提交=强制无代理",
+             help="全项目共用；留空使用直连",
              placeholder="http://127.0.0.1:7890"),
+        Item("bool", "自动选择可用线路",
+             get=lambda: (_get_proxy(), _store().network.auto_route)[1],
+             set=_set_auto_route,
+             help="连接失败时检查备用线路，自动记住可用选择"),
     ]
 
 

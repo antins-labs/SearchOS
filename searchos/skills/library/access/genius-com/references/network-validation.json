@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "39c90cedf489d735793c683c936928e2c7cb1559302e79d093fce6c71403a75a",
+  "capabilities": {
+    "get_script": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_script\", \"url\": \"https://genius.com/Game-of-thrones-winter-is-coming-script-annotated\", \"include_annotations\": true}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.651019+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://genius.com/[redacted]",
+          "status": 307
+        },
+        {
+          "url": "https://genius.com/[redacted]",
+          "status": 403
+        },
+        {
+          "url": "https://genius.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://genius.com/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eee73c1a9c41ce/t74qKsp40teVViqNz5rwrDVEkuD3D.g3kS2S8m22MkY-1792739230-1.2.1.1-la8.N2PizDiG92U.UXVh45DH5GLx3pU4ov34NngqIIYoKlIuE6HDIuoxh5UI6hLk",
+          "status": 200
+        },
+        {
+          "url": "blob:https://genius.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        },
+        {
+          "url": "https://librato-collector.genius.com/v1/metrics",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"breaking bad script\", \"include_annotations\": false}"
+      ],
+      "checked_at": "2026-10-23T07:18:59.602708+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://genius.com/search",
+          "status": 307
+        },
+        {
+          "url": "https://genius.com/search",
+          "status": 403
+        },
+        {
+          "url": "https://genius.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://genius.com/cdn-cgi/challenge-platform/h/b/fo/1216488872:1792735514:ymIzK-1dhRbVwXwsDnesPL1FFf0qTpRiY_Nc4OyMFLM/a4eef99e19dc67f1/1h49.TcGgcfbD.M8dw4bpSisZGFk8tGz614UEx7QtnQ-1792739983-1.2.1.1-f5usHYooKAkVIGOFpYPj9tvtQf6Hdzf2FocoE6QTmaCIgGAbnU4rex6SuCnpYSpv",
+          "status": 200
+        },
+        {
+          "url": "blob:https://genius.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        },
+        {
+          "url": "https://librato-collector.genius.com/v1/metrics",
+          "status": 200
+        }
+      ]
+    },
+    "get_metadata": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_metadata\", \"url\": \"https://genius.com/Game-of-thrones-winter-is-coming-script-annotated\", \"include_annotations\": false}"
+      ],
+      "checked_at": "2026-10-23T07:23:27.085261+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://genius.com/[redacted]",
+          "status": 307
+        },
+        {
+          "url": "https://genius.com/[redacted]",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

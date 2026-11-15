@@ -8,6 +8,9 @@ Fetches statistical bulletins from www.caac.gov.cn including:
 
 All content is delivered as PDF/Excel attachments with metadata.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -380,6 +383,7 @@ async def search_bulletins(params: dict[str, Any], session: aiohttp.ClientSessio
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for CAAC statistics bulletins skill
@@ -420,7 +424,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             'available_functions': ['list_bulletins', 'get_bulletin', 'download_attachment', 'search_bulletins']
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'list_bulletins':
             return await list_bulletins(params, session)
         

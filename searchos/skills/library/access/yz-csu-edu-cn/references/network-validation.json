@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "78767d289fba6cfb7cc208e8df389b9c769f8e4afd323eff3c6ea97108879116",
+  "capabilities": {
+    "list_categories": {
+      "status": "offline_business_passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_categories\", \"page\": 1, \"max_pages\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.425101+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/yz-csu-edu-cn/scripts/source.py",
+        "line": 427,
+        "end_line": 479,
+        "implementation": "execute branch",
+        "source_sha256": "91a1d4bcf440eb4b933634f7d5028022461f7458c7922e5fd8fe5f603e6aeaa0",
+        "implementation_sha256": "3afe815258cddb156b0544007255efd0b046f95e8dc07f7e87479985f6ba8a2d"
+      }
+    },
+    "list_articles": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_articles\", \"category\": \"master_notices\", \"page\": 1, \"max_pages\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.425983+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://yz.csu.edu.cn/sszs/tzgg.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_article": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://yz.csu.edu.cn/info/1009/1391.htm\", \"page\": 1, \"max_pages\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.426066+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://yz.csu.edu.cn/info/1009/1391.htm",
+          "status": 200
+        }
+      ]
+    },
+    "search": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search\", \"query\": \"复试\", \"max_pages\": 2, \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.426155+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://yz.csu.edu.cn/sszs/tzgg.htm",
+          "status": 200
+        },
+        {
+          "url": "https://yz.csu.edu.cn/sszs/tzgg/1.htm",
+          "status": 200
+        },
+        {
+          "url": "https://yz.csu.edu.cn/bszs/tzgg.htm",
+          "status": 200
+        },
+        {
+          "url": "https://yz.csu.edu.cn/bszs/tzgg/1.htm",
+          "status": 200
+        },
+        {
+          "url": "https://yz.csu.edu.cn/xxgk/sszsgs.htm",
+          "status": 200
+        },
+        {
+          "url": "https://yz.csu.edu.cn/xxgk/sszsgs/1.htm",
+          "status": 404
+        },
+        {
+          "url": "https://yz.csu.edu.cn/xxgk/bszsgs.htm",
+          "status": 200
+        },
+        {
+          "url": "https://yz.csu.edu.cn/xxgk/bszsgs/1.htm",
+          "status": 404
+        },
+        {
+          "url": "https://yz.csu.edu.cn/gatzs/tzgg.htm",
+          "status": 200
+        },
+        {
+          "url": "https://yz.csu.edu.cn/gatzs/tzgg/1.htm",
+          "status": 404
+        },
+        {
+          "url": "https://yz.csu.edu.cn/xzzq.htm",
+          "status": 200
+        },
+        {
+          "url": "https://yz.csu.edu.cn/xzzq/1.htm",
+          "status": 404
+        },
+        {
+          "url": "https://yz.csu.edu.cn/sszs/zsjz.htm",
+          "status": 200
+        },
+        {
+          "url": "https://yz.csu.edu.cn/sszs/zsjz/1.htm",
+          "status": 404
+        },
+        {
+          "url": "https://yz.csu.edu.cn/bszs/zsjz.htm",
+          "status": 404
+        }
+      ]
+    }
+  }
+}

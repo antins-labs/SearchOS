@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_category": "direct",
+    "get_by_id": "direct",
+    "get_params_flat": "direct",
+    "get_params": "direct"
+  },
+  "aliases": {
+    "get_params": "get_params",
+    "get_params_flat": "get_params_flat",
+    "get_by_id": "get_by_id",
+    "get_category": "get_category",
+    "run": "get_category"
+  }
+}

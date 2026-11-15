@@ -25,9 +25,13 @@ def create_qa_graph(model, *, middleware=()):
     from searchos.config.settings import settings
     from searchos.harness.middleware.context import DynamicTrimMiddleware
 
-    @tool("local_answer", return_direct=True)
+    @tool("local_answer", return_direct=True, parse_docstring=True)
     def local_answer(answer: str) -> str:
-        """提交最终 Markdown 答案，包括原文引用；调用后结束本轮问答。"""
+        """向用户提交本轮最终 Markdown 答案。提交后结束本轮本地资料问答，并直接显示正文。
+
+        Args:
+            answer: 非空 Markdown 正文。对需要来源的事实，使用已阅读原文返回的引用。
+        """
         if not answer.strip():
             raise ValueError("最终答案不能为空")
         return answer

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_movie": "direct"
+  },
+  "aliases": {
+    "get_movie": "get_movie",
+    "run": "get_movie"
+  }
+}

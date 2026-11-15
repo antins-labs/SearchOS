@@ -10,6 +10,9 @@ Functions:
 - get_filters: Get all available filter options
 - get_department_info: Get department/school information
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import asyncio
@@ -440,6 +443,7 @@ async def get_department_info(params: dict, session: aiohttp.ClientSession) -> d
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the Goldsmiths course finder skill.
@@ -460,7 +464,7 @@ async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
             'error': "Missing required parameter: function. Must be one of: search_courses, get_course_details, get_filters, get_department_info"
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'search_courses':
             return await search_courses(params, session)
         elif function == 'get_course_details':

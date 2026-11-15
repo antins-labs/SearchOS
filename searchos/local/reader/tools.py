@@ -809,17 +809,16 @@ def _render_original(
     return blocks
 
 
-@tool(response_format="content_and_artifact")
+@tool(response_format="content_and_artifact", parse_docstring=True)
 async def local_catalog(path: str = "", query: str = "") -> tuple[str, dict[str, object]]:
-    """Read or search local index files without opening original content.
+    """Browse the authorized local document index to find a source to read. Returns index text or
+    matching entries with stable local:// references for local_open and local_find.
 
     Args:
-        path: ``INDEX.md``, ``subindexes/<topic>.md`` or ``documents/<id>.md``.
-            Leave empty to read ``INDEX.md``. Paths returned as
-            ``catalog_path=...`` can be passed here directly.
-        query: Optional case-insensitive search across all index files, or only
-            within ``path`` when both are provided. Source links are returned
-            as stable ``ref_id=local://...`` values for ``local_open/find``.
+        path: INDEX.md (default), subindexes/<topic>.md or documents/<id>.md. Copy catalog_path
+            from a prior result.
+        query: Optional case-insensitive text. With no path it searches all index files. With a
+            path it searches only that index.
     """
 
     state = _state()
@@ -854,7 +853,7 @@ async def local_catalog(path: str = "", query: str = "") -> tuple[str, dict[str,
         )
 
 
-@tool(response_format="content_and_artifact")
+@tool(response_format="content_and_artifact", parse_docstring=True)
 async def local_open(
     ref_id: str,
     loc: int = 0,
@@ -862,20 +861,19 @@ async def local_open(
     view: str = "text",
     representation_id: str | None = None,
 ) -> tuple[str | list[dict[str, str]], dict[str, object]]:
-    """Open a bounded text window from a local section or indexed document.
+    """Read original content from an authorized local document. Returns a bounded text window with
+    its source reference and continuation offset, or an inline source image.
 
     Args:
-        ref_id: Compact versioned ``local://<document>/<source-ref>?v=...`` reference
-            returned by ``local_catalog`` or ``local_find``. The ``all`` source-ref
-            reads indexed sections together, useful for short documents. Compatible legacy
-            references remain readable. Use ``local_catalog`` for index paths.
-        loc: Zero-based character offset within the referenced section or document text.
-        max_chars: Maximum characters to return, from 1 to 20,000.
-        view: ``text`` returns a bounded transcript; ``original`` returns an
-            inline source image when the locator is a PDF page or image frame.
-        representation_id: Optional exact representation identifier returned
-            in source metadata, such as ``pdf:native_text``; ``primary`` keeps
-            the parser-selected representation for every requested location.
+        ref_id: Versioned local://<document>/<source-ref>?v=... reference from local_catalog or
+            local_find. The all source-ref reads indexed sections together, useful for short
+            documents. Legacy refs support text reads. Pass index paths to local_catalog.
+        loc: Zero-based character offset within this section or document. Use the returned Next
+            offset to continue.
+        max_chars: Text window length in characters, 1–20000.
+        view: text returns a transcript. original returns a PDF page or image frame and requires a
+            versioned reference.
+        representation_id: For text, use the exact identifier from source metadata, e.g. pdf:native_text, or primary for the parser-selected representation. Omit for original view.
     """
 
     try:
@@ -939,23 +937,21 @@ async def local_open(
         return f"Error: {exc}", {}
 
 
-@tool(response_format="content_and_artifact")
+@tool(response_format="content_and_artifact", parse_docstring=True)
 async def local_find(
     ref_id: str,
     pattern: str | list[str],
     representation_id: str | None = None,
 ) -> tuple[str, dict[str, object]]:
-    """Find exact case-insensitive text inside one local source segment.
+    """Find exact, case-insensitive substrings in one authorized local source. Returns matching
+    character offsets for local_open. Read the source at the returned location before citing it.
 
     Args:
-        ref_id: Compact versioned ``local://<document>/<source-ref>?v=...`` source
-            reference. Legacy references remain read-only during migration.
-        pattern: One short string, or a list of alternative strings using OR
-            semantics. Each result includes an exact character ``loc`` for a
-            follow-up ``local_open`` call.
-        representation_id: Optional exact representation identifier. Follow-up
-            opens preserve this identifier (or ``primary``) so character
-            offsets remain stable.
+        ref_id: Versioned local://<document>/<source-ref>?v=... reference. Legacy read references
+            are also accepted.
+        pattern: Short string or array of alternatives. A match may contain any one of them.
+        representation_id: Optional source representation, e.g. primary. Reuse the same selector in
+            local_open to preserve character offsets.
     """
 
     try:

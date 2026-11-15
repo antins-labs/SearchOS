@@ -81,6 +81,18 @@ def evidence_source_allowed(state: SearchState, node: EvidenceNode) -> bool:
     )
 
 
+def cell_source_error(state: SearchState, node: EvidenceNode) -> str:
+    """自动抽取与显式投影共用原文、摘录和当前来源范围校验。"""
+    from searchos.socm.evidence.provenance import evidence_source_urls
+
+    urls = evidence_source_urls(node)
+    if not urls or not node.source_excerpt.strip():
+        return "requires an original source and supporting excerpt"
+    if any(not evidence_source_allowed(state, node.model_copy(update={"source": url})) for url in urls):
+        return "has an original source outside the current source scope"
+    return ""
+
+
 def evidence_matches_cell(
     cmap: CoverageMap,
     node: EvidenceNode,

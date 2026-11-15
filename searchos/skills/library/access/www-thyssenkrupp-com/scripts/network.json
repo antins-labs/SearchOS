@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_page_content": "direct",
+    "get_founding_families": "direct",
+    "get_history_timeline": "direct"
+  },
+  "aliases": {
+    "get_history_timeline": "get_history_timeline",
+    "get_founding_families": "get_founding_families",
+    "get_page_content": "get_page_content",
+    "run": "get_page_content"
+  }
+}

@@ -3,12 +3,16 @@ CGCA Holiday List Access Skill
 Retrieves official government holiday lists from cgca.gov.in for the
 Principal Controller of Communication Accounts, Delhi.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any
 from playwright.async_api import async_playwright
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the CGCA holiday list retrieval.
@@ -55,14 +59,14 @@ async def get_holidays(params: dict[str, Any]) -> dict[str, Any]:
     
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
             try:
-                context = await browser.new_context(
+                context = await _skill_network.browser_new_context(browser, 
                     user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                     locale='en-IN',
                     timezone_id='Asia/Kolkata'
                 )
-                page = await context.new_page()
+                page = await _skill_network.browser_new_page(context)
                 page.set_default_timeout(120000)  # 2 minute timeout
                 
                 # Navigate with retry logic due to slow server

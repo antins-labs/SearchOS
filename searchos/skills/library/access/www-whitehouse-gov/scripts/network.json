@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "download_table": "proxy",
+    "get_intro_pdf": "direct",
+    "get_sections": "direct",
+    "get_tables_by_section": "direct",
+    "search_tables": "proxy",
+    "list_tables": "direct",
+    "get_table_info": "direct"
+  },
+  "aliases": {
+    "list_tables": "list_tables",
+    "get_table_info": "get_table_info",
+    "download_table": "download_table",
+    "search_tables": "search_tables",
+    "get_tables_by_section": "get_tables_by_section",
+    "get_sections": "get_sections",
+    "get_intro_pdf": "get_intro_pdf",
+    "run": "get_intro_pdf"
+  }
+}

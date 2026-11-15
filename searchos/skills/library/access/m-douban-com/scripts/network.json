@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_detail": "inherit",
+    "get_reviews": "inherit",
+    "get_full": "inherit",
+    "get_rating": "inherit",
+    "get_credits": "inherit"
+  },
+  "aliases": {
+    "get_detail": "get_detail",
+    "get_reviews": "get_reviews",
+    "get_full": "get_full",
+    "run": "get_full",
+    "get_credits": "get_credits",
+    "get_rating": "get_rating"
+  }
+}

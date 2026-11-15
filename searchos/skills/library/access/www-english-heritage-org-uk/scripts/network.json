@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_property_info": "direct",
+    "get_properties_list": "direct"
+  },
+  "aliases": {
+    "get_property_info": "get_property_info",
+    "get_properties_list": "get_properties_list",
+    "run": "get_properties_list"
+  }
+}

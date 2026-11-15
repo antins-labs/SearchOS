@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "373094f556d5c28eb87638fa0a326de980da6858f972c985361b4519036e8f04",
+  "capabilities": {
+    "get_committee_members": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_committee_members\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.001493+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.cppcc.gov.cn/zxww/2023/01/18/ARTI1674005617470226.shtml",
+          "status": 200
+        }
+      ]
+    },
+    "get_member_details": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_member_details\", \"member_name\": \"王沪宁\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.003090+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.cppcc.gov.cn/zxww/2023/01/18/ARTI1674005617470226.shtml",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

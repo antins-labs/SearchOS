@@ -30,6 +30,7 @@ test("tool detail keeps parameters and output as equal shrinkable columns", () =
     require(name) {
       if (name === "react-dom") return { createPortal: (element) => element };
       if (name === "@/hooks/useDialogFocus") return { __esModule: true, default: () => {} };
+      if (name === "@/lib/api") return { getFileContent: async () => ({ content: "" }) };
       return require(name);
     },
   }).default;

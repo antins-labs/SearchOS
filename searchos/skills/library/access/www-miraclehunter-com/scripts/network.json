@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_apparitions": "direct",
+    "get_messages": "direct",
+    "get_apparition": "direct",
+    "list_apparitions": "direct"
+  },
+  "aliases": {
+    "get_apparition": "get_apparition",
+    "list_apparitions": "list_apparitions",
+    "search_apparitions": "search_apparitions",
+    "get_messages": "get_messages",
+    "run": "get_messages"
+  }
+}

@@ -1,0 +1,251 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "52265c3396993fab314aaf00159ac1af862e83e33c550bfd1e5bef838831f0b0",
+  "capabilities": {
+    "get_visa_agreements": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_visa_agreements\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.915861+00:00",
+      "reason": "Failed to parse table data",
+      "source_responses": [
+        {
+          "url": "https://www.mfa.gov.cn/wjbzwfwpt/kzx/tzgg/202504/t20250414_11594222.html",
+          "status": 302
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/system/index_17321.shtml",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/style_20210817.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/responsive_20210817.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/jquery1.42.min_20210817.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/jquery.Slide.2.1.1_20210817.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/TouchSlide.1.1_20210817.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/addons_20210817.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/system/images/P020221031475449910271.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/cnlogo20251103.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/xglj/wjxmt/wx/202201/W020220303638571797212.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/xglj/wjxmt/wx/202201/W020220113391202404387.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/xglj/wjxmt/wx/202201/W020230630526553099631.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/img1_20210817.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/top_20210817.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/line_20210817.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/arrow1_20210817.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/xglj/wjxmt/wx/202201/W020220113391215388041.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/xglj/wjxmt/wx/202512/W020251201534152065887.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/xglj/wjxmt/wx/202406/W020240619370137943453.png",
+          "status": 200
+        }
+      ]
+    },
+    "search_by_country": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_by_country\", \"country\": \"阿尔巴尼亚\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.917596+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.mfa.gov.cn/wjbzwfwpt/kzx/tzgg/202504/t20250414_11594222.html",
+          "status": 302
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/system/index_17321.shtml",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/style_20210817.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/responsive_20210817.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/jquery.Slide.2.1.1_20210817.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/jquery1.42.min_20210817.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/addons_20210817.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/TouchSlide.1.1_20210817.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/cnlogo20251103.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/system/images/P020221031475449910271.jpg",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_passport_type": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_passport_type\", \"passport_type\": \"普通护照\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.917721+00:00",
+      "reason": "Failed to parse table data",
+      "source_responses": [
+        {
+          "url": "https://www.mfa.gov.cn/wjbzwfwpt/kzx/tzgg/202504/t20250414_11594222.html",
+          "status": 302
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/system/index_17321.shtml",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/style_20210817.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/responsive_20210817.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/system/images/P020221031475449910271.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/cnlogo20251103.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/addons_20210817.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/TouchSlide.1.1_20210817.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/xglj/wjxmt/wx/202201/W020220303638571797212.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/jquery1.42.min_20210817.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/jquery.Slide.2.1.1_20210817.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/xglj/wjxmt/wx/202201/W020220113391202404387.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/xglj/wjxmt/wx/202201/W020230630526553099631.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/xglj/wjxmt/wx/202201/W020220113391211840050.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/xglj/wjxmt/wx/202201/W020220113391215388041.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/xglj/wjxmt/wx/202512/W020251201534152065887.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/xglj/wjxmt/wx/202406/W020240624562906024980.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/img1_20210817.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/arrow1_20210817.png",
+          "status": 200
+        },
+        {
+          "url": "https://www.mfa.gov.cn/web/images/top_20210817.png",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

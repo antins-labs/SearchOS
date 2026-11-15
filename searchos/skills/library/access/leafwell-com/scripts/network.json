@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_by_country": "direct",
+    "get_by_url": "direct",
+    "search": "direct"
+  },
+  "aliases": {
+    "get_by_country": "get_by_country",
+    "get_by_url": "get_by_url",
+    "search": "search",
+    "run": "search"
+  }
+}

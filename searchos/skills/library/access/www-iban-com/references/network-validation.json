@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "b4abbc97ae95107e010b3c27489cd06205ee515c60b9d9ddc062be50045e5a27",
+  "capabilities": {
+    "get_country_codes": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_country_codes\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.119401+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.iban.com/country-codes",
+          "status": 200
+        }
+      ]
+    },
+    "get_iban_structure": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_iban_structure\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.120017+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.iban.com/structure",
+          "status": 200
+        }
+      ]
+    },
+    "validate_iban": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"validate_iban\", \"iban\": \"GB82WEST12345698765432\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.120264+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

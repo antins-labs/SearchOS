@@ -4,6 +4,9 @@ AWS Open Data Registry Access Skill
 Fetches structured dataset metadata from registry.opendata.aws including
 description, resources (S3 buckets, ARNs), and related information.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import aiohttp
 import json
@@ -161,7 +164,7 @@ async def get_dataset(params: dict[str, Any]) -> dict[str, Any]:
     
     url = normalize_dataset_path(dataset_path)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         data = await fetch_dataset(session, url)
     
     if 'error' in data:
@@ -203,7 +206,7 @@ async def list_datasets(params: dict[str, Any]) -> dict[str, Any]:
     """List datasets from the RSS feed"""
     limit = params.get('limit', 50)
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             async with session.get(
                 'https://registry.opendata.aws/rss.xml',
@@ -252,6 +255,7 @@ async def list_datasets(params: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute the AWS Open Data Registry skill.

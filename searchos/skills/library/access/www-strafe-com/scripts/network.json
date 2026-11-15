@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_awards_article": "direct",
+    "get_news_list": "direct",
+    "get_article": "direct"
+  },
+  "aliases": {
+    "get_news_list": "get_news_list",
+    "get_article": "get_article",
+    "get_awards_article": "get_awards_article",
+    "run": "get_awards_article"
+  }
+}

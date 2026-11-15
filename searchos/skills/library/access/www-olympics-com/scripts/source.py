@@ -11,6 +11,9 @@ The skill can:
 
 Data is extracted from the __NEXT_DATA__ JSON embedded in the page.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import json
 import re
@@ -25,7 +28,7 @@ BASE_URL = "https://www.olympics.com"
 async def create_browser() -> tuple[Browser, BrowserContext]:
     """Create and configure a browser instance."""
     p = await async_playwright().start()
-    browser = await p.chromium.launch(
+    browser = await _skill_network.browser_launch(p.chromium, 
         headless=True,
         args=[
             '--disable-http2',
@@ -34,7 +37,7 @@ async def create_browser() -> tuple[Browser, BrowserContext]:
             '--no-sandbox'
         ]
     )
-    context = await browser.new_context(
+    context = await _skill_network.browser_new_context(browser, 
         user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
         viewport={'width': 1280, 'height': 720}
     )
@@ -299,15 +302,15 @@ async def get_athlete_profile(athlete_slug: str, language: str = 'en', browser: 
     try:
         if own_browser:
             p = await async_playwright().start()
-            browser = await p.chromium.launch(
+            browser = await _skill_network.browser_launch(p.chromium, 
                 headless=True,
                 args=['--disable-http2', '--no-sandbox']
             )
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15'
             )
         
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         
         # Fetch page
         html = await fetch_page(page, url)
@@ -406,15 +409,15 @@ async def search_athletes(query: str, language: str = 'en', limit: int = 10, bro
     try:
         if own_browser:
             p = await async_playwright().start()
-            browser = await p.chromium.launch(
+            browser = await _skill_network.browser_launch(p.chromium, 
                 headless=True,
                 args=['--disable-http2', '--no-sandbox']
             )
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version=17.0 Safari/605.1.15'
             )
         
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         
         # Try to access the athletes listing page
         html = await fetch_page(page, search_url, timeout=30000)
@@ -523,15 +526,15 @@ async def list_athletes_by_country(country_code: str, language: str = 'en', limi
     try:
         if own_browser:
             p = await async_playwright().start()
-            browser = await p.chromium.launch(
+            browser = await _skill_network.browser_launch(p.chromium, 
                 headless=True,
                 args=['--disable-http2', '--no-sandbox']
             )
-            context = await browser.new_context(
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version=17.0 Safari/605.1.15'
             )
         
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         html = await fetch_page(page, url, timeout=30000)
         
         if html:
@@ -603,6 +606,7 @@ async def list_athletes_by_country(country_code: str, language: str = 'en', limi
                 await p.stop()
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main executor function for the Olympics.com athlete skill.

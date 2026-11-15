@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search_organizations": "direct",
+    "list_organizations": "direct",
+    "get_organization": "direct",
+    "get_countries": "direct"
+  },
+  "aliases": {
+    "get_organization": "get_organization",
+    "search_organizations": "search_organizations",
+    "list_organizations": "list_organizations",
+    "get_countries": "get_countries",
+    "run": "get_countries"
+  }
+}

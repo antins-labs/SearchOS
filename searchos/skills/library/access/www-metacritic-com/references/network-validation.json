@@ -1,0 +1,279 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "72859327c7111afe29402f0740e6a53577a410528c11d92531efc162586d2c01",
+  "capabilities": {
+    "get_tv_show_info": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_tv_show_info\", \"show_slug\": \"adolescence\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.896178+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.metacritic.com/tv/adolescence/",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/entry.DJKmaSq6.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/SiteFooter.B5w4M1uG.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/components.DE56lcnb.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/search.8XQtzNhb.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/SearchProductMeta.DlU8yf_v.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/GlobalTagList.BkYm2ifH.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/GlobalCmsImage.DZ9pK17b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/GamePlatformLogo.DWhJ2mS9.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/TvSeasonSelector.-rzC9qM8.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/GlobalHeaderMenu.BzqVcN3k.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/ReviewsContainer.BUWWAdhw.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/ReviewCard.CxlqgUrT.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/ReviewReportModal.B9eR7xD-.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/useProductDetailsPage.hBzw-3TY.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/ProductionAwardSummary.DTOREKSf.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/ProductScoreCard.Biu5qV2g.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/productDetails.BxEFLmwM.css",
+          "status": 200
+        },
+        {
+          "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/fonts/ProximaNova/Regular.woff2",
+          "status": 200
+        }
+      ]
+    },
+    "get_critic_reviews": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_critic_reviews\", \"show_slug\": \"adolescence\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.899509+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.metacritic.com/tv/adolescence/critic-reviews/",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.cookielaw.org/scripttemplates/otSDKStub.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/entry.DJKmaSq6.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/components.DE56lcnb.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/ReviewsContainer.BUWWAdhw.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/SiteFooter.B5w4M1uG.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/ScoreSentiment.SxCnqdON.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/product-reviews.BZU6Y3ZK.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/ReviewCard.CxlqgUrT.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/ReviewReportModal.B9eR7xD-.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/search.8XQtzNhb.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/GlobalHeaderMenu.BzqVcN3k.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/img/resize/[redacted]/catalog/provider/2/2/2-eb7c31be2d705d4201757a9c6b0467db.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/GlobalCmsImage.DZ9pK17b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/SearchProductMeta.DlU8yf_v.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/GlobalTagList.BkYm2ifH.css",
+          "status": 200
+        },
+        {
+          "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+          "status": 200
+        }
+      ]
+    },
+    "get_show_details": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_show_details\", \"show_slug\": \"adolescence\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:33.899917+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.metacritic.com/tv/adolescence/",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/BGIsQgp1.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/DhKTayrZ.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/C6BkBdxU.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/D9ws_NMK.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/GlobalCmsImage.DZ9pK17b.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/B8RSJRtZ2.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/SearchProductMeta.DlU8yf_v.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/useProductDetailsPage.hBzw-3TY.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/J-7f8Etb.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/fonts/ProximaNova/Regular.woff2",
+          "status": 200
+        },
+        {
+          "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+          "status": 200
+        },
+        {
+          "url": "https://services.fandom.com/icbm/api/config",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.cookielaw.org/scripttemplates/otSDKStub.js",
+          "status": 200
+        },
+        {
+          "url": "https://seg.ad.gt/api/v1/s/158",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/TvSeasonSelector.-rzC9qM8.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/entry.DJKmaSq6.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/ProductionAwardSummary.DTOREKSf.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/GlobalTagList.BkYm2ifH.css",
+          "status": 200
+        },
+        {
+          "url": "https://www.metacritic.com/a/neutron/nodev4/_nuxt4/ReviewReportModal.B9eR7xD-.css",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

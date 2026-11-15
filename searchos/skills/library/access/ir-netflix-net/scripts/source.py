@@ -6,6 +6,9 @@ Uses the Q4 platform API endpoints for structured data retrieval.
 
 Note: This site uses Cloudflare protection, so Playwright is used for reliable access.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import json
@@ -77,10 +80,10 @@ def _normalize_event(event: dict) -> dict:
 async def _fetch_json(url: str) -> dict:
     """Fetch JSON data using Playwright to bypass Cloudflare."""
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
         try:
-            context = await browser.new_context()
-            page = await context.new_page()
+            context = await _skill_network.browser_new_context(browser)
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate to the API endpoint
             await page.goto(url, wait_until='networkidle', timeout=30000)
@@ -288,6 +291,7 @@ async def search_filings(query: Optional[str] = None, year: Optional[int] = None
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute the Netflix IR skill.

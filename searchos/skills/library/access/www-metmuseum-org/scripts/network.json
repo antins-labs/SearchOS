@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "search": "direct",
+    "get_object": "direct",
+    "departments": "direct"
+  },
+  "aliases": {
+    "get_object": "get_object",
+    "search": "search",
+    "departments": "departments",
+    "run": "departments"
+  }
+}

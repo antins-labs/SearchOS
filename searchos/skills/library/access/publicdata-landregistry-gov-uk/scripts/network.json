@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "list_regions": "direct",
+    "get_timeseries": "direct",
+    "get_data": "direct",
+    "get_metadata": "direct"
+  },
+  "aliases": {
+    "get_data": "get_data",
+    "list_regions": "list_regions",
+    "get_metadata": "get_metadata",
+    "get_timeseries": "get_timeseries",
+    "run": "get_timeseries"
+  }
+}

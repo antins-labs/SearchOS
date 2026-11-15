@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_statistical_releases": "direct",
+    "search_indicators": "direct",
+    "get_release_detail": "direct",
+    "get_key_indicators": "direct",
+    "list_categories": "direct"
+  },
+  "aliases": {
+    "list_categories": "list_categories",
+    "get_key_indicators": "get_key_indicators",
+    "get_statistical_releases": "get_statistical_releases",
+    "get_release_detail": "get_release_detail",
+    "search_indicators": "search_indicators",
+    "run": "search_indicators"
+  }
+}

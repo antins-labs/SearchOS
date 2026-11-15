@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "9b194268d6c30a56a1540a0bad7b609328e05d55a25ae79a4af5cde233959651",
+  "capabilities": {
+    "fetch_award_ceremony": {
+      "status": "passed",
+      "mode": "proxy",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_award_ceremony\", \"url\": \"https://www.grammy.com/awards/58th-annual-grammy-awards/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.090751+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.grammy.com/awards/58th-annual-grammy-awards/",
+          "status": 200
+        }
+      ]
+    },
+    "fetch_category_details": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"fetch_category_details\", \"url\": \"https://www.grammy.com/awards/categories/album-of-the-year/2016/\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.092101+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.grammy.com/awards/categories/album-of-the-year/2016/",
+          "status": 200
+        }
+      ]
+    },
+    "search_awards_by_year": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_awards_by_year\", \"year\": 2020}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.092472+00:00",
+      "reason": "Could not find Grammy Awards for year 2020",
+      "source_responses": [
+        {
+          "url": "https://www.grammy.com/awards/62nd-annual-grammy-awards/",
+          "status": 404
+        }
+      ]
+    }
+  }
+}

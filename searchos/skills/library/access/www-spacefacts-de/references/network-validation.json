@@ -1,0 +1,192 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "7bab5656fc2e0b1a449ed440038937da073bb4e1cab0aa90dcf4fc0ec2ac10a3",
+  "capabilities": {
+    "list_available_pages": {
+      "status": "offline_business_passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_available_pages\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.262042+00:00",
+      "reason": "源码确认无需联网，纯业务调用返回有效非空结构",
+      "source_responses": [],
+      "source_basis": {
+        "file": "searchos/skills/library/access/www-spacefacts-de/scripts/source.py",
+        "line": 429,
+        "end_line": 436,
+        "implementation": "execute branch",
+        "source_sha256": "06f99f3fdf956ec5dab0efc6aa2d28ac45f7d4b00a5d4663a702e26d860a46a0",
+        "implementation_sha256": "db73ba5bc3e105eebcbd74d220200764852dab79bba7a774021ba2d8c5c1f39e"
+      }
+    },
+    "get_iss_commanders": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_iss_commanders\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.263260+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "http://www.spacefacts.de/english/e_iss-cdr.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_time_in_space": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_time_in_space\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.263451+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.spacefacts.de/english/e_tis.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_active_astronauts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_active_astronauts\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.263530+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.spacefacts.de/english/e_active.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_by_first_mission": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_by_first_mission\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.263612+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.spacefacts.de/english/e_first.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_deceased": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_deceased\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.263692+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.spacefacts.de/english/e_death.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_international": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_international\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.263768+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.spacefacts.de/english/e_inter.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_taikonauts": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_taikonauts\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.263950+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.spacefacts.de/english/e_taikonaut.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_relocations": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_relocations\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.264010+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.spacefacts.de/english/e_relocations.htm",
+          "status": 200
+        }
+      ]
+    },
+    "get_all_alphabetical": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_alphabetical\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.264365+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "http://www.spacefacts.de/english/e_az.htm",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

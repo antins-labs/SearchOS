@@ -5,6 +5,9 @@ This skill scrapes structured academic program data from HKUST's Program & Cours
 It extracts comprehensive program information including requirements, fees, deadlines,
 curriculum, and course details.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import re
 from typing import Any
@@ -12,6 +15,7 @@ from bs4 import BeautifulSoup
 import aiohttp
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute the HKUST program catalog scraper.
@@ -125,7 +129,7 @@ async def get_program(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
+        async with _skill_network.aiohttp_session() as session:
             status, html = await fetch_page(session, url, headers)
             
             if status != 200:

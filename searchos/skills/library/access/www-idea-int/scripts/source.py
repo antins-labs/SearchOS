@@ -15,6 +15,9 @@ Key pages:
 - Data Explorer: https://www.idea.int/data-tools/tools/special-voting-arrangements/data-explorer
 - Case Decisions: https://www.idea.int/data-tools/tools/special-voting-arrangements/case-decision-database
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -343,6 +346,7 @@ async def search_sva_content(session: aiohttp.ClientSession, query: str) -> dict
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Main entry point for the IDEA SVA data access skill.
@@ -356,7 +360,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     function = params.get("function", "get_overview")
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         try:
             if function == "get_overview":
                 result = await get_overview_data(session)

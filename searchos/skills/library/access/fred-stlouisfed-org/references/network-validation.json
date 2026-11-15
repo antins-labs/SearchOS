@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "70b0c561a7659a58823ed45f6e097050e94416c30de9edf2f0fb582b4ed55dd2",
+  "capabilities": {
+    "get_series_data": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_series_data\", \"series_id\": \"GFDEBTN\", \"start_date\": \"2020-01-01\", \"end_date\": \"2023-12-31\", \"include_observations\": true, \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.623709+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+          "status": 200
+        }
+      ]
+    },
+    "get_series_metadata": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_series_metadata\", \"series_id\": \"GFDEBTN\", \"include_observations\": true, \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.624783+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://fred.stlouisfed.org/graph/api/series/",
+          "status": 200
+        },
+        {
+          "url": "https://fred.stlouisfed.org/series/GFDEBTN",
+          "status": 200
+        }
+      ]
+    },
+    "get_series_full": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_series_full\", \"series_id\": \"UNRATE\", \"start_date\": \"2023-01-01\", \"include_observations\": false, \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.624848+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+          "status": 200
+        },
+        {
+          "url": "https://fred.stlouisfed.org/graph/api/series/",
+          "status": 200
+        },
+        {
+          "url": "https://fred.stlouisfed.org/series/UNRATE",
+          "status": 200
+        }
+      ]
+    },
+    "search_series": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_series\", \"query\": \"federal debt\", \"limit\": 3, \"include_observations\": true, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.625189+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://fred.stlouisfed.org/searchresults",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

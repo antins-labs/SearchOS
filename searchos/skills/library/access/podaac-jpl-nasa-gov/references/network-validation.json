@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "17df2244c576ae91f4bef3dffe762e15c4889fd6ff88287bc0fa9d9d63b009d9",
+  "capabilities": {
+    "get_dataset": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_dataset\", \"url\": \"https://podaac.jpl.nasa.gov/dataset/NASA_SSH_GMSL_INDICATOR\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.841068+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    },
+    "search_datasets": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_datasets\", \"query\": \"sea level altimetry\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:19:00.731367+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://cmr.earthdata.nasa.gov/search/collections.umm_json",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "917202eaf416f3d36298efeb7e127fa884e53166a9893c972dd4de66fbf9ae64",
+  "capabilities": {
+    "get_global500_ranking": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_global500_ranking\", \"year\": \"latest\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.621476+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://fortune.com/ranking/global500/",
+          "status": 200
+        }
+      ]
+    },
+    "get_company_profile": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_company_profile\", \"company\": \"walmart\", \"year\": \"latest\", \"limit\": 3, \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.622327+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://fortune.com/company/walmart/",
+          "status": 200
+        }
+      ]
+    },
+    "search_companies": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_companies\", \"query\": \"tech\", \"limit\": 3, \"year\": \"latest\", \"offset\": 0}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.622427+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://fortune.com/ranking/global500/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -9,6 +9,9 @@ Functions:
 - search_billionaire: Search for a billionaire by name across all years
 - get_years: Get list of available years
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 from typing import Any
@@ -28,7 +31,7 @@ HEADERS = {
 
 async def _fetch_page() -> str:
     """Fetch the Wikipedia page HTML content."""
-    async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+    async with _skill_network.httpx_async_client(timeout=60.0, follow_redirects=True) as client:
         response = await client.get(BASE_URL, headers=HEADERS)
         response.raise_for_status()
         return response.text
@@ -295,6 +298,7 @@ async def get_years(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
         return {'error': f'Failed to fetch years: {str(e)}'}
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the skill.

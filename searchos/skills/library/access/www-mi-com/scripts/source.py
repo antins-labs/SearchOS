@@ -6,6 +6,9 @@ Supports:
 - Hong Kong specs pages (direct HTML parsing)
 - Mainland China product pages (requires JavaScript rendering)
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -115,11 +118,11 @@ async def _parse_mainland_page_with_playwright(url: str) -> dict[str, Any]:
         }
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(
+        browser = await _skill_network.browser_launch(p.chromium, headless=True)
+        context = await _skill_network.browser_new_context(browser, 
             user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
         )
-        page = await context.new_page()
+        page = await _skill_network.browser_new_page(context)
         
         try:
             await page.goto(url, wait_until='domcontentloaded', timeout=60000)
@@ -255,7 +258,7 @@ async def _fetch_page(url: str, use_playwright: bool = False) -> dict[str, Any]:
         }
         
         try:
-            async with aiohttp.ClientSession(headers=headers) as session:
+            async with _skill_network.aiohttp_session(headers=headers) as session:
                 async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as resp:
                     if resp.status != 200:
                         return {
@@ -284,7 +287,7 @@ async def _fetch_page(url: str, use_playwright: bool = False) -> dict[str, Any]:
     }
     
     try:
-        async with aiohttp.ClientSession(headers=headers) as session:
+        async with _skill_network.aiohttp_session(headers=headers) as session:
             async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as resp:
                 if resp.status != 200:
                     return {
@@ -319,6 +322,7 @@ async def _fetch_page(url: str, use_playwright: bool = False) -> dict[str, Any]:
         }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Execute Mi.com product spec extraction.

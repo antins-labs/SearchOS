@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "440d9d761aeeaf08d1f496e0df3a1c59b44050f39fa28b23302a1166579b4d7e",
+  "capabilities": {
+    "get_article": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://publications.iupac.org/ci/2012/3404/iw1_periodic_table.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.845370+00:00",
+      "reason": "403, message='Forbidden', url='https://publications.iupac.org/ci/2012/3404/iw1_periodic_table.html'",
+      "source_responses": [
+        {
+          "url": "https://publications.iupac.org/ci/2012/3404/iw1_periodic_table.html",
+          "status": 403
+        }
+      ]
+    },
+    "get_issue_toc": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_issue_toc\", \"volume\": \"34\", \"number\": \"4\", \"url\": \"https://publications.iupac.org/ci/2012/3404/iw1_periodic_table.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.846128+00:00",
+      "reason": "403, message='Forbidden', url='https://publications.iupac.org/ci/2012/3404/iw1_periodic_table.html'",
+      "source_responses": [
+        {
+          "url": "https://publications.iupac.org/ci/2012/3404/iw1_periodic_table.html",
+          "status": 403
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"query\": \"periodic\", \"volume\": \"34\", \"number\": \"4\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.846210+00:00",
+      "reason": "403, message='Forbidden', url='https://publications.iupac.org/ci/2012/3404/index.html'",
+      "source_responses": [
+        {
+          "url": "https://publications.iupac.org/ci/2012/3404/index.html",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

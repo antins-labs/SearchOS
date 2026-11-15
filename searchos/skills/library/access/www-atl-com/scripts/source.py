@@ -4,6 +4,9 @@ ATL (Hartsfield-Jackson Atlanta International Airport) Operating Statistics Acce
 Provides access to monthly airport traffic reports including passenger counts,
 aircraft operations, cargo data, and carrier-specific breakdowns.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import re
@@ -23,11 +26,11 @@ async def fetch_page_with_browser(url: str) -> str:
         from playwright.async_api import async_playwright
         
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context(
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             await page.goto(url, wait_until='domcontentloaded', timeout=30000)
             await page.wait_for_timeout(3000)
@@ -46,11 +49,11 @@ async def download_pdf_with_browser(pdf_url: str) -> Optional[bytes]:
         from playwright.async_api import async_playwright
         
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context(
+            browser = await _skill_network.browser_launch(p.chromium, headless=True)
+            context = await _skill_network.browser_new_context(browser, 
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             )
-            page = await context.new_page()
+            page = await _skill_network.browser_new_page(context)
             
             # Navigate to statistics page first to set cookies
             await page.goto(STATISTICS_URL, wait_until='domcontentloaded', timeout=30000)
@@ -435,6 +438,7 @@ async def get_page_content(params: dict[str, Any], ctx: Any) -> dict[str, Any]:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any) -> dict[str, Any]:
     """Main entry point for the ATL statistics skill."""
     function = params.get('function', 'list_statistics')

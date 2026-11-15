@@ -5,6 +5,9 @@ This skill extracts prices, opening times, and other details from English Herita
 It uses the property API when available (from prices-and-opening-times pages) and falls back
 to HTML extraction for main property pages.
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -350,7 +353,7 @@ async def get_property_info(params: dict[str, Any], ctx: Any = None) -> dict[str
             'error': 'Either url or property_slug parameter is required'
         }
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         return await get_property_info_single(session, url)
 
 
@@ -371,7 +374,7 @@ async def get_properties_list(params: dict[str, Any], ctx: Any = None) -> dict[s
     
     results = []
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         tasks = []
         for prop in properties:
             url_or_slug = prop.get('url') or prop.get('slug')
@@ -402,6 +405,7 @@ async def get_properties_list(params: dict[str, Any], ctx: Any = None) -> dict[s
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx: Any = None) -> dict[str, Any]:
     """
     Main entry point for the English Heritage property information skill.

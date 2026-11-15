@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d240c2609b5c1d86b910c2d172f81a3aaad5c04599e7cfd3a3ff330d6f301b14",
+  "capabilities": {
+    "parse_book": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"parse_book\", \"url\": \"https://www.goodreads.com/book/show/1\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.073516+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.goodreads.com/book/show/1",
+          "status": 200
+        }
+      ]
+    },
+    "parse_author": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"parse_author\", \"url\": \"https://www.goodreads.com/author/show/1077326.J_K_Rowling\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.074684+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.goodreads.com/author/show/1077326.J_K_Rowling",
+          "status": 200
+        }
+      ]
+    },
+    "parse_choice_awards": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"parse_choice_awards\", \"url\": \"https://www.goodreads.com/choiceawards/best-books-2024\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.074884+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.goodreads.com/choiceawards/best-books-2024",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "399133ae78b64b220bef3a8e592b7f5f819bb7acb9f3f679347884353e3e761c",
+  "capabilities": {
+    "list_months": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_months\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.108374+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights",
+          "status": 200
+        }
+      ]
+    },
+    "get_highlights": {
+      "status": "passed",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_highlights\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.110717+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.hkex.com.hk/Market-Data/Statistics/Consolidated-Reports/HKEX-Monthly-Market-Highlights",
+          "status": 200
+        }
+      ]
+    },
+    "get_raw_tables": {
+      "status": "timed_out",
+      "mode": "inherit",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_raw_tables\", \"month\": \"April 2026\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.110896+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": []
+    }
+  }
+}

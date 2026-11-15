@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "5291c533429337e5834b3669ef4e0ea12d7f0c3cc43cc4f84fceaad07c83711e",
+  "capabilities": {
+    "search_courses": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_courses\", \"school\": \"Media, Communications and Cultural Studies\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.072048+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.gold.ac.uk/course-finder/results/",
+          "status": 200
+        }
+      ]
+    },
+    "get_course_details": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_course_details\", \"url\": \"https://www.gold.ac.uk/ug/ba-media-communications/\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.072957+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.gold.ac.uk/ug/ba-media-communications/",
+          "status": 200
+        }
+      ]
+    },
+    "get_filters": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_filters\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.073115+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.gold.ac.uk/course-finder/results/",
+          "status": 200
+        }
+      ]
+    },
+    "get_department_info": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_department_info\", \"slug\": \"media-communications\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.073316+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.gold.ac.uk/media-communications/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

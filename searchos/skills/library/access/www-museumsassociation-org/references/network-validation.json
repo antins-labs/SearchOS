@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "c160372c8bad9091d02daa4d8db6e2bd2fa0efa95a959d6a8aef68440cfca491",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.museumsassociation.org/museums-journal/news/2022/12/caro-howell-appointed-director-general-of-imperial-war-museums/\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.191052+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.museumsassociation.org/museums-journal/news/2022/12/[redacted]/",
+          "status": 200
+        }
+      ]
+    },
+    "get_news_listing": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_news_listing\", \"page\": 1}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.193480+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.museumsassociation.org/museums-journal/news/",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

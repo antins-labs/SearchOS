@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "d66705ead10d2cab8335845eb5f51f353b66d68d14e013611eabe93a551389fb",
+  "capabilities": {
+    "get_article": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_article\", \"url\": \"https://www.tradingkey.com/analysis/stocks/us-stocks/261975340-mu-q3-earnings-preview-june-2026-tradingkey\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.375682+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.tradingkey.com/analysis/stocks/us-stocks/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "search_articles": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_articles\", \"category\": \"stocks\", \"query\": \"nvidia\", \"limit\": 3}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.376638+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.tradingkey.com/analysis/stocks",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

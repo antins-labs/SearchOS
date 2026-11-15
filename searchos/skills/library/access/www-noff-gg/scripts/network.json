@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_card": "direct"
+  },
+  "aliases": {
+    "get_card": "get_card",
+    "run": "get_card"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "aa7edc5c502e6c4167999536e391f4adf8f27f6b06ce27bf8d46e8025cc960e5",
+  "capabilities": {
+    "get_athlete_bio": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_athlete_bio\", \"competitorid\": \"226193\", \"sectorcode\": \"fs\", \"type\": \"result\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.051384+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.fis-ski.com/DB/general/athlete-biography.html",
+          "status": 200
+        }
+      ]
+    },
+    "get_race_results": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_race_results\", \"raceid\": \"19025\", \"sectorcode\": \"FS\", \"type\": \"result\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:37.052608+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.fis-ski.com/DB/general/results.html",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

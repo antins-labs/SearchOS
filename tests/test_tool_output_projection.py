@@ -1,4 +1,4 @@
-"""工具保留可操作来源与原文，宿主审计字段不进入模型上下文。"""
+"""工具保留可操作来源与原文，执行层审计字段不进入模型上下文。"""
 
 import asyncio
 import json
@@ -87,7 +87,8 @@ async def test_load_skill_only_exposes_instructions_and_invocation(monkeypatch):
         "name": "sample", "body": "Use run.py to retrieve the source.",
         "category": "access", "description": "Find a source", "compatibility": "Python 3",
         "resources": ["run.py"], "resources_truncated": False,
-        "execution": "cli", "invocation": "exec(skill=name, argv=['python', 'run.py'])",
+        "execution": "cli", "invocation": "Use command_prefix in exec(argv=...)",
+        "command_prefix": ["searchanything", "run", "sample", "--"],
         "package_hash": "a" * 64, "directory": "/internal/packages/" + "a" * 64,
         "work_directory": "/internal/work/task", "availability": "enabled",
         "internal_debug": "host only",
@@ -100,6 +101,7 @@ async def test_load_skill_only_exposes_instructions_and_invocation(monkeypatch):
     assert result["body"] == package["body"]
     assert result["resources"] == package["resources"]
     assert result["invocation"] == package["invocation"]
+    assert result["command_prefix"] == package["command_prefix"]
     assert package == before
 
 
@@ -122,7 +124,7 @@ def test_execution_receipt_keeps_controls_in_artifact_and_preserves_diagnostics(
 
 
 def test_original_source_json_keeps_user_relevant_meta_and_sha_fields():
-    from searchos.tools.simple_browser.result_pages import format_skill_result
+    from searchos.tools.simple_browser.pages import format_skill_result
 
     source = {"meta": {"release": "2026"}, "files": [{"name": "model.bin", "sha256": "a" * 64}]}
     assert json.loads(format_skill_result(source)) == source
@@ -130,7 +132,7 @@ def test_original_source_json_keeps_user_relevant_meta_and_sha_fields():
 
 @pytest.mark.asyncio
 async def test_local_find_keeps_navigation_once_and_original_metadata_in_artifact(monkeypatch):
-    from searchos.harness.middleware.extraction.local_middleware import LocalEvidenceMiddleware
+    from searchos.harness.middleware.extraction.core.sources.local import extract_local_source_metadata
     from searchos.local.reader import tools
 
     ref = "local://document/s1?v=" + "a" * 24
@@ -160,7 +162,7 @@ async def test_local_find_keeps_navigation_once_and_original_metadata_in_artifac
     })
     assert opened.content.split("\n\n", 1)[1] == text[4:24]
     assert opened.artifact["local_source_metadata"]["text_range"] == {"start": 4, "end": 24}
-    fallback = LocalEvidenceMiddleware._extract_local_source_metadata(opened.content, ref)
+    fallback = extract_local_source_metadata(opened.content, ref)
     assert fallback["ref_id"] == ref
     assert fallback["text_range"] == {"start": 4, "end": 24}
     assert fallback["representation_id"] == "pdf:native_text"
@@ -176,7 +178,7 @@ def test_task_report_keeps_facts_once_and_preserves_unverified_worker_brief():
     _ground_search_report(report, answer_evidence(state))
     assert report["grounded_findings"][0]["finding"] == state.evidence_graph.nodes[0].finding
     assert report["grounded_findings"][0]["citation"] == "evidence:fact"
-    assert state.evidence_graph.nodes[0].finding not in report["last_message"]
+    assert "last_message" not in report
     assert report["agent_report"] == {
         "verified": False, "text": "A lead that still needs investigation.",
     }
@@ -184,7 +186,7 @@ def test_task_report_keeps_facts_once_and_preserves_unverified_worker_brief():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("mode", ["web", "hybrid"])
-async def test_check_agents_batch_keeps_task_evidence_and_returns_each_report_once(
+async def test_report_delivery_keeps_task_evidence_and_returns_each_report_once(
     tmp_path, monkeypatch, mode,
 ):
     from searchos.agents.runtime import _ctx, set_orchestrator_context
@@ -193,7 +195,7 @@ async def test_check_agents_batch_keeps_task_evidence_and_returns_each_report_on
     from searchos.socm.storage.workspace import WorkspaceManager
     from searchos.tools.tasks import reports
 
-    state = SearchState(research_mode="findings", source_scope={"mode": mode, "documents": []})
+    state = SearchState(source_scope={"mode": mode, "documents": []})
     for task_id in ("first", "second"):
         state.frontier.add(FrontierTask(id=task_id, question=task_id))
     facts = [f"fact-{index}" for index in range(30)]
@@ -211,27 +213,30 @@ async def test_check_agents_batch_keeps_task_evidence_and_returns_each_report_on
     scheduler = SimpleNamespace(tick=AsyncMock(return_value={}))
     monkeypatch.setattr(reports, "_scheduler", lambda: scheduler)
     for task_id in ("first", "second"):
-        _ctx.completed[task_id] = SearchReport(
+        _ctx.publish_report(SearchReport(
             agent_id=task_id, task_ids=[task_id], status="completed", last_message=task_id,
-        )
+        ))
         _ctx.task_pool[task_id] = asyncio.create_task(asyncio.sleep(0))
     await asyncio.gather(*_ctx.task_pool.values())
     running = asyncio.create_task(asyncio.Event().wait())
     _ctx.task_pool["running"] = running
     try:
-        payload = json.loads(await reports.check_agents.ainvoke({}))
-        first, second = payload["reports"]
+        payload = await reports.collect_agent_reports()
+        first, = payload["reports"]
+        assert payload["pending_report_count"] == 1
+        second, = (await reports.collect_agent_reports())["reports"]
         assert first["task_ids"] == ["first"] and second["task_ids"] == ["second"]
         assert [item["id"] for item in first["grounded_findings"]] == facts[:24]
         assert first["grounded_findings_total"] == 30
         assert {binding["evidence_id"] for binding in first["evidence_bindings"]} == set(facts)
         assert [item["id"] for item in second["grounded_findings"]] == [facts[0], "other"]
         assert first["agent_report"] == {"verified": False, "text": "first"}
+        assert "last_message" not in first and "last_message" not in second
         assert _ctx.completed["first"].last_message == "first"
         assert payload["remaining"] == 1 and payload["running_ids"] == ["running"]
         assert not running.done()
 
-        again = json.loads(await reports.check_agents.ainvoke({"timeout": 0.001}))
+        again = await reports.collect_agent_reports(timeout=0.001)
         assert again["reports"] == [] and again["remaining"] == 1
         assert not running.done()
     finally:

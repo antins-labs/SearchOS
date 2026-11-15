@@ -10,6 +10,9 @@ This skill provides structured access to:
 - Player pages (team, role, achievements)
 - Search functionality across the wiki
 """
+import sys as _skill_sys, os as _skill_os
+_skill_sys.path.insert(0, _skill_os.path.dirname(_skill_os.path.abspath(__file__)))
+import _network as _skill_network
 
 import asyncio
 import aiohttp
@@ -392,6 +395,7 @@ async def get_page(page_title: str, session: aiohttp.ClientSession) -> dict:
     }
 
 
+@_skill_network.entrypoint
 async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     """
     Execute Dota 2 Fandom wiki query.
@@ -408,7 +412,7 @@ async def execute(params: dict[str, Any], ctx=None) -> dict[str, Any]:
     if not function:
         return {'error': 'Missing required parameter: function'}
     
-    async with aiohttp.ClientSession() as session:
+    async with _skill_network.aiohttp_session() as session:
         if function == 'search':
             query = params.get('query', '')
             limit = params.get('limit', 20)

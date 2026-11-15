@@ -26,8 +26,12 @@ class ToolHistoryMiddleware(AgentMiddleware):
         if not older:
             return await handler(request)
         messages = list(request.messages)
+        last_model = next((i for i in range(len(messages) - 1, -1, -1) if messages[i].type == "ai"), -1)
         for index in older:
             msg = messages[index]
+            if msg.name == "check_agents" and index > last_model:
+                # 并行工具较多时，主模型仍需首次读到完整的报告。
+                continue
             if not isinstance(msg.content, str) or len(msg.content) < self.min_chars:
                 continue
             title = next(

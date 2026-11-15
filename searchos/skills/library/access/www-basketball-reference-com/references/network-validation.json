@@ -1,0 +1,357 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "347d9d374eafb553e33b64a0a8a78fe737464630cbce6345e4b943bad459b08b",
+  "capabilities": {
+    "get_team_stats": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_team_stats\", \"url\": \"https://www.basketball-reference.com/teams/SAC/2025.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:19:01.532865+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.basketball-reference.com/teams/SAC/2025.html",
+          "status": 200
+        },
+        {
+          "url": "https://www.basketball-reference.com/short/inc/main_nav_menu.json",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/logos/bbr-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610200/tlogo/bbr/SAC-2025.png",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/icons/sr_icons-min.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/css/bbr/sr-min.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/js/bbr/sr-min.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/images/klecko/sportradar.png",
+          "status": 200
+        },
+        {
+          "url": "https://cmp.osano.com/16CGnCU8UtNhM14sg/[redacted]/osano.js",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.basketball-reference.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/201604190/images/chosen-sprite.png",
+          "status": 200
+        }
+      ]
+    },
+    "get_team_roster": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_team_roster\", \"url\": \"https://www.basketball-reference.com/teams/SAC/2025.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.953569+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.basketball-reference.com/teams/SAC/2025.html",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/css/bbr/sr-min.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/icons/sr_icons-min.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/js/bbr/sr-min.js",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/logos/bbr-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.basketball-reference.com/short/inc/main_nav_menu.json",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610200/tlogo/bbr/SAC-2025.png",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/images/klecko/sportradar.png",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/201604190/images/chosen-sprite.png",
+          "status": 200
+        },
+        {
+          "url": "https://a.pub.network/basketball-reference/pubfig.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://d.pub.network/v2/sites/basketball-reference/configs",
+          "status": 200
+        },
+        {
+          "url": "https://js.hs-scripts.com/20503178.js",
+          "status": 200
+        },
+        {
+          "url": "https://cmp.osano.com/16CGnCU8UtNhM14sg/[redacted]/osano.js",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.basketball-reference.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://cmp.osano.com/",
+          "status": 200
+        },
+        {
+          "url": "https://a.pub.network/basketball-reference/cls.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/1701182769656-20231028/flags/us.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202301032/images/nav-close.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/1701182769592-20231028/flags/ht.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202301032/images/nav-caret.svg",
+          "status": 200
+        }
+      ]
+    },
+    "get_player_stats": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_player_stats\", \"url\": \"https://www.basketball-reference.com/players/j/jamesle01.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:32.534426+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.basketball-reference.com/players/j/jamesle01.html",
+          "status": 307
+        },
+        {
+          "url": "https://www.basketball-reference.com/players/j/jamesle01.html",
+          "status": 403
+        },
+        {
+          "url": "https://www.basketball-reference.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        }
+      ]
+    },
+    "get_boxscore": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_boxscore\", \"url\": \"https://www.basketball-reference.com/boxscores/202410240SAC.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:32.536711+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.basketball-reference.com/boxscores/202410240SAC.html",
+          "status": 307
+        },
+        {
+          "url": "https://www.basketball-reference.com/boxscores/202410240SAC.html",
+          "status": 403
+        },
+        {
+          "url": "https://www.basketball-reference.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://www.basketball-reference.com/cdn-cgi/challenge-platform/h/b/fo/4182103868:1792739122:V8G1jY2NUK8Wf_EyqWl4oFl-Vhg4n0zOvnUYj25IMzA/a4ef0496eff24973/nejPubKphQgVezuYQk3FlfGqp5INWCRj2vY5mdEF5v0-1792740432-1.2.1.1-UN0J96tS76SSdg1H9Rgo3nhpXUX65rz_oxtuNbE44S.ARGG7OxcImeKV9yjixnHe",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.basketball-reference.com/[redacted]",
+          "status": 200
+        }
+      ]
+    },
+    "get_table": {
+      "status": "timed_out",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_table\", \"url\": \"https://www.basketball-reference.com/players/j/jamesle01.html\", \"table_id\": \"advanced\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:32.536976+00:00",
+      "reason": "business CLI exceeded its execution deadline",
+      "source_responses": [
+        {
+          "url": "https://www.basketball-reference.com/players/j/jamesle01.html",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/icons/sr_icons-min.svg",
+          "status": 200
+        },
+        {
+          "url": "https://www.basketball-reference.com/short/inc/main_nav_menu.json",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/css/bbr/sr-min.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/js/bbr/sr-min.js",
+          "status": 200
+        },
+        {
+          "url": "https://www.basketball-reference.com/req/202610140/images/headshots/jamesle01.jpg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/logos/bbr-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/logos/stathead-logo.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/images/klecko/sportradar.png",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/201604190/images/chosen-sprite.png",
+          "status": 200
+        },
+        {
+          "url": "https://a.pub.network/basketball-reference/pubfig.min.js",
+          "status": 200
+        },
+        {
+          "url": "https://d.pub.network/v2/sites/basketball-reference/configs",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202610191/images/klecko/hoopsrumors.png",
+          "status": 200
+        },
+        {
+          "url": "https://cmp.osano.com/16CGnCU8UtNhM14sg/[redacted]/osano.js",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.basketball-reference.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://a.pub.network/basketball-reference/cls.css",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202606291/images/sr-hub/hub-circles-light.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202301032/images/nav-close.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cdn.ssref.net/req/202301032/images/nav-caret.svg",
+          "status": 200
+        },
+        {
+          "url": "https://cmp.osano.com/",
+          "status": 200
+        }
+      ]
+    },
+    "list_tables": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_tables\", \"url\": \"https://www.basketball-reference.com/teams/BOS/2024.html\"}"
+      ],
+      "checked_at": "2026-10-23T07:23:32.537393+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://www.basketball-reference.com/teams/BOS/2024.html",
+          "status": 307
+        },
+        {
+          "url": "https://www.basketball-reference.com/teams/BOS/2024.html",
+          "status": 403
+        },
+        {
+          "url": "https://www.basketball-reference.com/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "status": 200
+        },
+        {
+          "url": "https://www.basketball-reference.com/cdn-cgi/challenge-platform/h/b/fo/4182103868:1792739122:V8G1jY2NUK8Wf_EyqWl4oFl-Vhg4n0zOvnUYj25IMzA/a4ef09a9cd40545f/pXH9UCoAL1VJ0IaGHH4AaCMB6yNAX48Cwl29DzfD7X4-1792740640-1.2.1.1-_jWj1rGBwm6X7TCq0Ee8E_qupITD0n5Atc1yiqXXa..fPWO1P19KEqWwIztGIAJa",
+          "status": 200
+        },
+        {
+          "url": "blob:https://www.basketball-reference.com/[redacted]",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/b/d2d3316b729e/api.js",
+          "status": 200
+        },
+        {
+          "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/p73fg/0x4AAAAAAADnPIDROrmt1Wwj/light/fbE/new/normal",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

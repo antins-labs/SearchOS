@@ -1,5 +1,16 @@
 import type { EvidenceNode, WSEvent } from "./types";
 
+export function evidenceSourceUrls(node: EvidenceNode): string[] {
+  const sources = [node.source, ...(node.source_urls ?? [])];
+  return [...new Set(sources.filter(url => /^(https?:|local:)\/\//.test(url)))];
+}
+
+export function evidenceSourcesById(nodes: EvidenceNode[]): Record<string, string[]> {
+  return Object.fromEntries(nodes
+    .filter(node => !node.status || node.status === "active")
+    .map(node => [node.id, evidenceSourceUrls(node)]));
+}
+
 const INVALID_NUMBERED_LINK_RE = /\[([^\]\n]*(?:资料|source)\s*(\d+)[^\]\n]*)\]\(invalid-local-reference\)/gi;
 const WEB_URL_PATTERN = String.raw`https?:\/\/[^\]\s<>]+`;
 const ADJACENT_BRACKETED_WEB_LINK_RE = new RegExp(

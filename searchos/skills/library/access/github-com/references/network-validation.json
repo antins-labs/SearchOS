@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "698940c6077d33dde43ea8b5c6c9cbba0aec95fd79656f4df02824a765ad6d31",
+  "capabilities": {
+    "list_papers": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"list_papers\", \"venue\": \"ICLR\", \"year\": \"2025\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.673753+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://github.com/FeijiangHan/Top-Conference-Best-Papers",
+          "status": 200
+        }
+      ]
+    },
+    "get_venues": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_venues\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.679986+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://github.com/FeijiangHan/Top-Conference-Best-Papers",
+          "status": 200
+        }
+      ]
+    },
+    "get_years": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_years\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.682655+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://github.com/FeijiangHan/Top-Conference-Best-Papers",
+          "status": 200
+        }
+      ]
+    },
+    "get_categories": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_categories\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.684095+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://github.com/FeijiangHan/Top-Conference-Best-Papers",
+          "status": 200
+        }
+      ]
+    },
+    "search_papers": {
+      "status": "passed",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"search_papers\", \"query\": \"transformer\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.684198+00:00",
+      "reason": "",
+      "source_responses": [
+        {
+          "url": "https://github.com/FeijiangHan/Top-Conference-Best-Papers",
+          "status": 200
+        }
+      ]
+    }
+  }
+}

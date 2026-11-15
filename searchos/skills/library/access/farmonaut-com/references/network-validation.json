@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-23T07:40:52.437018+00:00",
+  "scope": "business-only CLI; source response and nonempty structured output",
+  "independent_semantic_review": "not_performed",
+  "scripts_sha256": "cd0504fa5bcfa9268825317132cd84bfa95dd6981ae24bf687134a3d949071b5",
+  "capabilities": {
+    "get_all_tables": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_all_tables\", \"url\": \"https://farmonaut.com/mining/usgs-mineral-commodity-summaries-rare-earths-reserves-by-country\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.619592+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://farmonaut.com/mining/[redacted]",
+          "status": 403
+        }
+      ]
+    },
+    "get_mineral_reserves": {
+      "status": "business_failure",
+      "mode": "direct",
+      "argv": [
+        "python",
+        "scripts/run.py",
+        "--params",
+        "{\"function\": \"get_mineral_reserves\", \"url\": \"https://farmonaut.com/mining/usgs-mineral-commodity-summaries-rare-earths-reserves-by-country\"}"
+      ],
+      "checked_at": "2026-10-23T07:01:36.618963+00:00",
+      "reason": "HTTP 403",
+      "source_responses": [
+        {
+          "url": "https://farmonaut.com/mining/[redacted]",
+          "status": 403
+        }
+      ]
+    }
+  }
+}

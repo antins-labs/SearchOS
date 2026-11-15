@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "fetch_series": "inherit",
+    "get_all_states": "inherit",
+    "get_county": "inherit",
+    "get_latest_rates": "inherit",
+    "search": "inherit",
+    "get_state": "inherit"
+  },
+  "aliases": {
+    "get_state": "get_state",
+    "get_all_states": "get_all_states",
+    "get_county": "get_county",
+    "search": "search",
+    "get_latest_rates": "get_latest_rates",
+    "fetch_series": "fetch_series",
+    "run": "fetch_series"
+  }
+}

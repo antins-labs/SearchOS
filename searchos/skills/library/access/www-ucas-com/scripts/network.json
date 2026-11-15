@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "default": "inherit",
+  "functions": {
+    "get_course": "inherit",
+    "search_courses": "inherit"
+  },
+  "aliases": {
+    "get_course": "get_course",
+    "search_courses": "search_courses",
+    "run": "search_courses"
+  }
+}
