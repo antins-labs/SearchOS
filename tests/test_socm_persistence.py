@@ -1,6 +1,8 @@
 """通过真实执行图验证 SOCM 的更新、保留与恢复。"""
 
 import asyncio
+import json
+from types import SimpleNamespace
 
 import pytest
 from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
@@ -55,6 +57,23 @@ def workspace():
         )
     )
     return InMemoryEvidenceStore(state)
+
+
+@pytest.mark.asyncio
+async def test_edit_entities_receipt_for_missing_cells(monkeypatch):
+    from searchos.tools.schema import rows
+
+    ws = workspace()
+    monkeypatch.setattr(rows, "_ctx", SimpleNamespace(workspace=ws))
+    row = {"table_id": "t", "key": ["A"]}
+    before = ws.load_state()
+    receipt = await rows.edit_entities.ainvoke({"edits": [{"row": row, "set": {"Value": {"value": "/"}}}]})
+    assert json.loads(receipt) == {
+        "updated": [],
+        "unchanged": [{**row, "attribute": "Value", "status": "missing"}],
+        "errors": [],
+    }
+    assert ws.load_state() == before
 
 
 def graph_for(ws, *, view="task", checkpointer=None, model=None, extra=()):

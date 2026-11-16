@@ -234,22 +234,21 @@ async def plan_repair_tasks(
 
 def render_repair_task_prompt(plan: RepairTaskPlan) -> str:
     attributes = ", ".join(plan.attributes)
-    queries = "\n".join(f"- {query}" for query in plan.search_queries) or (
-        "- Devise focused queries from the selected cells."
-    )
-    sources = "\n".join(f"- {source}" for source in plan.preferred_sources) or (
-        "- Current authoritative primary sources"
-    )
-    acceptance = plan.acceptance_criteria or "Capture direct evidence for every selected cell."
-    return (
-        f"Targeted repair for table {plan.table_id!r}, entity {plan.entity!r}. "
-        f"Find and verify only these attributes: {attributes}.\n\n"
-        f"Suggested searches:\n{queries}\n\n"
-        f"Preferred sources:\n{sources}\n\n"
-        f"Acceptance criteria:\n{acceptance}\n\n"
-        "Hard scope: do not add entities, columns, tables, or investigate unrelated fields. "
-        "Every conclusion must be backed by direct evidence attached to its target cell."
-    )
+    queries = "\n".join(f"- {query}" for query in plan.search_queries) or """- Devise focused queries from the selected cells."""
+    sources = "\n".join(f"- {source}" for source in plan.preferred_sources) or """- Current authoritative primary sources"""
+    acceptance = plan.acceptance_criteria or """Capture direct evidence for every selected cell."""
+    return f"""Targeted repair for table {plan.table_id!r}, entity {plan.entity!r}. Find and verify only these attributes: {attributes}.
+
+Suggested searches:
+{queries}
+
+Preferred sources:
+{sources}
+
+Acceptance criteria:
+{acceptance}
+
+Hard scope: do not add entities, columns, tables, or investigate unrelated fields. Every conclusion must be backed by direct evidence attached to its target cell."""
 
 
 __all__ = [

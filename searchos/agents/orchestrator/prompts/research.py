@@ -100,7 +100,9 @@ Wait for pending evidence comparisons before assigning those cells again. Verify
 Use `stop_task` for redundant work. Retry an exhausted route only when a new source, method, or lead gives a concrete reason to expect progress.
 """
 
-COLLECTION_DISPATCH = """
+
+def _collection_dispatch(agent: str) -> str:
+    return f"""
 ### Dispatch for a collection
 
 When the user asks for a list whose members must be discovered, check two things after the first material is collected and after each result batch: which parts of the source still need to be searched, and which fields are missing from known rows.
@@ -118,27 +120,28 @@ Close each search path at its documented end or when no feasible source remains.
 1. Open collection. The user asks for all papers in the 2024 proceedings and their artifact badges. The proceedings index has an unread Systems track. Paper P17 is in a different, fully traversed track; its badge is recorded in a separate appendix. These two tasks can run together:
 `enqueue_tasks`
 ```json
-{"items": [
-  {"agent_type": "%(agent)s", "target_table": "papers", "target_cells": [],
-   "task": "List every paper in the Systems track of the 2024 proceedings, following the track index from page 1. Collect any badge shown on the same entry. Return the last page reference and any continuation."},
-  {"agent_type": "%(agent)s", "target_table": "papers", "target_cells": [{"table_id": "papers", "key": ["P17"], "attribute": "Badge"}],
-   "task": "Check the 2024 artifact appendix for paper P17. Record its badge with the appendix reference, or report that it could not be verified."}
-]}
+{{"items": [
+  {{"agent_type": "{agent}", "target_table": "papers", "target_cells": [],
+   "task": "List every paper in the Systems track of the 2024 proceedings, following the track index from page 1. Collect any badge shown on the same entry. Return the last page reference and any continuation."}},
+  {{"agent_type": "{agent}", "target_table": "papers", "target_cells": [{{"table_id": "papers", "key": ["P17"], "attribute": "Badge"}}],
+   "task": "Check the 2024 artifact appendix for paper P17. Record its badge with the appendix reference, or report that it could not be verified."}}
+]}}
 ```
 Result: the Systems agent covered pages 1–3 and returned the reference for page 4. Assign the next discovery task to that agent if idle, starting at the returned page 4 reference, even if all current rows have badges.
 
 2. Fixed list. The user asks for the 2025 opening hours of two named libraries. The latest SOCM update for libraries lists columns ["Library", "Hours"] and shows ["East Branch", null] as an unassigned gap. The other schedule is verified. Assign the lookup directly.
 `enqueue_tasks`
 ```json
-{"items": [
-  {"agent_type": "%(agent)s", "target_table": "libraries", "target_cells": [{"table_id": "libraries", "key": ["East Branch"], "attribute": "Hours"}],
-   "task": "Verify East Branch opening hours in its 2025 schedule and give the source reference."}
-]}
+{{"items": [
+  {{"agent_type": "{agent}", "target_table": "libraries", "target_cells": [{{"table_id": "libraries", "key": ["East Branch"], "attribute": "Hours"}}],
+   "task": "Verify East Branch opening hours in its 2025 schedule and give the source reference."}}
+]}}
 ```
 Result: the schedule supplies the missing hours. Deliver the two requested rows.
 """
 
-TASK_MANAGEMENT = "Use `list_frontier` or `inspect_table` when you need task or cell data for a decision."
+
+TASK_MANAGEMENT = """Use `list_frontier` or `inspect_table` when you need task or cell data for a decision."""
 
 
 def render_research(
@@ -160,5 +163,5 @@ def render_research(
                 sections.append(EXPLORE_DESIGN)
     sections.append(DISPATCH)
     if not repair:
-        sections.extend([COLLECTION_DISPATCH % {"agent": retrieval_agent}, TASK_MANAGEMENT])
+        sections.extend([_collection_dispatch(retrieval_agent), TASK_MANAGEMENT])
     return "\n\n".join(section.strip() for section in sections)

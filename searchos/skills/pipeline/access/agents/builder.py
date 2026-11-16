@@ -49,11 +49,11 @@ class AccessBuilderAgent:
     async def run(self):
         workspace, record, diagnostics = self.workspace, self.record, self.diagnostics
         self.messages = [SystemMessage(content=SYSTEM_PROMPT), HumanMessage(
-            content=user_prompt(self.host, self.probe_urls, self.notes)
-                + '\nFinal package name: ' + self.final_dir.name)]
+            content=f"""{user_prompt(self.host, self.probe_urls, self.notes)}
+Final package name: {self.final_dir.name}""")]
         if workspace.validation.examples:
-            self.messages.append(HumanMessage(content='验收目标与建议调用样例：\n'
-                + json.dumps(workspace.validation.examples, ensure_ascii=False)))
+            self.messages.append(HumanMessage(content=f"""验收目标与建议调用样例：
+{json.dumps(workspace.validation.examples, ensure_ascii=False)}"""))
         turn = -1
         call_limit = self.max_turns + FINALIZATION_ATTEMPTS
         maximum_calls = self.max_turns + FINALIZATION_ATTEMPTS + MAX_REPAIR_TURNS * workspace.validation.max_repair_attempts
@@ -92,8 +92,8 @@ class AccessBuilderAgent:
                     record.event('validation_handoff_fallback', reason='max_turns',
                                  candidate_version=workspace.validation.validation_fingerprint())
                     fallback = await workspace.send_message('validator', {'request': 'validate'})
-                    self.messages.append(HumanMessage(content='自动交验结果，按反馈继续修复：\n'
-                        + json.dumps(workspace.package.result_store.present(fallback), ensure_ascii=False)))
+                    self.messages.append(HumanMessage(content=f"""自动交验结果，按反馈继续修复：
+{json.dumps(workspace.package.result_store.present(fallback), ensure_ascii=False)}"""))
                     diagnostics['final_validation_handoff'] = True
                     if workspace.validation.validation_passed:
                         diagnostics['exit_reason'] = 'validation_passed'
@@ -111,19 +111,22 @@ class AccessBuilderAgent:
             self.messages = await prepare_messages_async(
                 self.messages, workspace, role='builder', model=self.context_model)
             if not preflight['preflight_valid']:
-                self.messages.append(HumanMessage(content='静态预检与补齐项：\n'
-                    + json.dumps(workspace.package.result_store.present(preflight), ensure_ascii=False)))
+                self.messages.append(HumanMessage(content=f"""静态预检与补齐项：
+{json.dumps(workspace.package.result_store.present(preflight), ensure_ascii=False)}"""))
             actions = preflight['next_actions'] if not preflight['preflight_valid'] else pending.get('next_actions')
             if actions and (workspace.validation.validation_rounds or call_limit - turn <= 5):
-                self.messages.append(HumanMessage(content='当前包与修复定位：按函数 read_file 参数读取，保留已有实现并局部修改。\n'
-                    + json.dumps(workspace.package.result_store.present({
-                        'package_files': pending['package_files'], 'next_actions': actions,
-                        'function_index_file': pending['function_index_file']}), ensure_ascii=False)))
-            instruction = (
-                f'修复调用 {turn - phase_start + 1}/{call_limit - phase_start}。' + final_instruction('builder')
-                if repair_budget is not None else
-                f'收尾调用 {turn - self.max_turns + 1}/{call_limit - self.max_turns}。' + final_instruction('builder')
-                if closing else f'开发调用 {turn + 1}/{self.max_turns}，独立验收已执行 {workspace.validation.validation_rounds} 轮。')
+                repair_context = workspace.package.result_store.present({
+                    'package_files': pending['package_files'], 'next_actions': actions,
+                    'function_index_file': pending['function_index_file'],
+                })
+                self.messages.append(HumanMessage(content=f"""当前包与修复定位：按函数 read_file 参数读取，保留已有实现并局部修改。
+{json.dumps(repair_context, ensure_ascii=False)}"""))
+            if repair_budget is not None:
+                instruction = f"""修复调用 {turn - phase_start + 1}/{call_limit - phase_start}。{final_instruction('builder')}"""
+            elif closing:
+                instruction = f"""收尾调用 {turn - self.max_turns + 1}/{call_limit - self.max_turns}。{final_instruction('builder')}"""
+            else:
+                instruction = f"""开发调用 {turn + 1}/{self.max_turns}，独立验收已执行 {workspace.validation.validation_rounds} 轮。"""
             signal = budget_signal('builder', call=turn + 1, call_limit=call_limit,
                 phase='repair' if repair_budget is not None else 'finalization' if closing else 'development',
                 phase_limit=call_limit if closing else self.max_turns, total_limit=maximum_calls)
@@ -133,8 +136,9 @@ class AccessBuilderAgent:
                 signal.update(repair_budget=repair_budget, budget_source=budget_source)
             workspace.builder_budget = signal
             diagnostics['budget'] = signal
-            self.messages.append(HumanMessage(content=instruction + '\n剩余次数包含本次调用。运行预算：\n'
-                + json.dumps(signal, ensure_ascii=False)))
+            self.messages.append(HumanMessage(content=f"""{instruction}
+剩余次数包含本次调用。运行预算：
+{json.dumps(signal, ensure_ascii=False)}"""))
             diagnostics['turns_attempted'] = turn + 1
             diagnostics.update(call_limit=call_limit, maximum_calls=maximum_calls)
             record.event('model_started', turn=turn + 1, closing=closing, phase='build', budget=signal)
@@ -145,7 +149,7 @@ class AccessBuilderAgent:
                     diagnostics['exit_reason'] = 'max_turns'
                     record.event('agent_tool_protocol_rejected', role='builder', turn=turn + 1,
                                  error=record.clean(str(exc)))
-                    self.messages.append(HumanMessage(content='网关拒绝了工具调用。' + final_instruction('builder')))
+                    self.messages.append(HumanMessage(content=f"""网关拒绝了工具调用。{final_instruction('builder')}"""))
                     continue
                 diagnostics.update(exit_reason='model_error', model_error_type=type(exc).__name__,
                                    model_error=record.clean(str(exc)))
@@ -171,9 +175,8 @@ class AccessBuilderAgent:
             report = workspace.validation.current_validation_report()
             if not calls:
                 if workspace.package.files and report.get('next_actions'):
-                    self.messages.append(HumanMessage(content='当前候选尚待交接或修复。当前版本尚未完成修复或独立验收。'
-                        '请执行待办并通过 send_message(role="validator") 交验：\n'
-                        + json.dumps(report['next_actions'], ensure_ascii=False)))
+                    self.messages.append(HumanMessage(content=f"""当前候选尚待交接或修复。当前版本尚未完成修复或独立验收。请执行待办并通过 send_message(role="validator") 交验：
+{json.dumps(report['next_actions'], ensure_ascii=False)}"""))
                 else:
                     diagnostics['exit_reason'] = 'builder_finished'
                     break

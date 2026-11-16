@@ -141,28 +141,18 @@ class RowExtractor:
                           if item.get("task_target_cells")]
         if scoped_targets:
             scoped_targets = sorted(target_cells) if target_cells is not None else scoped_targets
-            prompt += (
-                "\n\n## Explicit task write scope\n"
-                "Only return values for these target cells: "
-                + json.dumps(scoped_targets, ensure_ascii=False)
-                + ". Do not reinterpret requirement IDs or fill other rows/columns. "
-                "These explicit targets constrain both FILL and DISCOVER. "
-                "A page about another requirement cannot fill these cells; "
-                "return [] when unsupported."
-            )
+            prompt += f"""
+
+## Explicit task write scope
+Only return values for these target cells: {json.dumps(scoped_targets, ensure_ascii=False)}. Do not reinterpret requirement IDs or fill other rows/columns. These explicit targets constrain both FILL and DISCOVER. A page about another requirement cannot fill these cells; return [] when unsupported."""
         item = items[0] if items else {}
         ok = True
         for attempt in range(3):
             retry_prompt = prompt
             if attempt:
-                retry_prompt += (
-                    "\n\n[JSON format correction] Return one JSON array of objects. "
-                    "Each row requires every primary-key field: "
-                    f"{json.dumps(schema.primary_key, ensure_ascii=False)}. "
-                    "Quote strings, including values containing units or symbols. "
-                    "Preserve all supported rows, source values and excerpts. "
-                    "Return [] only when the sources support no rows."
-                )
+                retry_prompt += f"""
+
+[JSON format correction] Return one JSON array of objects. Each row requires every primary-key field: {json.dumps(schema.primary_key, ensure_ascii=False)}. Quote strings, including values containing units or symbols. Preserve all supported rows, source values and excerpts. Return [] only when the sources support no rows."""
             try:
                 raw = await self.invoke(retry_prompt)
             except Exception:  # noqa: BLE001

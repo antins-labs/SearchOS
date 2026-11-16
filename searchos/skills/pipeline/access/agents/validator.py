@@ -159,8 +159,7 @@ class ValidationAgent:
             result = await self._tool('exec', original)
             shown = self.review.observe('exec', original, result)
             self.resume_input = None
-            messages.append(HumanMessage(content='已独立重放中断前的原输入：' + json.dumps(
-                self.workspace.package.result_store.present(shown), ensure_ascii=False)))
+            messages.append(HumanMessage(content=f"""已独立重放中断前的原输入：{json.dumps(self.workspace.package.result_store.present(shown), ensure_ascii=False)}"""))
             progress = self.review.progress()
             if progress.get('wait_external') and not progress['pending_capabilities'] and not progress['pending_regressions']:
                 return self._finish()
@@ -180,10 +179,9 @@ class ValidationAgent:
                     "validation_call": turn + 1, "call_limit": call_limit,
                     "budget": signal,
                     "instruction": (final_instruction('validator') if closing else
-                                    "按回执补齐执行或证据引用，读取结果并提交结论；可在一次响应依次调用 exec 和 send_message。"
+                                    """按回执补齐执行或证据引用，读取结果并提交结论；可在一次响应依次调用 exec 和 send_message。"""
                                     if turn >= self.max_turns else
-                                    "先复验 pending_regressions 原业务输入，再用区别于 Builder 自测和文档示例的新业务输入补齐待验能力；"
-                                    "固定输入范围说明限制，核对语义后在报告中写明输入差异并引用真实执行。"),
+                                    """先复验 pending_regressions 原业务输入，再用区别于 Builder 自测和文档示例的新业务输入补齐待验能力；固定输入范围说明限制，核对语义后在报告中写明输入差异并引用真实执行。"""),
                     "progress": self.workspace.package.result_store.present(self.review.progress()),
                 }, ensure_ascii=False)))
                 self.review.state["calls"] += 1
@@ -199,7 +197,7 @@ class ValidationAgent:
                     self.review.save()
                     self.record.event('agent_tool_protocol_rejected', role='validator', turn=turn + 1,
                                       error=self.record.clean(str(exc)))
-                    messages.append(HumanMessage(content='网关拒绝了工具调用。' + final_instruction('validator')))
+                    messages.append(HumanMessage(content=f"""网关拒绝了工具调用。{final_instruction('validator')}"""))
                     continue
                 calls = getattr(response, "tool_calls", None) or []
                 usage = getattr(response, "usage_metadata", None) or {}
@@ -214,7 +212,7 @@ class ValidationAgent:
                                   tool_calls=calls, usage=usage)
                 messages.append(response)
                 if not calls:
-                    last_error = "请通过 send_message(role=builder, content={checks: [...]}) 提交逐能力结论。"
+                    last_error = """请通过 send_message(role=builder, content={checks: [...]}) 提交逐能力结论。"""
                     messages.append(HumanMessage(content=last_error))
                     continue
                 submitted = False
@@ -245,7 +243,7 @@ class ValidationAgent:
                 progress = self.review.progress()
                 if progress.get('wait_external') and not progress['pending_capabilities'] and not progress['pending_regressions']:
                     return self._finish()
-                last_error = "请根据 send_message 回执修正待提交能力；已接收结论会保留。"
+                last_error = """请根据 send_message 回执修正待提交能力；已接收结论会保留。"""
         except asyncio.CancelledError:
             result = self.review.result()
             result.update(cancelled=True, valid=False, report_complete=False)

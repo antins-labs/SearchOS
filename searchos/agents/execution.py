@@ -222,11 +222,7 @@ class ControlExecutor:
         ):
             return blocked_result(
                 request,
-                (
-                    f"[Harness] Tool '{name}' is hard-blocked ({self.control.reason}). "
-                    f"Only drain tools remain: {', '.join(sorted(self.drain_tools)) or 'none'}. "
-                    "Wrap up with supported findings and unresolved limitations."
-                ),
+                f"""[Harness] Tool '{name}' is hard-blocked ({self.control.reason}). Only drain tools remain: {', '.join(sorted(self.drain_tools)) or 'none'}. Wrap up with supported findings and unresolved limitations.""",
             )
         return await handler(request)
 
@@ -236,17 +232,14 @@ class ControlExecutor:
         self.control.messages.clear()
         if self.control.strategy_switch:
             signals.append(
-                "[Harness STRATEGY_SWITCH] Change queries, sources or retrieval strategy."
+                """[Harness STRATEGY_SWITCH] Change queries, sources or retrieval strategy."""
             )
             self.control.strategy_switch = False
         if self.control.forced and not summarizing:
             signals.append(
                 self.control.stop_message
-                or (
-                    f"HARD STOP — {self.control.reason}\n"
-                    f"Tools still allowed: {', '.join(sorted(self.drain_tools)) or 'none'}. "
-                    "Summarize supported findings and gaps; do not resume retrieval."
-                )
+                or f"""HARD STOP — {self.control.reason}
+Tools still allowed: {', '.join(sorted(self.drain_tools)) or 'none'}. Summarize supported findings and gaps; do not resume retrieval."""
             )
         if summarizing:
             # 保留历史调用的工具定义，本轮只生成最终回答。
@@ -268,11 +261,7 @@ class ControlExecutor:
         if calls and (summarizing or (
             self.control.forced and not self.control.summarizing and self.finish_without_tools
         )):
-            content = (
-                f"Search stopped by harness ({self.control.reason}). "
-                "No further tool calls were executed. "
-                "Findings are partial; unresolved targets remain limitations."
-            )
+            content = f"""Search stopped by harness ({self.control.reason}). No further tool calls were executed. Findings are partial; unresolved targets remain limitations."""
             if self.control.context_snapshot:
                 content += "\n\n" + self.control.context_snapshot
             if isinstance(message, AIMessage):

@@ -154,15 +154,10 @@ class ConflictReviewer:
             if reverse:
                 item["a"], item["b"] = item["b"], item["a"]
             payload.append(item)
-        prompt = (
-            _PROMPT
-            + (_REVIEW if reverse else "")
-            + "\nINPUT_JSON:\n"
-            + json.dumps(
-                payload,
-                ensure_ascii=False,
-            )
-        )
+        review = _REVIEW if reverse else ""
+        prompt = f"""{_PROMPT}{review}
+INPUT_JSON:
+{json.dumps(payload, ensure_ascii=False)}"""
         try:
             raw = await asyncio.wait_for(self.invoke(prompt), self.timeout_s)
             # 只接受完整 JSON，不从说明文字中猜测判定结果。

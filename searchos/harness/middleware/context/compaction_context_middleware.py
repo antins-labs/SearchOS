@@ -105,7 +105,8 @@ class CompactionContextMiddleware(AgentMiddleware):
                 render_history(prefix), render_history([*anchors, *tail])
             )
         handoff = SystemMessage(
-            content="Conversation summary:\n" + summary,
+            content=f"""Conversation summary:
+{summary}""",
             additional_kwargs={"sf_synthetic": True, "sf_kind": "context_compaction"},
         )
         compacted = [*anchors, handoff, *tail]

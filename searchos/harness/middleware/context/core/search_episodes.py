@@ -36,14 +36,14 @@ def tool_calls(message: BaseMessage) -> tuple[ToolCallRecord, ...]:
 
 
 def render_episode(number: int, episode: EpisodeRecord) -> str:
-    lines = [f"[Search Episode {number}]", "tool_calls:"]
-    lines.extend(f"- {call.name}({_compact_json(call.args)})" for call in episode.tool_calls)
+    lines = [f"""[Search Episode {number}]""", "tool_calls:"]
+    lines.extend(f"""- {call.name}({_compact_json(call.args)})""" for call in episode.tool_calls)
     ids = ", ".join(episode.evidence_added)
-    lines.append(f"evidence_added: [{ids}]")
+    lines.append(f"""evidence_added: [{ids}]""")
     if episode.coverage_delta:
         lines.append("coverage_delta:")
         lines.extend(
-            f"- {table_id}: +{count} cells" for table_id, count in episode.coverage_delta.items()
+            f"""- {table_id}: +{count} cells""" for table_id, count in episode.coverage_delta.items()
         )
     return "\n".join(lines)
 
@@ -172,7 +172,11 @@ class SearchEpisodeHistory:
             used += len(selected[-1])
         selected.reverse()
         omitted = len(rendered) - len(selected)
-        header = "[PAST SEARCH EPISODES — tool outputs removed; facts remain in SOCM]"
+        header = """[PAST SEARCH EPISODES — tool outputs removed; facts remain in SOCM]"""
         if omitted:
-            header += f"\n[{omitted} older episode(s) omitted]"
-        return header + "\n\n" + "\n\n".join(selected)
+            header += f"""
+[{omitted} older episode(s) omitted]"""
+        episodes_text = "\n\n".join(selected)
+        return f"""{header}
+
+{episodes_text}"""

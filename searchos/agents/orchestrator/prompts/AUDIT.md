@@ -32,7 +32,7 @@
 | Parallel dispatch | 恢复按来源类别、范围、语言、验证路径并行；按召回风险和实际缺口决定任务数，既不凑槽位，也不因少调用而放弃有用路径。 |
 | Scheduling hints | `DISPATCH` 保留 max_searches 随任务范围调整、priority 表达关键缺口、blocked_by 仅用于真实依赖；类型与范围交给工具 schema。 |
 | Table targeting | `tables.TABLE_WORK` 保留多表显式 target_table、定向回填精确 target_cells、开放发现不预限定单元格、先有 schema 再派发表任务。 |
-| Adaptive dispatch；结果后的决策 | `COLLECTION_DISPATCH` 区分未遍历的来源和已有行缺失的字段，用论文集和指定图书馆两个示例说明分派、续查与收尾。定向修复不注入这段。公共 `DISPATCH` 保留 Agent 复用、分页、冲突处理及取消冗余任务的规则。 |
+| Adaptive dispatch；结果后的决策 | `_collection_dispatch` 区分未遍历的来源和已有行缺失的字段，用论文集和指定图书馆两个示例说明分派、续查与收尾。定向修复不注入这段。公共 `DISPATCH` 保留 Agent 复用、分页、冲突处理及取消冗余任务的规则。 |
 | Schema mutation / row-key ingestion | `TABLE_WORK` 与 `TABLE_DESIGN`：先加来源确认的新行再做表绑定检索；扩展现有列，修正行键/值，错误值留缺口。 |
 | remove_entities；排除证据 | 恢复权威完整目录排除或明确任务过滤条件；找不到属性不能成为删除成员的理由。 |
 | Progress；fill rate 与成员完整性 | `TABLE_WORK`：比较实际成员身份，既核对遗漏也核对多收；已知行填满、数量相等或猜测清单均不足以证明完整。 |
@@ -46,8 +46,8 @@
 | Cross-source dependencies | `COMBINED`：先解析本地身份再写依赖任务，独立细读可并行；无本地 Agent 不声称已搜库，Web 同名不能替代本地身份。 |
 | Schema and extraction contract | `evidence.EVIDENCE` 与 `tables.HYBRID_EXTRACTION`：Extraction 负责验证/绑定；Hybrid 有 schema 时 findings 观察也能填表，无 schema 时记录独立 findings，target_table 聚焦抽取。 |
 | Evidence signals | `EVIDENCE`：恢复 grounded_findings/agent_report 边界；完成数不证明完整性，搜索命中需读原文，一个窗口不证明读完全篇或时效。 |
-| Calculate from available evidence | `CALCULATION`：派发前判断可推导性；读取输入及原始来源，核对公式/口径/时期/总体/单位，不替换操作数；执行、检查、写回并复核，只检索缺失输入。 |
-| Edits and source attribution | 非空字段显式提供 value/evidence_ids，Main 阅读证据并核对语义与版本；格式修改复用原证据，计算携带必要输入证据。空值和 `/` 清空为 missing，缺失说明写入报告。 |
+| Calculate from available evidence | Orchestrator 使用离线 Exec 计算或生成中间文件、交付文件。计算前核对输入、来源、公式、口径和单位；表内派生字段写回并复核，回答中的统计直接报告。 |
+| Edits and source attribution | 更改需来源的字段时提供 value/evidence_ids，核对证据语义与版本；计算携带各输入的证据。正文直接按指定列序呈现已有行，缺失占位符只用于展示。 |
 | Citation IDs / URLs | `CITATION_PROVENANCE`：恢复仅用工具返回引用、原始链接、非空 citation、失败引用处理；不编造 ID/URL，不引用内部 scheme。 |
 | Citation attribution / primary reading | 恢复聚合站归属、用户要求原始资料时实际读取；source_linked、URL 单元格、空 citation_gaps 均不能代替内容支持和覆盖审查。 |
 | Final self-audit / synthesis | `COMPLETION`：重新核对请求、字段、指代、时效和覆盖；不擅加维度、不用参数知识补事实；满足要求或不能继续时给有证据结果和明确限制。 |

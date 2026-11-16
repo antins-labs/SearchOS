@@ -38,13 +38,7 @@ class ControlState:
         self.summarizing = self.forced = True
         self.summary_id = str(uuid4())
         self.reason = reason
-        self.stop_message = (
-            "The research budget has been reached. Stop using tools and stop delegating work. "
-            "Summarize the supported findings from the sources and tool results already available "
-            "in this conversation. Answer the current user request in the user's language, "
-            "include original source links or evidence citations, and state any unresolved gaps. "
-            "Return the final answer now."
-        )
+        self.stop_message = """The research budget has been reached. Stop using tools and stop delegating work. Summarize the supported findings from the sources and tool results already available in this conversation. Answer the current user request in the user's language, include original source links or evidence citations, and state any unresolved gaps. Return the final answer now."""
 
 
 class BudgetState:
@@ -212,20 +206,20 @@ class BudgetState:
         """Human-readable one-line detail of the exhaustion state."""
         reason = self.exhaustion_reason
         if reason == "iteration":
-            return f"round {self.current_iteration}/{self.max_iterations}"
+            return f"""round {self.current_iteration}/{self.max_iterations}"""
         if reason == "time":
-            return f"{self.elapsed_s_live:.0f}s/{self.max_time_s}s elapsed"
+            return f"""{self.elapsed_s_live:.0f}s/{self.max_time_s}s elapsed"""
         if reason == "all_tools":
             parts = []
             if self.max_queries > 0:
-                parts.append(f"search {self.consumed_queries}/{self.max_queries}")
+                parts.append(f"""search {self.consumed_queries}/{self.max_queries}""")
             if self.max_opens > 0:
-                parts.append(f"open {self.consumed_opens}/{self.max_opens}")
+                parts.append(f"""open {self.consumed_opens}/{self.max_opens}""")
             if self.max_finds > 0:
-                parts.append(f"find {self.consumed_finds}/{self.max_finds}")
+                parts.append(f"""find {self.consumed_finds}/{self.max_finds}""")
             if self.max_skills > 0:
-                parts.append(f"skill {self.consumed_skills}/{self.max_skills}")
-            return ", ".join(parts) or "all tool budgets spent"
+                parts.append(f"""skill {self.consumed_skills}/{self.max_skills}""")
+            return ", ".join(parts) or """all tool budgets spent"""
         return ""
 
 

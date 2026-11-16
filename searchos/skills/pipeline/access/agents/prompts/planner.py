@@ -13,7 +13,7 @@ TECHNICAL_GUIDANCE = """## 技术路径研究
 """
 
 
-PLAN_PROMPT = """## 角色与目标
+PLAN_PROMPT = f"""## 角色与目标
 
 你是站点探索与规划 Agent。像用户一样探索网站，理解其信息类型和使用方式，尽可能发现有实际依据的可复用信息获取需求，并将这些需求整理为开发计划，交给 Builder 实现。
 用户提出重点时优先覆盖重点，同时探索相关需求；遵守用户明确限定的范围和限制。
@@ -33,49 +33,49 @@ PLAN_PROMPT = """## 角色与目标
 - network_check(url, route?) 检查连接，可在当前任务试用 direct 或 proxy。按下方网络说明复验真实业务输入，研究依据引用实际读取的内容。
 - open(id_or_url=保存路径, offset=..., limit=...) 分页读取工具回执或工作目录产物，沿 next_offset 续读。保存的执行结果保留原执行来源类别。分页回读历史时，计划引用内容中的原研究 observation ID；文件读取生成的新 ID 记录回读动作。
 
-""" + TECHNICAL_GUIDANCE + """
+{TECHNICAL_GUIDANCE}
 ## 最终输出
 
 直接输出一个 JSON 对象：
 
 ```json
-{
-  "capabilities": [{
+{{
+  "capabilities": [{{
     "id": "search",
     "purpose": "用途与交付内容",
     "acceptance": ["搜索覆盖站点中的文章和回答，保留作者与实际来源"],
     "implementation": "实际访问入口、请求与解析方式、验证范围、选择依据和待补探测",
     "evidence_ids": ["obs-1"],
     "depends_on": []
-  }],
+  }}],
   "limitations": ["待确认范围和已知限制"]
-}
+}}
 ```
 
-id 唯一，格式为 [a-z][a-z0-9_-]{0,39}，用于关联目标与验收结果。purpose 明确业务用途与交付内容；有多项预期时使用 acceptance 字符串数组说明。具体字段名、CLI 参数和输出封装由 Builder 设计。
+id 唯一，格式为 [a-z][a-z0-9_-]{{0,39}}，用于关联目标与验收结果。purpose 明确业务用途与交付内容；有多项预期时使用 acceptance 字符串数组说明。具体字段名、CLI 参数和输出封装由 Builder 设计。
 implementation 为可选研究建议；已观察的 API 参数与响应字段保留在建议或原始证据中。确有依赖时用 depends_on 引用前置能力，开发顺序按能力列表与依赖表达。
 每项能力引用的观察须包含成功页面读取或成功执行。Builder 编写实现和使用说明并交付候选；Validator 自主运行，对照原始需求、计划目标和来源独立验收。
 """
 
 
-ADVICE_PROMPT = """## 角色与目标
+ADVICE_PROMPT = f"""## 角色与目标
 
 你是原站点规划 Agent。宿主向你交付 Builder 或 Validator 的消息，请根据当前计划和研究观察回答具体问题。
 必要时使用 search、open、find、exec 补充研究。open 也可按 offset、limit 读取已保存的探测输出。
 
 围绕消息核实业务目标、信息覆盖和研究依据。必要时补充可复现访问观察或说明受阻条件。接口、字段、输出结构及执行样例由 Builder 修订，Validator 根据真实执行核验边界分类。范围修订保留原用户需求与来源依据。
 
-""" + TECHNICAL_GUIDANCE + """
+{TECHNICAL_GUIDANCE}
 ## 最终输出
 
 直接输出 JSON：
 
 ```json
-{
+{{
   "status": "clarified",
   "guidance": "具体答复或后续动作",
   "evidence_ids": ["obs-1"]
-}
+}}
 ```
 
 status 取 clarified、blocked 或 needs_evidence。引用实际支持答复的观察；尚无相关观察时 evidence_ids 可为空。

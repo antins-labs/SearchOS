@@ -13,30 +13,11 @@ AgentRole = Literal[
 ]
 
 _ROLE_RULES: dict[AgentRole, str] = {
-    "orchestrator": (
-        "Before dispatch, derive a temporal contract: as-of cutoff, target period/range, "
-        "and required freshness. Put it verbatim in every relevant task brief and in "
-        "time-sensitive column_desc. Never send a bare 'latest' task."
-    ),
-    "explore_agent": (
-        "Your briefing must state the interpreted time window, each key source's update "
-        "cadence, and the freshest effective date you actually verified. Flag stale hubs."
-    ),
-    "search_agent": (
-        "Make the target period explicit in queries. In your final report, state the "
-        "value's effective period/as-of date and the page publication/update date when "
-        "visible; a recent article can still report an old fact."
-    ),
-    "local_search_agent": (
-        "Preserve the source document's stated period, version, and scope. A local "
-        "file is not automatically current; report missing or ambiguous dates rather "
-        "than inferring freshness from its presence in the library."
-    ),
-    "writer_agent": (
-        "Keep every claim attached to its evidence period. Never merge mismatched periods "
-        "under one 'current' label; state the as-of date, compare periods explicitly, or "
-        "add a freshness caveat."
-    ),
+    "orchestrator": """Before dispatch, derive a temporal contract: as-of cutoff, target period/range, and required freshness. Put it verbatim in every relevant task brief and in time-sensitive column_desc. Never send a bare 'latest' task.""",
+    "explore_agent": """Your briefing must state the interpreted time window, each key source's update cadence, and the freshest effective date you actually verified. Flag stale hubs.""",
+    "search_agent": """Make the target period explicit in queries. In your final report, state the value's effective period/as-of date and the page publication/update date when visible; a recent article can still report an old fact.""",
+    "local_search_agent": """Preserve the source document's stated period, version, and scope. A local file is not automatically current; report missing or ambiguous dates rather than inferring freshness from its presence in the library.""",
+    "writer_agent": """Keep every claim attached to its evidence period. Never merge mismatched periods under one 'current' label; state the as-of date, compare periods explicitly, or add a freshness caveat.""",
 }
 
 

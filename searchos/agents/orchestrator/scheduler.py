@@ -222,21 +222,21 @@ class Scheduler:
         if not signal.fire:
             return {"action": "too_early", **signal.as_dict()}
 
-        intent = state.intent or "Draft an answer to the user's query."
+        intent = state.intent or """Draft an answer to the user's query."""
         cov, filled, total = signal.coverage, signal.filled_cells, signal.total_cells
         trigger = signal.trigger
-        task = (
-            f"You are the writer. The original query is:\n\n{intent}\n\n"
-            f"Coverage crossed {trigger.removeprefix('coverage_stage_')}% "
-            f"({filled}/{total} cells). Continue drafting via write_section."
-        )
+        task = f"""You are the writer. The original query is:
+
+{intent}
+
+Coverage crossed {trigger.removeprefix('coverage_stage_')}% ({filled}/{total} cells). Continue drafting via write_section."""
 
         write_task_id = f"w_{uuid.uuid4().hex[:8]}"
 
         def _enqueue(s: Any) -> Any:
             s.frontier.add(FrontierTask(
                 id=write_task_id,
-                question=f"Draft answer. trigger={trigger} cov={cov:.0%} {filled}/{total}",
+                question=f"""Draft answer. trigger={trigger} cov={cov:.0%} {filled}/{total}""",
                 kind="write",
                 status=FrontierTaskStatus.RUNNING,
                 priority=0.8,
@@ -298,11 +298,11 @@ class Scheduler:
         for n in new_nodes[-10:]:
             slot = f"[{row_values(n.entity)}; {n.attribute}] " if n.entity else ""
             bullets.append(f"- {slot}{n.claim} (src={n.source})")
-        follow_up = (
-            f"{delta} new evidence nodes since last turn:\n"
-            + "\n".join(bullets)
-            + "\n\nProceed with write_section / edit_section + new citations."
-        )
+        evidence_list = "\n".join(bullets)
+        follow_up = f"""{delta} new evidence nodes since last turn:
+{evidence_list}
+
+Proceed with write_section / edit_section + new citations."""
         _ctx.completed.pop(writer_id, None)
         _ctx.task_pool.pop(writer_id, None)
         _ctx.task_pool[writer_id] = asyncio.create_task(
@@ -451,9 +451,10 @@ class Scheduler:
                 "search_agent", "local_search_agent",
             }:
                 from searchos.socm.refs import cell_ref
-                prompt += "\n\nTarget cells: " + json.dumps(
-                    [cell_ref(key) for key in task.target_cells], ensure_ascii=False,
-                )
+                targets = [cell_ref(key) for key in task.target_cells]
+                prompt += f"""
+
+Target cells: {json.dumps(targets, ensure_ascii=False)}"""
             options = {"agent_id": requested} if requested else {}
             aid = await _spawn_sub_agent(
                 agent_type, prompt, list(task.skills or []),

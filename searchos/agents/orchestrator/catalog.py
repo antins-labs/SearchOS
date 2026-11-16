@@ -37,36 +37,24 @@ def _tool_names(tools: list) -> list[str]:
 AGENT_CATALOG: list[AgentSpec] = [
     AgentSpec(
         name=search.AGENT_TYPE,
-        description=(
-            "Retrieve and process information with Browser, Image, and Exec. "
-            "Discovers and loads skills, reads their instructions, and orchestrates "
-            "their calls to complete the retrieval task. Use for requests with a clear "
-            "target, including requests to use a named platform or skill."
-        ),
+        description="""Retrieve and process information with Browser, Image, and Exec. Discovers and loads skills, reads their instructions, and orchestrates their calls to complete the retrieval task. Use for requests with a clear target, including requests to use a named platform or skill.""",
         tools=_tool_names(search.get_tools()),
     ),
     AgentSpec(
         name=explore.AGENT_TYPE,
-        description=(
-            "Investigate a specific uncertainty about identity, scope, eligibility, "
-            "or candidate coverage that blocks task decomposition. Uses web search "
-            "and page reading; skill discovery, loading, and execution belong to search_agent."
-        ),
+        description="""Investigate a specific uncertainty about identity, scope, eligibility, or candidate coverage that blocks task decomposition. Uses web search and page reading; skill discovery, loading, and execution belong to search_agent.""",
         tools=_tool_names(explore.get_tools()),
     ),
     AgentSpec(
         name=local_search.AGENT_TYPE,
-        description=(
-            "Search the authorized local document library for evidence. "
-            "No web tools or Access Skills."
-        ),
+        description="""Search the authorized local document library for evidence. No web tools or Access Skills.""",
         # Local tools are resolved again at render time because their
         # enablement can change after this module is imported.
         tools=[],
     ),
     AgentSpec(
         name=writer.AGENT_TYPE,
-        description="Long-lived structured drafter for the final report generation.",
+        description="""Long-lived structured drafter for the final report generation.""",
         tools=_tool_names(writer.get_tools()),
     ),
 ]
@@ -116,7 +104,7 @@ def generate_agent_catalog_text() -> str:
     never tries to dispatch them.
     """
     visible = [s for s in AGENT_CATALOG if _is_agent_enabled(s.name)]
-    lines = [f"[Available Sub Agents — {len(visible)} pre-built]"]
+    lines = [f"""[Available Sub Agents — {len(visible)} pre-built]"""]
     for spec in visible:
         tools = _rendered_tools(spec)
         tools_str = ", ".join(tools[:6])

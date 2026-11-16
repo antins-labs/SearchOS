@@ -39,7 +39,7 @@ def _render_args(tool: Any) -> str:
     return ", ".join(parts)
 
 
-def render_toolset(tools: list, *, header: str = "## Available Tools") -> str:
+def render_toolset(tools: list, *, header: str = """## Available Tools""") -> str:
     """Render ``tools`` as markdown. Returns empty string if ``tools`` is empty.
 
     Each tool becomes:
@@ -57,7 +57,7 @@ def render_toolset(tools: list, *, header: str = "## Available Tools") -> str:
         summary = _first_paragraph(inspect.getdoc(impl) or "") if impl else ""
         desc = summary if summary and description.startswith(summary) else _first_paragraph(description)
         args = _render_args(t)
-        lines.append(f"### {name}({args})")
+        lines.append(f"""### {name}({args})""")
         if desc:
             lines.append(desc)
         lines.append("")

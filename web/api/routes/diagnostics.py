@@ -84,7 +84,7 @@ async def test_provider(req: ProviderTestRequest):
         profile = resolve_profile(req.role)
         model = get_model_for(req.role)
         response = await asyncio.wait_for(
-            model.ainvoke("Reply with exactly: OK"),
+            model.ainvoke("""Reply with exactly: OK"""),
             timeout=req.timeout_s,
         )
         latency_ms = round((perf_counter() - started) * 1000)

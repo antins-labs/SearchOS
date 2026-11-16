@@ -67,16 +67,10 @@ def call_routes(tool: str, args: dict) -> tuple[list[str], list[str]]:
 def retry_route_prompt(task) -> str:
     if not task.previous_queries and not task.previous_source_families:
         return ""
-    return (
-        "[RETRY — CHANGE ROUTE]\n"
-        "Use a different query family and different sources from the previous attempt. "
-        "Exact routes with empty or permanent-failure outcomes are blocked. "
-        "Different pages, windows and access methods remain available. "
-        "Change the search terms, source, language, or access method. "
-        "If no alternative is available, report the limitation instead of repeating the route.\n"
-        "Previous queries: " + json.dumps(task.previous_queries, ensure_ascii=False) + "\n"
-        "Previous source families: " + json.dumps(task.previous_source_families, ensure_ascii=False)
-    )
+    return f"""[RETRY — CHANGE ROUTE]
+Use a different query family and different sources from the previous attempt. Exact routes with empty or permanent-failure outcomes are blocked. Different pages, windows and access methods remain available. Change the search terms, source, language, or access method. If no alternative is available, report the limitation instead of repeating the route.
+Previous queries: {json.dumps(task.previous_queries, ensure_ascii=False)}
+Previous source families: {json.dumps(task.previous_source_families, ensure_ascii=False)}"""
 
 
 def _assigned_task(state, worker: str):
@@ -139,12 +133,7 @@ def check_and_record_route(workspace, worker: str, tool: str, args) -> str:
             )
         ]
         if repeated:
-            error = (
-                "[Harness RETRY_ROUTE_BLOCKED] Previous-attempt route: "
-                + ", ".join(repeated)
-                + ". Change the page, window, query or access method; "
-                "do not repeat this exact call."
-            )
+            error = f"""[Harness RETRY_ROUTE_BLOCKED] Previous-attempt route: {', '.join(repeated)}. Change the page, window, query or access method; do not repeat this exact call."""
             return state
         task.attempt_queries = list(dict.fromkeys(task.attempt_queries + queries))
         task.attempt_source_families = list(dict.fromkeys(task.attempt_source_families + families))

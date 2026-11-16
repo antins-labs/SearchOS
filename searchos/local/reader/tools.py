@@ -270,14 +270,10 @@ def _read_catalog(path: Path, state: LocalBrowserState) -> str:
                     # do not advertise a handle whose canonical citation cannot round-trip.
                     pass
                 else:
-                    rendered = (
-                        f'Indexed document text: ref_id="{ref_id}"\n'
-                        "Read short documents in one local_open(max_chars=20000) call. "
-                        "Longer documents return a Next offset; "
-                        "use section refs for focused questions. "
-                        "This covers indexed locations only; retain source coverage warnings.\n\n"
-                        + rendered
-                    )
+                    rendered = f"""Indexed document text: ref_id="{ref_id}"
+Read short documents in one local_open(max_chars=20000) call. Longer documents return a Next offset; use section refs for focused questions. This covers indexed locations only; retain source coverage warnings.
+
+{rendered}"""
     body = "\n".join(f"L{index}: {line}" for index, line in enumerate(rendered.splitlines()))
     return f"[LOCAL_CATALOG]\nCatalog: {relative}\n\n{body}".rstrip()
 
@@ -734,10 +730,10 @@ def _render_original(
     blocks: list[dict[str, str]] = [
         {
             "type": "text",
-            "text": (
-                f"[LOCAL_ORIGINAL]\nSource: {source.ref_id}\nPath: {source.display_path}\n"
-                f"Metadata: {_source_metadata(source)}"
-            ),
+            "text": f"""[LOCAL_ORIGINAL]
+Source: {source.ref_id}
+Path: {source.display_path}
+Metadata: {_source_metadata(source)}""",
         }
     ]
     pdf_locators = [
@@ -923,9 +919,7 @@ async def local_open(
         ]
         if end < total:
             header.append(
-                f'Next: local_open(ref_id="{source.ref_id}", '
-                f"loc={end}, max_chars={max_chars}, "
-                f"representation_id={source.representation_selector!r})"
+                f"""Next: local_open(ref_id="{source.ref_id}", loc={end}, max_chars={max_chars}, representation_id={source.representation_selector!r})"""
             )
         else:
             header.append("[END OF SOURCE]")
@@ -986,8 +980,7 @@ async def local_find(
             f"Source: {source.ref_id}",
             f"Path: {source.display_path}",
             f"Metadata: {_source_metadata(source)}",
-            (f'Open a match with local_open(ref_id="{source.ref_id}", loc=<match loc>, '
-             f"max_chars=6000, representation_id={source.representation_selector!r})."),
+            f"""Open a match with local_open(ref_id="{source.ref_id}", loc=<match loc>, max_chars=6000, representation_id={source.representation_selector!r}).""",
             "",
         ]
         for index, position in enumerate(matches):

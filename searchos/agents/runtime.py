@@ -108,7 +108,7 @@ def create_search_agent_graph(
 
     if checkpointer is None:
         checkpointer = MemorySaver()
-    prompt = system_prompt or "You are a search agent."
+    prompt = system_prompt or """You are a search agent."""
     optional_middleware: list[Any] = []
     if skills or subagents:
         from deepagents.backends import StateBackend

@@ -80,9 +80,7 @@ class AccessPipeline:
         matches = [relative for relative in files if str(path).endswith('/' + relative) or str(path) == relative]
         recovery = {'package_files': files,
                 'read_file': {'path': matches[0] if len(matches) == 1 else 'SKILL.md'},
-                'instruction': '包文件使用上述相对路径；先读取再局部 edit_file。读取失败后按目录重新定位，保留已有文件。'
-                    'exec(code) 通过 Python Path 变量 SKILL_DIR 只读访问候选；修改使用 edit_file/write_file。'
-                    '函数 read_file 参数中的 offset/limit 按字符计数，沿 next_offset 读至 end_offset。'}
+                'instruction': """包文件使用上述相对路径；先读取再局部 edit_file。读取失败后按目录重新定位，保留已有文件。exec(code) 通过 Python Path 变量 SKILL_DIR 只读访问候选；修改使用 edit_file/write_file。函数 read_file 参数中的 offset/limit 按字符计数，沿 next_offset 读至 end_offset。"""}
         try:
             recovery['function_index_file'] = self.validation.function_index()['index_file']
         except (OSError, ValueError) as exc:
@@ -408,10 +406,13 @@ async def build_skill(
                 shutil.copy2(existing_package / relative, target)
                 workspace.package.files.add(relative.as_posix())
             workspace.package.update_base = workspace.package.package_state()
-            notes += "\nExisting package files are seeded in the workspace: " + ", ".join(sorted(workspace.package.files))
-            notes += "\n读取并扩展现有包，保留已有能力；在 SKILL.md 更新旧能力与新增能力的调用说明和真实示例。"
+            notes += f"""
+Existing package files are seeded in the workspace: {', '.join(sorted(workspace.package.files))}"""
+            notes += """
+读取并扩展现有包，保留已有能力；在 SKILL.md 更新旧能力与新增能力的调用说明和真实示例。"""
             if not workspace.validation.require_host:
-                notes += '\n该包覆盖多个来源。沿用现有范围，从已有脚本和 references 确认入口；本次更新的 metadata.host 为可选。'
+                notes += """
+该包覆盖多个来源。沿用现有范围，从已有脚本和 references 确认入口；本次更新的 metadata.host 为可选。"""
             checkpoint()
         if validation_examples is not None:
             workspace.validation.set_validation_examples(validation_examples)
@@ -537,7 +538,7 @@ async def build_skill(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Build a SearchOS access skill for a dynamic website.",
+        description="""Build a SearchOS access skill for a dynamic website.""",
     )
     parser.add_argument("--host", required=True)
     parser.add_argument("--urls", required=True, nargs="+")

@@ -46,15 +46,7 @@ _ROLE_REGISTRY = {
     _writer.AGENT_TYPE: _writer,
 }
 
-_SCOPE_AUDIT_NOTE = (
-    "Before ending, audit the ROW SET against the task's expected scope: "
-    "enumerate the dimensions the query implies (years, regions, categories, "
-    "top-N, ...) and check every combination has rows. Fill rates count only "
-    "rows already in the schema — all-filled does NOT mean the scope is "
-    "covered. If rows are missing, add_entities + enqueue_tasks for the "
-    "gaps; end your turn only when the audit passes or further search "
-    "cannot help."
-)
+_SCOPE_AUDIT_NOTE = """Before ending, audit the ROW SET against the task's expected scope: enumerate the dimensions the query implies (years, regions, categories, top-N, ...) and check every combination has rows. Fill rates count only rows already in the schema — all-filled does NOT mean the scope is covered. If rows are missing, add_entities + enqueue_tasks for the gaps; end your turn only when the audit passes or further search cannot help."""
 WRITER_CONTINUE_EVIDENCE_DELTA = 3
 MAX_SKILLS_PER_DISPATCH = 5
 _OUTLINE_MIN_SECTIONS = 3
@@ -351,8 +343,7 @@ def _build_sub_agent_context(state: Any, *, agent_type: str | None = None) -> st
         lines.append(f"- Attributes: {', '.join(ts.attributes)}")
         if ts.entities:
             lines.append(
-                f"- Known rows ({len(ts.entities)}): "
-                "(see the current task projection for remaining targets)"
+                f"""- Known rows ({len(ts.entities)}): (see the current task projection for remaining targets)"""
             )
 
     if cmap.relations:
@@ -362,8 +353,7 @@ def _build_sub_agent_context(state: Any, *, agent_type: str | None = None) -> st
             tc = ",".join(r.foreign_key.target_columns)
             tail = f" — {r.label}" if r.label else ""
             lines.append(
-                f"- {r.from_table}.[{fk}] → {r.foreign_key.target_table}.[{tc}] "
-                f"({r.kind.value}){tail}"
+                f"""- {r.from_table}.[{fk}] → {r.foreign_key.target_table}.[{tc}] ({r.kind.value}){tail}"""
             )
 
     return "\n".join(lines)
@@ -383,25 +373,17 @@ def _build_writer_socm_block(state: Any) -> str:
         filled = summary["completed_cells"]
         pct = round(100 * filled / summary["total"]) if summary["total"] else 0
         lines.append(
-            f"Filled: {filled}/{summary['total']} cells ({pct}%) | "
-            f"uncertain: {by_status.get('uncertain', 0)} | "
-            f"missing: {by_status.get('missing', 0)} | "
-            f"unavailable: {by_status.get('hard_cell', 0)} | "
-            f"conflicts: {sum(t['conflicts'] for t in summary['tables'])} | "
-            f"pending comparisons: {sum(t['pending_comparisons'] for t in summary['tables'])}"
+            f"""Filled: {filled}/{summary['total']} cells ({pct}%) | uncertain: {by_status.get('uncertain', 0)} | missing: {by_status.get('missing', 0)} | unavailable: {by_status.get('hard_cell', 0)} | conflicts: {sum((t['conflicts'] for t in summary['tables']))} | pending comparisons: {sum((t['pending_comparisons'] for t in summary['tables']))}"""
         )
         for t in summary["tables"]:
             lines.append(
-                f"Table {t['table_label'] or t['table_id']}: "
-                f"{t['total_rows']} entities × {len(t['by_attribute'])} data attributes"
+                f"""Table {t['table_label'] or t['table_id']}: {t['total_rows']} entities × {len(t['by_attribute'])} data attributes"""
             )
         lines.append(
-            f"Entities ({len(cmap.table_schema.entities)}): "
-            f"{_format_capped_list(cmap.table_schema.entities)}"
+            f"""Entities ({len(cmap.table_schema.entities)}): {_format_capped_list(cmap.table_schema.entities)}"""
         )
         lines.append(
-            f"Attributes ({len(cmap.table_schema.attributes)}): "
-            f"{_format_capped_list(cmap.table_schema.attributes)}"
+            f"""Attributes ({len(cmap.table_schema.attributes)}): {_format_capped_list(cmap.table_schema.attributes)}"""
         )
         worst_attrs = sorted(
             summary["by_attribute"], key=lambda a: -a["unresolved"]
@@ -421,8 +403,7 @@ def _build_writer_socm_block(state: Any) -> str:
                 )
             )
         lines.append(
-            "Drill down with read_coverage(mode=\"cells\", ...) filters; "
-            "do not pull the full cell list unfiltered."
+            """Drill down with read_coverage(mode="cells", ...) filters; do not pull the full cell list unfiltered."""
         )
     else:
         lines.append("(schema not yet built)")
@@ -430,8 +411,9 @@ def _build_writer_socm_block(state: Any) -> str:
     nodes = getattr(getattr(state, "evidence_graph", None), "nodes", []) or []
     if nodes:
         lines.append(
-            f"\n## Evidence\n{len(nodes)} nodes — read with "
-            "read_evidence(entity=..., attribute=...) slices; never guess content from ids."
+            f"""
+## Evidence
+{len(nodes)} nodes — read with read_evidence(entity=..., attribute=...) slices; never guess content from ids."""
         )
 
     frontier = getattr(state, "frontier", None)
@@ -445,8 +427,7 @@ def _build_writer_socm_block(state: Any) -> str:
             "\n## Frontier\n"
             + " | ".join(f"{k}: {v}" for k, v in sorted(counts.items()))
             + (
-                f" — {with_report} task(s) carry agent reports "
-                "(list_frontier + read_task_report)"
+                f""" — {with_report} task(s) carry agent reports (list_frontier + read_task_report)"""
                 if with_report
                 else ""
             )
@@ -562,10 +543,7 @@ def _recycle_failed_task(
                 # Stop this attempt without declaring the research complete.
                 # The orchestrator must assess remaining gaps before dispatch.
                 q.status = _Q.CANCELLED
-                q.resolution = (
-                    "partial_evidence_review_required: valid task evidence retained; "
-                    "review with read_evidence and enqueue only concrete unresolved gaps."
-                )
+                q.resolution = """partial_evidence_review_required: valid task evidence retained; review with read_evidence and enqueue only concrete unresolved gaps."""
                 outcome["v"] = "review_required"
             elif q.attempts >= MAX_TASK_ATTEMPTS:
                 q.status = _Q.CANCELLED
@@ -884,10 +862,7 @@ def _compute_agent_report(
         if callable(getattr(resource, "summary", None))
     )
     if pending_extraction:
-        result += (
-            f"; {pending_extraction} observation(s) retained for extraction retry. "
-            "Extraction is incomplete; use committed evidence and inspect the remaining gaps."
-        )
+        result += f"""; {pending_extraction} observation(s) retained for extraction retry. Extraction is incomplete; use committed evidence and inspect the remaining gaps."""
 
     return SearchReport(
         agent_id=agent_id,
@@ -1030,18 +1005,16 @@ async def _spawn_sub_agent(
     static_assembly_parts: list[str] = []
     if agent_type == _local_search.AGENT_TYPE and source_scope is not None:
         paths = "\n".join(
-            f"{r['relative_path']}: documents/{r['document_id']}.md"
+            f"""{r['relative_path']}: documents/{r['document_id']}.md"""
             for r in source_scope.get("documents", [])
         )
         if source_scope.get("selection") == "library":
             prompt_parts.append(
-                "For this turn, explore the readable document snapshot in the current library. "
-                "Search catalogs with local_catalog(query=...) or browse the scope with local_catalog(), "
-                "then follow relevant document catalogs to locate and read source content. "
-                "Search summaries and aliases when filenames do not match. Stay within relevant material."
+                """For this turn, explore the readable document snapshot in the current library. Search catalogs with local_catalog(query=...) or browse the scope with local_catalog(), then follow relevant document catalogs to locate and read source content. Search summaries and aliases when filenames do not match. Stay within relevant material."""
             )
         else:
-            prompt_parts.append("This turn allows only the selected documents below. Start directly from their catalogs:\n" + paths)
+            prompt_parts.append(f"""This turn allows only the selected documents below. Start directly from their catalogs:
+{paths}""")
     assigned = next((q for q in state.frontier.questions if q.id == assigned_task_id), None)
     if assigned and assigned.blocked_by:
         from searchos.socm.coverage import answer_evidence
@@ -1049,8 +1022,8 @@ async def _spawn_sub_agent(
                if b.task_id in assigned.blocked_by}
         supporting = [{"id": n.id, "finding": n.finding, "source": n.source}
                       for n in answer_evidence(state) if n.id in ids]
-        prompt_parts.append("Verified findings from prerequisite tasks (check against the current question):\n" +
-                            json.dumps(supporting, ensure_ascii=False))
+        prompt_parts.append(f"""Verified findings from prerequisite tasks (check against the current question):
+{json.dumps(supporting, ensure_ascii=False)}""")
 
     from pathlib import Path
 
@@ -1128,29 +1101,26 @@ async def _spawn_sub_agent(
                 ap_index = getattr(skill, "anti_patterns_index", "") or ""
                 if ap_index:
                     skill_parts.append(
-                        f"**{skill.meta.name} — known failure modes** "
-                        f"(call `load_anti_patterns(\"{sname}\")` for "
-                        "details if any of these look relevant):\n"
-                        + ap_index
+                        f"""**{skill.meta.name} — known failure modes** (call `load_anti_patterns("{sname}")` for details if any of these look relevant):
+{ap_index}"""
                     )
                 skill_parts.append(
-                    f"Consider `load_skill(\"{sname}\")` if it fits the current need. "
-                    "Apply method instructions through your available tools. Load executable skills, "
-                    "then use their SearchAnything command_prefix inside exec. You may discover a better fit with list_skills."
+                    f"""Consider `load_skill("{sname}")` if it fits the current need. Apply method instructions through your available tools. Load executable skills, then use their SearchAnything command_prefix inside exec. You may discover a better fit with list_skills."""
                 )
         if skill_parts:
-            prompt_parts.append("## Recommended Skills\n" + "\n\n".join(skill_parts))
+            recommendations = "\n\n".join(skill_parts)
+            prompt_parts.append(f"""## Recommended Skills
+{recommendations}""")
 
     if assigned and assigned.kind == "search":
         prompt_parts.append(
-            "Read original sources for the assigned question. Preserve their references "
-            "and report any unresolved gaps. Evidence Extraction links supported facts "
-            "to this task. It uses the current schema to update rows and cells, or "
-            "records independent findings when no table exists."
+            """Read original sources for the assigned question. Preserve their references and report any unresolved gaps. Evidence Extraction links supported facts to this task. It uses the current schema to update rows and cells, or records independent findings when no table exists."""
         )
     strategy_guidance_applied = bool(strategy_guidance and agent_type in {"search_agent", "local_search_agent"})
     if strategy_guidance_applied:
-        prompt_parts.append("## Candidate retrieval methods for this subtask\nFollow the existing permissions, source scope, and budgets.\n" + strategy_guidance)
+        prompt_parts.append(f"""## Candidate retrieval methods for this subtask
+Follow the existing permissions, source scope, and budgets.
+{strategy_guidance}""")
     if prompt_suffix:
         prompt_parts.append(prompt_suffix)
     system_prompt = "\n\n".join(prompt_parts)
@@ -1358,14 +1328,10 @@ async def _spawn_sub_agent(
             previous.get("assigned_task_id") or agent_label,
             assigned_task_id,
         )
-        wrapped_task = (
-            "[NEW TASK — SAME AGENT]\n"
-            "Continue with your retained conversation, browser references and loaded skills. "
-            "Use the new task's targets and budget. Reuse suitable loaded skills directly; "
-            "discover or load more only when the required capability changes. "
-            "Prior task conclusions do not automatically establish evidence for this task.\n\n"
-            + task
-        )
+        wrapped_task = f"""[NEW TASK — SAME AGENT]
+Continue with your retained conversation, browser references and loaded skills. Use the new task's targets and budget. Reuse suitable loaded skills directly; discover or load more only when the required capability changes. Prior task conclusions do not automatically establish evidence for this task.
+
+{task}"""
         def _reset_run(s: Any) -> Any:
             s.agent_status.pop(agent_label, None)
             s.agent_dead_ends.pop(agent_label, None)
@@ -1512,10 +1478,7 @@ async def _collect_sub_agent_result(
                 [s.meta.name for s in _ctx.skill_registry.list_all()][:10]
                 if _ctx.skill_registry else []
             )
-            summary = (
-                f"[WARN: skills {missing_skills} not found in registry. "
-                f"Available: {available}] {summary}"
-            )
+            summary = f"""[WARN: skills {missing_skills} not found in registry. Available: {available}] {summary}"""
 
         # Last AIMessage with no tool_calls is the agent's end-of-run
         # briefing (plan §一 总则 3). The orchestrator reads it to decide

@@ -176,7 +176,11 @@ async def discover_skills(query: str, candidates: list[Skill], *, limit: int = 5
         async with asyncio.timeout(60):
             response = await model.ainvoke([
                 SystemMessage(content=_SYSTEM.format(limit=limit)),
-                HumanMessage(content=f'CURRENT NEED:\n{query}\n\nAVAILABLE SKILLS:\n{catalog}'),
+                HumanMessage(content=f"""CURRENT NEED:
+{query}
+
+AVAILABLE SKILLS:
+{catalog}"""),
             ])
         data = extract_json_object(getattr(response, 'content', '') or '')
         if not isinstance(data, dict) or not isinstance(data.get('skills'), list):

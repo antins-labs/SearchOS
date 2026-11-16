@@ -166,9 +166,7 @@ def _render_opens_block(opens: dict[str, _HostOpens]) -> str:
     )[:25]
     for host_opens in ranked:
         lines.append(
-            f"### {host_opens.host}  "
-            f"(opened {host_opens.open_count}×, "
-            f"total evidence {host_opens.total_evidence})"
+            f"""### {host_opens.host}  (opened {host_opens.open_count}×, total evidence {host_opens.total_evidence})"""
         )
         for sample in host_opens.samples:
             observation = sample["obs"].replace("\n", " ").strip()

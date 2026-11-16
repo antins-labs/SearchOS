@@ -169,9 +169,7 @@ def render_failure_memory(
             "historical": "historical record",
         }.get(memory.source, memory.source)
         lines.append(
-            f"- [{memory.kind.value}; {origin}; confidence={memory.confidence}] "
-            f"{target}: {memory.what_failed[:500]} "
-            f"({scope}{detail})."
+            f"""- [{memory.kind.value}; {origin}; confidence={memory.confidence}] {target}: {memory.what_failed[:500]} ({scope}{detail})."""
         )
         if memory.guidance and view != "writing":
             lines.append(f"  Guidance: {memory.guidance[:300]}")

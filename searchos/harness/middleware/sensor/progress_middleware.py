@@ -125,11 +125,7 @@ class ToolProgressMiddleware(AgentMiddleware):
             self.empty_calls = 0
             return append_feedback(
                 result,
-                (
-                    "[Harness] Search has located sources but no verified facts. "
-                    "Stop issuing search queries; "
-                    "use open on relevant original pages now. One bounded reading recovery remains."
-                ),
+                """[Harness] Search has located sources but no verified facts. Stop issuing search queries; use open on relevant original pages now. One bounded reading recovery remains.""",
             )
         self.control.stop(f"no_progress_tools_x{self.empty_calls}")
         mark_agent_status(self.workspace, self.task, "no_progress")
@@ -137,8 +133,5 @@ class ToolProgressMiddleware(AgentMiddleware):
             self.on_stop()
         return append_feedback(
             result,
-            (
-                f"[Harness] No-progress stop armed after {self.empty_calls} consecutive tools. "
-                "Do not call another retrieval tool; write findings and unresolved gaps."
-            ),
+            f"""[Harness] No-progress stop armed after {self.empty_calls} consecutive tools. Do not call another retrieval tool; write findings and unresolved gaps.""",
         )

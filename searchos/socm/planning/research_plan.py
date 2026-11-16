@@ -106,14 +106,10 @@ def render_research_plan(state) -> str:
             values = row[key]
             row[key] = values[:20]
             row[key + "_count"] = len(values)
-    return (
-        "[Research plan]\n"
-        + json.dumps(
-            {
-                **brief,
-                "source_mode": (state.source_scope or {}).get("mode", "web"),
-                "membership_review": reviews,
-            },
-            ensure_ascii=False,
-        )
-    )
+    payload = {
+        **brief,
+        "source_mode": (state.source_scope or {}).get("mode", "web"),
+        "membership_review": reviews,
+    }
+    return f"""[Research plan]
+{json.dumps(payload, ensure_ascii=False)}"""

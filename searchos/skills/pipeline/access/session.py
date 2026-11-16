@@ -46,28 +46,30 @@ def _save_history(messages, workspace):
 
 def _archive_messages(messages, workspace, *, role):
     history = _save_history(messages, workspace)
-    system = messages[0] if messages and isinstance(messages[0], SystemMessage) else SystemMessage(content='继续当前角色任务。')
+    system = messages[0] if messages and isinstance(messages[0], SystemMessage) else SystemMessage(content="""继续当前角色任务。""")
     if _size([system]) > 16_000:
-        system = SystemMessage(content=str(system.content)[:3000]
-            + '\n完整角色说明已保存：' + history)
+        system = SystemMessage(content=f"""{str(system.content)[:3000]}
+完整角色说明已保存：{history}""")
     task = str(messages[1].content)[:4000] if len(messages) > 1 else ''
     checkpoint = {'history_file': history, **workspace.context_snapshot(role)}
     shown = workspace.package.result_store.present(checkpoint)
-    note = HumanMessage(content='继续完成当前任务。完整输入和较早交互已保存，按需读取历史文件。\n'
-        + task + '\n当前状态：\n' + json.dumps(shown, ensure_ascii=False))
+    note = HumanMessage(content=f"""继续完成当前任务。完整输入和较早交互已保存，按需读取历史文件。
+{task}
+当前状态：
+{json.dumps(shown, ensure_ascii=False)}""")
     last_ai = next((index for index in range(len(messages) - 1, 1, -1)
                     if isinstance(messages[index], AIMessage)), len(messages))
     recent = messages[last_ai:]
     if _size([*recent]) > MAX_CONTEXT_BYTES // 2:
-        recent = [HumanMessage(content='最近一轮工具调用及结果已完成并保存：' + history
-                              + '。根据当前文件和验收状态继续；可分页核对该轮观察。')]
+        recent = [HumanMessage(content=f"""最近一轮工具调用及结果已完成并保存：{history}。根据当前文件和验收状态继续；可分页核对该轮观察。""")]
     result = [system, note, *recent]
     if _size(result) > MAX_CONTEXT_BYTES:
         directory = workspace.package.result_store.present({key: checkpoint[key] for key in
             ('research_observations', 'validation_progress', 'package_files', 'latest_validation') if key in checkpoint})
-        result = [system, HumanMessage(content='继续当前任务。完整历史：' + history
-                    + '\n当前任务开头：' + task + '\n当前进度：\n'
-                    + json.dumps(directory, ensure_ascii=False))]
+        result = [system, HumanMessage(content=f"""继续当前任务。完整历史：{history}
+当前任务开头：{task}
+当前进度：
+{json.dumps(directory, ensure_ascii=False)}""")]
     return result, history
 
 
@@ -128,7 +130,8 @@ async def prepare_messages_async(messages, workspace, *, role, model, timeout_s=
         async with asyncio.timeout(timeout_s):
             summary = await summarize_history(SummaryModel(), render_history([*prefix, *prior]),
                 render_history(retained), summary_tokens=summary_tokens, input_budget=input_budget)
-        handoff = HumanMessage(content='历史续接摘要；按当前任务与宿主状态继续：\n' + summary,
+        handoff = HumanMessage(content=f"""历史续接摘要；按当前任务与宿主状态继续：
+{summary}""",
             additional_kwargs={'sf_synthetic': True, 'sf_kind': 'context_compaction'})
         shown = [*retained[:2], handoff, *recent]
         if _size(shown) > MAX_CONTEXT_BYTES:
@@ -177,16 +180,9 @@ def budget_signal(role, *, call, call_limit, phase, phase_limit=None, total_limi
 
 def final_instruction(role):
     return {
-        'planner': '当前是最终整理阶段。仅根据已有观察直接输出符合契约的最终 JSON。'
-                   '研究工具调用会被代码拦截；依据校验回执修正字段，未确认范围写入 limitations 或 guidance。',
-        'builder': '根据静态预检和验收回执补齐包文件、元数据与入口，继续使用工具修复。'
-                   '完成后使用 send_message(role="validator") 交验；失败回执返回本循环继续处理。'
-                   '优先完成可交验的包，并说明剩余限制。',
-        'validator': '当前是最终报告阶段。使用 send_message(role="builder", content={"checks":[...]}) '
-                     '提交已有证据支持的逐能力结论，未完成范围填写 uncertain 并说明原因。'
-                     '仍需修复或补验时，在 content 中附 repair_budget={"max_turns":轮数,"reason":"工作量依据"}，'
-                     '轮数为整数 1–50；根据读取、探查、修改、自测和重交所需工作分配。'
-                     '读取、执行及其他角色消息调用会被代码拦截；根据报告回执修正提交。',
+        'planner': """当前是最终整理阶段。仅根据已有观察直接输出符合契约的最终 JSON。研究工具调用会被代码拦截；依据校验回执修正字段，未确认范围写入 limitations 或 guidance。""",
+        'builder': """根据静态预检和验收回执补齐包文件、元数据与入口，继续使用工具修复。完成后使用 send_message(role="validator") 交验；失败回执返回本循环继续处理。优先完成可交验的包，并说明剩余限制。""",
+        'validator': """当前是最终报告阶段。使用 send_message(role="builder", content={"checks":[...]}) 提交已有证据支持的逐能力结论，未完成范围填写 uncertain 并说明原因。仍需修复或补验时，在 content 中附 repair_budget={"max_turns":轮数,"reason":"工作量依据"}，轮数为整数 1–50；根据读取、探查、修改、自测和重交所需工作分配。读取、执行及其他角色消息调用会被代码拦截；根据报告回执修正提交。""",
     }[role]
 
 

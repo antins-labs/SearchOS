@@ -62,11 +62,7 @@ class QueryRepetitionSensor(Sensor):
             return {"force_stop": False, "reason": "query_repetition_hard_loop"}
         return {
             "reason": "query_repetition",
-            "inject_message": (
-                f"[Harness WARNING] Query {query[:120]!r} repeated {repeats} times. "
-                "Switch keywords, language or domain; read an existing source, "
-                "or record an unresolved target."
-            ),
+            "inject_message": f"""[Harness WARNING] Query {query[:120]!r} repeated {repeats} times. Switch keywords, language or domain; read an existing source, or record an unresolved target.""",
         }
 
 
@@ -97,10 +93,7 @@ class ReadingReminderSensor(Sensor):
         self._searches = 0
         return {
             "reason": "bare_search_without_progress",
-            "inject_message": (
-                f"[Harness WARNING] {self.threshold} searches without reading. "
-                "Open the most relevant original source before issuing another query."
-            ),
+            "inject_message": f"""[Harness WARNING] {self.threshold} searches without reading. Open the most relevant original source before issuing another query.""",
         }
 
 

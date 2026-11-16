@@ -53,13 +53,6 @@ class DispatchPolicy:
             return await handler(request)
         self._last_size, self._last_time = size, now
         self._count += 1
-        content = (
-            f"{size} sub-agent(s) running ({', '.join(agents[:6])}); "
-            f"max_parallel_agents={self.capacity} and the Frontier OPEN queue is empty. "
-            "Enqueue work only for a concrete user requirement not already covered by "
-            "evidence or running tasks. Free capacity is not a reason to expand scope. "
-            "If all useful work is in flight, call check_agents to wait for the next report; do not reread "
-            "unchanged tables or repeat the user's request."
-        )
+        content = f"""{size} sub-agent(s) running ({', '.join(agents[:6])}); max_parallel_agents={self.capacity} and the Frontier OPEN queue is empty. Enqueue work only for a concrete user requirement not already covered by evidence or running tasks. Free capacity is not a reason to expand scope. If all useful work is in flight, call check_agents to wait for the next report; do not reread unchanged tables or repeat the user's request."""
         request = inject_context(request, content, "pool_nudge")
         return await handler(request)

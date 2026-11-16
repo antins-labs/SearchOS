@@ -107,9 +107,7 @@ def validate_plan(value, observations):
     def artifact_hint(refs):
         artifacts = [ref for ref in refs if isinstance(ref, str)
                      and observed.get(ref, {}).get('result', {}).get('content_source') == 'artifact'] if isinstance(refs, list) else []
-        return (' Cited artifact/history read IDs: ' + ', '.join(artifacts)
-                + '. Cite the original research observation IDs inside that content; '
-                'see research_observations for eligible original IDs.') if artifacts else ''
+        return f""" Cited artifact/history read IDs: {', '.join(artifacts)}. Cite the original research observation IDs inside that content; see research_observations for eligible original IDs.""" if artifacts else ''
     for cap in caps:
         if not isinstance(cap, dict):
             raise ValueError('capability must be an object')
@@ -217,20 +215,23 @@ class SitePlannerAgent:
             finalizing = turn >= research_turns
             if finalizing:
                 directory = self.result_store.present(research_observation_index(self.state['observations']))
-                messages.append(HumanMessage(content='研究观察目录：\n' + json.dumps(directory, ensure_ascii=False)))
+                messages.append(HumanMessage(content=f"""研究观察目录：
+{json.dumps(directory, ensure_ascii=False)}"""))
             messages = await prepare_messages_async(messages, self.workspace, role='planner', model=self.model)
-            instruction = (f'整理调用 {turn - research_turns + 1}/{turns + 1 - research_turns}。'
-                    + final_instruction('planner')
-                    + '引用研究观察目录中的原始研究 ID；读取历史文件时沿用内容中的原 ID。'
-                    if finalizing else '依据已有观察推进计划或需求澄清，根据剩余轮数安排探索和最终 JSON 整理。')
+            if finalizing:
+                instruction = f"""整理调用 {turn - research_turns + 1}/{turns + 1 - research_turns}。{final_instruction('planner')}引用研究观察目录中的原始研究 ID；读取历史文件时沿用内容中的原 ID。"""
+            else:
+                instruction = """依据已有观察推进计划或需求澄清，根据剩余轮数安排探索和最终 JSON 整理。"""
             if last_error:
-                instruction += '\n最近校验反馈：' + last_error[:1000]
+                instruction += f"""
+最近校验反馈：{last_error[:1000]}"""
             signal = budget_signal('planner', call=turn + 1, call_limit=turns + 1,
                 phase='finalization' if finalizing else 'research',
                 phase_limit=turns + 1 if finalizing else research_turns)
             self.state['budget'] = signal
-            messages.append(HumanMessage(content=instruction + '\n剩余次数包含本次调用。运行预算：\n'
-                + json.dumps(signal, ensure_ascii=False)))
+            messages.append(HumanMessage(content=f"""{instruction}
+剩余次数包含本次调用。运行预算：
+{json.dumps(signal, ensure_ascii=False)}"""))
             self.state['calls'] += 1
             self.save()
             try:
@@ -242,7 +243,7 @@ class SitePlannerAgent:
                 self.validation_error(exc, kind='tool_protocol')
                 self.record.event('agent_tool_protocol_rejected', role='planner', call=self.state['calls'],
                                   error=self.record.clean(str(exc)))
-                messages.append(HumanMessage(content='网关拒绝了工具调用。' + final_instruction('planner')))
+                messages.append(HumanMessage(content=f"""网关拒绝了工具调用。{final_instruction('planner')}"""))
                 continue
             self.record.event('site_intent_response', content=answer.content,
                               reasoning=(getattr(answer, 'additional_kwargs', {}) or {}).get('reasoning_content'),
@@ -264,7 +265,7 @@ class SitePlannerAgent:
                         contract_error = last_error
                     kind = ('plan_validation' if planning else 'advice_validation') if parsed else 'response_format'
                     self.validation_error(exc, kind=kind)
-                    messages.append(HumanMessage(content=f'最终 JSON 未通过校验，请修复具体字段：{exc}'))
+                    messages.append(HumanMessage(content=f"""最终 JSON 未通过校验，请修复具体字段：{exc}"""))
                     continue
             for call in calls:
                 try:
@@ -398,9 +399,12 @@ class SitePlannerAgent:
         plan = self.state['plan']
         refs = {ref for cap in plan['capabilities'] for ref in cap['evidence_ids']}
         evidence = [o for o in self.state['observations'] if o['id'] in refs]
-        return ('\n## 站点开发计划\n在一个技能包内实现计划中的能力，按任务选择实现与验证方式。'
-                '\nBuilder 自主设计业务函数、CLI、参数、字段与 JSON 结构，编写使用说明并交付候选。--help 离线成功。'
-                '\n无匹配或非法输入可返回空结果或明确失败，建议附状态与诊断；错误标签及退出码形式差异只作提示。'
-                '边界观察按需进行，验收检查声明范围内正常输入的可用性、参数效果、数据真实性和来源。'
-                + '\n能力计划：\n' + json.dumps(plan, ensure_ascii=False)
-                + '\n## 研究观察\n' + json.dumps(self.result_store.present({'observations': evidence}), ensure_ascii=False))
+        return f"""
+## 站点开发计划
+在一个技能包内实现计划中的能力，按任务选择实现与验证方式。
+Builder 自主设计业务函数、CLI、参数、字段与 JSON 结构，编写使用说明并交付候选。--help 离线成功。
+无匹配或非法输入可返回空结果或明确失败，建议附状态与诊断；错误标签及退出码形式差异只作提示。边界观察按需进行，验收检查声明范围内正常输入的可用性、参数效果、数据真实性和来源。
+能力计划：
+{json.dumps(plan, ensure_ascii=False)}
+## 研究观察
+{json.dumps(self.result_store.present({'observations': evidence}), ensure_ascii=False)}"""

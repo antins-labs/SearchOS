@@ -32,18 +32,15 @@ class SearchRoute(BaseModel):
         return self
 
     def plan(self) -> ResearchPlan:
+        if self.path == "simple":
+            stop_rule = """Resolve every stated obligation using original source evidence. When search time expires, stop retrieval and summarize supported findings and unresolved requirements in the current conversation."""
+        else:
+            stop_rule = """Check the stated obligations and any declared set boundary against evidence; report unresolved gaps and the stopping reason."""
         return ResearchPlan(
             strategy=self.strategy,
             evidence_obligations=self.evidence_obligations,
             table_policy=self.table_policy,
-            stop_rule=(
-                "Resolve every stated obligation using original source evidence. "
-                "When search time expires, stop retrieval and summarize supported findings "
-                "and unresolved requirements in the current conversation."
-                if self.path == "simple" else
-                "Check the stated obligations and any declared set boundary against evidence; "
-                "report unresolved gaps and the stopping reason."
-            ),
+            stop_rule=stop_rule,
         )
 
 
@@ -133,12 +130,10 @@ async def select_route(*, model, query, state, execution_path="auto", follow_up=
         timeout = min(30.0, remaining_time_s) if remaining_time_s is not None else 30.0
         try:
             response = await asyncio.wait_for(model.ainvoke([
-                SystemMessage(content=(
-                    _ROUTER_PROMPT
-                    + f"\n\n# Runtime context\nRuntime as-of date: {date.today().isoformat()}. "
-                    "Use this date to interpret relative dates and apply any explicit user cutoff. "
-                    "Plan verification for recent events using sources available under source_mode."
-                )),
+                SystemMessage(content=f"""{_ROUTER_PROMPT}
+
+# Runtime context
+Runtime as-of date: {date.today().isoformat()}. Use this date to interpret relative dates and apply any explicit user cutoff. Plan verification for recent events using sources available under source_mode."""),
                 HumanMessage(content=json.dumps({
                     "question": query, "source_mode": source_mode,
                 }, ensure_ascii=False)),

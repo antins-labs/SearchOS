@@ -18,8 +18,8 @@ __all__ = [
 
 
 def _render_row_key_example(primary_key: list[str], data_columns: list[str]) -> str:
-    parts = [f'"{k}": "<value>",' for k in primary_key]
-    parts += [f'"{d}": "<value or null>",' for d in data_columns]
+    parts = [f""""{k}": "<value>",""" for k in primary_key]
+    parts += [f""""{d}": "<value or null>",""" for d in data_columns]
     return "\n      ".join(parts)
 
 
@@ -43,20 +43,23 @@ def _render_column_desc_block(
         if check is not None:
             rules = []
             if getattr(check, "enum", None) is not None:
-                rules.append(f"must be one of {check.enum}")
+                rules.append(f"""must be one of {check.enum}""")
             if getattr(check, "min", None) is not None:
-                rules.append(f"must be >= {check.min:g}")
+                rules.append(f"""must be >= {check.min:g}""")
             if getattr(check, "max", None) is not None:
-                rules.append(f"must be <= {check.max:g}")
+                rules.append(f"""must be <= {check.max:g}""")
             if rules:
                 parts.append(
-                    "HARD CHECK (rows violating this are rejected at ingest, "
-                    "list columns checked element-wise): " + ", ".join(rules)
+                    f"""HARD CHECK (rows violating this are rejected at ingest, list columns checked element-wise): {', '.join(rules)}"""
                 )
-        lines.append(f"- {col}: {'. '.join(parts)}")
+        lines.append(f"""- {col}: {'. '.join(parts)}""")
     if not lines:
         return ""
-    return "\n## Column descriptions\n" + "\n".join(lines) + "\n"
+    descriptions = "\n".join(lines)
+    return f"""
+## Column descriptions
+{descriptions}
+"""
 
 
 
@@ -176,31 +179,27 @@ Site boilerplate (copyright lines, registration/filing numbers, contact blocks) 
 Return ONLY the JSON array, no prose, no markdown fences.
 """
 
-FILL_ROW_PROMPT = _PROMPT_HEADER + """\
-## Rows needing data (FILL MODE)
+FILL_ROW_PROMPT = f"""{_PROMPT_HEADER}## Rows needing data (FILL MODE)
 The table rows below have unresolved cells. Fill targets specify the eligible cells by row and column indices. Fill these targets using the source pages; a separate pass handles new-row discovery.
-{coverage_snapshot}
+{{coverage_snapshot}}
 ## Pages
-{pages_block}
-""" + _OUTPUT_FORMAT_BLOCK + """\
-## Rules
+{{pages_block}}
+{_OUTPUT_FORMAT_BLOCK}## Rules
 - FILL ONLY: output a row ONLY when a page EXPLICITLY mentions that row's entity AND states a value for at least one of its fill targets. Copy each primary-key column's value from the matching coverage row exactly, including dates, names, casing and punctuation. Set data columns outside the row's fill targets to null.
 - Do NOT output rows that are not in the list — new rows are out of scope for this call; skip them even if the pages describe them.
 - An EMPTY array is a perfectly normal result. If no page mentions any listed row, return [].
-""" + _VALUE_RULES
+{_VALUE_RULES}"""
 
-DISCOVER_ROW_PROMPT = _PROMPT_HEADER + """\
-## Known rows — already in the table (DISCOVER MODE)
+DISCOVER_ROW_PROMPT = f"""{_PROMPT_HEADER}## Known rows — already in the table (DISCOVER MODE)
 Every primary key below already exists; its data is handled elsewhere. Your ONLY job is to find rows NOT in this list.
-{known_pk_list}
+{{known_pk_list}}
 ## Pages
-{pages_block}
-""" + _OUTPUT_FORMAT_BLOCK + """\
-## Rules
+{{pages_block}}
+{_OUTPUT_FORMAT_BLOCK}## Rules
 - DISCOVER ONLY: output ONLY brand-new rows — rows whose primary key is NOT in the known list above (including trivial reformattings of a listed key: same date written differently, same name with different casing / punctuation are NOT new rows).
 - For each new row, copy each primary-key field's own value verbatim from the page and fill every data column the page states; use null for the rest.
 - If the pages only describe rows already in the known list, return [] — that is a normal result.
-""" + _VALUE_RULES
+{_VALUE_RULES}"""
 
 # ---------------------------------------------------------------------------
 # Coverage-aware row extraction — merges row extraction + coverage fill into a
@@ -209,17 +208,15 @@ Every primary key below already exists; its data is handled elsewhere. Your ONLY
 # reuses the EXACT canonical primary-key text of existing rows.
 # ---------------------------------------------------------------------------
 
-COVERAGE_AWARE_ROW_PROMPT = _PROMPT_HEADER + """\
-## Current table status
+COVERAGE_AWARE_ROW_PROMPT = f"""{_PROMPT_HEADER}## Current table status
 The rows already in this table are listed below. Fill targets specify the unresolved cells by row and column indices.
-{coverage_snapshot}
+{{coverage_snapshot}}
 ## Pages
-{pages_block}
-""" + _OUTPUT_FORMAT_BLOCK + """\
-## Rules
+{{pages_block}}
+{_OUTPUT_FORMAT_BLOCK}## Rules
 - For an EXISTING row (listed above): copy each primary-key column's value from its corresponding coverage column exactly. Output it ONLY when a page fills at least one of its fill targets; set the other data columns to null. Skip the listed complete rows.
 - For a BRAND-NEW row (not listed above): copy each primary-key field's own value verbatim from the page and fill every data column the page states; null for the rest.
-""" + _VALUE_RULES
+{_VALUE_RULES}"""
 
 
 def _render_pages_block(pages: list[dict[str, str]]) -> str:
@@ -227,15 +224,18 @@ def _render_pages_block(pages: list[dict[str, str]]) -> str:
     # format refers to these "### Page N" headers.
     parts = []
     for i, p in enumerate(pages):
-        identity = f"\nPage ID: {p['page_id']}\n" if p.get("page_id") else ""
+        identity = f"""
+Page ID: {p['page_id']}
+""" if p.get("page_id") else ""
         parent = p.get("referring_page")
-        origin = (f"Page linking to this attachment (subject and date context): {parent[1]} ({parent[0]})\n"
-                  if parent else "")
+        origin = f"""Page linking to this attachment (subject and date context): {parent[1]} ({parent[0]})
+""" if parent else ""
         parts.append(
-            f"### Page {i + 1}\n"
-            f"Source: {p.get('source_url', '')}\n{identity}\n"
-            f"{origin}Declared source links: {p.get('source_urls', [])}\n"
-            f"{p.get('content', '')}"
+            f"""### Page {i + 1}
+Source: {p.get('source_url', '')}
+{identity}
+{origin}Declared source links: {p.get('source_urls', [])}
+{p.get('content', '')}"""
         )
     return "\n\n".join(parts)
 
@@ -257,10 +257,7 @@ def build_fill_row_prompt(
         primary_key=list(primary_key),
         data_columns=list(data_columns),
         column_desc_block=_render_column_desc_block(primary_key, data_columns, column_desc),
-        coverage_snapshot=coverage_snapshot or (
-            "(every existing row currently has all columns filled — "
-            "return [] unless a page explicitly contradicts that)"
-        ),
+        coverage_snapshot=coverage_snapshot or """(every existing row currently has all columns filled — return [] unless a page explicitly contradicts that)""",
         pages_block=_render_pages_block(pages),
         key_example=_render_row_key_example(primary_key, data_columns),
     )
@@ -283,7 +280,7 @@ def build_discover_row_prompt(
         primary_key=list(primary_key),
         data_columns=list(data_columns),
         column_desc_block=_render_column_desc_block(primary_key, data_columns, column_desc),
-        known_pk_list=known_pk_list or "(table is empty — every row you identify is new)",
+        known_pk_list=known_pk_list or """(table is empty — every row you identify is new)""",
         pages_block=_render_pages_block(pages),
         key_example=_render_row_key_example(primary_key, data_columns),
     )
@@ -316,7 +313,7 @@ def build_coverage_aware_row_prompt(
         primary_key=list(primary_key),
         data_columns=list(data_columns),
         column_desc_block=column_desc_block,
-        coverage_snapshot=coverage_snapshot or "(no rows yet)",
+        coverage_snapshot=coverage_snapshot or """(no rows yet)""",
         pages_block=pages_block,
         key_example=key_example,
     )

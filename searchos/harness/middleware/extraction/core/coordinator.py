@@ -298,8 +298,7 @@ class ExtractionCoordinator:
                     raise
                 self._retain_failed(recovered, "recovery_timeout")
                 self._pending_feedback.append(
-                    "[Extraction feedback] Recovery timed out; observations remain saved for an extraction retry. "
-                    "Continue with committed evidence and assess remaining gaps."
+                    """[Extraction feedback] Recovery timed out; observations remain saved for an extraction retry. Continue with committed evidence and assess remaining gaps."""
                 )
             finally:
                 self._flush_in_flight_count -= len(recovered)
@@ -537,8 +536,7 @@ class ExtractionCoordinator:
             if any(not report.succeeded for report in reports):
                 self._retain_failed(snapshot, "extraction_failed")
                 self._pending_feedback.append(
-                    "[Extraction feedback] Extraction failed; observations are retained for retry. "
-                    "This is not an empty evidence result."
+                    """[Extraction feedback] Extraction failed; observations are retained for retry. This is not an empty evidence result."""
                 )
             else:
                 for item in snapshot:
@@ -571,7 +569,7 @@ class ExtractionCoordinator:
         snapshot, rejected = route_observations(state, snapshot)
         for item, table_id in rejected:
             self._pending_feedback.append(
-                f"Target table {table_id!r} no longer exists; select an existing schema."
+                f"""Target table {table_id!r} no longer exists; select an existing schema."""
             )
         groups = {}
         for item in snapshot:
@@ -792,8 +790,7 @@ class ExtractionCoordinator:
                         )
                     ):
                         warnings.append(
-                            f"{mode} chunk {idx}/{len(chunks)} contained "
-                            f"{chunk_records} structured record(s) but returned []"
+                            f"""{mode} chunk {idx}/{len(chunks)} contained {chunk_records} structured record(s) but returned []"""
                         )
                 bundles = [bundle for result, _ok in results for bundle in result]
                 mode_counts[mode] = mode_counts.get(mode, 0) + len(bundles)
@@ -923,7 +920,7 @@ class ExtractionCoordinator:
         recent = [n for n in graph.nodes if n.id not in pre_filled]
         if not recent:
             return ""
-        parts = [f"[Extraction feedback] {len(recent)} findings recorded this batch."]
+        parts = [f"""[Extraction feedback] {len(recent)} findings recorded this batch."""]
         entity_hints = sorted({n.entity for n in recent if n.entity})
         if entity_hints and len(entity_hints) <= 8:
             parts.append(f"Entities seen: {', '.join(entity_hints[:8])}")

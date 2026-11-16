@@ -100,9 +100,7 @@ class LocalQAMiddleware(AgentMiddleware):
             request = request.override(
                 tools=[tool for tool in request.tools if tool.name == "local_answer"],
                 tool_choice={"type": "function", "function": {"name": "local_answer"}},
-                messages=[*request.messages, HumanMessage(content=(
-                    "本轮工具预算已用完。请根据已读原文调用 local_answer 回答问题，并说明尚未覆盖的范围。"
-                ), additional_kwargs={"sf_synthetic": True})],
+                messages=[*request.messages, HumanMessage(content="""本轮工具预算已用完。请根据已读原文调用 local_answer 回答问题，并说明尚未覆盖的范围。""", additional_kwargs={"sf_synthetic": True})],
             )
             self.result.stop_reason = "budget"
         self.result.model_calls += 1
@@ -126,9 +124,7 @@ class LocalQAMiddleware(AgentMiddleware):
             return {"messages": [
                 *[ToolMessage(content="尚无原文记录，请先读取来源。", tool_call_id=call["id"])
                   for call in last.tool_calls],
-                HumanMessage(content=(
-                "当前尚无原文阅读记录。请根据问题定位相关章节，使用 local_open 读取原文后作答。"
-            ))], "jump_to": "model"}
+                HumanMessage(content="""当前尚无原文阅读记录。请根据问题定位相关章节，使用 local_open 读取原文后作答。""")], "jump_to": "model"}
         return None
 
     async def awrap_tool_call(self, request, handler):
@@ -143,7 +139,7 @@ class LocalQAMiddleware(AgentMiddleware):
         # Serialize local reads so parallel tool batches share one accurate budget.
         async with self._tool_lock:
             if self.tool_count >= self.budget.tool_calls:
-                return ToolMessage(content="本轮工具预算已用完，请总结已有支持与缺口。",
+                return ToolMessage(content="""本轮工具预算已用完，请总结已有支持与缺口。""",
                                    tool_call_id=call["id"])
             key = json.dumps([name, arguments], sort_keys=True, ensure_ascii=False)
             self.tool_count += 1
@@ -183,10 +179,8 @@ class LocalQAMiddleware(AgentMiddleware):
                 self.result.observations.append(observation)
                 if self.on_read:
                     self.on_read(observation)
-                content = (
-                    f"[资料{len(self.result.observations)}] {record.relative_path} · "
-                    f"{observation['location_label']}\n" + content
-                )
+                content = f"""[资料{len(self.result.observations)}] {record.relative_path} · {observation['location_label']}
+{content}"""
                 result = result.model_copy(update={"content": content})
             if self.on_tool:
                 self.on_tool(name, arguments, {"content": content, "metadata": metadata})
@@ -207,22 +201,25 @@ async def run_document_qa(
             model = get_model_for("sub_agent")
         observer = LocalQAMiddleware(scope, budget, on_tool, on_read)
         graph = create_qa_graph(model, middleware=[observer])
-        scope_text = (
-            "本轮允许读取整个当前知识库。先根据问题调用 local_catalog(query=...) 检索目录，"
-            "再打开相关原文；不要顺序遍历全部文档。"
-            if library_scope else
-            "本轮只允许读取这些文档：\n" + "\n".join(
+        if library_scope:
+            scope_text = """本轮允许读取整个当前知识库。先根据问题调用 local_catalog(query=...) 检索目录，再打开相关原文；不要顺序遍历全部文档。"""
+        else:
+            documents = "\n".join(
                 f'{r.relative_path}: catalog_path="documents/{r.document_id}.md"' for r in records
             )
-        )
+            scope_text = f"""本轮只允许读取这些文档：
+{documents}"""
         history_text = json.dumps((history or [])[-3:], ensure_ascii=False)
         if len(history_text) > 6000:
             history_text = history_text[:2000] + "\n[中间历史省略]\n" + history_text[-4000:]
-        task = HumanMessage(content=(
-            f"问题：{query}\n\n{scope_text}\n\n"
-            f"历史只用于理解指代，不是事实依据：\n{history_text}\n\n"
-            f"本轮最多调用 {budget.tool_calls} 次本地工具。请完成必要阅读，然后直接回答用户的问题。"
-        ))
+        task = HumanMessage(content=f"""问题：{query}
+
+{scope_text}
+
+历史只用于理解指代，不是事实依据：
+{history_text}
+
+本轮最多调用 {budget.tool_calls} 次本地工具。请完成必要阅读，然后直接回答用户的问题。""")
         messages = [task]
         calls = _prefill_calls(preload_blocks or [], model, budget, task)
         if calls:
@@ -242,12 +239,11 @@ async def run_document_qa(
                 complete = complete and bool((reply.artifact or {}).get("local_source_metadata"))
                 last_windows[call["args"]["ref_id"]] = message_chunk_text(reply)
             complete = complete and all("[END OF SOURCE]" in text for text in last_windows.values())
-            messages.append(HumanMessage(content=(
-                "所选文档的全部解析正文已通过本地工具读取，见上方原文。直接回答问题；"
-                "需要核对图表或定位细节时仍可调用本地工具。"
-                if complete else
-                "已尝试预读所选文档，部分读取失败。请检查工具结果，按需继续读取后回答。"
-            ), additional_kwargs={"sf_synthetic": True}))
+            if complete:
+                instruction = """所选文档的全部解析正文已通过本地工具读取，见上方原文。直接回答问题；需要核对图表或定位细节时仍可调用本地工具。"""
+            else:
+                instruction = """已尝试预读所选文档，部分读取失败。请检查工具结果，按需继续读取后回答。"""
+            messages.append(HumanMessage(content=instruction, additional_kwargs={"sf_synthetic": True}))
         answer_calls = {}
         streamed = ""
         async for mode, payload in graph.astream(

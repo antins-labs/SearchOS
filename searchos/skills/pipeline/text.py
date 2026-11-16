@@ -38,7 +38,8 @@ ORCHESTRATOR_PROMPT = """\
 def system_prompt(category: str) -> str:
     """保留共同格式约束，按执行角色选择具体生成要求。"""
     prompts = {"strategy": STRATEGY_PROMPT, "orchestrator": ORCHESTRATOR_PROMPT}
-    return SYSTEM_PROMPT + "\n" + prompts[category]
+    return f"""{SYSTEM_PROMPT}
+{prompts[category]}"""
 
 
 def validate_text_package(directory: Path, request: SkillRequest):
@@ -82,9 +83,10 @@ async def build_text_skill(request: SkillRequest, *, output_dir: Path,
                                                  'action': request.action, 'existing_skill': previous,
                                                  'subtask': subtask if subtask is not None else _current_task_var.get() or request.subtask}, ensure_ascii=False))]
     if previous:
-        messages.append(HumanMessage(content='根据能力缺口更新已有 SKILL.md，保留原有有效能力、约束及资源引用；返回完整新版本。'))
+        messages.append(HumanMessage(content="""根据能力缺口更新已有 SKILL.md，保留原有有效能力、约束及资源引用；返回完整新版本。"""))
     if repair_feedback is not None:
-        messages.append(HumanMessage(content='继续修复保存的候选草稿，针对上次失败原因修改：\n' + json.dumps(repair_feedback, ensure_ascii=False)))
+        messages.append(HumanMessage(content=f"""继续修复保存的候选草稿，针对上次失败原因修改：
+{json.dumps(repair_feedback, ensure_ascii=False)}"""))
     for _ in range(max_attempts):
         response = await model.ainvoke(messages)
         content = response.content if hasattr(response, 'content') else str(response)
@@ -102,5 +104,5 @@ async def build_text_skill(request: SkillRequest, *, output_dir: Path,
         except (ValueError, OSError, yaml.YAMLError) as exc:
             if checkpoint:
                 checkpoint({'valid': False, 'stage': 'package', 'error': str(exc)})
-            messages.extend([response, HumanMessage(content=f'校验失败，请修正完整 SKILL.md：{exc}')])
+            messages.extend([response, HumanMessage(content=f"""校验失败，请修正完整 SKILL.md：{exc}""")])
     return None

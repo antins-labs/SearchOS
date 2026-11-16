@@ -223,12 +223,8 @@ class BudgetMiddleware(AgentMiddleware):
         else:
             self.control.stop(
                 "budget_exhausted",
-                message=(
-                    f"HARD STOP — {self.budget.exhaustion_reason.upper()} LIMIT REACHED\n"
-                    f"Budget exhausted ({self.budget.exhaustion_detail()}). "
-                    f"Tools still allowed: {', '.join(sorted(self.drain_tools)) or 'none'}. "
-                    f"{self.wrap_up}"
-                ),
+                message=f"""HARD STOP — {self.budget.exhaustion_reason.upper()} LIMIT REACHED
+Budget exhausted ({self.budget.exhaustion_detail()}). Tools still allowed: {', '.join(sorted(self.drain_tools)) or 'none'}. {self.wrap_up}""",
             )
         if self.on_exhausted is not None:
             self.on_exhausted()
@@ -246,11 +242,8 @@ class BudgetMiddleware(AgentMiddleware):
             mark_agent_status(self.workspace, self.task, "budget_exhausted")
             self.control.stop(
                 "budget_rejection_loop",
-                message=(
-                    "HARD STOP — REPEATED BUDGET REJECTIONS\n"
-                    "Three tool rounds were rejected without executing another retrieval action. "
-                    "Do not retry exhausted tools. " + self.wrap_up
-                ),
+                message=f"""HARD STOP — REPEATED BUDGET REJECTIONS
+Three tool rounds were rejected without executing another retrieval action. Do not retry exhausted tools. {self.wrap_up}""",
             )
         self.budget.current_iteration += 1
         if self.budget.current_iteration == 1:
@@ -261,9 +254,7 @@ class BudgetMiddleware(AgentMiddleware):
             ]
             if caps:
                 self.control.messages.append(
-                    "[Harness BUDGET] Tool action limits: " + ", ".join(caps) + ". "
-                    "Browser batches consume their underlying action counts. "
-                    "Each Exec that starts one or more skills consumes one skill unit. " + self.wrap_up
+                    f"""[Harness BUDGET] Tool action limits: {', '.join(caps)}. Browser batches consume their underlying action counts. Each Exec that starts one or more skills consumes one skill unit. {self.wrap_up}"""
                 )
         self._settle_exhaustion()
         if (self.control.summarizing and self.before_summary is not None
@@ -295,10 +286,7 @@ class BudgetMiddleware(AgentMiddleware):
                     exhausted_tools.append(name)
             if exhausted_tools:
                 self.control.messages.append(
-                    "[Harness BUDGET] Exhausted tools (calls will be rejected): "
-                    + ", ".join(exhausted_tools)
-                    + ". Their schemas remain for conversation compatibility, not permission. "
-                    "Use remaining tools or summarize supported findings and gaps."
+                    f"""[Harness BUDGET] Exhausted tools (calls will be rejected): {', '.join(exhausted_tools)}. Their schemas remain for conversation compatibility, not permission. Use remaining tools or summarize supported findings and gaps."""
                 )
         if self._notified and not self.control.forced:
             remaining_actions = []
@@ -308,9 +296,7 @@ class BudgetMiddleware(AgentMiddleware):
                     used = getattr(self.budget, f"consumed_{field}")
                     remaining_actions.append(f"{dimension}: {max(0, cap - used)} left")
             self.control.messages.append(
-                "[Harness BUDGET] Remaining actions: " + ", ".join(remaining_actions) + ". "
-                "Tools with zero capacity cannot be retried. Use a feasible remaining tool "
-                "or summarize supported findings and unresolved gaps."
+                f"""[Harness BUDGET] Remaining actions: {', '.join(remaining_actions)}. Tools with zero capacity cannot be retried. Use a feasible remaining tool or summarize supported findings and unresolved gaps."""
             )
         remaining = self.budget.max_iterations - self.budget.current_iteration
         if (
@@ -320,8 +306,7 @@ class BudgetMiddleware(AgentMiddleware):
             and remaining <= max(3, self.budget.max_iterations // 4)
         ):
             self.control.messages.append(
-                f"[Harness] Iteration budget: round {self.budget.current_iteration}/"
-                f"{self.budget.max_iterations} ({remaining} left). Begin converging."
+                f"""[Harness] Iteration budget: round {self.budget.current_iteration}/{self.budget.max_iterations} ({remaining} left). Begin converging."""
             )
         response = await handler(request)
         # 已生成的工具轮完整执行；纯文本生成期间到期则补一次收尾消息。
@@ -360,12 +345,7 @@ class BudgetMiddleware(AgentMiddleware):
         if self._exhausted and not self.control.summarizing and name not in self.drain_tools:
             return blocked_result(
                 request,
-                (
-                    f"[Harness] {self.budget.exhaustion_reason.title()} limit reached; "
-                    "tool blocked "
-                    f"({self.budget.exhaustion_detail()}). Synthesize your final answer now. "
-                    f"Only drain tools remain: {', '.join(sorted(self.drain_tools)) or 'none'}."
-                ),
+                f"""[Harness] {self.budget.exhaustion_reason.title()} limit reached; tool blocked ({self.budget.exhaustion_detail()}). Synthesize your final answer now. Only drain tools remain: {', '.join(sorted(self.drain_tools)) or 'none'}.""",
             )
         if name == "exec":
             return await self._wrap_exec(request, handler)
@@ -377,14 +357,7 @@ class BudgetMiddleware(AgentMiddleware):
             if cap > 0 and used + cost > cap:
                 result = blocked_result(
                     request,
-                    (
-                        f"[Harness] {dimension} budget cannot fit this call "
-                        f"({used}/{cap} used or reserved, call costs {cost}) — "
-                        f"'{name}' is blocked. "
-                        "Use a smaller batch only if capacity remains; otherwise switch to "
-                        "an available tool or summarize findings and unresolved gaps. "
-                        "Repeated rejected rounds will force a final summary."
-                    ),
+                    f"""[Harness] {dimension} budget cannot fit this call ({used}/{cap} used or reserved, call costs {cost}) — '{name}' is blocked. Use a smaller batch only if capacity remains; otherwise switch to an available tool or summarize findings and unresolved gaps. Repeated rejected rounds will force a final summary.""",
                 )
                 return self._receipt(result, request, {}, rejected=True)
         # No await occurs between checking and reserving a tool batch.
@@ -458,11 +431,7 @@ class BudgetMiddleware(AgentMiddleware):
                 self._notified.add(dimension)
                 result = append_feedback(
                     result,
-                    (
-                        f"[Harness] {dimension} budget is now exhausted "
-                        f"({getattr(self.budget, attribute)}/{cap} used). "
-                        "Use remaining tools or wrap up with supported findings."
-                    ),
+                    f"""[Harness] {dimension} budget is now exhausted ({getattr(self.budget, attribute)}/{cap} used). Use remaining tools or wrap up with supported findings.""",
                 )
         self._settle_exhaustion()
         return self._receipt(result, request, costs, rejected=rejected)

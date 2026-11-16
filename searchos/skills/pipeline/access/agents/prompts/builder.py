@@ -123,5 +123,8 @@ def user_prompt(host: str, probe_urls: list[str], notes: str = "") -> str:
     from searchos.skills.pipeline.access.agents.prompts.browser import BROWSER_GUIDANCE
     message += BROWSER_GUIDANCE
     if notes:
-        message += f"\n任务说明：\n{notes}\n"
+        message += f"""
+任务说明：
+{notes}
+"""
     return message

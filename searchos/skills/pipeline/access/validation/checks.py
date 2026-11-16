@@ -192,7 +192,7 @@ def validate_access_preflight(output_dir: Path, expected_name: str, examples: li
         return {"valid": False, "package_valid": True, "stage": "preflight", "examples": 0,
                 "case_results": [], "capability_results": {
                     cap: {"status": "incomplete", "deterministic": "incomplete", "semantic": "incomplete",
-                          "reason": "请根据 SKILL.md 独立执行业务 CLI 并核验需求。", "case_indexes": []}
+                          "reason": """请根据 SKILL.md 独立执行业务 CLI 并核验需求。""", "case_indexes": []}
                     for cap in capability_ids or ('package',)}}
     positives = {example.get("capability_id") or "package" for example in examples
                  if _ordinary_positive(example)}

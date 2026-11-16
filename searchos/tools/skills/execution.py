@@ -243,7 +243,7 @@ def _execution_response(result: dict) -> tuple[str, dict]:
     visible = {key: result[key] for key in ("execution_id", "status", "exit_code", "page_url", "index_page_url") if key in result}
     if result.get("page_url"):
         visible["read_result"] = {"tool": "open", "arguments": {"id_or_url": result["page_url"]}}
-        visible["reading_note"] = "Read the saved result with open before continuing retrieval."
+        visible["reading_note"] = """Read the saved result with open before continuing retrieval."""
     for key in ("error", "page_error", "stdout", "stderr"):
         value = result.get(key)
         if not value:

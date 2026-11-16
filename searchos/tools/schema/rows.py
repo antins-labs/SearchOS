@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from typing import Any
 
 from langchain_core.tools import tool
@@ -18,7 +19,7 @@ from searchos.socm.coverage import (
 )
 from searchos.socm.coverage.projection import cell_source_error
 from searchos.socm.evidence.missing_values import is_missing_value
-from searchos.socm.refs import RowRef, cell_parts, row_key, row_ref, row_values
+from searchos.socm.refs import RowRef, cell_parts, cell_ref, row_key, row_ref, row_values
 
 from .cells import _cell_value, set_inferred_value
 
@@ -140,6 +141,37 @@ class RowEdit(BaseModel):
     set: dict[str, CellEdit | None] = Field(default_factory=dict, description="Cell edits keyed by non-key column name. A null entry clears that cell.")
 
 
+def _edit_cell(state, table_id: str, entity: str, col: str, change: CellEdit | None) -> bool:
+    """写入字段并报告值、状态或证据绑定是否改变。"""
+    raw = change.value if change is not None else None
+    value = _cell_value(raw)
+    if is_missing_value(raw) or is_missing_value(value):
+        return clear_cell_evidence(state, table_id=table_id, entity=entity, attribute=col)
+
+    cmap = state.coverage_map
+    key = cmap.cell_key(table_id, entity, col)
+
+    def current():
+        return cmap.cells[key], cmap.evidence_bindings.get(key, [])
+
+    before = deepcopy(current())
+    if change is not None and change.evidence_ids:
+        for fid in change.evidence_ids:
+            node = state.evidence_graph.get_node(fid)
+            if node is None:
+                raise ValueError(f"Unknown evidence ID: {fid}")
+            if error := cell_source_error(state, node):
+                raise ValueError(f"Evidence {fid} {error}")
+        bind_cell_evidence(
+            state, [(key, CellEvidenceBinding(evidence_id=fid, value=value)) for fid in change.evidence_ids],
+            overwrite=True,
+            validation_values={(key, fid): raw for fid in change.evidence_ids},
+        )
+    else:
+        set_inferred_value(cmap, table_id, entity, col, raw)
+    return current() != before
+
+
 def _rename_references(state: Any, table_id: str, old: str, new: str) -> None:
     """与 CoverageMap 重命名在同一状态事务中更新依赖引用。"""
     def replace(key):
@@ -165,7 +197,7 @@ def _rename_references(state: Any, table_id: str, old: str, new: str) -> None:
 @tool(parse_docstring=True)
 async def edit_entities(edits: list[RowEdit]) -> str:
     """Correct row keys, restore excluded rows, or set cell values in existing rows. Returns
-    updated row references and per-field errors.
+    updated rows, unchanged cells with their current status, and per-field errors.
 
     A rename updates evidence and task references atomically. For sourced values, use read_evidence
     to verify active, in-scope evidence, its original link and excerpt, including any formatting
@@ -185,7 +217,7 @@ async def edit_entities(edits: list[RowEdit]) -> str:
     workspace = _ctx.workspace
     if workspace is None:
         return "Error: workspace not initialized"
-    result = {"updated": [], "errors": []}
+    result = {"updated": [], "unchanged": [], "errors": []}
 
     def update(state):
         cmap = state.coverage_map
@@ -207,16 +239,17 @@ async def edit_entities(edits: list[RowEdit]) -> str:
             if item.restore:
                 updated = cmap.restore_entity(entity, table_id=tid)
                 canonical = cmap.resolve_entity(entity, table_id=tid)
-                if canonical:
+                if updated and canonical:
                     refresh_cells(state, {cmap.cell_key(tid, canonical, attr) for attr in schema.attributes})
             if item.rename is not None:
                 ok, message, old = cmap.edit_entity(entity, new, table_id=tid)
                 if not ok:
                     result["errors"].append({"row": item.row.model_dump(), "reason": message})
                     continue
-                _rename_references(state, tid, old, new)
+                if old != new:
+                    _rename_references(state, tid, old, new)
+                    updated = True
                 entity = new
-                updated = True
             canonical = cmap.resolve_entity(entity, table_id=tid)
             if canonical is None:
                 result["errors"].append({"row": item.row.model_dump(), "reason": "Row is missing or excluded"})
@@ -225,32 +258,14 @@ async def edit_entities(edits: list[RowEdit]) -> str:
                 if col not in schema.data_columns:
                     result["errors"].append({"row": row_ref(tid, canonical), "attribute": col, "reason": "Unknown data column"})
                     continue
-                raw = change.value if change is not None else None
-                value = _cell_value(raw)
-                if is_missing_value(raw) or is_missing_value(value):
-                    clear_cell_evidence(state, table_id=tid, entity=canonical, attribute=col)
-                else:
-                    try:
-                        if not change.evidence_ids:
-                            set_inferred_value(cmap, tid, canonical, col, raw)
-                            updated = True
-                            continue
-                        for fid in change.evidence_ids:
-                            node = state.evidence_graph.get_node(fid)
-                            if node is None:
-                                raise ValueError(f"Unknown evidence ID: {fid}")
-                            if error := cell_source_error(state, node):
-                                raise ValueError(f"Evidence {fid} {error}")
+                try:
+                    if _edit_cell(state, tid, canonical, col, change):
+                        updated = True
+                    else:
                         key = cmap.cell_key(tid, canonical, col)
-                        bind_cell_evidence(
-                            state, [(key, CellEvidenceBinding(evidence_id=fid, value=value)) for fid in change.evidence_ids],
-                            overwrite=True,
-                            validation_values={(key, fid): raw for fid in change.evidence_ids},
-                        )
-                    except ValueError as exc:
-                        result["errors"].append({"row": row_ref(tid, canonical), "attribute": col, "reason": str(exc)})
-                        continue
-                updated = True
+                        result["unchanged"].append({**cell_ref(key), "status": cmap.cells[key].status})
+                except ValueError as exc:
+                    result["errors"].append({"row": row_ref(tid, canonical), "attribute": col, "reason": str(exc)})
             if updated:
                 result["updated"].append(row_ref(tid, canonical))
         return state

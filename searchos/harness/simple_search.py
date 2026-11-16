@@ -28,7 +28,10 @@ async def run_simple_search(*, workspace, query: str, evidence_obligations: list
     agent_type = "local_search_agent" if source_mode == "local" else "search_agent"
     task_id = f"simple_{uuid4().hex[:12]}"
     obligations = "\n".join(f"- {item}" for item in evidence_obligations)
-    task_text = f"{query}\n\nRequired evidence:\n{obligations}" if obligations else query
+    task_text = f"""{query}
+
+Required evidence:
+{obligations}""" if obligations else query
 
     def enqueue(current):
         current.frontier.add(FrontierTask(
@@ -43,26 +46,12 @@ async def run_simple_search(*, workspace, query: str, evidence_obligations: list
     worker = None
     info = {}
 
-    source_instructions = (
-        "Use only the authorized local library through local_catalog, local_find and "
-        "local_open. Preserve the complete versioned local:// reference "
-        "returned by the tool. Missing information does not authorize Web access. "
-        if source_mode == "local" else
-        "Use Browser, Image, and Exec to retrieve and process the requested source information. "
-        "Discover and load suitable skills within this task, preserving any requested platform "
-        "or skill constraints. Read original sources within the configured agent budget. "
-    )
-    suffix = (
-        "## Direct answer contract\n"
-        "You are answering the user directly within the allotted search time. "
-        + source_instructions +
-        "Fulfill every required evidence obligation. Give a concise "
-        "answer in the user's language with exact original source links or evidence citations. "
-        "Do not create a table or expand the scope. Answer as soon as the requested facts are "
-        "sufficiently supported. Incorporate live follow-ups into the current question. "
-        "When the search time expires, stop retrieving and summarize the supported findings "
-        "and unresolved requirements. Use the sources you actually read to explain any gaps."
-    )
+    if source_mode == "local":
+        source_instructions = """Use only the authorized local library through local_catalog, local_find and local_open. Preserve the complete versioned local:// reference returned by the tool. Missing information does not authorize Web access."""
+    else:
+        source_instructions = """Use Browser, Image, and Exec to retrieve and process the requested source information. Discover and load suitable skills within this task, preserving any requested platform or skill constraints. Read original sources within the configured agent budget."""
+    suffix = f"""## Direct answer contract
+You are answering the user directly within the allotted search time. {source_instructions} Fulfill every required evidence obligation. Give a concise answer in the user's language with exact original source links or evidence citations. Do not create a table or expand the scope. Answer as soon as the requested facts are sufficiently supported. Incorporate live follow-ups into the current question. When the search time expires, stop retrieving and summarize the supported findings and unresolved requirements. Use the sources you actually read to explain any gaps."""
     # Restore the caller's tool context after the worker finishes.
     from searchos.tools import search_state
 

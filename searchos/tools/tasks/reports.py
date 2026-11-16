@@ -55,13 +55,7 @@ def _ground_search_report(report: dict, active_evidence: list[EvidenceNode]) -> 
 
 def _scope_audit_note(state: Any) -> str:
     if not state.coverage_map.tables:
-        return (
-            "Review the user's requirements against task-bound evidence with read_evidence. "
-            "Check unsupported premises, source requirements and conflicts before answering. "
-            "Finished tasks and evidence counts do not establish sufficient support. "
-            "Continue concrete unresolved tasks within the current source scope and budget, "
-            "or report the supported result and remaining gaps."
-        )
+        return """Review the user's requirements against task-bound evidence with read_evidence. Check unsupported premises, source requirements and conflicts before answering. Finished tasks and evidence counts do not establish sufficient support. Continue concrete unresolved tasks within the current source scope and budget, or report the supported result and remaining gaps."""
     return _SCOPE_AUDIT_NOTE
 
 
@@ -113,14 +107,7 @@ def _empty_table_warning(state: Any) -> str | None:
     if not orphaned:
         return None
     tids = ", ".join(f"`{t}`" for t in orphaned)
-    return (
-        f"⚠️ TABLE AUDIT: {tids} is declared in the schema but has 0 rows and "
-        "NO task has EVER targeted it — it will be EMPTY in the final answer. "
-        "Your NEXT enqueue_tasks call MUST include search tasks with "
-        f"target_table={tids} (fan out per parent-table row via the declared "
-        "relation where applicable), or state explicitly why this table "
-        "cannot be filled."
-    )
+    return f"""⚠️ TABLE AUDIT: {tids} is declared in the schema but has 0 rows and NO task has EVER targeted it — it will be EMPTY in the final answer. Your NEXT enqueue_tasks call MUST include search tasks with target_table={tids} (fan out per parent-table row via the declared relation where applicable), or state explicitly why this table cannot be filled."""
 
 
 def _project_report(aid: str, report: Any, current: Any) -> dict[str, Any]:
@@ -140,12 +127,7 @@ def _project_report(aid: str, report: Any, current: Any) -> dict[str, Any]:
     rd["task_ids"] = sorted(task_ids)
     if any(task.id in task_ids and task.resolution.startswith(
         "partial_evidence_review_required:") for task in current.frontier.questions):
-        rd["next_step_hint"] = (
-            "This attempt stopped with partial evidence; the task was cancelled "
-            "to prevent an unchanged automatic retry, not marked complete. "
-            "Read its task-bound evidence, assess remaining requirements, and "
-            "enqueue only concrete unresolved gaps using the existing findings."
-        )
+        rd["next_step_hint"] = """This attempt stopped with partial evidence; the task was cancelled to prevent an unchanged automatic retry, not marked complete. Read its task-bound evidence, assess remaining requirements, and enqueue only concrete unresolved gaps using the existing findings."""
     rd["evidence_bindings"] = [binding.model_dump()
         for binding in current.evidence_graph.task_bindings
         if binding.task_id in task_ids and binding.evidence_id in active_ids]
@@ -218,7 +200,7 @@ async def collect_agent_reports(*, timeout: float | None = None, immediate_only:
         payload: dict[str, Any] = {
             "reports": [], "remaining": 0, "running_ids": [],
             "scheduler_actions": _compact_scheduler_actions(pre_tick),
-            "note": f"No sub-agents running. {_scope_audit_note(current)}",
+            "note": f"""No sub-agents running. {_scope_audit_note(current)}""",
         }
         if steering_pending():
             payload["interrupted_by"] = "user_follow_up"
@@ -277,11 +259,7 @@ async def collect_agent_reports(*, timeout: float | None = None, immediate_only:
     response["reusable_agents"] = reusable_agents()
     if steering_pending():
         response["interrupted_by"] = "user_follow_up"
-        response["note"] = (
-            "A user follow-up interrupted this wait. Running agents are unchanged. "
-            "Read the incoming user message before deciding whether to continue, "
-            "change the plan, or stop tasks with stop_task."
-        )
+        response["note"] = """A user follow-up interrupted this wait. Running agents are unchanged. Read the incoming user message before deciding whether to continue, change the plan, or stop tasks with stop_task."""
         return response
     if not reports_json and deadline is not None and time.monotonic() >= deadline:
         response["timed_out"] = True
@@ -290,7 +268,7 @@ async def collect_agent_reports(*, timeout: float | None = None, immediate_only:
         response["table_audit_warning"] = table_warn
     # 任务池清空后仍需核对答案范围与证据。
     if reports_json and not (running or pending_count or queued):
-        response["note"] = f"All sub-agents have returned. {_scope_audit_note(post_state)}"
+        response["note"] = f"""All sub-agents have returned. {_scope_audit_note(post_state)}"""
     if reports_json and (running or pending_count or queued):
-        response["next_step_hint"] = "Review this report and enqueue dependent work when ready."
+        response["next_step_hint"] = """Review this report and enqueue dependent work when ready."""
     return response
