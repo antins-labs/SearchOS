@@ -30,6 +30,7 @@ class ExtractionConfig:
     flush_concurrency: int = 5
     chunk_char_budget: int = 40_000
     chunk_max_records: int = 50
+    max_sources_per_call: int = 5
     chunk_overlap_chars: int = 200
     # Retain bounded, per-Extraction same-source context across URL/size-triggered
     # flushes so tables split across batches keep their header and nearby rows.
@@ -46,6 +47,7 @@ class ExtractionConfig:
             flush_concurrency=max(1, int(settings.extraction_flush_concurrency)),
             chunk_char_budget=max(1_000, int(settings.extraction_chunk_char_budget)),
             chunk_max_records=max(1, int(settings.extraction_chunk_max_records)),
+            max_sources_per_call=min(5, max(1, int(settings.extraction_max_sources_per_call))),
             chunk_overlap_chars=max(0, int(settings.extraction_chunk_overlap_chars)),
             dual_mode=bool(settings.extraction_dual_mode),
             cross_table_backfill=bool(settings.extraction_cross_table_backfill),
@@ -66,6 +68,7 @@ class EvidenceObservation:
     task_id: str = ""
     task_text: str = ""
     referring_page: tuple[str, str] | None = None  # 已读取且明确链接该附件的页面地址和标题。
+    linked_records: tuple[dict[str, Any], ...] = ()  # 通过相同原文 URL 关联的已读目录记录，仅供实体匹配。
 
 
 @dataclass(frozen=True, slots=True)
@@ -85,6 +88,8 @@ class ExtractionReport:
     status: str = ""
     warnings: tuple[str, ...] = ()
     succeeded: bool = True
+    failed_hashes: tuple[str, ...] = ()
+    produced_hashes: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

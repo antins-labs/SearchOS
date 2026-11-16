@@ -6,6 +6,7 @@ import json
 from typing import Any
 
 from searchos.harness.middleware.extraction.core.models import ExtractionConfig
+from searchos.harness.middleware.extraction.core.tables.prompts import _render_pages_block
 
 
 class ObservationPreparer:
@@ -26,7 +27,7 @@ class ObservationPreparer:
         if text.startswith("[Now viewing local source]") and "\n\n" in text:
             return text.split("\n\n", 1)[1]
         if text.startswith("[Now viewing]") and "\n\n" in text:
-            # URL / Page ID / 视窗范围是宿主标题；保留它们会使完整 JSON
+            # URL / Page ID / 视窗范围来自阅读工具标题；保留它们会使完整 JSON
             # 无法解析，进而失去记录计数与结构化切片。
             text = text.split("\n\n", 1)[1]
 
@@ -69,7 +70,7 @@ class ObservationPreparer:
         participate; agent summaries, local documents, findings and skills
         retain their original semantics.
         """
-        grouped: dict[tuple[str, tuple], list[dict[str, Any]]] = {}
+        grouped: dict[tuple, list[dict[str, Any]]] = {}
         agent_items: list[dict[str, Any]] = []
         for it in items:
             url = it.get("source_url", "") or ""
@@ -92,14 +93,14 @@ class ObservationPreparer:
                 "target_table": target_table,
                 "local_source_metadata": local_source_metadata,
             }
-            grouped.setdefault((url, tuple(it.get("referring_page") or ())), []).append(cleaned)
+            group_key = (self._scope_key(it), url, tuple(it.get("referring_page") or ()))
+            grouped.setdefault(group_key, []).append(cleaned)
 
         prepared: list[dict[str, Any]] = []
-        for (url, parent), current in grouped.items():
+        for (scope, url, parent), current in grouped.items():
             first = current[0]
             key = (
-                str(first.get("task_id", "") or ""),
-                str(first.get("target_table", "") or ""),
+                scope,
                 url,
                 parent,
             )
@@ -197,45 +198,81 @@ class ObservationPreparer:
         else:
             self._source_window_history.pop(key, None)
 
+    def pack_items(
+        self,
+        items: list[dict[str, Any]],
+    ) -> list[list[dict[str, Any]]]:
+        """按范围与累计预算分包，保留对象、正文和哈希供独立结算。
+
+        单份超预算观察独立成包，由 chunk_items 切片或明确报错。
+        """
+        limit = min(5, max(1, self._config.max_sources_per_call))
+        packages: list[list[dict[str, Any]]] = []
+        current: list[dict[str, Any]] = []
+        records = 0
+        for item in items:
+            count = self._count_structured_records(item.get("content", "") or "") or 0
+            if current and (
+                len(current) >= limit
+                or records + count > self._config.chunk_max_records
+                or len(_render_pages_block([*current, item])) > self._config.chunk_char_budget
+                or self._scope_key(current[0]) != self._scope_key(item)
+                or any(self._same_skill_source(previous, item) for previous in current)
+            ):
+                packages.append(current)
+                current, records = [], 0
+            current.append(item)
+            records += count
+        if current:
+            packages.append(current)
+        return packages
+
+    @staticmethod
+    def _same_skill_source(left: dict[str, Any], right: dict[str, Any]) -> bool:
+        """同一技能页的多个阅读窗口独立调用，保留完整 JSON 与局部窗口边界。"""
+        if not any(
+            str(item.get("source_kind", "")) == "skill"
+            or str(item.get("source_url", "")).startswith("skill://")
+            for item in (left, right)
+        ):
+            return False
+        return any(
+            left.get(key) and left.get(key) == right.get(key)
+            for key in ("source_url", "page_id")
+        )
+
+    @staticmethod
+    def _scope_key(item: dict[str, Any]) -> tuple:
+        return (
+            item.get("task_id", "") or "",
+            item.get("target_table", "") or "",
+            item.get("task_target_table", "") or "",
+            frozenset(item.get("task_target_cells") or ()),
+            bool(item.get("all_schema_targets")),
+        )
+
     def chunk_items(
         self,
         items: list[dict[str, Any]],
     ) -> list[list[dict[str, Any]]]:
-        """Group flush items into judge-call chunks, splitting any item whose
-        content exceeds the char budget (skill JSON payloads can be huge).
-
-        Ordinary short pages share a chunk; saved skill windows are processed
-        independently. Each returned chunk feeds one extract_rows call."""
-        # 保存的技能结果按阅读窗口独立抽取。完整 JSON 与 find 的局部片段
-        # 混入一次调用会破坏记录边界；重复事实仍由提交层幂等去重。
-        if len(items) > 1:
-            skill_items = [it for it in items if str(it.get("source_kind", "")) == "skill"]
-            if skill_items:
-                other_items = [it for it in items if str(it.get("source_kind", "")) != "skill"]
-                return [chunk for it in skill_items for chunk in self.chunk_items([it])] + (
-                    self.chunk_items(other_items) if other_items else []
-                )
+        """切片过长来源，再按请求预算分包。"""
         budget = self._config.chunk_char_budget
         max_records = self._config.chunk_max_records
-        if all(
-            len(it.get("content", "") or "") <= budget
-            and not self._json_exceeds_record_limit(it.get("content", "") or "", max_records)
-            for it in items
-        ):
-            return [items]
-        chunks: list[list[dict[str, Any]]] = []
-        short: list[dict[str, Any]] = []
-        for it in items:
-            content = it.get("content", "") or ""
-            if len(content) <= budget and not self._json_exceeds_record_limit(content, max_records):
-                short.append(it)
+        segments: list[dict[str, Any]] = []
+        for item in items:
+            overhead = len(_render_pages_block([{**item, "content": ""}]))
+            content_budget = budget - overhead
+            content = item.get("content", "") or ""
+            if (
+                len(content) <= content_budget
+                and (self.count_records_in_items([item]) or 0) <= max_records
+            ):
+                segments.append(item)
             else:
-                chunks.extend(
-                    [seg] for seg in self._split_oversized_item(it, budget, max_records=max_records)
+                segments.extend(
+                    self._split_oversized_item(item, content_budget, max_records=max_records)
                 )
-        if short:
-            chunks.append(short)
-        return chunks or [items]
+        return self.pack_items(segments)
 
     def _split_oversized_item(
         self,
@@ -244,22 +281,26 @@ class ObservationPreparer:
         *,
         max_records: int,
     ) -> list[dict[str, Any]]:
-        """Split one oversized item into budget-sized segments. Skill JSON →
-        structure-aware split on its longest array field (each segment stays
-        valid JSON with the top-level metadata preserved); anything else →
-        overlapping char windows, each carrying the leading metadata header so
-        later segments keep province/year/url context (a truncated skill JSON
-        fails json.loads and lands here). Each segment inherits the source_url
-        and the original item's content_hashes (settle stays keyed to the whole
-        page)."""
+        """保留合法 JSON 的记录边界；普通文本按窗口切片并继承原文与哈希。"""
         content = item.get("content", "") or ""
         url = item.get("source_url", "") or ""
         hashes = list(item.get("content_hashes") or [])
         target_table = item.get("target_table", "") or ""
+        if budget <= 0:
+            raise ValueError(
+                f"extraction_input_exceeds_budget: {url}: page context exceeds character budget"
+            )
         segs = self._split_skill_json(content, budget, max_records=max_records)
         if segs is None:
             header = self._context_header(content, url)
             segs = self._split_by_chars(content, budget, header=header)
+        if any(
+            len(segment) > budget or (self._count_structured_records(segment) or 0) > max_records
+            for segment in segs
+        ):
+            raise ValueError(
+                f"extraction_input_exceeds_budget: {url}: indivisible JSON record or page context"
+            )
         if self._trajectory_logger and len(segs) > 1:
             self._trajectory_logger._append_raw(
                 {
@@ -288,18 +329,12 @@ class ObservationPreparer:
         *,
         max_records: int,
     ) -> list[str] | None:
-        """Structure-aware split of a skill JSON payload along its longest
-        array field. Returns None when the content is not a JSON object with a
-        splittable (len > 1) array — the caller then falls back to char windows.
-        Never splits below one array element, so a segment can exceed budget if a
-        single element is itself huge (still preferable to broken JSON)."""
-        import json as _json
-
+        """按最长顶层数组切片，并为完整 JSON 和分片元数据预留字符预算。"""
         if not content.lstrip().startswith(("{", "[")):
             return None
         try:
-            data = _json.loads(content)
-        except Exception:
+            data = json.loads(content)
+        except (TypeError, ValueError):
             return None
 
         def chunk_meta(
@@ -322,102 +357,57 @@ class ObservationPreparer:
             }
 
         if isinstance(data, list):
-            groups: list[list[Any]] = []
-            cur: list[Any] = []
-            cur_len = 2
-            for row in data:
-                row_len = len(_json.dumps(row, ensure_ascii=False)) + 1
-                if cur and (len(cur) >= max_records or cur_len + row_len > budget):
-                    groups.append(cur)
-                    cur, cur_len = [], 2
-                cur.append(row)
-                cur_len += row_len
-            if cur:
-                groups.append(cur)
-            if len(groups) <= 1:
-                return None
-            total_records = len(data)
-            chunk_count = len(groups)
-            segs: list[str] = []
-            record_start = 1
-            for idx, group in enumerate(groups, start=1):
-                wrapped = {
-                    "_searchos_chunk": chunk_meta(
-                        split_field="<root>",
-                        chunk_index=idx,
-                        chunk_count=chunk_count,
-                        record_start=record_start,
-                        records_in_chunk=len(group),
-                        total_records=total_records,
-                    ),
-                    "records": group,
-                }
-                segs.append(_json.dumps(wrapped, ensure_ascii=False))
-                record_start += len(group)
-            return segs if len(segs) > 1 else None
-        if not isinstance(data, dict):
-            return None
-        array_key = None
-        best_len = 0
-        for k, v in data.items():
-            if isinstance(v, list) and len(v) > best_len:
-                array_key, best_len = k, len(v)
-        if array_key is None or best_len <= 1:
-            return None
-        rows = data[array_key]
-        meta = {k: v for k, v in data.items() if k != array_key}
-        base = len(_json.dumps(meta, ensure_ascii=False))
-        groups: list[list[Any]] = []
-        cur: list[Any] = []
-        cur_len = 0
-        for r in rows:
-            rlen = len(_json.dumps(r, ensure_ascii=False)) + 1
-            if cur and (len(cur) >= max_records or base + cur_len + rlen > budget):
-                groups.append(cur)
-                cur, cur_len = [], 0
-            cur.append(r)
-            cur_len += rlen
-        if cur:
-            groups.append(cur)
-        if len(groups) <= 1:
-            return None
+            array_key, rows, meta, split_field = "records", data, {}, "<root>"
+        elif isinstance(data, dict):
+            arrays = [(key, value) for key, value in data.items() if isinstance(value, list)]
+            if not arrays:
+                return [content]
+            array_key, rows = max(arrays, key=lambda pair: len(pair[1]))
+            meta = {key: value for key, value in data.items() if key != array_key}
+            split_field = str(array_key)
+        else:
+            return [content]
+        if len(rows) <= 1:
+            return [content]
         total_records = len(rows)
-        chunk_count = len(groups)
-        segs: list[str] = []
-        record_start = 1
-        for idx, group in enumerate(groups, start=1):
-            payload = {
+
+        def encode(group: list[Any], index: int, count: int, start: int) -> str:
+            return json.dumps({
                 **meta,
                 "_searchos_chunk": chunk_meta(
-                    split_field=str(array_key),
-                    chunk_index=idx,
-                    chunk_count=chunk_count,
-                    record_start=record_start,
+                    split_field=split_field,
+                    chunk_index=index,
+                    chunk_count=count,
+                    record_start=start,
                     records_in_chunk=len(group),
                     total_records=total_records,
                 ),
                 array_key: group,
-            }
-            segs.append(_json.dumps(payload, ensure_ascii=False))
+            }, ensure_ascii=False)
+
+        groups: list[list[Any]] = []
+        cur: list[Any] = []
+        for row in rows:
+            candidate = [*cur, row]
+            # 最大分片编号预留足够位数，最终编号只会缩短序列化结果。
+            if cur and (
+                len(candidate) > max_records
+                or len(encode(candidate, total_records, total_records, total_records)) > budget
+            ):
+                groups.append(cur)
+                cur = []
+            cur.append(row)
+        if cur:
+            groups.append(cur)
+        if len(groups) <= 1:
+            return [content]
+        chunk_count = len(groups)
+        segs: list[str] = []
+        record_start = 1
+        for idx, group in enumerate(groups, start=1):
+            segs.append(encode(group, idx, chunk_count, record_start))
             record_start += len(group)
-        return segs if len(segs) > 1 else None
-
-    @staticmethod
-    def _json_exceeds_record_limit(content: str, max_records: int) -> bool:
-        """Return whether a JSON object's longest top-level array needs splitting."""
-        import json as _json
-
-        if not content.lstrip().startswith(("{", "[")):
-            return False
-        try:
-            data = _json.loads(content)
-        except Exception:
-            return False
-        if isinstance(data, list):
-            return len(data) > max_records
-        return isinstance(data, dict) and any(
-            isinstance(value, list) and len(value) > max_records for value in data.values()
-        )
+        return segs
 
     @classmethod
     def count_records_in_chunks(
@@ -496,9 +486,12 @@ class ObservationPreparer:
         if n <= budget:
             return [content]
         prefix = (header + "\n") if header else ""
-        # Reserve room for the header on non-first segments; never let the body
-        # budget collapse below a sane floor.
-        body_budget = max(1000, budget - len(prefix))
+        body_budget = budget - len(prefix)
+        if body_budget <= 0:
+            raise ValueError(
+                "extraction_input_exceeds_budget: continuation header exceeds character budget"
+            )
+        overlap = min(overlap, max(0, body_budget - 1))
         segs: list[str] = []
         start = 0
         while start < n:

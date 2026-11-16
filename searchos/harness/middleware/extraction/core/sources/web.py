@@ -11,7 +11,10 @@ from searchos.harness.middleware.extraction.core.models import (
     EvidenceObservation,
     EvidenceSourceKind,
 )
-from searchos.harness.middleware.extraction.core.source_windows import is_extractable_page
+from searchos.harness.middleware.extraction.core.source_windows import (
+    ObservationPreparer,
+    is_extractable_page,
+)
 from searchos.harness.middleware.models import TaskContext
 from searchos.harness.middleware.utils.messages import extract_tool_name
 from searchos.socm.evidence.provenance import is_original_source
@@ -40,13 +43,28 @@ def _skill_attachments(value):
                 yield from _skill_attachments(item)
 
 
+def _directory_records(value, parents=(), *, in_list=False):
+    """记录列表项的原文 URL 和上级标量信息，不推测字段语义。"""
+    if isinstance(value, list):
+        for item in value:
+            yield from _directory_records(item, parents, in_list=True)
+    elif isinstance(value, dict):
+        scalars = {key: item for key, item in value.items() if not isinstance(item, (dict, list))}
+        url = value.get("canonical_url") or value.get("source_url") or value.get("url")
+        if in_list and isinstance(url, str) and is_original_source(url):
+            yield urldefrag(url).url, {"parents": list(parents), "record": scalars}
+        for item in value.values():
+            if isinstance(item, (dict, list)):
+                yield from _directory_records(item, (*parents, scalars))
+
+
 class WebObservationSource:
     _EXTRACTABLE_TOOLS = {"open", "find", "read_visual"}
 
     def __init__(self, trajectory_logger: Any = None) -> None:
         self._trajectory_logger = trajectory_logger
-        self._exec_sources: set[str] = set()
         self._attachment_parents: dict[str, tuple[str, str] | None] = {}
+        self._linked_records: dict[str, list[dict[str, Any]]] = {}
 
     @staticmethod
     def _content(result: Any) -> str:
@@ -68,13 +86,26 @@ class WebObservationSource:
         if self._attachment_parents.setdefault(url, identity) != identity:
             self._attachment_parents[url] = None
 
-    def _remember_skill(self, content: str) -> None:
+    def _remember_skill(self, content: str, source_url: str) -> None:
         try:
             value = json.loads(content)
         except (ValueError, RecursionError):
             return
         for url, parent, title in _skill_attachments(value):
             self._remember_attachment(url, parent, title)
+        for url, record in _directory_records(value):
+            if not url.startswith(("https://", "http://")) or not is_url_allowed(url):
+                continue
+            entry = {"source_url": source_url, **record}
+            records = self._linked_records.setdefault(url, [])
+            if entry not in records:
+                records.append(entry)
+                del records[:-4]
+
+    def _related_records(self, source_url: str, source_urls) -> tuple[dict[str, Any], ...]:
+        return tuple(record for url in source_urls
+                     for record in self._linked_records.get(urldefrag(url).url, ())
+                     if record["source_url"] != source_url)
 
     def _remember_page(self, source: dict) -> None:
         if source.get("access", {}).get("status") == "error":
@@ -90,12 +121,15 @@ class WebObservationSource:
         from searchos.tools.simple_browser.session import _read_page_from_disk
 
         artifact = getattr(result, "artifact", None) or {}
-        observations = []
+        pages = []
         for item in artifact.get("source_observations", []):
             page = _read_page_from_disk(item["page_url"])
             if page is None or not page.metadata.get("evidence_eligible"):
                 continue
-            self._remember_skill(page.text)
+            self._remember_skill(page.text, page.url)
+            pages.append((item, page))
+        observations = []
+        for item, page in pages:
             observations.append(
                 EvidenceObservation(
                     content=page.text,
@@ -106,12 +140,10 @@ class WebObservationSource:
                     target_table=context.target_table,
                     task_id=context.task_id,
                     task_text=context.task_text,
+                    linked_records=self._related_records(page.url, page.metadata.get("source_urls", [])),
                 )
             )
         return observations
-
-    def remember_execution(self, observations: list[EvidenceObservation]) -> None:
-        self._exec_sources.update(observation.source_url for observation in observations)
 
     async def observations(
         self, request: Any, result: Any, context: TaskContext
@@ -193,9 +225,6 @@ class WebObservationSource:
             return []
         page_source = self._structured_page_source(extraction_result)
         source_url = page_source.get("source_url") or self._extract_source_url(content)
-        if source_url in self._exec_sources:
-            return []
-
         from searchos.tools.simple_browser import FETCH_ERROR_SENTINEL
 
         reason = ""
@@ -208,11 +237,7 @@ class WebObservationSource:
             return []
 
         if page_source.get("kind") == "skill_result":
-            from searchos.harness.middleware.extraction.core.source_windows import (
-                ObservationPreparer,
-            )
-
-            self._remember_skill(ObservationPreparer._strip_extraction_noise(content))
+            self._remember_skill(ObservationPreparer._strip_extraction_noise(content), source_url)
         elif page_source:
             self._remember_page(page_source)
         referring_page = self._attachment_parents.get(urldefrag(source_url).url)
@@ -243,6 +268,7 @@ class WebObservationSource:
                 target_table=context.target_table,
                 task_id=context.task_id,
                 task_text=context.task_text,
+                linked_records=self._related_records(source_url, page_source.get("source_urls", [])),
             )
         ]
 

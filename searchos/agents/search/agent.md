@@ -192,6 +192,17 @@ An additional query needs a distinct retrieval hypothesis: a different source, t
 
 Keep the original source link beside each factual finding in the summary. Copy the exact URL returned by the source or skill result (including its version), or cite an existing evidence ID. For numbered links on an index page, follow the link or retrieve its actual href; never construct an article path from its title. `skill://` and `agent://` identify execution records, not original sources. If a result supplies several sources, associate each finding with its own source; if none is supplied, state that provenance is missing.
 
+For a collection, report the counted distinct eligible identities and the original or saved
+inventory reference that supports the count. Preserve that inventory for continuation. Label
+estimates explicitly, account for duplicates and variants, and separate read records from
+committed SOCM rows and fully verified rows. Use SOCM counts only when shown; keep an unknown
+commit count unknown. Compare saved inventory identities with visible SOCM keys and report
+confirmed missing identities with their source references. A bounded SOCM window can omit
+existing rows, so verify an apparent gap before asserting absence. On a reconciliation task,
+reuse saved source results and the current table before retrieving new pages. Report unknown
+attributes separately from missing identities; preserve identities whose requested fields remain
+unverified. Leave those fields unknown instead of filling typical values from memory.
+
 End with a natural-language summary, no tool call — even on failure. Structure it answer-first:
 
 - **Answer** — the requested findings or target values, or an explicit "not found", with the source and relevant scope identified so the Orchestrator can judge support.

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 from typing import Any
 
 from searchos.harness.middleware.extraction.core.models import ExtractionConfig
@@ -35,7 +36,7 @@ class RowExtractor:
     def plan_calls(
         self, tid: str, state: Any, items: list[dict],
     ) -> list[tuple[str, set[str] | None]]:
-        """按任务目标生成全部抽取窗口，每个窗口最多 200 个实体。"""
+        """双阶段按实体分窗；原文驱动模式保留一次完整写入范围。"""
         from searchos.harness.middleware.extraction.core.tables.targets import task_target_keys
         from searchos.socm.coverage.models import cell_is_actionable
         from searchos.socm.views import SearchStateSnapshot
@@ -46,6 +47,8 @@ class RowExtractor:
         table = next((t for t in snap.tables if t.table_id == tid), None)
         if table is None or allowed == set():
             return []
+        if not self._config.dual_mode:
+            return [("merged", allowed)]
         rows = []
         for row in table.rows:
             keys = {cell_key(tid, row.entity, c.attr) for c in row.cells
@@ -54,30 +57,27 @@ class RowExtractor:
                 keys &= allowed
             if keys:
                 rows.append(keys)
-        mode = "fill" if self._config.dual_mode else "merged"
-        calls = [(mode, set().union(*rows[i:i + _SNAPSHOT_MAX_ROWS]))
+        calls = [("fill", set().union(*rows[i:i + _SNAPSHOT_MAX_ROWS]))
                  for i in range(0, len(rows), _SNAPSHOT_MAX_ROWS)]
         if allowed is None:
-            if self._config.dual_mode:
-                calls.append(("discover", None))
-            elif not calls:
-                calls.append(("merged", None))
+            calls.append(("discover", None))
         return calls
 
     @staticmethod
     def render_call(mode: str, tid: str, state: Any, targets: set[str] | None) -> str:
         from searchos.socm.views import (
             SearchStateSnapshot,
-            render_extraction_snapshot,
             render_fill_snapshot,
             render_known_pk_list,
         )
+        if mode == "merged":
+            return ""
         snap = SearchStateSnapshot.from_state(state)
         if mode == "discover":
             return render_known_pk_list(snap, tid)
         if mode == "fill":
             return render_fill_snapshot(snap, tid, targets)
-        return render_extraction_snapshot(snap, tid, targets)
+        return ""
 
     async def extract_rows(
         self,
@@ -90,9 +90,9 @@ class RowExtractor:
         target_cells: set[str] | None = None,
     ) -> tuple[list[tuple[dict[str, Any], str, str, Any, str]], bool]:
         """One judge call over all pages in the flush. Returns
-        ``(bundles, ok)`` where each bundle is (row, page_text, source_url,
-        mode) and ``ok`` is False only on judge failure / unparseable output
-        (a legitimate empty [] is ok=True). No state writes."""
+        ``ok=False`` 保留合法候选，并报告解析或来源归属失败。
+        合法空数组完成结算。此方法不写状态。
+        """
         sub_agent_task = next(
             (item["task_text"] for item in items if item.get("task_text")),
             getattr(state, "intent", "") or "(no task specified)",
@@ -108,6 +108,7 @@ class RowExtractor:
                 "source_url": it.get("source_url", "") or "",
                 "source_urls": it.get("source_urls", []),
                 "referring_page": it.get("referring_page"),
+                "linked_records": it.get("linked_records", []),
                 "page_id": it.get("page_id", "") or "",
                 "content": it.get("content", "") or "",
                 "local_source_metadata": it.get("local_source_metadata"),
@@ -119,7 +120,8 @@ class RowExtractor:
         common = dict(
             sub_agent_task=sub_agent_task,
             primary_key=schema.primary_key,
-            data_columns=[col for col in schema.data_columns if schema.requires_search(col) or col in targeted_attrs],
+            data_columns=[col for col in schema.data_columns
+                          if schema.requires_search(col) or col in targeted_attrs],
             column_desc=schema.column_desc,
             pages=pages,
         )
@@ -144,7 +146,10 @@ class RowExtractor:
             prompt += f"""
 
 ## Explicit task write scope
-Only return values for these target cells: {json.dumps(scoped_targets, ensure_ascii=False)}. Do not reinterpret requirement IDs or fill other rows/columns. These explicit targets constrain both FILL and DISCOVER. A page about another requirement cannot fill these cells; return [] when unsupported."""
+Only return values for these target cells: {json.dumps(scoped_targets, ensure_ascii=False)}.
+Do not reinterpret requirement IDs or fill other rows/columns. These explicit targets constrain
+every extraction mode. A page about another requirement cannot fill these cells;
+return [] when unsupported."""
         item = items[0] if items else {}
         ok = True
         for attempt in range(3):
@@ -152,7 +157,10 @@ Only return values for these target cells: {json.dumps(scoped_targets, ensure_as
             if attempt:
                 retry_prompt += f"""
 
-[JSON format correction] Return one JSON array of objects. Each row requires every primary-key field: {json.dumps(schema.primary_key, ensure_ascii=False)}. Quote strings, including values containing units or symbols. Preserve all supported rows, source values and excerpts. Return [] only when the sources support no rows."""
+[JSON format correction] Return one JSON array of objects. Each row requires every primary-key
+field: {json.dumps(schema.primary_key, ensure_ascii=False)}. Quote strings, including values
+containing units or symbols. Preserve all supported rows, source values and excerpts.
+Return [] only when the sources support no rows."""
             try:
                 raw = await self.invoke(retry_prompt)
             except Exception:  # noqa: BLE001
@@ -191,25 +199,21 @@ Only return values for these target cells: {json.dumps(scoped_targets, ensure_as
                 self._log_response("judge_format_failure", reason, raw, item, mode, attempt)
                 return [], False
             self._log_response("judge_format_retry", reason, raw, item, mode, attempt)
-        # Missing/invalid page tags are resolved from each row below. Until
-        # then equal primary keys may refer to different sources.
+        # 多页候选在页身份验证后由提交层去重，同键可来自不同来源。
         deduped = self.dedup_rows(rows, schema) if len(pages) == 1 else rows
-        # One row anchors to ONE original page: page_id / span / excerpt all
-        # derive from the bundled (text, url), so stamping every row with the
-        # concatenated batch text + comma-joined URLs produces page_ids that
-        # resolve to no stored page and excerpts anchored to whichever page
-        # mentions the value first.
         bundles = []
         for row in deduped:
             page = self._resolve_row_page(row, pages)
+            if page is None:
+                ok = False
+                self._log_response(
+                    "row_source_failure", "invalid_page_or_excerpt", raw, item, mode, attempt
+                )
+                continue
             text = page["content"]
             source = page["source_url"]
             metadata = page.get("local_source_metadata")
-            original = next(
-                page["observation_text"]
-                for page in pages
-                if page["content"] == text and page["source_url"] == source
-            )
+            original = page["observation_text"]
             bundles.append((row, text, source, metadata, mode, original,
                             page.get("page_id", ""), page.get("source_urls", []),
                             page.get("referring_page")))
@@ -219,41 +223,35 @@ Only return values for these target cells: {json.dumps(scoped_targets, ensure_as
     def _resolve_row_page(
         row: dict[str, Any],
         pages: list[dict[str, Any]],
-    ) -> dict[str, Any]:
-        """Resolve one evidence row to exactly one source page.
-
-        Trusts the judge's ``_source_page`` (1-based "### Page N" index) when
-        valid; otherwise scores each page — excerpt anchoring dominates, row
-        text containment breaks ties — and takes the best (earliest on tie)."""
+    ) -> dict[str, Any] | None:
+        """校验声明页及其摘录；多页缺失或含糊引用交由拆包重放。"""
+        if not pages:
+            return None
         if len(pages) == 1:
+            # 来源唯一时沿用提交层逐字段定位，保留可恢复的原文支持。
             return pages[0]
-        try:
-            idx = int(str(row.get("_source_page", "")).strip())
-        except (TypeError, ValueError):
-            idx = 0
-        if 1 <= idx <= len(pages):
-            return pages[idx - 1]
+        tag = row.get("_source_page")
+        if isinstance(tag, bool) or not isinstance(tag, (int, str)):
+            return None
+        if not str(tag).strip().isdecimal():
+            return None
+        idx = int(str(tag).strip())
+        if not 1 <= idx <= len(pages):
+            return None
+        page = pages[idx - 1]
         from searchos.socm.evidence.provenance import find_span
 
         excerpt = str(row.get("_source_excerpt", "") or "").strip()
-        cell_texts = [
-            t
-            for k, v in row.items()
-            if not str(k).startswith("_")
-            and v is not None
-            and len(t := str(v).strip()) >= 2
-            and t.lower() not in _NULL_VALUES
-        ]
-        best_i, best_score = 0, -1
-        for i, p in enumerate(pages):
-            content = p["content"]
-            score = 0
-            if excerpt and find_span(content, excerpt)[0] is not None:
-                score += len(cell_texts) + 1  # outranks any containment count
-            score += sum(1 for t in cell_texts if t in content)
-            if score > best_score:
-                best_i, best_score = i, score
-        return pages[best_i]
+        if not excerpt:
+            return None
+        fragments = [part for part in re.split(r"\s*(?:…+|\.{3,})\s*", excerpt) if part]
+        texts = (page["content"], page.get("observation_text", page["content"]))
+        if not fragments or not all(
+            find_span(text, fragment, browser_lines=True)[0] is not None
+            for text in texts for fragment in fragments
+        ):
+            return None
+        return page
 
     def _log_response(
         self, kind: str, reason: str, raw: str, item: dict, mode: str, attempt: int
@@ -326,8 +324,16 @@ Only return values for these target cells: {json.dumps(scoped_targets, ensure_as
                 if str(row.get(key, "")).strip().lower() not in _NULL_VALUES
             }
 
-        def quality(row):
-            return rank.get(str(row.get("_alignment", "full")).lower(), 0)
+        def quality(row, column):
+            alignment = row.get("_alignment", "full")
+            if isinstance(alignment, dict):
+                alignment = alignment.get(column, "partial")
+            return rank.get(str(alignment).lower(), 0)
+
+        def covers(left, right):
+            return facts(right) <= facts(left) and all(
+                quality(left, column) >= quality(right, column) for column, _ in facts(right)
+            )
 
         for row in rows:
             pk = tuple(str(row.get(key, "")).strip() for key in schema.primary_key)
@@ -344,11 +350,10 @@ Only return values for these target cells: {json.dumps(scoped_targets, ensure_as
             )
             key = (pk, provenance)
             kept = groups.setdefault(key, [])
-            current = facts(row)
-            if any(current <= facts(old) and quality(old) >= quality(row) for old in kept):
+            if any(covers(old, row) for old in kept):
                 continue
             kept[:] = [
-                old for old in kept if not (facts(old) <= current and quality(row) >= quality(old))
+                old for old in kept if not covers(row, old)
             ]
             kept.append(row)
         return [row for rows in groups.values() for row in rows]

@@ -20,6 +20,7 @@ from searchos.harness.steering import wait_for_steering
 from searchos.socm.coverage import CoverageMap, answer_evidence
 from searchos.socm.evidence import EvidenceNode
 from searchos.socm.evidence.provenance import evidence_citation, evidence_source_urls
+from searchos.socm.refs import row_ref
 
 
 def _ground_search_report(report: dict, active_evidence: list[EvidenceNode]) -> None:
@@ -51,6 +52,41 @@ def _ground_search_report(report: dict, active_evidence: list[EvidenceNode]) -> 
         for node in unlinked[:24]
     ]
     report["unlinked_findings_total"] = len(unlinked)
+
+
+def _entity_gaps(current: Any, task_ids: set[str]) -> dict[str, Any]:
+    """Expose saved, task-bound row candidates that still lack a Coverage row."""
+    from searchos.socm.coverage.projection import evidence_source_allowed, evidence_table_id
+
+    ids = {binding.evidence_id for binding in current.evidence_graph.task_bindings
+           if binding.task_id in task_ids}
+    grouped: dict[tuple[str, str], dict[str, set[str]]] = {}
+    cmap = current.coverage_map
+    for node in current.evidence_graph.nodes:
+        if (node.id not in ids or node.status not in {"active", "candidate"}
+                or not evidence_source_allowed(current, node)):
+            continue
+        tid = evidence_table_id(cmap, node)
+        schema = cmap.tables.get(tid)
+        if schema is None:
+            continue
+        try:
+            schema.parse_entity_key(node.entity)
+        except (TypeError, ValueError):
+            continue
+        if cmap.resolve_row(node.entity, table_id=tid)[1] != "missing":
+            continue
+        item = grouped.setdefault((tid, node.entity), {"evidence_ids": set(), "source_refs": set()})
+        item["evidence_ids"].add(node.id)
+        if node.source and not node.source.startswith("agent://"):
+            item["source_refs"].add(node.source)
+        if not item["source_refs"]:
+            item["source_refs"].update(evidence_source_urls(node))
+    rows = [{"row": row_ref(tid, entity),
+             "evidence_ids": sorted(item["evidence_ids"])[:5],
+             "source_refs": sorted(item["source_refs"])[:3]}
+            for (tid, entity), item in sorted(grouped.items())[:20]]
+    return {"count": len(rows), "total": len(grouped), "rows": rows}
 
 
 def _scope_audit_note(state: Any) -> str:
@@ -133,6 +169,7 @@ def _project_report(aid: str, report: Any, current: Any) -> dict[str, Any]:
         if binding.task_id in task_ids and binding.evidence_id in active_ids]
     if rd.get("kind") == "search":
         _ground_search_report(rd, active_evidence)
+        rd["entity_gaps"] = _entity_gaps(current, task_ids)
     if "cells_filled" in rd:
         # 完整表格由 SOCM 提供，报告只保留行列摘要。
         cells = rd["cells_filled"] or []
@@ -142,7 +179,8 @@ def _project_report(aid: str, report: Any, current: Any) -> dict[str, Any]:
             "columns_touched": sorted({attr for _tid, _ent, attr in parsed if attr}),
             "raw_cell_count": len(cells),
         }
-        rd["discovered_entities_total"] = len(rd.pop("discovered_entities", []) or [])
+        discovered = rd.pop("discovered_entities", []) or []
+        rd["discovered_entities_total"] = rd.get("entity_summary", {}).get("new_rows", len(discovered))
     return rd
 
 
@@ -150,22 +188,23 @@ report_wait_limit: ContextVar[float | None] = ContextVar("report_wait_limit", de
 
 
 @tool(parse_docstring=True)
-async def check_agents(timeout: float = 0.0) -> str:
-    """Wait for one worker report when idle. Returns reports, remaining and running_ids directly.
+async def check_agents(timeout: float | None = None) -> str:
+    """Wait for the next worker report. When idle, call with {} and omit timeout.
 
     An unread report returns immediately. When there is no work to run or collect, reports is
     empty and remaining is zero. On timeout, reports is empty and timed_out is true. An immediate
     user follow-up interrupts the wait. Workers continue running. Review each result before
-    waiting again.
+    waiting again. Returns reports, remaining and running_ids directly.
 
     Args:
-        timeout: Maximum seconds to wait. Zero (default) or a negative value waits for a report or
-            immediate follow-up, within the session deadline.
+        timeout: Optional wait limit in seconds. Omit or pass null (default) to wait for a report
+            or immediate follow-up within the session deadline. Use a positive value only when
+            planning must resume by a specific time. Zero or a negative value also has no wait limit.
     """
     if _ctx.workspace is None:
         return json.dumps({"status": "error", "error": "orchestrator context not initialized"})
     limit = report_wait_limit.get()
-    if timeout > 0:
+    if timeout is not None and timeout > 0:
         limit = timeout if limit is None else min(timeout, limit)
     return json.dumps(await collect_agent_reports(timeout=limit), ensure_ascii=False)
 

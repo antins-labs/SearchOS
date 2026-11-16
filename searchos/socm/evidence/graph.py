@@ -136,13 +136,17 @@ class SourceObservation(CamelModel):
 
 def bind_task_evidence(state: Any, task_id: str, evidence_ids: list[str], *,
                        relation: str = "supports") -> int:
-    from searchos.socm.coverage.projection import answer_evidence
+    from searchos.socm.coverage.projection import answer_evidence, evidence_source_allowed
 
     if not any(task.id == task_id for task in state.frontier.questions):
         raise ValueError(f"Unknown task: {task_id}")
     allowed = {node.id for node in answer_evidence(state)}
+    if relation == "context":
+        allowed.update(node.id for node in state.evidence_graph.nodes
+                       if node.status == EvidenceStatus.CANDIDATE
+                       and evidence_source_allowed(state, node))
     if any(eid not in allowed for eid in evidence_ids):
-        raise ValueError("Task evidence must exist and be active in the current source scope")
+        raise ValueError("Task evidence must be active, or a context candidate, in the current source scope")
     bindings = [TaskEvidenceBinding(task_id=task_id, evidence_id=eid, relation=relation)
                 for eid in dict.fromkeys(evidence_ids)]
     added = 0

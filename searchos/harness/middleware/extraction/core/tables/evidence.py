@@ -261,9 +261,7 @@ def _ingest_rows(
                 continue
             entity = raw_entity
 
-        alignment = str(row.get("_alignment", "full")).strip().lower()
-        if alignment not in ("full", "partial", "loose"):
-            alignment = "partial"
+        alignments = row.get("_alignment", "full")
         confidence = conf_map.get(
             str(row.get("_confidence", "high")).strip().lower(),
             0.9,
@@ -276,118 +274,116 @@ def _ingest_rows(
         )
 
         row_start = len(new_nodes)
-        columns = [attr for attr in schema.data_columns if not is_missing_value(row.get(attr))]
-        identity_only = new_entity and not columns
-        if identity_only:
-            columns = schema.primary_key
-            if not row_excerpt and len(columns) == 1:
-                row_excerpt = key_vals[columns[0]]
-            if (find_span(original, row_excerpt, browser_lines=True)[0] is None
-                    or not all(find_span(row_excerpt, value)[0] is not None for value in key_vals.values())):
-                rejected.append({"row": raw_entity, "column": "", "reason": "unanchored_row_identity"})
-                continue
-        for attr in columns:
-            raw_value = row.get(attr)
-            val = str(raw_value).strip()
-            # Factuality gate: the judge's value is required to be verbatim
-            # (unit conversion happens below, in code), so its significant
-            # numbers must literally occur on the page. Cell-level reject —
-            # the row's other cells may still be grounded.
-            url_value = raw_value if isinstance(raw_value, str) else json.dumps(raw_value)
-            gate_reason = _ungrounded_url(
-                original, url_value, source_url, source_urls=source_urls,
-            ) or _ungrounded_number(page_text, val)
-            if gate_reason:
-                rejected.append(
-                    {
-                        "row": raw_entity,
-                        "column": attr,
-                        "reason": gate_reason,
-                    }
-                )
-                continue
-            fid = f"f_{uuid.uuid4().hex[:8]}"
-            excerpt, span, text_hash = _anchored_excerpt(
-                page_text,
-                row_excerpt,
-                val,
-                entity,
-                attr,
-            )
-            # Deterministic unit fix: the judge often copies the verbatim
-            # source number into a unit-pinned column without converting
-            # (e.g. "$131 billion" -> "131" in a 亿美元 column). The excerpt
-            # retains the original wording, so rescale in code.
-            cd = (getattr(schema, "column_desc", None) or {}).get(attr)
-            col_text = f"{attr} {getattr(cd, 'desc', '')}" if cd else attr
-            new_val, unit_note = (val, "") if identity_only else normalize_value(val, excerpt, col_text)
-            cell_note = alignment_note
-            if new_val != val:
-                val = new_val
-                cell_note = (
-                    f"{alignment_note}; {unit_note}".strip("; ") if alignment_note else unit_note
-                )
-            # A cell whose excerpt never anchored to the page has no
-            # verifiable provenance — it must not out-vote a grounded
-            # value at conflict arbitration, whatever the judge claimed.
-            cell_conf = confidence if span is not None else min(confidence, 0.4)
-            if observed is not None:
-                original_span, _ = find_span(
-                    original,
-                    excerpt,
-                    browser_lines=source_url.startswith(("http://", "https://", "skill://")),
-                )
-                if span is None or original_span is None:
+        for identity_only in (False, True):
+            columns = [attr for attr in schema.data_columns if not is_missing_value(row.get(attr))]
+            if identity_only:
+                if not new_entity or len(new_nodes) > row_start:
+                    break
+                # 属性尚未通过时，用原文独立核验身份，保留可继续补充的行。
+                columns = schema.primary_key
+                if not row_excerpt and len(columns) == 1:
+                    row_excerpt = key_vals[columns[0]]
+                if (find_span(original, row_excerpt, browser_lines=True)[0] is None
+                        or not all(find_span(row_excerpt, value)[0] is not None for value in key_vals.values())):
+                    rejected.append({"row": raw_entity, "column": "", "reason": "unanchored_row_identity"})
+                    break
+            for attr in columns:
+                alignment = "full" if identity_only else str(
+                    alignments.get(attr, "partial") if isinstance(alignments, dict) else alignments
+                ).strip().lower()
+                if alignment not in ("full", "partial", "loose"):
+                    alignment = "partial"
+                raw_value = row.get(attr)
+                val = str(raw_value).strip()
+                # 数字与地址继续按原文校验，失败只排除当前属性。
+                url_value = raw_value if isinstance(raw_value, str) else json.dumps(raw_value)
+                gate_reason = _ungrounded_url(
+                    original, url_value, source_url, source_urls=source_urls,
+                ) or _ungrounded_number(page_text, val)
+                if gate_reason:
                     rejected.append(
-                        {"row": raw_entity, "column": attr, "reason": "unanchored_source"}
+                        {
+                            "row": raw_entity,
+                            "column": attr,
+                            "reason": gate_reason,
+                        }
                     )
                     continue
-                span = original_span
-                excerpt = original[span[0] : span[1]]
-                text_hash = "sha1:" + hashlib.sha1(excerpt.encode()).hexdigest()
-                observations[observed.id] = observed
-            node = EvidenceNode(
-                id=fid,
-                finding=f"{entity} {attr}: {val}",
-                value=val,
-                source=source_url,
-                source_urls=select_source_urls(
-                    source_url, original, excerpt,
-                    (row.get("_source_urls", {}).get(attr)
-                     if isinstance(row.get("_source_urls"), dict)
-                     else row.get("_source_urls")), available=source_urls, state=s,
-                    referring_url=referring_page[0] if referring_page else "",
-                ),
-                source_excerpt=excerpt,
-                local_source_metadata=local_source_metadata,
-                confidence=cell_conf,
-                entity=entity,
-                attribute=attr,
-                alignment=alignment,
-                alignment_note=cell_note or f"row-level extraction from {source_url}",
-                source_authority=source_authority,
-                page_id=page_id,
-                span=span,
-                text_hash=text_hash,
-                table_id=tid,
-                observation_id=observed.id if observed is not None else "",
-            )
-            source_error = cell_source_error(s, node) or ("unanchored_source" if span is None else "")
-            if source_error or alignment != "full":
-                node.status = EvidenceStatus.CANDIDATE
-                durable, _ = s.evidence_graph.get_or_add(node)
-                candidate_observations.add(durable.observation_id)
-                rejected.append({
-                    "row": raw_entity, "column": attr, "candidate_id": durable.id,
-                    "reason": source_error or "source_incompletely_matches_target",
-                })
-                continue
-            new_nodes.append(node)
-            validation_values[fid] = (
-                val if new_val != str(row.get(attr, "")).strip() else row.get(attr)
-            )
-        if identity_only and len(new_nodes) - row_start != len(columns):
-            del new_nodes[row_start:]
+                fid = f"f_{uuid.uuid4().hex[:8]}"
+                excerpt, span, text_hash = _anchored_excerpt(
+                    page_text,
+                    row_excerpt,
+                    val,
+                    entity,
+                    attr,
+                )
+                cd = (getattr(schema, "column_desc", None) or {}).get(attr)
+                col_text = f"{attr} {getattr(cd, 'desc', '')}" if cd else attr
+                new_val, unit_note = (val, "") if identity_only else normalize_value(val, excerpt, col_text)
+                cell_note = alignment_note
+                if new_val != val:
+                    val = new_val
+                    cell_note = (
+                        f"{alignment_note}; {unit_note}".strip("; ") if alignment_note else unit_note
+                    )
+                cell_conf = confidence if span is not None else min(confidence, 0.4)
+                if observed is not None:
+                    original_span, _ = find_span(
+                        original,
+                        excerpt,
+                        browser_lines=source_url.startswith(("http://", "https://", "skill://")),
+                    )
+                    if span is None or original_span is None:
+                        rejected.append(
+                            {"row": raw_entity, "column": attr, "reason": "unanchored_source"}
+                        )
+                        continue
+                    span = original_span
+                    excerpt = original[span[0] : span[1]]
+                    text_hash = "sha1:" + hashlib.sha1(excerpt.encode()).hexdigest()
+                    observations[observed.id] = observed
+                node = EvidenceNode(
+                    id=fid,
+                    finding=f"{entity} {attr}: {val}",
+                    value=val,
+                    source=source_url,
+                    source_urls=select_source_urls(
+                        source_url, original, excerpt,
+                        (row.get("_source_urls", {}).get(attr)
+                         if isinstance(row.get("_source_urls"), dict)
+                         else row.get("_source_urls")), available=source_urls, state=s,
+                        referring_url=referring_page[0] if referring_page else "",
+                    ),
+                    source_excerpt=excerpt,
+                    local_source_metadata=local_source_metadata,
+                    confidence=cell_conf,
+                    entity=entity,
+                    attribute=attr,
+                    alignment=alignment,
+                    alignment_note=cell_note or f"row-level extraction from {source_url}",
+                    source_authority=source_authority,
+                    page_id=page_id,
+                    span=span,
+                    text_hash=text_hash,
+                    table_id=tid,
+                    observation_id=observed.id if observed is not None else "",
+                )
+                source_error = cell_source_error(s, node) or ("unanchored_source" if span is None else "")
+                if source_error or alignment != "full":
+                    node.status = EvidenceStatus.CANDIDATE
+                    durable, _ = s.evidence_graph.get_or_add(node)
+                    candidate_observations.add(durable.observation_id)
+                    rejected.append({
+                        "row": raw_entity, "column": attr, "candidate_id": durable.id,
+                        "reason": source_error or "source_incompletely_matches_target",
+                    })
+                    continue
+                new_nodes.append(node)
+                validation_values[fid] = (
+                    val if new_val != str(row.get(attr, "")).strip() else row.get(attr)
+                )
+            if identity_only and len(new_nodes) - row_start != len(columns):
+                del new_nodes[row_start:]
         if new_entity and len(new_nodes) > row_start:
             cmap.add_entity(raw_entity, table_id=tid, key_values=key_vals)
 

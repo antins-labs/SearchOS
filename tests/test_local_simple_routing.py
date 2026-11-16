@@ -146,8 +146,6 @@ async def test_local_session_completes_through_real_selected_pipeline(tmp_path, 
             return SimpleNamespace(content=json.dumps(rows))
 
     async def plan_handler(count, messages):
-        if str(messages[0].content).startswith("[FINAL_ANSWER_CHECK]"):
-            return AIMessage(content='{"is_final_answer": true}')
         if count == 1:
             return AIMessage(content=SearchRoute(
                 path=path, reason="Read authorized rules",

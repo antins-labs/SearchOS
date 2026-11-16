@@ -18,13 +18,15 @@ from searchos.tools.tasks.queue import EnqueueTasksInput
 def test_dispatch_examples_use_available_roles_and_valid_task_scopes(mode, role):
     prompt = build_orchestrator_prompt("agents", "", source_mode=mode)
     examples = re.findall(r"`enqueue_tasks`\n```json\n(.*?)\n```", prompt, re.DOTALL)
-    collection, lookup = [EnqueueTasksInput.model_validate_json(example).items for example in examples]
-    assert all(task.agent_type == role for task in [*collection, *lookup])
+    collection, lookup, reconcile = [EnqueueTasksInput.model_validate_json(example).items for example in examples]
+    assert all(task.agent_type == role for task in [*collection, *lookup, *reconcile])
     discover, fill = collection
     assert "result_mode" not in prompt
     assert discover.target_table == fill.target_table and not discover.target_cells
     assert fill.target_cells and all(cell.table_id == fill.target_table for cell in fill.target_cells)
     assert len(lookup) == 1 and lookup[0].target_cells
+    assert len(reconcile) == 1 and reconcile[0].agent_id == f"{role}_2"
+    assert reconcile[0].target_table == "papers" and not reconcile[0].target_cells
 
 
 @pytest.mark.parametrize("mode", ["web", "local", "hybrid"])

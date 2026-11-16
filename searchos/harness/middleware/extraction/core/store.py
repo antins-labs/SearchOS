@@ -133,6 +133,10 @@ class _ObservationJournal:
             "version": 1, "content_hashes": sorted(completed),
         })
 
+    def discard(self, item: dict[str, Any]) -> None:
+        """空结果已结算，不进入恢复队列；后续显式阅读可以重新抽取。"""
+        (self.path / f"{item['content_hash']}.json").unlink(missing_ok=True)
+
     def _write_json(self, target: Path, record: dict[str, Any]) -> None:
         self.path.mkdir(parents=True, exist_ok=True)
         descriptor, temporary = tempfile.mkstemp(prefix=".observation-", dir=self.path)

@@ -146,6 +146,8 @@ class SearchReport(CamelModel):
     # Distinguish "found data but scope mismatched" from "found nothing".
     evidence_nodes_added: int = 0
     partial_scope_count: int = 0
+    entity_summary: dict[str, Any] = Field(default_factory=dict)
+    extraction: dict[str, int] = Field(default_factory=dict)
     duration_s: float = 0.0
     last_message: str = ""  # verbatim last no-tool AIMessage (orchestrator brief)
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from collections import Counter
 from collections.abc import Callable
 from dataclasses import replace
 from typing import Any, Literal
@@ -37,8 +38,20 @@ from searchos.socm.evidence import EvidenceStatus
 logger = logging.getLogger(__name__)
 
 
+def _source_hashes(items: list[dict[str, Any]]) -> set[str]:
+    return {
+        key for item in items
+        for key in item.get("content_hashes", ()) or [item.get("content_hash", "")]
+        if key
+    }
+
+
+def _schema_definition(schema: Any) -> dict[str, Any]:
+    return schema.model_dump(mode="json", exclude={"entities", "entity_aliases", "removed_entities"})
+
+
 class ExtractionCoordinator:
-    """管理观察批次、异步任务、表级串行执行和原子提交顺序。"""
+    """管理观察批次、并发抽取、逐来源结算和原子提交。"""
 
     def __init__(
         self,
@@ -96,9 +109,6 @@ class ExtractionCoordinator:
         self._flush_tasks: set[asyncio.Task] = set()
         self._background_flush_errors: list[Exception] = []
         self._buffer_lock: asyncio.Lock = asyncio.Lock()
-        # Serializes snapshot→extract→ingest per table so concurrent flushes
-        # don't render stale snapshots and emit duplicate rows.
-        self._table_flush_locks: dict[str, asyncio.Lock] = {}
         self._flush_in_flight_count: int = 0
         self._report_pending()
 
@@ -161,27 +171,32 @@ class ExtractionCoordinator:
         target_table = observation.target_table or (task.table_id if task else "")
         if not content.strip() or (state.coverage_map.tables and len(content) < 50):
             return ExtractionReceipt(accepted=False, reason="content_too_short")
-        identity_parts = [observation.source_url, observation.task_id,
-                          "table" if state.coverage_map.tables else "findings", target_table, content]
-        if observation.referring_page:
-            identity_parts.append(observation.referring_page)
-        identity = json.dumps(identity_parts, ensure_ascii=False)
-        content_hash = hashlib.sha256(identity.encode("utf-8", errors="ignore")).hexdigest()
         item = {
             "content": content,
             "source_url": observation.source_url,
             "source_urls": [observation.referring_page[0]] if observation.referring_page else list(observation.source_urls),
             "referring_page": observation.referring_page,
             "page_id": observation.page_id,
-            "content_hash": content_hash,
             "target_table": target_table,
             "task_id": observation.task_id,
             "task_text": observation.task_text
             or (task.task_prompt or task.question if task else state.intent),
             "local_source_metadata": observation.local_source_metadata,
             "source_kind": str(observation.source_kind),
+            "linked_records": list(observation.linked_records),
         }
         item = capture_task_targets(state, item)
+        schemas = {tid: _schema_definition(schema)
+                   for tid, schema in state.coverage_map.tables.items()
+                   if not target_table or tid == target_table}
+        identity = json.dumps([
+            observation.source_url, observation.task_id, target_table,
+            ObservationPreparer._strip_extraction_noise(content).strip(),
+            schemas, sorted(item["task_target_cells"]), item["task_text"],
+            item["source_urls"], observation.referring_page, observation.linked_records,
+        ], ensure_ascii=False, sort_keys=True)
+        content_hash = hashlib.sha256(identity.encode("utf-8", errors="ignore")).hexdigest()
+        item["content_hash"] = content_hash
         if content_hash in self._extracted_content_hashes:
             self._duplicate_count += 1
             return ExtractionReceipt(accepted=False, duplicate=True, reason="duplicate_content")
@@ -242,7 +257,7 @@ class ExtractionCoordinator:
         return ExtractionReceipt(accepted=True, feedback=self._take_feedback())
 
     async def submit_exec(self, observations: list[EvidenceObservation]) -> str:
-        """每个子结果单独抽取，整次编排只结算一次进展。"""
+        """兼容来源有界合批，整次编排只结算一次进展。"""
         async with self._buffer_lock:
             state = self._store.load_state()
             batch = []
@@ -438,7 +453,8 @@ class ExtractionCoordinator:
 
         async def _run() -> None:
             if reason == "exec":
-                results = await asyncio.gather(*(_extract([item]) for item in snapshot))
+                batches = self._preparer.pack_items(snapshot)
+                results = await asyncio.gather(*(_extract(batch) for batch in batches))
                 reports = [report for group in results for report in group]
             else:
                 reports = await _extract(snapshot)
@@ -531,28 +547,51 @@ class ExtractionCoordinator:
 
     async def _run_snapshot(self, snapshot, *, reason):
         """执行及结算持久记录；取消或异常不能使已接收观测凭空消失。"""
+        tracked = [{**item, "_extraction_result": {
+            "pending": None, "failed": False, "produced": False,
+        }} for item in snapshot]
         try:
-            reports = await self._flush_snapshot(snapshot, reason=reason)
-            if any(not report.succeeded for report in reports):
-                self._retain_failed(snapshot, "extraction_failed")
+            reports = await self._flush_snapshot(tracked, reason=reason)
+            failed = set().union(*(set(report.failed_hashes) for report in reports))
+            produced = set().union(*(set(report.produced_hashes) for report in reports))
+            for item in tracked:
+                outcome = item["_extraction_result"]
+                if outcome["pending"] is None:
+                    outcome["failed"] = item["content_hash"] in failed or any(
+                        not report.succeeded and not report.failed_hashes for report in reports
+                    )
+                    outcome["produced"] = item["content_hash"] in produced or any(
+                        not report.produced_hashes and (report.extracted_rows or report.committed_nodes)
+                        for report in reports
+                    )
+                if outcome["failed"] or outcome["pending"]:
+                    self._retain_failed([item], "extraction_failed")
+                else:
+                    self._settle_source(item, outcome["produced"])
+            if any(item["_extraction_result"]["failed"] for item in tracked):
                 self._pending_feedback.append(
-                    """[Extraction feedback] Extraction failed; observations are retained for retry. This is not an empty evidence result."""
+                    "[Extraction feedback] Some sources remain saved for an extraction retry. "
+                    "Successfully processed sources have been settled."
                 )
-            else:
-                for item in snapshot:
-                    self._extracted_content_hashes.add(item["content_hash"])
-                    self._retry_items.pop(item["content_hash"], None)
-                    if self._journal is not None:
-                        self._journal.write(item, "done")
             return reports
         except BaseException as exc:
-            self._retain_failed(snapshot, f"{type(exc).__name__}: {exc}")
+            for item in tracked:
+                outcome = item["_extraction_result"]
+                if outcome["pending"] == set() and not outcome["failed"]:
+                    # 已完成来源保留结算；同包的取消或后续失败只恢复未完成来源。
+                    try:
+                        self._settle_source(item, outcome["produced"])
+                        continue
+                    except Exception:
+                        pass
+                self._retain_failed([item], f"{type(exc).__name__}: {exc}")
             raise
         finally:
             self._report_pending()
 
     def _retain_failed(self, snapshot, error):
         for item in snapshot:
+            item = {k: v for k, v in item.items() if k != "_extraction_result"}
             key = item["content_hash"]
             self._retry_items[key] = item
             # No automatic infinite retry loop: retain for explicit flush or
@@ -561,13 +600,50 @@ class ExtractionCoordinator:
             if self._journal is not None:
                 self._journal.write(item, "failed", error=error)
 
+    def _settle_source(self, item, produced):
+        item = {k: v for k, v in item.items() if k != "_extraction_result"}
+        key = item["content_hash"]
+        self._retry_items.pop(key, None)
+        if produced:
+            if self._journal is not None:
+                self._journal.write(item, "done")
+            self._extracted_content_hashes.add(key)
+        else:
+            if self._journal is not None:
+                self._journal.discard(item)
+            self._extracted_content_hashes.discard(key)
+
+    @staticmethod
+    def _finish_sources(items, table_id, *, failed=(), produced=()):
+        for item in items:
+            outcomes = item.get("_extraction_results", [])
+            if not outcomes and item.get("_extraction_result") is not None:
+                outcomes = [(key, item["_extraction_result"]) for key in _source_hashes([item])]
+            for key, outcome in outcomes:
+                outcome["failed"] |= key in failed
+                outcome["produced"] |= key in produced
+                if outcome["pending"] is not None:
+                    outcome["pending"].discard(table_id)
+
     async def _flush_snapshot(self, snapshot, *, reason):
         # Schema is authoritative at extraction time, including observations
         # buffered before schema creation. Preserve the originating task ID.
         state = self._store.load_state()
         snapshot = [capture_task_targets(state, item) for item in snapshot]
         snapshot, rejected = route_observations(state, snapshot)
+        for item in snapshot:
+            outcome = item.get("_extraction_result")
+            if outcome is not None:
+                if outcome["pending"] is None:
+                    outcome["pending"] = set()
+                tid = item.get("target_table", "")
+                outcome["pending"].add(tid)
+                if tid and not item.get("all_schema_targets"):
+                    outcome["pending"].update(self._related_backfill_tables(state, tid))
         for item, table_id in rejected:
+            if outcome := item.get("_extraction_result"):
+                outcome["failed"] = True
+                outcome["pending"] = set()
             self._pending_feedback.append(
                 f"""Target table {table_id!r} no longer exists; select an existing schema."""
             )
@@ -576,6 +652,8 @@ class ExtractionCoordinator:
             key = (
                 item.get("task_id", ""),
                 item.get("target_table", ""),
+                tuple(sorted(item.get("task_target_cells", ()))),
+                item.get("task_target_table", ""),
             )
             groups.setdefault(key, []).append(item)
         reports = [
@@ -584,11 +662,22 @@ class ExtractionCoordinator:
                 status="failed",
                 succeeded=False,
                 warnings=("target_table_missing",),
+                failed_hashes=tuple(_source_hashes([_item])),
             )
             for _item, table_id in rejected
         ]
         for group in groups.values():
-            reports.extend(await self._flush_group(group, reason=reason))
+            try:
+                reports.extend(await self._flush_group(group, reason=reason))
+            except ValueError as exc:
+                if not str(exc).startswith("extraction_input_exceeds_budget:"):
+                    raise
+                failed = _source_hashes(group)
+                self._finish_sources(group, group[0].get("target_table", ""), failed=failed)
+                reports.append(ExtractionReport(
+                    table_id=group[0].get("target_table", ""), status="failed", succeeded=False,
+                    warnings=(str(exc),), failed_hashes=tuple(sorted(failed)),
+                ))
         return reports
 
     async def _flush_group(
@@ -608,39 +697,56 @@ class ExtractionCoordinator:
 
             items = self._preparer.original_windows(snapshot)
             new_ids: set[str] = set()
+            failed, produced = set(), set()
             succeeded = True
-            for chunk in self._preparer.chunk_items(items):
-                for item in chunk:
-                    try:
-                        ids = await extract_and_commit(
-                            [item],
-                            store=self._store,
-                            invoke=self._extractor.invoke,
-                        )
-                        new_ids.update(set(ids) - self._added_node_ids)
-                        self._added_node_ids.update(ids)
-                    except Exception:
-                        succeeded = False
-                        logger.warning(
-                            "Findings extraction failed for %s",
-                            item.get("source_url"),
-                            exc_info=True,
-                        )
+            windows = [item for chunk in self._preparer.chunk_items(items) for item in chunk]
+            remaining = Counter(key for item in windows for key in _source_hashes([item]))
+            for item in windows:
+                hashes = _source_hashes([item])
+                try:
+                    ids = await extract_and_commit(
+                        [item], store=self._store, invoke=self._extractor.invoke,
+                    )
+                    new_ids.update(set(ids) - self._added_node_ids)
+                    self._added_node_ids.update(ids)
+                    if ids:
+                        produced.update(hashes)
+                except Exception:
+                    succeeded = False
+                    failed.update(hashes)
+                    logger.warning("Findings extraction failed for %s",
+                                   item.get("source_url"), exc_info=True)
+                remaining.subtract(hashes)
+                completed = [raw for raw in snapshot if all(
+                    remaining[key] == 0 for key in _source_hashes([raw])
+                )]
+                self._finish_sources(completed, "", failed=failed, produced=produced)
             return [
                 ExtractionReport(
                     committed_nodes=len(new_ids),
                     status="complete" if new_ids else "empty",
                     succeeded=succeeded,
+                    failed_hashes=tuple(sorted(failed)),
+                    produced_hashes=tuple(sorted(produced)),
                 )
             ]
         items = self._preparer.prepare_pages(snapshot)
         if not items:
+            self._finish_sources(snapshot, target_tid)
             return []
+        outcomes = {item["content_hash"]: item["_extraction_result"]
+                    for item in snapshot if "_extraction_result" in item}
+        for item in items:
+            item["_extraction_results"] = [(key, outcomes[key])
+                                           for key in _source_hashes([item]) if key in outcomes]
         state = self._store.load_state()
         schema = state.coverage_map.tables.get(target_tid)
         if schema is None:
+            failed = _source_hashes(snapshot)
+            self._finish_sources(snapshot, target_tid, failed=failed)
             return [ExtractionReport(table_id=target_tid, status="failed", succeeded=False,
-                                     warnings=("target_table_missing",))]
+                                     warnings=("target_table_missing",),
+                                     failed_hashes=tuple(sorted(failed)))]
 
         if self._trajectory_logger:
             self._trajectory_logger._append_raw(
@@ -656,7 +762,6 @@ class ExtractionCoordinator:
         reports: list[ExtractionReport] = []
 
         if getattr(schema, "primary_key", None):
-            reports.append(await self._extract_and_ingest_table(items, schema.table_id))
             backfill = (
                 []
                 if any(item.get("all_schema_targets") for item in items)
@@ -672,8 +777,18 @@ class ExtractionCoordinator:
                         "items": len(items),
                     }
                 )
-            for rel_tid in backfill:
-                reports.append(await self._extract_and_ingest_table(items, rel_tid))
+            for table_id in [schema.table_id, *backfill]:
+                report = await self._extract_and_ingest_table(items, table_id)
+                reports.append(report)
+                failed = report.failed_hashes or (
+                    _source_hashes(snapshot) if not report.succeeded else ()
+                )
+                produced = report.produced_hashes or (
+                    _source_hashes(snapshot) if report.extracted_rows or report.committed_nodes else ()
+                )
+                self._finish_sources(snapshot, table_id, failed=failed, produced=produced)
+        else:
+            self._finish_sources(snapshot, target_tid)
 
         if feedback := self._build_feedback(pre_evidence_ids):
             self._pending_feedback.append(feedback)
@@ -706,24 +821,12 @@ class ExtractionCoordinator:
             and schema.primary_key
         ]
 
-    def _table_lock(self, tid: str) -> asyncio.Lock:
-        lock = self._table_flush_locks.get(tid)
-        if lock is None:
-            lock = asyncio.Lock()
-            self._table_flush_locks[tid] = lock
-        return lock
-
     async def _extract_and_ingest_table(
         self,
         items: list[dict[str, Any]],
         tid: str,
     ) -> ExtractionReport:
-        """Run FILL then DISCOVER, committing between phases.
-
-        Held under a per-table lock so the snapshot reflects rows committed by
-        a prior flush for this same table — concurrent same-table flushes would
-        otherwise render stale snapshots and emit duplicate new rows. Chunks
-        within one phase run concurrently; phases never do."""
+        """冻结任务起始分区，模型调用并发执行，提交时复核最新约束。"""
         if not tid:
             return ExtractionReport(status="skipped", warnings=("missing table_id",))
         chunks = self._preparer.chunk_items(items)
@@ -737,114 +840,148 @@ class ExtractionCoordinator:
         total_cells_filled = 0
         written_node_ids: set[str] = set()
         raw_record_count = self._preparer.count_records_in_chunks(chunks)
+        failed, produced = set(), set()
         all_ok = True
-        async with self._table_lock(tid):
-            fresh = self._store.load_state()
-            schema = fresh.coverage_map.tables.get(tid)
-            if schema is None or not schema.attributes:
-                return ExtractionReport(
-                    table_id=tid,
-                    raw_record_count=raw_record_count,
-                    input_chunks=len(chunks),
-                    status="skipped",
-                    warnings=("missing schema",),
-                )
-            call_plan = self._extractor.plan_calls(tid, fresh, items)
+        fresh = self._store.load_state()
+        schema = fresh.coverage_map.tables.get(tid)
+        if schema is None or not schema.attributes:
+            failed = _source_hashes(items)
+            self._finish_sources(items, tid, failed=failed)
+            return ExtractionReport(
+                table_id=tid, raw_record_count=raw_record_count, input_chunks=len(chunks),
+                status="failed", succeeded=False, warnings=("missing schema",),
+                failed_hashes=tuple(sorted(failed)),
+            )
+        definition = _schema_definition(schema)
+        plans = []
+        for mode, targets in self._extractor.plan_calls(tid, fresh, items):
+            view = self._extractor.render_call(mode, tid, fresh, targets)
+            if mode != "fill" or view:
+                plans.append((mode, targets, view))
+        remaining = Counter(key for _plan in plans for chunk in chunks
+                            for key in _source_hashes(chunk))
+        if not plans:
+            self._finish_sources(items, tid)
 
-            for phase_index, (mode, targets) in enumerate(call_plan):
-                # No await or write precedes phase zero; reuse the same snapshot.
-                phase_state = fresh if phase_index == 0 else self._store.load_state()
-                phase_schema = phase_state.coverage_map.tables.get(tid)
-                if phase_schema is None or not phase_schema.attributes:
-                    continue
-                view = self._extractor.render_call(mode, tid, phase_state, targets)
-                if mode == "fill" and not view:
-                    continue
-                results = await asyncio.gather(
-                    *(
-                        self._extractor.extract_rows(
-                            chunk,
-                            phase_schema,
-                            view,
-                            phase_state,
-                            mode=mode,
-                            target_cells=targets,
-                        )
-                        for chunk in chunks
-                    )
+        for mode, targets, view in plans:
+            async def extract_chunk(index, chunk):
+                bundles, ok = await self._extractor.extract_rows(
+                    chunk, schema, view, fresh, mode=mode, target_cells=targets,
                 )
-                all_ok = all_ok and all(ok for _bundles, ok in results)
-                for idx, ((chunk_bundles, _ok), chunk) in enumerate(
-                    zip(results, chunks, strict=False),
-                    start=1,
-                ):
+                chunk_failed = set()
+                if not ok and len(chunk) > 1:
+                    # 单次拆包回退；合法空结果直接结算，不进入回退。
+                    results = await asyncio.gather(*(
+                        self._extractor.extract_rows(
+                            [item], schema, view, fresh, mode=mode, target_cells=targets,
+                        ) for item in chunk
+                    ))
+                    ok = all(single_ok for _bundles, single_ok in results)
+                    for item, (single_bundles, single_ok) in zip(chunk, results, strict=True):
+                        bundles.extend(single_bundles)
+                        if not single_ok:
+                            chunk_failed.update(_source_hashes([item]))
+                elif not ok:
+                    chunk_failed.update(_source_hashes(chunk))
+                return index, chunk, bundles, chunk_failed, ok
+
+            calls = [asyncio.create_task(extract_chunk(index, chunk))
+                     for index, chunk in enumerate(chunks, start=1)]
+            try:
+                for ready in asyncio.as_completed(calls):
+                    index, chunk, bundles, chunk_failed, ok = await ready
+                    all_ok = all_ok and ok
+                    hashes = _source_hashes(chunk)
+                    failed.update(chunk_failed)
                     chunk_records = self._preparer.count_records_in_items(chunk)
-                    if (
-                        mode in {"discover", "merged"}
-                        and chunk_records
-                        and not chunk_bundles
-                        and not (
-                            mode == "discover"
-                            and raw_record_count is not None
-                            and len(getattr(phase_schema, "entities", []) or []) >= raw_record_count
-                        )
+                    if mode in {"discover", "merged"} and chunk_records and not bundles and not (
+                        mode == "discover" and raw_record_count is not None
+                        and len(schema.entities) >= raw_record_count
                     ):
                         warnings.append(
-                            f"""{mode} chunk {idx}/{len(chunks)} contained {chunk_records} structured record(s) but returned []"""
+                            f"{mode} chunk {index}/{len(chunks)} contained "
+                            f"{chunk_records} structured record(s) but returned []"
                         )
-                bundles = [bundle for result, _ok in results for bundle in result]
-                mode_counts[mode] = mode_counts.get(mode, 0) + len(bundles)
+                    mode_counts[mode] = mode_counts.get(mode, 0) + len(bundles)
+                    all_extracted_rows.extend(
+                        self._extractor.strip_row_metadata(bundle[0]) for bundle in bundles
+                    )
+                    written: dict[str, Any] = {"count": 0, "ids": [], "rejected": []}
 
-                # Page indexes are local to each judge call. Keep each bundle's
-                # own source and excerpt; atomic commit deduplicates real facts.
-                if not bundles:
-                    continue
-                all_extracted_rows.extend(
-                    self._extractor.strip_row_metadata(bundle[0]) for bundle in bundles
-                )
+                    def merge(current):
+                        latest_schema = current.coverage_map.tables.get(tid)
+                        if (latest_schema is None or _schema_definition(latest_schema) != definition
+                                or current.source_scope != fresh.source_scope):
+                            written["stale"] = True
+                            return current
+                        scoped, scope_rejected = restrict_task_rows(current, chunk, tid, bundles)
+                        nodes, rejected = self._commit_rows(scoped, tid, current, commit_stats=written)
+                        accepted_ids = written.get("accepted_ids", [node.id for node in nodes])
+                        task_id = chunk[0].get("task_id", "")
+                        if task_id:
+                            from searchos.socm.evidence import bind_task_evidence
 
-                phase_written: dict[str, Any] = {"count": 0, "ids": [], "rejected": []}
+                            if accepted_ids:
+                                written["task_bindings_added"] = bind_task_evidence(
+                                    current, task_id, accepted_ids,
+                                )
+                            candidate_ids = {record["candidate_id"] for record in rejected
+                                             if record.get("candidate_id")}
+                            candidate_ids = [node.id for node in current.evidence_graph.nodes
+                                             if node.id in candidate_ids
+                                             and node.status == EvidenceStatus.CANDIDATE]
+                            if candidate_ids:
+                                bind_task_evidence(current, task_id, candidate_ids, relation="context")
+                        written.update(count=len(nodes), ids=[node.id for node in nodes],
+                                       rejected=scope_rejected + rejected)
+                        return current
 
-                def _merge(s: Any) -> Any:
-                    if s.source_scope != phase_state.source_scope:
-                        raise ValueError("Source scope changed during table extraction")
-                    scoped, scope_rejected = restrict_task_rows(s, items, tid, bundles)
-                    nodes, rejected = self._commit_rows(scoped, tid, s, commit_stats=phase_written)
-                    rejected = scope_rejected + rejected
-                    task_id = items[0].get("task_id", "") if items else ""
-                    accepted_ids = phase_written.get("accepted_ids", [node.id for node in nodes])
-                    if task_id and accepted_ids:
-                        from searchos.socm.evidence import bind_task_evidence
-
-                        phase_written["task_bindings_added"] = bind_task_evidence(
-                            s,
-                            task_id,
-                            accepted_ids,
-                        )
-                    phase_written["count"] = len(nodes)
-                    phase_written["ids"] = [node.id for node in nodes]
-                    phase_written["rejected"] = rejected
-                    return s
-
-                self._store.atomic_update_state(_merge)
-                accepted_ids = phase_written.get("accepted_ids", phase_written["ids"])
-                if self._conflicts is not None and accepted_ids:
-                    current = self._store.load_state()
-                    accepted = set(accepted_ids)
-                    touched = {
-                        key for key, cell in current.coverage_map.cells.items()
-                        if accepted.intersection(cell.supporting_evidence_ids)
-                    }
-                    await self._review_conflicts(touched)
-                self._added_node_ids.update(accepted_ids)
-                written_node_ids.update(accepted_ids)
-                total_written += int(phase_written["count"])
-                total_links_added += phase_written.get(
-                    "evidence_links_added", 0
-                ) + phase_written.get("task_bindings_added", 0)
-                total_cells_filled += phase_written.get("cells_filled", 0)
-                all_rejected.extend(phase_written["rejected"])
-                all_bundles.extend(bundles)
+                    if bundles:
+                        self._store.atomic_update_state(merge)
+                    else:
+                        current = self._store.load_state()
+                        latest_schema = current.coverage_map.tables.get(tid)
+                        if (latest_schema is None or _schema_definition(latest_schema) != definition
+                                or current.source_scope != fresh.source_scope):
+                            written["stale"] = True
+                    if written.get("stale"):
+                        all_ok = False
+                        failed.update(hashes)
+                        warnings.append("schema_or_source_scope_changed")
+                    else:
+                        for bundle in bundles:
+                            produced.update(_source_hashes([
+                                item for item in chunk
+                                if item.get("source_url", "") == bundle[2]
+                                and (len(bundle) < 6 or item.get(
+                                    "observation_text", item.get("content", "")
+                                ) == bundle[5])
+                            ]))
+                    accepted_ids = written.get("accepted_ids", written["ids"])
+                    self._added_node_ids.update(accepted_ids)
+                    written_node_ids.update(accepted_ids)
+                    total_written += int(written["count"])
+                    total_links_added += (written.get("evidence_links_added", 0)
+                                          + written.get("task_bindings_added", 0))
+                    total_cells_filled += written.get("cells_filled", 0)
+                    all_rejected.extend(written["rejected"])
+                    all_bundles.extend(bundles)
+                    remaining.subtract(hashes)
+                    for item in chunk:
+                        completed = _source_hashes([item])
+                        if all(remaining[key] == 0 for key in completed):
+                            self._finish_sources([item], tid, failed=failed, produced=produced)
+                    if self._conflicts is not None and accepted_ids:
+                        current = self._store.load_state()
+                        accepted = set(accepted_ids)
+                        touched = {key for key, cell in current.coverage_map.cells.items()
+                                   if accepted.intersection(cell.supporting_evidence_ids)}
+                        await self._review_conflicts(touched)
+            finally:
+                for call in calls:
+                    if not call.done():
+                        call.cancel()
+                await asyncio.gather(*calls, return_exceptions=True)
 
         if self._trajectory_logger and all_bundles:
             event = {
@@ -907,7 +1044,9 @@ class ExtractionCoordinator:
             cells_filled=total_cells_filled,
             status=status,
             warnings=tuple(warnings),
-            succeeded=all_ok,
+            succeeded=all_ok and not failed,
+            failed_hashes=tuple(sorted(failed)),
+            produced_hashes=tuple(sorted(produced)),
         )
 
     def _build_feedback(self, pre_filled: set[str]) -> str:

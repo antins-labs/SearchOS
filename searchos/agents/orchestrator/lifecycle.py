@@ -46,7 +46,7 @@ _ROLE_REGISTRY = {
     _writer.AGENT_TYPE: _writer,
 }
 
-_SCOPE_AUDIT_NOTE = """Before ending, audit the ROW SET against the task's expected scope: enumerate the dimensions the query implies (years, regions, categories, top-N, ...) and check every combination has rows. Fill rates count only rows already in the schema — all-filled does NOT mean the scope is covered. If rows are missing, add_entities + enqueue_tasks for the gaps; end your turn only when the audit passes or further search cannot help."""
+_SCOPE_AUDIT_NOTE = """Before ending, compare source rosters with committed entities, entity_gaps and pending extraction. Read saved source results first. For missing entities, enqueue discovery work with target_table and omit target_cells; use target_cells only for existing rows. Continue concrete gaps within budget, or report the supported result and remaining omissions."""
 WRITER_CONTINUE_EVIDENCE_DELTA = 3
 MAX_SKILLS_PER_DISPATCH = 5
 _OUTLINE_MIN_SECTIONS = 3
@@ -454,8 +454,57 @@ def _snapshot_state_for_diff(state: Any) -> dict[str, Any]:
     return {
         "filled_keys": filled_keys,
         "evidence_ids": evidence_ids,
+        "row_keys": {(tid, entity) for tid, schema in state.coverage_map.tables.items()
+                     for entity in schema.entities},
         "draft_length": len(getattr(state, "draft", "") or ""),
     }
+
+
+def _rows_for_evidence(state: Any, evidence_ids: set[str]) -> set[tuple[str, str]]:
+    """Count existing canonical rows supported by the selected active evidence."""
+    from searchos.socm.coverage import answer_evidence
+    from searchos.socm.coverage.projection import evidence_table_id
+
+    cmap = state.coverage_map
+    nodes = [node for node in answer_evidence(state) if node.id in evidence_ids]
+    active_ids = {node.id for node in nodes}
+    rows = set()
+    for node in nodes:
+        tid = evidence_table_id(cmap, node)
+        if tid:
+            entity, status = cmap.resolve_row(node.entity, table_id=tid)
+            if status == "active":
+                rows.add((tid, entity))
+    for key, cell in cmap.cells.items():
+        if active_ids.intersection(cell.supporting_evidence_ids):
+            tid, entity, _attribute = cmap.parse_cell_key(key)
+            if entity in cmap.tables[tid].entities:
+                rows.add((tid, entity))
+    return rows
+
+
+def _search_entity_summary(state: Any, rows: set[tuple[str, str]],
+                           new_rows: set[tuple[str, str]], *, table_id: str = "") -> dict:
+    from searchos.socm.coverage.models import cell_is_complete
+
+    cmap = state.coverage_map
+    tids = {tid for tid, _entity in rows | new_rows}
+    if table_id in cmap.tables:
+        tids.add(table_id)
+    by_table = []
+    for tid in sorted(tids):
+        entities = {entity for row_tid, entity in rows if row_tid == tid}
+        complete = sum(all(cell_is_complete(cmap.cells.get(cmap.cell_key(tid, entity, attr)))
+                           for attr in cmap.tables[tid].data_columns) for entity in entities)
+        by_table.append({
+            "table_id": tid, "new_rows": sum(row_tid == tid for row_tid, _entity in new_rows),
+            "total_rows": len(entities), "complete_rows": complete,
+        })
+    return {"new_rows": len(new_rows), "total_rows": len(rows),
+            "complete_rows": sum(table["complete_rows"] for table in by_table),
+            "by_table": by_table}
+
+
 def _extract_explore_open_pages(messages: list) -> list[dict]:
     """Pull (url, markdown) for every page returned by ``open``
     during a explore run.
@@ -831,13 +880,20 @@ def _compute_agent_report(
         else:
             cells_filled = sorted(newly_filled)
 
-    schema_entities = set(state.coverage_map.table_schema.entities)
-    # Discovered rows = new entities among this agent's own nodes not yet in schema.
-    discovery_nodes = agent_new_nodes if own_ids is not None else new_nodes
-    discovered = sorted({
-        n.entity for n in discovery_nodes
-        if n.entity and n.entity not in schema_entities
-    })
+    task_ids = {assigned_search_task_id} if assigned_search_task_id else set()
+    bound_ids = {binding.evidence_id for binding in state.evidence_graph.task_bindings
+                 if binding.task_id in task_ids}
+    attributed_ids = set(own_ids) if own_ids is not None else bound_ids
+    attributed_rows = _rows_for_evidence(state, attributed_ids)
+    post_rows = {(tid, entity) for tid, schema in state.coverage_map.tables.items()
+                 for entity in schema.entities}
+    discovered_rows = (post_rows - pre_snapshot.get("row_keys", post_rows)) & attributed_rows
+    # Keep the internal list for existing consumers; equal keys in different tables count separately.
+    discovered = [entity for _tid, entity in sorted(discovered_rows)]
+    task_rows = _rows_for_evidence(state, bound_ids if task_ids else attributed_ids)
+    entity_summary = _search_entity_summary(
+        state, task_rows, discovered_rows, table_id=(info or {}).get("target_table", ""),
+    )
     dead_ends = list(state.agent_dead_ends.get(thread_id, []))
 
     # P1: evidence/scope signals so orchestrator can distinguish
@@ -856,11 +912,16 @@ def _compute_agent_report(
         + (f", {len(discovered)} new rows" if discovered else "")
     )
     result = f"{result}: {own_delta}" if result else own_delta
-    pending_extraction = sum(
-        resource.summary().buffered
+    extraction_summaries = [
+        resource.summary()
         for resource in (extractions or ((extraction,) if extraction else ()))
         if callable(getattr(resource, "summary", None))
-    )
+    ]
+    pending_extraction = sum(summary.buffered for summary in extraction_summaries)
+    extraction_status = {
+        "pending_sources": pending_extraction,
+        "in_flight_sources": sum(getattr(summary, "in_flight", 0) for summary in extraction_summaries),
+    }
     if pending_extraction:
         result += f"""; {pending_extraction} observation(s) retained for extraction retry. Extraction is incomplete; use committed evidence and inspect the remaining gaps."""
 
@@ -873,6 +934,8 @@ def _compute_agent_report(
         discovered_entities=discovered,
         evidence_nodes_added=evidence_nodes_added,
         partial_scope_count=partial_scope_count,
+        entity_summary=entity_summary,
+        extraction=extraction_status,
         duration_s=duration_s,
         # Preserve tables and scope qualifiers, including data not yet committed.
         last_message=last_ai_text,

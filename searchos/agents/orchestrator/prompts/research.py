@@ -95,7 +95,7 @@ Each assignment has its own targets and budget; the agent retains its conversati
 Plan from the latest SOCM update. Use `inspect_table` only for rows, fields, or sources the update does not show. For additional unassigned work, filter by actionable status and unassigned_only. Follow next_cursor with the same filters while more matching rows are needed.
 Read each row in columns order. Its first values form the key in primary_key order. Build target_cells as {table_id, key, attribute} using that key and the relevant column name. Group targets by source, typically around 50 entities or 200 cells per assignment. After work changes the table, consult the new update and start any further query from the first page. Use the overlapping cells and task IDs in a rejected dispatch to adjust it.
 
-After dispatch each worker report triggers its own model turn in completion order. Continue independent work while workers run. When idle, call `check_agents` once to receive the next report. By default it waits for a report or an immediate follow-up within the session budget. Set timeout in seconds when you need to resume planning by a specific time. Review each report before waiting again or drafting the final answer.
+After dispatch each worker report triggers its own model turn in completion order. Continue independent work while workers run. When idle, call `check_agents` with `{}` once and keep waiting until the next report arrives. An omitted or null timeout has no fixed wait limit within the session budget; an immediate follow-up can interrupt it. Use a positive timeout only for a concrete planning deadline. Fixed-interval polling adds empty returns and model turns while the same workers are still running. Review each report before waiting again or drafting the final answer.
 Wait for pending evidence comparisons before assigning those cells again. Verify unresolved conflicts or report them. Include unavailable fields in the final gap report.
 Use `stop_task` for redundant work. Retry an exhausted route only when a new source, method, or lead gives a concrete reason to expect progress.
 """
@@ -108,6 +108,18 @@ def _collection_dispatch(agent: str) -> str:
 When the user asks for a list whose members must be discovered, check two things after the first material is collected and after each result batch: which parts of the source still need to be searched, and which fields are missing from known rows.
 For a membership gap, set `target_table`, leave `target_cells` empty, and name the source section, category or page range to cover. Ask for eligible members and any requested fields supported by those same sources.
 Ask the agent to report the last section or page checked, its source reference, and the next location if work remains. Use that location and existing references to resume.
+After each discovery report, compare the source-backed inventory with `entity_summary.total_rows`
+and the actual keys in `inspect_table`. Keep source entries, distinct eligible identities,
+committed rows, and complete rows as separate counts. Inspect `entity_gaps` and
+`extraction.pending_sources`; the worker's reported count is a lead for this comparison.
+Read the gap's evidence IDs with `read_evidence(include_inactive=true)` when needed.
+For a large roster, ask the same agent to return a bounded list of source-backed identities
+and saved references. Compare each list with the current table through `inspect_table`, then
+pass the exact missing keys and source references to the follow-up assignment. Resolve aliases
+and exclusions before counting the difference. Reuse saved pages before requesting sources again.
+For eligible identities missing from the table, dispatch member discovery with `target_table`
+and empty `target_cells`; use returned source references and the reusable agent's `agent_id`.
+Unknown row keys cannot be cell targets. Retain supported identities with unknown attributes.
 Assign exact `target_cells` for outstanding fields. Run backfill concurrently when it uses an independent source; when the discovery task will read the same details, inspect the remaining cells after it returns.
 In a backfill brief for an open collection, ask the agent to flag any additional eligible members it happens to find, with their names and source references. Use those leads for follow-up discovery.
 
@@ -138,6 +150,21 @@ Result: the Systems agent covered pages 1–3 and returned the reference for pag
 ]}}
 ```
 Result: the schedule supplies the missing hours. Deliver the two requested rows.
+
+3. Saved inventory differs from committed rows. A worker counted 24 distinct eligible papers
+in the saved proceedings index. Its report has `entity_summary.total_rows=22` and two
+`entity_gaps` for P23 and P24, each with a saved source reference. Check those records and
+the table keys. If the two identities remain eligible and absent, reuse that worker:
+`enqueue_tasks`
+```json
+{{"items": [
+  {{"agent_type": "{agent}", "agent_id": "{agent}_2", "target_table": "papers", "target_cells": [],
+   "task": "Reconcile the saved proceedings index with the current papers table. P23 and P24 are absent. Re-read their saved source records from the previous assignment, verify their identities and eligibility, and collect all supported fields. Keep unknown attributes empty. Return the exact remaining missing identities and the saved index reference; reuse existing results before retrieving new pages."}}
+]}}
+```
+Result: one record adds a supported identity with an unknown badge; the other is an alias of
+an existing paper. The distinct eligible roster is 23 and the table has 23 rows. Check the
+remaining badge gap separately and report the reconciled scope.
 """
 
 

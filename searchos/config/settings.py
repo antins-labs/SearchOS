@@ -296,6 +296,7 @@ class Settings(BaseSettings):
     # compact JSON response containing thousands of records from becoming one
     # enormous FILL/DISCOVER prompt even when its character count is modest.
     extraction_chunk_max_records: int = 50
+    extraction_max_sources_per_call: int = 5
     extraction_chunk_overlap_chars: int = 200  # overlap on non-JSON char splits
     # Cross-table backfill: after extracting a flush's pages for the
     # sub-agent's target_table, re-run extraction on the SAME pages for

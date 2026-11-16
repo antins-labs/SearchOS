@@ -22,16 +22,11 @@ OLD_RESULT = json.dumps({"query": "Previous question", "answer": "Previous answe
 
 
 class ScriptedModel:
-    def __init__(self, *responses, is_final=True):
+    def __init__(self, *responses):
         self.responses = list(responses)
         self.calls = []
-        self.self_checks = []
-        self.is_final = is_final
 
     async def ainvoke(self, messages, **kwargs):
-        if "[FINAL_ANSWER_CHECK]" in str(messages[0].content):
-            self.self_checks.append(messages)
-            return AIMessage(content=json.dumps({"is_final_answer": self.is_final}))
         self.calls.append(messages)
         if not self.responses:
             raise AssertionError("Exceeded the explicit final-generation budget")
@@ -193,7 +188,58 @@ async def test_citation_repair_timeout_delivers_incomplete_without_another_model
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("repair", [GOOD, BAD, "cancel", "audit_failure", "precommit_failure", "self_audit"])
+@pytest.mark.parametrize("answer", [GOOD, "The available sources leave this question unresolved."])
+async def test_normal_session_commits_its_answer_without_another_model_call(
+    tmp_path, monkeypatch, answer
+):
+    from unittest.mock import AsyncMock
+
+    from searchos.config import models
+    from searchos.harness import session
+    from searchos.harness.middleware.context.steering_middleware import SteeringMiddleware
+    from searchos.harness.steering import SteeringQueue
+    from searchos.harness.telemetry.conversation import conversation_turns
+    from searchos.skills.catalog.registry import SkillRegistry
+
+    model = ScriptedModel()
+    model.ainvoke = AsyncMock(wraps=model.ainvoke)
+    monkeypatch.setattr(models, "get_model_for", lambda role: model)
+    monkeypatch.setattr(settings, "enable_skills", False)
+    monkeypatch.setattr(settings, "enable_access_skill_generation", False)
+    monkeypatch.setattr(session, "_premature_end_reason", lambda *_: None)
+
+    def build(self, **kwargs):
+        async def stream(payload, **stream_kwargs):
+            first = payload["messages"][0]
+            yield "values", {"messages": [HumanMessage(content=first["content"]), AIMessage(answer)]}
+
+        return SimpleNamespace(middleware=[], astream=stream), SteeringMiddleware(SteeringQueue())
+
+    monkeypatch.setattr(session.SearchSession, "_build_research_graph", build)
+    harness = session.SearchSession(
+        workspace_root=str(tmp_path), skill_registry=SkillRegistry(), max_time_s=30,
+        run_config=replace(EffectiveRunConfig.from_settings(), execution_path="unified"),
+    )
+    events = []
+    result = await harness.run(
+        "Current question", session_id="direct", initial_state=evidence_state(), on_event=events.append,
+    )
+
+    model.ainvoke.assert_not_awaited()
+    assert not result.execution_error
+    output = tmp_path / "direct" / settings.output_dir
+    committed = json.loads((output / "result.json").read_text())
+    expected = RESOLVED if answer == GOOD else answer
+    assert committed["answer"] == (output / "report.md").read_text() == expected
+    assert conversation_turns(result.workspace_path)[-1]["answer"] == expected
+    assert result.final_messages[-1]["content"] == expected
+    assert "".join(event.get("delta", "") for event in events if event.get("phase") == "final_answer") == expected
+    assert committed["finalization"]["extra_generation_used"] == 0
+    assert committed["finalization"]["generation_events"] == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("repair", [GOOD, BAD, "cancel", "audit_failure", "precommit_failure"])
 async def test_normal_session_final_does_not_bypass_repair_and_history(
     tmp_path, monkeypatch, repair
 ):
@@ -204,8 +250,7 @@ async def test_normal_session_final_does_not_bypass_repair_and_history(
 
     model = ScriptedModel(
         asyncio.CancelledError() if repair == "cancel" else
-        GOOD if repair in {"audit_failure", "precommit_failure", "self_audit"} else repair,
-        is_final=repair != "self_audit",
+        GOOD if repair in {"audit_failure", "precommit_failure"} else repair,
     )
     if repair in {"audit_failure", "precommit_failure"}:
         original_audit = session._finalization_audit
@@ -229,7 +274,7 @@ async def test_normal_session_final_does_not_bypass_repair_and_history(
                 {
                     "messages": [
                         HumanMessage(content=first["content"], id=first.get("id")),
-                        AIMessage(content="Let me write the comprehensive answer." if repair == "self_audit" else BAD),
+                        AIMessage(content=BAD),
                     ]
                 },
             )
@@ -273,7 +318,6 @@ async def test_normal_session_final_does_not_bypass_repair_and_history(
         assert not any(e.get("phase") == "final_answer" for e in events)
         return
     result = await invocation
-    assert len(model.self_checks) == 1
     assert len(model.calls) == 1
     report = (output / "report.md").read_text()
     committed = json.loads((output / "result.json").read_text())
@@ -281,63 +325,8 @@ async def test_normal_session_final_does_not_bypass_repair_and_history(
     assert report == result.final_messages[-1]["content"]
     assert "".join(e.get("delta", "") for e in events if e.get("phase") == "final_answer") == report
     assert "source（原始来源未提供）" not in report and "Finalization crashed" not in report
-    if repair in {GOOD, "audit_failure", "self_audit"}:
+    if repair in {GOOD, "audit_failure"}:
         assert report == RESOLVED
     else:
         assert committed["mode"] == "research_incomplete"
         assert committed["citation_issues"] == ["evidence:unsourced"]
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize("is_final", [True, False])
-async def test_answer_self_check_preserves_final_or_completes_once(is_final):
-    from langchain_core.messages import ToolMessage
-    from searchos.harness.session import _check_or_complete_answer
-
-    audit = "All work is complete. Let me write the comprehensive answer."
-    messages = [
-        HumanMessage(content="比较甲乙"),
-        AIMessage(content="", tool_calls=[{"name": "read_evidence", "id": "read", "args": {}}]),
-        ToolMessage(content="甲两项合作，乙三项。", tool_call_id="read"),
-        AIMessage(content=GOOD if is_final else audit),
-    ]
-    calls = []
-
-    async def invoke(history):
-        calls.append(history)
-        if len(calls) == 1:
-            payload = json.loads(history[-1].content)
-            assert payload["candidate"] == messages[-1].content
-            assert payload["follow_ups"] == ["补充收入比较"]
-            return AIMessage(content=json.dumps({"is_final_answer": is_final}))
-        assert len(calls) == 2
-        assert messages == history[1:]
-        assert "补充收入比较" in history[0].content
-        assert "此前已要求比较商业价值" in history[0].content
-        return AIMessage(content=GOOD)
-
-    state = {"messages": messages}
-    result, regenerated = await _check_or_complete_answer(
-        final_state=state, query="比较甲乙", model=SimpleNamespace(ainvoke=invoke),
-        follow_ups=["补充收入比较"],
-        conversation_history=[{"role": "user", "content": "此前已要求比较商业价值"}],
-    )
-    assert len(calls) == (1 if is_final else 2)
-    assert regenerated is (not is_final)
-    assert result["messages"][-1].content == GOOD
-    if is_final:
-        assert result is state
-
-
-@pytest.mark.asyncio
-async def test_answer_self_check_skips_tool_calls():
-    from unittest.mock import AsyncMock
-    from searchos.harness.session import _check_or_complete_answer
-
-    model = SimpleNamespace(ainvoke=AsyncMock())
-    state = {"messages": [AIMessage(content="继续检索", tool_calls=[
-        {"name": "read_evidence", "id": "read", "args": {}}
-    ])]}
-    result, regenerated = await _check_or_complete_answer(final_state=state, query="比较", model=model)
-    assert result is state and not regenerated
-    model.ainvoke.assert_not_called()

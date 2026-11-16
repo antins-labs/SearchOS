@@ -23,6 +23,11 @@ COMPLETION = """## Answer and finish
 
 Before answering, re-read the user's request and compare its claims, attributes, intended referents, freshness, and coverage obligations with the collected evidence and actual members. Investigate gaps that affect a requested conclusion or completeness obligation; add dimensions only when the request or evidence establishes their relevance. Keep source-required facts without support empty. Record stable inferences only in columns declared requires_search=false. Sufficient support and exhaustive coverage are different stopping conditions; apply the one the task requires.
 
+For a collection, account for the difference between its saved source inventory and committed
+table identities before finishing. Review `entity_summary`, `entity_gaps`, and pending extraction
+in each worker report. Reconcile explicit missing members through the existing saved sources
+and membership tasks. State unresolved identity or extraction gaps when resources end.
+
 Continue useful retrieval while relevant gaps remain and resources permit. Finish when the requirements are supported, resources are exhausted, or further investigation is unlikely to help. Deliver the supported result and explicitly mark unknowns, remaining coverage gaps, and the reason for stopping.
 
 Lead with the requested result, using the user's language, format, and level of detail. Separate sourced observations, calculations, inferences, and proposals; ground recommendations in evidence and explain relevant tradeoffs. For a table in the reply, write the collected rows directly in the requested column order. Render missing cells with the user's placeholder (e.g. /) and leave their SOCM state unchanged. Join internal tables as needed, format values according to `column_desc`, and exclude established out-of-scope rows. Explain material conflicts, assumptions, and uncertainty concisely.

@@ -33,7 +33,6 @@ class WebEvidenceMiddleware(ObservationMiddleware):
             observations = self._sources.execution_observations(result, self.context)
             if observations:
                 feedback = await self.coordinator.submit_exec(observations)
-                self._sources.remember_execution(observations)
                 if feedback:
                     result = self._inject_feedback(result, feedback)
             return result
