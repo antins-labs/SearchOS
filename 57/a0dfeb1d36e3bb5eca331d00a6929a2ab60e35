@@ -1,0 +1,73 @@
+searchos/agents/orchestrator/prompt.py
+  s_6dcd0be0c53322::t_60ed808bf405e2 36,41-44,48-49,51-56,61-65,69-71
+searchos/socm/planning/research_plan.py
+  s_6dcd0be0c53322::t_1cf27320081027 109-115
+searchos/skills/pipeline/access/agents/builder.py
+  s_6dcd0be0c53322::t_1d4b94e81e2f58 52-53,55-56,95-96,114-115,122,124-129,139-141,152,178-179
+  s_6dcd0be0c53322::t_1cf27320081027 118-121,123
+searchos/harness/session.py
+  s_6dcd0be0c53322::t_60ed808bf405e2 90-91,294,299-309,328,693-694,1395-1396,1413-1417
+searchos/agents/orchestrator/lifecycle.py
+  s_6dcd0be0c53322::t_1cf27320081027 49,346,356,376,380,383,386,406,414-416,430,546,865,1008,1013,1016-1017,1025-1026,1104-1105,1108,1111-1113,1117,1121-1123,1331-1334,1481
+searchos/agents/orchestrator/scheduler.py
+  s_6dcd0be0c53322::t_60ed808bf405e2 228-232,454-457
+  s_6dcd0be0c53322::t_1cf27320081027 225,239,301-305
+tests/test_orchestrator_dispatch_prompt.py
+  s_6dcd0be0c53322::t_dc2da9dbdae547 228-231
+  s_6dcd0be0c53322::t_4528cca3957fd9 227
+searchos/harness/report/synthesis.py
+  s_6dcd0be0c53322::t_1cf27320081027 325-327,491-493,583-584,586-621,685-686,688
+searchos/harness/middleware/extraction/core/findings.py
+  s_6dcd0be0c53322::t_bc1b07f8376980 113-119
+  s_6dcd0be0c53322::t_1d4b94e81e2f58 26-27,64-70
+searchos/harness/middleware/context/core/search_episodes.py
+  s_6dcd0be0c53322::t_60ed808bf405e2 175,177-182
+searchos/harness/middleware/extraction/core/tables/prompts.py
+  s_6dcd0be0c53322::t_60ed808bf405e2 21-22,46,48,50,53,55,58-62,182,184,186-187,191,193,195,197-198,202,211,213,215-216,219,227
+  s_6dcd0be0c53322::t_64b99b8cd48537 228-229
+searchos/tools/schema/rows.py
+  s_6dcd0be0c53322::t_aa6d25ff0a6eb0 6,22,144-157,159-174,200,220,242,249-251,261-264,266-268
+  s_6dcd0be0c53322::t_dc2da9dbdae547 158
+searchos/agents/orchestrator/prompts/evidence.py
+  s_6dcd0be0c53322::t_ca5beb023811d8 26-33
+  s_6dcd0be0c53322::t_40723d5b4e927d 23-25
+  s_6dcd0be0c53322::t_ff453a4e4d844f 34
+searchos/agents/orchestrator/prompts/README.md
+  s_6dcd0be0c53322::t_487a063b13ce9b 5-6
+searchos/skills/pipeline/text.py
+  s_6dcd0be0c53322::t_1d4b94e81e2f58 41-42,86,88-89,107
+searchos/harness/simple_search.py
+  s_6dcd0be0c53322::t_1d4b94e81e2f58 49-54
+searchos/agents/orchestrator/prompts/AUDIT.md
+  s_6dcd0be0c53322::t_487a063b13ce9b 35
+  s_6dcd0be0c53322::t_4528cca3957fd9 49-50
+searchos/skills/pipeline/access/agents/planner.py
+  s_6dcd0be0c53322::t_1d4b94e81e2f58 110,218-219,221-224,226-227,232-234,246,268,402-410
+searchos/harness/routing.py
+  s_6dcd0be0c53322::t_1cf27320081027 35-38,43,133-136
+searchos/agents/local_search/qa.py
+  s_6dcd0be0c53322::t_1d4b94e81e2f58 103,127,142,182-183,204-207,210-211,215-222,242-246
+searchos/harness/middleware/extraction/core/tables/conflicts.py
+  s_6dcd0be0c53322::t_1d4b94e81e2f58 157-160
+searchos/agents/orchestrator/prompts/research.py
+  s_6dcd0be0c53322::t_9c5a388cb06a03 103-105,123-128,135-138,143-144,166
+tests/test_socm_persistence.py
+  s_6dcd0be0c53322::t_36fdb6c47daf73 4-5,62-76
+  s_6dcd0be0c53322::t_0d4b1250586205 77-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "57a0dfeb1d36e3bb5eca331d00a6929a2ab60e35",
+  "prompts": {},
+  "sessions": {
+    "s_6dcd0be0c53322": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1e329-bb87-7a31-87f8-bc1d3e038f11",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Jeff Zhang <1328091175@qq.com>"
+    }
+  }
+}
