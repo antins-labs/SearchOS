@@ -1,0 +1,98 @@
+searchos/harness/middleware/extraction/core/source_windows.py
+  s_77546fd4f660bf::t_1063a554cd3cdb 201,258
+  s_77546fd4f660bf::t_01d97907e2a319 9,218
+  s_77546fd4f660bf::t_7c63230b5d5d94 73,100,103
+  s_77546fd4f660bf::t_9f0454c3ae0b49 215-217,219,221,243-252
+  s_77546fd4f660bf::t_b436d4c1b9afba 96-97,205-208,239-242,266-269,284,290-292,297-303,393-396,491-493
+  s_77546fd4f660bf::t_21c4095900674a 30,261-265,270,272-273,275,289,332,336-337,360-387,390-392,398-399,403,408,410,489-490,494
+  s_77546fd4f660bf::t_e5d45b7d1c7ca2 220,229-238
+  s_77546fd4f660bf::t_0a032db5ab5b34 210-214,222-228
+  s_77546fd4f660bf::t_094f6ac963aa28 209
+  s_77546fd4f660bf::t_e94078fab9e295 202-204
+  s_77546fd4f660bf::t_d5e9d8352fe6ab 253
+searchos/harness/middleware/extraction/core/coordinator.py
+  s_77546fd4f660bf::t_55f7323867fbb1 41-46,49,189-191
+  s_77546fd4f660bf::t_18324bb3368a99 260,619-626,665,700,702-714,716-723,729-730,735,737-741,745-746,748-749,780-791
+  s_77546fd4f660bf::t_566bf35d01c977 186,192-199
+  s_77546fd4f660bf::t_6130b82ac96a7c 829,843,845-869,871-874,876-878,880-885,887-891,894-895,897-899,902-903,905-909,911-920,922,935-937,947,949-984,1048-1049
+  s_77546fd4f660bf::t_e612408fe38f59 921,928-934
+  s_77546fd4f660bf::t_b5ccde3cd107f5 670-680,939-946
+  s_77546fd4f660bf::t_67714162212ceb 8,47-48,50-52,54,456-457,550-552,554-571,573-574,578-587,594,603-618,627,634-642,644-646,655-656
+  s_77546fd4f660bf::t_2504a5f10e8be0 715,879,886,892-893,948,1047
+  s_77546fd4f660bf::t_bfde4434f23f56 924-927
+  s_77546fd4f660bf::t_0b7407b16243b6 923
+  s_77546fd4f660bf::t_d940bcd05f815a 938
+searchos/harness/middleware/extraction/core/tables/rows.py
+  s_77546fd4f660bf::t_566bf35d01c977 111
+  s_77546fd4f660bf::t_0b5e7e85c3cefc 123-124,149-152,160-163
+  s_77546fd4f660bf::t_5976ecff03fabe 8,39,50-51,60,63,73-74,80,93-95,202,207-212,216,226-229,245,247-254
+  s_77546fd4f660bf::t_825618b2ebd535 327-336,353,356
+  s_77546fd4f660bf::t_7e8878439130a6 231,233-241,246
+searchos/harness/middleware/extraction/core/tables/evidence.py
+  s_77546fd4f660bf::t_d45d7986a67227 277-303,305-309,312-386
+  s_77546fd4f660bf::t_566bf35d01c977 264
+searchos/socm/evidence/graph.py
+  s_77546fd4f660bf::t_e612408fe38f59 139,144-147,149
+searchos/harness/middleware/USAGE.md
+  s_77546fd4f660bf::t_5ee23d4a9d14bc 98-101
+  s_77546fd4f660bf::t_c8d81c6ee331dc 96-97
+  s_77546fd4f660bf::t_15c20bc7667ab2 92-95,132
+searchos/tools/tasks/reports.py
+  s_77546fd4f660bf::t_98d1e7819a6b33 23,57-58,60-65,68-91,172,182-183
+  s_77546fd4f660bf::t_22093cb913c924 59,66-67
+  s_77546fd4f660bf::t_149a6e9a2a2bac 191-192,197,200-202,207
+searchos/harness/middleware/extraction/core/sources/web.py
+  s_77546fd4f660bf::t_9a1a9fe21816b7 14-17,55
+  s_77546fd4f660bf::t_566bf35d01c977 46-54,56-60,67,89,96-108,124,129-132,143,240,271
+searchos/harness/middleware/extraction/core/models.py
+  s_77546fd4f660bf::t_1063a554cd3cdb 33
+  s_77546fd4f660bf::t_094f6ac963aa28 50
+  s_77546fd4f660bf::t_566bf35d01c977 71
+  s_77546fd4f660bf::t_67714162212ceb 91-92
+searchos/config/settings.py
+  s_77546fd4f660bf::t_1063a554cd3cdb 299
+searchos/socm/state.py
+  s_77546fd4f660bf::t_98d1e7819a6b33 149-150
+searchos/agents/orchestrator/prompts/evidence.py
+  s_77546fd4f660bf::t_d107ff36c2e6cd 26-29
+  s_77546fd4f660bf::t_88c66c6215f57d 30
+tests/test_orchestrator_dispatch_prompt.py
+  s_77546fd4f660bf::t_d107ff36c2e6cd 21-22,28-29
+searchos/agents/orchestrator/lifecycle.py
+  s_77546fd4f660bf::t_84cfc1eaac59fe 488
+  s_77546fd4f660bf::t_98d1e7819a6b33 49,457-458,461-487,489-507,883-896,915-916,919-924,937-938
+searchos/agents/orchestrator/prompts/research.py
+  s_77546fd4f660bf::t_d107ff36c2e6cd 111-115,120-122,153-167
+  s_77546fd4f660bf::t_6c4666b021938b 116-119
+  s_77546fd4f660bf::t_149a6e9a2a2bac 98
+searchos/agents/search/agent.md
+  s_77546fd4f660bf::t_d107ff36c2e6cd 195-205
+searchos/harness/middleware/extraction/core/store.py
+  s_77546fd4f660bf::t_566bf35d01c977 136-139
+tests/test_final_citation_delivery.py
+  s_77546fd4f660bf::t_67342245915978 25,242,253,277,328
+  s_77546fd4f660bf::t_5ed439b08dff4c 191-241
+searchos/harness/middleware/extraction/core/tables/prompts.py
+  s_77546fd4f660bf::t_010137ffb96369 162-163
+  s_77546fd4f660bf::t_a90e7af01e196c 70-71,147-150,159-161,164
+  s_77546fd4f660bf::t_6c0ffc569be416 41-44,59-69,74-81,86-101,104-127
+  s_77546fd4f660bf::t_6c4666b021938b 72-73
+  s_77546fd4f660bf::t_0b5e7e85c3cefc 102-103,131-146,151,153-158,178-182,192-195,205-209,225-228,230-233
+  s_77546fd4f660bf::t_695fa7f8626a20 3,17-19,23,27,30,32,35,37,39-40,45-46,49,51,53,57-58,84-85,129-130,152,165,167-173,176-177,183-185,187-188,190-191,196-198,200-201,203-204,210-212,214-215,220-224,229,234-237,241-244,246,250,253-265,270-271,274-277,282-283,286-290
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "9c5d215ec8c5bf1d59aec9830e98ae47b9c6f80b",
+  "prompts": {},
+  "sessions": {
+    "s_77546fd4f660bf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a553-59a1-7c92-9166-21f99fc75966",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jeff Zhang <1328091175@qq.com>"
+    }
+  }
+}
