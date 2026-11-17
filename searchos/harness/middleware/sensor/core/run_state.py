@@ -38,7 +38,7 @@ class ControlState:
         self.summarizing = self.forced = True
         self.summary_id = str(uuid4())
         self.reason = reason
-        self.stop_message = """The research budget has been reached. Stop using tools and stop delegating work. Summarize the supported findings from the sources and tool results already available in this conversation. Answer the current user request in the user's language, include original source links or evidence citations, and state any unresolved gaps. Return the final answer now."""
+        self.stop_message = f"""Research has stopped ({reason}). Stop using tools and stop delegating work. Summarize the supported findings from the sources and tool results already available in this conversation. Answer the current user request in the user's language, include original source links or evidence citations, and state any unresolved gaps. Return the final answer now."""
 
 
 class BudgetState:

@@ -257,6 +257,8 @@ Three tool rounds were rejected without executing another retrieval action. Do n
                     f"""[Harness BUDGET] Tool action limits: {', '.join(caps)}. Browser batches consume their underlying action counts. Each Exec that starts one or more skills consumes one skill unit. {self.wrap_up}"""
                 )
         self._settle_exhaustion()
+        if self.before_summary is not None and self.control.forced and not self.control.summarizing:
+            self.control.summarize(self.control.reason or "harness_stopped")
         if (self.control.summarizing and self.before_summary is not None
                 and self._prepared_summary_id != self.control.summary_id
                 and not any(m.id == self.control.summary_id

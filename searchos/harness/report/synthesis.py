@@ -624,7 +624,7 @@ Now emit the final body."""
 async def finalize_research(*, state, query, model, stop_reason, max_chars=48_000,
                             timeout_s=60.0, follow_ups=(), steering=None,
                             citation_repair=None) -> str:
-    """停止取证后的独立生成阶段；使用回收后的状态，不绑定检索工具。"""
+    """根据当前证据修复引用校验拒绝的草稿；停止总结由原执行图负责。"""
     import asyncio
     import json
 

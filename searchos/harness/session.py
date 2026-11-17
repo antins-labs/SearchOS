@@ -91,21 +91,6 @@ def _premature_end_nudge(reason: str) -> str:
 Collect running agents or continue actionable tasks. If progress is blocked, report the supported findings and the remaining limitation."""
 
 
-def _is_safe_steer_boundary(event: dict) -> bool:
-    """Whether a live follow-up can be injected after this astream event.
-
-    Context updates may follow an AI tool request before its ToolMessages
-    arrive. Check every outstanding call, not just the last message.
-    """
-    pending: set[str] = set()
-    for message in event.get("messages") or []:
-        for call in getattr(message, "tool_calls", None) or []:
-            pending.add(call["id"])
-        if getattr(message, "type", None) == "tool":
-            pending.discard(message.tool_call_id)
-    return not pending
-
-
 async def wait_for_all_evolutions(timeout: float | None = None) -> None:
     """Drain all outstanding background skill-evolution tasks.
 
@@ -779,13 +764,6 @@ You own the repair plan and dispatch. Split these cells into focused retrieval t
                                         except Exception:
                                             pass
 
-                            # 时间收尾留在原图中；其他停止条件仍走现有恢复逻辑。
-                            if (not self._skip_synthesis
-                                    and orch_control.forced and not orch_control.summarizing
-                                    and _is_safe_steer_boundary(event)):
-                                finalization_reason = orch_control.reason or "harness_stopped"
-                                break
-
                     reason = _premature_end_reason(workspace, orch_control)
                     if orch_control.stopped:
                         finalization_reason = orch_control.reason or "harness_stopped"
@@ -966,17 +944,6 @@ You own the repair plan and dispatch. Split these cells into focused retrieval t
                             workspace=workspace,
                             state=final_search_state,
                             query=query,
-                        )
-                    elif (finalization_reason or orch_control.stopped) and not orch_control.summarizing:
-                        committed_final_answer = await _finalize_stopped_research(
-                            workspace=workspace, state=final_search_state, query=query,
-                            orchestrator_model=self._model,
-                            fallback_model=self._synthesis_model,
-                            stop_reason=finalization_reason or "harness_stopped",
-                            answer_stream=answer_stream, trajectory_logger=traj_logger,
-                            conversation_logger=conv_logger,
-                            follow_ups=steering.delivered if steering else (),
-                            steering=steering,
                         )
                     else:
                         committed_final_answer = await _commit_final_answer(
@@ -1368,7 +1335,7 @@ async def _commit_final_answer(*, workspace, state, query, final_state, model,
                                extra_generation_used=False, generation_events=(),
                                answer_stream=None, trajectory_logger=None,
                                conversation_logger=None, follow_ups=(), steering=None):
-    """Share publication checks and one extra generation across fallback and citation repair."""
+    """Validate and publish the current answer, with bounded citation repair."""
     from uuid import uuid4
 
     from langchain_core.messages import AIMessage
@@ -1479,78 +1446,6 @@ async def _commit_final_answer(*, workspace, state, query, final_state, model,
         except Exception:
             logger.warning("Committed answer %s notification failed", phase, exc_info=True)
     return answer
-
-
-async def _finalize_stopped_research(*, workspace, state, query, orchestrator_model,
-                                     fallback_model=None, stop_reason,
-                                     answer_stream=None, trajectory_logger=None,
-                                     conversation_logger=None, follow_ups=(), steering=None) -> str:
-    """Finalize stopped research with the orchestrator and at most one synthesis fallback."""
-    from langchain_core.messages import AIMessage
-
-    from searchos.harness.report.synthesis import finalize_research
-
-    _record_finalization_follow_ups(steering, conversation_logger)
-
-    draft = ""
-    execution_error = ""
-    orchestrator_error = ""
-    finalizer = "orchestrator"
-    extra_generation_used = False
-    generation_events = [{"phase": "orchestrator", "status": "started"}]
-    try:
-        draft = await finalize_research(
-            state=state, query=query, model=orchestrator_model,
-            stop_reason=stop_reason,
-            follow_ups=follow_ups,
-            steering=steering,
-            max_chars=settings.research_finalize_max_chars,
-            timeout_s=settings.research_finalize_timeout_s,
-        )
-        generation_events[-1]["status"] = "completed"
-    except asyncio.CancelledError:
-        raise
-    except Exception as exc:
-        orchestrator_error = type(exc).__name__
-        generation_events[-1].update(status="failed", error_type=orchestrator_error)
-        logger.warning(
-            "Orchestrator final turn failed (%s); trying synthesis fallback",
-            orchestrator_error,
-        )
-        if fallback_model is not None:
-            finalizer = "synthesis"
-            extra_generation_used = True
-            generation_events.append({"phase": "synthesis_fallback", "status": "started"})
-            try:
-                draft = await finalize_research(
-                    state=state, query=query, model=fallback_model,
-                    stop_reason=stop_reason,
-                    follow_ups=follow_ups,
-                    steering=steering,
-                    max_chars=settings.research_finalize_max_chars,
-                    timeout_s=settings.research_finalize_timeout_s,
-                )
-                generation_events[-1]["status"] = "completed"
-            except asyncio.CancelledError:
-                raise
-            except Exception as fallback_exc:
-                execution_error = type(fallback_exc).__name__
-                generation_events[-1].update(status="failed", error_type=execution_error)
-                logger.warning(
-                    "Synthesis fallback failed: %s", execution_error,
-                )
-        else:
-            execution_error = orchestrator_error
-    state = workspace.load_state()
-    return await _commit_final_answer(
-        workspace=workspace, state=state, query=query,
-        final_state={"messages": [AIMessage(content=draft)]}, model=orchestrator_model,
-        execution_error=execution_error, stop_reason=stop_reason,
-        finalizer=finalizer, extra_generation_used=extra_generation_used,
-        generation_events=generation_events,
-        answer_stream=answer_stream, trajectory_logger=trajectory_logger,
-        conversation_logger=conversation_logger, follow_ups=follow_ups, steering=steering,
-    )
 
 
 def _write_findings_answer(workspace, state, query, final_state, *, execution_error="",

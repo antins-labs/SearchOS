@@ -4,15 +4,21 @@ import asyncio
 import json
 from dataclasses import replace
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.tools import tool
 
+from searchos.config import models
 from searchos.config.run_config import EffectiveRunConfig
 from searchos.config.settings import settings
 from searchos.harness.answer_stream import AnswerStreamEmitter
-from searchos.harness.session import _finalize_stopped_research
+from searchos.harness.middleware.pipelines import orchestrator_pipeline
+from searchos.harness.session import SearchSession, _commit_final_answer
+from searchos.skills.catalog.registry import SkillRegistry
 from searchos.socm import EvidenceNode, SearchState, WorkspaceManager
+from tests.test_simple_search import OfflineModel
 
 BAD = "Unverified conclusion [source](evidence:unsourced)"
 GOOD = "Supported conclusion [source](evidence:original)"
@@ -92,20 +98,20 @@ def assert_old_answer_audited(workspace):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("repair", [GOOD, BAD])
-async def test_budget_final_uses_one_repair_then_consistent_delivery(tmp_path, repair):
+async def test_current_answer_uses_one_citation_repair_then_consistent_delivery(tmp_path, repair):
     workspace = workspace_with_previous_answer(tmp_path)
-    model, events, logged = ScriptedModel(BAD, repair), [], []
-    answer = await _finalize_stopped_research(
+    model, events, logged = ScriptedModel(repair), [], []
+    answer = await _commit_final_answer(
         workspace=workspace,
         state=workspace.load_state(),
         query="Current question",
-        orchestrator_model=model,
+        final_state={"messages": [AIMessage(content=BAD)]}, model=model,
         stop_reason="time_budget_exhausted",
         answer_stream=AnswerStreamEmitter(events.append, stream_prefix="final"),
         conversation_logger=SimpleNamespace(log=logged.append),
     )
 
-    assert len(model.calls) == 2
+    assert len(model.calls) == 1
     report, result = read_delivery(workspace)
     assert answer == report == result["answer"] == logged[-1].content
     assert "".join(e.get("delta", "") for e in events) == answer
@@ -122,42 +128,20 @@ async def test_budget_final_uses_one_repair_then_consistent_delivery(tmp_path, r
 
 
 @pytest.mark.asyncio
-async def test_synthesis_fallback_spends_the_shared_extra_generation_budget(tmp_path):
-    workspace = workspace_with_previous_answer(tmp_path)
-    primary = ScriptedModel(RuntimeError("offline primary failure"))
-    fallback = ScriptedModel(BAD)
-    answer = await _finalize_stopped_research(
-        workspace=workspace,
-        state=workspace.load_state(),
-        query="Current question",
-        orchestrator_model=primary,
-        fallback_model=fallback,
-        stop_reason="time_budget_exhausted",
-    )
-    assert len(primary.calls) == len(fallback.calls) == 1
-    report, result = read_delivery(workspace)
-    assert answer == report == result["answer"]
-    assert result["mode"] == "research_incomplete"
-    assert result["citation_issues"] == ["evidence:unsourced"]
-    assert "source（原始来源未提供）" not in answer and "Finalization crashed" not in answer
-    assert_old_answer_audited(workspace)
-
-
-@pytest.mark.asyncio
 async def test_cancellation_during_citation_repair_preserves_previous_delivery(tmp_path):
     workspace = workspace_with_previous_answer(tmp_path)
-    model, events, logged = ScriptedModel(BAD, asyncio.CancelledError()), [], []
+    model, events, logged = ScriptedModel(asyncio.CancelledError()), [], []
     with pytest.raises(asyncio.CancelledError):
-        await _finalize_stopped_research(
+        await _commit_final_answer(
             workspace=workspace,
             state=workspace.load_state(),
             query="Current question",
-            orchestrator_model=model,
+            final_state={"messages": [AIMessage(content=BAD)]}, model=model,
             stop_reason="time_budget_exhausted",
             answer_stream=AnswerStreamEmitter(events.append, stream_prefix="final"),
             conversation_logger=SimpleNamespace(log=logged.append),
         )
-    assert len(model.calls) == 2
+    assert len(model.calls) == 1
     assert_old_answer_preserved(workspace)
     assert not events and not logged
 
@@ -167,19 +151,19 @@ async def test_citation_repair_timeout_delivers_incomplete_without_another_model
     tmp_path, monkeypatch
 ):
     workspace = workspace_with_previous_answer(tmp_path)
-    model = ScriptedModel(BAD, "wait_for_cancel")
+    model = ScriptedModel("wait_for_cancel")
     monkeypatch.setattr(settings, "research_finalize_timeout_s", 0.02)
     answer = await asyncio.wait_for(
-        _finalize_stopped_research(
+        _commit_final_answer(
             workspace=workspace,
             state=workspace.load_state(),
             query="Current question",
-            orchestrator_model=model,
+            final_state={"messages": [AIMessage(content=BAD)]}, model=model,
             stop_reason="time_budget_exhausted",
         ),
         timeout=0.5,
     )
-    assert len(model.calls) == 2
+    assert len(model.calls) == 1
     report, result = read_delivery(workspace)
     assert answer == report == result["answer"]
     assert result["mode"] == "research_incomplete"
@@ -330,3 +314,134 @@ async def test_normal_session_final_does_not_bypass_repair_and_history(
     else:
         assert committed["mode"] == "research_incomplete"
         assert committed["citation_issues"] == ["evidence:unsourced"]
+
+
+def summary_messages(messages):
+    return [m for m in messages if m.additional_kwargs.get("sf_kind") == "budget_summary"]
+
+
+@pytest.fixture
+def offline_settings(monkeypatch):
+    for name in ("enable_skills", "enable_failure_memory", "enable_writer_agent",
+                 "enable_access_skill_generation"):
+        monkeypatch.setattr(settings, name, False)
+    monkeypatch.setattr(settings, "middleware_pipelines", {"orchestrator": []})
+
+
+def session_at(tmp_path):
+    return SearchSession(
+        workspace_root=str(tmp_path), skill_registry=SkillRegistry(),
+        skill_library_path=str(tmp_path / "skills"), max_time_s=60,
+        run_config=replace(EffectiveRunConfig.from_settings(), execution_path="unified"),
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("stop", ["sensor", "resume"])
+async def test_stopped_session_saves_existing_answer_without_regeneration(
+    tmp_path, monkeypatch, offline_settings, stop,
+):
+    answer = "Team Orion published Paper Alpha. [Publication list](https://example.org/papers)."
+    model = SimpleNamespace(ainvoke=AsyncMock(return_value=AIMessage(content="Replacement without the papers")))
+    monkeypatch.setattr(models, "get_model_for", lambda _: model)
+    monkeypatch.setattr(settings, "orch_premature_end_max_resumes", 2)
+    state = SearchState(intent="Review Team Orion's publications", source_scope={"mode": "web"})
+    if stop == "resume":
+        state.coverage_map.add_table("paper_details", ["Title", "Venue"], primary_key=["Title"])
+    streams = []
+
+    def build(self, **kwargs):
+        async def stream(payload, **stream_kwargs):
+            streams.append(payload)
+            if stop == "sensor":
+                kwargs["orch_control"].stop("state_delta_stall")
+            yield "values", {"messages": [HumanMessage(content=state.intent), AIMessage(content=answer)]}
+
+        return SimpleNamespace(middleware=[], astream=stream), None
+
+    monkeypatch.setattr(SearchSession, "_build_research_graph", build)
+    result = await session_at(tmp_path).run(state.intent, session_id="saved", initial_state=state)
+    delivery = json.loads((tmp_path / "saved/output/result.json").read_text())
+
+    model.ainvoke.assert_not_awaited()
+    assert len(streams) == (3 if stop == "resume" else 1)
+    assert delivery["answer"] == (tmp_path / "saved/output/report.md").read_text() == answer
+    assert result.final_messages[-1]["content"] == answer
+    assert delivery["stop_reason"] == (
+        "premature_end_resumes_exhausted" if stop == "resume" else "state_delta_stall"
+    )
+
+
+@pytest.mark.asyncio
+async def test_sensor_stop_summarizes_after_full_tool_batch_in_original_context(
+    tmp_path, monkeypatch, offline_settings,
+):
+    entered = [asyncio.Event(), asyncio.Event()]
+    release = asyncio.Event()
+    stopped = asyncio.Event()
+    finished = []
+    answer = "Paper Alpha and Paper Beta were retrieved; their complete venue counts remain unverified."
+
+    async def respond(count, messages):
+        if count == 1:
+            return AIMessage(content="", tool_calls=[
+                {"name": "read_paper", "args": {"index": i}, "id": f"paper-{i}"}
+                for i in range(2)
+            ])
+        assert count == 2
+        assert sorted(finished) == [0, 1]
+        assert [m.content for m in messages if m.type == "tool"] == ["Paper Alpha", "Paper Beta"]
+        assert "Earlier report: Orion's research scope" in str(messages)
+        assert len(summary_messages(messages)) == 1
+        assert messages[-1].type == "human"
+        assert "state_delta_stall" in messages[-1].content
+        return AIMessage(content=answer)
+
+    model = OfflineModel(handler=respond)
+    monkeypatch.setattr(models, "get_model_for", lambda _: model)
+
+    def build(self, **kwargs):
+        control = kwargs["orch_control"]
+
+        @tool
+        async def read_paper(index: int) -> str:
+            """Read one saved paper."""
+            entered[index].set()
+            if index == 0:
+                await entered[1].wait()
+                control.stop("state_delta_stall")
+                stopped.set()
+            else:
+                await release.wait()
+            finished.append(index)
+            return ["Paper Alpha", "Paper Beta"][index]
+
+        from searchos.agents.runtime import _ctx
+
+        return orchestrator_pipeline(
+            model, [read_paper], workspace=kwargs["workspace"],
+            budget=kwargs["orch_budget"], control=control,
+            agent_graphs=_ctx.agent_graphs, task_pool=_ctx.task_pool,
+            trajectory_logger=kwargs["traj_logger"], conversation_logger=kwargs["conv_logger"],
+        ), None
+
+    monkeypatch.setattr(SearchSession, "_build_research_graph", build)
+    task = asyncio.create_task(session_at(tmp_path).run(
+        "Review the papers", session_id="summary",
+        conversation_history=[{"role": "assistant", "content": "Earlier report: Orion's research scope"}],
+    ))
+    try:
+        await asyncio.wait_for(stopped.wait(), 5)
+        assert len(model.calls) == 1 and not task.done()
+        release.set()
+        result = await asyncio.wait_for(task, 5)
+    finally:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+
+    assert not result.execution_error
+    assert len(model.calls) == 2
+    assert (tmp_path / "summary/output/report.md").read_text() == answer
+    delivery = json.loads((tmp_path / "summary/output/result.json").read_text())
+    assert delivery["stop_reason"] == "state_delta_stall"
+    assert delivery["finalization"]["generation_events"] == []
