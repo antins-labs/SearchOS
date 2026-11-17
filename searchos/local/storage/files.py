@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import fcntl
+import functools
 import hashlib
 import os
 import tempfile
@@ -42,6 +43,29 @@ def file_sha256(path: Path) -> str:
         while chunk := stream.read(1024 * 1024):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def file_stat_key(path: Path) -> tuple[str, int, int, int, int]:
+    resolved = path.resolve()
+    stat = resolved.stat()
+    return (str(resolved), stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns)
+
+
+@functools.lru_cache(maxsize=4096)
+def _sha256_by_stat(
+    resolved_path: str,
+    st_dev: int,
+    st_ino: int,
+    st_size: int,
+    st_mtime_ns: int,
+) -> str:
+    del st_dev, st_ino, st_size, st_mtime_ns
+    return file_sha256(Path(resolved_path))
+
+
+def file_sha256_cached(path: Path) -> str:
+    """按路径、设备、inode、大小和纳秒修改时间缓存内容指纹。"""
+    return _sha256_by_stat(*file_stat_key(path))
 
 
 @contextmanager

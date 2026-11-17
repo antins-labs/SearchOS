@@ -15,7 +15,7 @@ from searchos.local.models import (
     PipelineOptions,
 )
 from searchos.local.parsers.base import ParserCapability
-from searchos.local.parsers.markdown import _decode_text
+from searchos.local.parsers.formats.markdown import _decode_text
 
 _CONTENT_TAGS = frozenset(
     {"h1", "h2", "h3", "h4", "h5", "h6", "p", "li", "td", "th", "pre", "blockquote"}

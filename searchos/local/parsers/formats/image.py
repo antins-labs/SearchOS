@@ -84,7 +84,7 @@ def _load_frames(path: Path, *, options: PipelineOptions) -> list[_ImageFrame]:
 class ImageParser:
     capability = ParserCapability(
         kind=DocumentKind.IMAGE,
-        extensions=(".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff"),
+        extensions=(".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff"),
         locator_kinds=("image_region",),
         dependencies=("pillow",),
         visual=True,

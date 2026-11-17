@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
-import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -31,12 +31,16 @@ from searchos.local.models import (
     TitleSource,
 )
 from searchos.local.refs import build_ref_id
-from searchos.local.storage.files import advisory_lock, atomic_write_text, file_sha256
+from searchos.local.storage.files import (
+    advisory_lock,
+    atomic_write_text,
+    file_sha256,
+    file_sha256_cached,
+    file_stat_key,
+)
 from searchos.local.storage.sources import SCHEMA_VERSION, SourceRecord, SourceRegistry
+from searchos.local.utils.text import one_line
 
-_HASH_RE = re.compile(r"^- 内容哈希：sha256:([0-9a-f]{64})$", re.MULTILINE)
-_FINGERPRINT_RE = re.compile(r"^- 生成指纹：sha256:([0-9a-f]{64})$", re.MULTILINE)
-_STATUS_RE = re.compile(r"^- 处理状态：(ready|partial|failed)$", re.MULTILINE)
 _BLOCK_PREFIX = "<!-- searchos:block-v2 "
 _BLOCK_SUFFIX = " -->\n"
 _BLOCK_END = "\n<!-- searchos:end-block -->\n"
@@ -180,8 +184,7 @@ def locator_fully_covered(
     return any(locator_matches(locator, target) for locator in locators)
 
 
-def _one_line(value: str) -> str:
-    return " ".join(value.replace("\x00", "").splitlines()).strip()
+_one_line = one_line
 
 
 def _sha256_bytes(value: bytes) -> str:
@@ -210,10 +213,7 @@ def _read_front_matter(raw: str) -> tuple[dict[str, Any], int]:
     return payload, end + len("\n---\n")
 
 
-def read_blocks(path: Path) -> tuple[dict[str, Any], list[StoredBlock]]:
-    """Read a length-delimited v2 representation without scanning source text."""
-
-    raw = path.read_text(encoding="utf-8")
+def _parse_blocks_text(raw: str) -> tuple[dict[str, Any], tuple[StoredBlock, ...]]:
     metadata, body_start = _read_front_matter(raw)
     if metadata.get("schema_version") != SCHEMA_VERSION:
         raise ValueError(messages.ARTIFACT_VERSION_UNSUPPORTED)
@@ -263,7 +263,27 @@ def read_blocks(path: Path) -> tuple[dict[str, Any], list[StoredBlock]]:
             )
         )
         position = text_end + len(_BLOCK_END)
-    return metadata, blocks
+    return metadata, tuple(blocks)
+
+
+@functools.lru_cache(maxsize=512)
+def _read_blocks_by_stat(
+    resolved_path: str,
+    st_dev: int,
+    st_ino: int,
+    st_size: int,
+    st_mtime_ns: int,
+) -> tuple[dict[str, Any], tuple[StoredBlock, ...]]:
+    del st_dev, st_ino, st_size, st_mtime_ns
+    raw = Path(resolved_path).read_text(encoding="utf-8")
+    return _parse_blocks_text(raw)
+
+
+def read_blocks(path: Path) -> tuple[dict[str, Any], list[StoredBlock]]:
+    """Read a length-delimited v2 representation without scanning source text."""
+
+    metadata, blocks = _read_blocks_by_stat(*file_stat_key(path))
+    return dict(metadata), list(blocks)
 
 
 class DocumentMarkdownStore:
@@ -312,7 +332,7 @@ class DocumentMarkdownStore:
             or record.parse_key != parse_key
             or record.parse_status == ProcessingStatus.FAILED
             or not path.is_file()
-            or file_sha256(path) != record.artifact_sha256
+            or file_sha256_cached(path) != record.artifact_sha256
         ):
             return None
         try:
@@ -353,67 +373,6 @@ class DocumentMarkdownStore:
             text_path = self.generation_path(document_id, record.generation)
         return text_path, self.documents_dir / f"{document_id}.md"
 
-    def cache_status(
-        self,
-        document_id: str,
-        *,
-        content_hash: str,
-        generation_fingerprint: str,
-    ) -> ProcessingStatus | None:
-        try:
-            record = self.registry.read(document_id)
-        except FileNotFoundError:
-            return self._legacy_cache_status(
-                document_id,
-                content_hash=content_hash,
-                generation_fingerprint=generation_fingerprint,
-            )
-        except ValueError:
-            return None
-        text_path = self.generation_path(document_id, record.generation)
-        document_path = self.documents_dir / f"{document_id}.md"
-        if (
-            record.source_revision != content_hash
-            or record.parse_key != generation_fingerprint
-            or record.parse_status != ProcessingStatus.READY
-            or record.recap_status != ProcessingStatus.READY
-            or not text_path.is_file()
-            or not document_path.is_file()
-            or file_sha256(text_path) != record.artifact_sha256
-        ):
-            return None
-        try:
-            read_blocks(text_path)
-        except ValueError:
-            return None
-        return ProcessingStatus.READY
-
-    def _legacy_cache_status(
-        self,
-        document_id: str,
-        *,
-        content_hash: str,
-        generation_fingerprint: str,
-    ) -> ProcessingStatus | None:
-        text_path = self.texts_dir / f"{document_id}.md"
-        document_path = self.documents_dir / f"{document_id}.md"
-        if not text_path.exists() or not document_path.exists():
-            return None
-        value = text_path.read_text(encoding="utf-8")
-        hash_match = _HASH_RE.search(value)
-        fingerprint_match = _FINGERPRINT_RE.search(value)
-        status_match = _STATUS_RE.search(value)
-        if (
-            hash_match is None
-            or fingerprint_match is None
-            or status_match is None
-            or hash_match.group(1) != content_hash
-            or fingerprint_match.group(1) != generation_fingerprint
-        ):
-            return None
-        status = ProcessingStatus(status_match.group(1))
-        return status if status == ProcessingStatus.READY else None
-
     def write(
         self,
         document: ParsedDocument,
@@ -426,6 +385,7 @@ class DocumentMarkdownStore:
         catalog_key: str = "",
         recap_status: ProcessingStatus | None = None,
         catalog_status: ProcessingStatus | None = None,
+        origin: dict[str, Any] | None = None,
     ) -> tuple[Path, Path]:
         lock_path = self.root / ".locks" / f"publish-{document.document_id}.lock"
         with advisory_lock(lock_path):
@@ -440,6 +400,7 @@ class DocumentMarkdownStore:
                 catalog_key=catalog_key,
                 recap_status=recap_status,
                 catalog_status=catalog_status,
+                origin=origin,
             )
 
     def _write_locked(
@@ -454,6 +415,7 @@ class DocumentMarkdownStore:
         catalog_key: str,
         recap_status: ProcessingStatus | None,
         catalog_status: ProcessingStatus | None,
+        origin: dict[str, Any] | None = None,
     ) -> tuple[Path, Path]:
         source_root = Path(document.source_root).resolve()
         library = self.registry.ensure_library(source_root)
@@ -477,7 +439,17 @@ class DocumentMarkdownStore:
             previous.source_root_id != source_root_id
             or previous.relative_path != document.display_path
         ):
-            raise ValueError(messages.DOCUMENT_ID_CONFLICT)
+            # Same physical file (or same relative path + content hash) may carry a
+            # stale source_root_id after path rewrites; allow rebind instead of conflict.
+            same_file = (
+                Path(previous.source_path).resolve() == Path(document.source_path).resolve()
+            )
+            same_revision = (
+                previous.relative_path == document.display_path
+                and previous.source_revision == document.sha256
+            )
+            if not same_file and not same_revision:
+                raise ValueError(messages.DOCUMENT_ID_CONFLICT)
 
         if text_path.exists():
             if file_sha256(text_path) != artifact_sha256:
@@ -525,9 +497,13 @@ class DocumentMarkdownStore:
             recap_status=recap_status,
             catalog_status=catalog_status,
             processing_status=status,
+            primary_characters=sum(
+                len(segment.text) for segment in document.primary_segments if segment.text.strip()
+            ),
             recap=recap,
             references=references,
             warnings=[*document.warnings, *recap.warnings],
+            origin=origin if origin is not None else (previous.origin if previous is not None else None),
         )
         self.registry.write(record)
         atomic_write_text(
@@ -557,15 +533,15 @@ class DocumentMarkdownStore:
         status: ProcessingStatus,
         processing_status: ProcessingStatus,
     ) -> None:
-        record = self.registry.read(document_id)
-        self.registry.write(
-            record.model_copy(
+        self.registry.update(
+            document_id,
+            lambda record: record.model_copy(
                 update={
                     "catalog_key": catalog_key,
                     "catalog_status": status,
                     "processing_status": processing_status,
                 }
-            )
+            ),
         )
 
     def refresh_navigation(
@@ -712,4 +688,4 @@ class DocumentMarkdownStore:
         return "\n".join(lines).rstrip() + "\n"
 
 
-__all__ = ["DocumentMarkdownStore", "StoredBlock", "read_blocks"]
+__all__ = ["DocumentMarkdownStore", "StoredBlock", "one_line", "read_blocks"]

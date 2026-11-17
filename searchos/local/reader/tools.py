@@ -2,24 +2,43 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
 import re
 
 from langchain_core.tools import tool
 
 from searchos.local import messages
-from searchos.local.prompts import reader as prompts
+from searchos.local.errors import user_message
 from searchos.local.reader.catalog import _MAX_CATALOG_MATCHES, _read_catalog, _search_catalog
+from searchos.local.reader.prompts import (
+    CATALOG_TOOL,
+    FIND_TOOL,
+    NEXT_WINDOW,
+    OPEN_MATCH,
+    OPEN_TOOL,
+)
 from searchos.local.reader.session import _state
 from searchos.local.reader.sources import (
     _load_original_source,
     _load_source,
+    _render_original,
     _source_metadata,
     _source_metadata_payload,
 )
-from searchos.local.reader.visuals import _render_original
 from searchos.local.refs import parse_ref_id
 
 _MAX_OPEN_CHARS = 20_000
+logger = logging.getLogger(__name__)
+
+
+def _tool_error(exc: Exception) -> str:
+    if isinstance(exc, FileNotFoundError) and exc.filename is None:
+        return f"Error: {exc}"
+    if isinstance(exc, OSError):
+        logger.warning("local reader IO error", exc_info=exc)
+        return f"Error: {messages.SOURCE_UNAVAILABLE_NOW}"
+    return f"Error: {user_message(exc, messages.REQUEST_FAILED)}"
 
 
 def _validate_window(loc: int, max_chars: int) -> tuple[int, int]:
@@ -30,7 +49,7 @@ def _validate_window(loc: int, max_chars: int) -> tuple[int, int]:
     return loc, max_chars
 
 
-@tool(response_format="content_and_artifact", description=prompts.CATALOG_TOOL)
+@tool(response_format="content_and_artifact", description=CATALOG_TOOL)
 async def local_catalog(path: str = "", query: str = "") -> tuple[str, dict[str, object]]:
     """查询授权范围内的目录。"""
 
@@ -41,7 +60,9 @@ async def local_catalog(path: str = "", query: str = "") -> tuple[str, dict[str,
         )
     try:
         if query.strip():
-            content, result_count, source_refs = _search_catalog(state, query, path)
+            content, result_count, source_refs = await asyncio.to_thread(
+                _search_catalog, state, query, path
+            )
             if result_count is None:
                 return content, {
                     "outcome": {
@@ -59,14 +80,17 @@ async def local_catalog(path: str = "", query: str = "") -> tuple[str, dict[str,
                 "results": [{"ref_id": ref_id} for ref_id in source_refs],
             }
         selected = path.strip() or "INDEX.md"
-        return _read_catalog(state.root / selected, state), {}
+        return await asyncio.to_thread(_read_catalog, state.root / selected, state), {}
     except Exception as exc:  # noqa: BLE001
-        return f"Error: {exc}", (
-            {"outcome": {"status": "error", "error": str(exc)}} if query.strip() else {}
+        message = _tool_error(exc)
+        return message, (
+            {"outcome": {"status": "error", "error": message.removeprefix("Error: ")}}
+            if query.strip()
+            else {}
         )
 
 
-@tool(response_format="content_and_artifact", description=prompts.OPEN_TOOL)
+@tool(response_format="content_and_artifact", description=OPEN_TOOL)
 async def local_open(
     ref_id: str,
     loc: int = 0,
@@ -87,17 +111,22 @@ async def local_open(
             if representation_id is not None:
                 raise ValueError(messages.PREVIEW_REPRESENTATION_UNSUPPORTED)
             reference = parse_ref_id(ref_id)
-            source = _load_original_source(reference, ref_id, state)
-            content = _render_original(source)
-            return content, {
-                "local_source_metadata": _source_metadata_payload(
-                    source,
-                    start=0,
-                    end=len(source.text),
-                ),
-                "view": "original",
-            }
-        source = _load_source(
+
+            def _open_original() -> tuple[list[dict[str, str]], dict[str, object]]:
+                source = _load_original_source(reference, ref_id, state)
+                content = _render_original(source)
+                return content, {
+                    "local_source_metadata": _source_metadata_payload(
+                        source,
+                        start=0,
+                        end=len(source.text),
+                    ),
+                    "view": "original",
+                }
+
+            return await asyncio.to_thread(_open_original)
+        source = await asyncio.to_thread(
+            _load_source,
             ref_id,
             state,
             representation_id=representation_id,
@@ -120,7 +149,7 @@ async def local_open(
         ]
         if end < total:
             header.append(
-                prompts.NEXT_WINDOW.format(
+                NEXT_WINDOW.format(
                     ref_id=source.ref_id,
                     offset=end,
                     max_chars=max_chars,
@@ -134,10 +163,10 @@ async def local_open(
             "view": "text",
         }
     except Exception as exc:  # noqa: BLE001
-        return f"Error: {exc}", {}
+        return _tool_error(exc), {}
 
 
-@tool(response_format="content_and_artifact", description=prompts.FIND_TOOL)
+@tool(response_format="content_and_artifact", description=FIND_TOOL)
 async def local_find(
     ref_id: str,
     pattern: str | list[str],
@@ -146,7 +175,8 @@ async def local_find(
     """查找正文中的匹配位置。"""
 
     try:
-        source = _load_source(
+        source = await asyncio.to_thread(
+            _load_source,
             ref_id,
             _state(),
             representation_id=representation_id,
@@ -177,7 +207,7 @@ async def local_find(
             f"Source: {source.ref_id}",
             f"Path: {source.display_path}",
             f"Metadata: {_source_metadata(source)}",
-            prompts.OPEN_MATCH.format(
+            OPEN_MATCH.format(
                 ref_id=source.ref_id, representation=source.representation_selector
             ),
             "",
@@ -202,7 +232,7 @@ async def local_find(
             "navigation_only": True,
         }
     except Exception as exc:  # noqa: BLE001
-        return f"Error: {exc}", {}
+        return _tool_error(exc), {}
 
 
 def get_local_tools() -> list:

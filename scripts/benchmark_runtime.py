@@ -35,7 +35,7 @@ async def recap_benchmark():
     from types import SimpleNamespace
 
     from searchos.local.models import LineRangeLocator, ParsedSegment
-    from searchos.local.recap.service import RecapService
+    from searchos.local.recap import RecapService
 
     class Client:
         async def summarize_segment(self, segment):

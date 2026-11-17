@@ -168,6 +168,30 @@ class PdfParser:
         warnings: list[str] = []
         vision_semaphore = asyncio.Semaphore(options.pdf_vision_concurrency)
         render_lock = asyncio.Lock()
+        render_context = None
+        render_session = None
+
+        def _ensure_render_session():
+            nonlocal render_context, render_session
+            if render_session is None and hasattr(self._renderer, "open_session"):
+                render_context = self._renderer.open_session(path)
+                render_session = render_context.__enter__()
+            return render_session
+
+        def _render_one_page(page_index: int) -> str:
+            session = _ensure_render_session()
+            if session is not None:
+                return session.render_page(
+                    page_index=page_index,
+                    dpi=options.pdf_render_dpi,
+                    max_dimension=options.pdf_max_dimension,
+                )
+            return self._renderer.render_page(
+                path,
+                page_index=page_index,
+                dpi=options.pdf_render_dpi,
+                max_dimension=options.pdf_max_dimension,
+            )
 
         def segment(
             page: _PageInput,
@@ -216,20 +240,24 @@ class PdfParser:
                     ]
                 else:
                     try:
-                        async with vision_semaphore:
-                            async with render_lock:
-                                image_data_uri = await asyncio.to_thread(
-                                    self._renderer.render_page,
-                                    path,
-                                    page_index=page.number - 1,
-                                    dpi=options.pdf_render_dpi,
-                                    max_dimension=options.pdf_max_dimension,
+                        cached_lookup = getattr(self._vision, "get_cached_page", None)
+                        visual_text = (
+                            cached_lookup(page_number=page.number, native_text=page.text)
+                            if cached_lookup is not None
+                            else None
+                        )
+                        if visual_text is None:
+                            async with vision_semaphore:
+                                async with render_lock:
+                                    image_data_uri = await asyncio.to_thread(
+                                        _render_one_page,
+                                        page.number - 1,
+                                    )
+                                visual_text = await self._vision.transcribe_page(
+                                    page_number=page.number,
+                                    image_data_uri=image_data_uri,
+                                    native_text=page.text,
                                 )
-                            visual_text = await self._vision.transcribe_page(
-                                page_number=page.number,
-                                image_data_uri=image_data_uri,
-                                native_text=page.text,
-                            )
                         if visual_text.strip():
                             output = []
                             if native_usable:
@@ -288,7 +316,11 @@ class PdfParser:
                 )
             ]
 
-        processed = await asyncio.gather(*(process(page) for page in pages))
+        try:
+            processed = await asyncio.gather(*(process(page) for page in pages))
+        finally:
+            if render_context is not None:
+                await asyncio.to_thread(render_context.__exit__, None, None, None)
         segments = [segment for page_segments in processed for segment in page_segments]
         segments.sort(key=lambda item: item.location.start if item.location else 0)
         covered_pages = {

@@ -22,11 +22,11 @@ def create_qa_graph(model, *, middleware=()):
 
     from langchain_core.tools import tool
 
+    from searchos.agents.local_search.qa import ANSWER_TOOL, DIRECT_QA
     from searchos.agents.runtime import create_search_agent_graph
     from searchos.agents.toolset_render import render_toolset
     from searchos.config.settings import settings
     from searchos.harness.middleware.context import DynamicTrimMiddleware
-    from searchos.local.prompts.qa import ANSWER_TOOL, DIRECT_QA
 
     @tool("local_answer", return_direct=True, description=ANSWER_TOOL)
     def local_answer(answer: str) -> str:

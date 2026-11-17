@@ -29,8 +29,9 @@ from searchos.local.storage.documents import (
     slice_source_block,
     slice_source_lines,
 )
-from searchos.local.storage.files import file_sha256
+from searchos.local.storage.files import file_sha256, file_sha256_cached, file_stat_key
 from searchos.local.storage.sources import SourceRecord, SourceRegistry
+from searchos.local.utils.visuals import render_original
 
 _SEGMENT_RE = re.compile(
     r"^<!-- searchos:segment id=(?P<id>\S+) location=(?P<location>[PL]\d+(?:-\d+)?) "
@@ -195,14 +196,14 @@ def _verify_v2(reference: LocalReference, state: LocalBrowserState) -> _Verified
         raise ValueError(messages.SOURCE_OUTSIDE_RUNTIME_ROOT) from exc
     if not source_path.is_file():
         raise FileNotFoundError(messages.SOURCE_UNAVAILABLE_NOW)
-    if file_sha256(source_path) != reference.source_revision:
+    if file_sha256_cached(source_path) != reference.source_revision:
         raise ValueError(messages.SOURCE_NEEDS_REINDEX)
 
     store = DocumentMarkdownStore(state.root)
     artifact_path = store.generation_path(record.document_id, record.generation)
     if not artifact_path.is_file():
         raise FileNotFoundError(messages.ARTIFACT_UNAVAILABLE)
-    if file_sha256(artifact_path) != record.artifact_sha256:
+    if file_sha256_cached(artifact_path) != record.artifact_sha256:
         raise ValueError(messages.ARTIFACT_DIGEST_MISMATCH)
     metadata, blocks = read_blocks(artifact_path)
     expected = {
@@ -226,6 +227,7 @@ def _load_v2_source(
     reference = verified.reference
     record = verified.record
     source_path = verified.source_path
+    stat_before = file_stat_key(source_path)
     blocks = verified.blocks
 
     selected: list[str] = []
@@ -250,7 +252,7 @@ def _load_v2_source(
                 messages.REPRESENTATION_NOT_FOUND.format(representation=representation_id)
             )
         raise ValueError(messages.CITATION_LOCATION_UNAVAILABLE)
-    if file_sha256(source_path) != reference.source_revision:
+    if file_stat_key(source_path) != stat_before and file_sha256(source_path) != reference.source_revision:
         raise ValueError(messages.SOURCE_CHANGED_DURING_READ)
 
     uncovered_locators = [
@@ -403,3 +405,16 @@ def _source_metadata(source: _SourceExcerpt) -> str:
         **({"warnings": list(source.warnings)} if source.warnings else {}),
     }
     return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _render_original(source: _SourceExcerpt) -> list[dict[str, str]]:
+    if source.source_path is None:
+        raise ValueError(messages.SOURCE_UNAVAILABLE_NOW)
+    return render_original(
+        path=source.source_path,
+        ref_id=source.ref_id,
+        display_path=source.display_path,
+        source_revision=source.source_revision,
+        locators=list(source.source_locators),
+        metadata_text=_source_metadata(source),
+    )

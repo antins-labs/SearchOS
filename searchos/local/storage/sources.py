@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import uuid
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -55,6 +56,7 @@ class SourceRecord(BaseModel):
     recap_status: ProcessingStatus
     catalog_status: ProcessingStatus
     processing_status: ProcessingStatus = ProcessingStatus.PARTIAL
+    primary_characters: int | None = None
     recap: DocumentRecap = Field(default_factory=DocumentRecap)
     references: dict[str, list[SourceLocator]] = Field(default_factory=dict)
     warnings: list[str] = Field(default_factory=list)
@@ -154,7 +156,10 @@ class SourceRegistry:
 
     def read(self, document_id: str) -> SourceRecord:
         self.ensure_active(document_id)
-        record = SourceRecord.model_validate(_read_front_matter(self.source_path(document_id)))
+        path = self.source_path(document_id)
+        if not path.is_file():
+            raise FileNotFoundError(messages.DOCUMENT_NOT_FOUND)
+        record = SourceRecord.model_validate(_read_front_matter(path))
         if record.schema_version != SCHEMA_VERSION:
             raise ValueError(
                 messages.SOURCE_VERSION_UNSUPPORTED.format(version=record.schema_version)
@@ -174,6 +179,18 @@ class SourceRegistry:
             _render_record(record.model_dump(mode="json"), f"Source: {record.relative_path}"),
         )
         return path
+
+    def update(
+        self,
+        document_id: str,
+        updater: Callable[[SourceRecord], SourceRecord],
+    ) -> SourceRecord:
+        """在发布锁下原子读取并更新 SourceRecord，避免与后台发布互相覆盖。"""
+        with advisory_lock(self.root / ".locks" / f"publish-{document_id}.lock"):
+            record = self.read(document_id)
+            updated = updater(record)
+            self.write(updated)
+            return updated
 
     def resolve_document_id(self, source: Path, source_root: Path) -> str:
         relative_path = source.relative_to(source_root).as_posix()

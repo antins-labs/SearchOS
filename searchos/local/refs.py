@@ -23,6 +23,7 @@ _REVISION_RE = re.compile(r"^[0-9a-f]{64}$")
 _REVISION_PREFIX_RE = re.compile(r"^[0-9a-f]{24}$")
 _REFERENCE_KEY_RE = re.compile(r"^(?:s[1-9][0-9]*|all)$")
 _LOCATORS = TypeAdapter(list[SourceLocator])
+LOCAL_LINK_RE = re.compile(r'local://[^\s)>"\']+')
 
 
 @dataclass(frozen=True, slots=True)
@@ -219,6 +220,7 @@ def resolve_reference(
 
 
 __all__ = [
+    "LOCAL_LINK_RE",
     "LocalReference",
     "build_ref_id",
     "decode_locator_token",

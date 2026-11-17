@@ -17,13 +17,56 @@ from searchos.harness.answer_stream import message_chunk_text
 from searchos.harness.middleware.context.utils.token_counts import model_input_limit
 from searchos.local import messages as copy
 from searchos.local.models import locator_group_label
-from searchos.local.prompts import qa as prompts
 from searchos.local.reader import local_open, selected_document_scope
 from searchos.local.refs import build_ref_id, parse_ref_id, resolve_reference
 from searchos.local.storage.sources import SourceRecord
+from searchos.local.utils.llm import estimate_tokens
 
 # Prefill eligibility, not a limit on how long the Agent may continue reading.
 _PREFILL_MAX_TOKENS = 72_000
+
+DIRECT_QA = """\
+## Direct answer
+
+Answer the question in the task, inside the Scope section. Use the Conversation section only to see which document or passage the question means. Do not answer from the Conversation section. Use text already returned by local_open in this turn, and keep reading when the answer still depends on a section or window you have not opened.
+
+Cite each important fact with the `[资料 N]` label on the local_open result that contains it. In a Markdown link, copy only the `Source:` value from that same result. Do not write a local:// reference that was not returned. Say when a statement is your conclusion or a suggestion rather than text you read. Use the user's language, format, and level of detail. If `Next:` is still present, or the `Characters` range does not include the passage the question needs, say what you have not opened.
+
+Call local_answer with the complete Markdown answer. That call ends the turn."""
+
+BUDGET_EXHAUSTED = "No tool calls remain. Call local_answer from the local_open text already returned, and say what you have not opened."
+READ_REQUIRED = "Read the relevant source with local_open before answering."
+PRELOAD_COMPLETE = 'The selected documents are already in the local_open results above. Answer the question. Open view="original" only to check a figure, a scanned table, or a value you need to see on the page.'
+PRELOAD_PARTIAL = "The local_open results above do not include the full text. Continue reading where the question still requires it."
+HISTORY_OMITTED = "\n[earlier turns omitted]\n"
+SOURCE_LABEL = "[资料{number}] {path} · {location}\n{content}"
+ANSWER_TOOL = "Submit the final Markdown answer and end this turn. answer is the complete, non-empty reply. Cite important facts with the `[资料 N]` label from the local_open result that contains them."
+
+
+def build_task(query: str, scope: str, history: str, tool_calls: int) -> str:
+    return f"""## Question
+<user-question>
+{query}
+</user-question>
+
+## Scope
+{scope}
+
+## Conversation
+Use this only to see which document or passage the question means.
+<conversation>
+{history}
+</conversation>
+
+## Budget
+This turn allows {tool_calls} tool calls. Open the text the question requires with local_open, then answer.
+"""
+
+
+def build_scope(documents: str | None) -> str:
+    if documents is None:
+        return "Scope: the current library. Start with local_catalog(query=...) to find the relevant catalog, then open the document text with local_open."
+    return f"Scope: these documents.\n{documents}"
 
 
 def _prefill_calls(blocks, model, budget, task):
@@ -63,11 +106,6 @@ def _prefill_calls(blocks, model, budget, task):
         if estimated > allowance or len(calls) >= budget.tool_calls:
             return []
     return calls
-
-
-def estimate_tokens(text: str) -> int:
-    ascii_chars = sum(char.isascii() for char in text)
-    return (ascii_chars + 2) // 3 + (len(text) - ascii_chars) * 2
 
 
 @dataclass(frozen=True)
@@ -117,7 +155,7 @@ class LocalQAMiddleware(AgentMiddleware):
                 messages=[
                     *request.messages,
                     HumanMessage(
-                        content=prompts.BUDGET_EXHAUSTED, additional_kwargs={"sf_synthetic": True}
+                        content=BUDGET_EXHAUSTED, additional_kwargs={"sf_synthetic": True}
                     ),
                 ],
             )
@@ -150,10 +188,10 @@ class LocalQAMiddleware(AgentMiddleware):
             return {
                 "messages": [
                     *[
-                        ToolMessage(content=prompts.READ_REQUIRED, tool_call_id=call["id"])
+                        ToolMessage(content=READ_REQUIRED, tool_call_id=call["id"])
                         for call in last.tool_calls
                     ],
-                    HumanMessage(content=prompts.READ_REQUIRED),
+                    HumanMessage(content=READ_REQUIRED),
                 ],
                 "jump_to": "model",
             }
@@ -171,7 +209,7 @@ class LocalQAMiddleware(AgentMiddleware):
         # Serialize local reads so parallel tool batches share one accurate budget.
         async with self._tool_lock:
             if self.tool_count >= self.budget.tool_calls:
-                return ToolMessage(content=prompts.BUDGET_EXHAUSTED, tool_call_id=call["id"])
+                return ToolMessage(content=BUDGET_EXHAUSTED, tool_call_id=call["id"])
             key = json.dumps([name, arguments], sort_keys=True, ensure_ascii=False)
             self.tool_count += 1
             self.result.tool_counts[name] = self.result.tool_counts.get(name, 0) + 1
@@ -218,7 +256,7 @@ class LocalQAMiddleware(AgentMiddleware):
                 self.result.observations.append(observation)
                 if self.on_read:
                     self.on_read(observation)
-                content = prompts.SOURCE_LABEL.format(
+                content = SOURCE_LABEL.format(
                     number=len(self.result.observations),
                     path=record.relative_path,
                     location=observation["location_label"],
@@ -254,17 +292,17 @@ async def run_document_qa(
         observer = LocalQAMiddleware(scope, budget, on_tool, on_read)
         graph = create_qa_graph(model, middleware=[observer])
         if library_scope:
-            scope_text = prompts.build_scope(None)
+            scope_text = build_scope(None)
         else:
             documents = "\n".join(
                 f'{r.relative_path}: catalog_path="documents/{r.document_id}.md"' for r in records
             )
-            scope_text = prompts.build_scope(documents)
+            scope_text = build_scope(documents)
         history_text = json.dumps((history or [])[-3:], ensure_ascii=False)
         if len(history_text) > 6000:
-            history_text = history_text[:2000] + prompts.HISTORY_OMITTED + history_text[-4000:]
+            history_text = history_text[:2000] + HISTORY_OMITTED + history_text[-4000:]
         task = HumanMessage(
-            content=prompts.build_task(query, scope_text, history_text, budget.tool_calls)
+            content=build_task(query, scope_text, history_text, budget.tool_calls)
         )
         messages = [task]
         calls = _prefill_calls(preload_blocks or [], model, budget, task)
@@ -288,9 +326,9 @@ async def run_document_qa(
                 last_windows[call["args"]["ref_id"]] = message_chunk_text(reply)
             complete = complete and all("[END OF SOURCE]" in text for text in last_windows.values())
             if complete:
-                instruction = prompts.PRELOAD_COMPLETE
+                instruction = PRELOAD_COMPLETE
             else:
-                instruction = prompts.PRELOAD_PARTIAL
+                instruction = PRELOAD_PARTIAL
             messages.append(
                 HumanMessage(content=instruction, additional_kwargs={"sf_synthetic": True})
             )

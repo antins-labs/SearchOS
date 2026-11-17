@@ -254,14 +254,26 @@ class PptxParser:
 
         warnings: list[str] = []
         rendered: dict[int, str] = {}
+        cached_visual_text: dict[int, str] = {}
+        to_render: set[int] = set(requested)
+        if requested and self._vision is not None:
+            cached_lookup = getattr(self._vision, "get_cached_slide", None)
+            if cached_lookup is not None:
+                for slide in slides:
+                    if slide.number not in requested:
+                        continue
+                    cached = cached_lookup(slide_number=slide.number, native_text=slide.native_text)
+                    if cached is not None:
+                        cached_visual_text[slide.number] = cached
+                        to_render.discard(slide.number)
         if requested and self._vision is None:
             warnings.append(messages.PPTX_VISION_DISABLED.format(count=len(requested)))
-        elif requested:
+        elif to_render:
             try:
                 rendered = await asyncio.to_thread(
                     self._renderer.render_slides,
                     path,
-                    slide_indices=tuple(number - 1 for number in sorted(requested)),
+                    slide_indices=tuple(number - 1 for number in sorted(to_render)),
                     dpi=options.pptx_render_dpi,
                     max_dimension=options.pptx_max_dimension,
                 )
@@ -276,6 +288,8 @@ class PptxParser:
         semaphore = asyncio.Semaphore(options.pptx_vision_concurrency)
 
         async def transcribe(slide: _SlideData) -> tuple[int, str, str]:
+            if slide.number in cached_visual_text:
+                return slide.number, cached_visual_text[slide.number], ""
             image_data_uri = rendered.get(slide.number - 1)
             if image_data_uri is None or self._vision is None:
                 return slide.number, "", ""

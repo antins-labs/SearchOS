@@ -1,18 +1,22 @@
-"""渲染引用指定的 PDF 页面、图片帧和区域。"""
+"""Render PDF pages and image regions for local original-source previews."""
 
 from __future__ import annotations
 
 import base64
 import io
+from pathlib import Path
 
 from searchos.local import messages
-from searchos.local.models import ImageRegionLocator, PdfRegionLocator, compact_locator_labels
-from searchos.local.parsers.vision import PdfiumPageRenderer
-from searchos.local.reader.sources import _source_metadata, _SourceExcerpt
-from searchos.local.storage.files import file_sha256
+from searchos.local.models import (
+    ImageRegionLocator,
+    PdfRegionLocator,
+    SourceLocator,
+    compact_locator_labels,
+)
+from searchos.local.storage.files import file_sha256, file_stat_key
 
 
-def _data_uri_block(data_uri: str) -> dict[str, str]:
+def data_uri_block(data_uri: str) -> dict[str, str]:
     prefix, separator, payload = data_uri.partition(",")
     if not separator or ";base64" not in prefix:
         raise ValueError(messages.PREVIEW_IMAGE_INVALID)
@@ -21,7 +25,7 @@ def _data_uri_block(data_uri: str) -> dict[str, str]:
     return {"type": "image", "base64": payload, "mime_type": mime_type}
 
 
-def _crop_data_uri(
+def crop_data_uri(
     data_uri: str,
     bbox: tuple[float, float, float, float] | None,
 ) -> str:
@@ -50,27 +54,29 @@ def _crop_data_uri(
     return f"data:image/jpeg;base64,{encoded}"
 
 
-def _render_original(
-    source: _SourceExcerpt,
+def render_original(
+    *,
+    path: Path,
+    ref_id: str,
+    display_path: str,
+    source_revision: str,
+    locators: list[SourceLocator] | tuple[SourceLocator, ...],
+    metadata_text: str,
 ) -> list[dict[str, str]]:
-    if source.source_path is None:
-        raise ValueError(messages.SOURCE_UNAVAILABLE_NOW)
-    path = source.source_path
+    """Render original PDF pages or image frames for a citation preview."""
+
+    stat_before = file_stat_key(path)
     blocks: list[dict[str, str]] = [
         {
             "type": "text",
             "text": f"""[LOCAL_ORIGINAL]
-Source: {source.ref_id}
-Path: {source.display_path}
-Metadata: {_source_metadata(source)}""",
+Source: {ref_id}
+Path: {display_path}
+Metadata: {metadata_text}""",
         }
     ]
-    pdf_locators = [
-        locator for locator in source.source_locators if isinstance(locator, PdfRegionLocator)
-    ]
-    image_locators = [
-        locator for locator in source.source_locators if isinstance(locator, ImageRegionLocator)
-    ]
+    pdf_locators = [locator for locator in locators if isinstance(locator, PdfRegionLocator)]
+    image_locators = [locator for locator in locators if isinstance(locator, ImageRegionLocator)]
     if pdf_locators:
         pages: list[tuple[int, tuple[float, float, float, float] | None]] = []
         for locator in pdf_locators:
@@ -79,6 +85,8 @@ Metadata: {_source_metadata(source)}""",
             )
         if len(pages) > 4:
             raise ValueError(messages.PREVIEW_LIMIT)
+        from searchos.local.parsers.vision import PdfiumPageRenderer
+
         renderer = PdfiumPageRenderer()
         for page, bbox in pages:
             data_uri = renderer.render_page(
@@ -87,7 +95,7 @@ Metadata: {_source_metadata(source)}""",
                 dpi=160,
                 max_dimension=2400,
             )
-            blocks.append(_data_uri_block(_crop_data_uri(data_uri, bbox)))
+            blocks.append(data_uri_block(crop_data_uri(data_uri, bbox)))
     elif image_locators:
         try:
             from PIL import Image, ImageOps
@@ -124,8 +132,11 @@ Metadata: {_source_metadata(source)}""",
         finally:
             image.close()
     else:
-        labels = compact_locator_labels(list(source.source_locators))
+        labels = compact_locator_labels(list(locators))
         blocks[0]["text"] += messages.PREVIEW_OPEN_ORIGINAL + ", ".join(labels)
-    if file_sha256(path) != source.source_revision:
+    if file_stat_key(path) != stat_before and file_sha256(path) != source_revision:
         raise ValueError(messages.SOURCE_CHANGED_DURING_PREVIEW)
     return blocks
+
+
+__all__ = ["crop_data_uri", "data_uri_block", "render_original"]

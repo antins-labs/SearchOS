@@ -357,6 +357,16 @@ class DocumentRecap(BaseModel):
     warnings: list[str] = Field(default_factory=list)
 
 
+class RecapContext(BaseModel):
+    file_name: str = ""
+    document_kind: str = ""
+    total_units: int = 0
+    unit_label: str = ""
+    batch_index: int = 1
+    batch_total: int = 1
+    source_headings: list[str] = Field(default_factory=list)
+
+
 class ParseFingerprint(BaseModel):
     source_revision: str
     parser_version: str

@@ -1,14 +1,18 @@
-"""Chunking, model invocation, and source-location validation for recaps."""
+"""Chunking, caching, and source-location validation for local recaps."""
 
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 import logging
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any, Protocol
 
 from pydantic import BaseModel, Field, ValidationError
 
+from searchos.harness.middleware.context.utils.token_counts import model_input_limit
 from searchos.local import messages
 from searchos.local.errors import RecapValidationError, user_message
 from searchos.local.models import (
@@ -17,18 +21,22 @@ from searchos.local.models import (
     LocationKind,
     ParsedDocument,
     ParsedSegment,
+    RecapContext,
     SectionRecap,
     SourceLocation,
 )
-from searchos.local.parsers.vision import _message_text
-from searchos.local.prompts.recap import (
+from searchos.local.recap.prompts import (
+    DOCUMENT_SYSTEM_PROMPT,
+    PROMPT_VERSION,
     SYSTEM_PROMPT,
     build_document_prompt,
+    build_repair_prompt,
     build_section_prompt,
     build_single_segment_prompt,
 )
 from searchos.local.refs import normalize_locators
-from searchos.utils.json_extract import extract_json_object
+from searchos.local.storage.files import atomic_write_text
+from searchos.local.utils.llm import estimate_tokens, invoke_json, supports_kwarg
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +64,16 @@ class _ModelSingleSection(BaseModel):
     summary: str = Field(min_length=1)
 
 
+class _ModelDocumentSummary(BaseModel):
+    summary: str = Field(min_length=1)
+
+
+async def _call_recap(fn: Any, *args: Any, context: RecapContext | None = None) -> Any:
+    if context is not None and supports_kwarg(fn, "context"):
+        return await fn(*args, context=context)
+    return await fn(*args)
+
+
 class ModelRecapClient:
     def __init__(self, model: Any | None = None) -> None:
         if model is None:
@@ -64,29 +82,80 @@ class ModelRecapClient:
             model = get_model_for("local_recap")
         self._model = model
 
-    async def _invoke_json(self, prompt: str) -> dict[str, Any]:
-        from langchain_core.messages import HumanMessage, SystemMessage
+    @property
+    def input_token_limit(self) -> int | None:
+        return model_input_limit(self._model)
 
-        response = await self._model.ainvoke(
-            [SystemMessage(content=SYSTEM_PROMPT), HumanMessage(content=prompt)]
+    async def summarize_segments(
+        self,
+        segments: list[ParsedSegment],
+        *,
+        context: RecapContext | None = None,
+    ) -> dict[str, Any]:
+        return await invoke_json(
+            self._model,
+            system_prompt=SYSTEM_PROMPT,
+            prompt=build_section_prompt(segments, context=context),
+            schema=_ModelSections,
+            error_message=messages.SECTION_RESPONSE_INVALID,
+            repair_prompt_builder=build_repair_prompt,
         )
-        payload = extract_json_object(_message_text(response))
-        if payload is None:
-            raise RecapValidationError(messages.MODEL_JSON_INVALID)
-        return payload
 
-    async def summarize_segments(self, segments: list[ParsedSegment]) -> dict[str, Any]:
-        return await self._invoke_json(build_section_prompt(segments))
+    async def repair_segments(
+        self,
+        segments: list[ParsedSegment],
+        *,
+        previous_payload: dict[str, Any],
+        error: str,
+        context: RecapContext | None = None,
+    ) -> dict[str, Any]:
+        base_prompt = build_section_prompt(segments, context=context)
+        repair = build_repair_prompt(
+            json.dumps(previous_payload, ensure_ascii=False),
+            error,
+        )
+        return await invoke_json(
+            self._model,
+            system_prompt=SYSTEM_PROMPT,
+            prompt=f"{base_prompt}\n\n{repair}",
+            schema=_ModelSections,
+            error_message=messages.SECTION_RESPONSE_INVALID,
+            repair_prompt_builder=build_repair_prompt,
+        )
 
-    async def summarize_segment(self, segment: ParsedSegment) -> dict[str, Any]:
-        return await self._invoke_json(build_single_segment_prompt(segment))
+    async def summarize_segment(
+        self,
+        segment: ParsedSegment,
+        *,
+        context: RecapContext | None = None,
+    ) -> dict[str, Any]:
+        return await invoke_json(
+            self._model,
+            system_prompt=SYSTEM_PROMPT,
+            prompt=build_single_segment_prompt(segment, context=context),
+            schema=_ModelSingleSection,
+            error_message=messages.SINGLE_SECTION_RESPONSE_INVALID,
+            repair_prompt_builder=build_repair_prompt,
+        )
 
-    async def summarize_document(self, sections: list[SectionRecap]) -> str:
-        payload = await self._invoke_json(build_document_prompt(sections))
-        summary = payload.get("summary")
-        if not isinstance(summary, str) or not summary.strip():
+    async def summarize_document(
+        self,
+        sections: list[SectionRecap],
+        *,
+        context: RecapContext | None = None,
+    ) -> str:
+        payload = await invoke_json(
+            self._model,
+            system_prompt=DOCUMENT_SYSTEM_PROMPT,
+            prompt=build_document_prompt(sections, context=context),
+            schema=_ModelDocumentSummary,
+            error_message=messages.DOCUMENT_SUMMARY_EMPTY,
+            repair_prompt_builder=build_repair_prompt,
+        )
+        summary = str(payload.get("summary") or "").strip()
+        if not summary:
             raise RecapValidationError(messages.DOCUMENT_SUMMARY_EMPTY)
-        return summary.strip()
+        return summary
 
 
 def _split_line_segment(segment: ParsedSegment, max_chars: int) -> list[ParsedSegment]:
@@ -183,6 +252,28 @@ def _pack_batches(segments: list[ParsedSegment], max_chars: int) -> list[list[Pa
     return batches
 
 
+def _enforce_token_budget(
+    batches: list[list[ParsedSegment]],
+    token_budget: int | None,
+) -> list[list[ParsedSegment]]:
+    if token_budget is None or token_budget <= 0:
+        return batches
+    output: list[list[ParsedSegment]] = []
+    for batch in batches:
+        current: list[ParsedSegment] = []
+        used = 0
+        for segment in batch:
+            tokens = estimate_tokens(segment.text) + estimate_tokens(segment.title) + 120
+            if current and used + tokens > token_budget:
+                output.append(current)
+                current, used = [], 0
+            current.append(segment)
+            used += tokens
+        if current:
+            output.append(current)
+    return output
+
+
 def _validated_sections(
     payload: dict[str, Any],
     segments: list[ParsedSegment],
@@ -271,13 +362,15 @@ def _validated_sections(
 async def _summarize_single_segment(
     client: RecapClient,
     segment: ParsedSegment,
+    *,
+    context: RecapContext | None = None,
 ) -> list[SectionRecap]:
     """Summarize one indivisible locator without asking the model to bind IDs."""
     summarize_segment = getattr(client, "summarize_segment", None)
     if summarize_segment is None:
-        payload = await client.summarize_segments([segment])
+        payload = await _call_recap(client.summarize_segments, [segment], context=context)
         return _validated_sections(payload, [segment])
-    payload = await summarize_segment(segment)
+    payload = await _call_recap(summarize_segment, segment, context=context)
     try:
         item = _ModelSingleSection.model_validate(payload)
     except ValidationError as exc:
@@ -294,6 +387,102 @@ async def _summarize_single_segment(
         },
         [segment],
     )
+
+
+def _build_document_context(
+    document: ParsedDocument | Any,
+    segments: list[ParsedSegment],
+) -> RecapContext:
+    kind_value = getattr(document, "kind", "")
+    kind = kind_value.value if hasattr(kind_value, "value") else str(kind_value or "")
+    unit_label = "单元"
+    if kind in {"pdf", "pptx"}:
+        unit_label = "页"
+    elif kind in {"markdown", "text", "json", "jsonl", "csv", "tsv"}:
+        unit_label = "行"
+    elif kind == "image":
+        unit_label = "帧"
+    headings: list[str] = []
+    seen: set[str] = set()
+    for segment in segments:
+        if segment.title_source == "source" and segment.title and segment.title not in seen:
+            seen.add(segment.title)
+            headings.append(segment.title)
+    total_units = int(getattr(document, "total_units", 0) or 0) or len(segments)
+    return RecapContext(
+        file_name=str(getattr(document, "name", "") or ""),
+        document_kind=kind,
+        total_units=total_units,
+        unit_label=unit_label,
+        batch_index=1,
+        batch_total=1,
+        source_headings=headings,
+    )
+
+
+def _batch_cache_key(
+    batch: list[ParsedSegment],
+    *,
+    prompt_version: str,
+    model_name: str,
+    context: RecapContext,
+) -> str:
+    payload = {
+        "prompt_version": prompt_version,
+        "model_name": model_name,
+        "context": context.model_dump(mode="json"),
+        "segments": [
+            [item.id, item.title, item.title_source, item.location_label, item.text]
+            for item in batch
+        ],
+    }
+    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _read_batch_cache(cache_path: Path, batch: list[ParsedSegment]) -> list[SectionRecap] | None:
+    if not cache_path.is_file():
+        return None
+    try:
+        data = json.loads(cache_path.read_text(encoding="utf-8"))
+        sections = [SectionRecap.model_validate(item) for item in data["sections"]]
+    except Exception:  # noqa: BLE001
+        return None
+    covered = {sid for section in sections for sid in section.segment_ids}
+    expected = {segment.id for segment in batch}
+    if not sections or covered != expected:
+        return None
+    return sections
+
+
+def _write_batch_cache(cache_path: Path, sections: list[SectionRecap]) -> None:
+    payload = {"sections": [section.model_dump(mode="json") for section in sections]}
+    atomic_write_text(cache_path, json.dumps(payload, ensure_ascii=False))
+
+
+def _doc_cache_key(
+    sections: list[SectionRecap],
+    *,
+    prompt_version: str,
+    model_name: str,
+    context: RecapContext,
+) -> str:
+    payload = {
+        "prompt_version": prompt_version,
+        "model_name": model_name,
+        "context": {
+            "file_name": context.file_name,
+            "document_kind": context.document_kind,
+            "total_units": context.total_units,
+            "unit_label": context.unit_label,
+        },
+        "sections": [
+            [item.title, item.location_label, item.character_count, item.summary]
+            for item in sections
+        ],
+    }
+    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
 RecapProgressCallback = Callable[[int, int], None]
@@ -314,13 +503,25 @@ class RecapService:
         *,
         max_chars: int,
         on_progress: RecapProgressCallback | None = None,
+        cache_dir: Path | None = None,
+        prompt_version: str = PROMPT_VERSION,
+        model_name: str = "",
     ) -> DocumentRecap:
         if not document.primary_segments:
             if on_progress:
                 on_progress(0, 0)
             return DocumentRecap()
         segments = split_segments(document.primary_segments, max_chars)
-        batches = list(_pack_batches(segments, max_chars))
+        raw_batches = list(_pack_batches(segments, max_chars))
+        token_limit = getattr(self._client, "input_token_limit", None)
+        token_budget = (
+            max(2_000, int(token_limit * 0.6) - 2_000)
+            if isinstance(token_limit, int) and token_limit > 0
+            else None
+        )
+        batches = _enforce_token_budget(raw_batches, token_budget)
+        base_context = _build_document_context(document, segments)
+        total_batches = len(batches)
         results: dict[int, tuple[list[SectionRecap], list[str]]] = {}
         completed_ids: set[str] = set()
         queue = iter(enumerate(batches, start=1))
@@ -332,12 +533,34 @@ class RecapService:
             if on_progress:
                 on_progress(len(completed_ids), len(segments))
 
-        async def summarize(batch_number, batch):
+        async def summarize(batch_number: int, batch: list[ParsedSegment]) -> None:
+            batch_context = base_context.model_copy(
+                update={"batch_index": batch_number, "batch_total": total_batches}
+            )
+            cache_path = (
+                cache_dir
+                / f"batch_{_batch_cache_key(batch, prompt_version=prompt_version, model_name=model_name, context=batch_context)[:24]}.json"
+                if cache_dir is not None
+                else None
+            )
+            if cache_path is not None:
+                cached = _read_batch_cache(cache_path, batch)
+                if cached is not None:
+                    results[batch_number] = cached, []
+                    report_progress(cached)
+                    return
+
             sections: list[SectionRecap] = []
             warnings: list[str] = []
             if len(batch) == 1:
                 try:
-                    sections.extend(await _summarize_single_segment(self._client, batch[0]))
+                    sections.extend(
+                        await _summarize_single_segment(
+                            self._client,
+                            batch[0],
+                            context=batch_context,
+                        )
+                    )
                 except Exception as exc:
                     logger.warning("local section recap failed", exc_info=True)
                     warnings.append(
@@ -346,26 +569,54 @@ class RecapService:
                         )
                     )
             else:
+                payload: dict[str, Any] | None = None
+                validated = False
                 try:
-                    payload = await self._client.summarize_segments(batch)
+                    payload = await _call_recap(
+                        self._client.summarize_segments,
+                        batch,
+                        context=batch_context,
+                    )
                     sections.extend(_validated_sections(payload, batch))
-                except Exception:
-                    for segment in batch:
+                    validated = True
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("local section batch failed", exc_info=True)
+                    repair_fn = getattr(self._client, "repair_segments", None)
+                    if payload is not None and repair_fn is not None:
                         try:
-                            part = await _summarize_single_segment(self._client, segment)
-                            sections.extend(part)
-                            report_progress(part)
-                        except Exception as exc:
-                            logger.warning("local segment recap failed", exc_info=True)
-                            warnings.append(
-                                messages.SECTION_RECAP_FAILED.format(
-                                    segment=segment.id, detail=user_message(exc)
-                                )
+                            repaired = await repair_fn(
+                                batch,
+                                previous_payload=payload,
+                                error=str(exc),
+                                context=batch_context,
                             )
+                            sections.extend(_validated_sections(repaired, batch))
+                            validated = True
+                        except Exception:  # noqa: BLE001
+                            logger.warning("local section batch repair failed", exc_info=True)
+                    if not validated:
+                        for segment in batch:
+                            try:
+                                part = await _summarize_single_segment(
+                                    self._client,
+                                    segment,
+                                    context=batch_context,
+                                )
+                                sections.extend(part)
+                                report_progress(part)
+                            except Exception as seg_exc:
+                                logger.warning("local segment recap failed", exc_info=True)
+                                warnings.append(
+                                    messages.SECTION_RECAP_FAILED.format(
+                                        segment=segment.id, detail=user_message(seg_exc)
+                                    )
+                                )
+            if cache_path is not None and sections and not warnings:
+                _write_batch_cache(cache_path, sections)
             results[batch_number] = sections, warnings
             report_progress(sections)
 
-        async def worker():
+        async def worker() -> None:
             for batch_number, batch in queue:
                 await summarize(batch_number, batch)
 
@@ -382,11 +633,38 @@ class RecapService:
         warnings = [warning for index in sorted(results) for warning in results[index][1]]
         summary = ""
         if sections:
-            try:
-                summary = await self._client.summarize_document(sections)
-            except Exception as exc:  # noqa: BLE001
-                logger.warning("local document recap failed", exc_info=True)
-                warnings.append(messages.DOCUMENT_RECAP_FAILED.format(detail=user_message(exc)))
+            doc_context = base_context.model_copy(update={"batch_index": 1, "batch_total": 1})
+            doc_cache_path = (
+                cache_dir
+                / f"doc_{_doc_cache_key(sections, prompt_version=prompt_version, model_name=model_name, context=doc_context)[:24]}.json"
+                if cache_dir is not None and not warnings
+                else None
+            )
+            cached_summary = None
+            if doc_cache_path is not None and doc_cache_path.is_file():
+                try:
+                    data = json.loads(doc_cache_path.read_text(encoding="utf-8"))
+                    if isinstance(data.get("summary"), str) and data["summary"].strip():
+                        cached_summary = data["summary"].strip()
+                except Exception:  # noqa: BLE001
+                    cached_summary = None
+            if cached_summary is not None:
+                summary = cached_summary
+            else:
+                try:
+                    summary = await _call_recap(
+                        self._client.summarize_document,
+                        sections,
+                        context=doc_context,
+                    )
+                    if doc_cache_path is not None and summary.strip():
+                        atomic_write_text(
+                            doc_cache_path,
+                            json.dumps({"summary": summary.strip()}, ensure_ascii=False),
+                        )
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("local document recap failed", exc_info=True)
+                    warnings.append(messages.DOCUMENT_RECAP_FAILED.format(detail=user_message(exc)))
         return DocumentRecap(summary=summary, sections=sections, warnings=warnings)
 
 
@@ -397,3 +675,4 @@ __all__ = [
     "RecapService",
     "split_segments",
 ]
+

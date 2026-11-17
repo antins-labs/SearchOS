@@ -7,7 +7,7 @@ from pathlib import Path
 from urllib.parse import quote, unquote
 
 from searchos.local import messages
-from searchos.local.prompts import reader as prompts
+from searchos.local.reader.prompts import INDEXED_DOCUMENT
 from searchos.local.reader.session import LocalBrowserState
 from searchos.local.refs import build_ref_id, parse_ref_id, resolve_reference
 from searchos.local.storage.sources import SourceRegistry
@@ -141,7 +141,7 @@ def _read_catalog(path: Path, state: LocalBrowserState) -> str:
                     # do not advertise a handle whose canonical citation cannot round-trip.
                     pass
                 else:
-                    rendered = prompts.INDEXED_DOCUMENT.format(ref_id=ref_id, catalog=rendered)
+                    rendered = INDEXED_DOCUMENT.format(ref_id=ref_id, catalog=rendered)
     body = "\n".join(f"L{index}: {line}" for index, line in enumerate(rendered.splitlines()))
     return f"[LOCAL_CATALOG]\nCatalog: {relative}\n\n{body}".rstrip()
 

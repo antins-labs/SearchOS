@@ -1454,7 +1454,7 @@ def _write_findings_answer(workspace, state, query, final_state, *, execution_er
     """Reject untraceable citations before publishing; semantic support is checked separately."""
     import json
 
-    from searchos.local.library import _LOCAL_LINK_RE
+    from searchos.local.refs import LOCAL_LINK_RE
     from searchos.socm.coverage import answer_evidence
 
     nodes = answer_evidence(state)
@@ -1486,7 +1486,7 @@ def _write_findings_answer(workspace, state, query, final_state, *, execution_er
     if citation_issues:
         raise FinalCitationError(answer, citation_issues, state)
     answer = resolved
-    answer = _LOCAL_LINK_RE.sub(lambda m: canonical.get(m.group(0), "invalid-local-reference"), answer)
+    answer = LOCAL_LINK_RE.sub(lambda m: canonical.get(m.group(0), "invalid-local-reference"), answer)
     from searchos.socm.planning.research_plan import membership_review
     if incomplete_issues is not None:
         mode = "research_incomplete"

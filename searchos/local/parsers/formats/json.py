@@ -17,7 +17,7 @@ from searchos.local.models import (
     RecordRangeLocator,
 )
 from searchos.local.parsers.base import ParserCapability
-from searchos.local.parsers.markdown import _decode_text
+from searchos.local.parsers.formats.markdown import _decode_text
 
 
 def _pointer_token(value: str) -> str:

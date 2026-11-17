@@ -14,15 +14,20 @@ from typing import Any, Protocol
 from pydantic import BaseModel, Field, ValidationError
 
 from searchos.local import messages
+from searchos.local.catalog.prompts import (
+    CATALOG_PROMPT_VERSION,
+    CLASSIFY_SYSTEM_PROMPT,
+    TOPIC_SUMMARY_SYSTEM_PROMPT,
+    classify_document,
+    revise_subindex,
+)
 from searchos.local.errors import RecapValidationError, user_message
 from searchos.local.models import DocumentRecap, ParsedDocument
-from searchos.local.parsers.vision import _message_text
-from searchos.local.prompts import catalog as prompts
-from searchos.local.storage.documents import _one_line
 from searchos.local.storage.files import AsyncAdvisoryLock, advisory_lock, atomic_write_text
-from searchos.utils.json_extract import extract_json_object
+from searchos.local.storage.sources import SourceRegistry
+from searchos.local.utils.llm import invoke_json, supports_kwarg
+from searchos.local.utils.text import one_line
 
-CATALOG_PROMPT_VERSION = prompts.PROMPT_VERSION
 logger = logging.getLogger(__name__)
 _SUBINDEX_LINK_RE = re.compile(
     r"^- \[(?P<title>.+?)\]\(subindexes/(?P<id>[^/)]+)\.md\)："
@@ -35,12 +40,12 @@ _FILE_LINK_RE = re.compile(
 
 
 def _label(value: str) -> str:
-    return _one_line(value).replace("]", "\\]")
+    return one_line(value).replace("]", "\\]")
 
 
-def _subindex_id(title: str, existing: object = ()) -> str:
+def make_subindex_id(title: str, existing: object = ()) -> str:
     """Return a readable, filesystem-safe title with numeric collision handling."""
-    value = unicodedata.normalize("NFKC", _one_line(title))
+    value = unicodedata.normalize("NFKC", one_line(title))
     value = re.sub(r'[\x00-\x1f<>:"/\\|?*]+', "-", value)
     value = re.sub(r"\s+", "-", value).strip(" .-")[:80].rstrip(" .-")
     base = value or messages.UNCLASSIFIED
@@ -51,6 +56,9 @@ def _subindex_id(title: str, existing: object = ()) -> str:
         candidate = f"{base}-{suffix}"
         suffix += 1
     return candidate
+
+
+_subindex_id = make_subindex_id
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,7 +79,6 @@ class Subindex:
     @property
     def character_count(self) -> int:
         return sum(item.character_count for item in self.documents.values())
-
 
 def topic_revision(topic: Subindex) -> str:
     payload = [
@@ -104,12 +111,39 @@ class _Assignment(BaseModel):
 
 
 class _Assignments(BaseModel):
+    topic_scope: str = Field(default="", max_length=240)
+    reuse_check: str = Field(default="", max_length=320)
     display_name: str = Field(default="", max_length=80)
     subindexes: list[_Assignment] = Field(min_length=1, max_length=3)
 
 
 class _SubindexRevision(BaseModel):
     summary: str = Field(min_length=1, max_length=2_000)
+
+
+def _bounded_topic_documents(
+    documents: list[CatalogDocument],
+    *,
+    max_items: int = 50,
+    max_total_chars: int = 12_000,
+) -> list[CatalogDocument]:
+    if len(documents) <= 30 and sum(len(doc.summary) for doc in documents) <= max_total_chars:
+        return documents
+    selected = documents[:max_items]
+    per_summary = max(60, min(160, max_total_chars // max(1, len(selected))))
+    return [
+        CatalogDocument(
+            document_id=doc.document_id,
+            name=doc.name,
+            summary=(
+                doc.summary
+                if len(doc.summary) <= per_summary
+                else doc.summary[: per_summary - 1].rstrip() + "…"
+            ),
+            character_count=doc.character_count,
+        )
+        for doc in selected
+    ]
 
 
 class ModelCatalogClient:
@@ -120,33 +154,58 @@ class ModelCatalogClient:
             model = get_model_for("local_recap")
         self._model = model
 
-    async def _invoke_json(self, prompt: str) -> dict[str, Any]:
-        from langchain_core.messages import HumanMessage, SystemMessage
-
-        response = await self._model.ainvoke(
-            [
-                SystemMessage(content=prompts.SYSTEM_PROMPT),
-                HumanMessage(content=prompt),
-            ]
-        )
-        payload = extract_json_object(_message_text(response))
-        if payload is None:
-            raise RecapValidationError(messages.MODEL_JSON_INVALID)
-        return payload
+    def _classification_model(self) -> Any:
+        if getattr(self._model, "temperature", None) not in (None, 0, 0.0) and hasattr(
+            self._model, "bind"
+        ):
+            try:
+                return self._model.bind(temperature=0.0)
+            except Exception:  # noqa: BLE001
+                return self._model
+        return self._model
 
     async def classify_document(
         self,
         document: CatalogDocument,
         existing: list[Subindex],
+        *,
+        document_kind: str = "",
+        section_titles: list[str] | None = None,
     ) -> dict[str, Any]:
-        return await self._invoke_json(prompts.classify_document(document, existing))
+        payload = await invoke_json(
+            self._classification_model(),
+            system_prompt=CLASSIFY_SYSTEM_PROMPT,
+            prompt=classify_document(
+                document,
+                existing,
+                document_kind=document_kind,
+                section_titles=section_titles,
+            ),
+            schema=_Assignments,
+            error_message=messages.CLASSIFICATION_INVALID,
+        )
+        return {k: v for k, v in payload.items() if k not in {"topic_scope", "reuse_check"}}
 
     async def revise_subindex(
         self,
         title: str,
         documents: list[CatalogDocument],
+        *,
+        total_documents: int | None = None,
+        document_kinds: dict[str, str] | None = None,
     ) -> dict[str, Any]:
-        return await self._invoke_json(prompts.revise_subindex(title, documents))
+        return await invoke_json(
+            self._model,
+            system_prompt=TOPIC_SUMMARY_SYSTEM_PROMPT,
+            prompt=revise_subindex(
+                title,
+                documents,
+                total_documents=total_documents,
+                document_kinds=document_kinds,
+            ),
+            schema=_SubindexRevision,
+            error_message=messages.TOPIC_RESPONSE_INVALID,
+        )
 
 
 class CatalogMarkdownStore:
@@ -242,7 +301,7 @@ class CatalogMarkdownStore:
         active.sort(key=lambda item: (item.title.casefold(), item.subindex_id))
         active_paths: set[Path] = set()
         for item in active:
-            lines = [f"# {_one_line(item.title)}", ""]
+            lines = [f"# {one_line(item.title)}", ""]
             documents = sorted(
                 item.documents.values(),
                 key=lambda value: (value.name.casefold(), value.document_id),
@@ -250,7 +309,7 @@ class CatalogMarkdownStore:
             for document in documents:
                 lines.append(
                     f"- [{_label(document.name)}](../documents/{document.document_id}.md)："
-                    f"{_one_line(document.summary)} ({document.character_count} chars)"
+                    f"{one_line(document.summary)} ({document.character_count} chars)"
                 )
             path = self.subindexes_dir / f"{item.subindex_id}.md"
             active_paths.add(path)
@@ -264,7 +323,7 @@ class CatalogMarkdownStore:
         for item in active:
             lines.append(
                 f"- [{_label(item.title)}](subindexes/{item.subindex_id}.md)："
-                f"{_one_line(item.summary)} ({item.character_count} chars)"
+                f"{one_line(item.summary)} ({item.character_count} chars)"
             )
         atomic_write_text(self.index_path, "\n".join(lines).rstrip() + "\n")
 
@@ -274,7 +333,13 @@ class CatalogService:
         self._store = CatalogMarkdownStore(root)
         self._client = client
 
-    async def upsert(self, document: ParsedDocument, recap: DocumentRecap) -> list[Path]:
+    async def upsert(
+        self,
+        document: ParsedDocument,
+        recap: DocumentRecap,
+        *,
+        refresh_pending: bool = True,
+    ) -> list[Path]:
         if not recap.summary.strip():
             raise RecapValidationError(messages.CLASSIFICATION_NEEDS_SUMMARY)
         record = CatalogDocument(
@@ -283,23 +348,28 @@ class CatalogService:
             summary=recap.summary.strip(),
             character_count=sum(len(segment.text) for segment in document.primary_segments),
         )
+        section_titles = [section.title for section in recap.sections if section.title]
+        document_kind = document.kind.value
         # Classification is serialized with other automatic classifiers, but
         # never holds the membership lock while waiting for a model.
         async with AsyncAdvisoryLock(self._store.root / ".locks" / "catalog-classify.lock"):
             async with AsyncAdvisoryLock(self._store.root / ".locks" / "catalog-transaction.lock"):
                 snapshot = self._store.load()
                 manual = document.document_id in self._store.read_state()["manual_documents"]
-            payload = (
-                None
-                if manual
-                else await self._client.classify_document(
+            if manual:
+                payload = None
+            else:
+                classify_kwargs: dict[str, Any] = {}
+                if supports_kwarg(self._client.classify_document, "document_kind"):
+                    classify_kwargs["document_kind"] = document_kind
+                if supports_kwarg(self._client.classify_document, "section_titles"):
+                    classify_kwargs["section_titles"] = section_titles
+                payload = await self._client.classify_document(
                     record,
                     sorted(snapshot.values(), key=lambda item: item.subindex_id),
+                    **classify_kwargs,
                 )
-            )
             async with AsyncAdvisoryLock(self._store.root / ".locks" / "catalog-transaction.lock"):
-                from searchos.local.storage.sources import SourceRegistry
-
                 SourceRegistry(self._store.root).ensure_active(document.document_id)
                 catalog = self._store.load()
                 state = self._store.read_state()
@@ -327,7 +397,7 @@ class CatalogService:
                         if classification.display_name.strip():
                             record = CatalogDocument(
                                 record.document_id,
-                                _one_line(classification.display_name),
+                                one_line(classification.display_name),
                                 record.summary,
                                 record.character_count,
                             )
@@ -335,7 +405,7 @@ class CatalogService:
                         raise RecapValidationError(messages.CLASSIFICATION_INVALID) from exc
                     selected = set()
                     for assignment in assignments:
-                        title = _one_line(assignment.title)
+                        title = one_line(assignment.title)
                         if not title:
                             raise RecapValidationError(messages.TOPIC_NAME_REQUIRED)
                         item = (
@@ -353,7 +423,7 @@ class CatalogService:
                         if assignment.subindex_id and item is None:
                             raise RecapValidationError(messages.CLASSIFICATION_UNKNOWN_TOPIC)
                         if item is None:
-                            key = _subindex_id(title, catalog)
+                            key = make_subindex_id(title, catalog)
                             item = Subindex(subindex_id=key, title=title)
                             catalog[key] = item
                         selected.add(item.subindex_id)
@@ -372,7 +442,8 @@ class CatalogService:
                 self._store.mark_pending(catalog, old_ids | selected, state)
                 self._store.write(catalog)
                 self._store.write_state(state)
-        await self.refresh_pending()
+        if refresh_pending:
+            await self.refresh_pending()
         return [
             self._store.index_path,
             *(self._store.subindexes_dir / f"{key}.md" for key in sorted(selected)),
@@ -388,8 +459,6 @@ class CatalogService:
                 ):
                     catalog = self._store.load()
                     state = self._store.read_state()
-                    from searchos.local.storage.sources import SourceRegistry
-
                     SourceRegistry(self._store.root).ensure_active()
                     candidates = [
                         key
@@ -408,12 +477,29 @@ class CatalogService:
                     attempted.add((key, revision))
                 error = ""
                 try:
+                    all_docs = sorted(
+                        topic.documents.values(), key=lambda item: item.document_id
+                    )
+                    bounded_docs = _bounded_topic_documents(all_docs)
+                    revise_kwargs: dict[str, Any] = {}
+                    if supports_kwarg(self._client.revise_subindex, "total_documents"):
+                        revise_kwargs["total_documents"] = len(all_docs)
+                    if supports_kwarg(self._client.revise_subindex, "document_kinds"):
+                        registry = SourceRegistry(self._store.root)
+                        kinds: dict[str, str] = {}
+                        for item in bounded_docs:
+                            try:
+                                kinds[item.document_id] = registry.read(item.document_id).kind.value
+                            except Exception:  # noqa: BLE001
+                                pass
+                        revise_kwargs["document_kinds"] = kinds
                     payload = await self._client.revise_subindex(
                         topic.title,
-                        sorted(topic.documents.values(), key=lambda item: item.document_id),
+                        bounded_docs,
+                        **revise_kwargs,
                     )
                     revised = _SubindexRevision.model_validate(payload)
-                    summary = _one_line(revised.summary)
+                    summary = one_line(revised.summary)
                     if not summary:
                         raise RecapValidationError(messages.TOPIC_SUMMARY_EMPTY)
                 except ValidationError:
@@ -453,4 +539,5 @@ __all__ = [
     "CatalogService",
     "ModelCatalogClient",
     "Subindex",
+    "make_subindex_id",
 ]
