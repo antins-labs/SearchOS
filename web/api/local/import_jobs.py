@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import json
 import logging
 import mimetypes
@@ -19,6 +20,7 @@ import aiohttp
 from pydantic import BaseModel, ConfigDict
 
 from api.deps import LOCAL_DATA_ROOT, WORKSPACE_ROOT
+from api.local import local_job_semaphore
 from searchos.local import messages
 from searchos.local.errors import LocalDocumentError, user_message
 from searchos.local.library import LocalLibraryService
@@ -109,6 +111,24 @@ class NetworkImportJobStore:
             os.replace(temporary, self._path(job.job_id))
         finally:
             temporary.unlink(missing_ok=True)
+        if job.document_id and job.status in {"completed", "failed", "cancelled"}:
+            self._prune_terminal(job)
+
+    def _prune_terminal(self, latest: NetworkImportJob) -> None:
+        for path in self.root.glob("import_*.json"):
+            if path.stem == latest.job_id:
+                continue
+            try:
+                other = NetworkImportJob.model_validate_json(path.read_text())
+            except Exception:
+                continue
+            if (
+                other.library_id == latest.library_id
+                and other.document_id == latest.document_id
+                and other.status in {"completed", "failed", "cancelled"}
+                and (other.created_at, other.job_id) < (latest.created_at, latest.job_id)
+            ):
+                path.unlink(missing_ok=True)
 
     def read(self, job_id: str) -> NetworkImportJob:
         return NetworkImportJob.model_validate_json(self._path(job_id).read_text())
@@ -289,47 +309,63 @@ def start_network_import(job: NetworkImportJob, store: NetworkImportJobStore) ->
     async def run() -> None:
         temporary: Path | None = None
         try:
-            store.update(job.job_id, status="running", stage="fetch", error="")
-            temporary, filename, final_url = await _download(job)
-            store.update(job.job_id, stage="save")
-            service = LocalLibraryService(store.root.parent)
-            document = await asyncio.to_thread(
-                service.save_original_file,
-                job.library_id,
-                temporary,
-                filename,
-                origin={
-                    "request_url": job.source_url,
-                    "final_url": final_url,
-                    "fetched_at": _now(),
-                    "session_id": job.session_id,
-                    "page_id": job.page_id,
-                    "saved_form": "web_markdown_copy" if job.page_id else "downloaded_original",
-                },
-            )
-            temporary = None
-            document_id = document["document_id"]
-            store.update(job.job_id, document_id=document_id, stage="saved")
-            if not job.index_after_save or document.get("searchable"):
-                store.update(
-                    job.job_id,
-                    status="completed",
-                    stage=("indexed" if document.get("searchable") else "saved_unindexed"),
+            async with local_job_semaphore():
+                store.update(job.job_id, status="running", stage="fetch", error="")
+                temporary, filename, final_url = await _download(job)
+                store.update(job.job_id, stage="save")
+                service = LocalLibraryService(store.root.parent)
+                document = await asyncio.to_thread(
+                    service.save_original_file,
+                    job.library_id,
+                    temporary,
+                    filename,
+                    origin={
+                        "request_url": job.source_url,
+                        "final_url": final_url,
+                        "fetched_at": _now(),
+                        "session_id": job.session_id,
+                        "page_id": job.page_id,
+                        "saved_form": "web_markdown_copy" if job.page_id else "downloaded_original",
+                    },
                 )
-                return
-            store.update(job.job_id, stage="parse")
-            await service.parse_saved_document(job.library_id, document_id)
-            store.update(job.job_id, stage="recap_catalog")
-            await service.enrich_document(
-                job.library_id,
-                document_id,
-                recap_progress=lambda completed, total: store.update(
-                    job.job_id,
-                    recap_segments_completed=completed,
-                    recap_segments_total=total,
-                ),
-            )
-            store.update(job.job_id, status="completed", stage="indexed")
+                temporary = None
+                document_id = document["document_id"]
+                store.update(job.job_id, document_id=document_id, stage="saved")
+                if not job.index_after_save or document.get("searchable"):
+                    store.update(
+                        job.job_id,
+                        status="completed",
+                        stage=("indexed" if document.get("searchable") else "saved_unindexed"),
+                    )
+                    return
+                store.update(job.job_id, stage="parse")
+                await service.parse_saved_document(job.library_id, document_id)
+                store.update(job.job_id, stage="recap_catalog")
+                enrich_kwargs: dict[str, Any] = {
+                    "recap_progress": lambda completed, total: store.update(
+                        job.job_id,
+                        recap_segments_completed=completed,
+                        recap_segments_total=total,
+                    ),
+                }
+                if "refresh_topic_recaps" in inspect.signature(service.enrich_document).parameters:
+                    enrich_kwargs["refresh_topic_recaps"] = False
+                await service.enrich_document(
+                    job.library_id,
+                    document_id,
+                    **enrich_kwargs,
+                )
+                from searchos.local.catalog import CatalogMarkdownStore
+
+                root = Path(service.get_library(job.library_id).index_root)
+                if any(
+                    item.get("status") == "pending"
+                    for item in CatalogMarkdownStore(root).read_state()["topics"].values()
+                ):
+                    from api.local.recap_jobs import schedule_topic_recaps
+
+                    schedule_topic_recaps(root)
+                store.update(job.job_id, status="completed", stage="indexed")
         except asyncio.CancelledError:
             store.update(
                 job.job_id,

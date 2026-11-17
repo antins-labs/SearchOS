@@ -232,6 +232,45 @@ test("worker replay and live updates agree without mutating prior workers", () =
   assert.equal(JSON.stringify(first), JSON.stringify(repeated));
 });
 
+test("续派已结束的 Agent 后，实时与回放均恢复运行状态", () => {
+  const event = (data) => ({ type: "trajectory", data: { agent: "search_agent", ...data } });
+  const previous = [event({ type: "dispatch", task: "收集产品" }), event({ type: "agent_complete" })];
+  const workers = derive.foldWorkers(previous);
+  assert.equal(workers[0].status, "completed");
+  const before = JSON.stringify(workers);
+  const resumed = [
+    event({ type: "dispatch", task: "补全规格", task_id: "next", reused: true }),
+    event({ type: "harness", kind: "run_phase", phase: "generating", status: "running" }),
+    event({ type: "tool_call_started", tool: "exec", tool_call_id: "next-call" }),
+    event({ type: "skill_execution", status: "completed" }),
+  ];
+  for (let count = 1; count <= resumed.length; count++) {
+    const live = derive.updateWorkersBatch(workers, resumed.slice(0, count));
+    const replay = derive.foldWorkers([...previous, ...resumed.slice(0, count)]);
+    assert.equal(live[0].status, "running");
+    assert.equal(JSON.stringify(live), JSON.stringify(replay));
+  }
+  assert.equal(JSON.stringify(workers), before);
+  const completed = derive.foldWorkers([...previous, ...resumed, event({ type: "agent_complete" })]);
+  assert.equal(completed[0].status, "completed");
+});
+
+test("结束或失败后的新执行事件恢复运行状态，技能子步骤结束保持 Agent 运行", () => {
+  const event = (data) => ({ type: "trajectory", data: { agent: "search_agent", ...data } });
+  for (const terminal of ["agent_complete", "agent_error"]) {
+    const previous = derive.foldWorkers([event({ type: terminal })]);
+    for (const active of [
+      { type: "dispatch", reused: true },
+      { type: "harness", kind: "run_phase", phase: "generating", status: "running" },
+      { type: "tool_call_started", tool: "open" },
+    ]) {
+      const resumed = derive.updateWorkersBatch(previous, [event(active), event({ type: "skill_execution", status: "completed" })]);
+      assert.equal(resumed[0].status, "running");
+      assert.equal(previous[0].status, terminal === "agent_error" ? "error" : "completed");
+    }
+  }
+});
+
 test("local run progress uses document and evidence semantics", () => {
   const events = [
     { type: "trajectory", data: { type: "task_start", agent: "local_qa", source_mode: "local", document_count: 2 } },

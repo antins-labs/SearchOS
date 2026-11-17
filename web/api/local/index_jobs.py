@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import json
 import logging
 import os
@@ -15,6 +16,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict
 
 from api.deps import LOCAL_DATA_ROOT
+from api.local import local_job_semaphore
 from searchos.local import messages
 from searchos.local.catalog import CatalogMarkdownStore
 from searchos.local.errors import LocalDocumentError, user_message
@@ -76,6 +78,24 @@ class LocalIndexJobStore:
             os.replace(temporary, self._path(job.job_id))
         finally:
             temporary.unlink(missing_ok=True)
+        if job.status in {"completed", "failed", "cancelled"}:
+            self._prune_terminal(job)
+
+    def _prune_terminal(self, latest: LocalIndexJob) -> None:
+        for path in self.root.glob("job_*.json"):
+            if path.stem == latest.job_id:
+                continue
+            try:
+                other = LocalIndexJob.model_validate_json(path.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if (
+                other.library_id == latest.library_id
+                and other.document_id == latest.document_id
+                and other.status in {"completed", "failed", "cancelled"}
+                and (other.created_at, other.job_id) < (latest.created_at, latest.job_id)
+            ):
+                path.unlink(missing_ok=True)
 
     def read(self, job_id: str) -> LocalIndexJob:
         return LocalIndexJob.model_validate_json(
@@ -163,20 +183,34 @@ def _start(job: LocalIndexJob, store: LocalIndexJobStore) -> None:
 
     async def run() -> None:
         try:
-            store.update(job.job_id, status="running", stage="recap_catalog", error="")
-            service = LocalLibraryService(store.root.parent)
-            document = await service.enrich_document(
-                job.library_id,
-                job.document_id,
-                recap_progress=lambda completed, total: store.update(
-                    job.job_id,
-                    recap_segments_completed=completed,
-                    recap_segments_total=total,
-                ),
-            )
-            if document["recap_status"] != "ready" or document["catalog_status"] != "ready":
-                raise LocalDocumentError(messages.INDEX_INCOMPLETE)
-            store.update(job.job_id, status="completed", stage="complete", error="")
+            async with local_job_semaphore():
+                store.update(job.job_id, status="running", stage="recap_catalog", error="")
+                service = LocalLibraryService(store.root.parent)
+                enrich_kwargs: dict[str, Any] = {
+                    "recap_progress": lambda completed, total: store.update(
+                        job.job_id,
+                        recap_segments_completed=completed,
+                        recap_segments_total=total,
+                    ),
+                }
+                if "refresh_topic_recaps" in inspect.signature(service.enrich_document).parameters:
+                    enrich_kwargs["refresh_topic_recaps"] = False
+                document = await service.enrich_document(
+                    job.library_id,
+                    job.document_id,
+                    **enrich_kwargs,
+                )
+                if document["recap_status"] != "ready" or document["catalog_status"] != "ready":
+                    raise LocalDocumentError(messages.INDEX_INCOMPLETE)
+                root = Path(service.get_library(job.library_id).index_root)
+                if any(
+                    item.get("status") == "pending"
+                    for item in CatalogMarkdownStore(root).read_state()["topics"].values()
+                ):
+                    from api.local.recap_jobs import schedule_topic_recaps
+
+                    schedule_topic_recaps(root)
+                store.update(job.job_id, status="completed", stage="complete", error="")
         except asyncio.CancelledError:
             if job.job_id in _user_cancelled:
                 store.update(job.job_id, status="cancelled", stage="cancelled", error="")
@@ -258,14 +292,10 @@ def retry_background_index(
     if job.status not in {"failed", "cancelled"}:
         raise ValueError(messages.JOB_RETRY_CONFLICT)
     service = LocalLibraryService(job_store.root.parent)
-    current = next(
-        (
-            item
-            for item in service.list_documents(job.library_id)
-            if item["document_id"] == job.document_id
-        ),
-        None,
-    )
+    try:
+        current = service.get_document(job.library_id, job.document_id)
+    except KeyError:
+        current = None
     if current is None or current["source_revision"] != job.source_revision:
         raise ValueError(messages.JOB_SOURCE_CHANGED)
     service.original_path(job.library_id, job.document_id)

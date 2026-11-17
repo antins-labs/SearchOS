@@ -77,7 +77,9 @@ def _http_error(exc: Exception) -> HTTPException:
     if isinstance(exc, KeyError):
         return HTTPException(404, str(exc).strip("'"))
     if isinstance(exc, FileNotFoundError):
-        return HTTPException(404, str(exc))
+        logger.warning("local resource not found", exc_info=exc)
+        detail = messages.RESOURCE_NOT_FOUND if exc.filename is not None else str(exc)
+        return HTTPException(404, detail or messages.RESOURCE_NOT_FOUND)
     if isinstance(exc, OverflowError):
         return HTTPException(413, str(exc))
     if isinstance(exc, MissingDependencyError):
@@ -443,6 +445,7 @@ async def upload_document(
     service = _service()
     temp_dir = service.data_root / ".uploading"
     temp_dir.mkdir(parents=True, exist_ok=True)
+    max_file_bytes = service.capabilities()["max_file_bytes"]
     handle = tempfile.NamedTemporaryFile(dir=temp_dir, prefix="upload_", delete=False)
     temporary = Path(handle.name)
     total = 0
@@ -450,7 +453,7 @@ async def upload_document(
         with handle:
             while chunk := await file.read(1024 * 1024):
                 total += len(chunk)
-                if total > service.capabilities()["max_file_bytes"]:
+                if total > max_file_bytes:
                     raise OverflowError(messages.FILE_TOO_LARGE)
                 handle.write(chunk)
             handle.flush()
@@ -512,7 +515,7 @@ async def retry_index_job(library_id: str, job_id: str):
 @router.post("/citations/resolve")
 async def resolve_citation(req: CitationResolveRequest):
     try:
-        return _service().resolve_citation(req.ref_id)
+        return await asyncio.to_thread(_service().resolve_citation, req.ref_id)
     except Exception as exc:  # noqa: BLE001
         raise _http_error(exc) from exc
 
@@ -520,7 +523,7 @@ async def resolve_citation(req: CitationResolveRequest):
 @router.get("/libraries/{library_id}/documents/{document_id}/original")
 async def download_original(library_id: str, document_id: str):
     try:
-        path = _service().original_path(library_id, document_id)
+        path = await asyncio.to_thread(_service().original_path, library_id, document_id)
     except Exception as exc:  # noqa: BLE001
         raise _http_error(exc) from exc
     suffix = path.suffix.casefold()
@@ -591,6 +594,7 @@ class LocalSearchResult:
     coverage_score: None = None
     total_queries: int = 0
     total_steps: int = 2
+    skill_execution_count: int = 0
     eval_verdict: None = None
     token_usage: dict[str, Any] | None = None
     token_phases: None = None

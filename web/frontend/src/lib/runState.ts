@@ -111,7 +111,7 @@ export function updateWorkersBatch(current: WorkerInfo[], events: WSEvent[]): Wo
     const toolEvent = ["step", "tool_call_started", "tool_call_failed", "skill_execution"].includes(dtype);
     let nextStatus = prev?.status ?? "running";
     const phaseEvent = data.kind === "run_phase";
-    if (phaseEvent && status === "running") {
+    if (dtype === "dispatch" || dtype === "tool_call_started" || (phaseEvent && status === "running")) {
       nextStatus = "running";
     }
     if (dtype === "agent_complete" || dtype === "task_complete" || (!toolEvent && !phaseEvent && (status === "completed" || status === "partial"))) {

@@ -284,6 +284,8 @@ class Settings(BaseSettings):
 
     # Independent batches within one local document; provider limits still apply.
     local_recap_concurrency: int = 3
+    # Global cap across concurrent background local index/import jobs.
+    local_job_concurrency: int = 2
 
     # --- Extraction ---
     extraction_flush_concurrency: int = 5

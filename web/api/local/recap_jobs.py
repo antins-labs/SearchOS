@@ -5,7 +5,9 @@ import logging
 from pathlib import Path
 
 from api.deps import LOCAL_DATA_ROOT
+from searchos.local import messages
 from searchos.local.catalog import CatalogMarkdownStore, CatalogService, ModelCatalogClient
+from searchos.local.errors import user_message
 from searchos.local.library import LocalLibraryService
 from searchos.local.storage.files import AsyncAdvisoryLock
 
@@ -19,7 +21,7 @@ def schedule_topic_recaps(root: Path, *, retry_failed: bool = False) -> None:
     # Each request queues behind the cross-process recap lock. Later workers
     # read current pending state and exit without model calls if already done.
     async def run():
-        await asyncio.sleep(0.3)
+        await asyncio.sleep(1.2)
         try:
             await CatalogService(root, ModelCatalogClient()).refresh_pending(
                 retry_failed=retry_failed
@@ -31,7 +33,10 @@ def schedule_topic_recaps(root: Path, *, retry_failed: bool = False) -> None:
                 state = store.read_state()
                 for item in state["topics"].values():
                     if item["status"] == "pending":
-                        item.update(status="failed", error=str(exc))
+                        item.update(
+                            status="failed",
+                            error=user_message(exc, messages.TOPIC_RECAP_FAILED),
+                        )
                 store.write_state(state)
 
     task = asyncio.create_task(run())
