@@ -1,0 +1,28 @@
+searchos/harness/middleware/sensor/core/run_state.py
+  s_77546fd4f660bf::t_2b9a4e39895aab 41
+searchos/harness/middleware/sensor/budget_middleware.py
+  s_77546fd4f660bf::t_2b9a4e39895aab 260-261
+tests/test_final_citation_delivery.py
+  s_77546fd4f660bf::t_7289ed55bec61d 7
+  s_77546fd4f660bf::t_42b6f80b1c4113 317-447
+  s_77546fd4f660bf::t_59138d37647559 11,13,17-19,21
+  s_77546fd4f660bf::t_ab99e1fa7fde5d 101,103-104,108,114,133,135,139,144,154,157,161,166
+searchos/harness/report/synthesis.py
+  s_77546fd4f660bf::t_225abd9d1b8a6b 627
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4eddd4592983a13971d54249ed714e79a0fb1b4c",
+  "prompts": {},
+  "sessions": {
+    "s_77546fd4f660bf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a553-59a1-7c92-9166-21f99fc75966",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jeff Zhang <1328091175@qq.com>"
+    }
+  }
+}
