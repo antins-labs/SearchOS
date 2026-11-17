@@ -1,0 +1,65 @@
+web/api/routes/search.py
+  s_77546fd4f660bf::t_7698ef34195977 262-264,285-290,296,303-317
+searchos/config/run_config.py
+  s_77546fd4f660bf::t_55943758a09491 21,35
+searchos/agents/orchestrator/prompt.py
+  s_77546fd4f660bf::t_55943758a09491 31,41-50
+web/frontend/src/lib/runState.ts
+  s_77546fd4f660bf::t_ff68e32d85b982 114-116
+  s_77546fd4f660bf::t_67353ec834cc50 13,15
+  s_77546fd4f660bf::t_eb5d86698185b6 7,14
+  s_77546fd4f660bf::t_7698ef34195977 8-12,16-29,113,117,120
+searchos/config/effort.py
+  s_77546fd4f660bf::t_67353ec834cc50 84-85
+  s_77546fd4f660bf::t_55943758a09491 13,28,38,48,58
+searchos/agents/execution.py
+  s_77546fd4f660bf::t_55943758a09491 336-346
+web/frontend/src/components/workbench/AgentCard.tsx
+  s_77546fd4f660bf::t_eb5d86698185b6 6,38,63
+searchos/harness/session.py
+  s_77546fd4f660bf::t_55943758a09491 296,416-421,464-465,585,593
+web/frontend/src/components/conversation/OrchestrationCard.tsx
+  s_77546fd4f660bf::t_4f3180f1d05ca7 76-78,190
+  s_77546fd4f660bf::t_32a1878931be14 108,207,217,238
+  s_77546fd4f660bf::t_67353ec834cc50 189
+  s_77546fd4f660bf::t_7698ef34195977 6,185
+web/frontend/tests/orchestration-timeline.test.cjs
+  s_77546fd4f660bf::t_32a1878931be14 39-65
+searchos/harness/telemetry/trajectory.py
+  s_77546fd4f660bf::t_55943758a09491 94-98
+searchos/config/settings.py
+  s_77546fd4f660bf::t_55943758a09491 148
+searchos/config/models.py
+  s_77546fd4f660bf::t_db58e939c647ee 413
+  s_77546fd4f660bf::t_9bde05796fcaf4 18-20,25-26,218-232,249,269-309
+  s_77546fd4f660bf::t_121bd1a228c23f 233-243
+web/api/routes/settings.py
+  s_77546fd4f660bf::t_67353ec834cc50 154-155
+  s_77546fd4f660bf::t_17be8a3c430758 15,95,167,172,212,219,246,253,267,336
+web/api/main.py
+  s_77546fd4f660bf::t_121bd1a228c23f 62-63
+web/api/skills/catalog.py
+  s_77546fd4f660bf::t_7698ef34195977 12,21,37-45
+web/frontend/src/components/settings/sections/BudgetSection.tsx
+  s_77546fd4f660bf::t_7698ef34195977 12,26,183-185
+searchos/skills/catalog/registry.py
+  s_77546fd4f660bf::t_c22dd12a36847b 8,34-40,54-60,250-251,253
+  s_77546fd4f660bf::t_588141773f7e7c 30-33,41-53,212,233,252
+  s_77546fd4f660bf::t_3dc07f69bfa541 248
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1f24a23973c1605b80d7f5dc5589c9c0672013f7",
+  "prompts": {},
+  "sessions": {
+    "s_77546fd4f660bf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a553-59a1-7c92-9166-21f99fc75966",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jeff Zhang <1328091175@qq.com>"
+    }
+  }
+}
