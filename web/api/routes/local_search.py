@@ -66,7 +66,13 @@ def _with_jobs(library_id: str, documents: list[dict[str, Any]]) -> list[dict[st
     for document in documents:
         job = latest.get(document["document_id"])
         job_data = job.model_dump(mode="json") if job else None
-        if job_data and not job_data["recap_segments_total"]:
+        # Job total stays 0 until the first recap progress callback; do not
+        # overwrite an in-flight recap stage with stale document-level totals.
+        if (
+            job_data
+            and job_data["recap_segments_total"] == 0
+            and job_data.get("stage") not in {"recap_catalog", "recap"}
+        ):
             job_data["recap_segments_completed"] = document["recap_segments_completed"]
             job_data["recap_segments_total"] = document["recap_segments_total"]
         output.append({**document, "index_job": job_data})
@@ -634,6 +640,8 @@ async def launch_local_search(
     from api.assistant.runtime import get_runtime
     from searchos.socm import SearchState, WorkspaceManager
 
+    from searchos.harness.steering import SteeringQueue
+
     await get_runtime().before_replace(session_id)
     workspace = WorkspaceManager(WORKSPACE_ROOT, session_id)
     workspace.create()
@@ -648,13 +656,16 @@ async def launch_local_search(
         },
     )
     workspace.save_state(state)
+    steer_queue = SteeringQueue()
+    wall_clock = max_time if max_time and max_time > 0 else None
     sessions[session_id] = {
         "status": "running",
         "result": None,
         "error": None,
         "initial_state": state,
-        "steer_queue": None,
+        "steer_queue": steer_queue,
     }
+    agent = "local_qa"
 
     async def _run() -> None:
         started = time.monotonic()
@@ -666,8 +677,8 @@ async def launch_local_search(
             workspace.trajectory_path,
             {
                 "type": "task_start",
-                "agent": "local_search_agent",
-                "agent_name": "local_search_agent",
+                "agent": agent,
+                "agent_name": agent,
                 "session_id": session_id,
                 "query": query,
                 "source_mode": "local",
@@ -676,6 +687,7 @@ async def launch_local_search(
                 "timestamp": datetime.now(UTC).isoformat(),
             },
         )
+        streamed_answer = ""
         try:
             service = _service()
             read_count = 0
@@ -687,8 +699,8 @@ async def launch_local_search(
                     workspace.trajectory_path,
                     {
                         "type": "local_read_observed",
-                        "agent": "local_search_agent",
-                        "agent_name": "local_search_agent",
+                        "agent": agent,
+                        "agent_name": agent,
                         "source_mode": "local",
                         "read_count": read_count,
                         "observation": json.dumps(observation, ensure_ascii=False),
@@ -701,8 +713,8 @@ async def launch_local_search(
                     workspace.trajectory_path,
                     {
                         "type": "step",
-                        "agent": "local_search_agent",
-                        "agent_name": "local_search_agent",
+                        "agent": agent,
+                        "agent_name": agent,
                         "source_mode": "local",
                         "action": {"name": name, "args": arguments},
                         "observation": json.dumps(result, ensure_ascii=False),
@@ -715,16 +727,23 @@ async def launch_local_search(
                     workspace.trajectory_path,
                     {
                         **event,
-                        "agent": "local_search_agent",
-                        "agent_name": "local_search_agent",
+                        "agent": agent,
+                        "agent_name": agent,
                         "source_mode": "local",
                         "timestamp": datetime.now(UTC).isoformat(),
                     },
                 ),
                 stream_prefix=f"local-{session_id}",
             )
+
+            def record_delta(delta: str) -> None:
+                nonlocal streamed_answer
+                streamed_answer += delta
+                answer_stream.push(delta)
+
+            local_answer = None
             try:
-                async with asyncio.timeout(max_time):
+                async with asyncio.timeout(wall_clock):
                     local_answer = await service.answer(
                         library_id,
                         document_ids,
@@ -733,10 +752,20 @@ async def launch_local_search(
                         on_read=record_read,
                         on_tool=record_tool,
                         on_round_end=answer_stream.finish,
-                        on_delta=answer_stream.push,
+                        on_delta=record_delta,
+                        steer_queue=steer_queue,
                     )
+            except TimeoutError:
+                from searchos.local.library.qa import LocalAnswer
+
+                local_answer = LocalAnswer(
+                    answer=streamed_answer.strip(),
+                    reading_stop_reason="timeout",
+                )
             finally:
                 answer_stream.finish()
+            assert local_answer is not None
+
             # Reading observations and bound citations are not grounded findings.
             observations = list(local_answer.read_observations)
             token_usage = (
@@ -756,7 +785,7 @@ async def launch_local_search(
             result_payload = {
                 "query": query,
                 "answer": local_answer.answer,
-                "mode": "local_search_agent",
+                "mode": agent,
                 "source_scope": {
                     "mode": "local",
                     "library_id": library_id,
@@ -771,7 +800,7 @@ async def launch_local_search(
                 "citation_status": local_answer.citation_status,
                 "read_observations": observations,
                 "answer_citations": local_answer.citations,
-                "executor": "local_search_agent",
+                "executor": agent,
                 "reading_budget": asdict(budget),
                 "input_tokens_estimate": local_answer.input_tokens_estimate,
                 "token_usage": token_usage,
@@ -795,8 +824,8 @@ async def launch_local_search(
                 {
                     "type": "task_complete",
                     "reading_stop_reason": local_answer.reading_stop_reason,
-                    "agent": "local_search_agent",
-                    "agent_name": "local_search_agent",
+                    "agent": agent,
+                    "agent_name": agent,
                     "session_id": session_id,
                     "source_mode": "local",
                     "selection": selection,
@@ -848,9 +877,7 @@ async def launch_local_search(
             raise
         except Exception as exc:  # noqa: BLE001
             logger.error("Local search failed: %s", exc, exc_info=True)
-            sessions[session_id]["error"] = (
-                messages.QA_TIMEOUT if isinstance(exc, TimeoutError) else user_message(exc)
-            )
+            sessions[session_id]["error"] = user_message(exc)
             sessions[session_id]["status"] = "error"
 
     sessions[session_id]["task"] = asyncio.create_task(_run())

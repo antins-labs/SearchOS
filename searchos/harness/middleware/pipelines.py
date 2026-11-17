@@ -91,9 +91,9 @@ def _graph(model, tools, system_prompt, middleware, *, pipeline,
         if isinstance(item, BudgetMiddleware):
             item.drain_tools = item.drain_tools | graph_options.get("drain_tools", frozenset())
     if steer_queue is not None:
-        from searchos.harness.middleware.context.steering_middleware import SteeringMiddleware
+        from searchos.harness.steering import follow_up_turns
 
-        required_middleware.append(SteeringMiddleware(
+        required_middleware.append(follow_up_turns(
             steer_queue, trajectory_logger=graph_options.get("trajectory_logger"),
         ))
     if enforce_budget:

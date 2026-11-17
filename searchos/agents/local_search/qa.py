@@ -281,6 +281,7 @@ async def run_document_qa(
     preload_blocks=None,
     on_delta=None,
     library_scope: bool = False,
+    steer_queue=None,
 ) -> AgentAnswer:
     budget = budget or QABudget()
     scope = {record.document_id: record for record in records}
@@ -290,7 +291,12 @@ async def run_document_qa(
 
             model = get_model_for("sub_agent")
         observer = LocalQAMiddleware(scope, budget, on_tool, on_read)
-        graph = create_qa_graph(model, middleware=[observer])
+        middleware = [observer]
+        if steer_queue is not None:
+            from searchos.harness.steering import follow_up_turns
+
+            middleware.append(follow_up_turns(steer_queue))
+        graph = create_qa_graph(model, middleware=middleware)
         if library_scope:
             scope_text = build_scope(None)
         else:

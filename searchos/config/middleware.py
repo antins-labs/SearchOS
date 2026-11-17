@@ -25,7 +25,7 @@ WORKER = (
 PROGRESS = ("ProgressGuardMiddleware", "ToolProgressMiddleware", "ReadingProgressMiddleware", "StateStallMiddleware")
 ORDERS = {
     "orchestrator": (
-        "SteeringMiddleware", "BudgetMiddleware", "RetryRouteMiddleware", "FailureRecordingMiddleware",
+        "BudgetMiddleware", "RetryRouteMiddleware", "FailureRecordingMiddleware",
         "DispatchRoundMiddleware", "CoverageStallMiddleware", "ToolResultLimitMiddleware",
         "SOCMContextMiddleware", "ToolHistoryMiddleware", "DynamicTrimMiddleware",
     ),
@@ -38,7 +38,6 @@ ORDERS = {
 
 MOUNT_CONDITIONS = {
     "CompactionContextMiddleware": {"model_window": True},
-    "SteeringMiddleware": {"steer_queue": True},
     "WebEvidenceMiddleware": {"extraction_model": True},
     "LocalEvidenceMiddleware": {"extraction_model": True},
     "FinalSummaryEvidenceMiddleware": {"extraction_model": True, "final_summary": True},
@@ -67,7 +66,6 @@ CATALOG = [
           ("根据可用上下文限制批量返回，其他工具保留各自限长。",
            "Bound batch output by available context; retain other tool limits."),
           ["wrap_model_call", "wrap_tool_call"]),
-    entry("SteeringMiddleware", "context", ("实时追问", "Live follow-ups"), ("在模型边界接收用户追问与引导。", "Receive user follow-ups at model boundaries."), ["before_model", "wrap_model_call", "after_model"], ("提供追问队列时挂载。", "Mounted when a follow-up queue is provided.")),
     entry("WebEvidenceMiddleware", "extraction", ("网页证据抽取", "Web evidence"), ("从网页原文抽取并提交证据。", "Extract and commit evidence from web content."), ["wrap_tool_call"], ("提供抽取模型时挂载。", "Mounted when an extraction model is provided.")),
     entry("LocalEvidenceMiddleware", "extraction", ("本地证据抽取", "Local evidence"), ("从本地原文窗口抽取并提交证据。", "Extract and commit evidence from local source windows."), ["wrap_tool_call"], ("提供抽取模型时挂载。", "Mounted when an extraction model is provided.")),
     entry("FinalSummaryEvidenceMiddleware", "extraction", ("最终回复证据抽取", "Final answer evidence"), ("从 agent 的最终回复中提取证据。", "Extract evidence from the agent's final answer."), ["after_agent"], ("提供抽取模型且任务允许摘要抽取时挂载。", "Mounted with an extraction model when the task allows summary extraction.")),
@@ -90,10 +88,16 @@ def available(pipeline: str) -> list[str]:
     return [*ORDERS[pipeline], "CompactionContextMiddleware"]
 
 
+# Removed from the catalog; follow-ups mount via steer_queue → follow_up_turns().
+_REMOVED_MIDDLEWARE = frozenset({"SteeringMiddleware"})
+
+
 def validate_pipelines(value: dict[str, list[str]]) -> dict[str, list[str]]:
+    cleaned: dict[str, list[str]] = {}
     for pipeline, names in value.items():
         if pipeline not in PIPELINES:
             raise ValueError(f"Unknown pipeline: {pipeline}")
+        names = [name for name in names if name not in _REMOVED_MIDDLEWARE]
         if len(names) != len(set(names)):
             raise ValueError(f"Duplicate middleware in {pipeline}")
         unknown = set(names) - set(available(pipeline))
@@ -102,7 +106,8 @@ def validate_pipelines(value: dict[str, list[str]]) -> dict[str, list[str]]:
         if ("BudgetMiddleware" in names and "CompactionContextMiddleware" in names
                 and names.index("BudgetMiddleware") > names.index("CompactionContextMiddleware")):
             raise ValueError("Place BudgetMiddleware before CompactionContextMiddleware")
-    return value
+        cleaned[pipeline] = names
+    return cleaned
 
 
 class MiddlewareOverlay(BaseModel, extra="forbid"):

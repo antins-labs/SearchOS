@@ -87,6 +87,19 @@ async def launch_search_request(req: SearchRequest, session_id_override: str | N
         local_history = [turn.model_dump() if same_local_selection
                          else {"query": turn.query, "answer": ""}
                          for turn in (req.history or [])]
+        from searchos.config.settings import settings as sf_settings
+
+        store = settings_store.store
+        if req.max_time is not None:
+            local_max_time = req.max_time
+        elif req.effort:
+            local_max_time = sf_settings.default_max_time_s
+        else:
+            local_max_time = (
+                store.run_defaults.max_time_s
+                if store.run_defaults.max_time_s is not None
+                else sf_settings.default_max_time_s
+            )
         return await launch_local_search(
             session_id=session_id,
             query=req.query,
@@ -94,7 +107,7 @@ async def launch_search_request(req: SearchRequest, session_id_override: str | N
             document_ids=req.sources.local.document_ids,
             history=local_history,
             selection=req.sources.local.selection,
-            max_time=req.max_time,
+            max_time=local_max_time,
         )
     if source_mode == "web" and req.sources and req.sources.local is not None:
         raise HTTPException(422, "Web 模式不能夹带本地资料范围")

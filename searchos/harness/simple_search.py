@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from searchos.agents.orchestrator.lifecycle import _spawn_sub_agent
 from searchos.agents.runtime import _ctx
-from searchos.harness.middleware.context.steering_middleware import SteeringMiddleware
+from searchos.harness.steering import find_follow_up_turns
 from searchos.socm import FrontierTask, FrontierTaskStatus
 
 
@@ -80,8 +80,7 @@ You are answering the user directly within the allotted search time. {source_ins
         )
         info = _ctx.agent_graphs[agent_id]
         if on_steer_delivery is not None:
-            steering = next((component for component in info["graph"].middleware
-                             if isinstance(component, SteeringMiddleware)), None)
+            steering = find_follow_up_turns(info["graph"].middleware)
             if steering is not None:
                 steering.on_delivery = on_steer_delivery
         worker = _ctx.task_pool[agent_id]
@@ -103,8 +102,7 @@ You are answering the user directly within the allotted search time. {source_ins
             await asyncio.gather(worker, return_exceptions=True)
         if agent_id:
             _ctx.task_pool.pop(agent_id, None)
-        steering = next((component for component in getattr(info.get("graph"), "middleware", ())
-                         if isinstance(component, SteeringMiddleware)), None)
+        steering = find_follow_up_turns(getattr(info.get("graph"), "middleware", ()))
         if steering is not None:
             outcome.delivered = list(steering.delivered)
         for var, token in reversed(tokens):

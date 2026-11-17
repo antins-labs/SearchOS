@@ -587,6 +587,7 @@ class LocalLibraryService:
         on_tool=None,
         on_read=None,
         on_round_end=None,
+        steer_queue=None,
     ) -> LocalAnswer:
         return await qa_service.answer_query(
             self,
@@ -599,6 +600,7 @@ class LocalLibraryService:
             on_tool=on_tool,
             on_read=on_read,
             on_round_end=on_round_end,
+            steer_queue=steer_queue,
         )
 
     @staticmethod

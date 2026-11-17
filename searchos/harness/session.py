@@ -350,11 +350,9 @@ Readable documents: {len(documents)}.
             name="orchestrator",
             steer_queue=steer_queue,
         )
-        from searchos.harness.middleware.context.steering_middleware import SteeringMiddleware
+        from searchos.harness.steering import find_follow_up_turns
 
-        steering = next((m for m in graph.middleware if isinstance(m, SteeringMiddleware)), None)
-
-        return graph, steering
+        return graph, find_follow_up_turns(graph.middleware)
 
     async def _run_impl(
         self,

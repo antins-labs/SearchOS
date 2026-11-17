@@ -1,12 +1,15 @@
-"""Web/TUI 共用的追问队列：入队唤醒等待，消费仍由主循环负责。"""
+"""追问队列与在模型边界插入 user 回合（打断未完成生成）。"""
 
 from __future__ import annotations
 
 import asyncio
 import queue
 from dataclasses import asdict, dataclass, field, replace
-from typing import Literal
+from typing import Any, Literal
 from uuid import uuid4
+
+from langchain.agents.middleware.types import AgentMiddleware, hook_config
+from langchain_core.messages import HumanMessage
 
 SteeringMode = Literal["immediate", "after_tool"]
 
@@ -161,3 +164,108 @@ async def wait_for_steering(inbox: SteerQueue, *, immediate_only: bool = False) 
         # Never consume here: only the harness may inject at a safe boundary.
         while inbox.empty():
             await asyncio.sleep(0.05)
+
+
+def take_follow_ups(
+    inbox: SteerQueue | None,
+    *,
+    immediate_only: bool = False,
+    delivered: list[str] | None = None,
+    on_delivery=None,
+    trajectory_logger=None,
+) -> list[HumanMessage]:
+    """Consume pending follow-ups as HumanMessages for the current thread."""
+    messages = []
+    for item in drain_steering(inbox, immediate_only=immediate_only):
+        if delivered is not None:
+            delivered.append(item.text)
+        message = HumanMessage(
+            content=item.text,
+            id=f"steer-{item.id}",
+            additional_kwargs={
+                "sf_steer_id": item.id,
+                "sf_steer_mode": item.mode,
+                "sf_steer_text": item.text,
+            },
+        )
+        messages.append(message)
+        if on_delivery is not None:
+            on_delivery(message)
+        if trajectory_logger is not None:
+            trajectory_logger._append_raw({
+                "type": "harness",
+                "kind": "steer_injected",
+                "text": item.text,
+                "message_id": item.id,
+                "mode": item.mode,
+            })
+    return messages
+
+
+class FollowUpTurns(AgentMiddleware):
+    """在模型边界把追问插入为同会话的 user 回合。"""
+
+    def __init__(self, inbox, *, trajectory_logger=None):
+        self.inbox = inbox
+        self.trajectory_logger = trajectory_logger
+        self.delivered: list[str] = []
+        self.on_delivery = None
+
+    def take_messages(self, *, immediate_only=False):
+        return take_follow_ups(
+            self.inbox,
+            immediate_only=immediate_only,
+            delivered=self.delivered,
+            on_delivery=self.on_delivery,
+            trajectory_logger=self.trajectory_logger,
+        )
+
+    async def abefore_model(self, state, runtime):
+        # LangGraph arrives here only after every parallel ToolMessage is saved.
+        messages = self.take_messages()
+        return {"messages": messages} if messages else None
+
+    async def awrap_model_call(self, request, handler):
+        injected = []
+        while True:
+            call = asyncio.create_task(handler(request))
+            try:
+                while True:
+                    wake = asyncio.create_task(wait_for_steering(self.inbox, immediate_only=True))
+                    try:
+                        await asyncio.wait([call, wake], return_when=asyncio.FIRST_COMPLETED)
+                        # A completed response owns its tool calls: let them execute.
+                        if call.done():
+                            response = await call
+                            return replace(response, result=[*injected, *response.result])
+                        messages = self.take_messages(immediate_only=True)
+                        # A queued message can be deleted before this wake is handled.
+                        if not messages:
+                            continue
+                        call.cancel()
+                        await asyncio.gather(call, return_exceptions=True)
+                        injected.extend(messages)
+                        request = replace(request, messages=[*request.messages, *messages])
+                        break
+                    finally:
+                        wake.cancel()
+                        await asyncio.gather(wake, return_exceptions=True)
+            finally:
+                call.cancel()
+                await asyncio.gather(call, return_exceptions=True)
+
+    @hook_config(can_jump_to=["model"])
+    async def aafter_model(self, state, runtime):
+        # A queued follow-up must not be lost when generation ends without tools.
+        if not getattr(state["messages"][-1], "tool_calls", None):
+            messages = self.take_messages()
+            if messages:
+                return {"messages": messages, "jump_to": "model"}
+
+
+def follow_up_turns(inbox, *, trajectory_logger=None) -> FollowUpTurns:
+    return FollowUpTurns(inbox, trajectory_logger=trajectory_logger)
+
+
+def find_follow_up_turns(middleware: Any) -> FollowUpTurns | None:
+    return next((item for item in middleware if isinstance(item, FollowUpTurns)), None)
