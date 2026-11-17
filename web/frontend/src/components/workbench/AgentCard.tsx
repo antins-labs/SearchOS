@@ -3,7 +3,7 @@
 import type { WSEvent } from "@/lib/types";
 import { Loader2, CheckCircle2, XCircle, Circle, ChevronRight } from "lucide-react";
 import { agentLabel, recentSteps, agentGoal, agentIssue } from "./trace";
-import { deriveStepCount } from "@/lib/runState";
+import { deriveRunPhase, runPhaseLabel, deriveStepCount } from "@/lib/runState";
 
 export interface AgentCardData {
   name: string;
@@ -35,6 +35,7 @@ export default function AgentCard({
   onClick: () => void;
 }) {
   const { name, status, events } = data;
+  const phaseLabel = status === "running" ? runPhaseLabel(deriveRunPhase(events, name)) : null;
   const steps = recentSteps(events, 2);
   const goal = agentGoal(events);
   const issue = agentIssue(events);
@@ -59,7 +60,7 @@ export default function AgentCard({
           {agentLabel(name)}
         </span>
         <span className="ml-auto text-[10px] capitalize text-ink-faint">
-          {status}
+          {phaseLabel ?? status}
         </span>
       </div>
 

@@ -10,6 +10,7 @@ mirrors the shipped defaults; ``max`` pushes every knob to its deep-dig ceiling.
 from __future__ import annotations
 
 EFFORT_KEYS: tuple[str, ...] = (
+    "orch_initial_planning_effort",
     "orch_max_iterations",
     "max_parallel_agents",
     "max_search_agents_per_session",
@@ -24,6 +25,7 @@ EFFORT_KEYS: tuple[str, ...] = (
 
 EFFORT_LEVELS: dict[str, dict[str, int]] = {
     "low": {
+        "orch_initial_planning_effort": 1,
         "orch_max_iterations": 25, "max_parallel_agents": 8,
         "max_search_agents_per_session": 8,
         "max_searches_per_sub_agent": 10, "max_searches_per_sub_agent_ceiling": 20,
@@ -33,6 +35,7 @@ EFFORT_LEVELS: dict[str, dict[str, int]] = {
         "skill_router_top_k": 20,
     },
     "medium": {
+        "orch_initial_planning_effort": 2,
         "orch_max_iterations": 50, "max_parallel_agents": 8,
         "max_search_agents_per_session": 12,
         "max_searches_per_sub_agent": 20, "max_searches_per_sub_agent_ceiling": 40,
@@ -42,6 +45,7 @@ EFFORT_LEVELS: dict[str, dict[str, int]] = {
         "skill_router_top_k": 40,
     },
     "high": {
+        "orch_initial_planning_effort": 3,
         "orch_max_iterations": 100, "max_parallel_agents": 8,
         "max_search_agents_per_session": 16,
         "max_searches_per_sub_agent": 35, "max_searches_per_sub_agent_ceiling": 60,
@@ -51,6 +55,7 @@ EFFORT_LEVELS: dict[str, dict[str, int]] = {
         "skill_router_top_k": 60,
     },
     "max": {
+        "orch_initial_planning_effort": 4,
         "orch_max_iterations": 150, "max_parallel_agents": 8,
         "max_search_agents_per_session": 24,
         "max_searches_per_sub_agent": 50, "max_searches_per_sub_agent_ceiling": 80,
@@ -76,6 +81,8 @@ def apply_effort(level: str, overrides: dict[str, int] | None = None) -> dict[st
         if bad:
             raise ValueError(f"Unknown effort knobs: {sorted(bad)}")
         knobs.update(overrides)
+    if not 1 <= knobs["orch_initial_planning_effort"] <= 4:
+        raise ValueError("Initial planning effort must be between 1 and 4")
     for key, val in knobs.items():
         if hasattr(settings, key):
             setattr(settings, key, val)

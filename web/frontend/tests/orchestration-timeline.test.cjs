@@ -36,6 +36,33 @@ const start = (id, tool = 'inspect_table') => event({ type:'tool_call_started',a
 const step = (id, tool = 'inspect_table') => event({ type:'step',agent:'orchestrator',tool_call_id:id,action:{name:tool,args:{table_id:id}},observation:'结果 '+id });
 const html = (events) => renderToStaticMarkup(React.createElement(timeline,{events}));
 
+test('初始化和生成阶段随实际工具与结束事件更新', () => {
+  const { deriveRunPhase, foldWorkers, runPhaseLabel } = load('lib/runState.ts');
+  const phase = (name, status = 'running', agent = 'orchestrator') => event({
+    type: 'harness', kind: 'run_phase', phase: name, status, agent,
+  });
+  const events = [phase('initializing'), phase('initializing', 'done'), phase('generating')];
+  assert.equal(deriveRunPhase(events), 'generating');
+  assert.equal(runPhaseLabel(deriveRunPhase(events)), '正在生成下一步行动或回答…');
+  assert.equal(deriveRunPhase([...events, start('create_schema')]), null);
+  assert.equal(deriveRunPhase([...events, event({type:'task_complete'})]), null);
+  assert.equal(deriveRunPhase([...events, phase('generating', 'running', 'search_agent')]), 'generating');
+  const workerEvents = [phase('generating', 'running', 'search_agent'), phase('generating', 'done', 'search_agent')];
+  assert.equal(foldWorkers(workerEvents)[0].status, 'running');
+  assert.equal(deriveRunPhase(workerEvents, 'search_agent'), null);
+});
+
+test('运行卡片在首轮工具之前显示初始化并隐藏已结束的阶段', () => {
+  const Card = load('components/conversation/OrchestrationCard.tsx').default;
+  const phase = event({type:'harness', kind:'run_phase', phase:'initializing', status:'running', agent:'orchestrator'});
+  const render = (status, sourceMode) => renderToStaticMarkup(React.createElement(Card, {
+    events:[phase], workers:[], searchState:null, status, sourceMode, onOpen() {},
+  }));
+  assert.match(render('running', 'web'), /正在初始化/);
+  assert.match(render('running', 'local'), /正在初始化/);
+  assert.doesNotMatch(render('completed', 'web'), /正在初始化/);
+});
+
 test('等待回执与随后送达的报告分别显示', () => {
   const result = html([
     event({type:'step', agent:'orchestrator', tool_call_id:'wait', action:{name:'check_agents',args:{}},

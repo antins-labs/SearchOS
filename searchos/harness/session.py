@@ -293,6 +293,7 @@ class SearchSession:
 Readable documents: {len(documents)}.
 {local_sources}"""
         system_prompt = build_orchestrator_prompt(
+            initial_planning_effort=self._run_config.initial_planning_effort,
             agent_catalog=generate_agent_catalog_text(),
             skill_catalog=skill_catalog,
             max_dispatches=settings.orch_max_dispatches,
@@ -412,6 +413,12 @@ Readable documents: {len(documents)}.
         # --- Workspace ---
         workspace = WorkspaceManager(self._workspace_root, session_id)
         workspace.create()
+        self._active_workspace = workspace
+        from searchos.harness.telemetry.trajectory import TrajectoryLogger
+        traj_logger = TrajectoryLogger(workspace.trajectory_path)
+        if on_event is not None:
+            traj_logger.add_listener(on_event)
+        traj_logger.log_phase("loading_skills")
 
         # --- Token tracking (per-run, ContextVar-backed) ---
         from searchos.harness.telemetry.usage import start_tracking
@@ -454,16 +461,8 @@ Readable documents: {len(documents)}.
             "strategy_deny": frozenset(strategy_deny or ()),
             "orchestrator_deny": frozenset(orchestrator_deny or ()),
         })
-        self.ensure_skill_registry()
-
-        # --- Trajectory logger ---
-        self._active_workspace = workspace  # exposed so the live TUI can poll state
-        from searchos.harness.telemetry.trajectory import TrajectoryLogger
-        traj_logger = TrajectoryLogger(workspace.trajectory_path)
-        # In-process live-TUI hook: every trajectory event (orchestrator +
-        # sub-agents, all sharing this one logger) is forwarded as it's written.
-        if on_event is not None:
-            traj_logger.add_listener(on_event)
+        await asyncio.to_thread(self.ensure_skill_registry)
+        traj_logger.log_phase("loading_skills", "done")
 
         # --- Conversation logger (full LLM messages) ---
         from searchos.harness.telemetry.conversation import (
@@ -583,6 +582,7 @@ Readable documents: {len(documents)}.
             def remaining_time():
                 return max(0.0, orch_budget.max_time_s - (time.time() - start_time)) if orch_budget.max_time_s else None
 
+            traj_logger.log_phase("routing")
             route = await select_route(
                 model=self._model, query=query, state=state,
                 execution_path=self._run_config.execution_path,
@@ -590,6 +590,7 @@ Readable documents: {len(documents)}.
                 targeted_repair=targeted_repair_mode, table_export=self._skip_synthesis,
                 remaining_time_s=remaining_time(), trajectory_logger=traj_logger,
             )
+            traj_logger.log_phase("routing", "done")
             routing_record = {"execution_path": self._run_config.execution_path, **route.model_dump()}
             workspace.write_output("routing.json", json.dumps(routing_record, ensure_ascii=False, indent=2))
             if self._run_config.execution_path != "unified" and not (follow_up or conversation_history or targeted_repair_mode):

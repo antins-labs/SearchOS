@@ -4,6 +4,29 @@
 import type { SearchState, WorkerInfo, WSEvent } from "./types";
 import { cellRef } from "@/lib/socmRefs";
 
+export function deriveRunPhase(events: WSEvent[], agent = "orchestrator"): string | null {
+  let phase: string | null = null;
+  for (const event of events) {
+    const data = event.type === "trajectory" && event.data && typeof event.data === "object"
+      ? event.data as Record<string, unknown> : event as unknown as Record<string, unknown>;
+    const type = String(data.type ?? event.type);
+    if (["search_completed", "search_error"].includes(type)) phase = null;
+    if (String(data.agent ?? "orchestrator") !== agent) continue;
+    if (["task_complete", "task_error"].includes(type)) phase = null;
+    if (data.kind === "run_phase") {
+      phase = data.status === "running" ? String(data.phase) : null;
+    } else if (["tool_call_started", "agent_final", "agent_complete", "agent_error"].includes(type)) {
+      phase = null;
+    }
+  }
+  return phase;
+}
+
+export function runPhaseLabel(phase: string | null): string | null {
+  return ({ initializing: "正在初始化…", loading_skills: "正在准备检索能力…",
+    routing: "正在选择检索方式…", generating: "正在生成下一步行动或回答…" } as Record<string, string>)[phase ?? ""] ?? null;
+}
+
 export interface LocalRunProgress {
   present: boolean;
   phase: "retrieving" | "answering" | "completed" | "limited" | "error";
@@ -87,10 +110,14 @@ export function updateWorkersBatch(current: WorkerInfo[], events: WSEvent[]): Wo
     const status = String(data.status || "");
     const toolEvent = ["step", "tool_call_started", "tool_call_failed", "skill_execution"].includes(dtype);
     let nextStatus = prev?.status ?? "running";
-    if (dtype === "agent_complete" || dtype === "task_complete" || (!toolEvent && (status === "completed" || status === "partial"))) {
+    const phaseEvent = data.kind === "run_phase";
+    if (phaseEvent && status === "running") {
+      nextStatus = "running";
+    }
+    if (dtype === "agent_complete" || dtype === "task_complete" || (!toolEvent && !phaseEvent && (status === "completed" || status === "partial"))) {
       nextStatus = "completed";
     }
-    if (dtype === "agent_error" || dtype === "error" || (!toolEvent && status === "error")) {
+    if (dtype === "agent_error" || dtype === "error" || (!toolEvent && !phaseEvent && status === "error")) {
       nextStatus = "error";
     }
 

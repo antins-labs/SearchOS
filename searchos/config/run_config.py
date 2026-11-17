@@ -18,6 +18,7 @@ class EffectiveRunConfig:
     source: Literal["product", "eval"] = "product"
     explore_on_start: bool = False
     execution_path: Literal["auto", "unified"] = "auto"
+    initial_planning_effort: int = 2
 
     @classmethod
     def from_settings(cls, *, for_eval: bool = False) -> EffectiveRunConfig:
@@ -31,6 +32,7 @@ class EffectiveRunConfig:
             source="eval" if for_eval else "product",
             explore_on_start=for_eval and settings.enable_explore,
             execution_path="unified" if for_eval else "auto",
+            initial_planning_effort=settings.orch_initial_planning_effort,
         )
 
     def snapshot(self) -> dict[str, object]:

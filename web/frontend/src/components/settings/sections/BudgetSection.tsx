@@ -9,6 +9,7 @@ import { useSettings } from "@/components/settings/SettingsProvider";
 import { Card, OfflineSkeleton, Row, SectionShell } from "@/components/settings/primitives";
 import NumberField from "@/components/settings/controls/NumberField";
 const KNOB_LABELS: Record<string, { zh: string; en: string }> = {
+  orch_initial_planning_effort: { zh: "初始规划深度（1–4）", en: "Initial planning depth (1–4)" },
   orch_max_iterations: { zh: "编排步骤上限", en: "Orchestrator step limit" },
   max_parallel_agents: { zh: "并发智能体上限", en: "Concurrent agent limit" },
   max_searches_per_sub_agent: { zh: "单智能体默认检索次数", en: "Default searches per agent" },
@@ -22,6 +23,7 @@ const KNOB_LABELS: Record<string, { zh: string; en: string }> = {
 };
 
 const KNOB_HINTS: Record<string, { zh: string; en: string }> = {
+  orch_initial_planning_effort: { zh: "通过提示词调整首轮规划深度：1 尽快行动，4 更充分分析。各档位均保留完整任务范围。", en: "Prompt guidance for initial planning: 1 acts promptly, 4 considers more alternatives. All levels preserve the full task scope." },
   orch_max_iterations: { zh: "编排器最多执行多少个决策和工具调用步骤。", en: "Maximum orchestrator decision and tool-call steps." },
   max_parallel_agents: { zh: "同一时间最多运行多少个子智能体。", en: "Maximum sub-agents that may run concurrently." },
   max_searches_per_sub_agent: { zh: "每个子智能体默认可执行的联网检索次数。", en: "Default web searches assigned to each sub-agent." },
@@ -178,7 +180,9 @@ export default function BudgetSection() {
                 return (
                   <Row key={key} label={label ? (zh ? label.zh : label.en) : key}
                     hint={[knobHint ? (zh ? knobHint.zh : knobHint.en) : "", overrideHint].filter(Boolean).join(" ") || undefined}>
-                    <NumberField value={val} onCommit={(v) => setKnob(key, v)} disabled={disabled} />
+                    <NumberField value={val} min={key === "orch_initial_planning_effort" ? 1 : undefined}
+                      max={key === "orch_initial_planning_effort" ? 4 : undefined}
+                      onCommit={(v) => setKnob(key, v)} disabled={disabled} />
                   </Row>
                 );
               })}

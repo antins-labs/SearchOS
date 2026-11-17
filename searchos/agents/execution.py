@@ -333,7 +333,17 @@ class _RecordingHooks(AgentMiddleware):
         self.recorder = recorder
 
     async def awrap_model_call(self, request, handler):
-        result = await handler(request)
+        log = self.recorder.logger
+        log.log_phase("generating", agent=self.recorder.agent_id)
+        try:
+            result = await handler(request)
+        except asyncio.CancelledError:
+            log.log_phase("generating", "cancelled", agent=self.recorder.agent_id)
+            raise
+        except Exception:
+            log.log_phase("generating", "error", agent=self.recorder.agent_id)
+            raise
+        log.log_phase("generating", "done", agent=self.recorder.agent_id)
         self.recorder.model_completed(result)
         return result
 

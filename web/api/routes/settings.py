@@ -12,6 +12,7 @@ Model/provider endpoints live in routes/models.py; shared response views in
 
 from __future__ import annotations
 
+import asyncio
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException
@@ -91,7 +92,7 @@ class MiddlewareUpdate(BaseModel, extra="forbid"):
 
 @router.get("")
 async def get_settings():
-    return aggregate_view()
+    return await asyncio.to_thread(aggregate_view)
 
 
 @router.put("/network")
@@ -150,6 +151,8 @@ async def put_effort(req: EffortUpdate):
     bad = set(req.overrides) - set(EFFORT_KEYS)
     if bad:
         raise HTTPException(400, f"Unknown effort knobs: {sorted(bad)}. Valid: {list(EFFORT_KEYS)}")
+    if not 1 <= req.overrides.get("orch_initial_planning_effort", 2) <= 4:
+        raise HTTPException(400, "Initial planning effort must be between 1 and 4")
 
     def patch(s):
         s.effort.level = req.level
@@ -161,12 +164,12 @@ async def put_effort(req: EffortUpdate):
 
 @router.get("/skills")
 async def get_skills():
-    return skills_view()
+    return await asyncio.to_thread(skills_view)
 
 
 @router.put("/skills")
 async def put_skills(req: SkillsUpdate):
-    pools = skills_catalog.skill_pools()
+    pools = await asyncio.to_thread(skills_catalog.skill_pools)
     all_names = set().union(*pools.values()) if pools else set()
 
     unmatched = []
@@ -206,14 +209,14 @@ async def put_skills(req: SkillsUpdate):
         )
     )
     await settings_store.update(patch, reload=reload)
-    return skills_view()
+    return await asyncio.to_thread(skills_view)
 
 
 @router.patch("/skills/{name}")
 async def patch_skill(name: str, req: SkillToggle):
     from searchos.skills.names import canonical_skill_name
     name = canonical_skill_name(name)
-    pools = skills_catalog.skill_pools()
+    pools = await asyncio.to_thread(skills_catalog.skill_pools)
     category = next((cat for cat, names in pools.items() if name in names), None)
     if category is None:
         raise HTTPException(404, f"Unknown skill: {name!r}")
@@ -240,14 +243,14 @@ async def patch_skill(name: str, req: SkillToggle):
                 deny.append(name)
 
     await settings_store.update(patch)
-    return skills_view()
+    return await asyncio.to_thread(skills_view)
 
 
 @router.put("/skills/category/{category}")
 async def put_skill_category(category: str, req: SkillToggle):
     if category not in SKILL_CATEGORIES:
         raise HTTPException(400, f"Unknown category: {category!r}. Valid: {list(SKILL_CATEGORIES)}")
-    pools = skills_catalog.skill_pools()
+    pools = await asyncio.to_thread(skills_catalog.skill_pools)
 
     def patch(s):
         if category == "access":
@@ -261,7 +264,7 @@ async def put_skill_category(category: str, req: SkillToggle):
             setattr(s.skills, deny_field, sorted(pools.get(category, set())) if not req.enabled else [])
 
     await settings_store.update(patch)
-    return skills_view()
+    return await asyncio.to_thread(skills_view)
 
 
 @router.put("/misc")
@@ -330,4 +333,4 @@ async def put_advanced(req: AdvancedUpdate):
 @router.post("/reset")
 async def reset_settings():
     settings_store.reset()
-    return aggregate_view()
+    return await asyncio.to_thread(aggregate_view)

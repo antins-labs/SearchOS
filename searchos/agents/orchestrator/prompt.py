@@ -28,6 +28,7 @@ def build_orchestrator_prompt(
     explore_on_start: bool = False,
     fixed_schema: bool = False,
     targeted_repair: bool = False,
+    initial_planning_effort: int = 2,
 ) -> str:
     """公共职责各出现一次；仅注入当前配置可执行的工作指引。"""
     mode = source_mode or "web"
@@ -37,6 +38,16 @@ def build_orchestrator_prompt(
         render_temporal_grounding(current_time, "orchestrator"),
         render_sources(mode, local_sources=local_sources, limitations=source_limitations),
     ]
+    planning = {
+        1: "Resolve only the choices needed for the first useful tool call, then act immediately.",
+        2: "Briefly identify the scope, first sources, and independent tasks, then start gathering evidence.",
+        3: "Assess meaningful source alternatives and task dependencies before choosing the first actions.",
+        4: "Work through consequential ambiguities, source alternatives, and dependencies before acting; stop planning once the first actions are well supported.",
+    }[initial_planning_effort]
+    sections.append(f"""## Initial planning
+
+Planning effort: {initial_planning_effort}/4. {planning}
+Apply this depth to the initial decision only. Preserve the user's full requested scope at every effort level. Use retrieved evidence and live state to refine subsequent work; avoid precomputing hypothetical findings or repeating the operating instructions.""")
     limits = [
         f"""Default retrieval actions per agent: {max_searches_per_agent}.""",
         f"""Dispatch rounds: {max_dispatches if max_dispatches > 0 else 'unlimited'}.""",

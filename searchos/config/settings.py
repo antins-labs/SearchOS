@@ -145,6 +145,7 @@ class Settings(BaseSettings):
 
     # --- Orchestrator budget (main loop only) ---
     orch_max_iterations: int = 50
+    orch_initial_planning_effort: int = Field(default=2, ge=1, le=4)
     orch_trim_max_tokens: int = 128_000
     orch_max_dispatches: int = 0
     # Complete search waves with no reading, facts, task bindings or coverage growth.

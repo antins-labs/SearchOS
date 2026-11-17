@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Check, ChevronDown, ArrowRight, Ban, ShieldCheck, Sparkles, Compass, FileSearch, Files, MessageSquareText, TriangleAlert, X } from "lucide-react";
 import type { SearchState, WSEvent } from "@/lib/types";
-import { deriveCoverage, deriveLocalRunProgress, deriveStepCount, skillExecutionInfo } from "@/lib/runState";
+import { deriveCoverage, deriveLocalRunProgress, deriveRunPhase, runPhaseLabel, deriveStepCount, skillExecutionInfo } from "@/lib/runState";
 import OrchestratorTimeline from "@/components/workbench/OrchestratorTimeline";
 import { deriveExploreProgress, type ExploreProgress } from "@/lib/exploreProgress";
 
@@ -73,6 +73,9 @@ export default function OrchestrationCard({ events, priorEvents = [], continued 
   const runDetails = deriveRunDetails(events);
   const explore = deriveExploreProgress(events);
   const localProgress = deriveLocalRunProgress(events);
+  const displayAgent = simple && workers.length === 1 ? workers[0].name : "orchestrator";
+  const phaseLabel = status === "running"
+    ? runPhaseLabel(deriveRunPhase(events, displayAgent) ?? deriveRunPhase(events)) : null;
   const visibleSkills = runDetails.skills.slice(0, 3);
   const hasRunDetails = runDetails.skills.length > 0
     || runDetails.trustedDomains.length > 0
@@ -102,6 +105,7 @@ export default function OrchestrationCard({ events, priorEvents = [], continued 
         readCount={localProgress.readCount || localProgress.evidenceCount}
         citationCount={localProgress.citationCount}
         limited={localProgress.phase === "limited"}
+        phaseLabel={phaseLabel}
       />
     );
   }
@@ -178,11 +182,12 @@ export default function OrchestrationCard({ events, priorEvents = [], continued 
       )}
 
       {/* body — the orchestrator trajectory */}
+      {phaseLabel && <div role="status" className="border-t border-line px-4 py-2 text-[12px] text-ink-dim">{phaseLabel}</div>}
       {open && (
         <div className="border-t border-line bg-paper/40">
           {explore.present && <ExploreProgressPanel progress={explore} />}
-          <OrchestratorTimeline events={events} status={status} priorEvents={priorEvents}
-            agentName={simple && workers.length === 1 ? workers[0].name : "orchestrator"} sessionId={sessionId} />
+          {(!phaseLabel || steps > 0) && <OrchestratorTimeline events={events} status={status} priorEvents={priorEvents}
+            agentName={displayAgent} sessionId={sessionId} />}
         </div>
       )}
 
@@ -199,7 +204,7 @@ export default function OrchestrationCard({ events, priorEvents = [], continued 
   );
 }
 
-function LocalSearchCard({ open, onToggle, onOpen, status, libraryScope, documentCount, readCount, citationCount, limited }: {
+function LocalSearchCard({ open, onToggle, onOpen, status, libraryScope, documentCount, readCount, citationCount, limited, phaseLabel }: {
   open: boolean;
   onToggle: () => void;
   onOpen: () => void;
@@ -209,6 +214,7 @@ function LocalSearchCard({ open, onToggle, onOpen, status, libraryScope, documen
   readCount: number;
   citationCount: number;
   limited: boolean;
+  phaseLabel: string | null;
 }) {
   const running = status === "running";
   const failed = status === "error";
@@ -229,7 +235,7 @@ function LocalSearchCard({ open, onToggle, onOpen, status, libraryScope, documen
           <span className="grid h-[15px] w-[15px] place-items-center rounded-full bg-ok text-white"><Check size={10} strokeWidth={3} /></span>
         )}
         <span className="text-[13px] font-medium text-ink">
-          {running ? readCount > 0 ? "正在生成本地回答" : "正在检索本地资料" : failed ? "本地资料问答失败" : limited ? "已基于已读内容回答 · 阅读受限" : "本地资料回答已生成"}
+          {running ? phaseLabel ?? (readCount > 0 ? "正在生成本地回答" : "正在检索本地资料") : failed ? "本地资料问答失败" : limited ? "已基于已读内容回答 · 阅读受限" : "本地资料回答已生成"}
         </span>
         <span className="ml-auto text-[12px] text-ink-dim">
           {documentCount > 0 && <><b className="font-semibold text-ink">{documentCount}</b> 份资料</>}

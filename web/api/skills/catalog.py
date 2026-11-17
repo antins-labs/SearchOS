@@ -9,6 +9,7 @@ an optional `access_only` pin (None = the skill router decides).
 from __future__ import annotations
 
 from pathlib import Path
+from threading import RLock
 from searchos.skills.names import canonical_skill_names, canonical_skill_name
 
 from api.deps import _REPO_ROOT
@@ -17,6 +18,7 @@ from api.settings.store import store
 SKILL_CATEGORIES = ("orchestrator", "access", "strategy")
 
 _registry = None  # reused across requests; its mtime cache skips re-parsing
+_registry_lock = RLock()
 
 
 def skill_catalog() -> dict[str, list]:
@@ -32,14 +34,15 @@ def skill_catalog() -> dict[str, list]:
     if not settings.enable_skills or not lib.exists():
         return {name: [] for name in SKILL_CATEGORIES}
 
-    if _registry is None:
-        _registry = SkillRegistry()
-    reg = _registry
-    reg.load_directory(lib)
-    return {
-        cat.value: sorted(reg.list_by_category(cat), key=lambda s: s.meta.name)
-        for cat in (SkillCategory.ORCHESTRATOR, SkillCategory.ACCESS, SkillCategory.STRATEGY)
-    }
+    with _registry_lock:
+        if _registry is None:
+            _registry = SkillRegistry()
+        reg = _registry
+        reg.load_directory(lib)
+        return {
+            cat.value: sorted(reg.list_by_category(cat), key=lambda s: s.meta.name)
+            for cat in (SkillCategory.ORCHESTRATOR, SkillCategory.ACCESS, SkillCategory.STRATEGY)
+        }
 
 
 def skill_pools() -> dict[str, set[str]]:

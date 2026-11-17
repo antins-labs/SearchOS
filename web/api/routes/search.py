@@ -258,8 +258,10 @@ async def _launch_search(
 ) -> SearchResponse:
     from searchos.config.effort import EFFORT_KEYS, apply_effort
     from searchos.config.settings import settings as sf_settings
-    from searchos.harness.session import SearchSession
     from searchos.harness.steering import SteeringQueue
+    from searchos.config.run_config import EffectiveRunConfig
+    from searchos.harness.telemetry.trajectory import TrajectoryLogger
+    from searchos.socm.storage.workspace import WorkspaceManager
 
     from api.assistant.runtime import get_runtime
     await get_runtime().before_replace(session_id)
@@ -280,23 +282,39 @@ async def _launch_search(
             else sf_settings.default_max_time_s
         )
 
-    harness = SearchSession(
-        max_time_s=max_time,
-        workspace_root=WORKSPACE_ROOT,
-    )
+    run_config = EffectiveRunConfig.from_settings()
+    workspace = WorkspaceManager(WORKSPACE_ROOT, session_id)
+    workspace.create()
+    workspace.save_state(state)
+    progress = TrajectoryLogger(workspace.trajectory_path)
+    progress.log_phase("initializing")
     steer_queue = SteeringQueue()
     sessions[session_id] = {
         "status": "running",
         "result": None,
         "error": None,
-        "harness": harness,
+        "harness": None,
         "initial_state": state,
         "steer_queue": steer_queue,
     }
-    skill_kwargs = skills_catalog.effective_skill_kwargs(req.skills)
 
     async def _run():
         try:
+            loop = asyncio.get_running_loop()
+
+            def prepare():
+                from searchos.config.models import model_cache_scope
+                from searchos.harness.session import SearchSession
+
+                with model_cache_scope(loop):
+                    return SearchSession(max_time_s=max_time, workspace_root=WORKSPACE_ROOT,
+                                         run_config=run_config)
+
+            harness = await asyncio.to_thread(prepare)
+            sessions[session_id]["harness"] = harness
+            progress.log_phase("initializing", "done")
+            progress.log_phase("loading_skills")
+            skill_kwargs = await asyncio.to_thread(skills_catalog.effective_skill_kwargs, req.skills)
             result = await harness.run(
                 query,
                 session_id=session_id,

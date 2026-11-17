@@ -91,6 +91,11 @@ class TrajectoryLogger:
         """监听共享 logger 的所有 Agent 事件，供 TUI 实时展示。"""
         self._listeners.append(cb)
 
+    def log_phase(self, phase: str, status: str = "running", *, agent: str = "orchestrator") -> None:
+        """记录当前执行阶段，沿用实时与历史轨迹通道。"""
+        self._append_raw({"type": "harness", "kind": "run_phase", "phase": phase,
+                          "status": status, "agent": agent})
+
     def log_step(self, step: TrajectoryStep) -> None:
         """Append a single search step to the trajectory file."""
         if self._path is None:

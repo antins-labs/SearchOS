@@ -15,10 +15,15 @@ Override at runtime via env vars, e.g. ``SF_ROLES__JUDGE=glm5-strong``.
 from __future__ import annotations
 
 import asyncio
+import copy
+import hashlib
+import json
 import os
 import threading
 import time
 from collections import deque
+from contextlib import contextmanager
+from contextvars import ContextVar
 from typing import Any
 
 from langchain_core.callbacks import BaseCallbackHandler
@@ -210,12 +215,38 @@ def _rate_limit_kwargs(profile: ModelProfile) -> dict[str, Any]:
     return {"rate_limiter": limiter, "callbacks": [usage_cb]}
 
 
+_model_cache: dict[asyncio.AbstractEventLoop, dict[str, BaseChatModel]] = {}
+_model_cache_lock = threading.Lock()
+_cache_loop: ContextVar[asyncio.AbstractEventLoop | None] = ContextVar("model_cache_loop", default=None)
+
+
+@contextmanager
+def model_cache_scope(loop: asyncio.AbstractEventLoop):
+    """在线程中初始化模型时，使用请求所属的事件循环缓存。"""
+    token = _cache_loop.set(loop)
+    try:
+        yield
+    finally:
+        _cache_loop.reset(token)
+
+
+async def close_model_cache() -> None:
+    """服务停止时关闭当前事件循环持有的模型连接。"""
+    with _model_cache_lock:
+        templates = _model_cache.pop(asyncio.get_running_loop(), {}).values()
+    for model in templates:
+        if (client := getattr(model, "http_client", None)) is not None:
+            client.close()
+        if (client := getattr(model, "http_async_client", None)) is not None:
+            await client.aclose()
+
+
 def get_model_for(
     role: str,
     *,
     model_override: str | None = None,
 ) -> BaseChatModel:
-    """Build a fresh BaseChatModel for the role.
+    """Reuse connections within an event loop; isolate role callbacks and options.
 
     ``model_override`` changes only the wire model id while retaining the
     role's configured provider, endpoint, key env, protocol, and limits. It is
@@ -235,6 +266,47 @@ def get_model_for(
             f"(quick start: SF_PROVIDER + key, see searchos/config/providers.py)."
         )
 
+    loop = _cache_loop.get()
+    if loop is None:
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return _build_model(profile, api_key, role)
+    signature = hashlib.sha256(json.dumps({
+        "profile": profile.model_dump(mode="json"), "key": api_key,
+        "retries": settings.llm_max_retries,
+        "endpoints": [os.environ.get(name) for name in (
+            "OPENAI_API_BASE", "OPENAI_BASE_URL", "ANTHROPIC_API_URL", "ANTHROPIC_BASE_URL",
+        )],
+    }, sort_keys=True).encode()).hexdigest()
+    with _model_cache_lock:
+        for old_loop in list(_model_cache):
+            if old_loop.is_closed():
+                del _model_cache[old_loop]
+        cache = _model_cache.setdefault(loop, {})
+        template = cache.get(signature)
+        if template is None or any(
+            getattr(getattr(template, name, None), "is_closed", False)
+            for name in ("http_client", "http_async_client")
+        ):
+            template = _build_model(profile, api_key, role)
+            if not isinstance(template, BaseChatModel):
+                return template
+            cache[signature] = template
+        # SDK clients retain their pools; mutable generation options belong to this caller.
+        updates = {
+            name: copy.deepcopy(getattr(template, name))
+            for name in ("model_kwargs", "extra_body", "profile", "default_headers", "default_query")
+            if hasattr(template, name)
+        }
+        updates["callbacks"] = [
+            TokenTrackingCallback(role=role),
+            *_rate_limit_kwargs(profile).get("callbacks", []),
+        ]
+        return template.model_copy(update=updates)
+
+
+def _build_model(profile: ModelProfile, api_key: str, role: str) -> BaseChatModel:
     rl_kwargs = _rate_limit_kwargs(profile)
     callbacks = [TokenTrackingCallback(role=role), *rl_kwargs.pop("callbacks", [])]
 
@@ -338,4 +410,4 @@ def get_model_for(
     return client
 
 
-__all__ = ["get_model_for", "resolve_profile"]
+__all__ = ["get_model_for", "resolve_profile", "model_cache_scope", "close_model_cache"]

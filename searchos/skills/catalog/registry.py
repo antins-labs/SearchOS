@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
+from functools import lru_cache
 from pathlib import Path
 
 from searchos.skills.core.models import (
@@ -24,6 +25,37 @@ SKILL_BLACKLIST: frozenset[str] = frozenset({
 })
 
 logger = logging.getLogger(__name__)
+
+
+def _directory_snapshot(directory: Path) -> tuple[str, dict[Path, str], dict[Path, Path]]:
+    """一次元数据扫描同时计算目录与各技能包的失效签名。"""
+    digests = {}
+    entries: dict[Path, Path] = {}
+    for root, directories, files in os.walk(directory):
+        directories[:] = sorted(d for d in directories if not d.startswith(".") and d != "__pycache__")
+        for name in sorted(files):
+            if name.startswith("."):
+                continue
+            path = Path(root) / name
+            stat = path.stat()
+            identity = str((stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)).encode()
+            parent = path.parent
+            if name in {"SKILL.md", "skill.md"} and (parent not in entries or name == "SKILL.md"):
+                entries[parent] = path
+            while True:
+                digest = digests.setdefault(parent, hashlib.sha256())
+                digest.update(str(path.relative_to(parent)).encode())
+                digest.update(identity)
+                if parent == directory:
+                    break
+                parent = parent.parent
+    signatures = {path: digest.hexdigest() for path, digest in digests.items()}
+    return signatures.get(directory, hashlib.sha256().hexdigest()), signatures, entries
+
+
+@lru_cache(maxsize=2048)
+def _parsed_skill(path: str, signature: str) -> Skill:
+    return parse_skill_file(Path(path))
 
 
 def _env_excluded() -> set[str]:
@@ -177,18 +209,7 @@ class SkillRegistry:
 
     @staticmethod
     def _directory_signature(directory: Path) -> str:
-        """Include file identity and content, detecting edits and removals."""
-        digest = hashlib.sha256()
-        if directory.exists():
-            for p in sorted(directory.rglob("*")):
-                if any(part.startswith('.') or part == '__pycache__' for part in p.relative_to(directory).parts):
-                    continue
-                digest.update(str(p.relative_to(directory)).encode())
-                if p.is_symlink():
-                    digest.update(b"symlink")
-                elif p.is_file():
-                    digest.update(p.read_bytes())
-        return digest.hexdigest()
+        return _directory_snapshot(directory)[0]
 
     def load_directory(
         self,
@@ -209,7 +230,7 @@ class SkillRegistry:
         """
         directory = Path(directory)
         cache_key = str(directory.resolve()) if directory.exists() else str(directory)
-        current_sig = self._directory_signature(directory)
+        current_sig, package_signatures, entries = _directory_snapshot(directory)
 
         cached = self._dir_mtime_cache.get(cache_key)
         if not force and cached is not None and cached[0] == current_sig:
@@ -224,17 +245,12 @@ class SkillRegistry:
             if skill.file_path and Path(skill.file_path).resolve().is_relative_to(directory.resolve()):
                 del self._skills[name]
         count = 0
-        entries: dict[Path, Path] = {}
-        for sub in sorted(directory.rglob("*")):
-            if sub.name not in {"skill.md", "SKILL.md"}:
-                continue
-            if any(p.startswith(".") for p in sub.relative_to(directory).parts[:-1]):
-                continue
-            if sub.parent not in entries or sub.name == "SKILL.md":
-                entries[sub.parent] = sub
-        for sub in entries.values():
+        for sub in sorted(entries.values()):
             try:
-                skill = parse_skill_file(sub)
+                skill = (
+                    parse_skill_file(sub) if force
+                    else _parsed_skill(str(sub.resolve()), package_signatures[sub.parent])
+                ).model_copy(deep=True)
                 if self._is_blocked(skill.meta.name):
                     logger.info("Skipping blocked skill: %s", skill.meta.name)
                     continue

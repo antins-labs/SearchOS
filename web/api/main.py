@@ -59,6 +59,8 @@ async def lifespan(_app: FastAPI):
         await local_index_jobs.stop_background_indexes()
         await network_import_jobs.stop_network_imports()
         await topic_recap_jobs.stop_topic_recaps()
+        from searchos.config.models import close_model_cache
+        await close_model_cache()
         from searchos.network import shutdown
         shutdown()
 
