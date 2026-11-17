@@ -36,7 +36,8 @@ from searchos.agents.local_search.qa import QABudget
 from searchos.config.settings import settings
 from searchos.harness.answer_stream import AnswerStreamEmitter
 from searchos.harness.telemetry.usage import start_tracking
-from searchos.local.errors import MissingDependencyError
+from searchos.local import messages
+from searchos.local.errors import LocalDocumentError, MissingDependencyError, user_message
 from searchos.local.library import LocalLibraryService
 from searchos.local.reader.office_preview import OfficePreviewService
 
@@ -81,15 +82,20 @@ def _http_error(exc: Exception) -> HTTPException:
         return HTTPException(413, str(exc))
     if isinstance(exc, MissingDependencyError):
         return HTTPException(503, str(exc))
-    message = str(exc)
-    status = 409 if any(
-        marker in message for marker in ("SOURCE_SCOPE_CHANGED", "JOB_STATE_CONFLICT")
-    ) else 422
-    return HTTPException(status, message)
+    if isinstance(exc, (ValueError, LocalDocumentError)):
+        message = user_message(exc, messages.REQUEST_FAILED)
+        status = (
+            409
+            if any(marker in message for marker in ("SOURCE_SCOPE_CHANGED", "JOB_STATE_CONFLICT"))
+            else 422
+        )
+        return HTTPException(status, message)
+    logger.error("local request failed", exc_info=exc)
+    return HTTPException(500, messages.REQUEST_FAILED)
 
 
 class LibraryCreateRequest(BaseModel):
-    name: str = Field(default="本地资料", max_length=120)
+    name: str = Field(default=messages.DEFAULT_LIBRARY_NAME, max_length=120)
 
 
 class LibraryRenameRequest(BaseModel):
@@ -246,7 +252,11 @@ async def create_topic(library_id: str, req: TopicEditRequest):
 async def edit_topic(library_id: str, subindex_id: str, req: TopicEditRequest):
     try:
         return await asyncio.to_thread(
-            _service().edit_topic, library_id, req.title, req.summary, subindex_id,
+            _service().edit_topic,
+            library_id,
+            req.title,
+            req.summary,
+            subindex_id,
         )
     except Exception as exc:
         raise _http_error(exc) from exc
@@ -268,12 +278,21 @@ async def import_network_source(library_id: str, req: NetworkImportRequest):
         from searchos.tools.simple_browser.images import _reject_private_literal
 
         _reject_private_literal(req.source_url)
-        key = req.idempotency_key or hashlib.sha256(
-            json.dumps([
-                library_id, req.source_url, req.session_id, req.page_id,
-                req.index_after_save,
-            ], ensure_ascii=False).encode("utf-8")
-        ).hexdigest()
+        key = (
+            req.idempotency_key
+            or hashlib.sha256(
+                json.dumps(
+                    [
+                        library_id,
+                        req.source_url,
+                        req.session_id,
+                        req.page_id,
+                        req.index_after_save,
+                    ],
+                    ensure_ascii=False,
+                ).encode("utf-8")
+            ).hexdigest()
+        )
         job = schedule_network_import(
             library_id=library_id,
             source_url=req.source_url,
@@ -306,7 +325,7 @@ def _verified_import(library_id: str, job_id: str):
     store = NetworkImportJobStore(LOCAL_DATA_ROOT)
     job = store.read(job_id)
     if job.library_id != library_id:
-        raise KeyError("导入作业不存在")
+        raise KeyError(messages.IMPORT_JOB_NOT_FOUND)
     return store, job
 
 
@@ -351,6 +370,7 @@ async def set_document_topics(
             req.subindex_ids,
         )
         from api.local.recap_jobs import schedule_topic_recaps
+
         schedule_topic_recaps(Path(service.get_library(library_id).index_root))
         return graph
     except Exception as exc:  # noqa: BLE001
@@ -361,11 +381,12 @@ async def set_document_topics(
 async def retry_topic_recaps(library_id: str):
     try:
         from api.local.recap_jobs import schedule_topic_recaps
-        from searchos.local.index.catalog import CatalogMarkdownStore
-        from searchos.local.index.locks import advisory_lock
+        from searchos.local.catalog import CatalogMarkdownStore
+        from searchos.local.storage.files import advisory_lock
 
         service = _service()
         root = Path(service.get_library(library_id).index_root)
+
         def mark_failed_pending():
             store = CatalogMarkdownStore(root)
             with advisory_lock(root / ".locks" / "catalog-transaction.lock"):
@@ -374,6 +395,7 @@ async def retry_topic_recaps(library_id: str):
                     if value["status"] == "failed":
                         value.update(status="pending", error="")
                 store.write_state(state)
+
         await asyncio.to_thread(mark_failed_pending)
         schedule_topic_recaps(root)
         return await asyncio.to_thread(service.library_graph, library_id)
@@ -429,7 +451,7 @@ async def upload_document(
             while chunk := await file.read(1024 * 1024):
                 total += len(chunk)
                 if total > service.capabilities()["max_file_bytes"]:
-                    raise OverflowError("上传文件超过 150 MiB 限制")
+                    raise OverflowError(messages.FILE_TOO_LARGE)
                 handle.write(chunk)
             handle.flush()
         document = await service.index_uploaded_file(
@@ -463,7 +485,7 @@ def _verified_job(library_id: str, job_id: str) -> LocalIndexJob:
     _service().get_library(library_id)
     job = _job_store().read(job_id)
     if job.library_id != library_id:
-        raise KeyError("后台索引作业不存在")
+        raise KeyError(messages.INDEX_JOB_NOT_FOUND)
     return job
 
 
@@ -512,8 +534,21 @@ async def download_original(library_id: str, document_id: str):
     if suffix in {".html", ".htm", ".svg"}:
         media_type = "text/plain"
     inline = suffix in {
-        ".pdf", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp",
-        ".tif", ".tiff", ".md", ".txt", ".csv", ".tsv", ".json", ".jsonl",
+        ".pdf",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".webp",
+        ".bmp",
+        ".tif",
+        ".tiff",
+        ".md",
+        ".txt",
+        ".csv",
+        ".tsv",
+        ".json",
+        ".jsonl",
     }
     return FileResponse(
         path,
@@ -572,6 +607,7 @@ def _append_trajectory(path: Path, payload: dict[str, Any]) -> None:
 
 def _write_conversation(path: Path, query: str, answer: str) -> None:
     from searchos.harness.telemetry.conversation import ConversationLogger, ConversationMessage
+
     recorder = ConversationLogger(path.parent.parent.parent / "conversation.json")
     recorder.hydrate()
     recorder.register_sub_agent("orchestrator", "", query, agent_type="local_qa")
@@ -593,13 +629,20 @@ async def launch_local_search(
     """Launch a source-locked Local-only answer without creating a web provider."""
     from api.assistant.runtime import get_runtime
     from searchos.socm import SearchState, WorkspaceManager
+
     await get_runtime().before_replace(session_id)
     workspace = WorkspaceManager(WORKSPACE_ROOT, session_id)
     workspace.create()
-    state = SearchState(intent=query, source_scope={
-        "mode": "local", "library_id": library_id,
-        "selection": selection, "document_ids": document_ids, "documents": [],
-    })
+    state = SearchState(
+        intent=query,
+        source_scope={
+            "mode": "local",
+            "library_id": library_id,
+            "selection": selection,
+            "document_ids": document_ids,
+            "documents": [],
+        },
+    )
     workspace.save_state(state)
     sessions[session_id] = {
         "status": "running",
@@ -615,17 +658,20 @@ async def launch_local_search(
             usage_path=workspace.path / settings.output_dir / "llm_usage.jsonl",
         )
         budget = QABudget()
-        _append_trajectory(workspace.trajectory_path, {
-            "type": "task_start",
-            "agent": "local_search_agent",
-            "agent_name": "local_search_agent",
-            "session_id": session_id,
-            "query": query,
-            "source_mode": "local",
-            "selection": selection,
-            "document_count": len(document_ids),
-            "timestamp": datetime.now(UTC).isoformat(),
-        })
+        _append_trajectory(
+            workspace.trajectory_path,
+            {
+                "type": "task_start",
+                "agent": "local_search_agent",
+                "agent_name": "local_search_agent",
+                "session_id": session_id,
+                "query": query,
+                "source_mode": "local",
+                "selection": selection,
+                "document_count": len(document_ids),
+                "timestamp": datetime.now(UTC).isoformat(),
+            },
+        )
         try:
             service = _service()
             read_count = 0
@@ -633,31 +679,44 @@ async def launch_local_search(
             def record_read(observation: dict[str, Any]) -> None:
                 nonlocal read_count
                 read_count += 1
-                _append_trajectory(workspace.trajectory_path, {
-                    "type": "local_read_observed", "agent": "local_search_agent",
-                    "agent_name": "local_search_agent", "source_mode": "local",
-                    "read_count": read_count,
-                    "observation": json.dumps(observation, ensure_ascii=False),
-                    "timestamp": datetime.now(UTC).isoformat(),
-                })
+                _append_trajectory(
+                    workspace.trajectory_path,
+                    {
+                        "type": "local_read_observed",
+                        "agent": "local_search_agent",
+                        "agent_name": "local_search_agent",
+                        "source_mode": "local",
+                        "read_count": read_count,
+                        "observation": json.dumps(observation, ensure_ascii=False),
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    },
+                )
 
             def record_tool(name: str, arguments: dict[str, Any], result: dict[str, Any]) -> None:
-                _append_trajectory(workspace.trajectory_path, {
-                    "type": "step", "agent": "local_search_agent",
-                    "agent_name": "local_search_agent", "source_mode": "local",
-                    "action": {"name": name, "args": arguments},
-                    "observation": json.dumps(result, ensure_ascii=False),
-                    "timestamp": datetime.now(UTC).isoformat(),
-                })
+                _append_trajectory(
+                    workspace.trajectory_path,
+                    {
+                        "type": "step",
+                        "agent": "local_search_agent",
+                        "agent_name": "local_search_agent",
+                        "source_mode": "local",
+                        "action": {"name": name, "args": arguments},
+                        "observation": json.dumps(result, ensure_ascii=False),
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    },
+                )
 
             answer_stream = AnswerStreamEmitter(
-                lambda event: _append_trajectory(workspace.trajectory_path, {
-                    **event,
-                    "agent": "local_search_agent",
-                    "agent_name": "local_search_agent",
-                    "source_mode": "local",
-                    "timestamp": datetime.now(UTC).isoformat(),
-                }),
+                lambda event: _append_trajectory(
+                    workspace.trajectory_path,
+                    {
+                        **event,
+                        "agent": "local_search_agent",
+                        "agent_name": "local_search_agent",
+                        "source_mode": "local",
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    },
+                ),
                 stream_prefix=f"local-{session_id}",
             )
             try:
@@ -676,9 +735,15 @@ async def launch_local_search(
                 answer_stream.finish()
             # Reading observations and bound citations are not grounded findings.
             observations = list(local_answer.read_observations)
-            token_usage = ({**usage.to_dict(), "by_role": usage.by_role,
-                            "cache_hit_rate": usage.cache_hit_rate}
-                           if usage.llm_calls else None)
+            token_usage = (
+                {
+                    **usage.to_dict(),
+                    "by_role": usage.by_role,
+                    "cache_hit_rate": usage.cache_hit_rate,
+                }
+                if usage.llm_calls
+                else None
+            )
             tool_counts = local_answer.tool_counts or {}
             total_steps = sum(tool_counts.values())
             state.source_scope["documents"] = list(local_answer.source_documents)
@@ -721,37 +786,44 @@ async def launch_local_search(
                 query,
                 local_answer.answer,
             )
-            _append_trajectory(workspace.trajectory_path, {
-                "type": "task_complete",
-                "reading_stop_reason": local_answer.reading_stop_reason,
-                "agent": "local_search_agent",
-                "agent_name": "local_search_agent",
-                "session_id": session_id,
-                "source_mode": "local",
-                "selection": selection,
-                "document_count": len(document_ids),
-                "read_count": len(observations),
-                "citation_count": local_answer.citation_count,
-                "input_tokens_estimate": local_answer.input_tokens_estimate,
-                "evidence_count": state.evidence_graph.node_count,
-                "elapsed_s": elapsed,
-                "total_queries": 0,
-                "total_steps": total_steps,
-                "tool_counts": tool_counts,
-                "timestamp": datetime.now(UTC).isoformat(),
-            })
-            workspace.save_turn_snapshot(query, state, {
-                "reading_stop_reason": local_answer.reading_stop_reason,
-                "coverage_score": None,
-                "evidence_count": state.evidence_graph.node_count,
-                "source_scope": result_payload["source_scope"],
-                "read_observations": observations,
-                "answer_citations": local_answer.citations,
-                "citation_status": local_answer.citation_status,
-                "read_count": len(observations),
-                "citation_count": local_answer.citation_count,
-                "token_usage": token_usage,
-            })
+            _append_trajectory(
+                workspace.trajectory_path,
+                {
+                    "type": "task_complete",
+                    "reading_stop_reason": local_answer.reading_stop_reason,
+                    "agent": "local_search_agent",
+                    "agent_name": "local_search_agent",
+                    "session_id": session_id,
+                    "source_mode": "local",
+                    "selection": selection,
+                    "document_count": len(document_ids),
+                    "read_count": len(observations),
+                    "citation_count": local_answer.citation_count,
+                    "input_tokens_estimate": local_answer.input_tokens_estimate,
+                    "evidence_count": state.evidence_graph.node_count,
+                    "elapsed_s": elapsed,
+                    "total_queries": 0,
+                    "total_steps": total_steps,
+                    "tool_counts": tool_counts,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                },
+            )
+            workspace.save_turn_snapshot(
+                query,
+                state,
+                {
+                    "reading_stop_reason": local_answer.reading_stop_reason,
+                    "coverage_score": None,
+                    "evidence_count": state.evidence_graph.node_count,
+                    "source_scope": result_payload["source_scope"],
+                    "read_observations": observations,
+                    "answer_citations": local_answer.citations,
+                    "citation_status": local_answer.citation_status,
+                    "read_count": len(observations),
+                    "citation_count": local_answer.citation_count,
+                    "token_usage": token_usage,
+                },
+            )
             result = LocalSearchResult(
                 query=query,
                 answer=local_answer.answer,
@@ -767,12 +839,14 @@ async def launch_local_search(
             sessions[session_id]["result"] = result
             sessions[session_id]["status"] = "completed"
         except asyncio.CancelledError:
-            sessions[session_id]["error"] = "Stopped by user"
+            sessions[session_id]["error"] = messages.QA_STOPPED
             sessions[session_id]["status"] = "error"
             raise
         except Exception as exc:  # noqa: BLE001
             logger.error("Local search failed: %s", exc, exc_info=True)
-            sessions[session_id]["error"] = "资料研究超过本次时间上限" if isinstance(exc, TimeoutError) else str(exc)
+            sessions[session_id]["error"] = (
+                messages.QA_TIMEOUT if isinstance(exc, TimeoutError) else user_message(exc)
+            )
             sessions[session_id]["status"] = "error"
 
     sessions[session_id]["task"] = asyncio.create_task(_run())

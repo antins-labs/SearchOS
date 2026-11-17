@@ -1228,10 +1228,10 @@ Follow the existing permissions, source scope, and budgets.
     task_context = TaskContext(agent_label, assigned_task_id, target_table, task)
 
     if agent_type == _local_search.AGENT_TYPE and previous is None:
-        from searchos.local.reader.tools import reset_local_browser
+        from searchos.local.reader import reset_local_browser
 
         if source_scope is not None:
-            from searchos.local.index.source_registry import SourceRecord
+            from searchos.local.storage.sources import SourceRecord
             records = [SourceRecord.model_validate(r) for r in source_scope.get("documents", [])]
             browser_state = reset_local_browser(
                 source_scope["index_root"],

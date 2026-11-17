@@ -13,19 +13,9 @@ import {
   retryLocalIndexJob,
   uploadLocalDocument,
 } from "@/lib/api";
+import { localCopy as copy } from "@/lib/localCopy";
 import { buildSourceSelection } from "@/lib/sourceSelection";
-import type { LocalDocument, LocalLibrary, LocalLibraryGraph, SourceSelection } from "@/lib/types";
-
-export interface LocalUploadItem {
-  id: string;
-  name: string;
-  sizeBytes: number;
-  progress: number;
-  documentId?: string;
-  status: "queued" | "uploading" | "parsing" | "indexing" | "ready" | "index_error" | "index_cancelled" | "error";
-  error?: string;
-  cached?: boolean;
-}
+import type { LocalDocument, LocalLibrary, LocalLibraryGraph, LocalUploadItem, SourceSelection } from "@/lib/types";
 
 export interface LocalLibraryController {
   mode: "web" | "local" | "hybrid";
@@ -103,7 +93,7 @@ export function useLocalLibrary(): LocalLibraryController {
       const job = document?.index_job;
       if (!job) return upload;
       if (job.status === "completed") return { ...upload, status: "ready", error: undefined };
-      if (job.status === "failed") return { ...upload, status: "index_error", error: job.error || "资料处理失败" };
+      if (job.status === "failed") return { ...upload, status: "index_error", error: job.error || copy.status.indexFailed };
       if (job.status === "cancelled") return { ...upload, status: "index_cancelled", error: undefined };
       return { ...upload, status: "indexing", error: undefined };
     }));

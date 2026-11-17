@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from searchos.local import messages
+from searchos.local.errors import MissingDependencyError, user_message
 from searchos.local.models import (
     DocumentKind,
     ParsedSegment,
@@ -15,7 +18,6 @@ from searchos.local.models import (
     PptxMode,
     SlideObjectLocator,
 )
-from searchos.local.errors import MissingDependencyError
 from searchos.local.parsers.base import ParserCapability
 from searchos.local.parsers.ooxml import inspect_ooxml_limits, validate_ooxml
 from searchos.local.parsers.vision import (
@@ -27,6 +29,7 @@ from searchos.local.parsers.vision import (
 _PPTX_CONTENT_TYPE = (
     b"application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"
 )
+logger = logging.getLogger(__name__)
 
 
 def _table_text(table) -> str:
@@ -114,9 +117,7 @@ class PptxParser:
             from pptx import Presentation
             from pptx.enum.shapes import MSO_SHAPE_TYPE
         except ImportError as exc:
-            raise MissingDependencyError(
-                "PPTX 处理需要 local-docs 依赖；请安装 searchos[local-docs]"
-            ) from exc
+            raise MissingDependencyError(messages.LOCAL_DOCS_REQUIRED) from exc
 
         inspect_ooxml_limits(
             path,
@@ -176,7 +177,9 @@ class PptxParser:
                         left,
                         ParsedSegment(
                             id=f"S{slide_number}-O{shape.shape_id}",
-                            title=f"幻灯片 {slide_number} 对象 {shape.shape_id}",
+                            title=messages.SLIDE_OBJECT_TITLE.format(
+                                slide=slide_number, object=shape.shape_id
+                            ),
                             text=text,
                             source_locators=[
                                 SlideObjectLocator(
@@ -204,7 +207,7 @@ class PptxParser:
                     notes.append(
                         ParsedSegment(
                             id=f"S{slide_number}-N{shape.shape_id}",
-                            title=f"幻灯片 {slide_number} 备注",
+                            title=messages.SLIDE_NOTES_TITLE.format(slide=slide_number),
                             text=text,
                             source_locators=[
                                 SlideObjectLocator(
@@ -219,7 +222,9 @@ class PptxParser:
                         )
                     )
             if object_count > options.max_office_objects:
-                raise ValueError(f"PPTX 对象数超过限制 {options.max_office_objects}")
+                raise ValueError(
+                    messages.PPTX_OBJECT_LIMIT.format(limit=options.max_office_objects)
+                )
             slides.append(
                 _SlideData(
                     number=slide_number,
@@ -250,7 +255,7 @@ class PptxParser:
         warnings: list[str] = []
         rendered: dict[int, str] = {}
         if requested and self._vision is None:
-            warnings.append(f"{len(requested)} 张幻灯片需要视觉解析，但视觉模型未启用")
+            warnings.append(messages.PPTX_VISION_DISABLED.format(count=len(requested)))
         elif requested:
             try:
                 rendered = await asyncio.to_thread(
@@ -261,7 +266,12 @@ class PptxParser:
                     max_dimension=options.pptx_max_dimension,
                 )
             except Exception as exc:  # noqa: BLE001
-                warnings.append(f"PPTX 整页渲染失败：{exc}")
+                logger.warning("local slide rendering failed", exc_info=True)
+                warnings.append(
+                    messages.PPTX_RENDER_FAILED.format(
+                        detail=user_message(exc, messages.RETRY_HINT)
+                    )
+                )
 
         semaphore = asyncio.Semaphore(options.pptx_vision_concurrency)
 
@@ -277,10 +287,11 @@ class PptxParser:
                         native_text=slide.native_text,
                     )
                 if not text.strip():
-                    return slide.number, "", "视觉转录返回空内容"
+                    return slide.number, "", messages.VISION_EMPTY
                 return slide.number, text.strip(), ""
             except Exception as exc:  # noqa: BLE001
-                return slide.number, "", str(exc)
+                logger.warning("local slide transcription failed", exc_info=True)
+                return slide.number, "", user_message(exc, messages.RETRY_HINT)
 
         visual_results = await asyncio.gather(
             *(transcribe(slide) for slide in slides if slide.number in requested)
@@ -288,7 +299,7 @@ class PptxParser:
         visual_text = {number: text for number, text, _ in visual_results if text}
         for number, _, error in visual_results:
             if error:
-                warnings.append(f"Slide {number} 视觉转录失败：{error}")
+                warnings.append(messages.PPTX_VISION_FAILED.format(slide=number, detail=error))
 
         segments: list[ParsedSegment] = []
         for slide in slides:
@@ -297,7 +308,7 @@ class PptxParser:
                 segments.append(
                     ParsedSegment(
                         id=f"S{slide.number}-vision",
-                        title=f"幻灯片 {slide.number}",
+                        title=messages.SLIDE_TITLE.format(slide=slide.number),
                         text=transcript,
                         source_locators=[
                             SlideObjectLocator(
@@ -333,15 +344,13 @@ class PptxParser:
             1 for slide in slides if slide.needs_ordering and slide.number not in visual_text
         )
         if unordered:
-            warnings.append(f"{unordered} 张幻灯片按对象位置近似排序；不保证视觉阅读顺序")
+            warnings.append(messages.PPTX_APPROXIMATE_ORDER.format(count=unordered))
         if unpositioned_uncovered:
-            warnings.append(
-                f"{unpositioned_uncovered} 个文本对象缺少坐标；已保留并排在页面末尾"
-            )
+            warnings.append(messages.PPTX_MISSING_COORDINATES.format(count=unpositioned_uncovered))
         if visual_uncovered:
-            warnings.append(f"{visual_uncovered} 个图片、图表或媒体对象尚未视觉解析")
+            warnings.append(messages.PPTX_UNREAD_VISUALS.format(count=visual_uncovered))
         if groups_uncovered:
-            warnings.append(f"{groups_uncovered} 个组合对象尚未视觉解析")
+            warnings.append(messages.PPTX_UNREAD_GROUPS.format(count=groups_uncovered))
 
         covered_slides = {
             slide.number

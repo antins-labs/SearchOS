@@ -5,22 +5,23 @@ from __future__ import annotations
 import zipfile
 from pathlib import Path
 
+from searchos.local import messages
 from searchos.local.errors import LocalDocumentError
 
 
 def validate_ooxml(path: Path, *, content_type_marker: bytes) -> None:
     if not zipfile.is_zipfile(path):
-        raise LocalDocumentError("文件扩展名与 OOXML 容器不匹配")
+        raise LocalDocumentError(messages.OOXML_CONTAINER_MISMATCH)
     try:
         with zipfile.ZipFile(path) as archive:
             try:
                 content_types = archive.read("[Content_Types].xml")
             except KeyError as exc:
-                raise LocalDocumentError("OOXML 容器缺少 [Content_Types].xml") from exc
+                raise LocalDocumentError(messages.OOXML_CONTENT_TYPES_MISSING) from exc
     except zipfile.BadZipFile as exc:
-        raise LocalDocumentError(f"OOXML 容器损坏：{exc}") from exc
+        raise LocalDocumentError(messages.OOXML_CORRUPT.format(detail=exc)) from exc
     if content_type_marker not in content_types:
-        raise LocalDocumentError("文件扩展名与 OOXML 文档类型不匹配")
+        raise LocalDocumentError(messages.OOXML_TYPE_MISMATCH)
 
 
 def inspect_ooxml_limits(
@@ -32,14 +33,14 @@ def inspect_ooxml_limits(
     with zipfile.ZipFile(path) as archive:
         members = archive.infolist()
         if len(members) > max_members:
-            raise LocalDocumentError(f"OOXML 对象数超过限制 {max_members}")
+            raise LocalDocumentError(messages.OOXML_OBJECT_LIMIT.format(limit=max_members))
         total = sum(member.file_size for member in members)
         if total > max_uncompressed_bytes:
             raise LocalDocumentError(
-                f"OOXML 解压后大小 {total} bytes，超过限制 {max_uncompressed_bytes} bytes"
+                messages.OOXML_SIZE_LIMIT.format(size=total, limit=max_uncompressed_bytes)
             )
         if any(member.flag_bits & 0x1 for member in members):
-            raise LocalDocumentError("不支持含加密成员的 OOXML 文档")
+            raise LocalDocumentError(messages.OOXML_ENCRYPTED)
         return tuple(member.filename for member in members)
 
 

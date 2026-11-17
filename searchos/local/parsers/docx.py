@@ -5,6 +5,8 @@ from __future__ import annotations
 import zipfile
 from pathlib import Path
 
+from searchos.local import messages
+from searchos.local.errors import MissingDependencyError
 from searchos.local.models import (
     DocumentKind,
     DocxBlockLocator,
@@ -12,7 +14,6 @@ from searchos.local.models import (
     ParseResult,
     PipelineOptions,
 )
-from searchos.local.errors import MissingDependencyError
 from searchos.local.parsers.base import ParserCapability
 from searchos.local.parsers.ooxml import inspect_ooxml_limits, validate_ooxml
 
@@ -66,9 +67,7 @@ class DocxParser:
             from docx.table import Table
             from docx.text.paragraph import Paragraph
         except ImportError as exc:
-            raise MissingDependencyError(
-                "DOCX 处理需要 local-docs 依赖；请安装 searchos[local-docs]"
-            ) from exc
+            raise MissingDependencyError(messages.LOCAL_DOCS_REQUIRED) from exc
 
         members = inspect_ooxml_limits(
             path,
@@ -92,7 +91,9 @@ class DocxParser:
                 segments.append(
                     ParsedSegment(
                         id=f"D-P{paragraph_number}",
-                        title=content[:200] if is_heading else f"段落 {paragraph_number}",
+                        title=content[:200]
+                        if is_heading
+                        else messages.PARAGRAPH_TITLE.format(paragraph=paragraph_number),
                         text=content,
                         source_locators=[
                             DocxBlockLocator(
@@ -123,13 +124,15 @@ class DocxParser:
                     segments.append(
                         ParsedSegment(
                             id=f"D-T{table_number}",
-                            title=f"表格 {table_number}",
+                            title=messages.TABLE_TITLE.format(table=table_number),
                             text=content,
                             source_locators=locators,
                         )
                     )
             if len(segments) > options.max_office_objects:
-                raise ValueError(f"DOCX 正文对象数超过限制 {options.max_office_objects}")
+                raise ValueError(
+                    messages.DOCX_OBJECT_LIMIT.format(limit=options.max_office_objects)
+                )
 
         warnings: list[str] = []
         with zipfile.ZipFile(path) as archive:
@@ -139,13 +142,13 @@ class DocxParser:
         footers = sum(name.startswith("word/footer") for name in members)
         comments = any(name == "word/comments.xml" for name in members)
         if revisions:
-            warnings.append(f"检测到 {revisions} 个修订节点；当前只覆盖普通正文对象")
+            warnings.append(messages.DOCX_REVISIONS.format(count=revisions))
         if nested_tables:
-            warnings.append(f"检测到 {nested_tables} 个嵌套表格；当前未展开其独立位置")
+            warnings.append(messages.DOCX_NESTED_TABLES.format(count=nested_tables))
         if headers or footers:
-            warnings.append(f"页眉 {headers} 个、页脚 {footers} 个当前未纳入正文表示")
+            warnings.append(messages.DOCX_HEADERS_FOOTERS.format(headers=headers, footers=footers))
         if comments:
-            warnings.append("批注当前未纳入正文表示")
+            warnings.append(messages.DOCX_COMMENTS)
         return ParseResult(
             kind=DocumentKind.DOCX,
             segments=segments,

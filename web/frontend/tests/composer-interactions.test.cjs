@@ -26,17 +26,17 @@ test("composer keeps transient source, schema and override panels mutually exclu
 
 test("local source picker provides scalable selection controls", () => {
   const source = read("components/local/LocalSourceControl.tsx");
-  assert.match(source, /placeholder="搜索资料"/);
-  assert.match(source, />全选可用</);
-  assert.match(source, />清空</);
-  assert.match(source, /没有匹配的资料/);
+  assert.match(source, /placeholder=\{copy.source.search\}/);
+  assert.match(source, /copy.actions.selectAll/);
+  assert.match(source, /copy.actions.clear/);
+  assert.match(source, /copy.empty.search/);
 });
 
 test("adding a file from Web enters Local mode and mode buttons expose selection", () => {
   const source = read("components/local/LocalSourceControl.tsx");
   assert.match(source, /if \(controller\.mode === "web"\) controller\.setMode\("local"\)/);
   assert.equal((source.match(/aria-pressed=\{controller\.mode ===/g) || []).length, 3);
-  assert.match(source, /未选文档时检索整个当前知识库/);
+  assert.match(source, /controller.libraryId \? copy.source.libraryScope/);
 });
 
 test("Local mode submits an explicit library scope when no document is selected", () => {

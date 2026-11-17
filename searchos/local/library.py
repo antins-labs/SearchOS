@@ -17,26 +17,26 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
-from searchos.local.index.catalog import (
+from searchos.local import messages
+from searchos.local.catalog import (
     CatalogDocument,
     CatalogMarkdownStore,
     Subindex,
     _subindex_id,
 )
-from searchos.local.index.document_store import (
+from searchos.local.indexing import DocumentRecapPipeline, build_parser_registry
+from searchos.local.models import PipelineOptions, ProcessingStatus, locator_group_label
+from searchos.local.recap.service import RecapProgressCallback
+from searchos.local.refs import parse_ref_id, resolve_reference
+from searchos.local.storage.documents import (
     DocumentMarkdownStore,
     StoredBlock,
     locator_fully_covered,
     read_blocks,
     slice_source_block,
 )
-from searchos.local.index.locks import advisory_lock
-from searchos.local.index.source_registry import SourceRecord, SourceRegistry
-from searchos.local.models import PipelineOptions, ProcessingStatus, locator_group_label
-from searchos.local.pipeline import DocumentRecapPipeline, build_parser_registry
-from searchos.local.reader.references import parse_ref_id, resolve_reference
-from searchos.local.recap.service import RecapProgressCallback
-from searchos.local.storage_io import atomic_write_text, file_sha256
+from searchos.local.storage.files import advisory_lock, atomic_write_text, file_sha256
+from searchos.local.storage.sources import SourceRecord, SourceRegistry
 
 _CATALOG_VERSION = 1
 _FRONT_MATTER_END = "\n---\n"
@@ -86,7 +86,9 @@ class PendingSavedDocument(BaseModel):
     origin: dict[str, Any] = Field(default_factory=dict)
 
 
-def _merge_origins(existing: dict[str, Any] | None, incoming: dict[str, Any] | None) -> dict[str, Any]:
+def _merge_origins(
+    existing: dict[str, Any] | None, incoming: dict[str, Any] | None
+) -> dict[str, Any]:
     """Retain every distinct network origin when content hashes deduplicate."""
     current = dict(existing or {})
     additions = [dict(item) for item in current.pop("sources", []) if isinstance(item, dict)]
@@ -168,9 +170,9 @@ class LocalLibraryService:
 
     def _pending_path(self, library_id: str, document_id: str) -> Path:
         if not re.fullmatch(r"lib_[a-f0-9]+", library_id or ""):
-            raise ValueError("资料库 ID 无效")
+            raise ValueError(messages.LIBRARY_ID_INVALID)
         if not re.fullmatch(r"doc_[a-f0-9]+", document_id or ""):
-            raise ValueError("文档 ID 无效")
+            raise ValueError(messages.DOCUMENT_ID_INVALID)
         return self.pending_root / library_id / f"{document_id}.json"
 
     def _read_pending(self, library_id: str) -> list[PendingSavedDocument]:
@@ -214,17 +216,19 @@ class LocalLibraryService:
             return LocalLibraryCatalog()
         raw = self.catalog_path.read_text(encoding="utf-8")
         if not raw.startswith("---\n"):
-            raise ValueError("资料库清单缺少 front matter")
+            raise ValueError(messages.MANIFEST_MISSING_HEADER)
         end = raw.find(_FRONT_MATTER_END, 4)
         if end < 0:
-            raise ValueError("资料库清单 front matter 未闭合")
+            raise ValueError(messages.MANIFEST_INVALID_HEADER)
         payload = yaml.load(raw[4:end], Loader=getattr(yaml, "CSafeLoader", yaml.SafeLoader))
         return LocalLibraryCatalog.model_validate(payload)
 
     def _write_catalog(self, catalog: LocalLibraryCatalog) -> None:
         payload = yaml.safe_dump(
-            catalog.model_dump(mode="json"), allow_unicode=True,
-            default_flow_style=False, sort_keys=True,
+            catalog.model_dump(mode="json"),
+            allow_unicode=True,
+            default_flow_style=False,
+            sort_keys=True,
         ).strip()
         atomic_write_text(self.catalog_path, f"---\n{payload}\n---\n\n# WebUI local libraries\n")
 
@@ -233,7 +237,7 @@ class LocalLibraryService:
 
     def create_library(self, name: str) -> LocalLibraryRecord:
         with advisory_lock(self.data_root / ".locks" / "libraries.lock"):
-            cleaned = " ".join(name.split()).strip() or "本地资料"
+            cleaned = " ".join(name.split()).strip() or messages.DEFAULT_LIBRARY_NAME
             catalog = self._read_catalog()
             provisional = self.indexes_root / f"pending_{uuid.uuid4().hex}"
             library = SourceRegistry(provisional).ensure_library()
@@ -256,7 +260,7 @@ class LocalLibraryService:
         with advisory_lock(self.data_root / ".locks" / "libraries.lock"):
             cleaned = " ".join(name.split()).strip()
             if not cleaned:
-                raise ValueError("资料库名称不能为空")
+                raise ValueError(messages.LIBRARY_NAME_REQUIRED)
             catalog = self._read_catalog()
             for index, record in enumerate(catalog.libraries):
                 if record.library_id != library_id:
@@ -267,7 +271,7 @@ class LocalLibraryService:
                 catalog.libraries[index] = updated
                 self._write_catalog(catalog)
                 return updated
-            raise KeyError("资料库不存在")
+            raise KeyError(messages.LIBRARY_NOT_FOUND)
 
     def get_library(self, library_id: str) -> LocalLibraryRecord:
         for record in self._read_catalog().libraries:
@@ -276,16 +280,16 @@ class LocalLibraryService:
                 try:
                     index_root.relative_to(self.indexes_root)
                 except ValueError as exc:
-                    raise ValueError("资料库索引路径越出本地数据目录") from exc
+                    raise ValueError(messages.INDEX_OUTSIDE_ROOT) from exc
                 SourceRegistry(index_root).ensure_active()
                 return record
-        raise KeyError("资料库不存在")
+        raise KeyError(messages.LIBRARY_NOT_FOUND)
 
     @staticmethod
     def _clean_label(value: str) -> str:
         cleaned = " ".join(value.split())
         if not cleaned or len(cleaned) > 120:
-            raise ValueError("名称不能为空，且不能超过 120 个字符")
+            raise ValueError(messages.NAME_INVALID)
         return cleaned
 
     def edit_document(self, library_id: str, document_id: str, name: str) -> dict[str, Any]:
@@ -294,7 +298,7 @@ class LocalLibraryService:
         store = CatalogMarkdownStore(root)
         with advisory_lock(root / ".locks" / "catalog-transaction.lock"):
             if not any(d["document_id"] == document_id for d in self.list_documents(library_id)):
-                raise KeyError("文档不存在")
+                raise KeyError(messages.DOCUMENT_NOT_FOUND)
             catalog, state = store.load(), store.read_state()
             affected = set()
             for key, topic in catalog.items():
@@ -309,8 +313,9 @@ class LocalLibraryService:
             store.write(catalog)
         return self.library_graph(library_id)
 
-    def edit_topic(self, library_id: str, title: str, summary: str = "",
-                   subindex_id: str | None = None) -> dict[str, Any]:
+    def edit_topic(
+        self, library_id: str, title: str, summary: str = "", subindex_id: str | None = None
+    ) -> dict[str, Any]:
         title = self._clean_label(title)
         root = Path(self.get_library(library_id).index_root)
         store = CatalogMarkdownStore(root)
@@ -318,10 +323,12 @@ class LocalLibraryService:
             SourceRegistry(root).ensure_active()
             catalog, state = store.load(), store.read_state()
             if subindex_id is not None and subindex_id not in catalog:
-                raise KeyError("主题不存在")
-            if any(t.title.casefold() == title.casefold() and key != subindex_id
-                   for key, t in catalog.items()):
-                raise ValueError("同名主题已存在")
+                raise KeyError(messages.TOPIC_NOT_FOUND)
+            if any(
+                t.title.casefold() == title.casefold() and key != subindex_id
+                for key, t in catalog.items()
+            ):
+                raise ValueError(messages.TOPIC_EXISTS)
             key = subindex_id or _subindex_id(title, catalog)
             topic = catalog.setdefault(key, Subindex(key, title))
             topic.title, topic.summary = title, " ".join(summary.split())
@@ -340,7 +347,7 @@ class LocalLibraryService:
             SourceRegistry(root).ensure_active()
             catalog, state = store.load(), store.read_state()
             if subindex_id not in catalog:
-                raise KeyError("主题不存在")
+                raise KeyError(messages.TOPIC_NOT_FOUND)
             removed = catalog.pop(subindex_id)
             state["manual_documents"] = sorted(
                 set(state["manual_documents"]) | set(removed.documents)
@@ -378,7 +385,7 @@ class LocalLibraryService:
                 if not any(
                     d["document_id"] == document_id for d in self.list_documents(library_id)
                 ):
-                    raise KeyError("文档不存在")
+                    raise KeyError(messages.DOCUMENT_NOT_FOUND)
                 atomic_write_text(root / ".deleted_documents" / document_id, "deleted\n")
                 catalog, state = store.load(), store.read_state()
                 affected = {key for key, topic in catalog.items() if document_id in topic.documents}
@@ -423,29 +430,32 @@ class LocalLibraryService:
         for pending in self._read_pending(library_id):
             if (Path(library.index_root) / ".deleted_documents" / pending.document_id).exists():
                 continue
-            documents.append({
-                "document_id": pending.document_id,
-                "name": pending.name,
-                "kind": pending.kind,
-                "size_bytes": pending.size_bytes,
-                "status": "saved",
-                "parse_status": "pending",
-                "recap_status": "pending",
-                "catalog_status": "pending",
-                "recap_segments_completed": 0,
-                "recap_segments_total": 0,
-                "searchable": False,
-                "source_revision": pending.source_revision,
-                "warnings": ["已保存原件，尚未解析或索引"],
-                "origin": pending.origin,
-            })
+            documents.append(
+                {
+                    "document_id": pending.document_id,
+                    "name": pending.name,
+                    "kind": pending.kind,
+                    "size_bytes": pending.size_bytes,
+                    "status": "saved",
+                    "parse_status": "pending",
+                    "recap_status": "pending",
+                    "catalog_status": "pending",
+                    "recap_segments_completed": 0,
+                    "recap_segments_total": 0,
+                    "searchable": False,
+                    "source_revision": pending.source_revision,
+                    "warnings": [messages.SAVED_UNINDEXED],
+                    "origin": pending.origin,
+                }
+            )
         if not registry.sources_dir.exists():
             return documents
         for path in sorted(registry.sources_dir.glob("*.md")):
             try:
                 record = registry.read(path.stem)
                 text_path = DocumentMarkdownStore(Path(library.index_root)).generation_path(
-                    record.document_id, record.generation,
+                    record.document_id,
+                    record.generation,
                 )
                 _, blocks = read_blocks(text_path)
             except Exception:
@@ -458,44 +468,58 @@ class LocalLibraryService:
                 for section in record.recap.sections
                 for segment_id in section.segment_ids
             }
-            documents.append({
-                "document_id": record.document_id,
-                "name": Path(record.relative_path).name,
-                "summary": record.recap.summary,
-                "kind": record.kind.value,
-                "size_bytes": record.size_bytes,
-                "status": record.processing_status.value,
-                "parse_status": record.parse_status.value,
-                "recap_status": record.recap_status.value,
-                "catalog_status": record.catalog_status.value,
-                "recap_segments_completed": len(recapped_segment_ids),
-                "recap_segments_total": (
-                    len(recapped_segment_ids)
-                    if record.recap_status == ProcessingStatus.READY
-                    else 0
-                ),
-                "searchable": searchable,
-                "source_revision": record.source_revision,
-                "warnings": record.warnings,
-                "origin": record.origin,
-            })
+            documents.append(
+                {
+                    "document_id": record.document_id,
+                    "name": Path(record.relative_path).name,
+                    "summary": record.recap.summary,
+                    "kind": record.kind.value,
+                    "size_bytes": record.size_bytes,
+                    "status": record.processing_status.value,
+                    "parse_status": record.parse_status.value,
+                    "recap_status": record.recap_status.value,
+                    "catalog_status": record.catalog_status.value,
+                    "recap_segments_completed": len(recapped_segment_ids),
+                    "recap_segments_total": (
+                        len(recapped_segment_ids)
+                        if record.recap_status == ProcessingStatus.READY
+                        else 0
+                    ),
+                    "searchable": searchable,
+                    "source_revision": record.source_revision,
+                    "warnings": record.warnings,
+                    "origin": record.origin,
+                }
+            )
         return documents
 
     @staticmethod
     def _kind_for_name(filename: str) -> str:
         suffix = Path(filename).suffix.casefold()
         mapping = {
-            ".md": "markdown", ".txt": "text", ".pdf": "pdf",
-            ".docx": "docx", ".pptx": "pptx", ".xlsx": "xlsx",
-            ".csv": "csv", ".tsv": "tsv", ".json": "json",
-            ".jsonl": "jsonl", ".html": "html", ".htm": "html",
-            ".png": "image", ".jpg": "image", ".jpeg": "image",
-            ".gif": "image", ".webp": "image", ".tif": "image",
+            ".md": "markdown",
+            ".txt": "text",
+            ".pdf": "pdf",
+            ".docx": "docx",
+            ".pptx": "pptx",
+            ".xlsx": "xlsx",
+            ".csv": "csv",
+            ".tsv": "tsv",
+            ".json": "json",
+            ".jsonl": "jsonl",
+            ".html": "html",
+            ".htm": "html",
+            ".png": "image",
+            ".jpg": "image",
+            ".jpeg": "image",
+            ".gif": "image",
+            ".webp": "image",
+            ".tif": "image",
             ".tiff": "image",
         }
         kind = mapping.get(suffix)
         if kind is None:
-            raise ValueError(f"不支持的导入文件类型：{suffix or '<none>'}")
+            raise ValueError(messages.UNSUPPORTED_IMPORT.format(suffix=suffix or "<none>"))
         return kind
 
     def save_original_file(
@@ -510,14 +534,14 @@ class LocalLibraryService:
         library = self.get_library(library_id)
         safe_name = Path(filename).name
         if not safe_name or safe_name != filename or safe_name in {".", ".."}:
-            raise ValueError("文件名无效")
+            raise ValueError(messages.FILE_NAME_INVALID)
         kind = self._kind_for_name(safe_name)
         temporary = Path(temporary_path).resolve()
         if not temporary.is_file():
-            raise ValueError("导入临时文件不存在")
+            raise ValueError(messages.IMPORT_NOT_FOUND)
         size = temporary.stat().st_size
         if size > _MAX_UPLOAD_BYTES:
-            raise OverflowError("导入文件超过 150 MiB 限制")
+            raise OverflowError(messages.FILE_TOO_LARGE)
         revision = file_sha256(temporary)
         lock_path = Path(library.index_root) / ".locks" / "network-import.lock"
         with advisory_lock(lock_path):
@@ -563,7 +587,7 @@ class LocalLibraryService:
             "catalog_status": "pending",
             "searchable": False,
             "source_revision": revision,
-            "warnings": ["已保存原件，尚未解析或索引"],
+            "warnings": [messages.SAVED_UNINDEXED],
             "origin": pending.origin,
             "deduplicated": False,
         }
@@ -579,23 +603,26 @@ class LocalLibraryService:
         try:
             source.relative_to(authorized)
         except ValueError as exc:
-            raise ValueError("导入原件越出资料库目录") from exc
+            raise ValueError(messages.SOURCE_OUTSIDE_LIBRARY) from exc
         if not source.is_file() or file_sha256(source) != pending.source_revision:
-            raise ValueError("SOURCE_SCOPE_CHANGED：导入原件已变化或不可用")
+            raise ValueError(messages.SOURCE_REVISION_CHANGED)
         await DocumentRecapPipeline(output_root=library.index_root).process(
             source,
             source_root=source.parent,
             document_id=document_id,
             options=PipelineOptions(
-                allow_remote=False, build_catalog=False, max_file_bytes=_MAX_UPLOAD_BYTES,
+                allow_remote=False,
+                build_catalog=False,
+                max_file_bytes=_MAX_UPLOAD_BYTES,
             ),
         )
         registry = SourceRegistry(Path(library.index_root))
         record = registry.read(document_id)
         registry.write(record.model_copy(update={"origin": pending.origin}))
         self._pending_path(library_id, document_id).unlink(missing_ok=True)
-        return next(item for item in self.list_documents(library_id)
-                    if item["document_id"] == document_id)
+        return next(
+            item for item in self.list_documents(library_id) if item["document_id"] == document_id
+        )
 
     def library_graph(self, library_id: str) -> dict[str, Any]:
         """Project the Markdown catalog into a path-free graph for the WebUI."""
@@ -607,76 +634,93 @@ class LocalLibraryService:
         catalog = catalog_store.load()
         catalog_state = catalog_store.read_state()
         root_id = f"index:{library_id}"
-        nodes: list[dict[str, Any]] = [{
-            "id": root_id,
-            "node_type": "index",
-            "label": library.name,
-            "summary": "",
-            "character_count": 0,
-        }]
+        nodes: list[dict[str, Any]] = [
+            {
+                "id": root_id,
+                "node_type": "index",
+                "label": library.name,
+                "summary": "",
+                "character_count": 0,
+            }
+        ]
         edges: list[dict[str, str]] = []
         catalog_documents: dict[str, Any] = {}
 
         for topic in sorted(catalog.values(), key=lambda item: item.title.casefold()):
             current_documents = [
-                item for item in topic.documents.values()
-                if item.document_id in documents_by_id
+                item for item in topic.documents.values() if item.document_id in documents_by_id
             ]
-            if (not current_documents
-                    and topic.subindex_id not in catalog_state["manual_topics"]):
+            if not current_documents and topic.subindex_id not in catalog_state["manual_topics"]:
                 continue
             topic_id = f"subindex:{topic.subindex_id}"
-            nodes.append({
-                "id": topic_id,
-                "node_type": "subindex",
-                "subindex_id": topic.subindex_id,
-                "label": topic.title,
-                "summary": topic.summary,
-                "character_count": sum(item.character_count for item in current_documents),
-                "document_count": len(current_documents),
-                "recap_status": catalog_state["topics"].get(topic.subindex_id, {}).get("status", "ready"),
-                "recap_error": catalog_state["topics"].get(topic.subindex_id, {}).get("error", ""),
-            })
+            nodes.append(
+                {
+                    "id": topic_id,
+                    "node_type": "subindex",
+                    "subindex_id": topic.subindex_id,
+                    "label": topic.title,
+                    "summary": topic.summary,
+                    "character_count": sum(item.character_count for item in current_documents),
+                    "document_count": len(current_documents),
+                    "recap_status": catalog_state["topics"]
+                    .get(topic.subindex_id, {})
+                    .get("status", "ready"),
+                    "recap_error": catalog_state["topics"]
+                    .get(topic.subindex_id, {})
+                    .get("error", ""),
+                }
+            )
             edges.append({"source": root_id, "target": topic_id, "relation": "contains"})
             for item in sorted(current_documents, key=lambda value: value.name.casefold()):
                 catalog_documents.setdefault(item.document_id, item)
-                edges.append({
-                    "source": topic_id,
-                    "target": f"document:{item.document_id}",
-                    "relation": "classifies",
-                })
+                edges.append(
+                    {
+                        "source": topic_id,
+                        "target": f"document:{item.document_id}",
+                        "relation": "classifies",
+                    }
+                )
 
         for document in documents:
             catalog_document = catalog_documents.get(document["document_id"])
             document_id = f"document:{document['document_id']}"
-            nodes.append({
-                "id": document_id,
-                "node_type": "document",
-                "document_id": document["document_id"],
-                "label": catalog_state["display_names"].get(document["document_id"])
-                or (catalog_document.name if catalog_document else document["name"]),
-                "original_name": document["name"],
-                "summary": (catalog_document.summary if catalog_document
-                            else document.get("summary") or "等待 Recap/目录归类"),
-                "character_count": catalog_document.character_count if catalog_document else 0,
-                "document_kind": document["kind"],
-                "size_bytes": document["size_bytes"],
-                "searchable": document["searchable"],
-                "parse_status": document["parse_status"],
-                "recap_status": document["recap_status"],
-                "catalog_status": document["catalog_status"],
-                "source_revision": document["source_revision"],
-                "warnings": document["warnings"],
-            })
+            nodes.append(
+                {
+                    "id": document_id,
+                    "node_type": "document",
+                    "document_id": document["document_id"],
+                    "label": catalog_state["display_names"].get(document["document_id"])
+                    or (catalog_document.name if catalog_document else document["name"]),
+                    "original_name": document["name"],
+                    "summary": (
+                        catalog_document.summary
+                        if catalog_document
+                        else document.get("summary") or messages.CATALOG_PENDING
+                    ),
+                    "character_count": catalog_document.character_count if catalog_document else 0,
+                    "document_kind": document["kind"],
+                    "size_bytes": document["size_bytes"],
+                    "searchable": document["searchable"],
+                    "parse_status": document["parse_status"],
+                    "recap_status": document["recap_status"],
+                    "catalog_status": document["catalog_status"],
+                    "source_revision": document["source_revision"],
+                    "warnings": document["warnings"],
+                }
+            )
             if catalog_document is None:
-                edges.append({
-                    "source": root_id,
-                    "target": document_id,
-                    "relation": "pending_catalog",
-                })
+                edges.append(
+                    {
+                        "source": root_id,
+                        "target": document_id,
+                        "relation": "pending_catalog",
+                    }
+                )
 
         topic_count = sum(node["node_type"] == "subindex" for node in nodes)
-        nodes[0]["summary"] = f"{topic_count} 个主题 · {len(documents)} 份文档"
+        nodes[0]["summary"] = messages.LIBRARY_COUNTS.format(
+            topics=topic_count, documents=len(documents)
+        )
         nodes[0]["character_count"] = sum(
             item.character_count for item in catalog_documents.values()
         )
@@ -697,13 +741,13 @@ class LocalLibraryService:
         root = Path(library.index_root)
         record = SourceRegistry(root).read(document_id)
         if record.library_id != library_id:
-            raise ValueError("文档不属于所选资料库")
+            raise ValueError(messages.DOCUMENT_OUTSIDE_LIBRARY)
         text_path = DocumentMarkdownStore(root).generation_path(
             document_id,
             record.generation,
         )
         if not text_path.is_file() or file_sha256(text_path) != record.artifact_sha256:
-            raise ValueError("ARTIFACT_INVALID：解析产物校验失败")
+            raise ValueError(messages.ARTIFACT_INVALID)
         _, blocks = read_blocks(text_path)
         return library, record, blocks
 
@@ -780,14 +824,11 @@ class LocalLibraryService:
 
         _, _, blocks = self._document_blocks(library_id, document_id)
         block = next(
-            (
-                item for item in blocks
-                if item.is_primary and item.block_id == segment_id
-            ),
+            (item for item in blocks if item.is_primary and item.block_id == segment_id),
             None,
         )
         if block is None:
-            raise KeyError("文档 segment 不存在")
+            raise KeyError(messages.SEGMENT_NOT_FOUND)
         start = min(max(offset, 0), len(block.text))
         size = min(max(limit, 1), 50_000)
         end = min(len(block.text), start + size)
@@ -811,7 +852,7 @@ class LocalLibraryService:
 
         selected = list(dict.fromkeys(subindex_ids))
         if len(selected) > 3:
-            raise ValueError("一份文档最多关联三个主题")
+            raise ValueError(messages.TOPIC_LIMIT)
         library = self.get_library(library_id)
         root = Path(library.index_root)
         store = CatalogMarkdownStore(root)
@@ -824,7 +865,7 @@ class LocalLibraryService:
             old_ids = {key for key, topic in catalog.items() if document_id in topic.documents}
             unknown = [subindex_id for subindex_id in selected if subindex_id not in catalog]
             if unknown:
-                raise KeyError(f"主题不存在：{', '.join(unknown)}")
+                raise KeyError(messages.TOPICS_NOT_FOUND.format(topics=", ".join(unknown)))
             existing_record = next(
                 (
                     item.documents[document_id]
@@ -839,11 +880,9 @@ class LocalLibraryService:
                 or (existing_record.name if existing_record else Path(record.relative_path).name),
                 summary=(
                     record.recap.summary.strip()
-                    or (existing_record.summary if existing_record else "等待 Recap")
+                    or (existing_record.summary if existing_record else messages.RECAP_PENDING)
                 ),
-                character_count=sum(
-                    len(block.text) for block in blocks if block.is_primary
-                ),
+                character_count=sum(len(block.text) for block in blocks if block.is_primary),
             )
             for topic in catalog.values():
                 topic.documents.pop(document_id, None)
@@ -861,9 +900,7 @@ class LocalLibraryService:
                 if selected and record.recap_status == ProcessingStatus.READY
                 else ProcessingStatus.PARTIAL
             )
-            SourceRegistry(root).write(
-                record.model_copy(update={"catalog_status": catalog_status})
-            )
+            SourceRegistry(root).write(record.model_copy(update={"catalog_status": catalog_status}))
         return self.library_graph(library_id)
 
     async def index_uploaded_file(
@@ -875,13 +912,13 @@ class LocalLibraryService:
         library = self.get_library(library_id)
         safe_name = Path(filename).name
         if not safe_name or safe_name != filename or safe_name in {".", ".."}:
-            raise ValueError("文件名无效")
+            raise ValueError(messages.FILE_NAME_INVALID)
         temporary = Path(temporary_path).resolve()
         if not temporary.is_file():
-            raise ValueError("上传临时文件不存在")
+            raise ValueError(messages.UPLOAD_NOT_FOUND)
         size = temporary.stat().st_size
         if size > _MAX_UPLOAD_BYTES:
-            raise OverflowError("上传文件超过 150 MiB 限制")
+            raise OverflowError(messages.FILE_TOO_LARGE)
         revision = file_sha256(temporary)
         document_id = f"doc_{uuid.uuid4().hex}"
         target_dir = self.uploads_root / library_id / document_id / revision
@@ -900,7 +937,8 @@ class LocalLibraryService:
             ),
         )
         current = next(
-            item for item in self.list_documents(library_id)
+            item
+            for item in self.list_documents(library_id)
             if item["document_id"] == result.document_id
         )
         return {**current, "cached": result.cached}
@@ -924,15 +962,15 @@ class LocalLibraryService:
         root = Path(library.index_root)
         record = SourceRegistry(root).read(document_id)
         if record.library_id != library_id:
-            raise ValueError("文档不属于所选资料库")
+            raise ValueError(messages.DOCUMENT_OUTSIDE_LIBRARY)
         source_path = Path(record.source_path).resolve()
         authorized_upload_root = (self.uploads_root / library_id / document_id).resolve()
         try:
             source_path.relative_to(authorized_upload_root)
         except ValueError as exc:
-            raise ValueError("文档原件越出上传目录") from exc
+            raise ValueError(messages.SOURCE_OUTSIDE_UPLOADS) from exc
         if not source_path.is_file() or file_sha256(source_path) != record.source_revision:
-            raise ValueError("SOURCE_SCOPE_CHANGED：文档原件已变化或不可用")
+            raise ValueError(messages.SOURCE_REVISION_CHANGED)
 
         processor = pipeline or DocumentRecapPipeline(output_root=root)
         await processor.process(
@@ -947,8 +985,7 @@ class LocalLibraryService:
             recap_progress=recap_progress,
         )
         current = next(
-            item for item in self.list_documents(library_id)
-            if item["document_id"] == document_id
+            item for item in self.list_documents(library_id) if item["document_id"] == document_id
         )
         return current
 
@@ -965,31 +1002,36 @@ class LocalLibraryService:
         for document_id in document_ids:
             record = registry.read(document_id)
             if record.library_id != library_id:
-                raise ValueError("文档不属于所选资料库")
+                raise ValueError(messages.DOCUMENT_OUTSIDE_LIBRARY)
             source_path = Path(record.source_path).resolve()
             authorized_upload_root = (self.uploads_root / library_id / document_id).resolve()
             try:
                 source_path.relative_to(authorized_upload_root)
             except ValueError as exc:
-                raise ValueError("文档原件越出上传目录") from exc
+                raise ValueError(messages.SOURCE_OUTSIDE_UPLOADS) from exc
             if not source_path.is_file() or file_sha256(source_path) != record.source_revision:
-                raise ValueError("SOURCE_SCOPE_CHANGED：文档原件已变化或不可用")
+                raise ValueError(messages.SOURCE_REVISION_CHANGED)
             text_path = store.generation_path(document_id, record.generation)
             if not text_path.is_file() or file_sha256(text_path) != record.artifact_sha256:
-                raise ValueError("ARTIFACT_INVALID：解析产物校验失败")
+                raise ValueError(messages.ARTIFACT_INVALID)
             _, blocks = read_blocks(text_path)
             output.extend(
-                (record, block)
-                for block in blocks
-                if block.is_primary and block.text.strip()
+                (record, block) for block in blocks if block.is_primary and block.text.strip()
             )
         return output
 
     async def answer(
-        self, library_id: str, document_ids: list[str], query: str, *,
-        history: list[dict[str, str]] | None = None, model: Any | None = None,
+        self,
+        library_id: str,
+        document_ids: list[str],
+        query: str,
+        *,
+        history: list[dict[str, str]] | None = None,
+        model: Any | None = None,
         on_delta: Callable[[str], None] | None = None,
-        on_tool=None, on_read=None, on_round_end=None,
+        on_tool=None,
+        on_read=None,
+        on_round_end=None,
     ) -> LocalAnswer:
         from searchos.agents.local_search.qa import run_document_qa
 
@@ -1001,13 +1043,13 @@ class LocalLibraryService:
                 if item.get("searchable")
             ]
             if not document_ids:
-                raise ValueError("当前资料库没有可问答文档")
+                raise ValueError(messages.NO_SEARCHABLE_DOCUMENTS)
         document_ids = list(dict.fromkeys(document_ids))
         # Verify the selected upload scope once before constructing any model.
         verified = await asyncio.to_thread(self._verified_blocks, library_id, document_ids)
         records = {record.document_id: record for record, _ in verified}
         if set(records) != set(document_ids):
-            raise ValueError("所选文档包含当前没有可读取正文的文件")
+            raise ValueError(messages.SELECTION_UNREADABLE)
         library = self.get_library(library_id)
         stream_refs = []
         stream_aliases = {}
@@ -1022,56 +1064,78 @@ class LocalLibraryService:
         def bind(text):
             text = self._bind_numbered_citations(text, stream_refs)
             return _LOCAL_LINK_RE.sub(
-                lambda match: stream_aliases.get(match.group(), "invalid-local-reference"), text,
+                lambda match: stream_aliases.get(match.group(), "invalid-local-reference"),
+                text,
             )
 
         stream = _CitationStream(bind, on_delta)
         result = await run_document_qa(
-            index_root=library.index_root, records=[records[doc] for doc in document_ids],
-            query=query, history=history, model=model,
-            on_tool=on_tool, on_read=record_read, on_delta=stream.push,
+            index_root=library.index_root,
+            records=[records[doc] for doc in document_ids],
+            query=query,
+            history=history,
+            model=model,
+            on_tool=on_tool,
+            on_read=record_read,
+            on_delta=stream.push,
             preload_blocks=[] if library_scope else verified,
             library_scope=library_scope,
         )
         stream.push("", final=True)
         bound_answer = self._bind_numbered_citations(
-            result.answer, [item["ref_id"] for item in result.observations],
+            result.answer,
+            [item["ref_id"] for item in result.observations],
         )
         answer = _LOCAL_LINK_RE.sub(
             lambda match: result.aliases.get(match.group(), "invalid-local-reference"),
             bound_answer,
         )
-        if (result.observations and not _LOCAL_LINK_RE.search(answer)
-                and not re.search(r"local://|\[(?:资料|source)|\[\d+\]\(citation:", result.answer, re.I)):
+        if (
+            result.observations
+            and not _LOCAL_LINK_RE.search(answer)
+            and not re.search(r"local://|\[(?:资料|source)|\[\d+\]\(citation:", result.answer, re.I)
+        ):
             # A navigation fallback, not a fabricated claim-to-source attribution.
             documents = {}
             for item in result.observations:
                 documents.setdefault(item["document_id"], item)
             links = []
             for item in documents.values():
-                label = f"{item['file']} · {item['location_label']}".replace("[", r"\[").replace("]", r"\]")
+                label = f"{item['file']} · {item['location_label']}".replace("[", r"\[").replace(
+                    "]", r"\]"
+                )
                 links.append(f"- [{label}]({item['ref_id']})")
-            footer = "\n\n已读原文入口（全部阅读位置见运行记录）：\n" + "\n".join(links)
+            footer = messages.ANSWER_SOURCES + "\n".join(links)
             answer += footer
             if on_delta:
                 on_delta(footer)
         cited = set(_LOCAL_LINK_RE.findall(answer))
         citations = tuple(
-            {"ref_id": item["ref_id"], "window_id": item["window_id"],
-             "validation": "source_bound_not_grounded"}
-            for item in result.observations if item["ref_id"] in cited
+            {
+                "ref_id": item["ref_id"],
+                "window_id": item["window_id"],
+                "validation": "source_bound_not_grounded",
+            }
+            for item in result.observations
+            if item["ref_id"] in cited
         )
         local_answer = LocalAnswer(
             answer=answer,
-            read_observations=tuple(result.observations), citations=citations,
+            read_observations=tuple(result.observations),
+            citations=citations,
             citation_count=len(cited),
             citation_status="source_bound_not_grounded" if cited else "missing",
-            model_calls=result.model_calls, tool_counts=result.tool_counts,
+            model_calls=result.model_calls,
+            tool_counts=result.tool_counts,
             input_tokens_estimate=result.input_tokens_estimate,
             reading_stop_reason=result.stop_reason,
             source_documents=tuple(
-                {"document_id": record.document_id, "source_revision": record.source_revision,
-                 "generation": record.generation} for record in records.values()
+                {
+                    "document_id": record.document_id,
+                    "source_revision": record.source_revision,
+                    "generation": record.generation,
+                }
+                for record in records.values()
             ),
         )
         if on_round_end:
@@ -1085,9 +1149,12 @@ class LocalLibraryService:
         def bind(match: re.Match[str]) -> str:
             index = int(match.group("index")) - 1
             target = match.groupdict().get("target")
-            if (index < 0 or index >= len(ordered_refs)
-                    or (target is not None and target != match.group("index"))):
-                return f"{match.group('label')}（来源不可用）"
+            if (
+                index < 0
+                or index >= len(ordered_refs)
+                or (target is not None and target != match.group("index"))
+            ):
+                return messages.SOURCE_UNAVAILABLE.format(label=match.group("label"))
             return f"[{match.group('label')}]({ordered_refs[index]})"
 
         linked = _SHORT_CITATION_RE.sub(bind, answer)
@@ -1098,7 +1165,7 @@ class LocalLibraryService:
         reference = parse_ref_id(ref_id)
         library_id = reference.library_id
         if not library_id:
-            raise ValueError("预览接口要求带资料库 ID 的完整引用")
+            raise ValueError(messages.CITATION_REQUIRES_LIBRARY)
         library = self.get_library(library_id)
         root = Path(library.index_root)
         registry = SourceRegistry(root)
@@ -1110,20 +1177,24 @@ class LocalLibraryService:
             source_revision=record.source_revision,
         )
         if resolved.source_revision != record.source_revision:
-            raise ValueError("VERSION_MISMATCH：该引用绑定的原文版本当前不可用")
+            raise ValueError(messages.CITATION_VERSION_UNAVAILABLE)
         verified = self._verified_blocks(library_id, [record.document_id])
         # Preview and local_open share locator intersection and text slicing.
         matches = [
-            (block, text) for _, block in verified
+            (block, text)
+            for _, block in verified
             if (text := slice_source_block(block, resolved.locators))
         ]
         if not matches:
-            raise ValueError("引用位置在当前解析表示中不可用")
-        uncovered = [locator for locator in resolved.locators
-                     if not locator_fully_covered(locator, [block for block, _ in matches])]
+            raise ValueError(messages.CITATION_LOCATION_UNAVAILABLE)
+        uncovered = [
+            locator
+            for locator in resolved.locators
+            if not locator_fully_covered(locator, [block for block, _ in matches])
+        ]
         warnings = list(record.warnings)
         if uncovered:
-            warnings.append("所选表示未完整覆盖位置：" + locator_group_label(uncovered))
+            warnings.append(messages.REPRESENTATION_INCOMPLETE + locator_group_label(uncovered))
         locators = [locator.model_dump(mode="json") for locator in resolved.locators]
         return {
             "citation_id": hashlib.sha256(ref_id.encode()).hexdigest()[:20],
@@ -1164,9 +1235,9 @@ class LocalLibraryService:
             try:
                 source.relative_to(authorized)
             except ValueError as exc:
-                raise ValueError("导入原件越出上传目录") from exc
+                raise ValueError(messages.SOURCE_OUTSIDE_UPLOADS) from exc
             if not source.is_file() or file_sha256(source) != pending.source_revision:
-                raise ValueError("SOURCE_SCOPE_CHANGED：导入原件已变化或不可用")
+                raise ValueError(messages.SOURCE_REVISION_CHANGED)
             return source
         verified = self._verified_blocks(library_id, [document_id])
         if not verified:

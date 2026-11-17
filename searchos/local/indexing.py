@@ -1,4 +1,4 @@
-"""End-to-end processing for one authorized local document."""
+"""本地文档建索引：解析、章节摘要、产物发布与主题归类。"""
 
 from __future__ import annotations
 
@@ -8,12 +8,18 @@ import logging
 import re
 from pathlib import Path
 
-from searchos.local.index.catalog import (
+from searchos.local import messages
+from searchos.local.catalog import (
     CATALOG_PROMPT_VERSION,
     CatalogClient,
     CatalogMarkdownStore,
     CatalogService,
     ModelCatalogClient,
+)
+from searchos.local.errors import (
+    DocumentAccessError,
+    LocalDocumentError,
+    user_message,
 )
 from searchos.local.models import (
     CatalogFingerprint,
@@ -28,10 +34,6 @@ from searchos.local.models import (
     ProcessResult,
     RecapFingerprint,
 )
-from searchos.local.errors import (
-    DocumentAccessError,
-    LocalDocumentError,
-)
 from searchos.local.parsers import (
     DelimitedParser,
     DocxParser,
@@ -45,7 +47,13 @@ from searchos.local.parsers import (
     PptxParser,
     XlsxParser,
 )
-from searchos.local.recap.prompts import PROMPT_VERSION
+from searchos.local.parsers.vision import (
+    ModelVisionTranscriber,
+    PageRenderer,
+    SlideRenderer,
+    VisionTranscriber,
+)
+from searchos.local.prompts.recap import PROMPT_VERSION
 from searchos.local.recap.service import (
     ModelRecapClient,
     RecapClient,
@@ -53,14 +61,8 @@ from searchos.local.recap.service import (
     RecapService,
     split_segments,
 )
-from searchos.local.index.document_store import DocumentMarkdownStore
-from searchos.local.parsers.vision import (
-    ModelVisionTranscriber,
-    PageRenderer,
-    SlideRenderer,
-    VisionTranscriber,
-)
-from searchos.local.storage_io import file_sha256
+from searchos.local.storage.documents import DocumentMarkdownStore
+from searchos.local.storage.files import file_sha256
 
 PARSER_VERSION = "local-parser-v7"
 logger = logging.getLogger(__name__)
@@ -134,18 +136,18 @@ class DocumentRecapPipeline:
         try:
             path.relative_to(root)
         except ValueError as exc:
-            raise DocumentAccessError(f"原文不在授权目录内：{path}") from exc
+            raise DocumentAccessError(messages.SOURCE_OUTSIDE_ROOT.format(path=path)) from exc
         if not path.exists() or not path.is_file():
-            raise DocumentAccessError(f"原文不存在或不是文件：{path}")
+            raise DocumentAccessError(messages.SOURCE_NOT_FOUND_AT.format(path=path))
         stat = path.stat()
         if stat.st_size > options.max_file_bytes:
             raise LocalDocumentError(
-                f"文件大小 {stat.st_size} bytes，超过限制 {options.max_file_bytes} bytes"
+                messages.FILE_SIZE_LIMIT.format(size=stat.st_size, limit=options.max_file_bytes)
             )
         self._store.registry.ensure_library(root)
         document_id = document_id or self._store.registry.resolve_document_id(path, root)
         if not re.fullmatch(r"[A-Za-z0-9._-]+", document_id):
-            raise ValueError("document_id 只能包含字母、数字、点、下划线和连字符")
+            raise ValueError(messages.DOCUMENT_ID_INVALID)
 
         suffix = path.suffix.lower()
         content_hash = file_sha256(path)
@@ -225,9 +227,9 @@ class DocumentRecapPipeline:
             ):
                 try:
                     vision = ModelVisionTranscriber()
-                except Exception as exc:  # noqa: BLE001
+                except Exception:  # noqa: BLE001
                     logger.warning("local vision model initialization failed", exc_info=True)
-                    setup_warnings.append(f"视觉模型初始化失败：{exc}")
+                    setup_warnings.append(messages.VISION_MODEL_FAILED)
             parser = build_parser_registry(
                 vision=vision,
                 page_renderer=self._page_renderer,
@@ -236,10 +238,9 @@ class DocumentRecapPipeline:
             try:
                 parsed = await parser.parse(path, options=options)
             except Exception as exc:  # noqa: BLE001
-                if not isinstance(exc, LocalDocumentError):
-                    logger.warning("local document parsing failed", exc_info=True)
+                logger.warning("local document parsing failed", exc_info=True)
                 parsed = None
-                parse_error = str(exc)
+                parse_error = user_message(exc)
             if parsed is None:
                 parse_status = ProcessingStatus.FAILED
                 document = ParsedDocument(
@@ -288,7 +289,7 @@ class DocumentRecapPipeline:
             and (previous_record.recap_status == ProcessingStatus.READY or not options.allow_remote)
         )
         if parse_status == ProcessingStatus.FAILED:
-            recap = DocumentRecap(warnings=["文档解析失败，未生成 Recap"])
+            recap = DocumentRecap(warnings=[messages.RECAP_PARSE_FAILED])
             recap_status = ProcessingStatus.FAILED
         elif recap_cached:
             recap = previous_record.recap
@@ -304,11 +305,13 @@ class DocumentRecapPipeline:
                     max_chars=options.recap_chunk_chars,
                     on_progress=recap_progress,
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception:  # noqa: BLE001
                 logger.warning("local recap model initialization failed", exc_info=True)
-                recap = DocumentRecap(warnings=[f"Recap 模型初始化失败：{exc}"])
+                recap = DocumentRecap(warnings=[messages.RECAP_MODEL_FAILED])
                 if recap_progress:
-                    total = len(split_segments(document.primary_segments, options.recap_chunk_chars))
+                    total = len(
+                        split_segments(document.primary_segments, options.recap_chunk_chars)
+                    )
                     recap_progress(0, total)
             recap_status = (
                 ProcessingStatus.READY
@@ -319,7 +322,7 @@ class DocumentRecapPipeline:
                 else ProcessingStatus.PARTIAL
             )
         else:
-            recap = DocumentRecap(warnings=["远程 Recap 未启用"])
+            recap = DocumentRecap(warnings=[messages.RECAP_DISABLED])
             recap_status = ProcessingStatus.PARTIAL
 
         if parse_status == ProcessingStatus.FAILED:
@@ -374,16 +377,12 @@ class DocumentRecapPipeline:
             )
 
         if file_sha256(path) != content_hash:
-            raise LocalDocumentError("处理期间原文发生变化，已停止写入，请重试")
+            raise LocalDocumentError(messages.SOURCE_CHANGED)
 
         # Skipping catalog generation means "not built", not "ready".  The
         # first Web upload pass intentionally stops after parse so the document
         # becomes searchable before model-backed Recap/catalog enrichment.
-        catalog_status = (
-            ProcessingStatus.READY
-            if catalog_cached
-            else ProcessingStatus.PARTIAL
-        )
+        catalog_status = ProcessingStatus.READY if catalog_cached else ProcessingStatus.PARTIAL
         text_path, document_path = self._store.write(
             document,
             recap,
@@ -410,9 +409,9 @@ class DocumentRecapPipeline:
                     status=ProcessingStatus.READY,
                     processing_status=status,
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception:  # noqa: BLE001
                 logger.warning("local catalog update failed", exc_info=True)
-                catalog_warnings.append(f"逐级目录生成失败：{exc}")
+                catalog_warnings.append(messages.CATALOG_FAILED)
                 status = ProcessingStatus.PARTIAL
                 self._store.update_catalog_state(
                     document_id,

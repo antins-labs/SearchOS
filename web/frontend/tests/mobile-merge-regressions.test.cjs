@@ -9,7 +9,9 @@ const ts = require("typescript");
 const citations = {}, refs = {}, coverage = {};
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/socmRefs.ts"), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports: refs });
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/coverageTables.ts"), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports: coverage });
-vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/localCitations.ts"), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, { exports: citations });
+const localCopy = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/localCopy.ts"), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, { exports: localCopy });
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/localCitations.ts"), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, { exports: citations, require(name) { assert.equal(name, "./localCopy"); return localCopy; } });
 
 function find(node, predicate) {
   if (!node || typeof node !== "object") return undefined;

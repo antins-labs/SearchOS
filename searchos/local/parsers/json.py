@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from searchos.local import messages
+from searchos.local.errors import LocalDocumentError
 from searchos.local.models import (
     DocumentKind,
     JsonPathLocator,
@@ -14,7 +16,6 @@ from searchos.local.models import (
     PipelineOptions,
     RecordRangeLocator,
 )
-from searchos.local.errors import LocalDocumentError
 from searchos.local.parsers.base import ParserCapability
 from searchos.local.parsers.markdown import _decode_text
 
@@ -33,7 +34,7 @@ class JsonParser:
 
     def validate(self, path: Path) -> None:
         if not path.is_file():
-            raise ValueError("原文不存在或不是文件")
+            raise ValueError(messages.SOURCE_NOT_FOUND)
 
     async def parse(self, path: Path, *, options: PipelineOptions) -> ParseResult:
         text, encoding = _decode_text(path.read_bytes())
@@ -41,7 +42,7 @@ class JsonParser:
             value = json.loads(text)
         except json.JSONDecodeError as exc:
             raise LocalDocumentError(
-                f"JSON 格式错误（第 {exc.lineno} 行，第 {exc.colno} 列）：{exc.msg}"
+                messages.JSON_INVALID.format(line=exc.lineno, column=exc.colno, detail=exc.msg)
             ) from exc
 
         entries: list[tuple[str, Any]]
@@ -52,7 +53,7 @@ class JsonParser:
         else:
             entries = [("", value)]
         if len(entries) > options.max_records:
-            raise LocalDocumentError(f"JSON 顶层条目数超过限制 {options.max_records}")
+            raise LocalDocumentError(messages.RECORD_LIMIT.format(limit=options.max_records))
 
         segments = [
             ParsedSegment(
@@ -86,7 +87,7 @@ class JsonLinesParser:
 
     def validate(self, path: Path) -> None:
         if not path.is_file():
-            raise ValueError("原文不存在或不是文件")
+            raise ValueError(messages.SOURCE_NOT_FOUND)
 
     async def parse(self, path: Path, *, options: PipelineOptions) -> ParseResult:
         text, encoding = _decode_text(path.read_bytes())
@@ -97,18 +98,19 @@ class JsonLinesParser:
                 continue
             record_number += 1
             if record_number > options.max_records:
-                raise LocalDocumentError(f"JSONL 逻辑记录数超过限制 {options.max_records}")
+                raise LocalDocumentError(messages.RECORD_LIMIT.format(limit=options.max_records))
             try:
                 value = json.loads(line)
             except json.JSONDecodeError as exc:
                 raise LocalDocumentError(
-                    f"JSONL 第 {record_number} 条记录（物理行 {line_number}）格式错误："
-                    f"{exc.msg}"
+                    messages.JSONL_INVALID.format(
+                        record=record_number, line=line_number, detail=exc.msg
+                    )
                 ) from exc
             segments.append(
                 ParsedSegment(
                     id=f"JR{record_number}",
-                    title=f"JSONL 记录 {record_number}",
+                    title=messages.JSONL_RECORD_TITLE.format(record=record_number),
                     text=json.dumps(value, ensure_ascii=False, indent=2),
                     source_locators=[
                         RecordRangeLocator(

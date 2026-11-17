@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from searchos.local import messages
 from searchos.local.errors import UnsupportedDocumentError
 from searchos.local.parsers.base import DocumentParser, ParserCapability
 
@@ -18,16 +19,16 @@ class ParserRegistry:
         for extension in parser.capability.extensions:
             normalized = extension.lower()
             if not normalized.startswith("."):
-                raise ValueError(f"解析器扩展名必须以点开头：{extension}")
+                raise ValueError(messages.EXTENSION_INVALID.format(extension=extension))
             if normalized in self._by_extension:
-                raise ValueError(f"解析器扩展名重复注册：{normalized}")
+                raise ValueError(messages.EXTENSION_DUPLICATE.format(extension=normalized))
             self._by_extension[normalized] = parser
 
     def resolve(self, path: Path) -> DocumentParser:
         suffix = path.suffix.lower()
         parser = self._by_extension.get(suffix)
         if parser is None:
-            raise UnsupportedDocumentError(f"UNSUPPORTED_FORMAT：{suffix or '(无扩展名)'}")
+            raise UnsupportedDocumentError(f"UNSUPPORTED_FORMAT：{suffix or messages.NO_EXTENSION}")
         parser.validate(path)
         return parser
 

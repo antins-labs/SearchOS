@@ -1,5 +1,6 @@
 """Local document parsing and LLM recap pipeline."""
 
+from searchos.local.indexing import DocumentRecapPipeline
 from searchos.local.models import (
     DocumentKind,
     DocumentRecap,
@@ -7,7 +8,6 @@ from searchos.local.models import (
     PipelineOptions,
     ProcessResult,
 )
-from searchos.local.pipeline import DocumentRecapPipeline
 
 __all__ = [
     "DocumentKind",

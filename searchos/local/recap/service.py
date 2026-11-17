@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections.abc import Callable
 from typing import Any, Protocol
 
 from pydantic import BaseModel, Field, ValidationError
 
-from searchos.local.errors import RecapValidationError
+from searchos.local import messages
+from searchos.local.errors import RecapValidationError, user_message
 from searchos.local.models import (
     DocumentRecap,
     LineRangeLocator,
@@ -19,14 +21,16 @@ from searchos.local.models import (
     SourceLocation,
 )
 from searchos.local.parsers.vision import _message_text
-from searchos.local.reader.references import normalize_locators
-from searchos.local.recap.prompts import (
+from searchos.local.prompts.recap import (
     SYSTEM_PROMPT,
     build_document_prompt,
     build_section_prompt,
     build_single_segment_prompt,
 )
+from searchos.local.refs import normalize_locators
 from searchos.utils.json_extract import extract_json_object
+
+logger = logging.getLogger(__name__)
 
 
 class RecapClient(Protocol):
@@ -68,7 +72,7 @@ class ModelRecapClient:
         )
         payload = extract_json_object(_message_text(response))
         if payload is None:
-            raise RecapValidationError("模型没有返回可解析的 JSON 对象")
+            raise RecapValidationError(messages.MODEL_JSON_INVALID)
         return payload
 
     async def summarize_segments(self, segments: list[ParsedSegment]) -> dict[str, Any]:
@@ -81,7 +85,7 @@ class ModelRecapClient:
         payload = await self._invoke_json(build_document_prompt(sections))
         summary = payload.get("summary")
         if not isinstance(summary, str) or not summary.strip():
-            raise RecapValidationError("文件级 Recap 缺少非空 summary")
+            raise RecapValidationError(messages.DOCUMENT_SUMMARY_EMPTY)
         return summary.strip()
 
 
@@ -186,7 +190,7 @@ def _validated_sections(
     try:
         model_sections = _ModelSections.model_validate(payload).sections
     except ValidationError as exc:
-        raise RecapValidationError(f"章节 Recap 格式错误：{exc}") from exc
+        raise RecapValidationError(messages.SECTION_RESPONSE_INVALID) from exc
 
     by_id = {segment.id: segment for segment in segments}
     order = {segment.id: index for index, segment in enumerate(segments)}
@@ -194,13 +198,15 @@ def _validated_sections(
     output: list[SectionRecap] = []
     for item in model_sections:
         if len(item.segment_ids) != len(set(item.segment_ids)):
-            raise RecapValidationError("同一章节重复引用了 segment_id")
+            raise RecapValidationError(messages.SECTION_DUPLICATE_SEGMENTS)
         unknown = set(item.segment_ids) - set(by_id)
         if unknown:
-            raise RecapValidationError(f"章节引用未知 segment_id：{sorted(unknown)}")
+            raise RecapValidationError(
+                messages.SECTION_UNKNOWN_SEGMENTS.format(segments=sorted(unknown))
+            )
         positions = sorted(order[segment_id] for segment_id in item.segment_ids)
         if positions != list(range(positions[0], positions[-1] + 1)):
-            raise RecapValidationError("章节合并了不连续的文档片段")
+            raise RecapValidationError(messages.SECTION_DISCONTINUOUS)
         overlap = seen.intersection(item.segment_ids)
         overlap_is_page_boundary = overlap and all(
             by_id[segment_id].location is not None
@@ -209,7 +215,9 @@ def _validated_sections(
             for segment_id in overlap
         )
         if overlap and not overlap_is_page_boundary:
-            raise RecapValidationError(f"segment_id 被多个章节引用：{sorted(overlap)}")
+            raise RecapValidationError(
+                messages.SECTION_OVERLAPPING.format(segments=sorted(overlap))
+            )
         seen.update(item.segment_ids)
         source_segments = [by_id[segment_id] for segment_id in item.segment_ids]
         source_segments.sort(key=lambda value: order[value.id])
@@ -219,7 +227,7 @@ def _validated_sections(
             concrete_locations = [value for value in legacy_locations if value is not None]
             kind = concrete_locations[0].kind
             if any(value.kind != kind for value in concrete_locations):
-                raise RecapValidationError("一个章节不能混合行号和页码位置")
+                raise RecapValidationError(messages.SECTION_MIXED_LOCATIONS)
             location = SourceLocation(
                 kind=kind,
                 start=min(value.start for value in concrete_locations),
@@ -228,9 +236,9 @@ def _validated_sections(
         title = item.title.strip()
         source_titles = {value.title for value in source_segments if value.title_source == "source"}
         if len(source_titles) > 1:
-            raise RecapValidationError("章节合并了不同的原文章节标题")
+            raise RecapValidationError(messages.SECTION_MIXED_TITLES)
         if source_titles and any(value.title_source == "generated" for value in source_segments):
-            raise RecapValidationError("章节混合了原文章节与生成片段")
+            raise RecapValidationError(messages.SECTION_MIXED_BOUNDARIES)
         if len(source_titles) == 1:
             title = next(iter(source_titles))
         source_locators = []
@@ -254,7 +262,9 @@ def _validated_sections(
         )
     missing = set(by_id) - seen
     if missing:
-        raise RecapValidationError(f"章节 Recap 遗漏 segment_id：{sorted(missing)}")
+        raise RecapValidationError(
+            messages.SECTION_MISSING_SEGMENTS.format(segments=sorted(missing))
+        )
     return output
 
 
@@ -271,7 +281,7 @@ async def _summarize_single_segment(
     try:
         item = _ModelSingleSection.model_validate(payload)
     except ValidationError as exc:
-        raise RecapValidationError(f"单片段 Recap 格式错误：{exc}") from exc
+        raise RecapValidationError(messages.SINGLE_SECTION_RESPONSE_INVALID) from exc
     return _validated_sections(
         {
             "sections": [
@@ -329,7 +339,12 @@ class RecapService:
                 try:
                     sections.extend(await _summarize_single_segment(self._client, batch[0]))
                 except Exception as exc:
-                    warnings.append(f"第 {batch_number} 批章节 Recap 失败：{exc}")
+                    logger.warning("local section recap failed", exc_info=True)
+                    warnings.append(
+                        messages.SECTION_BATCH_FAILED.format(
+                            batch=batch_number, detail=user_message(exc)
+                        )
+                    )
             else:
                 try:
                     payload = await self._client.summarize_segments(batch)
@@ -341,7 +356,12 @@ class RecapService:
                             sections.extend(part)
                             report_progress(part)
                         except Exception as exc:
-                            warnings.append(f"片段 {segment.id} 章节 Recap 失败：{exc}")
+                            logger.warning("local segment recap failed", exc_info=True)
+                            warnings.append(
+                                messages.SECTION_RECAP_FAILED.format(
+                                    segment=segment.id, detail=user_message(exc)
+                                )
+                            )
             results[batch_number] = sections, warnings
             report_progress(sections)
 
@@ -365,7 +385,8 @@ class RecapService:
             try:
                 summary = await self._client.summarize_document(sections)
             except Exception as exc:  # noqa: BLE001
-                warnings.append(f"文件级 Recap 失败：{exc}")
+                logger.warning("local document recap failed", exc_info=True)
+                warnings.append(messages.DOCUMENT_RECAP_FAILED.format(detail=user_message(exc)))
         return DocumentRecap(summary=summary, sections=sections, warnings=warnings)
 
 

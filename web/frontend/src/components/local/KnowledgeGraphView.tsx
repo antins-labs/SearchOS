@@ -1,5 +1,7 @@
 "use client";
 
+import { localCopy as copy } from "@/lib/localCopy";
+
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 import { FolderOpen, LibraryBig, Layers, LocateFixed, Minus, Plus } from "lucide-react";
 
@@ -298,24 +300,24 @@ export default function KnowledgeGraphView({
   };
 
   if (layout.nodes.length === 0) {
-    return <div className="grid h-full min-h-80 place-items-center text-[13px] text-ink-faint">没有匹配的索引节点</div>;
+    return <div className="grid h-full min-h-80 place-items-center text-[13px] text-ink-faint">{copy.empty.search}</div>;
   }
 
   return (
     <div className="relative h-full min-h-[28rem] overflow-hidden bg-paper">
       <div className="absolute right-4 top-4 z-10 flex items-center rounded-lg border border-line bg-surface p-1 shadow-sm">
-        {(openedGroupIds.size > 0 || expandedGroupIds.size > 0) && <button type="button" onClick={collapseOverview} className="mr-1 flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] text-ink-dim hover:bg-surface-2" aria-label="收起全部文档堆"><Layers size={13} />收起</button>}
-        <button type="button" onClick={() => changeScale(scale / 1.2)} className="rounded-md p-1.5 text-ink-dim hover:bg-surface-2" aria-label="缩小图"><Minus size={14} /></button>
+        {(openedGroupIds.size > 0 || expandedGroupIds.size > 0) && <button type="button" onClick={collapseOverview} className="mr-1 flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] text-ink-dim hover:bg-surface-2" aria-label={copy.actions.collapseStacks}><Layers size={13} />{copy.actions.collapse}</button>}
+        <button type="button" onClick={() => changeScale(scale / 1.2)} className="rounded-md p-1.5 text-ink-dim hover:bg-surface-2" aria-label={copy.actions.zoomOut}><Minus size={14} /></button>
         <span className="w-11 text-center text-[11px] tabular-nums text-ink-faint">{Math.round(scale * 100)}%</span>
-        <button type="button" onClick={() => changeScale(scale * 1.2)} className="rounded-md p-1.5 text-ink-dim hover:bg-surface-2" aria-label="放大图"><Plus size={14} /></button>
-        <button type="button" onClick={resetView} className="ml-1 rounded-md border-l border-line p-1.5 text-ink-dim hover:bg-surface-2" aria-label="复位图"><LocateFixed size={14} /></button>
+        <button type="button" onClick={() => changeScale(scale * 1.2)} className="rounded-md p-1.5 text-ink-dim hover:bg-surface-2" aria-label={copy.actions.zoomIn}><Plus size={14} /></button>
+        <button type="button" onClick={resetView} className="ml-1 rounded-md border-l border-line p-1.5 text-ink-dim hover:bg-surface-2" aria-label={copy.actions.resetView}><LocateFixed size={14} /></button>
       </div>
       <svg
         ref={svgRef}
         className="h-full w-full cursor-grab active:cursor-grabbing"
         viewBox={`0 0 ${viewport.width} ${viewport.height}`}
         role="group"
-        aria-label={`知识库索引图，共 ${layout.nodes.filter((node) => !node.hidden).length} 个节点、${layout.edges.length} 条关系`}
+        aria-label={copy.count.graph(layout.nodes.filter((node) => !node.hidden).length, layout.edges.length)}
         style={{ touchAction: "none" }}
         onPointerDown={beginPan}
         onPointerMove={movePan}
@@ -366,7 +368,7 @@ export default function KnowledgeGraphView({
                   key={`delete-${edge.source}-${edge.target}-${index}`}
                   role="button"
                   tabIndex={0}
-                  aria-label={`删除 ${edge.sourceNode.label} 与 ${edge.targetNode.label} 的关系`}
+                  aria-label={copy.relation(edge.sourceNode.label, edge.targetNode.label)}
                   transform={`translate(${x} ${y})`}
                   className="cursor-pointer outline-none"
                   onPointerDown={(event) => event.stopPropagation()}
@@ -381,7 +383,7 @@ export default function KnowledgeGraphView({
                     }
                   }}
                 >
-                  <title>删除这条分类关系</title>
+                  <title>{copy.actions.removeRelation}</title>
                   <circle r={11} className="fill-surface stroke-err" strokeWidth={1.5} />
                   <path d="M -3 -3 L 3 3 M 3 -3 L -3 3" className="stroke-err" strokeWidth={1.5} strokeLinecap="round" />
                 </g>
@@ -415,7 +417,7 @@ export default function KnowledgeGraphView({
                 aria-expanded={node.stack ? false : node.node_type === "subindex" ? openedGroupIds.has(node.id) : undefined}
                 role="button"
                 tabIndex={node.hidden ? -1 : 0}
-                aria-label={node.stack ? `文档堆：${node.stack.count} 份文档，点击展开` : `${node.node_type === "index" ? "总索引" : node.node_type === "subindex" ? "主题" : "文档"}：${node.label}`}
+                aria-label={node.stack ? copy.toggleGroup(false, copy.count.documents(node.stack.count)) : copy.node(node.node_type, node.label)}
                 transform={`translate(${nodeX - node.width / 2} ${nodeY - node.height / 2})`}
                 className={`knowledge-node ${node.node_type === "document" && !node.stack ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} outline-none`}
                 style={{ pointerEvents: node.hidden ? "none" : undefined }}
@@ -448,7 +450,7 @@ export default function KnowledgeGraphView({
                   }
                 }}
               >
-                <title>{node.stack ? `${node.stack.count} 份文档，点击展开` : `${node.node_type === "index" ? "总索引" : node.node_type === "subindex" ? "主题" : "文档"}：${node.label}`}</title>
+                <title>{node.stack ? copy.toggleGroup(false, copy.count.documents(node.stack.count)) : copy.node(node.node_type, node.label)}</title>
                 {node.stack && <>
                   <rect x={10} y={10} width={node.width} height={node.height} rx={12} className="fill-surface stroke-line opacity-45" />
                   <rect x={5} y={5} width={node.width} height={node.height} rx={12} className="fill-surface stroke-line opacity-70" />
@@ -464,17 +466,17 @@ export default function KnowledgeGraphView({
                   <rect x={14} y={17} width={38} height={42} rx={9} className="knowledge-node-icon-bg" />
                   <NodeIcon x={22} y={26} width={22} height={22} strokeWidth={1.6} className="knowledge-node-icon" />
                   <text x={64} y={28} className="knowledge-node-caption fill-ink-faint text-[11px]" letterSpacing="0.5">
-                    {node.node_type === "index" ? "知识库 / 总目录" : node.node_type === "subindex" ? "主题目录" : node.stack ? "文档集合" : `${appearance.label} · ${appearance.description}`}
+                    {node.node_type === "index" ? copy.library.root : node.node_type === "subindex" ? copy.library.topicOutline : node.stack ? copy.graph.stack : `${appearance.label} · ${appearance.description}`}
                   </text>
                   <text x={64} y={49} className="knowledge-node-title fill-ink text-[14px] font-semibold">
-                    {node.stack ? `${node.stack.count} 份文档` : trimLabel(node.label, node.node_type === "document" ? 15 : 13)}
+                    {node.stack ? copy.count.documents(node.stack.count) : trimLabel(node.label, node.node_type === "document" ? 15 : 13)}
                   </text>
                   <path d={`M 14 68 H ${node.width - 14}`} className="stroke-line" />
                   <text x={16} y={85} className="knowledge-node-caption fill-ink-faint text-[11px]">
                     {node.node_type === "index" ? trimLabel(node.summary, 22)
-                      : node.node_type === "subindex" ? `${node.document_count ?? 0} 份文档 · ${openedGroupIds.has(node.id) ? "点击收起" : "点击展开"}`
-                      : node.stack ? "点击展开文档堆"
-                      : node.catalog_status === "ready" ? "已编目" : node.catalog_status === "failed" ? "编目失败" : "等待编目"}
+                      : node.node_type === "subindex" ? copy.toggleGroup(openedGroupIds.has(node.id), copy.count.documents(node.document_count ?? 0))
+                      : node.stack ? copy.actions.expandStack
+                      : node.catalog_status === "ready" ? copy.status.catalogReady : node.catalog_status === "failed" ? copy.status.catalogFailed : copy.status.catalogPending}
                   </text>
                   {node.node_type === "document" && !node.stack && <circle cx={node.width - 18} cy={81} r={3} className={statusClass} />}
                 </g>
@@ -484,11 +486,11 @@ export default function KnowledgeGraphView({
         </g>
       </svg>
       <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-3 rounded-lg bg-paper/90 px-2.5 py-1.5 text-[11px] text-ink-faint backdrop-blur-sm">
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-accent" />索引/主题</span>
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-ok" />已编目</span>
-        <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-warn" />处理中</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-accent" />{copy.graph.legendTopics}</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-ok" />{copy.status.catalogReady}</span>
+        <span><i className="mr-1 inline-block h-2 w-2 rounded-full bg-warn" />{copy.status.running}</span>
       </div>
-      {documentDrag && <div className="pointer-events-none absolute bottom-3 right-3 rounded-lg border border-accent bg-paper/95 px-3 py-2 text-[11px] text-ink-dim shadow-sm">拖到主题以添加关联；拖到总索引以移除全部关系</div>}
+      {documentDrag && <div className="pointer-events-none absolute bottom-3 right-3 rounded-lg border border-accent bg-paper/95 px-3 py-2 text-[11px] text-ink-dim shadow-sm">{copy.graph.dragTarget}</div>}
     </div>
   );
 }

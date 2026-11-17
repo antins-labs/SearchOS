@@ -5,9 +5,9 @@ import logging
 from pathlib import Path
 
 from api.deps import LOCAL_DATA_ROOT
-from searchos.local.index.catalog import CatalogMarkdownStore, CatalogService, ModelCatalogClient
-from searchos.local.index.locks import AsyncAdvisoryLock
+from searchos.local.catalog import CatalogMarkdownStore, CatalogService, ModelCatalogClient
 from searchos.local.library import LocalLibraryService
+from searchos.local.storage.files import AsyncAdvisoryLock
 
 logger = logging.getLogger(__name__)
 _tasks: dict[str, asyncio.Task] = {}
@@ -25,7 +25,7 @@ def schedule_topic_recaps(root: Path, *, retry_failed: bool = False) -> None:
                 retry_failed=retry_failed
             )
         except Exception as exc:
-            logger.exception("主题摘要更新失败：%s", root)
+            logger.exception("local topic recap failed: %s", root)
             async with AsyncAdvisoryLock(root / ".locks" / "catalog-transaction.lock"):
                 store = CatalogMarkdownStore(root)
                 state = store.read_state()

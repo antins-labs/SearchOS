@@ -1,15 +1,13 @@
 "use client";
 
+import { localCopy as copy } from "@/lib/localCopy";
+
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { AlertTriangle, Ban, Check, ChevronDown, FileText, FileUp, Globe2, Loader2, Paperclip, RotateCcw, ScanText, Search } from "lucide-react";
 
-import type { LocalLibraryController } from "@/hooks/useLocalLibrary";
+import { bytesLabel, uploadStatusLabel, documentStatusLabel } from "@/lib/localPresentation";
 
-function bytesLabel(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KiB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MiB`;
-}
+import type { LocalLibraryController } from "@/hooks/useLocalLibrary";
 
 interface Props {
   controller: LocalLibraryController;
@@ -73,7 +71,7 @@ export default function LocalSourceControl({ controller, open, onOpenChange }: P
             onClick={() => chooseMode("web")}
             className={`flex items-center gap-1 rounded-md px-2 py-1 transition-colors ${controller.mode === "web" ? "bg-clay text-accent-ink" : "text-ink-faint hover:text-ink-dim"}`}
           >
-            <Globe2 size={12} />Web
+            <Globe2 size={12} />{copy.source.web}
           </button>
           <button
             type="button"
@@ -81,7 +79,7 @@ export default function LocalSourceControl({ controller, open, onOpenChange }: P
             onClick={() => chooseMode("local")}
             className={`flex items-center gap-1 rounded-md px-2 py-1 transition-colors ${controller.mode === "local" ? "bg-clay text-accent-ink" : "text-ink-faint hover:text-ink-dim"}`}
           >
-            <Search size={12} />Local
+            <Search size={12} />{copy.source.local}
           </button>
           <button
             type="button"
@@ -89,7 +87,7 @@ export default function LocalSourceControl({ controller, open, onOpenChange }: P
             onClick={() => chooseMode("hybrid")}
             className={`flex items-center gap-1 rounded-md px-2 py-1 transition-colors ${controller.mode === "hybrid" ? "bg-clay text-accent-ink" : "text-ink-faint hover:text-ink-dim"}`}
           >
-            <Globe2 size={12} />Hybrid
+            <Globe2 size={12} />{copy.source.hybrid}
           </button>
         </div>
         <button
@@ -99,7 +97,7 @@ export default function LocalSourceControl({ controller, open, onOpenChange }: P
           className="flex items-center gap-1 rounded-lg border border-line bg-surface px-2 py-1 text-ink-dim transition-colors hover:border-line-strong hover:text-ink disabled:opacity-50"
         >
           {controller.uploading ? <Loader2 className="animate-spin" size={12} /> : <Paperclip size={12} />}
-          添加文件
+          {copy.actions.addDocument}
         </button>
         <input
           ref={inputRef}
@@ -128,47 +126,29 @@ export default function LocalSourceControl({ controller, open, onOpenChange }: P
             className="flex min-w-0 items-center gap-1 rounded-lg px-2 py-1 text-ink-dim hover:bg-surface-2"
           >
             <FileText size={12} />
-            <span>{selectedCount > 0 ? `已选 ${selectedCount} 份` : "选择资料"}</span>
+            <span>{selectedCount > 0 ? copy.count.selected(selectedCount) : copy.source.select}</span>
             <ChevronDown className={`transition-transform ${open ? "rotate-180" : ""}`} size={12} />
           </button>
         )}
         {controller.mode !== "web" && (
-          <span className="text-ink-faint">{selectedCount > 0 ? "仅检索所选文档" : controller.libraryId ? "按问题检索当前知识库" : "暂无本地知识库"}</span>
+          <span className="text-ink-faint">{selectedCount > 0 ? copy.source.selectedScope : controller.libraryId ? copy.source.libraryScope : copy.source.noLibrary}</span>
         )}
       </div>
 
       {controller.mode === "hybrid" && (
-        <p className="mt-1.5 text-ink-faint">自主安排本地探索与联网检索；未选文档时可探索当前知识库，选择文档可限定范围。</p>
-      )}
-      {controller.mode === "local" && selectedCount === 0 && !open && (
-        <p className="mt-1.5 text-ink-faint">未选文档时检索整个当前知识库；选择文档可限定问答范围。</p>
+        <p className="mt-1.5 text-ink-faint">{copy.source.hybridHint}</p>
       )}
       {controller.mode !== "web" && open && (
-        <div id={panelId} aria-label="选择本地资料" className="surface rise-in mt-2 max-h-80 overflow-y-auto rounded-xl p-2.5 shadow-lg">
+        <div id={panelId} aria-label={copy.source.selection} className="surface rise-in mt-2 max-h-80 overflow-y-auto rounded-xl p-2.5 shadow-lg">
           {controller.uploads.length > 0 && (
-            <section className="mb-2 rounded-lg border border-line bg-paper/60 p-2" aria-label="上传与后台索引任务">
+            <section className="mb-2 rounded-lg border border-line bg-paper/60 p-2" aria-label={copy.source.uploads}>
               <div className="mb-1.5 flex items-center justify-between gap-2 px-1">
-                <span className="font-medium text-ink">上传与后台索引</span>
-                {controller.uploading && <span className="text-ink-faint">解析完成即可问答</span>}
+                <span className="font-medium text-ink">{copy.source.uploads}</span>
               </div>
               <div className="space-y-1.5">
                 {controller.uploads.slice(0, 6).map((item) => {
                   const active = item.status === "uploading" || item.status === "parsing" || item.status === "indexing";
-                  const statusLabel = item.status === "queued"
-                    ? "等待上传"
-                    : item.status === "uploading"
-                    ? `上传 ${item.progress}%`
-                    : item.status === "parsing"
-                      ? "正在解析正文"
-                      : item.status === "indexing"
-                        ? "可问答 · 后台生成 Recap/目录"
-                      : item.status === "ready"
-                        ? item.cached ? "可问答 · 已复用索引" : "可问答 · 索引完成"
-                        : item.status === "index_error"
-                          ? "可问答 · 后台索引失败"
-                          : item.status === "index_cancelled"
-                            ? "可问答 · 后台索引已取消"
-                          : "上传或解析失败";
+                  const statusLabel = uploadStatusLabel(item);
                   return (
                     <div key={item.id} className="rounded-md bg-surface px-2 py-1.5">
                       <div className="flex items-center gap-2">
@@ -220,7 +200,7 @@ export default function LocalSourceControl({ controller, open, onOpenChange }: P
                 <input
                   value={filter}
                   onChange={(event) => setFilter(event.target.value)}
-                  placeholder="搜索资料"
+                  placeholder={copy.source.search}
                   className="min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-ink-faint"
                 />
               </label>
@@ -230,45 +210,31 @@ export default function LocalSourceControl({ controller, open, onOpenChange }: P
                 disabled={searchableDocuments.length === 0 || searchableDocuments.every((document) => controller.selectedDocumentIds.includes(document.document_id))}
                 onClick={() => searchableDocuments.forEach((document) => controller.setDocumentSelected(document.document_id, true))}
                 className="rounded-md px-1.5 py-1 text-accent-ink hover:bg-clay disabled:opacity-35"
-              >全选可用</button>
+              >{copy.actions.selectAll}</button>
               <button
                 type="button"
                 disabled={selectedCount === 0}
                 onClick={() => controller.selectedDocumentIds.forEach((documentId) => controller.setDocumentSelected(documentId, false))}
                 className="rounded-md px-1.5 py-1 text-ink-faint hover:bg-surface-2 hover:text-ink disabled:opacity-35"
-              >清空</button>
+              >{copy.actions.clear}</button>
             </div>
           )}
           {controller.loading && controller.documents.length === 0 ? (
-            <div className="flex items-center gap-2 px-1 py-3 text-ink-faint"><Loader2 className="animate-spin" size={13} />读取资料…</div>
+            <div className="flex items-center gap-2 px-1 py-3 text-ink-faint"><Loader2 className="animate-spin" size={13} />{copy.source.loading}</div>
           ) : controller.documents.length === 0 ? (
             <button type="button" onClick={() => inputRef.current?.click()} className="w-full rounded-lg border border-dashed border-line px-3 py-5 text-center text-ink-faint hover:text-ink-dim">
-              还没有资料，添加一份文档
+              {copy.empty.document}
             </button>
           ) : filteredDocuments.length === 0 ? (
             <div className="rounded-lg border border-dashed border-line px-3 py-5 text-center text-ink-faint">
-              没有匹配的资料
+              {copy.empty.search}
             </div>
           ) : (
             <div className="space-y-1">
               {filteredDocuments.map((document) => {
                 const selected = controller.selectedDocumentIds.includes(document.document_id);
                 const jobStatus = document.index_job?.status;
-                const documentStatus = !document.searchable
-                  ? document.parse_status === "failed"
-                    ? "解析失败"
-                    : document.parse_status === "pending"
-                      ? "已保存 · 未索引"
-                      : "部分可用"
-                  : jobStatus === "queued" || jobStatus === "running"
-                    ? "可问答 · 索引中"
-                    : jobStatus === "failed"
-                      ? "可问答 · 索引失败"
-                      : jobStatus === "cancelled"
-                        ? "可问答 · 索引已取消"
-                      : document.catalog_status === "ready"
-                        ? "可问答 · 已编目"
-                        : "可问答";
+                const documentStatus = documentStatusLabel(document);
                 const jobId = document.index_job?.job_id;
                 const jobActionPending = Boolean(jobId && controller.jobActionIds.includes(jobId));
                 const canCancel = jobStatus === "queued" || jobStatus === "running";
@@ -297,10 +263,10 @@ export default function LocalSourceControl({ controller, open, onOpenChange }: P
                         disabled={jobActionPending}
                         onClick={() => { void (canCancel ? controller.cancelIndexJob(jobId) : controller.retryIndexJob(jobId)); }}
                         className="mr-1 flex shrink-0 items-center gap-1 rounded-md border border-line px-1.5 py-1 text-[11px] text-ink-dim hover:bg-paper disabled:opacity-50"
-                        title={canCancel ? "取消 Recap/目录后台作业" : "重试 Recap/目录后台作业"}
+                        title={canCancel ? copy.actions.cancelIndex : copy.actions.retryIndex}
                       >
                         {jobActionPending ? <Loader2 className="animate-spin" size={11} /> : canCancel ? <Ban size={11} /> : <RotateCcw size={11} />}
-                        {canCancel ? "取消" : "重试"}
+                        {canCancel ? copy.actions.cancel : copy.actions.retry}
                       </button>
                     )}
                   </div>

@@ -81,6 +81,17 @@ export interface LocalIndexJob {
   recap_segments_total: number;
 }
 
+export interface LocalUploadItem {
+  id: string;
+  name: string;
+  sizeBytes: number;
+  progress: number;
+  documentId?: string;
+  status: "queued" | "uploading" | "parsing" | "indexing" | "ready" | "index_error" | "index_cancelled" | "error";
+  error?: string;
+  cached?: boolean;
+}
+
 export interface NetworkImportJob {
   job_id: string;
   idempotency_key: string;

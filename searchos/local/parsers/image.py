@@ -5,9 +5,12 @@ from __future__ import annotations
 import asyncio
 import base64
 import io
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 
+from searchos.local import messages
+from searchos.local.errors import LocalDocumentError, MissingDependencyError, user_message
 from searchos.local.models import (
     DocumentKind,
     ImageRegionLocator,
@@ -15,9 +18,10 @@ from searchos.local.models import (
     ParseResult,
     PipelineOptions,
 )
-from searchos.local.errors import LocalDocumentError, MissingDependencyError
 from searchos.local.parsers.base import ParserCapability
 from searchos.local.parsers.vision import VisionTranscriber
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,21 +36,19 @@ def _load_frames(path: Path, *, options: PipelineOptions) -> list[_ImageFrame]:
     try:
         from PIL import Image, ImageOps
     except ImportError as exc:
-        raise MissingDependencyError(
-            "图片处理需要 local-docs 依赖；请安装 searchos[local-docs]"
-        ) from exc
+        raise MissingDependencyError(messages.LOCAL_DOCS_REQUIRED) from exc
 
     try:
         source = Image.open(path)
     except Exception as exc:  # noqa: BLE001
-        raise LocalDocumentError(f"无法打开图片：{exc}") from exc
+        raise LocalDocumentError(messages.IMAGE_OPEN_FAILED.format(detail=exc)) from exc
 
     frames: list[_ImageFrame] = []
     try:
         frame_count = int(getattr(source, "n_frames", 1))
         if frame_count > options.max_image_frames:
             raise LocalDocumentError(
-                f"图片包含 {frame_count} 帧，超过限制 {options.max_image_frames} 帧"
+                messages.IMAGE_FRAME_LIMIT.format(count=frame_count, limit=options.max_image_frames)
             )
         for index in range(frame_count):
             source.seek(index)
@@ -54,8 +56,9 @@ def _load_frames(path: Path, *, options: PipelineOptions) -> list[_ImageFrame]:
             width, height = image.size
             if width * height > options.max_image_pixels:
                 raise LocalDocumentError(
-                    f"图片第 {index + 1} 帧包含 {width * height} 像素，"
-                    f"超过限制 {options.max_image_pixels}"
+                    messages.IMAGE_PIXEL_LIMIT.format(
+                        frame=index + 1, count=width * height, limit=options.max_image_pixels
+                    )
                 )
             if max(image.size) > options.pdf_max_dimension:
                 image.thumbnail(
@@ -92,7 +95,7 @@ class ImageParser:
 
     def validate(self, path: Path) -> None:
         if not path.is_file():
-            raise ValueError("原文不存在或不是文件")
+            raise ValueError(messages.SOURCE_NOT_FOUND)
 
     async def parse(self, path: Path, *, options: PipelineOptions) -> ParseResult:
         frames = await asyncio.to_thread(_load_frames, path, options=options)
@@ -102,7 +105,7 @@ class ImageParser:
                 kind=DocumentKind.IMAGE,
                 total_units=len(frames),
                 covered_units=0,
-                warnings=["图片没有文本层；未启用视觉模型，因此只登记来源而不生成正文"],
+                warnings=[messages.IMAGE_VISION_DISABLED],
                 parser_metadata={"frame_count": len(frames), "dimensions": dimensions},
             )
 
@@ -117,12 +120,15 @@ class ImageParser:
                         native_text="",
                     )
             except Exception as exc:  # noqa: BLE001
-                return f"Image:{frame.number} 视觉转录失败：{exc}"
+                logger.warning("local image transcription failed", exc_info=True)
+                return messages.IMAGE_VISION_FAILED.format(
+                    frame=frame.number, detail=user_message(exc, messages.RETRY_HINT)
+                )
             if not text.strip():
-                return f"Image:{frame.number} 视觉转录返回空内容"
+                return messages.IMAGE_VISION_EMPTY.format(frame=frame.number)
             return ParsedSegment(
                 id=f"I{frame.number}-vision",
-                title=f"图片第 {frame.number} 帧",
+                title=messages.IMAGE_FRAME_TITLE.format(frame=frame.number),
                 text=text.strip(),
                 source_locators=[ImageRegionLocator(frame=frame.number)],
                 extraction_method="vision_transcript",

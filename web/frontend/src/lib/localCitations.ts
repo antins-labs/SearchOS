@@ -1,4 +1,5 @@
 import type { EvidenceNode, WSEvent } from "./types";
+import { localCopy as copy } from "./localCopy";
 
 export function evidenceSourceUrls(node: EvidenceNode): string[] {
   const sources = [node.source, ...(node.source_urls ?? [])];
@@ -87,7 +88,7 @@ export function remarkLocalCitations(sourceLabels: Record<string, string> = {}) 
     const label = (url: string) => {
       if (sourceLabels[url]) return sourceLabels[url];
       if (!numbers.has(url)) numbers.set(url, numbers.size + 1);
-      return `查看原文 ${numbers.get(url)}`;
+      return copy.sourceLink(numbers.get(url));
     };
     const link = (url: string): CitationNode => ({
       type: "link", url, children: [{ type: "text", value: label(url) }],
@@ -140,7 +141,7 @@ export function repairLocalCitationLinks(markdown: string, sources: string[]): s
     const source = sources[Number(rawIndex) - 1];
     return source
       ? `[${label}](${source})`
-      : `${label}（来源不可用）`;
+      : copy.sourceUnavailable(label);
   });
 }
 

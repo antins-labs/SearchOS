@@ -16,7 +16,7 @@ from searchos.harness.routing import SearchRoute, select_route
 from searchos.harness.simple_search import run_simple_search
 from searchos.harness.steering import SteeringQueue
 from searchos.local.library import LocalLibraryService
-from searchos.local.reader.references import build_ref_id
+from searchos.local.refs import build_ref_id
 from searchos.socm import SearchState, WorkspaceManager
 from searchos.tools import search_state
 from tests.test_simple_search import OfflineModel, call

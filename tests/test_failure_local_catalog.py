@@ -11,7 +11,7 @@ from searchos.harness.middleware.models import TaskContext
 from searchos.harness.middleware.sensor.failure_recording_middleware import (
     FailureRecordingMiddleware,
 )
-from searchos.local.reader import tools
+from searchos.local.reader import session, tools
 from searchos.socm import SearchState
 from searchos.socm.failure_memory import post_mortem
 
@@ -37,7 +37,7 @@ async def test_real_local_catalog_failure_collection(
     state = SearchState(source_scope={"mode": "local", "index_root": str(root)})
     workspace = InMemoryEvidenceStore(state)
     middleware = FailureRecordingMiddleware(workspace, task=TaskContext(agent_id="local"))
-    token = tools._state_var.set(tools.LocalBrowserState(root=root))
+    token = session._state_var.set(session.LocalBrowserState(root=root))
     try:
         call = {"name": "local_catalog", "args": args, "id": "catalog", "type": "tool_call"}
 
@@ -53,7 +53,7 @@ async def test_real_local_catalog_failure_collection(
         if status is None:
             assert "outcome" not in result.artifact
     finally:
-        tools._state_var.reset(token)
+        session._state_var.reset(token)
     records = workspace.load_state().failure_memory.records
     assert len(records) == memory_count
     if records:
@@ -68,7 +68,7 @@ async def test_catalog_count_matches_returned_candidates(tmp_path):
     (tmp_path / "INDEX.md").write_text(
         "\n".join(f"history record {index}" for index in range(25)), encoding="utf-8"
     )
-    token = tools._state_var.set(tools.LocalBrowserState(root=tmp_path))
+    token = session._state_var.set(session.LocalBrowserState(root=tmp_path))
     try:
         result = await tools.local_catalog.ainvoke(
             {
@@ -77,14 +77,14 @@ async def test_catalog_count_matches_returned_candidates(tmp_path):
             }
         )
     finally:
-        tools._state_var.reset(token)
+        session._state_var.reset(token)
     assert result.artifact["outcome"]["result_count"] == 20
     assert "# Match 19" in result.content and "# Match 20" not in result.content
 
 
 @pytest.mark.asyncio
 async def test_missing_library_does_not_report_successful_empty_search(tmp_path):
-    token = tools._state_var.set(tools.LocalBrowserState(root=tmp_path / "missing"))
+    token = session._state_var.set(session.LocalBrowserState(root=tmp_path / "missing"))
     try:
         result = await tools.local_catalog.ainvoke(
             {
@@ -93,8 +93,10 @@ async def test_missing_library_does_not_report_successful_empty_search(tmp_path)
             }
         )
     finally:
-        tools._state_var.reset(token)
-    assert result.content.startswith("Error: 本地资料库不存在")
+        session._state_var.reset(token)
+    from searchos.local.messages import LIBRARY_NOT_FOUND_AT
+
+    assert result.content == LIBRARY_NOT_FOUND_AT.format(path=tmp_path / "missing")
     assert result.artifact["outcome"] == {"status": "error"}
 
 
@@ -116,7 +118,7 @@ async def test_empty_query_requires_searching_an_existing_catalog(
         SearchState(source_scope={"mode": "local", "index_root": str(tmp_path)})
     )
     middleware = FailureRecordingMiddleware(workspace, task=TaskContext(agent_id="local"))
-    token = tools._state_var.set(tools.LocalBrowserState(root=tmp_path))
+    token = session._state_var.set(session.LocalBrowserState(root=tmp_path))
     try:
         call = {"name": "local_catalog", "args": args, "id": "catalog", "type": "tool_call"}
 
@@ -125,7 +127,7 @@ async def test_empty_query_requires_searching_an_existing_catalog(
 
         result = await middleware.awrap_tool_call(SimpleNamespace(tool_call=call), handler)
     finally:
-        tools._state_var.reset(token)
+        session._state_var.reset(token)
     assert result.content == "No local catalog matches for: history"
     assert result.artifact["outcome"]["status"] == expected_status
     if expected_status == "success":
@@ -140,7 +142,7 @@ async def test_catalog_candidate_links_survive_bounded_review_and_require_real_r
     from pathlib import Path
 
     from searchos.local.library import LocalLibraryService
-    from searchos.local.reader.references import build_ref_id
+    from searchos.local.refs import build_ref_id
 
     service = LocalLibraryService(tmp_path / "data")
     library = service.create_library("Local sources")
@@ -158,7 +160,7 @@ async def test_catalog_candidate_links_survive_bounded_review_and_require_real_r
     (root / "INDEX.md").write_text(
         "needle " + "x" * 1500 + f"\nneedle [second candidate]({ref_id})\n", encoding="utf-8"
     )
-    token = tools._state_var.set(tools.LocalBrowserState(root=root))
+    token = session._state_var.set(session.LocalBrowserState(root=root))
     try:
         search_args = {"query": "needle"}
         query = await tools.local_catalog.ainvoke(
@@ -180,7 +182,7 @@ async def test_catalog_candidate_links_survive_bounded_review_and_require_real_r
             {"name": "local_open", "args": reading_args, "id": "read", "type": "tool_call"}
         )
     finally:
-        tools._state_var.reset(token)
+        session._state_var.reset(token)
     messages.extend([
         AIMessage(
             content="", tool_calls=[{"name": "local_open", "args": reading_args, "id": "read"}]

@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import re
 import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
+from searchos.local import messages
+from searchos.local.errors import LocalDocumentError, MissingDependencyError, user_message
 from searchos.local.models import (
     DocumentKind,
     LocationKind,
@@ -17,9 +20,10 @@ from searchos.local.models import (
     PipelineOptions,
     SourceLocation,
 )
-from searchos.local.errors import LocalDocumentError, MissingDependencyError
 from searchos.local.parsers.base import ParserCapability
 from searchos.local.parsers.vision import PageRenderer, PdfiumPageRenderer, VisionTranscriber
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -39,23 +43,23 @@ def _load_pdf_pages(
     try:
         from pypdf import PdfReader
     except ImportError as exc:
-        raise MissingDependencyError(
-            "PDF 处理需要 local-docs 依赖；请安装 searchos[local-docs]"
-        ) from exc
+        raise MissingDependencyError(messages.LOCAL_DOCS_REQUIRED) from exc
 
     try:
         reader = PdfReader(str(path))
     except Exception as exc:  # noqa: BLE001
-        raise LocalDocumentError(f"无法打开 PDF：{exc}") from exc
+        raise LocalDocumentError(messages.PDF_OPEN_FAILED.format(detail=exc)) from exc
     if reader.is_encrypted:
         try:
             unlocked = reader.decrypt("")
         except Exception as exc:  # noqa: BLE001
-            raise LocalDocumentError("PDF 已加密，需要密码，当前不能处理") from exc
+            raise LocalDocumentError(messages.PDF_ENCRYPTED) from exc
         if not unlocked:
-            raise LocalDocumentError("PDF 已加密，需要密码，当前不能处理")
+            raise LocalDocumentError(messages.PDF_ENCRYPTED)
     if len(reader.pages) > max_pages:
-        raise LocalDocumentError(f"PDF 共 {len(reader.pages)} 页，超过限制 {max_pages} 页")
+        raise LocalDocumentError(
+            messages.PDF_PAGE_LIMIT.format(count=len(reader.pages), limit=max_pages)
+        )
 
     pages: list[_PageInput] = []
     for index, page in enumerate(reader.pages):
@@ -89,8 +93,7 @@ def _text_quality(text: str) -> tuple[int, float]:
     if not visible:
         return 0, 0.0
     invalid = sum(
-        char == "\ufffd" or unicodedata.category(char) in {"Cc", "Cs"}
-        for char in visible
+        char == "\ufffd" or unicodedata.category(char) in {"Cc", "Cs"} for char in visible
     )
     return len(visible), 1.0 - invalid / len(visible)
 
@@ -153,7 +156,7 @@ class PdfParser:
 
     def validate(self, path: Path) -> None:
         if not path.is_file():
-            raise ValueError("原文不存在或不是文件")
+            raise ValueError(messages.SOURCE_NOT_FOUND)
 
     async def parse(self, path: Path, *, options: PipelineOptions) -> ParseResult:
         pages = await asyncio.to_thread(
@@ -176,7 +179,7 @@ class PdfParser:
             suffix = "native" if method == "native_text" else "vision"
             return ParsedSegment(
                 id=f"P{page.number}-{suffix}",
-                title=f"第 {page.number} 页",
+                title=messages.PAGE_TITLE.format(page=page.number),
                 text=_clean_text(text),
                 location=SourceLocation(
                     kind=LocationKind.PAGE,
@@ -191,16 +194,18 @@ class PdfParser:
 
         async def process(page: _PageInput) -> list[ParsedSegment]:
             if page.extraction_error:
-                warnings.append(f"P{page.number} 文本层提取失败：{page.extraction_error}")
+                warnings.append(
+                    messages.PDF_TEXT_FAILED.format(page=page.number, detail=page.extraction_error)
+                )
             needs_vision = page_needs_vision(page, options=options)
             native_chars, native_quality = _text_quality(page.text)
             native_usable = native_chars > 0 and native_quality >= 0.8
             if needs_vision:
                 if self._vision is None:
                     if not native_usable:
-                        warnings.append(f"P{page.number} 需要视觉转录，但远程模型未启用")
+                        warnings.append(messages.PDF_VISION_DISABLED.format(page=page.number))
                         return []
-                    warnings.append(f"P{page.number} 建议视觉处理，已回退到文本层")
+                    warnings.append(messages.PDF_TEXT_FALLBACK.format(page=page.number))
                     return [
                         segment(
                             page,
@@ -246,14 +251,23 @@ class PdfParser:
                             )
                             return output
                         elif not native_usable:
-                            warnings.append(f"P{page.number} 视觉转录返回空内容")
+                            warnings.append(messages.PDF_VISION_EMPTY.format(page=page.number))
                             return []
-                        warnings.append(f"P{page.number} 视觉转录返回空内容，已回退到文本层")
+                        warnings.append(messages.PDF_VISION_EMPTY_FALLBACK.format(page=page.number))
                     except Exception as exc:  # noqa: BLE001
+                        logger.warning("local PDF transcription failed", exc_info=True)
                         if not native_usable:
-                            warnings.append(f"P{page.number} 视觉转录失败：{exc}")
+                            warnings.append(
+                                messages.PDF_VISION_FAILED.format(
+                                    page=page.number, detail=user_message(exc, messages.RETRY_HINT)
+                                )
+                            )
                             return []
-                        warnings.append(f"P{page.number} 视觉转录失败，已回退到文本层：{exc}")
+                        warnings.append(
+                            messages.PDF_VISION_FAILED_FALLBACK.format(
+                                page=page.number, detail=user_message(exc, messages.RETRY_HINT)
+                            )
+                        )
                     return [
                         segment(
                             page,
@@ -263,7 +277,7 @@ class PdfParser:
                         )
                     ]
             if not page.text.strip():
-                warnings.append(f"P{page.number} 没有可用正文")
+                warnings.append(messages.PDF_NO_CONTENT.format(page=page.number))
                 return []
             return [
                 segment(

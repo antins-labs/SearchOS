@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from searchos.local import messages
 from searchos.local.models import (
     DocumentKind,
     LocationKind,
@@ -77,14 +78,14 @@ class MarkdownParser:
 
     def validate(self, path: Path) -> None:
         if not path.is_file():
-            raise ValueError("原文不存在或不是文件")
+            raise ValueError(messages.SOURCE_NOT_FOUND)
 
     async def parse(self, path: Path, *, options: PipelineOptions) -> ParseResult:
         del options
         text, encoding = _decode_text(path.read_bytes())
         lines = text.splitlines()
         kind = DocumentKind.TEXT if self._plain_text else DocumentKind.MARKDOWN
-        warnings = [] if "replacement" not in encoding else ["文本编码无法可靠识别，已替换非法字符"]
+        warnings = [] if "replacement" not in encoding else [messages.TEXT_ENCODING_REPLACED]
         if not lines:
             return ParseResult(kind=kind, total_units=0, covered_units=0, warnings=warnings)
 
@@ -92,7 +93,7 @@ class MarkdownParser:
         if not starts:
             segment = ParsedSegment(
                 id=f"L1-{len(lines)}",
-                title="全文",
+                title=messages.FULL_TEXT,
                 text="\n".join(lines),
                 location=SourceLocation(kind=LocationKind.LINE, start=1, end=len(lines)),
                 title_source="generated",
@@ -113,7 +114,7 @@ class MarkdownParser:
                 segments.append(
                     ParsedSegment(
                         id=f"L1-{end}",
-                        title="文档开头",
+                        title=messages.DOCUMENT_START,
                         text=preface,
                         location=SourceLocation(kind=LocationKind.LINE, start=1, end=end),
                         title_source="generated",

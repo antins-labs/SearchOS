@@ -1,5 +1,7 @@
 "use client";
 
+import { localCopy as copy } from "@/lib/localCopy";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, FileText, ListTree, Loader2 } from "lucide-react";
 
@@ -32,7 +34,7 @@ export default function DocumentIndexView({ libraryId, documentId }: Props) {
       return {
         ...current,
         [segmentId]: {
-          content: append ? previous?.content ?? "" : previous?.content ?? "",
+          content: previous?.content ?? "",
           nextOffset: previous?.nextOffset ?? null,
           loading: true,
         },
@@ -107,17 +109,17 @@ export default function DocumentIndexView({ libraryId, documentId }: Props) {
     return <div role="alert" className="grid min-h-0 flex-1 place-items-center p-6 text-[13px] text-err">{error}</div>;
   }
   if (!index) {
-    return <div className="grid min-h-0 flex-1 place-items-center text-[13px] text-ink-faint"><span className="flex items-center gap-2"><Loader2 className="animate-spin" size={14} />读取文档索引…</span></div>;
+    return <div className="grid min-h-0 flex-1 place-items-center text-[13px] text-ink-faint"><span className="flex items-center gap-2"><Loader2 className="animate-spin" size={14} />{copy.document.loadingOutline}</span></div>;
   }
 
   return (
     <div className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[320px_minmax(0,1fr)]">
-      <nav className="max-h-72 overflow-y-auto border-b border-line bg-surface/60 p-4 md:max-h-none md:border-b-0 md:border-r" aria-label="文档目录索引">
+      <nav className="max-h-72 overflow-y-auto border-b border-line bg-surface/60 p-4 md:max-h-none md:border-b-0 md:border-r" aria-label={copy.document.outline}>
         <div className="mb-3 flex items-center gap-2">
           <ListTree size={15} className="text-accent-ink" />
           <div>
-            <h2 className="text-[13px] font-medium text-ink">目录索引</h2>
-            <p className="text-[10px] text-ink-faint">{index.outline.length} 项 · 点击定位 segment</p>
+            <h2 className="text-[13px] font-medium text-ink">{copy.document.outline}</h2>
+            <p className="text-[10px] text-ink-faint">{copy.count.entries(index.outline.length)}</p>
           </div>
         </div>
         {index.summary && <p className="mb-3 rounded-lg bg-paper p-2.5 text-[11px] leading-5 text-ink-dim">{index.summary}</p>}
@@ -133,7 +135,7 @@ export default function DocumentIndexView({ libraryId, documentId }: Props) {
                 className={`w-full rounded-lg border px-2.5 py-2 text-left ${active ? "border-accent bg-clay" : "border-transparent hover:border-line hover:bg-paper"} disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 <span className="block text-[12px] font-medium text-ink">{entry.title || entry.location_label}</span>
-                <span className="mt-0.5 block text-[10px] text-ink-faint">{entry.location_label} · {entry.character_count.toLocaleString()} chars</span>
+                <span className="mt-0.5 block text-[10px] text-ink-faint">{entry.location_label} · {copy.count.characters(entry.character_count)}</span>
                 {entry.summary && <span className="mt-1 line-clamp-3 block text-[11px] leading-4 text-ink-dim">{entry.summary}</span>}
               </button>
             );
@@ -141,7 +143,7 @@ export default function DocumentIndexView({ libraryId, documentId }: Props) {
         </div>
       </nav>
 
-      <main className="min-h-0 overflow-y-auto bg-paper p-4 sm:p-6" aria-label="文档 segment 内容">
+      <main className="min-h-0 overflow-y-auto bg-paper p-4 sm:p-6" aria-label={copy.document.content}>
         <div className="mx-auto max-w-4xl space-y-3">
           {index.segments.map((segment) => {
             const value = contents[segment.segment_id];
@@ -160,22 +162,22 @@ export default function DocumentIndexView({ libraryId, documentId }: Props) {
                   <FileText size={14} className="mt-0.5 shrink-0 text-ink-faint" />
                   <span className="min-w-0 flex-1">
                     <span className="block break-words text-[13px] font-medium text-ink">{segment.title || segment.location_label}</span>
-                    <span className="mt-0.5 block text-[10px] text-ink-faint">{segment.location_label} · {segment.extraction_method} · {segment.character_count.toLocaleString()} chars</span>
+                    <span className="mt-0.5 block text-[10px] text-ink-faint">{segment.location_label} · {copy.count.characters(segment.character_count)}</span>
                   </span>
                 </button>
-                {!value && <button type="button" onClick={() => { void loadSegment(segment.segment_id); }} className="mt-3 rounded-lg border border-line px-2.5 py-1.5 text-[11px] text-ink-dim hover:bg-surface-2">加载内容</button>}
-                {value?.loading && !value.content && <div className="mt-3 flex items-center gap-2 text-[11px] text-ink-faint"><Loader2 className="animate-spin" size={12} />加载 segment…</div>}
+                {!value && <button type="button" onClick={() => { void loadSegment(segment.segment_id); }} className="mt-3 rounded-lg border border-line px-2.5 py-1.5 text-[11px] text-ink-dim hover:bg-surface-2">{copy.actions.load}</button>}
+                {value?.loading && !value.content && <div className="mt-3 flex items-center gap-2 text-[11px] text-ink-faint"><Loader2 className="animate-spin" size={12} />{copy.document.loadingContent}</div>}
                 {value?.error && <div role="alert" className="mt-3 text-[11px] text-err">{value.error}</div>}
                 {value?.content && <pre className="mt-3 whitespace-pre-wrap break-words font-sans text-[12px] leading-6 text-ink-dim">{value.content}</pre>}
                 {value?.nextOffset !== null && value?.nextOffset !== undefined && (
                   <button type="button" disabled={value.loading} onClick={() => { void loadSegment(segment.segment_id, value.nextOffset ?? 0); }} className="mt-3 flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-[11px] text-ink-dim hover:bg-surface-2 disabled:opacity-40">
-                    {value.loading ? <Loader2 className="animate-spin" size={12} /> : <ChevronDown size={12} />}加载更多
+                    {value.loading ? <Loader2 className="animate-spin" size={12} /> : <ChevronDown size={12} />}{copy.actions.loadMore}
                   </button>
                 )}
               </article>
             );
           })}
-          {index.segments.length === 0 && <div className="py-12 text-center text-[13px] text-ink-faint">该文档没有可展示的文本 segment</div>}
+          {index.segments.length === 0 && <div className="py-12 text-center text-[13px] text-ink-faint">{copy.empty.content}</div>}
         </div>
       </main>
     </div>

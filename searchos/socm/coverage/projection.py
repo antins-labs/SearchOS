@@ -67,7 +67,7 @@ def evidence_source_allowed(state: SearchState, node: EvidenceNode) -> bool:
         return scope.get("mode") != "local"
     if scope.get("mode") == "web":
         return False
-    from searchos.local.reader.references import parse_ref_id
+    from searchos.local.refs import parse_ref_id
 
     try:
         ref = parse_ref_id(node.source)

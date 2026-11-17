@@ -20,8 +20,8 @@ def extract_source_url(content: str) -> str:
 
 
 def canonical_local_source(source_url, metadata, source_scope):
-    from searchos.local.index.source_registry import SourceRecord
-    from searchos.local.reader.references import build_ref_id, parse_ref_id, resolve_reference
+    from searchos.local.storage.sources import SourceRecord
+    from searchos.local.refs import build_ref_id, parse_ref_id, resolve_reference
 
     scope = source_scope
     if not scope:

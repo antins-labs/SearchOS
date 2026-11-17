@@ -6,6 +6,8 @@ import datetime as dt
 from pathlib import Path
 from typing import Any
 
+from searchos.local import messages
+from searchos.local.errors import LocalDocumentError, MissingDependencyError
 from searchos.local.models import (
     CellRangeLocator,
     DocumentKind,
@@ -13,13 +15,10 @@ from searchos.local.models import (
     ParseResult,
     PipelineOptions,
 )
-from searchos.local.errors import LocalDocumentError, MissingDependencyError
 from searchos.local.parsers.base import ParserCapability
 from searchos.local.parsers.ooxml import inspect_ooxml_limits, validate_ooxml
 
-_XLSX_CONTENT_TYPE = (
-    b"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"
-)
+_XLSX_CONTENT_TYPE = b"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"
 
 
 def _display(value: Any) -> str:
@@ -44,9 +43,7 @@ class XlsxParser:
             import openpyxl
             from openpyxl.utils import get_column_letter
         except ImportError as exc:
-            raise MissingDependencyError(
-                "XLSX 处理需要 local-docs 依赖；请安装 searchos[local-docs]"
-            ) from exc
+            raise MissingDependencyError(messages.LOCAL_DOCS_REQUIRED) from exc
 
         inspect_ooxml_limits(
             path,
@@ -67,7 +64,7 @@ class XlsxParser:
                 keep_links=False,
             )
         except Exception as exc:  # noqa: BLE001
-            raise LocalDocumentError(f"无法打开 XLSX：{exc}") from exc
+            raise LocalDocumentError(messages.XLSX_OPEN_FAILED.format(detail=exc)) from exc
 
         segments: list[ParsedSegment] = []
         sheet_metadata: list[dict[str, Any]] = []
@@ -80,7 +77,7 @@ class XlsxParser:
             total_cells += dimensions
             if total_cells > options.max_office_objects:
                 raise LocalDocumentError(
-                    f"XLSX 单元格扫描范围超过限制 {options.max_office_objects}"
+                    messages.XLSX_CELL_LIMIT.format(limit=options.max_office_objects)
                 )
             hidden_rows = sum(1 for value in worksheet.row_dimensions.values() if value.hidden)
             hidden_columns = sum(
@@ -108,9 +105,7 @@ class XlsxParser:
                         cached_text = (
                             _display(cached_value) if cached_value is not None else "<not cached>"
                         )
-                        values.append(
-                            f"{coordinate}: formula={formula}; cached={cached_text}"
-                        )
+                        values.append(f"{coordinate}: formula={formula}; cached={cached_text}")
                     else:
                         values.append(f"{coordinate}: {_display(value)}")
                 if not values or first_column is None or last_column is None:
@@ -122,7 +117,9 @@ class XlsxParser:
                 segments.append(
                     ParsedSegment(
                         id=f"X{sheet_number}-R{row_number}",
-                        title=f"{worksheet.title} 第 {row_number} 行",
+                        title=messages.SHEET_ROW_TITLE.format(
+                            sheet=worksheet.title, row=row_number
+                        ),
                         text="\n".join(values),
                         source_locators=[
                             CellRangeLocator(
@@ -149,9 +146,9 @@ class XlsxParser:
         warnings = []
         hidden_sheets = sum(item["state"] != "visible" for item in sheet_metadata)
         if hidden_sheets:
-            warnings.append(f"保留了 {hidden_sheets} 个隐藏工作表的标记与内容")
+            warnings.append(messages.XLSX_HIDDEN_SHEETS.format(count=hidden_sheets))
         if external_formulas:
-            warnings.append(f"检测到 {external_formulas} 个疑似外链公式；未访问外部链接")
+            warnings.append(messages.XLSX_EXTERNAL_FORMULAS.format(count=external_formulas))
         return ParseResult(
             kind=DocumentKind.XLSX,
             segments=segments,

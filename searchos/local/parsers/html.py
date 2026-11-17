@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from searchos.local import messages
+from searchos.local.errors import LocalDocumentError, MissingDependencyError
 from searchos.local.models import (
     DocumentKind,
     DomRangeLocator,
@@ -12,7 +14,6 @@ from searchos.local.models import (
     ParseResult,
     PipelineOptions,
 )
-from searchos.local.errors import LocalDocumentError, MissingDependencyError
 from searchos.local.parsers.base import ParserCapability
 from searchos.local.parsers.markdown import _decode_text
 
@@ -35,18 +36,18 @@ class HtmlParser:
 
     def validate(self, path: Path) -> None:
         if not path.is_file():
-            raise ValueError("原文不存在或不是文件")
+            raise ValueError(messages.SOURCE_NOT_FOUND)
 
     async def parse(self, path: Path, *, options: PipelineOptions) -> ParseResult:
         try:
             from lxml import html
         except ImportError as exc:
-            raise MissingDependencyError("HTML 处理需要 lxml") from exc
+            raise MissingDependencyError(messages.HTML_DEPENDENCY_REQUIRED) from exc
         text, encoding = _decode_text(path.read_bytes())
         try:
             document = html.fromstring(text)
         except (ValueError, TypeError) as exc:
-            raise LocalDocumentError(f"无法解析 HTML：{exc}") from exc
+            raise LocalDocumentError(messages.HTML_INVALID.format(detail=exc)) from exc
         removed = 0
         for element in document.xpath("//script|//style|//noscript|//template"):
             element.drop_tree()
@@ -61,13 +62,17 @@ class HtmlParser:
         ]
         if len(elements) > options.max_office_objects:
             raise LocalDocumentError(
-                f"HTML 正文节点数超过限制 {options.max_office_objects}"
+                messages.HTML_NODE_LIMIT.format(limit=options.max_office_objects)
             )
         segments: list[ParsedSegment] = []
         for index, element in enumerate(elements, start=1):
             content = _normalize_text(element.text_content())
             dom_path = tree.getpath(element)
-            title = content if element.tag.lower().startswith("h") else f"HTML 节点 {index}"
+            title = (
+                content
+                if element.tag.lower().startswith("h")
+                else messages.HTML_NODE_TITLE.format(node=index)
+            )
             segments.append(
                 ParsedSegment(
                     id=f"H{index}",
@@ -80,14 +85,12 @@ class HtmlParser:
                             text_end=len(content),
                         )
                     ],
-                    title_source=(
-                        "source" if element.tag.lower().startswith("h") else "generated"
-                    ),
+                    title_source=("source" if element.tag.lower().startswith("h") else "generated"),
                 )
             )
         warnings = []
         if removed:
-            warnings.append(f"已忽略 {removed} 个脚本、样式或模板节点；未加载外部资源")
+            warnings.append(messages.HTML_REMOVED_NODES.format(count=removed))
         return ParseResult(
             kind=DocumentKind.HTML,
             segments=segments,

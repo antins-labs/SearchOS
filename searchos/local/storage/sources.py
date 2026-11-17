@@ -1,4 +1,4 @@
-"""Persistent library identity and source records stored as strict Markdown."""
+"""保存资料库身份、来源版本与来源记录。"""
 
 from __future__ import annotations
 
@@ -10,14 +10,14 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
-from searchos.local.index.locks import advisory_lock
+from searchos.local import messages
 from searchos.local.models import (
     DocumentKind,
     DocumentRecap,
     ProcessingStatus,
     SourceLocator,
 )
-from searchos.local.storage_io import atomic_write_text
+from searchos.local.storage.files import advisory_lock, atomic_write_text
 
 SCHEMA_VERSION = 2
 _FRONT_MATTER_START = "---\n"
@@ -76,16 +76,16 @@ def _render_record(data: dict[str, Any], heading: str) -> str:
 def _read_front_matter(path: Path) -> dict[str, Any]:
     raw = path.read_text(encoding="utf-8")
     if not raw.startswith(_FRONT_MATTER_START):
-        raise ValueError(f"记录缺少 front matter：{path.name}")
+        raise ValueError(messages.RECORD_HEADER_MISSING.format(file=path.name))
     end = raw.find(_FRONT_MATTER_END, len(_FRONT_MATTER_START))
     if end < 0:
-        raise ValueError(f"记录 front matter 未闭合：{path.name}")
+        raise ValueError(messages.RECORD_HEADER_UNCLOSED.format(file=path.name))
     payload = yaml.load(
         raw[len(_FRONT_MATTER_START) : end],
         Loader=getattr(yaml, "CSafeLoader", yaml.SafeLoader),
     )
     if not isinstance(payload, dict):
-        raise ValueError(f"记录 front matter 必须是对象：{path.name}")
+        raise ValueError(messages.RECORD_HEADER_INVALID.format(file=path.name))
     return payload
 
 
@@ -102,13 +102,16 @@ class SourceRegistry:
 
     def ensure_active(self, document_id: str | None = None) -> None:
         if (self.root / ".deleted").exists():
-            raise FileNotFoundError("资料库已删除")
+            raise FileNotFoundError(messages.LIBRARY_DELETED)
         if document_id is not None:
-            if (not document_id or document_id in {".", ".."}
-                    or not all(c.isalnum() or c in "._-" for c in document_id)):
-                raise ValueError("文档 ID 无效")
+            if (
+                not document_id
+                or document_id in {".", ".."}
+                or not all(c.isalnum() or c in "._-" for c in document_id)
+            ):
+                raise ValueError(messages.DOCUMENT_ID_INVALID)
             if (self.root / ".deleted_documents" / document_id).exists():
-                raise FileNotFoundError("文档已删除")
+                raise FileNotFoundError(messages.DOCUMENT_DELETED)
 
     def ensure_library(self, source_root: Path | None = None) -> LibraryRecord:
         with advisory_lock(self.root / ".locks" / "library.lock"):
@@ -119,7 +122,9 @@ class SourceRegistry:
         if self.library_path.exists():
             record = LibraryRecord.model_validate(_read_front_matter(self.library_path))
             if record.schema_version != SCHEMA_VERSION:
-                raise ValueError(f"不支持的资料库存储版本：{record.schema_version}")
+                raise ValueError(
+                    messages.LIBRARY_VERSION_UNSUPPORTED.format(version=record.schema_version)
+                )
         else:
             record = LibraryRecord(library_id=f"lib_{uuid.uuid4().hex}")
         if source_root is not None:
@@ -136,10 +141,12 @@ class SourceRegistry:
     def read_library(self) -> LibraryRecord:
         self.ensure_active()
         if not self.library_path.exists():
-            raise FileNotFoundError("资料库缺少 library.md，请重新建立索引")
+            raise FileNotFoundError(messages.LIBRARY_RECORD_MISSING)
         record = LibraryRecord.model_validate(_read_front_matter(self.library_path))
         if record.schema_version != SCHEMA_VERSION:
-            raise ValueError(f"不支持的资料库存储版本：{record.schema_version}")
+            raise ValueError(
+                messages.LIBRARY_VERSION_UNSUPPORTED.format(version=record.schema_version)
+            )
         return record
 
     def source_path(self, document_id: str) -> Path:
@@ -149,16 +156,18 @@ class SourceRegistry:
         self.ensure_active(document_id)
         record = SourceRecord.model_validate(_read_front_matter(self.source_path(document_id)))
         if record.schema_version != SCHEMA_VERSION:
-            raise ValueError(f"不支持的来源记录版本：{record.schema_version}")
+            raise ValueError(
+                messages.SOURCE_VERSION_UNSUPPORTED.format(version=record.schema_version)
+            )
         if record.document_id != document_id:
-            raise ValueError("来源记录的 document_id 与文件名不一致")
+            raise ValueError(messages.SOURCE_DOCUMENT_MISMATCH)
         return record
 
     def write(self, record: SourceRecord) -> Path:
         self.ensure_active(record.document_id)
         library = self.read_library()
         if record.library_id != library.library_id:
-            raise ValueError("来源记录不属于当前资料库")
+            raise ValueError(messages.SOURCE_RECORD_OUTSIDE_LIBRARY)
         path = self.source_path(record.document_id)
         atomic_write_text(
             path,
@@ -175,10 +184,7 @@ class SourceRegistry:
                     record = SourceRecord.model_validate(_read_front_matter(path))
                 except Exception:  # noqa: BLE001
                     continue
-                if (
-                    record.source_root_id == root_id
-                    and record.relative_path == relative_path
-                ):
+                if record.source_root_id == root_id and record.relative_path == relative_path:
                     return record.document_id
         return f"doc_{uuid.uuid4().hex}"
 

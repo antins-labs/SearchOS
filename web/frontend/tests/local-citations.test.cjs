@@ -13,7 +13,14 @@ function load() {
   const exports = {};
   vm.runInNewContext(ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  }).outputText, { exports });
+  }).outputText, { exports, require: (name) => {
+    assert.equal(name, "./localCopy");
+    const copy = {};
+    vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/lib/localCopy.ts"), "utf8"), {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+    }).outputText, { exports: copy });
+    return copy;
+  } });
   return exports;
 }
 

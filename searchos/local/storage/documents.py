@@ -1,4 +1,4 @@
-"""Atomic Markdown persistence for source records, representations, and navigation."""
+"""存储解析正文、当前来源记录和文档导航。"""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from typing import Any
 import yaml
 from pydantic import TypeAdapter
 
+from searchos.local import messages
 from searchos.local.models import (
     DocumentKind,
     DocumentRecap,
@@ -29,10 +30,9 @@ from searchos.local.models import (
     SourceLocator,
     TitleSource,
 )
-from searchos.local.index.locks import advisory_lock
-from searchos.local.reader.references import build_ref_id
-from searchos.local.index.source_registry import SCHEMA_VERSION, SourceRecord, SourceRegistry
-from searchos.local.storage_io import atomic_write_text, file_sha256
+from searchos.local.refs import build_ref_id
+from searchos.local.storage.files import advisory_lock, atomic_write_text, file_sha256
+from searchos.local.storage.sources import SCHEMA_VERSION, SourceRecord, SourceRegistry
 
 _HASH_RE = re.compile(r"^- 内容哈希：sha256:([0-9a-f]{64})$", re.MULTILINE)
 _FINGERPRINT_RE = re.compile(r"^- 生成指纹：sha256:([0-9a-f]{64})$", re.MULTILINE)
@@ -200,13 +200,13 @@ def _front_matter(data: dict[str, Any]) -> str:
 
 def _read_front_matter(raw: str) -> tuple[dict[str, Any], int]:
     if not raw.startswith("---\n"):
-        raise ValueError("解析产物缺少 front matter")
+        raise ValueError(messages.ARTIFACT_HEADER_MISSING)
     end = raw.find("\n---\n", 4)
     if end < 0:
-        raise ValueError("解析产物 front matter 未闭合")
+        raise ValueError(messages.ARTIFACT_HEADER_UNCLOSED)
     payload = yaml.load(raw[4:end], Loader=getattr(yaml, "CSafeLoader", yaml.SafeLoader))
     if not isinstance(payload, dict):
-        raise ValueError("解析产物 front matter 必须是对象")
+        raise ValueError(messages.ARTIFACT_HEADER_INVALID)
     return payload, end + len("\n---\n")
 
 
@@ -216,10 +216,10 @@ def read_blocks(path: Path) -> tuple[dict[str, Any], list[StoredBlock]]:
     raw = path.read_text(encoding="utf-8")
     metadata, body_start = _read_front_matter(raw)
     if metadata.get("schema_version") != SCHEMA_VERSION:
-        raise ValueError("不支持的解析产物版本")
+        raise ValueError(messages.ARTIFACT_VERSION_UNSUPPORTED)
     heading_at = raw.find(_BLOCKS_HEADING, body_start)
     if heading_at < 0:
-        raise ValueError("解析产物缺少 block 区域")
+        raise ValueError(messages.ARTIFACT_BLOCKS_MISSING)
     position = heading_at + len(_BLOCKS_HEADING)
     blocks: list[StoredBlock] = []
     while position < len(raw):
@@ -227,26 +227,26 @@ def read_blocks(path: Path) -> tuple[dict[str, Any], list[StoredBlock]]:
             position += 1
             continue
         if not raw.startswith(_BLOCK_PREFIX, position):
-            raise ValueError("解析产物包含无法识别的 block 数据")
+            raise ValueError(messages.ARTIFACT_BLOCK_UNKNOWN)
         header_end = raw.find(_BLOCK_SUFFIX, position + len(_BLOCK_PREFIX))
         if header_end < 0:
-            raise ValueError("解析产物 block header 未闭合")
+            raise ValueError(messages.ARTIFACT_BLOCK_HEADER_UNCLOSED)
         try:
             header = json.loads(raw[position + len(_BLOCK_PREFIX) : header_end])
         except json.JSONDecodeError as exc:
-            raise ValueError("解析产物 block header 无效") from exc
+            raise ValueError(messages.ARTIFACT_BLOCK_HEADER_INVALID) from exc
         if not isinstance(header, dict):
-            raise ValueError("解析产物 block header 必须是对象")
+            raise ValueError(messages.ARTIFACT_BLOCK_HEADER_TYPE)
         text_start = header_end + len(_BLOCK_SUFFIX)
         char_count = header.get("char_count")
         if not isinstance(char_count, int) or char_count < 0:
-            raise ValueError("解析产物 block 字符数无效")
+            raise ValueError(messages.ARTIFACT_BLOCK_SIZE_INVALID)
         text_end = text_start + char_count
         text = raw[text_start:text_end]
         if raw[text_end : text_end + len(_BLOCK_END)] != _BLOCK_END:
-            raise ValueError("解析产物 block 长度或结束标记无效")
+            raise ValueError(messages.ARTIFACT_BLOCK_BOUNDARY_INVALID)
         if _sha256_bytes(text.encode("utf-8")) != header.get("text_sha256"):
-            raise ValueError("解析产物 block 摘要不匹配")
+            raise ValueError(messages.ARTIFACT_BLOCK_DIGEST_MISMATCH)
         locators = _LOCATORS.validate_python(header.get("source_locators"))
         blocks.append(
             StoredBlock(
@@ -257,9 +257,7 @@ def read_blocks(path: Path) -> tuple[dict[str, Any], list[StoredBlock]]:
                 extraction_method=_EXTRACTION_METHOD.validate_python(
                     header.get("extraction_method")
                 ),
-                title_source=_TITLE_SOURCE.validate_python(
-                    header.get("title_source", "generated")
-                ),
+                title_source=_TITLE_SOURCE.validate_python(header.get("title_source", "generated")),
                 representation_id=str(header.get("representation_id", "")),
                 is_primary=bool(header.get("is_primary", True)),
             )
@@ -339,9 +337,7 @@ class DocumentMarkdownStore:
             for block in blocks
         ]
         try:
-            document = ParsedDocument.model_validate(
-                {**document_data, "segments": segments}
-            )
+            document = ParsedDocument.model_validate({**document_data, "segments": segments})
         except ValueError:
             return None
         return document, record
@@ -481,15 +477,15 @@ class DocumentMarkdownStore:
             previous.source_root_id != source_root_id
             or previous.relative_path != document.display_path
         ):
-            raise ValueError("document_id 已绑定到另一份原文件")
+            raise ValueError(messages.DOCUMENT_ID_CONFLICT)
 
         if text_path.exists():
             if file_sha256(text_path) != artifact_sha256:
-                raise OSError("不可变解析 generation 已存在但内容不一致")
+                raise OSError(messages.GENERATION_CONFLICT)
         else:
             atomic_write_text(text_path, artifact)
             if file_sha256(text_path) != artifact_sha256:
-                raise OSError("解析产物写入后校验失败")
+                raise OSError(messages.ARTIFACT_WRITE_INVALID)
 
         if recap_status is None:
             recap_status = (
@@ -677,7 +673,7 @@ class DocumentMarkdownStore:
                 (
                     f"Image:{frame}",
                     [ImageRegionLocator(frame=frame)],
-                    f"原图第 {frame} 帧；无文本表示。",
+                    messages.IMAGE_NO_TEXT.format(frame=frame),
                     0,
                 )
                 for frame in range(1, frame_count + 1)
@@ -687,7 +683,7 @@ class DocumentMarkdownStore:
                 (
                     PdfRegionLocator(page_start=page, page_end=page).label,
                     [PdfRegionLocator(page_start=page, page_end=page)],
-                    "PDF 原件；无可用文本表示。",
+                    messages.PDF_NO_TEXT,
                     0,
                 )
                 for page in range(1, document.page_count + 1)
@@ -712,10 +708,7 @@ class DocumentMarkdownStore:
                 source_revision=document.sha256,
                 reference_key=f"s{index}",
             )
-            lines.append(
-                f"- [{label}]({ref_id})：{_one_line(summary)} "
-                f"({character_count} chars)"
-            )
+            lines.append(f"- [{label}]({ref_id})：{_one_line(summary)} ({character_count} chars)")
         return "\n".join(lines).rstrip() + "\n"
 
 

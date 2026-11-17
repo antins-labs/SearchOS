@@ -1,3 +1,4 @@
+import { localCopy as copy } from "@/lib/localCopy";
 import { File, FileCode2, FileImage, FileJson2, FileSpreadsheet, FileText, Presentation, type LucideIcon } from "lucide-react";
 
 interface FileAppearance {
@@ -7,17 +8,17 @@ interface FileAppearance {
   tone: string;
 }
 const formats: Record<string, FileAppearance> = {
-  pdf: { Icon: FileText, label: "PDF", description: "PDF 文档", tone: "rose" },
-  docx: { Icon: FileText, label: "DOCX", description: "Word 文档", tone: "blue" },
-  pptx: { Icon: Presentation, label: "PPTX", description: "演示文稿", tone: "orange" },
-  xlsx: { Icon: FileSpreadsheet, label: "XLSX", description: "电子表格", tone: "green" },
-  csv: { Icon: FileSpreadsheet, label: "CSV", description: "数据表格", tone: "green" },
-  tsv: { Icon: FileSpreadsheet, label: "TSV", description: "数据表格", tone: "green" },
+  pdf: { Icon: FileText, label: "PDF", description: copy.formats.pdf, tone: "rose" },
+  docx: { Icon: FileText, label: "DOCX", description: copy.formats.word, tone: "blue" },
+  pptx: { Icon: Presentation, label: "PPTX", description: copy.formats.slides, tone: "orange" },
+  xlsx: { Icon: FileSpreadsheet, label: "XLSX", description: copy.formats.spreadsheet, tone: "green" },
+  csv: { Icon: FileSpreadsheet, label: "CSV", description: copy.formats.table, tone: "green" },
+  tsv: { Icon: FileSpreadsheet, label: "TSV", description: copy.formats.table, tone: "green" },
   md: { Icon: FileCode2, label: "MD", description: "Markdown", tone: "violet" },
-  txt: { Icon: FileText, label: "TXT", description: "纯文本", tone: "slate" },
-  json: { Icon: FileJson2, label: "JSON", description: "结构化数据", tone: "amber" },
-  jsonl: { Icon: FileJson2, label: "JSONL", description: "结构化数据", tone: "amber" },
-  html: { Icon: FileCode2, label: "HTML", description: "网页文档", tone: "cyan" },
+  txt: { Icon: FileText, label: "TXT", description: copy.formats.text, tone: "slate" },
+  json: { Icon: FileJson2, label: "JSON", description: copy.formats.structured, tone: "amber" },
+  jsonl: { Icon: FileJson2, label: "JSONL", description: copy.formats.structured, tone: "amber" },
+  html: { Icon: FileCode2, label: "HTML", description: copy.formats.html, tone: "cyan" },
 };
 const imageExtensions = new Set(["png", "jpg", "jpeg", "webp", "gif", "svg", "tif", "tiff", "bmp", "heic"]);
 const aliases: Record<string, string> = { markdown: "md", text: "txt", word: "docx", doc: "docx", powerpoint: "pptx", ppt: "pptx", excel: "xlsx", xls: "xlsx", htm: "html" };
@@ -29,9 +30,9 @@ export function fileAppearance(kind?: string, filename = ""): FileAppearance {
   const raw = formats[extension] || imageExtensions.has(extension) || aliases[extension] ? extension : normalized;
   const key = aliases[raw] ?? raw;
   if (imageExtensions.has(key) || key === "image") return {
-    Icon: FileImage, label: key === "image" ? "IMG" : key.toUpperCase(), description: "图片", tone: "cyan",
+    Icon: FileImage, label: key === "image" ? "IMG" : key.toUpperCase(), description: copy.formats.image, tone: "cyan",
   };
-  return formats[key] ?? { Icon: File, label: "FILE", description: "文件", tone: "slate" };
+  return formats[key] ?? { Icon: File, label: "FILE", description: copy.formats.file, tone: "slate" };
 }
 
 export function FileBadge({ kind, filename, small = false }: { kind?: string; filename?: string; small?: boolean }) {

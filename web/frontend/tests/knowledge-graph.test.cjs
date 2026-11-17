@@ -90,22 +90,21 @@ test("主页面提供常驻知识库入口并渲染图管理面板", () => {
   assert.match(rail, /onOpenKnowledgeBase/);
   assert.match(rail, /知识库/);
   assert.match(page, /<KnowledgeBasePanel/);
-  assert.match(panel, /aria-label="知识库列表"/);
+  assert.match(panel, /aria-label=\{copy.library.list\}/);
   assert.match(panel, /controller\.renameLibrary/);
-  assert.match(panel, /indexes\/\{libraryId\}\//);
   assert.match(panel, /<DocumentIndexView/);
   assert.match(panel, /viewMode === "list"/);
   assert.match(panel, /<KnowledgeListView/);
   assert.match(panel, /hasPendingDocuments/);
   assert.match(panel, /controller\.refreshDocuments\(\)/);
-  assert.match(panel, /aria-label="Recap 生成进度"/);
-  assert.match(panel, /progress\.completed\}\/\{progress\.total\} segments/);
+  assert.match(panel, /aria-label=\{copy.document.progress\}/);
+  assert.match(panel, /copy.count.segments\(progress.completed, progress.total\)/);
   assert.match(graph, /onMoveDocument/);
-  assert.match(graph, /删除这条分类关系/);
-  assert.match(graph, /点击展开文档堆/);
-  assert.match(list, /知识库索引列表/);
+  assert.match(graph, /copy.actions.removeRelation/);
+  assert.match(graph, /copy.actions.expandStack/);
+  assert.match(list, /copy.library.documentList/);
   assert.match(documentView, /scrollIntoView/);
-  assert.match(documentView, /加载更多/);
+  assert.match(documentView, /copy.actions.loadMore/);
 });
 
 test("密集主题展开后节点不重叠，且完整位于画布内", () => {

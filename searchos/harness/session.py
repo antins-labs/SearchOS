@@ -1566,7 +1566,7 @@ def _write_findings_answer(workspace, state, query, final_state, *, execution_er
     answer = final_answer_text(final_state)
     from searchos.socm.evidence.provenance import evidence_source_urls
     canonical = {url: url for node in nodes for url in evidence_source_urls(node) if url.startswith("local://")}
-    from searchos.local.reader.references import parse_ref_id
+    from searchos.local.refs import parse_ref_id
     document_refs: dict[str, set[str]] = {}
     for node in nodes:
         alias = (node.local_source_metadata or {}).get("tool_ref_id")

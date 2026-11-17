@@ -8,9 +8,9 @@ import tempfile
 from pathlib import Path
 from xml.sax.saxutils import escape
 
-from searchos.local.index.locks import advisory_lock
+from searchos.local import messages
 from searchos.local.parsers.vision import resolve_soffice_executable
-from searchos.local.storage_io import file_sha256
+from searchos.local.storage.files import advisory_lock, file_sha256
 
 _OFFICE_EXTENSIONS = {".docx", ".pptx", ".xlsx"}
 _PREVIEW_CACHE_VERSION = "office-pdf-v2-fontconfig"
@@ -26,7 +26,7 @@ _CJK_FALLBACK_FAMILIES = (
 
 def _safe_identifier(value: str, label: str) -> str:
     if not value or not all(char.isalnum() or char == "_" for char in value):
-        raise ValueError(f"{label} 无效")
+        raise ValueError(messages.IDENTIFIER_INVALID.format(name=label))
     return value
 
 
@@ -114,13 +114,13 @@ class OfficePreviewService:
         document_id: str,
         source_path: str | Path,
     ) -> Path:
-        library = _safe_identifier(library_id, "资料库 ID")
-        document = _safe_identifier(document_id, "文档 ID")
+        library = _safe_identifier(library_id, messages.LIBRARY_ID_LABEL)
+        document = _safe_identifier(document_id, messages.DOCUMENT_ID_LABEL)
         source = Path(source_path).expanduser().resolve()
         if not source.is_file():
-            raise ValueError("Office 原件不存在")
+            raise ValueError(messages.OFFICE_SOURCE_NOT_FOUND)
         if source.suffix.casefold() not in _OFFICE_EXTENSIONS:
-            raise ValueError("只支持 DOCX、PPTX 和 XLSX 的 Office 预览")
+            raise ValueError(messages.OFFICE_PREVIEW_UNSUPPORTED)
 
         revision = file_sha256(source)
         preview_dir = self.root / library / document / revision / _PREVIEW_CACHE_VERSION
@@ -130,7 +130,7 @@ class OfficePreviewService:
                 return target
             self._convert(source, target)
             if not self._valid_pdf(target):
-                raise RuntimeError("Office 预览转换未产生有效 PDF")
+                raise RuntimeError(messages.OFFICE_PREVIEW_INVALID)
         return target
 
     @staticmethod
@@ -155,7 +155,7 @@ class OfficePreviewService:
             font_cache_dir.mkdir()
             font_directories = _font_directories(executable)
             if not font_directories:
-                raise RuntimeError("Office 预览未找到可用字体目录")
+                raise RuntimeError(messages.OFFICE_FONTS_NOT_FOUND)
             font_config = temp_root / "fonts.conf"
             _write_fontconfig(font_config, font_cache_dir, font_directories)
             environment = os.environ.copy()
@@ -182,7 +182,9 @@ class OfficePreviewService:
             outputs = list(output_dir.glob("*.pdf"))
             if completed.returncode != 0 or len(outputs) != 1:
                 detail = (completed.stderr or completed.stdout).strip()[-1000:]
-                raise RuntimeError(f"Office 转 PDF 失败：{detail or completed.returncode}")
+                raise RuntimeError(
+                    messages.OFFICE_CONVERSION_FAILED.format(detail=detail or completed.returncode)
+                )
             os.replace(outputs[0], target)
 
 

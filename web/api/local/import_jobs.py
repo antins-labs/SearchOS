@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import mimetypes
 import os
 import re
@@ -18,17 +19,38 @@ import aiohttp
 from pydantic import BaseModel, ConfigDict
 
 from api.deps import LOCAL_DATA_ROOT, WORKSPACE_ROOT
+from searchos.local import messages
+from searchos.local.errors import LocalDocumentError, user_message
 from searchos.local.library import LocalLibraryService
 from searchos.network import aiohttp_session
 from searchos.socm.storage.workspace import WorkspaceManager
 from searchos.tools.simple_browser.images import validate_public_url
 
 ImportStatus = Literal["queued", "running", "completed", "failed", "cancelled"]
+logger = logging.getLogger(__name__)
 _MAX_BYTES = 150 * 1024 * 1024
 _DOCUMENT_SUFFIXES = {
-    ".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx",
-    ".csv", ".tsv", ".json", ".jsonl", ".txt", ".md", ".markdown",
-    ".png", ".jpg", ".jpeg", ".gif", ".webp", ".tif", ".tiff",
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".ppt",
+    ".pptx",
+    ".xls",
+    ".xlsx",
+    ".csv",
+    ".tsv",
+    ".json",
+    ".jsonl",
+    ".txt",
+    ".md",
+    ".markdown",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".webp",
+    ".tif",
+    ".tiff",
 }
 
 
@@ -64,14 +86,18 @@ class NetworkImportJobStore:
 
     def _path(self, job_id: str) -> Path:
         if not re.fullmatch(r"import_[a-f0-9]+", job_id or ""):
-            raise ValueError("导入作业 ID 无效")
+            raise ValueError(messages.IMPORT_JOB_ID_INVALID)
         return self.root / f"{job_id}.json"
 
     def write(self, job: NetworkImportJob) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         handle = tempfile.NamedTemporaryFile(
-            mode="w", encoding="utf-8", dir=self.root,
-            prefix=f".{job.job_id}.", suffix=".tmp", delete=False,
+            mode="w",
+            encoding="utf-8",
+            dir=self.root,
+            prefix=f".{job.job_id}.",
+            suffix=".tmp",
+            delete=False,
         )
         temporary = Path(handle.name)
         try:
@@ -106,22 +132,35 @@ class NetworkImportJobStore:
         return job
 
     def create(
-        self, *, library_id: str, source_url: str, title: str,
-        session_id: str, page_id: str, index_after_save: bool,
+        self,
+        *,
+        library_id: str,
+        source_url: str,
+        title: str,
+        session_id: str,
+        page_id: str,
+        index_after_save: bool,
         idempotency_key: str,
     ) -> NetworkImportJob:
         for job in self.list(library_id):
-            if (
-                job.idempotency_key == idempotency_key
-                and job.status in {"queued", "running", "completed"}
-            ):
+            if job.idempotency_key == idempotency_key and job.status in {
+                "queued",
+                "running",
+                "completed",
+            }:
                 return job
         now = _now()
         job = NetworkImportJob(
-            job_id=f"import_{uuid.uuid4().hex}", idempotency_key=idempotency_key,
-            library_id=library_id, source_url=source_url, title=title,
-            session_id=session_id, page_id=page_id,
-            index_after_save=index_after_save, created_at=now, updated_at=now,
+            job_id=f"import_{uuid.uuid4().hex}",
+            idempotency_key=idempotency_key,
+            library_id=library_id,
+            source_url=source_url,
+            title=title,
+            session_id=session_id,
+            page_id=page_id,
+            index_after_save=index_after_save,
+            created_at=now,
+            updated_at=now,
         )
         self.write(job)
         return job
@@ -141,11 +180,19 @@ def _filename(job: NetworkImportJob, content_type: str, final_url: str) -> str:
     if path_name and Path(path_name).suffix:
         return _safe_stem(Path(path_name).stem) + Path(path_name).suffix.lower()
     mime = content_type.split(";", 1)[0].strip().lower()
-    suffix = {
-        "text/html": ".html", "text/markdown": ".md", "application/pdf": ".pdf",
-        "image/png": ".png", "image/jpeg": ".jpg", "image/gif": ".gif",
-        "image/webp": ".webp",
-    }.get(mime) or mimetypes.guess_extension(mime) or ".bin"
+    suffix = (
+        {
+            "text/html": ".html",
+            "text/markdown": ".md",
+            "application/pdf": ".pdf",
+            "image/png": ".png",
+            "image/jpeg": ".jpg",
+            "image/gif": ".gif",
+            "image/webp": ".webp",
+        }.get(mime)
+        or mimetypes.guess_extension(mime)
+        or ".bin"
+    )
     return _safe_stem(job.title) + suffix
 
 
@@ -166,7 +213,9 @@ async def _fetch_web_markdown(job: NetworkImportJob) -> tuple[bytes, str, str]:
 
     result = await JinaReaderBackend(retain_images="all").fetch(job.source_url, timeout=90)
     if not result.ok or not result.markdown.strip():
-        raise RuntimeError(f"下载失败：{result.error or f'HTTP {result.status}'}")
+        raise LocalDocumentError(
+            messages.DOWNLOAD_FAILED.format(detail=result.error or f"HTTP {result.status}")
+        )
     name = f"{_safe_stem(job.title or result.title)}.md"
     return result.markdown.encode("utf-8"), name, result.url or job.source_url
 
@@ -185,12 +234,14 @@ async def _download(job: NetworkImportJob) -> tuple[Path, str, str]:
             for _ in range(6):
                 await validate_public_url(current_url)
                 async with session.get(
-                    current_url, timeout=timeout, allow_redirects=False,
+                    current_url,
+                    timeout=timeout,
+                    allow_redirects=False,
                 ) as response:
                     if response.status in {301, 302, 303, 307, 308}:
                         location = response.headers.get("Location", "")
                         if not location:
-                            raise RuntimeError("下载重定向缺少目标地址")
+                            raise LocalDocumentError(messages.REDIRECT_TARGET_MISSING)
                         current_url = urljoin(current_url, location)
                         continue
                     if response.status != 200:
@@ -199,26 +250,29 @@ async def _download(job: NetworkImportJob) -> tuple[Path, str, str]:
                             content, name, final_url = await _fetch_web_markdown(job)
                             content_type = "text/markdown"
                             break
-                        raise RuntimeError(f"下载失败：HTTP {response.status}")
+                        raise LocalDocumentError(
+                            messages.DOWNLOAD_FAILED.format(detail=f"HTTP {response.status}")
+                        )
                     content_type = response.headers.get(
-                        "Content-Type", "application/octet-stream",
+                        "Content-Type",
+                        "application/octet-stream",
                     )
                     declared = int(response.headers.get("Content-Length") or 0)
                     if declared > _MAX_BYTES:
-                        raise OverflowError("网络内容超过 150 MiB 限制")
+                        raise OverflowError(messages.NETWORK_CONTENT_TOO_LARGE)
                     chunks: list[bytes] = []
                     size = 0
                     async for chunk in response.content.iter_chunked(1024 * 1024):
                         size += len(chunk)
                         if size > _MAX_BYTES:
-                            raise OverflowError("网络内容超过 150 MiB 限制")
+                            raise OverflowError(messages.NETWORK_CONTENT_TOO_LARGE)
                         chunks.append(chunk)
                     content = b"".join(chunks)
                     final_url = current_url
                     name = _filename(job, content_type, final_url)
                     break
             else:
-                raise RuntimeError("下载重定向次数过多")
+                raise LocalDocumentError(messages.REDIRECT_LIMIT)
     handle = tempfile.NamedTemporaryFile(dir=temp_root, prefix="network_", delete=False)
     path = Path(handle.name)
     with handle:
@@ -240,10 +294,15 @@ def start_network_import(job: NetworkImportJob, store: NetworkImportJobStore) ->
             store.update(job.job_id, stage="save")
             service = LocalLibraryService(store.root.parent)
             document = await asyncio.to_thread(
-                service.save_original_file, job.library_id, temporary, filename,
+                service.save_original_file,
+                job.library_id,
+                temporary,
+                filename,
                 origin={
-                    "request_url": job.source_url, "final_url": final_url,
-                    "fetched_at": _now(), "session_id": job.session_id,
+                    "request_url": job.source_url,
+                    "final_url": final_url,
+                    "fetched_at": _now(),
+                    "session_id": job.session_id,
                     "page_id": job.page_id,
                     "saved_form": "web_markdown_copy" if job.page_id else "downloaded_original",
                 },
@@ -252,9 +311,11 @@ def start_network_import(job: NetworkImportJob, store: NetworkImportJobStore) ->
             document_id = document["document_id"]
             store.update(job.job_id, document_id=document_id, stage="saved")
             if not job.index_after_save or document.get("searchable"):
-                store.update(job.job_id, status="completed", stage=(
-                    "indexed" if document.get("searchable") else "saved_unindexed"
-                ))
+                store.update(
+                    job.job_id,
+                    status="completed",
+                    stage=("indexed" if document.get("searchable") else "saved_unindexed"),
+                )
                 return
             store.update(job.job_id, stage="parse")
             await service.parse_saved_document(job.library_id, document_id)
@@ -270,24 +331,35 @@ def start_network_import(job: NetworkImportJob, store: NetworkImportJobStore) ->
             )
             store.update(job.job_id, status="completed", stage="indexed")
         except asyncio.CancelledError:
-            store.update(job.job_id, status=("cancelled" if job.job_id in _cancelled else "queued"),
-                         stage=("cancelled" if job.job_id in _cancelled else "fetch"))
+            store.update(
+                job.job_id,
+                status=("cancelled" if job.job_id in _cancelled else "queued"),
+                stage=("cancelled" if job.job_id in _cancelled else "fetch"),
+            )
             raise
         except Exception as exc:  # noqa: BLE001
-            store.update(job.job_id, status="failed", stage="failed", error=str(exc))
+            logger.warning("local import job failed", exc_info=True)
+            store.update(
+                job.job_id,
+                status="failed",
+                stage="failed",
+                error=user_message(exc, messages.IMPORT_FAILED),
+            )
         finally:
             if temporary is not None:
                 temporary.unlink(missing_ok=True)
 
     async def scoped_run() -> None:
         from searchos.network import network_context
+
         with network_context(reuse=False):
             await run()
 
     task = asyncio.create_task(scoped_run(), name=f"network-import:{job.job_id}")
     _tasks[job.job_id] = task
-    task.add_done_callback(lambda done: _tasks.pop(job.job_id, None)
-                           if _tasks.get(job.job_id) is done else None)
+    task.add_done_callback(
+        lambda done: _tasks.pop(job.job_id, None) if _tasks.get(job.job_id) is done else None
+    )
 
 
 def schedule_network_import(**kwargs: Any) -> NetworkImportJob:
@@ -301,7 +373,7 @@ def schedule_network_import(**kwargs: Any) -> NetworkImportJob:
 async def cancel_network_import(job_id: str, store: NetworkImportJobStore) -> NetworkImportJob:
     job = store.read(job_id)
     if job.status not in {"queued", "running"}:
-        raise ValueError(f"JOB_STATE_CONFLICT：{job.status} 作业不能取消")
+        raise ValueError(messages.JOB_CANCEL_CONFLICT)
     _cancelled.add(job_id)
     store.update(job_id, status="cancelled", stage="cancelled")
     task = _tasks.get(job_id)
@@ -315,7 +387,7 @@ async def cancel_network_import(job_id: str, store: NetworkImportJobStore) -> Ne
 def retry_network_import(job_id: str, store: NetworkImportJobStore) -> NetworkImportJob:
     job = store.read(job_id)
     if job.status not in {"failed", "cancelled"}:
-        raise ValueError(f"JOB_STATE_CONFLICT：{job.status} 作业不能重试")
+        raise ValueError(messages.JOB_RETRY_CONFLICT)
     queued = store.update(
         job_id,
         status="queued",
@@ -349,7 +421,11 @@ async def stop_network_imports() -> None:
 
 
 __all__ = [
-    "NetworkImportJob", "NetworkImportJobStore", "cancel_network_import",
-    "resume_network_imports", "retry_network_import", "schedule_network_import",
+    "NetworkImportJob",
+    "NetworkImportJobStore",
+    "cancel_network_import",
+    "resume_network_imports",
+    "retry_network_import",
+    "schedule_network_import",
     "stop_network_imports",
 ]

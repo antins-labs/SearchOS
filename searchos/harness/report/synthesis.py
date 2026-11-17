@@ -660,7 +660,7 @@ async def finalize_research(*, state, query, model, stop_reason, max_chars=48_00
         label = (node.local_source_metadata or {}).get("file_name") or "原文"
         if node.source.startswith("local://"):
             from searchos.local.models import locator_group_label
-            from searchos.local.reader.references import parse_ref_id
+            from searchos.local.refs import parse_ref_id
             try:
                 label += " · " + locator_group_label(list(parse_ref_id(node.source).locators))
             except ValueError:

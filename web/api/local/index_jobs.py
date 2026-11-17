@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import tempfile
 import uuid
@@ -14,10 +15,13 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict
 
 from api.deps import LOCAL_DATA_ROOT
-from searchos.local.index.catalog import CatalogMarkdownStore
+from searchos.local import messages
+from searchos.local.catalog import CatalogMarkdownStore
+from searchos.local.errors import LocalDocumentError, user_message
 from searchos.local.library import LocalLibraryService
 
 JobStatus = Literal["queued", "running", "completed", "failed", "cancelled"]
+logger = logging.getLogger(__name__)
 
 
 def _now() -> str:
@@ -49,7 +53,7 @@ class LocalIndexJobStore:
     def _path(self, job_id: str) -> Path:
         allowed = "abcdefghijklmnopqrstuvwxyz0123456789_"
         if not job_id or any(char not in allowed for char in job_id):
-            raise ValueError("后台索引作业 ID 无效")
+            raise ValueError(messages.INDEX_JOB_ID_INVALID)
         return self.root / f"{job_id}.json"
 
     def write(self, job: LocalIndexJob) -> None:
@@ -171,8 +175,7 @@ def _start(job: LocalIndexJob, store: LocalIndexJobStore) -> None:
                 ),
             )
             if document["recap_status"] != "ready" or document["catalog_status"] != "ready":
-                warnings = "；".join(document.get("warnings") or [])
-                raise RuntimeError(warnings or "Recap 或目录未达到 ready")
+                raise LocalDocumentError(messages.INDEX_INCOMPLETE)
             store.update(job.job_id, status="completed", stage="complete", error="")
         except asyncio.CancelledError:
             if job.job_id in _user_cancelled:
@@ -183,10 +186,12 @@ def _start(job: LocalIndexJob, store: LocalIndexJobStore) -> None:
                 store.update(job.job_id, status="queued", stage="recap", error="")
             raise
         except Exception as exc:  # noqa: BLE001
-            store.update(job.job_id, status="failed", stage="failed", error=str(exc))
+            logger.warning("local indexing job failed", exc_info=True)
+            store.update(job.job_id, status="failed", stage="failed", error=user_message(exc))
 
     task = asyncio.create_task(run(), name=f"local-index:{job.job_id}")
     _tasks[job.job_id] = task
+
     def cleanup(_done: asyncio.Task[None], job_id: str = job.job_id) -> None:
         if _tasks.get(job_id) is _done:
             _tasks.pop(job_id, None)
@@ -223,7 +228,7 @@ async def cancel_background_index(
     if job.status == "cancelled":
         return job
     if job.status not in {"queued", "running"}:
-        raise ValueError(f"JOB_STATE_CONFLICT：{job.status} 作业不能取消")
+        raise ValueError(messages.JOB_CANCEL_CONFLICT)
     _user_cancelled.add(job_id)
     cancelled = job_store.update(
         job_id,
@@ -251,7 +256,7 @@ def retry_background_index(
     job_store = store or LocalIndexJobStore()
     job = job_store.read(job_id)
     if job.status not in {"failed", "cancelled"}:
-        raise ValueError(f"JOB_STATE_CONFLICT：{job.status} 作业不能重试")
+        raise ValueError(messages.JOB_RETRY_CONFLICT)
     service = LocalLibraryService(job_store.root.parent)
     current = next(
         (
@@ -262,7 +267,7 @@ def retry_background_index(
         None,
     )
     if current is None or current["source_revision"] != job.source_revision:
-        raise ValueError("SOURCE_SCOPE_CHANGED：后台作业对应的文档版本已变化")
+        raise ValueError(messages.JOB_SOURCE_CHANGED)
     service.original_path(job.library_id, job.document_id)
     _user_cancelled.discard(job_id)
     queued = job_store.update(
@@ -298,9 +303,8 @@ def resume_background_indexes(store: LocalIndexJobStore | None = None) -> int:
         for document in service.list_documents(library.library_id):
             if not document.get("searchable"):
                 continue
-            if (
-                document.get("recap_status") == "ready"
-                and catalog.contains_document(document["document_id"])
+            if document.get("recap_status") == "ready" and catalog.contains_document(
+                document["document_id"]
             ):
                 continue
             previous = latest.get(document["document_id"])
