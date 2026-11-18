@@ -1,12 +1,20 @@
 "use client";
 
-import { useState, type ComponentType, type ReactNode } from "react";
+import { useState, type ComponentType } from "react";
 import {
   Users, LayoutGrid, BarChart3, FileCheck, Eye, Compass, Search, BookOpen, CheckCircle2,
-  Loader2, Maximize2, MessageSquarePlus, TriangleAlert,
+  Loader2, Maximize2, MessageSquarePlus, TriangleAlert, Terminal, Sparkles,
 } from "lucide-react";
 import type { WSEvent } from "@/lib/types";
 import { skillExecutionInfo } from "@/lib/runState";
+import {
+  clipLines,
+  formatPreviewText,
+  isCodeTool,
+  parseExecArgs,
+  summarizeExecResult,
+} from "@/lib/execPreview";
+import { highlightCode } from "@/lib/codeHighlight";
 import { agentLabel } from "./trace";
 import Answer from "../conversation/Answer";
 import { getAgentReply } from "@/lib/api";
@@ -27,11 +35,11 @@ interface ActionView {
   label: string;
   tone: string;
   detail?: string;
-  agents?: DispatchAgent[]; // dispatch wave
-  checks?: CheckAgent[];    // check_agents report
+  agents?: DispatchAgent[];
+  checks?: CheckAgent[];
   reports?: WorkerReport[];
-  result?: string;          // tool observation preview
-  spin?: boolean;           // in-flight (tool_call_started, no step yet)
+  result?: string;
+  spin?: boolean;
   toolCall?: ToolCallDetail;
 }
 
@@ -62,6 +70,14 @@ const STATUS_DOT: Record<string, string> = {
   completed: "bg-ok", partial: "bg-ok", running: "bg-accent", error: "bg-err",
 };
 
+function stepBorder(action: ActionView | null): string {
+  if (!action) return "border-line";
+  if (action.spin) return "border-accent/50";
+  if (action.tone === CHIP.error) return "border-err/50";
+  if (action.tone === CHIP.ok) return "border-ok/40";
+  return "border-line-strong";
+}
+
 function stepView(name: string, args: string): ActionView | null {
   switch (name) {
     case "create_schema": {
@@ -77,8 +93,12 @@ function stepView(name: string, args: string): ActionView | null {
       return { icon: Search, tone: CHIP.neutral, label: "Searched", detail: args.match(/'query':\s*'([^']*)'/)?.[1] };
     case "open":
       return { icon: BookOpen, tone: CHIP.neutral, label: "Read a page" };
+    case "exec": {
+      const summary = parseExecArgs(args);
+      return { icon: Terminal, tone: CHIP.clay, label: "Exec", detail: summary.detail };
+    }
     case "enqueue_tasks":
-      return null; // represented by the dispatch wave that follows
+      return null;
     default:
       return name ? { icon: Compass, tone: CHIP.neutral, label: name } : null;
   }
@@ -143,8 +163,111 @@ function FinalReply({ card, sessionId }: { card: Card; sessionId?: string | null
 }
 
 function skillBatchSummary(children: Card[]): string {
-  const failed = children.filter(child => child.action?.toolCall?.status === "error").length;
-  return `技能编排 · ${children.length} 个子步骤${failed ? ` · ${failed} 个失败` : ""}`;
+  const failed = children.filter(child => child.action?.toolCall?.status === "error"
+    || child.action?.toolCall?.status === "cancelled").length;
+  const ok = children.length - failed;
+  return `技能编排 · ${children.length} 个子步骤 · 成功 ${ok}${failed ? ` / 失败 ${failed}` : ""}`;
+}
+
+function ReasoningBlock({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const long = text.split(/\r?\n/).length > 3 || text.length > 220;
+  return (
+    <div className="mb-2">
+      <p className={`text-[13px] leading-relaxed text-ink-dim ${open ? "" : "line-clamp-3"}`}>{text}</p>
+      {long && (
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          className="mt-1 text-[11px] font-medium text-accent-ink hover:underline"
+        >
+          {open ? "收起思考" : "展开思考"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ResultPreview({ text, compact = false }: { text: string; compact?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const formatted = formatPreviewText(text);
+  if (!formatted) return null;
+  const collapsed = clipLines(formatted, compact ? 2 : 4, compact ? 480 : 900);
+  const expanded = clipLines(formatted, compact ? 10 : 16, 6000);
+  const needsMore = formatted !== collapsed;
+  const needsDialog = formatted.split(/\r?\n/).length > 16 || formatted.length > 6000;
+  return (
+    <div className="trace-result mt-1.5">
+      <pre className={`m-0 whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-ink-dim ${open || !needsMore ? "" : "trace-fade"}`}>
+        ⎿ {open ? expanded : collapsed}
+      </pre>
+      {needsMore && (
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          className="mt-1 text-[11px] font-medium text-accent-ink hover:underline"
+        >
+          {open ? (needsDialog ? "收起（全文见详情）" : "收起") : "展开"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function CodeSnippet({ code, commandLine }: { code: string; commandLine: string }) {
+  const [open, setOpen] = useState(false);
+  if (!code && !commandLine) return null;
+  if (!code) {
+    return (
+      <div className="trace-code mt-2 px-2.5 py-1.5 font-mono text-[11px]">
+        <span className="trace-tok-cmt">$ </span>
+        <span className="trace-tok-fn">{commandLine}</span>
+      </div>
+    );
+  }
+  const collapsed = clipLines(code, 6, 2400);
+  const expanded = clipLines(code, 20, 8000);
+  const needsMore = code !== collapsed;
+  return (
+    <div className="trace-code mt-2">
+      <pre className="m-0 overflow-x-auto whitespace-pre px-2.5 py-2 font-mono text-[11px] leading-relaxed">
+        {highlightCode(open ? expanded : collapsed)}
+      </pre>
+      {needsMore && (
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          className="border-t border-line px-2.5 py-1 text-[11px] font-medium text-accent-ink hover:underline"
+        >
+          {open ? "收起代码" : "展开代码"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ExecBody({ detail }: { detail: ToolCallDetail }) {
+  const args = parseExecArgs(detail.arguments);
+  const result = detail.output ? summarizeExecResult(detail.output) : null;
+  return (
+    <div>
+      <CodeSnippet code={args.code} commandLine={args.commandLine} />
+      {result && (
+        <div className="mt-2 space-y-1">
+          <div className={`font-mono text-[11px] ${result.failed ? "text-err" : "text-ink-dim"}`}>
+            {result.metaLine}
+          </div>
+          {result.stdout && <ResultPreview text={result.stdout} />}
+          {result.stderr && (
+            <div className="rounded-md border border-warn/30 bg-warn/5 px-2 py-1">
+              <div className="text-[10px] font-medium uppercase tracking-wider text-warn">stderr</div>
+              <ResultPreview text={result.stderr} compact />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 const RUNNING_LABEL: Record<string, string> = {
@@ -153,6 +276,7 @@ const RUNNING_LABEL: Record<string, string> = {
   synthesize_answer: "Synthesizing answer",
   create_schema: "Building coverage schema",
   enqueue_tasks: "Queueing tasks",
+  exec: "Exec",
 };
 
 export function buildCards(
@@ -204,12 +328,12 @@ export function buildCards(
       const card: Card = previous?.card ?? { k: i, reasoning: "", action: null };
       const running = skill.status === "running" && status === "running";
       card.action = {
-        icon: running ? Loader2 : skill.status === "error" || skill.status === "cancelled" ? TriangleAlert : Compass,
+        icon: running ? Loader2 : skill.status === "error" || skill.status === "cancelled" ? TriangleAlert : Sparkles,
         spin: running, tone: skill.status === "error" ? CHIP.error : CHIP.neutral,
         label: `技能 · ${skill.skill}`,
         detail: running ? "执行中" : skill.status === "cancelled" ? "已取消"
           : skill.status === "error" ? "执行失败" : skill.status === "running" ? "未收到结果" : "已完成",
-        result: trim(skill.output, 220),
+        result: skill.output,
         toolCall: { tool: skill.skill, kind: "skill", executionId: skill.executionId,
           arguments: JSON.stringify({ argv: skill.argv }), output: skill.output, agent,
           timestamp: STR(d.timestamp), status: skill.status },
@@ -266,10 +390,13 @@ export function buildCards(
       if (d.tool_call_id && calls.has(STR(d.tool_call_id))) return;
       legacyWave = null;
       const tool = STR(d.tool);
+      const args = actionArgs({ args: d.args });
+      const exec = tool === "exec" ? parseExecArgs(args) : null;
       const card: Card = { k: i, reasoning: STR(d.reasoning).trim(), action: {
-        icon: Loader2, spin: true, tone: CHIP.neutral,
-        label: `${RUNNING_LABEL[tool] ?? tool}…`,
-        toolCall: { tool, arguments: actionArgs({ args: d.args }), output: "", agent,
+        icon: Loader2, spin: true, tone: tool === "exec" ? CHIP.clay : CHIP.neutral,
+        label: tool === "exec" ? "Exec…" : `${RUNNING_LABEL[tool] ?? tool}…`,
+        detail: exec?.detail,
+        toolCall: { tool, arguments: args, output: "", agent,
           timestamp: STR(d.timestamp), status: "running" },
       } };
       out.push(card);
@@ -300,7 +427,9 @@ export function buildCards(
     let action: ActionView | null;
     if (failed) {
       action = { icon: TriangleAlert, tone: CHIP.error,
-        label: `${name} · ${d.status === "cancelled" ? "已取消" : "调用失败"}` };
+        label: name === "exec" ? `Exec · ${d.status === "cancelled" ? "已取消" : "失败"}`
+          : `${name} · ${d.status === "cancelled" ? "已取消" : "调用失败"}`,
+        detail: name === "exec" ? parseExecArgs(args).detail : undefined };
     } else if (name === "enqueue_tasks") {
       action = { icon: Users, tone: CHIP.accent, agents,
         label: agents?.length ? agents.length > 1 ? `Dispatched ${agents.length} agents (concurrent)`
@@ -327,11 +456,13 @@ export function buildCards(
       action = { icon: Eye, tone: CHIP.neutral, checks, reports, label };
     } else action = stepView(name, args);
     if (action) {
-      action.result = (name === "enqueue_tasks" && agents?.length && !failed) || action.reports?.length
-        ? undefined : trim(fullResult, 220);
+      const hideResult = (name === "enqueue_tasks" && agents?.length && !failed) || action.reports?.length
+        || name === "exec";
+      action.result = hideResult ? undefined : fullResult;
       action.toolCall = { tool: name, arguments: args, output: fullResult, agent,
         timestamp: card.action?.toolCall?.timestamp || STR(d.timestamp),
         status: failed ? d.status === "cancelled" ? "cancelled" : "error" : "completed" };
+      if (name === "exec" && !action.detail) action.detail = parseExecArgs(args).detail;
     }
     card.reasoning = STR(d.reasoning).trim() || card.reasoning;
     card.action = action;
@@ -347,7 +478,7 @@ export function buildCards(
       ?? orphans.get(child.parentExecutionId);
     if (!parent) {
       parent = { k: -child.card.k - 1, reasoning: "", action: {
-        icon: Compass, tone: CHIP.neutral, label: "Exec", detail: "父调用记录未载入",
+        icon: Terminal, tone: CHIP.clay, label: "Exec", detail: "父调用记录未载入",
       } };
       orphans.set(child.parentExecutionId, parent);
       out.push(parent);
@@ -374,70 +505,25 @@ export default function OrchestratorTimeline({ events, status = "running", prior
   return (
     <div className="space-y-2 px-4 py-3">
       {cards.map((c) => (
-        <div key={c.k} className="rise-in surface rounded-xl px-3.5 py-3">
+        <div key={c.k} className={`trace-step rise-in surface rounded-xl border-l-2 px-3.5 py-2.5 ${stepBorder(c.action)}`}>
           {c.report && <DeliveredReport report={c.report} />}
-          {c.reasoning && (c.action ? <p className="mb-2.5 line-clamp-4 text-[13px] leading-relaxed text-ink">{c.reasoning}</p> : (
+          {c.reasoning && (c.action ? <ReasoningBlock text={c.reasoning} /> : (
             <FinalReply card={c} sessionId={sessionId} />
           ))}
           {c.action && (
-              <ActionBlock action={c.action} onOpenTool={() => setSelectedKey(c.k)}>
-                <div className="flex items-center gap-1.5 text-[12.5px] font-medium">
-                  <c.action.icon size={13} className={c.action.spin ? "animate-spin" : undefined} />
-                  {c.action.label}
-                  {c.action.detail && <span className="font-normal opacity-80">· {c.action.detail}</span>}
-                  {c.action.toolCall && <Maximize2 className="ml-auto shrink-0 opacity-60" size={12} />}
-                </div>
-
-                {/* tool result preview */}
-                {c.action.result && (
-                  <div className="mt-1.5 line-clamp-3 font-mono text-[11px] font-normal leading-relaxed opacity-75">
-                    ⎿ {c.action.result}
-                  </div>
-                )}
-
-                {/* dispatch wave — codename + task per concurrent agent */}
-                {c.action.agents && c.action.agents.length > 0 && (
-                  <ul className="mt-2 space-y-1.5">
-                    {c.action.agents.map((a, ai) => (
-                      <li key={ai} className="flex gap-2 text-[11.5px] font-normal leading-snug">
-                        <span className="shrink-0 font-mono font-medium text-accent-ink">{agentLabel(a.name)}</span>
-                        <span className="line-clamp-2 text-ink-dim">{a.task}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {/* check report — codename + status per agent */}
-                {c.action.checks && c.action.checks.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {c.action.checks.map((a, ai) => (
-                      <span key={ai} className="flex items-center gap-1.5 rounded-md bg-paper px-2 py-1 font-mono text-[11px] text-ink-dim">
-                        <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT[a.status] ?? "bg-ink-faint"}`} />
-                        {agentLabel(a.name)}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </ActionBlock>
+            <StepAction action={c.action} onOpenTool={() => setSelectedKey(c.k)} />
           )}
           {c.action?.reports?.map((report, i) => (
             <div className="mt-2" key={i}><DeliveredReport report={report} /></div>
           ))}
           {!!c.children?.length && (
-            <details className="mt-2 ml-3 border-l border-line pl-3">
-              <summary className="cursor-pointer rounded text-xs text-ink-dim focus-visible:outline-accent">
+            <details className="trace-term mt-2">
+              <summary className="cursor-pointer rounded px-1 text-xs text-ink-dim focus-visible:outline-accent">
                 {skillBatchSummary(c.children)}
               </summary>
-              <div className="mt-1.5 space-y-1.5">
+              <div className="mt-1.5 space-y-1.5 border-l border-accent/30 pl-3">
                 {c.children.map(child => child.action && (
-                  <ActionBlock key={child.k} action={child.action} onOpenTool={() => setSelectedKey(child.k)}>
-                    <div className="flex items-center gap-1.5 text-xs">
-                      <child.action.icon size={12} className={child.action.spin ? "animate-spin" : undefined} />
-                      <span>{child.action.label}</span>
-                      <span className="ml-auto text-[10px] opacity-75">{child.action.detail}</span>
-                    </div>
-                    {child.action.result && <div className="mt-1 line-clamp-2 break-all font-mono text-[11px] opacity-75">{child.action.result}</div>}
-                  </ActionBlock>
+                  <StepAction key={child.k} action={child.action} onOpenTool={() => setSelectedKey(child.k)} compact />
                 ))}
               </div>
             </details>
@@ -449,25 +535,69 @@ export default function OrchestratorTimeline({ events, status = "running", prior
   );
 }
 
-function ActionBlock({
+function StepAction({
   action,
   onOpenTool,
-  children,
+  compact = false,
 }: {
   action: ActionView;
-  onOpenTool: (detail: ToolCallDetail) => void;
-  children: ReactNode;
+  onOpenTool: () => void;
+  compact?: boolean;
 }) {
-  const className = `w-full rounded-lg px-3 py-2 text-left ${action.tone}`;
-  if (!action.toolCall) return <div className={className}>{children}</div>;
+  const shell = `rounded-lg px-3 py-2 ${action.tone}`;
+  const header = (
+    <div className={`flex items-center gap-1.5 ${compact ? "text-xs" : "text-[12.5px] font-medium"}`}>
+      <action.icon size={compact ? 12 : 13} className={action.spin ? "animate-spin" : undefined} />
+      <span>{action.label}</span>
+      {action.detail && (
+        <span className={`truncate font-normal text-ink-dim ${compact ? "ml-auto text-[10px]" : "opacity-90"}`}>
+          {compact ? action.detail : `· ${action.detail}`}
+        </span>
+      )}
+      {action.toolCall && <Maximize2 className={`${compact ? "" : "ml-auto"} shrink-0 opacity-60`} size={compact ? 11 : 12} />}
+    </div>
+  );
+
   return (
-    <button
-      type="button"
-      onClick={() => onOpenTool(action.toolCall!)}
-      aria-label={`View full parameters and output for ${action.toolCall.tool}`}
-      className={`${className} transition-[filter] hover:brightness-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40`}
-    >
-      {children}
-    </button>
+    <div className={shell}>
+      {action.toolCall ? (
+        <button
+          type="button"
+          onClick={onOpenTool}
+          aria-label={`View full parameters and output for ${action.toolCall.tool}`}
+          className="w-full rounded-md text-left transition-[filter] hover:brightness-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+        >
+          {header}
+        </button>
+      ) : header}
+
+      {action.toolCall && isCodeTool(action.toolCall) ? (
+        <ExecBody detail={action.toolCall} />
+      ) : action.result ? (
+        <ResultPreview text={action.result} compact={compact} />
+      ) : null}
+
+      {action.agents && action.agents.length > 0 && (
+        <ul className="mt-2 space-y-1.5">
+          {action.agents.map((a, ai) => (
+            <li key={ai} className="flex gap-2 text-[11.5px] font-normal leading-snug">
+              <span className="shrink-0 font-mono font-medium text-accent-ink">{agentLabel(a.name)}</span>
+              <span className="line-clamp-2 text-ink-dim">{a.task}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {action.checks && action.checks.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {action.checks.map((a, ai) => (
+            <span key={ai} className="flex items-center gap-1.5 rounded-md bg-paper px-2 py-1 font-mono text-[11px] text-ink-dim">
+              <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT[a.status] ?? "bg-ink-faint"}`} />
+              {agentLabel(a.name)}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

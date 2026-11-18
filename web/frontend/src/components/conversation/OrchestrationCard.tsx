@@ -117,7 +117,7 @@ export default function OrchestrationCard({ events, priorEvents = [], continued 
   return (
     <div className="surface overflow-hidden rounded-xl">
       {/* header — click to collapse/expand */}
-      <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="flex w-full items-center gap-2.5 px-4 py-3 text-left">
+      <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="flex w-full flex-wrap items-center gap-x-2.5 gap-y-1.5 px-4 py-3 text-left">
         {continued ? (
           <MessageSquareText size={15} className="text-ink-faint" />
         ) : running ? (
@@ -136,32 +136,42 @@ export default function OrchestrationCard({ events, priorEvents = [], continued 
             ? "Exploring information landscape"
             : running ? "Orchestrating search" : "Orchestration trace"}
         </span>
-        <span className="ml-auto text-[12px] text-ink-dim">
-          <b className="font-semibold text-ink">{displayedAgents}</b> {displayedAgents === 1 ? "agent" : "agents"}
+        <span className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-x-0 gap-y-0.5 text-[12px] text-ink-dim">
+          <span>
+            <b className="font-semibold text-ink">{displayedAgents}</b> {displayedAgents === 1 ? "agent" : "agents"}
+          </span>
           <span className="px-1 text-ink-faint">·</span>
-          <b className="font-semibold text-ink">{steps}</b> 次工具调用
+          <span>
+            <b className="font-semibold text-ink">{steps}</b> 次工具调用
+          </span>
           {total > 0 && (
             <>
               <span className="px-1 text-ink-faint">·</span>
-              <b className="font-semibold text-ink">{filled}/{total}</b> {total === 1 ? "cell" : "cells"}
+              <span>
+                <b className="font-semibold text-ink">{filled}/{total}</b> {total === 1 ? "cell" : "cells"}
+              </span>
             </>
           )}
           {evidence.total > 0 && (
             <>
               <span className="px-1 text-ink-faint">·</span>
-              <b className="font-semibold text-ink">{evidence.active}</b> 已采纳
-              <span className="px-1 text-ink-faint">/</span>
-              <b className="font-semibold text-ink">{evidence.candidate}</b> 候选
+              <span>
+                <b className="font-semibold text-ink">{evidence.active}</b> 已采纳
+                <span className="px-1 text-ink-faint">/</span>
+                <b className="font-semibold text-ink">{evidence.candidate}</b> 候选
+              </span>
             </>
           )}
           {pendingExtraction > 0 && (
             <>
               <span className="px-1 text-ink-faint">·</span>
-              <b className="font-semibold text-ink">{pendingExtraction}</b> 抽取中
+              <span>
+                <b className="font-semibold text-ink">{pendingExtraction}</b> 抽取中
+              </span>
             </>
           )}
         </span>
-        <ChevronDown size={16} className={`text-ink-faint transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown size={16} className={`shrink-0 text-ink-faint transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {sourceMode === "hybrid" && Object.entries(searchState?.source_scope?.unavailable_sources ?? {}).map(([source, reason]) => (

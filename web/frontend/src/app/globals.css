@@ -94,6 +94,36 @@ body::before {
   border: 1px solid var(--line);
 }
 
+/* Conversation timeline step / exec previews — brand tokens only */
+.trace-step {
+  background: var(--surface);
+}
+.trace-result {
+  min-width: 0;
+}
+.trace-fade {
+  mask-image: linear-gradient(to bottom, #000 70%, transparent);
+}
+.trace-code {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--surface-2);
+}
+.trace-term {
+  min-width: 0;
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+/* Exec / skill code tokens — SearchOS brand palette only */
+.trace-tok-kw { color: var(--accent-ink); font-weight: 600; }
+.trace-tok-str { color: var(--ok); }
+.trace-tok-num { color: var(--warn); }
+.trace-tok-cmt { color: var(--ink-faint); font-style: italic; }
+.trace-tok-fn { color: var(--accent); }
+.trace-tok-op { color: var(--ink-dim); }
+.trace-tok-plain { color: var(--ink); }
+
 /* ── Wordmark: brand-blue gradient, same as the logo / demo film ── */
 .wordmark {
   font-family: var(--font-sans);

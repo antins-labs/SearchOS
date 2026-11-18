@@ -233,8 +233,8 @@ test('一个 Exec 内多个技能子步骤收在默认折叠的详情里，只�
   const markup = html(events);
   assert.equal((markup.match(/<details\b/g) || []).length, 2);
   assert.doesNotMatch(markup, /<details[^>]*\bopen\b/);
-  assert.match(markup, /<summary[^>]*>技能编排 · 2 个子步骤 · 1 个失败<\/summary>.*?文章结果 child-c/);
-  assert.match(markup, /<summary[^>]*>技能编排 · 1 个子步骤<\/summary>.*?文章结果 child-b/);
+  assert.match(markup, /<summary[^>]*>技能编排 · 2 个子步骤 · 成功 1 \/ 失败 1<\/summary>.*?文章结果 child-c/);
+  assert.match(markup, /<summary[^>]*>技能编排 · 1 个子步骤 · 成功 1<\/summary>.*?文章结果 child-b/);
   assert.equal(deriveStepCount([...events, ...events]), 2);
   assert.equal(buildCards([...events, ...events], 'completed', []).length, 2);
   const workers = foldWorkers([event({type:'dispatch',agent:'search_agent'}),
@@ -265,4 +265,64 @@ test('回放量子位 case 时通过 parent_execution_id 归组，原日志保�
   assert.equal(cards.filter(c => c.action?.toolCall).length,fs.existsSync(file) ? 8 : 1);
   assert.equal(cards.flatMap(c => c.children || []).length,fs.existsSync(file) ? 8 : 1);
   assert.equal(deriveStepCount(events),fs.existsSync(file) ? 8 : 1);
+});
+
+test('execPreview 解析 code/argv 与结构化 stdout', () => {
+  const { parseExecArgs, summarizeExecResult, clipLines, isCodeTool } = load('lib/execPreview.ts');
+  const coded = parseExecArgs(JSON.stringify({ code: 'print(1)\nprint(2)\nprint(3)' }));
+  assert.equal(coded.codeLines, 3);
+  assert.match(coded.detail, /python/);
+  const argv = parseExecArgs(JSON.stringify({ argv: ['python', 'scripts/run.py'] }));
+  assert.match(argv.commandLine, /python/);
+  const summary = summarizeExecResult(JSON.stringify({
+    exit_code: 0,
+    stdout: 'hello\nworld',
+    streams: { stdout: { total_chars: 11, truncated: true }, stderr: { total_chars: 0 } },
+  }));
+  assert.equal(summary.exitCode, 0);
+  assert.equal(summary.truncated, true);
+  assert.match(summary.metaLine, /exit 0/);
+  assert.match(summary.metaLine, /truncated/);
+  assert.equal(clipLines('a\nb\nc\nd', 2), 'a\nb\n…');
+  assert.equal(isCodeTool({ tool: 'exec' }), true);
+  assert.equal(isCodeTool({ kind: 'skill', tool: 'demo' }), true);
+  assert.equal(isCodeTool({ tool: 'search' }), false);
+});
+
+test('codeHighlight 区分关键字/字符串/注释', () => {
+  const { tokenizePython } = load('lib/codeHighlight.tsx');
+  const kinds = Object.fromEntries(
+    tokenizePython('from x import y  # note\nprint("ok")\n').map((t) => [t.text, t.kind]),
+  );
+  assert.equal(kinds.from, 'kw');
+  assert.equal(kinds.import, 'kw');
+  assert.equal(kinds.print, 'fn');
+  assert.equal(kinds['"ok"'], 'str');
+  assert.equal(kinds['# note'], 'cmt');
+});
+
+test('Exec 卡片展示代码摘要与 exit meta，而不是整包 JSON 预览', () => {
+  const code = 'from searchos_sdk import skill\nprint("ok")\n';
+  const observation = JSON.stringify({
+    execution_id: 'exec-1',
+    exit_code: 0,
+    stdout: 'ok\n',
+    streams: { stdout: { total_chars: 3 }, stderr: { total_chars: 0 } },
+  });
+  const result = html([
+    event({
+      type: 'tool_call_started', agent: 'orchestrator', tool: 'exec', tool_call_id: 'e1',
+      args: { code }, reasoning: '跑一段代码',
+    }),
+    event({
+      type: 'step', agent: 'orchestrator', tool_call_id: 'e1',
+      action: { name: 'exec', args: { code } }, observation,
+    }),
+  ]);
+  assert.match(result, /Exec/);
+  assert.match(result, /python · \d+ 行/);
+  assert.match(result, /trace-tok-kw/);
+  assert.match(result, /searchos_sdk/);
+  assert.match(result, /exit 0/);
+  assert.doesNotMatch(result, /execution_id/);
 });
