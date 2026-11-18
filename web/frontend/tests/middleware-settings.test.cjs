@@ -39,7 +39,7 @@ function harness() {
     if (name === '@/components/settings/SettingsProvider') return { useSettings: () => context };
     if (name === '@/components/settings/controls/Toggle') return { __esModule: true, default: 'test-toggle' };
     if (name === '@/components/ui/Select') return { __esModule: true, default: 'test-select' };
-    if (name === './MiddlewareWorkbench') return { __esModule: true, default: 'test-workbench' };
+    if (name === './MiddlewareCallChain') return { __esModule: true, default: 'test-chain' };
     if (name === '@/lib/middleware-assembly') {
       const compiled = { exports: {} };
       vm.runInNewContext(ts.transpileModule(readFileSync(join(__dirname, '../src/lib/middleware-assembly.ts'), 'utf8'), {
@@ -114,10 +114,10 @@ test('空列表可保存，恢复默认发送 null，撤销不发送请求', asy
   assert.equal(h.calls.length, 2);
 });
 
-test('搜索不改变装配，断线禁用写入，旧后端显示升级提示', () => {
+test('搜索只过滤未装载组件，断线禁用写入，旧后端显示升级提示', () => {
   const h = harness();
   label(h.render(), '搜索 Middleware').props.onChange({ target: { value: 'C' } });
-  assert.equal(label(h.render(), '挂载 A'), null);
+  assert.equal(label(h.render(), '挂载 A').props.checked, true);
   assert.equal(label(h.render(), '挂载 C').props.checked, false);
   assert.equal(h.calls.length, 0);
   h.context.status = 'offline';
@@ -126,20 +126,21 @@ test('搜索不改变装配，断线禁用写入，旧后端显示升级提示',
   assert.ok(find(h.render(), (node) => node.type === 'p' && node.props.children.includes('重启 API')));
 });
 
-test('可视化与列表共用草稿，切换用途后保留，保存提交可视化顺序', async () => {
+test('装配与调用链共用草稿，切换用途后保留，保存提交当前顺序', async () => {
   const h = harness();
-  button(h.render(), '可视化').props.onClick();
-  const workbench = () => find(h.render(), (node) => node.type === 'test-workbench');
-  workbench().props.onChange(['C', 'A']);
+  label(h.render(), '挂载 C').props.onChange();
+  label(h.render(), '上移 C').props.onClick();
+  button(h.render(), '调用链').props.onClick();
+  const chain = () => find(h.render(), (node) => node.type === 'test-chain');
+  assert.deepEqual(plain(chain().props.items.map((item) => item.id)), ['A', 'C', 'B']);
   button(h.render(), 'writer').props.onClick();
-  assert.deepEqual(plain(workbench().props.selected), ['A', 'B']);
+  assert.deepEqual(plain(chain().props.items.map((item) => item.id)), ['A', 'B']);
   button(h.render(), 'orchestrator ·').props.onClick();
-  assert.deepEqual(plain(workbench().props.selected), ['C', 'A']);
-  button(h.render(), '列表').props.onClick();
+  button(h.render(), '装配').props.onClick();
   assert.equal(label(h.render(), '挂载 C').props.checked, true);
-  assert.equal(label(h.render(), '挂载 B').props.checked, false);
-  assert.equal(label(h.render(), '上移 C').props.disabled, true);
+  assert.equal(label(h.render(), '挂载 B').props.checked, true);
+  assert.equal(label(h.render(), '上移 C').props.disabled, false);
   assert.equal(h.calls.length, 0);
   await button(h.render(), '保存装配').props.onClick();
-  assert.deepEqual(h.calls[0].selected, ['C', 'A']);
+  assert.deepEqual(h.calls[0].selected, ['A', 'C', 'B']);
 });
