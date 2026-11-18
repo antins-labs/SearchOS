@@ -21,6 +21,36 @@ from searchos.utils.json_extract import parse_object_array
 logger = logging.getLogger(__name__)
 
 
+def _walk_exception_chain(exc: BaseException, *, limit: int = 6):
+    """Yield ``exc`` then ``__cause__`` / ``__context__`` without cycles."""
+    seen: set[int] = set()
+    cur: BaseException | None = exc
+    while cur is not None and id(cur) not in seen and len(seen) < limit:
+        seen.add(id(cur))
+        yield cur
+        nxt = cur.__cause__
+        if nxt is None and cur.__context__ is not None and not cur.__suppress_context__:
+            nxt = cur.__context__
+        cur = nxt
+
+
+def exception_error_fields(exc: BaseException) -> dict[str, Any]:
+    """Compact top error + cause chain for trajectory / logs."""
+    chain = list(_walk_exception_chain(exc))
+    fields: dict[str, Any] = {
+        "error": str(exc)[:200],
+        "error_type": type(exc).__name__,
+    }
+    if len(chain) > 1:
+        cause = chain[1]
+        fields["error_cause"] = str(cause)[:200]
+        fields["error_cause_type"] = type(cause).__name__
+        fields["error_chain"] = [
+            f"{type(item).__name__}: {str(item)[:120]}" for item in chain
+        ]
+    return fields
+
+
 class RowExtractor:
     """管理模型调用与候选解析；不持有 Store 或协调器。"""
 
@@ -292,15 +322,19 @@ Return [] only when the sources support no rows."""
                             "type": "harness",
                             "kind": "judge_failed" if exhausted else "judge_retry",
                             "attempt": attempt,
-                            "error": str(exc)[:200],
-                            "error_type": type(exc).__name__,
+                            **exception_error_fields(exc),
                         }
                     )
                 if exhausted:
                     logger.warning(
-                        "judge_invoke_with_retry: all attempts failed: %s(%s)",
+                        "judge_invoke_with_retry: all attempts failed: %s(%s)%s",
                         type(exc).__name__,
                         str(exc).strip(),
+                        (
+                            f" cause={type(exc.__cause__).__name__}:{exc.__cause__}"
+                            if exc.__cause__ is not None
+                            else ""
+                        ),
                     )
                     return ""
                 logger.debug("judge attempt %d failed: %s", attempt, exc)
