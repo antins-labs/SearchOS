@@ -178,7 +178,7 @@ class Settings(BaseSettings):
     max_searches_per_sub_agent: int = 20
     max_searches_per_sub_agent_ceiling: int = 40
     max_finds_per_sub_agent: int = 20
-    max_skills_per_sub_agent: int = 20
+    max_execs_per_sub_agent: int = 20
     # Each skill orchestration contributes at most one settled empty batch.
     # 0 disables early stopping. Agents without extraction count tool calls.
     search_agent_no_progress_tool_limit: int = 10
@@ -289,7 +289,15 @@ class Settings(BaseSettings):
 
     # --- Extraction ---
     extraction_flush_concurrency: int = 5
+    # Bound how long before-model drain waits on in-flight flushes. On timeout
+    # the model call proceeds while extraction continues in the background.
+    extraction_drain_timeout_s: float = 15.0
     extraction_finalize_timeout_s: float = 30.0
+    # Cap how many times a failed observation is retained for replay before
+    # terminal abandon. Deterministic failures abandon immediately.
+    extraction_retry_max_attempts: int = 2
+    # Per-invoke ceiling for a single judge extraction call.
+    extraction_invoke_timeout_s: float = 75.0
     extraction_dual_mode: bool = True  # split FILL/DISCOVER judge calls
     # Inputs longer than this (chars) are split into segments before extraction
     # so a single judge call never overruns the input/output window — mainly
@@ -346,7 +354,7 @@ def reload_settings_in_place(fresh: Settings | None = None) -> None:
         setattr(settings, name, getattr(fresh, name))
 
 
-# Per-agent budget overrides (max_searches, max_opens, max_finds, max_skills).
+# Per-agent budget overrides (max_searches, max_opens, max_finds, max_execs).
 AGENT_BUDGET_OVERRIDES: dict[str, dict[str, int]] = {
     # 批量调用按实际 query/page 计量；find 继承公共的单 Agent 预算。
     "explore_agent": {"max_searches": 30, "max_opens": 36},

@@ -173,6 +173,7 @@ export default function ResearchWorkspace({ mobile = false }: { mobile?: boolean
               ? {
                   coverageScore: session.result?.coverage_score ?? undefined,
                   evidenceCount: session.result?.evidence_count,
+                  extractionPendingTotal: 0,
                   elapsed: session.result?.elapsed_s ?? session.elapsed,
                   verdict: session.result?.eval_verdict ?? null,
                   totalQueries: session.result?.total_queries,
@@ -182,7 +183,12 @@ export default function ResearchWorkspace({ mobile = false }: { mobile?: boolean
                   tokenPhases: session.result?.token_phases,
                   modelDistribution: session.result?.model_distribution,
                 }
-              : { ...t.meta, elapsed: session.elapsed, startedAt: session.startedAt },
+              : {
+                  ...t.meta,
+                  elapsed: session.elapsed,
+                  startedAt: session.startedAt,
+                  extractionPendingTotal: session.extractionPendingTotal,
+                },
         };
       }),
     );

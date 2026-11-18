@@ -8,7 +8,11 @@ from typing import Any
 
 from searchos.harness.middleware.extraction.core.tables.units import normalize_value
 from searchos.socm import TableSchema
-from searchos.socm.evidence.missing_values import _NULL_VALUES, is_missing_value
+from searchos.socm.evidence.missing_values import (
+    _NULL_VALUES,
+    is_missing_value,
+    normalize_pk_field,
+)
 from searchos.socm.evidence.provenance import source_refs
 
 
@@ -221,15 +225,11 @@ def _ingest_rows(
         ):
             rejected.append({"row": "", "column": "", "reason": "source_out_of_scope"})
             continue
-        key_vals: dict[str, str] = {}
-        ok = True
-        for k in schema.primary_key:
-            v = str(row.get(k, "")).strip()
-            if not v or v.lower() in null_values:
-                ok = False
-                break
-            key_vals[k] = v
-        if not ok:
+        key_vals: dict[str, str] = {
+            k: normalize_pk_field(row.get(k)) for k in schema.primary_key
+        }
+        # Composite PK: not-all-null. Missing fields normalize to "/".
+        if not key_vals or all(v == "/" for v in key_vals.values()):
             continue
         raw_entity = TableSchema.make_entity_key(key_vals, schema.primary_key)
         if not raw_entity:
@@ -283,8 +283,12 @@ def _ingest_rows(
                 columns = schema.primary_key
                 if not row_excerpt and len(columns) == 1:
                     row_excerpt = key_vals[columns[0]]
+                # Identity anchoring only requires non-placeholder PK values in the excerpt.
+                anchored_vals = [v for v in key_vals.values() if v.lower() not in null_values]
                 if (find_span(original, row_excerpt, browser_lines=True)[0] is None
-                        or not all(find_span(row_excerpt, value)[0] is not None for value in key_vals.values())):
+                        or not all(
+                            find_span(row_excerpt, value)[0] is not None for value in anchored_vals
+                        )):
                     rejected.append({"row": raw_entity, "column": "", "reason": "unanchored_row_identity"})
                     break
             for attr in columns:
@@ -333,14 +337,16 @@ def _ingest_rows(
                         excerpt,
                         browser_lines=source_url.startswith(("http://", "https://", "skill://")),
                     )
-                    if span is None or original_span is None:
-                        rejected.append(
-                            {"row": raw_entity, "column": attr, "reason": "unanchored_source"}
-                        )
-                        continue
-                    span = original_span
-                    excerpt = original[span[0] : span[1]]
-                    text_hash = "sha1:" + hashlib.sha1(excerpt.encode()).hexdigest()
+                    # Span is optional highlight metadata: prefer original-page
+                    # coordinates when available, but do not drop the cell solely
+                    # because anchoring failed.
+                    if original_span is not None:
+                        span = original_span
+                        excerpt = original[span[0] : span[1]]
+                        text_hash = "sha1:" + hashlib.sha1(excerpt.encode()).hexdigest()
+                        cell_conf = confidence
+                    else:
+                        cell_conf = min(cell_conf, 0.4)
                     observations[observed.id] = observed
                 node = EvidenceNode(
                     id=fid,
@@ -368,7 +374,8 @@ def _ingest_rows(
                     table_id=tid,
                     observation_id=observed.id if observed is not None else "",
                 )
-                source_error = cell_source_error(s, node) or ("unanchored_source" if span is None else "")
+                # Keep number/url/excerpt gates; span absence alone is not a hard reject.
+                source_error = cell_source_error(s, node)
                 if source_error or alignment != "full":
                     node.status = EvidenceStatus.CANDIDATE
                     durable, _ = s.evidence_graph.get_or_add(node)

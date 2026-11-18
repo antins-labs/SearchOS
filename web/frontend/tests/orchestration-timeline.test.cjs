@@ -63,6 +63,27 @@ test('运行卡片在首轮工具之前显示初始化并隐藏已结束的阶�
   assert.doesNotMatch(render('completed', 'web'), /正在初始化/);
 });
 
+test('运行卡片在有积压时显示抽取中数量', () => {
+  const Card = load('components/conversation/OrchestrationCard.tsx').default;
+  const searchState = {
+    coverage_map: { cells: {} },
+    evidence_graph: {
+      nodes: [
+        { id: 'a', status: 'active' },
+        { id: 'c', status: 'candidate' },
+      ],
+    },
+  };
+  const html = (pending) => renderToStaticMarkup(React.createElement(Card, {
+    events: [], workers: [{ name: 'orchestrator', status: 'running' }],
+    searchState, extractionPendingTotal: pending, status: 'running', sourceMode: 'web', onOpen() {},
+  }));
+  assert.match(html(3), /已采纳/);
+  assert.match(html(3), /候选/);
+  assert.match(html(3), /3<\/b> 抽取中/);
+  assert.doesNotMatch(html(0), /抽取中/);
+});
+
 test('等待回执与随后送达的报告分别显示', () => {
   const result = html([
     event({type:'step', agent:'orchestrator', tool_call_id:'wait', action:{name:'check_agents',args:{}},

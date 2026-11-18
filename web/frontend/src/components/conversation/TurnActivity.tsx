@@ -32,6 +32,7 @@ export default function TurnActivity({ turn, onOpen, children }: {
             {showTrace && <div className="mb-4">
               <OrchestrationCard events={segment.events} priorEvents={segment.priorEvents}
                 searchState={latest ? turn.searchState : null}
+                extractionPendingTotal={latest ? turn.meta?.extractionPendingTotal : 0}
                 status={latest ? turn.status : "idle"} continued={!latest}
                 workers={latest ? turn.workers : foldWorkers([...segment.priorEvents, ...segment.events])}
                 sourceMode={turn.sourceMode} sessionId={turn.sessionId} onOpen={onOpen} />

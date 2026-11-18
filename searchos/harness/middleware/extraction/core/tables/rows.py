@@ -14,7 +14,11 @@ from searchos.harness.middleware.extraction.core.tables.prompts import (
     build_discover_row_prompt,
     build_fill_row_prompt,
 )
-from searchos.socm.evidence.missing_values import _NULL_VALUES
+from searchos.socm.evidence.missing_values import (
+    _NULL_VALUES,
+    has_non_placeholder_pk,
+    normalize_pk_field,
+)
 from searchos.socm.refs import cell_key
 from searchos.utils.json_extract import parse_object_array
 
@@ -187,10 +191,11 @@ return [] when unsupported."""
             if attempt:
                 retry_prompt += f"""
 
-[JSON format correction] Return one JSON array of objects. Each row requires every primary-key
-field: {json.dumps(schema.primary_key, ensure_ascii=False)}. Quote strings, including values
-containing units or symbols. Preserve all supported rows, source values and excerpts.
-Return [] only when the sources support no rows."""
+[JSON format correction] Return one JSON array of objects. Primary-key fields:
+{json.dumps(schema.primary_key, ensure_ascii=False)}. At least one primary-key field must be a
+non-null page-supported value; unknown primary-key fields may be null (they normalize to "/").
+Quote strings, including values containing units or symbols. Preserve all supported rows, source
+values and excerpts. Return [] only when the sources support no rows."""
             try:
                 raw = await self.invoke(retry_prompt)
             except Exception:  # noqa: BLE001
@@ -210,21 +215,17 @@ Return [] only when the sources support no rows."""
                         "row_extraction_empty", "judge_returned_no_rows", raw, item, mode, attempt
                     )
                     return [], True
-                valid = [
-                    row for row in rows if all(
-                        isinstance(row.get(key), (str, int, float))
-                        and str(row[key]).strip().lower() not in _NULL_VALUES
-                        for key in schema.primary_key
+                valid = [row for row in rows if has_non_placeholder_pk(row, schema.primary_key)]
+                if len(valid) != len(rows):
+                    reason = "missing_primary_key"
+                    self._log_response(
+                        "judge_format_failure", reason, raw, item, mode, attempt
                     )
-                ]
-                if len(valid) == len(rows):
-                    break
-                reason = "missing_primary_key"
-                if valid:
-                    # 提交有效行，同时保留未完成的观察供重放。
-                    self._log_response("judge_format_failure", reason, raw, item, mode, attempt)
-                    rows, ok = valid, False
-                    break
+                    # Keep valid rows; all-invalid == empty success. Do not retry.
+                    if not valid:
+                        return [], True
+                    rows = valid
+                break
             if attempt == 2:
                 self._log_response("judge_format_failure", reason, raw, item, mode, attempt)
                 return [], False
@@ -305,16 +306,24 @@ Return [] only when the sources support no rows."""
 
         输出解析和证据校验仍由各自调用方负责。有效空结果不触发额外调用；
         失败时不改用其他字段或截断原文，避免生成下游无法接收的候选。
+        单次 ainvoke 受 ``extraction_invoke_timeout_s`` 约束。
         """
+        from searchos.config.settings import settings
+
         max_attempts = 3
+        invoke_timeout = float(settings.extraction_invoke_timeout_s)
         for attempt in range(max_attempts):
             try:
                 async with self._call_semaphore:
-                    response = await self._judge.ainvoke(prompt)
+                    response = await asyncio.wait_for(
+                        self._judge.ainvoke(prompt), timeout=invoke_timeout,
+                    )
                 return response.content if hasattr(response, "content") else str(response)
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
+                if isinstance(exc, TimeoutError):
+                    exc = TimeoutError(f"extraction invoke exceeded {invoke_timeout:.0f}s")
                 exhausted = attempt == max_attempts - 1
                 if self._trajectory_logger:
                     self._trajectory_logger._append_raw(
@@ -370,8 +379,8 @@ Return [] only when the sources support no rows."""
             )
 
         for row in rows:
-            pk = tuple(str(row.get(key, "")).strip() for key in schema.primary_key)
-            if not all(pk):
+            pk = tuple(normalize_pk_field(row.get(key)) for key in schema.primary_key)
+            if all(value == "/" for value in pk):
                 continue
             # Other grounding metadata may encode distinct conditions, units or
             # authority. Only equivalent provenance permits subsumption.

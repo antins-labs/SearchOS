@@ -682,6 +682,10 @@ export interface SearchResult {
   query?: string;
   coverage_score?: number | null;
   evidence_count?: number;
+  evidence_active_count?: number;
+  evidence_candidate_count?: number;
+  extraction_pending_total?: number;
+  extraction_rejection_counts?: Record<string, number>;
   total_queries?: number;
   total_steps?: number;
   skill_execution_count?: number;

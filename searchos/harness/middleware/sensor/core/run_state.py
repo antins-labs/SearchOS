@@ -48,7 +48,7 @@ class BudgetState:
     - ``max_queries`` — count of search_* tool calls
     - ``max_opens`` — count of open() tool calls (0 = disabled)
     - ``max_finds`` — count of find() tool calls (0 = disabled)
-    - ``max_skills`` — count of Exec calls that start an Access Skill (0 = unlimited)
+    - ``max_execs`` — count of exec tool calls (0 = unlimited)
     - ``max_iterations`` — orchestrator rounds
     - ``max_time_s`` — wall-clock seconds since first budget consumption or
       first ``consumption_ratio`` read, whichever is earlier
@@ -67,18 +67,18 @@ class BudgetState:
         max_iterations: int = 0,
         max_opens: int = 0,
         max_finds: int = 0,
-        max_skills: int = 0,
+        max_execs: int = 0,
     ) -> None:
         self.max_queries = max_queries
         self.max_time_s = max_time_s
         self.max_iterations = max_iterations
         self.max_opens = max_opens
         self.max_finds = max_finds
-        self.max_skills = max_skills
+        self.max_execs = max_execs
         self.consumed_queries = 0
         self.consumed_opens = 0
         self.consumed_finds = 0
-        self.consumed_skills = 0
+        self.consumed_execs = 0
         self.elapsed_s = 0.0
         self.current_iteration = 0
         self.evaluator_tokens = 0
@@ -102,9 +102,9 @@ class BudgetState:
         self._ensure_started()
         self.consumed_finds += n
 
-    def consume_skill(self, n: int = 1) -> None:
+    def consume_exec(self, n: int = 1) -> None:
         self._ensure_started()
-        self.consumed_skills += n
+        self.consumed_execs += n
 
     def consume_evaluator_tokens(self, n: int) -> None:
         self.evaluator_tokens += n
@@ -134,8 +134,8 @@ class BudgetState:
             ratios.append(self.consumed_opens / self.max_opens)
         if self.max_finds > 0:
             ratios.append(self.consumed_finds / self.max_finds)
-        if self.max_skills > 0:
-            ratios.append(self.consumed_skills / self.max_skills)
+        if self.max_execs > 0:
+            ratios.append(self.consumed_execs / self.max_execs)
         if self.max_iterations > 0:
             ratios.append(self.current_iteration / self.max_iterations)
         if self.max_time_s > 0:
@@ -159,8 +159,8 @@ class BudgetState:
         return self.max_finds > 0 and self.consumed_finds >= self.max_finds
 
     @property
-    def skills_exhausted(self) -> bool:
-        return self.max_skills > 0 and self.consumed_skills >= self.max_skills
+    def execs_exhausted(self) -> bool:
+        return self.max_execs > 0 and self.consumed_execs >= self.max_execs
 
     @property
     def hard_exhausted(self) -> bool:
@@ -182,8 +182,8 @@ class BudgetState:
             dims.append(self.opens_exhausted)
         if self.max_finds > 0:
             dims.append(self.finds_exhausted)
-        if self.max_skills > 0:
-            dims.append(self.skills_exhausted)
+        if self.max_execs > 0:
+            dims.append(self.execs_exhausted)
         return bool(dims) and all(dims)
 
     @property
@@ -217,8 +217,8 @@ class BudgetState:
                 parts.append(f"""open {self.consumed_opens}/{self.max_opens}""")
             if self.max_finds > 0:
                 parts.append(f"""find {self.consumed_finds}/{self.max_finds}""")
-            if self.max_skills > 0:
-                parts.append(f"""skill {self.consumed_skills}/{self.max_skills}""")
+            if self.max_execs > 0:
+                parts.append(f"""exec {self.consumed_execs}/{self.max_execs}""")
             return ", ".join(parts) or """all tool budgets spent"""
         return ""
 

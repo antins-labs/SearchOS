@@ -151,7 +151,8 @@ def save_child_results(executions: list[dict], parent_directory: Path, *, task_i
     entries = []
     for result in executions:
         entry = {key: result[key] for key in (
-            "execution_id", "skill", "argv", "status", "exit_code", "error", "index_page_url",
+            "execution_id", "op", "skill", "argv", "params", "status", "exit_code", "error",
+            "index_page_url",
         ) if key in result}
         entry["streams"] = {}
         for stream in ("stdout", "stderr"):

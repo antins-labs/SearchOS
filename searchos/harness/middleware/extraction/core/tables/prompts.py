@@ -87,9 +87,10 @@ _RULES = """\
 and include/exclude lists. The assignment selects where to look; all entities within the overall
 goal remain eligible unless explicit write targets restrict this call. Never invent members to
 complete a set.
-- Identity: every primary-key value must be supported by the page or an explicitly linked
-directory record. A supported new identity qualifies with all attributes null (identity-only);
-its quoted page must itself support every primary-key value.
+- Identity: at least one primary-key field must be supported by the page or an explicitly linked
+directory record. Primary-key fields the page does not state are null (they normalize to "/").
+A supported new identity qualifies with all attributes null (identity-only); its quoted page must
+support every non-null primary-key value.
 - Values: extract what this page explicitly states for this entity and column. Keep unknown
 fields null. Memory, typical values, another entity's attributes and unsupported repetition cannot
 supply a field. Verify repeated values for each entity separately. Exclude website-operator

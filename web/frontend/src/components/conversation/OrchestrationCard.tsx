@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Check, ChevronDown, ArrowRight, Ban, ShieldCheck, Sparkles, Compass, FileSearch, Files, MessageSquareText, TriangleAlert, X } from "lucide-react";
 import type { SearchState, WSEvent } from "@/lib/types";
-import { deriveCoverage, deriveLocalRunProgress, deriveRunPhase, runPhaseLabel, deriveStepCount, skillExecutionInfo } from "@/lib/runState";
+import { deriveCoverage, deriveEvidenceBreakdown, deriveLocalRunProgress, deriveRunPhase, runPhaseLabel, deriveStepCount, skillExecutionInfo } from "@/lib/runState";
 import OrchestratorTimeline from "@/components/workbench/OrchestratorTimeline";
 import { deriveExploreProgress, type ExploreProgress } from "@/lib/exploreProgress";
 
@@ -17,6 +17,8 @@ interface Props {
   priorEvents?: WSEvent[];
   continued?: boolean;
   searchState: SearchState | null;
+  /** Live extraction backlog from state polls; independent of search_state. */
+  extractionPendingTotal?: number;
   status: "idle" | "running" | "completed" | "error";
   workers: WorkerLite[];
   sourceMode?: "web" | "local" | "hybrid";
@@ -60,9 +62,11 @@ function deriveRunDetails(events: WSEvent[]) {
 /** The orchestrator's run, as one collapsible card in the conversation: its
  *  think→action trajectory inside, auto-collapsing on completion so the final
  *  answer is what you see. "View agents & evidence" opens the detail drawer. */
-export default function OrchestrationCard({ events, priorEvents = [], continued = false, searchState, status, workers, sourceMode, onOpen, sessionId }: Props) {
+export default function OrchestrationCard({ events, priorEvents = [], continued = false, searchState, extractionPendingTotal = 0, status, workers, sourceMode, onOpen, sessionId }: Props) {
   const running = status === "running";
   const { filled, total } = deriveCoverage(searchState);
+  const evidence = deriveEvidenceBreakdown(searchState);
+  const pendingExtraction = Math.max(0, extractionPendingTotal);
   const steps = deriveStepCount(events);
   const simple = [...priorEvents, ...events].some(event => {
     const data = event.data as Record<string, unknown> | undefined;
@@ -140,6 +144,20 @@ export default function OrchestrationCard({ events, priorEvents = [], continued 
             <>
               <span className="px-1 text-ink-faint">·</span>
               <b className="font-semibold text-ink">{filled}/{total}</b> {total === 1 ? "cell" : "cells"}
+            </>
+          )}
+          {evidence.total > 0 && (
+            <>
+              <span className="px-1 text-ink-faint">·</span>
+              <b className="font-semibold text-ink">{evidence.active}</b> 已采纳
+              <span className="px-1 text-ink-faint">/</span>
+              <b className="font-semibold text-ink">{evidence.candidate}</b> 候选
+            </>
+          )}
+          {pendingExtraction > 0 && (
+            <>
+              <span className="px-1 text-ink-faint">·</span>
+              <b className="font-semibold text-ink">{pendingExtraction}</b> 抽取中
             </>
           )}
         </span>

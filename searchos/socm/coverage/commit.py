@@ -135,10 +135,10 @@ def commit_table_facts(
             reason = "unresolved_cell"
         elif not evidence_source_allowed(state, candidate):
             reason = "source_out_of_scope"
-        elif (
-            not candidate.source.startswith(("https://", "http://", "local://", "skill://", "agent://"))
-            or candidate.span is None
+        elif not candidate.source.startswith(
+            ("https://", "http://", "local://", "skill://", "agent://")
         ):
+            # Span is optional highlight metadata; value/excerpt gates live elsewhere.
             reason = "unanchored_source"
         if reason:
             result.rejected.append(

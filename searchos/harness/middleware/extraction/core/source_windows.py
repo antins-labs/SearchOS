@@ -198,14 +198,43 @@ class ObservationPreparer:
         else:
             self._source_window_history.pop(key, None)
 
+    @staticmethod
+    def _source_domain(item: dict[str, Any]) -> str:
+        """Group key for exec packing: host for http(s), scheme+path head otherwise."""
+        from urllib.parse import urlparse
+
+        url = str(item.get("source_url") or "")
+        if not url:
+            return ""
+        parsed = urlparse(url)
+        if parsed.scheme in {"http", "https"} and parsed.netloc:
+            return parsed.netloc.lower()
+        if parsed.scheme:
+            return f"{parsed.scheme}://{(parsed.netloc or parsed.path.split('/', 1)[0]).lower()}"
+        return url.lower()
+
     def pack_items(
         self,
         items: list[dict[str, Any]],
     ) -> list[list[dict[str, Any]]]:
-        """按范围与累计预算分包，保留对象、正文和哈希供独立结算。
+        """按来源域名分组后再按范围与累计预算分包，保留对象、正文和哈希供独立结算。
 
         单份超预算观察独立成包，由 chunk_items 切片或明确报错。
         """
+        grouped: dict[str, list[dict[str, Any]]] = {}
+        order: list[str] = []
+        for item in items:
+            domain = self._source_domain(item)
+            if domain not in grouped:
+                order.append(domain)
+                grouped[domain] = []
+            grouped[domain].append(item)
+        packages: list[list[dict[str, Any]]] = []
+        for domain in order:
+            packages.extend(self._pack_budget(grouped[domain]))
+        return packages
+
+    def _pack_budget(self, items: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
         limit = min(5, max(1, self._config.max_sources_per_call))
         packages: list[list[dict[str, Any]]] = []
         current: list[dict[str, Any]] = []

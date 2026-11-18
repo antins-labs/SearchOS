@@ -16,48 +16,17 @@ from langchain_core.tools import tool
 
 from searchos.skills.core.capabilities import read_capability_results
 from searchos.skills.runtime.paths import resolve_resource_file, skill_workspace_dir
-from searchos.tools.search_state import (
-    _current_agent_var,
-    _current_task_id_var,
-    _source_scope_var,
-    _workspace_var,
+from searchos.tools.exec.workspace import (
+    WORK_LOCK_WAIT_TIMEOUT_S,
+    acquire_work_lock as _acquire_work_lock,
+    context as _context,
+    write_json as _write_json,
 )
-
-WORK_LOCK_WAIT_TIMEOUT_S = 300.0
-
-
-async def _acquire_work_lock(lock) -> None:
-    """同任务的并行调用等待共享目录；不阻塞事件循环，取消时不遗留抢锁线程。"""
-    try:
-        async with asyncio.timeout(WORK_LOCK_WAIT_TIMEOUT_S):
-            while True:
-                try:
-                    fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-                    return
-                except BlockingIOError:
-                    await asyncio.sleep(0.05)
-    except TimeoutError as exc:
-        raise ValueError("timed out waiting for this task's work directory; command was not started") from exc
+from searchos.tools.search_state import _source_scope_var
 
 
 def _json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False)
-
-
-def _write_json(path: Path, value: Any) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(f".{path.name}.{uuid4().hex}.tmp")
-    temporary.write_text(_json(value), encoding="utf-8")
-    temporary.replace(path)
-
-
-def _context() -> tuple[Path, str]:
-    ws = _workspace_var.get()
-    if ws is None:
-        raise ValueError("skill execution requires a bound task workspace")
-    identity = _current_task_id_var.get() or _current_agent_var.get()
-    key = hashlib.sha256(identity.encode()).hexdigest()[:24]
-    return ws.path.resolve(), key
 
 
 def _skill(name: str):
@@ -141,19 +110,65 @@ def load_package(name: str) -> dict[str, Any]:
         raise ValueError("loaded skill snapshot hash changed")
     frozen = validate_package(directory, expected_name=binding["name"])
     resources = sorted(str(p.relative_to(directory)) for p in directory.rglob("*") if p.is_file())
+    parameters = _package_parameters(directory)
     answer = {
         **binding, "body": frozen.body, "category": frozen.meta.category.value,
         "description": frozen.meta.description, "compatibility": frozen.meta.compatibility,
         "availability": skill.meta.availability.value,
         "resources": resources[:200], "resources_truncated": len(resources) > 200,
         "work_directory": str(skill_workspace_dir(root, "work") / key),
-        "execution": "cli",
-        "invocation": "Pass command_prefix + [command, package_relative_script, ...business_arguments] to exec argv, or orchestrate calls with subprocess in code.",
-        "command_prefix": ["searchanything", "run", name, "--"],
+        "execution": "sdk",
+        "invocation": (
+            "In exec(code=...), import searchos_sdk and call this skill with the usage below. "
+            "SKILL.md CLI instructions describe standalone runs; prefer usage inside Exec."
+        ),
+        "usage": _package_usage(name, directory, parameters),
     }
+    if parameters is not None:
+        answer["parameters"] = parameters
     if results := read_capability_results(frozen):
         answer["capability_results"] = results
     return answer
+
+
+def _package_parameters(directory: Path) -> dict[str, Any] | None:
+    path = directory / "references" / "parameters.json"
+    if not path.is_file():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def _package_usage(name: str, directory: Path, parameters: dict[str, Any] | None) -> str:
+    standard = (directory / "scripts" / "run.py").is_file()
+    if standard and parameters and isinstance(parameters.get("parameters"), dict):
+        keys = [key for key in parameters["parameters"] if key != "function"]
+        sample = ", ".join(f'{key}="..."' for key in keys[:3]) or 'function="..."'
+        return (
+            f'from searchos_sdk import skill, SkillError\n'
+            f'handle = skill("{name}")\n'
+            f'result = handle({sample})  # returns a dict; raises SkillError on failure'
+        )
+    if standard:
+        return (
+            f'from searchos_sdk import skill, SkillError\n'
+            f'handle = skill("{name}")\n'
+            f'result = handle(function="...")  # returns a dict; raises SkillError on failure'
+        )
+    scripts = sorted(
+        str(path.relative_to(directory))
+        for path in (directory / "scripts").glob("*.py")
+        if path.name not in {"_network.py", "run.py", "source.py"} and path.is_file()
+    )
+    script = scripts[0] if scripts else "scripts/<entry>.py"
+    return (
+        f'from searchos_sdk import skill, SkillError\n'
+        f'handle = skill("{name}")\n'
+        f'stdout = handle.run(["python", "{script}", ...])  # raw argv exit; returns stdout text'
+    )
 
 
 def _loaded(name: str) -> dict[str, Any]:
@@ -190,7 +205,7 @@ def execution_started(tool_call_id: str) -> bool:
 @tool(parse_docstring=True)
 async def load_skill(skill_name: str) -> str:
     """Load and pin a skill version for this task. Returns its instructions, resources and, for
-    executable skills, the SearchAnything command_prefix to use in exec.
+    executable skills, the searchos_sdk usage and parameters to call from exec.
 
     Args:
         skill_name: Exact registered name from list_skills or the task's skill catalog.
@@ -199,7 +214,7 @@ async def load_skill(skill_name: str) -> str:
         package = load_package(skill_name)
         fields = (
             "name", "body", "category", "description", "compatibility", "resources",
-            "execution", "invocation", "command_prefix", "capability_results",
+            "execution", "invocation", "usage", "parameters", "capability_results",
         )
         visible = {key: package[key] for key in fields if key in package}
         if package.get("resources_truncated"):
@@ -271,7 +286,7 @@ async def _run_skill(
     stdin: str = "", timeout_s: float = 60,
     *, execution_id: str | None = None, parent_execution_id: str | None = None,
 ) -> tuple[str, dict]:
-    """SearchAnything 的宿主执行后端，负责固定版本、工作目录、回执和结果页面。"""
+    """技能宿主执行后端，负责固定版本、工作目录、回执和结果页面。"""
     try:
         if (_source_scope_var.get() or {}).get("mode") == "local":
             raise ValueError("Access Skill execution is unavailable in Local source mode")

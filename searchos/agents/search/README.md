@@ -1,8 +1,8 @@
 # Search Agent 通用 Exec
 
-Search Agent 沿用现有架构和工具装配入口。Browser 与 read_visual 保留原定义和参数。模型通过 list_skills 发现技能、load_skill 读取并固定版本，在通用 exec 内使用 SearchAnything 编排技能调用。
+Search Agent 沿用现有架构和工具装配入口。Browser 与 read_visual 保留原定义和参数。模型通过 list_skills 发现技能、load_skill 读取并固定版本，在通用 exec 内用 `searchos_sdk` 以函数调用编排技能。
 
-SearchOS 后端管理连接与线路，Search 根据工具失败回执调整检索计划。SearchAnything CLI 仅提供 run 子命令；独立连接诊断由管理页与技能创建角色使用。
+SearchOS 后端管理连接与线路，Search 根据工具失败回执调整检索计划。exec 提供通用代码运行时；Access Skill 作为宿主能力通过桥接调用，宿主侧仍使用独立沙箱进程。
 
 ```text
 exec(argv=None, code=None, inputs=None, stdin="", timeout_s=60)
@@ -14,24 +14,20 @@ code 接收 Python 代码，argv 接收命令与参数列表，二选一。每�
 
 调用技能的父 Exec 自动返回 child_results：items 保存子调用的参数、状态、输出字符数和读取 URL；shown、total、truncated 表示本次列出的调用数与总数。child_results.page_url 指向完整索引，沿用 open/find 阅读。即使编排代码只打印空的筛选结果，Agent 仍可检查原始技能输出，或通过 inputs 交给下一次 Exec 重新处理。索引与中断日志不参与证据抽取，成功技能结果继续使用原有页面及来源身份。
 
-load_skill 返回 command_prefix（例如 ["searchanything", "run", "sample", "--"]）。单次调用将前缀与文档中的命令参数合并后传给 exec(argv=...)；多步任务通过 exec(code=...) 编排：
+load_skill 返回 `usage` 与 `parameters`。在 exec(code=...) 中按 usage 调用：
 
 ```python
-import json
-import subprocess
-from pathlib import Path
+from searchos_sdk import skill, SkillError
 
-result = subprocess.run(
-    ["searchanything", "run", skill_name, "--", "python", script, *arguments],
-    capture_output=True, text=True, check=True,
-)
-Path("candidates.json").write_text(result.stdout)
+handle = skill(skill_name)
+result = handle(function="search", query="...")
+Path("candidates.json").write_text(json.dumps(result))
 ```
 
-SearchAnything 使用已加载的技能快照。一次 Exec 启动首个技能时使用一个技能预算单位，同一编排中的后续技能共用这一单位。每个子执行单独保存参数、状态和结果。抽取器逐份核对来源，停滞检测按整次编排的抽取结果判断进展。
+技能调用使用已加载的技能快照。每次 Exec 工具调用计一个 Exec 预算单位，与其中编排了多少技能子调用无关。每个子执行单独保存参数、状态和结果。抽取器逐份核对来源，停滞检测按整次编排的抽取结果判断进展。
 
 父程序与技能拥有各自的任务工作目录。同一任务中的技能子调用共享技能工作目录并串行执行。同站点浏览器占用时由技能执行层等待，等待计入执行时限。
 
 子调用的成功业务 JSON stdout 进入现有 Evidence Extraction；随后阅读同一保存页面时去重。普通代码输出通过保存页面供 Agent 按需阅读。
 
-验证位于 tests/test_search_agent_exec.py，覆盖单一 Exec 注册、加载后按返回说明执行、代码执行、文件复用、只读输入、执行预算、取消与技能编排。固定小红书响应回放覆盖两次父 Exec 和十二次子调用。
+验证位于 tests/test_search_agent_exec.py，覆盖单一 Exec 注册、加载后按返回说明执行、代码执行、文件复用、只读输入、执行预算、取消与技能编排。

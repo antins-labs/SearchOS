@@ -785,6 +785,10 @@ async def get_search_result(session_id: str):
         "query": result.query,
         "coverage_score": result.coverage_score,
         "evidence_count": result.evidence_count,
+        "evidence_active_count": getattr(result, "evidence_active_count", 0),
+        "evidence_candidate_count": getattr(result, "evidence_candidate_count", 0),
+        "extraction_pending_total": getattr(result, "extraction_pending_total", 0),
+        "extraction_rejection_counts": getattr(result, "extraction_rejection_counts", {}),
         "total_queries": result.total_queries,
         "total_steps": result.total_steps,
         "skill_execution_count": result.skill_execution_count,
@@ -882,14 +886,35 @@ def _get_live_state(session_id: str, revision: str | None = None) -> dict[str, A
     import json
     from searchos.socm.storage.file_snapshots import read_snapshot
     snapshot = read_snapshot(state_file)
-    status = sessions.get(state_file.parent.name, {}).get("status", "unknown")
+    session = sessions.get(state_file.parent.name, {})
+    status = session.get("status", "unknown")
+    harness = session.get("harness")
+    workspace = getattr(harness, "_active_workspace", None) or getattr(harness, "workspace", None)
+    pending = int(getattr(workspace, "extraction_pending_total", 0) or 0) if workspace else 0
+    rejections = dict(getattr(workspace, "extraction_rejection_counts", {}) or {}) if workspace else {}
+    # Pending lives in memory and can change without a search_state revision bump.
     if revision == snapshot.revision:
-        return {"status": status, "session_id": session_id, "revision": revision, "not_modified": True}
+        return {
+            "status": status,
+            "session_id": session_id,
+            "revision": revision,
+            "not_modified": True,
+            "extraction_pending_total": pending,
+            "extraction_rejection_counts": rejections,
+        }
     state_data = json.loads(snapshot.content)
 
+    nodes = ((state_data.get("evidence_graph") or {}).get("nodes") or [])
+    active = sum(1 for node in nodes if node.get("status") == "active")
+    candidate = sum(1 for node in nodes if node.get("status") == "candidate")
     return {
-        "status": sessions.get(state_file.parent.name, {}).get("status", "unknown"),
+        "status": status,
         "session_id": session_id,
         "search_state": state_data,
         "revision": snapshot.revision,
+        "evidence_count": len(nodes),
+        "evidence_active_count": active,
+        "evidence_candidate_count": candidate,
+        "extraction_pending_total": pending,
+        "extraction_rejection_counts": rejections,
     }

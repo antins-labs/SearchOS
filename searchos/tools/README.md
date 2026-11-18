@@ -14,7 +14,8 @@
 | 写作 | `writer.py` | 提纲、章节、引用及草稿镜像 |
 | 技能 | `skills/catalog.py` | 技能发现、权限过滤与失败记忆读取 |
 | 技能 | `skills/execution.py` | 固定版本、加载、资源读取与受限执行 |
-| 执行 | `exec/` | 通用程序、计算、持久文件与受限技能子调用；主 Agent 离线，Search 按来源权限联网 |
+| 技能 | `skills/capability.py` | 将 Access Skill 注册为宿主桥能力 `skill.call` |
+| 执行 | `exec/` | 通用程序、计算、持久文件与宿主能力桥；沙箱内 `searchos_sdk` 调用已注册能力；主 Agent 离线，Search 按来源权限联网 |
 | 浏览器 | `simple_browser/` | 搜索、页面窗口、视觉读取、缓存与后端 |
 
 根目录 `search_state.py` 只保存共享 ContextVar：工作区、Agent、任务、表和来源范围。所有类别使用同一组对象；移动工具实现时不能重新声明这些变量。

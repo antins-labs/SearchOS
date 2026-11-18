@@ -133,7 +133,7 @@ class EffortModal(ModalScreen):
                         f"并行 {cfg['max_parallel_agents']} · "
                         f"搜代总限 {cfg['max_search_agents_per_session']} · "
                         f"搜索 {cfg['max_searches_per_sub_agent']} · "
-                        f"技能编排 {cfg['max_skills_per_sub_agent']} · "
+                        f"Exec {cfg['max_execs_per_sub_agent']} · "
                         f"{cfg['default_max_time_s'] // 60}min")
                 opts.append(Option(f"{mark}{lvl:<7}{desc}", id=lvl))
             yield OptionList(*opts, id="effort-list")
@@ -1137,7 +1137,7 @@ class SearchOSApp(App):
             "max_search_agents_per_session": "每会话搜索代理总限",
             "max_searches_per_sub_agent": "每代理搜索数",
             "max_finds_per_sub_agent": "每代理发现数",
-            "max_skills_per_sub_agent": "每代理技能编排次数",
+            "max_execs_per_sub_agent": "每代理 Exec 次数",
             "search_agent_no_progress_tool_limit": "搜索代理停滞上限",
             "default_max_time_s": "墙钟上限(秒)",
             "skill_router_top_k": "技能路由 top-k",

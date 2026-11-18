@@ -9,6 +9,21 @@ from searchos.harness.middleware.utils.messages import extract_tool_name, unwrap
 from searchos.harness.telemetry.trajectory import StateDelta
 
 
+def evidence_status_counts(state) -> dict[str, int]:
+    """Count active vs candidate evidence nodes for progress UIs."""
+    from searchos.socm.evidence import EvidenceStatus
+
+    active = candidate = 0
+    for node in getattr(getattr(state, "evidence_graph", None), "nodes", ()) or ():
+        status = getattr(node, "status", None)
+        value = status.value if hasattr(status, "value") else str(status or "")
+        if value == EvidenceStatus.ACTIVE.value:
+            active += 1
+        elif value == EvidenceStatus.CANDIDATE.value:
+            candidate += 1
+    return {"active": active, "candidate": candidate}
+
+
 def capture_state(workspace) -> dict[str, Any]:
     """Capture a lightweight snapshot of current search state for delta computation."""
     if workspace is None:
@@ -16,9 +31,16 @@ def capture_state(workspace) -> dict[str, Any]:
     try:
         state = workspace.state
         resolved_ids = {q.id for q in state.frontier.questions if q.status.value == "completed"}
+        statuses = evidence_status_counts(state)
         return {
             "coverage": state.coverage_map.coverage_score,
             "evidence_count": state.evidence_graph.node_count,
+            "evidence_active_count": statuses["active"],
+            "evidence_candidate_count": statuses["candidate"],
+            "extraction_pending_total": getattr(workspace, "extraction_pending_total", 0),
+            "extraction_rejection_counts": dict(
+                getattr(workspace, "extraction_rejection_counts", {}) or {}
+            ),
             "frontier_resolved": resolved_ids,
             "frontier_count": len(state.frontier.questions),
             "conflict_count": len(state.evidence_graph.get_conflicts()),
@@ -147,14 +169,19 @@ class AgentRecorder:
             }
         )
 
-    def skill_execution(self, *, execution_id, skill, argv, parent_execution_id,
-                        parent_tool_call_id, status, result=None, error=""):
+    def skill_execution(self, *, execution_id, skill, argv=None, params=None,
+                        parent_execution_id=None, parent_tool_call_id=None,
+                        status=None, result=None, error=""):
         record = {
             "type": "skill_execution", "agent": self.agent_id,
-            "execution_id": execution_id, "skill": skill, "argv": argv,
+            "execution_id": execution_id, "skill": skill,
             "parent_execution_id": parent_execution_id,
             "parent_tool_call_id": parent_tool_call_id, "status": status,
         }
+        if argv is not None:
+            record["argv"] = argv
+        if params is not None:
+            record["params"] = params
         if result is not None:
             from searchos.tools.exec.tool import response
 

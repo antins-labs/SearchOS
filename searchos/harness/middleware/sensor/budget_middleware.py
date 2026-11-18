@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import asdict, replace
 from typing import Any, Literal, NotRequired
@@ -34,7 +33,7 @@ class _BudgetCheckpointState(AgentState):
 class BudgetMiddleware(AgentMiddleware):
     name = "BudgetMiddleware"
     state_schema = _BudgetCheckpointState
-    _fields = {"search": "queries", "open": "opens", "find": "finds", "skill": "skills"}
+    _fields = {"search": "queries", "open": "opens", "find": "finds", "exec": "execs"}
 
     def __init__(
         self,
@@ -79,7 +78,7 @@ class BudgetMiddleware(AgentMiddleware):
         "consumed_queries",
         "consumed_opens",
         "consumed_finds",
-        "consumed_skills",
+        "consumed_execs",
         "current_iteration",
         "evaluator_tokens",
         "_start_ts",
@@ -254,7 +253,7 @@ Three tool rounds were rejected without executing another retrieval action. Do n
             ]
             if caps:
                 self.control.messages.append(
-                    f"""[Harness BUDGET] Tool action limits: {', '.join(caps)}. Browser batches consume their underlying action counts. Each Exec that starts one or more skills consumes one skill unit. {self.wrap_up}"""
+                    f"""[Harness BUDGET] Tool action limits: {', '.join(caps)}. Browser batches consume their underlying action counts. Each Exec tool call consumes one exec unit. {self.wrap_up}"""
                 )
         self._settle_exhaustion()
         if self.before_summary is not None and self.control.forced and not self.control.summarizing:
@@ -349,8 +348,6 @@ Three tool rounds were rejected without executing another retrieval action. Do n
                 request,
                 f"""[Harness] {self.budget.exhaustion_reason.title()} limit reached; tool blocked ({self.budget.exhaustion_detail()}). Synthesize your final answer now. Only drain tools remain: {', '.join(sorted(self.drain_tools)) or 'none'}.""",
             )
-        if name == "exec":
-            return await self._wrap_exec(request, handler)
         costs = tool_costs(name, request.tool_call.get("args", {}))
         for dimension, cost in costs.items():
             field = self._fields[dimension]
@@ -373,51 +370,6 @@ Three tool rounds were rejected without executing another retrieval action. Do n
         if is_blocked(result):
             return result
         return self._settle_tool(result, request, costs)
-
-    async def _wrap_exec(self, request, handler):
-        from searchos.tools.exec.skill_bridge import nested_execution
-        from searchos.tools.skills.execution import execution_started
-
-        reserved = started = rejected = False
-        call_id = request.tool_call.get("id", "")
-
-        async def child_call(identifier, _arguments, execute):
-            nonlocal reserved, started, rejected
-            # All children of this Exec share one reservation, including concurrent children.
-            if not reserved:
-                used = self.budget.consumed_skills + self._reserved["skill"]
-                cap = self.budget.max_skills
-                if cap > 0 and used >= cap:
-                    rejected = True
-                    return {
-                        "status": "blocked", "started": False, "exit_code": None,
-                        "error": f"Skill orchestration budget exhausted ({used}/{cap} used or reserved).",
-                    }
-                self._reserved["skill"] += 1
-                reserved = True
-            try:
-                execution = await execute()
-            except (Exception, asyncio.CancelledError):
-                started |= execution_started(identifier)
-                raise
-            started |= execution.get("started") is True and not execution.get("replayed")
-            return execution
-
-        token = nested_execution.set(child_call)
-        try:
-            result = await handler(request)
-        except (Exception, asyncio.CancelledError):
-            if started and call_id not in self._accounted_tools:
-                self.budget.consume_skill()
-                self._accounted_tools.add(call_id)
-                self._round_executed = True
-            raise
-        finally:
-            nested_execution.reset(token)
-            if reserved:
-                self._reserved["skill"] -= 1
-        costs = {"skill": 1} if started and call_id not in self._accounted_tools else {}
-        return self._settle_tool(result, request, costs, rejected=rejected and not started)
 
     def _settle_tool(self, result, request, costs, *, rejected=False):
         for dimension, cost in costs.items():

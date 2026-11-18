@@ -1,4 +1,4 @@
-"""通用 Exec：持久文件、独立进程、任务范围内的技能 CLI。"""
+"""通用 Exec：持久文件、独立进程、任务范围内的宿主能力桥。"""
 
 from __future__ import annotations
 
@@ -7,7 +7,6 @@ import fcntl
 import hashlib
 import json
 import math
-import sys
 import tempfile
 from copy import deepcopy
 from pathlib import Path
@@ -18,9 +17,14 @@ from langchain_core.tools import InjectedToolCallId, tool
 
 from searchos.skills.runtime.paths import skill_workspace_dir
 from searchos.tools.exec import artifacts
-from searchos.tools.exec.skill_bridge import SkillBridge
+from searchos.tools.exec.bridge import HostBridge
+from searchos.tools.exec import workspace as exec_workspace
 from searchos.tools.search_state import _current_agent_var, _current_task_id_var, _source_scope_var
-from searchos.tools.skills.execution import _acquire_work_lock, _context, _write_json
+
+# 兼容旧导入路径；测试可 monkeypatch 这些模块属性。
+_acquire_work_lock = exec_workspace.acquire_work_lock
+_context = exec_workspace.context
+_write_json = exec_workspace.write_json
 
 
 def response(result):
@@ -108,10 +112,10 @@ async def exec_code(
     """Run a command or Python program to retrieve data, compute results or generate files. Each
     call starts a fresh process in the task's persistent working directory.
 
-    Supply exactly one of argv or code. To invoke a skill, first load_skill, then append its
-    documented command to the returned command_prefix. In Python, run multiple loaded skills with
-    subprocess, check each return code and business result, and parse stdout according to the
-    skill's output schema. Save files to retain data across calls.
+    Supply exactly one of argv or code. Use code for loops, filtering, aggregation, parsing saved
+    inputs, and orchestration. Import searchos_sdk in Python to call loaded Access Skills as
+    functions; see load_skill for the skill's usage and parameters. Save files to retain data
+    across calls.
 
     Returns status, exit_code, stdout/stderr previews and artifact refs. streams entries give
     shown_chars, total_chars, truncated and a page_url for saved text. Counts use Unicode
@@ -129,13 +133,13 @@ async def exec_code(
         argv: Command and arguments as separate strings for one invocation, without shell parsing.
             Omit when using code.
         code: Python source up to 100000 UTF-8 bytes. Use for loops, filtering, aggregation or
-            skill orchestration. Omit when using argv.
+            skill orchestration via searchos_sdk. Omit when using argv.
         inputs: Existing artifact refs or previously read page URLs to expose as read-only files.
             SEARCHOS_INPUTS_FILE identifies the JSON mapping of each input to path, media_type and
             source. Defaults to no inputs.
         stdin: Text for the process's standard input, empty by default.
-        timeout_s: Total execution time in seconds, including skill calls. Must be greater than 0
-            and at most 300, default 60.
+        timeout_s: Total execution time in seconds, including host capability calls. Must be greater
+            than 0 and at most 300, default 60.
     """
     try:
         if (argv is None) == (code is None):
@@ -203,18 +207,21 @@ async def exec_code(
 
 
 async def execute(request, root, key, work, receipt, request_hash):
+    from searchos.config.settings import settings
     from searchos.skills.runtime.command_runtime import run_command
+
+    if settings.enable_skills:
+        from searchos.tools.skills.capability import register
+
+        register()
 
     execution_id = "exec-" + uuid4().hex
     directory = skill_workspace_dir(root, "executions")
     saved = directory / execution_id
     package = root / "execution" / "programs" / execution_id
     package.mkdir(parents=True)
-    launcher = package / "searchanything"
-    launcher.write_text(
-        "#!" + sys.executable + "\n" + Path(__file__).with_name("cli.py").read_text()
-    )
-    launcher.chmod(0o700)
+    sdk_source = Path(__file__).with_name("sdk.py").read_text()
+    (package / "searchos_sdk.py").write_text(sdk_source)
     mapping, reads = {}, []
     for ref in request["inputs"]:
         metadata, path = artifacts.read(ref)
@@ -239,7 +246,7 @@ async def execute(request, root, key, work, receipt, request_hash):
         with tempfile.TemporaryDirectory(prefix="sf-exec-", dir="/tmp") as temporary:
             socket_path = Path(temporary).resolve() / "rpc.sock"
             deadline = asyncio.get_running_loop().time() + request["timeout_s"]
-            async with SkillBridge(root, key, execution_id, socket_path, deadline) as bridge:
+            async with HostBridge(root, key, execution_id, socket_path, deadline) as bridge:
                 result = await run_command(
                     package,
                     argv,
@@ -254,7 +261,6 @@ async def execute(request, root, key, work, receipt, request_hash):
                         "SEARCHOS_BRIDGE_SOCKET": str(socket_path),
                         "SEARCHOS_RUN_TOKEN": bridge.token,
                         "SEARCHOS_INPUTS_FILE": str(manifest),
-                        "SEARCHOS_RUNTIME_BIN": str(package),
                     },
                     ipc_socket=socket_path,
                     network_policy=source_network_policy(),
@@ -285,7 +291,7 @@ async def execute(request, root, key, work, receipt, request_hash):
         if result is not None:
             result["source_observations"] = bridge.observations if bridge else []
             result["child_executions"] = (
-                [r["execution_id"] for r in bridge.executions] if bridge else []
+                [r["execution_id"] for r in bridge.calls] if bridge else []
             )
             try:
                 result["artifacts"] = artifacts.save_artifacts(
@@ -327,9 +333,9 @@ async def execute(request, root, key, work, receipt, request_hash):
                         result["page_url"] = metadata["page_url"]
                         if result["page_url"]:
                             result["read_result"] = {"tool": "open", "arguments": {"id_or_url": result["page_url"]}}
-                if bridge and bridge.executions:
+                if bridge and bridge.calls:
                     result["child_results"] = artifacts.save_child_results(
-                        bridge.executions, saved, task_id=_current_task_id_var.get(),
+                        bridge.calls, saved, task_id=_current_task_id_var.get(),
                     )
             except (OSError, ValueError, KeyError) as exc:
                 result["artifact_error"] = str(exc)

@@ -44,6 +44,11 @@ class WorkspaceEvidenceStore:
     def report_extraction_pending(self, owner: Any, count: int) -> None:
         self.workspace.report_extraction_pending(owner, count)
 
+    def report_extraction_rejections(self, owner: Any, counts: dict[str, int]) -> None:
+        report = getattr(self.workspace, "report_extraction_rejections", None)
+        if callable(report):
+            report(owner, counts)
+
 
 class InMemoryEvidenceStore:
     """无需 Agent Middleware 或文件系统的测试 adapter。"""
@@ -51,6 +56,7 @@ class InMemoryEvidenceStore:
     def __init__(self, state: SearchState | None = None) -> None:
         self.state = state or SearchState()
         self.pending_by_owner: dict[int, int] = {}
+        self.rejection_counts: dict[str, int] = {}
 
     def load_state(self) -> SearchState:
         return self.state.model_copy(deep=True)
@@ -62,21 +68,30 @@ class InMemoryEvidenceStore:
     def report_extraction_pending(self, owner: Any, count: int) -> None:
         self.pending_by_owner[id(owner)] = max(0, int(count))
 
+    def report_extraction_rejections(self, owner: Any, counts: dict[str, int]) -> None:
+        for reason, count in (counts or {}).items():
+            key = str(reason or "unknown")
+            self.rejection_counts[key] = self.rejection_counts.get(key, 0) + max(0, int(count))
+
 
 class _ObservationJournal:
     """任务内的抽取日志；原子发布单条记录，不混入已提交 SourceObservation。
 
     调度方须保证同一任务仅有一个活跃协调器。不同任务与抽取策略隔离；
-    重建协调器可恢复 pending/failed，done 合并为一个幂等索引。
+    重建协调器可恢复 pending/failed；done 进入完成索引；abandoned 为终态，不重放。
     """
+
+    _ACTIVE = frozenset({"pending", "failed"})
 
     def __init__(self, root: Any, owner: str) -> None:
         self.path = Path(root) / "extraction_pending" / hashlib.sha256(owner.encode()).hexdigest()
         self._completed: set[str] | None = None
+        self._abandoned: set[str] | None = None
 
     def load(self) -> list[dict[str, Any]]:
         index_path = self.path / "completed.json"
         completed: set[str] = set()
+        abandoned: set[str] = set()
         if index_path.exists():
             index = json.loads(index_path.read_text(encoding="utf-8"))
             hashes = index.get("content_hashes")
@@ -95,12 +110,19 @@ class _ObservationJournal:
             key = record["content_hash"]
             if record["status"] == "done":
                 completed.add(key)
-            elif record["status"] not in {"pending", "failed"} or record["item"]["content_hash"] != key:
+            elif record["status"] == "abandoned":
+                if record.get("item", {}).get("content_hash", key) != key:
+                    raise ValueError("Invalid extraction observation record")
+                abandoned.add(key)
+                records.append((path, record))
+            elif record["status"] not in self._ACTIVE or record["item"]["content_hash"] != key:
                 raise ValueError("Invalid extraction observation record")
-            records.append((path, record))
+            else:
+                records.append((path, record))
         if completed != persisted:
             self._write_completed(completed)
         self._completed = completed
+        self._abandoned = abandoned
         pending = []
         for path, record in records:
             if record["content_hash"] in completed:
@@ -110,11 +132,19 @@ class _ObservationJournal:
                 pending.append(record)
         return pending + [{"content_hash": key, "status": "done"} for key in sorted(completed)]
 
-    def write(self, item: dict[str, Any], status: str, *, error: str = "") -> None:
+    def write(
+        self,
+        item: dict[str, Any],
+        status: str,
+        *,
+        error: str = "",
+        attempts: int | None = None,
+    ) -> None:
         if self._completed is None:
             self.load()
+        assert self._abandoned is not None
         key = item["content_hash"]
-        if key in self._completed:
+        if key in self._completed or key in self._abandoned:
             return
         if status == "done":
             completed = self._completed | {key}
@@ -122,11 +152,27 @@ class _ObservationJournal:
             self._completed = completed
             (self.path / f"{key}.json").unlink(missing_ok=True)
             return
-        record = {"content_hash": key, "status": status}
-        record["item"] = item
+        previous_attempts = 0
+        target = self.path / f"{key}.json"
+        if target.exists():
+            try:
+                previous = json.loads(target.read_text(encoding="utf-8"))
+                previous_attempts = int(previous.get("attempts") or 0)
+            except (OSError, ValueError, TypeError, json.JSONDecodeError):
+                previous_attempts = 0
+        if attempts is None:
+            attempts = previous_attempts + (1 if status in {"failed", "abandoned"} else 0)
+        record = {
+            "content_hash": key,
+            "status": status,
+            "item": item,
+            "attempts": max(0, int(attempts)),
+        }
         if error:
             record["error"] = error
-        self._write_json(self.path / f"{key}.json", record)
+        self._write_json(target, record)
+        if status == "abandoned":
+            self._abandoned.add(key)
 
     def _write_completed(self, completed: set[str]) -> None:
         self._write_json(self.path / "completed.json", {

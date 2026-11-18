@@ -32,6 +32,7 @@ export interface Turn {
   meta: {
     coverageScore?: number;
     evidenceCount?: number;
+    extractionPendingTotal?: number;
     elapsed?: number;
     startedAt?: number;
     verdict?: string | null;

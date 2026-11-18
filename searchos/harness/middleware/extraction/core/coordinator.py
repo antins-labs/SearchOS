@@ -120,10 +120,12 @@ class ExtractionCoordinator:
         owner = json.dumps([policy, task.task_id or task.agent_id or "default"])
         self._journal = factory(owner) if callable(factory) else None
         self._recovered: list[dict[str, Any]] = []
+        self._rejection_counts: Counter[str] = Counter()
         if self._journal is not None:
             for record in self._journal.load():
                 self._extracted_content_hashes.add(record["content_hash"])
-                if record["status"] != "done":
+                # Abandoned is terminal: remember the hash, do not recover/retry.
+                if record["status"] not in {"done", "abandoned"}:
                     item = record["item"]
                     item.pop("result_mode", None)
                     self._recovered.append(item)
@@ -297,11 +299,23 @@ class ExtractionCoordinator:
             )
         return len(still_pending)
 
-    async def drain_before_model(self) -> ExtractionSummary:
-        """等待已触发的抽取完成；未满且未切 URL 的缓冲留待后续观察。"""
-        if self._recovered:
-            from searchos.config.settings import settings
+    def take_pending_feedback(self) -> str:
+        """Consume drain/extraction feedback for injection into the next model call."""
+        return self._take_feedback()
 
+    async def drain_before_model(self, *, timeout: float | None = None) -> ExtractionSummary:
+        """等待已触发的抽取完成；未满且未切 URL 的缓冲留待后续观察。
+
+        ``timeout`` defaults to ``settings.extraction_drain_timeout_s``. Pass
+        ``float("inf")`` from finalize so only the outer finalize deadline applies.
+        On a bounded timeout, in-flight flushes keep running and feedback notes
+        how many sources are still extracting.
+        """
+        from searchos.config.settings import settings
+
+        if timeout is None:
+            timeout = settings.extraction_drain_timeout_s
+        if self._recovered:
             recovered, self._recovered = self._recovered, []
             self._flush_in_flight_count += len(recovered)
             recovery_deadline = asyncio.timeout(settings.extraction_finalize_timeout_s)
@@ -311,20 +325,42 @@ class ExtractionCoordinator:
             except TimeoutError:
                 if not recovery_deadline.expired():
                     raise
-                self._retain_failed(recovered, "recovery_timeout")
+                # `_run_snapshot` already retains on cancel/timeout; only park
+                # observations that never entered retry/abandon/settlement.
+                unmet = [
+                    item for item in recovered
+                    if item["content_hash"] not in self._retry_items
+                    and item["content_hash"] not in self._extracted_content_hashes
+                ]
+                if unmet:
+                    self._retain_failed(unmet, "recovery_timeout")
                 self._pending_feedback.append(
                     """[Extraction feedback] Recovery timed out; observations remain saved for an extraction retry. Continue with committed evidence and assess remaining gaps."""
                 )
             finally:
                 self._flush_in_flight_count -= len(recovered)
                 self._report_pending()
+        loop = asyncio.get_running_loop()
+        deadline = None if timeout == float("inf") else loop.time() + max(0.0, float(timeout))
         while True:
             if self._flush_tasks:
-                done, _ = await asyncio.wait(list(self._flush_tasks))
+                remaining = None if deadline is None else max(0.0, deadline - loop.time())
+                done, pending = await asyncio.wait(list(self._flush_tasks), timeout=remaining)
                 self._flush_tasks.difference_update(done)
                 for task in done:
                     task.result()
-            if self._background_flush_errors:
+                if self._background_flush_errors:
+                    errors, self._background_flush_errors = self._background_flush_errors, []
+                    raise RuntimeError("Background evidence extraction failed") from errors[0]
+                if pending:
+                    summary = self.summary()
+                    still = summary.in_flight + summary.buffered
+                    self._pending_feedback.append(
+                        f"[Extraction feedback] {still} source(s) still extracting in the background. "
+                        "Continue with currently committed evidence; reassess gaps after the next update."
+                    )
+                    return summary
+            elif self._background_flush_errors:
                 errors, self._background_flush_errors = self._background_flush_errors, []
                 raise RuntimeError("Background evidence extraction failed") from errors[0]
             if not self._flush_tasks:
@@ -347,7 +383,8 @@ class ExtractionCoordinator:
         try:
             try:
                 async with settlement:
-                    await self.drain_before_model()
+                    # Finalize waits unboundedly here; settlement deadline owns the bound.
+                    await self.drain_before_model(timeout=float("inf"))
                     await self.flush(reason="finalize")
             except TimeoutError:
                 if not settlement.expired():
@@ -589,16 +626,48 @@ class ExtractionCoordinator:
         finally:
             self._report_pending()
 
+    @staticmethod
+    def _deterministic_failure(error: str) -> bool:
+        text = str(error or "")
+        return text.startswith("extraction_input_exceeds_budget:") or text in {
+            "target_table_missing",
+            "missing schema",
+        }
+
     def _retain_failed(self, snapshot, error):
+        from searchos.config.settings import settings
+
+        max_attempts = max(1, int(settings.extraction_retry_max_attempts))
+        deterministic = self._deterministic_failure(error)
         for item in snapshot:
             item = {k: v for k, v in item.items() if k != "_extraction_result"}
             key = item["content_hash"]
+            attempts = 1
+            if self._journal is not None:
+                # Read prior attempts from the on-disk record when present.
+                path = getattr(self._journal, "path", None)
+                if path is not None:
+                    target = path / f"{key}.json"
+                    if target.exists():
+                        try:
+                            previous = json.loads(target.read_text(encoding="utf-8"))
+                            attempts = int(previous.get("attempts") or 0) + 1
+                        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+                            attempts = 1
+            abandon = deterministic or attempts >= max_attempts
+            if abandon:
+                # Terminal: keep hash so the same observation is not re-accepted,
+                # and do not park it in retry/recovery queues.
+                self._retry_items.pop(key, None)
+                self._extracted_content_hashes.add(key)
+                if self._journal is not None:
+                    self._journal.write(item, "abandoned", error=error, attempts=attempts)
+                continue
             self._retry_items[key] = item
-            # No automatic infinite retry loop: retain for explicit flush or
-            # restart, and allow the caller to resubmit the original viewport.
+            # Retain for explicit flush or restart; allow resubmit of viewport.
             self._extracted_content_hashes.discard(key)
             if self._journal is not None:
-                self._journal.write(item, "failed", error=error)
+                self._journal.write(item, "failed", error=error, attempts=attempts)
 
     def _settle_source(self, item, produced):
         item = {k: v for k, v in item.items() if k != "_extraction_result"}
@@ -997,8 +1066,26 @@ class ExtractionCoordinator:
                 "extraction_index": self._extractor.call_count,
             }
             if all_rejected:
+                reason_counts = Counter(
+                    str(entry.get("reason") or "unknown") for entry in all_rejected
+                )
+                self._rejection_counts.update(reason_counts)
+                report = getattr(self._store, "report_extraction_rejections", None)
+                if callable(report):
+                    report(self, dict(reason_counts))
                 event["rows_rejected_by_check"] = len(all_rejected)
-                event["rejected_samples"] = all_rejected[:5]
+                event["rejected_by_reason"] = dict(reason_counts)
+                samples: list[dict[str, Any]] = []
+                seen_reasons: set[str] = set()
+                for entry in all_rejected:
+                    reason = str(entry.get("reason") or "unknown")
+                    if reason in seen_reasons:
+                        continue
+                    seen_reasons.add(reason)
+                    samples.append({**entry, "count": reason_counts[reason]})
+                    if len(samples) >= 5:
+                        break
+                event["rejected_samples"] = samples
             if warnings:
                 event["warnings"] = list(warnings)
             self._trajectory_logger._append_raw(event)

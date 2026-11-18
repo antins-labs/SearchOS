@@ -1168,7 +1168,7 @@ async def _spawn_sub_agent(
 {ap_index}"""
                     )
                 skill_parts.append(
-                    f"""Consider `load_skill("{sname}")` if it fits the current need. Apply method instructions through your available tools. Load executable skills, then use their SearchAnything command_prefix inside exec. You may discover a better fit with list_skills."""
+                    f"""Consider `load_skill("{sname}")` if it fits the current need. Apply method instructions through your available tools. Load executable skills, then call them from exec via searchos_sdk using the returned usage. You may discover a better fit with list_skills."""
                 )
         if skill_parts:
             recommendations = "\n\n".join(skill_parts)
@@ -1202,13 +1202,10 @@ Follow the existing permissions, source scope, and budgets.
         max_searches = override.get("max_searches", settings.max_searches_per_sub_agent)
     max_opens = override.get("max_opens", 0)
     max_finds = override.get("max_finds", settings.max_finds_per_sub_agent)
-    has_access_skill = any(
-        (str(getattr(tool, "name", "")).startswith("skill_") or getattr(tool, "name", "") == "exec")
-        for tool in tools
-    )
-    max_skills = (
-        override.get("max_skills", settings.max_skills_per_sub_agent)
-        if has_access_skill else 0
+    has_exec = any(getattr(tool, "name", "") == "exec" for tool in tools)
+    max_execs = (
+        override.get("max_execs", settings.max_execs_per_sub_agent)
+        if has_exec else 0
     )
 
     from searchos.harness.middleware import ControlState, SourceContext, TaskContext
@@ -1221,7 +1218,7 @@ Follow the existing permissions, source scope, and budgets.
 
     budget = BudgetState(
         max_queries=max_searches, max_opens=max_opens,
-        max_finds=max_finds, max_skills=max_skills,
+        max_finds=max_finds, max_execs=max_execs,
         max_iterations=max_iterations, max_time_s=max_time_s,
     )
     control = ControlState()

@@ -493,12 +493,10 @@ async def _run_command(skill_dir: Path, argv: list[str], *, work_dir: Path,
                            network_policy=getattr(browser_session, 'network_policy', None) or network_policy)
         env.update(SKILL_DIR=str(skill), PYTHONPATH=str(skill))
         if runtime_env:
-            allowed = {'SEARCHOS_BRIDGE_SOCKET', 'SEARCHOS_INPUTS_FILE', 'SEARCHOS_RUN_TOKEN', 'SEARCHOS_RUNTIME_BIN'}
+            allowed = {'SEARCHOS_BRIDGE_SOCKET', 'SEARCHOS_INPUTS_FILE', 'SEARCHOS_RUN_TOKEN'}
             if set(runtime_env) - allowed or any(not isinstance(v, str) for v in runtime_env.values()):
                 raise ValueError('invalid runtime environment')
             env.update(runtime_env)
-            if runtime_env.get('SEARCHOS_RUNTIME_BIN'):
-                env['PATH'] = runtime_env['SEARCHOS_RUNTIME_BIN'] + os.pathsep + env['PATH']
         if browser_env:
             if set(browser_env) != {'BROWSER_CDP_URL'}:
                 raise ValueError('unexpected browser capability environment')

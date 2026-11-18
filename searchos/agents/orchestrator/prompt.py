@@ -15,7 +15,7 @@ def build_orchestrator_prompt(
     skill_catalog: str,
     max_dispatches: int = 0,
     max_searches_per_agent: int = 8,
-    max_skills_per_agent: int = 8,
+    max_execs_per_agent: int = 8,
     max_search_agents_per_session: int = 0,
     current_time: str = "",
     orch_toolset: str = "",
@@ -55,8 +55,8 @@ Apply this depth to the initial decision only. Preserve the user's full requeste
         """The per-session creation budget spans dispatch rounds; simultaneous running slots are a separate limit. Runtime limits are authoritative.""",
     ]
     if mode != "local":
-        skill_limit = max_skills_per_agent if max_skills_per_agent > 0 else "unlimited"
-        limits.append(f"""Default per-agent budget for Exec batches that start an Access Skill: {skill_limit}.""")
+        exec_limit = max_execs_per_agent if max_execs_per_agent > 0 else "unlimited"
+        limits.append(f"""Default per-agent Exec call budget: {exec_limit}.""")
     resources = "\n".join(limits)
     sections.extend([
         f"""## Resources

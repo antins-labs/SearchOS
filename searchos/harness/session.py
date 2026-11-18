@@ -298,7 +298,7 @@ Readable documents: {len(documents)}.
             skill_catalog=skill_catalog,
             max_dispatches=settings.orch_max_dispatches,
             max_searches_per_agent=settings.max_searches_per_sub_agent,
-            max_skills_per_agent=settings.max_skills_per_sub_agent,
+            max_execs_per_agent=settings.max_execs_per_sub_agent,
             max_search_agents_per_session=settings.max_search_agents_per_session,
             # Date-only: minute precision forks the prompt-cache prefix
             # across sessions started in different minutes.
@@ -998,6 +998,9 @@ You own the repair plan and dispatch. Split these cells into focused retrieval t
         ):
             final_messages.append({"role": "ai", "content": committed_final_answer})
 
+        from searchos.harness.telemetry.recording import evidence_status_counts
+
+        evidence_statuses = evidence_status_counts(final_search_state)
         result = SearchResult(
             query=query,
             session_id=workspace.session_id,
@@ -1011,6 +1014,12 @@ You own the repair plan and dispatch. Split these cells into focused retrieval t
             elapsed_s=elapsed,
             final_messages=final_messages,
             execution_error=execution_error,
+        )
+        result.evidence_active_count = evidence_statuses["active"]
+        result.evidence_candidate_count = evidence_statuses["candidate"]
+        result.extraction_pending_total = int(getattr(workspace, "extraction_pending_total", 0) or 0)
+        result.extraction_rejection_counts = dict(
+            getattr(workspace, "extraction_rejection_counts", {}) or {}
         )
 
         # Log task_complete event (with total + per-phase token usage)
@@ -1031,6 +1040,10 @@ You own the repair plan and dispatch. Split these cells into focused retrieval t
             "evidence_backed_coverage": _evidence_backed_coverage(final_search_state),
             "frontier_progress": _frontier_progress(final_search_state),
             "evidence_count": result.evidence_count,
+            "evidence_active_count": getattr(result, "evidence_active_count", 0),
+            "evidence_candidate_count": getattr(result, "evidence_candidate_count", 0),
+            "extraction_pending_total": getattr(result, "extraction_pending_total", 0),
+            "extraction_rejection_counts": getattr(result, "extraction_rejection_counts", {}),
             "total_queries": result.total_queries,
             "total_steps": result.total_steps,
             "skill_execution_count": traj_logger.skill_execution_count,
@@ -1765,6 +1778,10 @@ class SearchResult:
         self.eval_verdict = eval_verdict
         self.coverage_score = coverage_score
         self.evidence_count = evidence_count
+        self.evidence_active_count = 0
+        self.evidence_candidate_count = 0
+        self.extraction_pending_total = 0
+        self.extraction_rejection_counts: dict[str, int] = {}
         self.total_queries = total_queries
         self.total_steps = total_steps
         self.elapsed_s = elapsed_s

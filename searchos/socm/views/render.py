@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 
 from searchos.socm.coverage.models import cell_is_actionable, cell_is_complete
+from searchos.socm.evidence.missing_values import is_null_marker
 from searchos.socm.refs import cell_key, cell_ref, row_values
 from searchos.socm.views.snapshot import (
     CellInfo,
@@ -90,6 +91,65 @@ def render_orchestrator_view(snap: SearchStateSnapshot) -> str:
     return "\n".join(lines)
 
 
+def _placeholder_pk_fields(ts: TableSnapshot, row: RowStatus) -> list[str]:
+    if not ts.primary_key:
+        return []
+    return [
+        attr for attr in ts.primary_key
+        if is_null_marker(row.key_values.get(attr, ""))
+    ]
+
+
+def _discover_candidates_for_placeholder(
+    ts: TableSnapshot, placeholder: RowStatus, missing_attrs: list[str],
+) -> list[list[str]]:
+    """Rows that match the placeholder on non-placeholder PK fields (rename hints only)."""
+    if not ts.primary_key or not missing_attrs:
+        return []
+    fixed = {
+        attr: placeholder.key_values.get(attr, "")
+        for attr in ts.primary_key
+        if attr not in missing_attrs
+    }
+    if not fixed:
+        return []
+    hints: list[list[str]] = []
+    for row in ts.rows:
+        if row.entity == placeholder.entity:
+            continue
+        if any(is_null_marker(row.key_values.get(attr, "")) for attr in missing_attrs):
+            continue
+        if any(row.key_values.get(attr, "") != value for attr, value in fixed.items()):
+            continue
+        hints.append([row.key_values.get(attr, "") for attr in ts.primary_key])
+        if len(hints) >= 5:
+            break
+    return hints
+
+
+def _render_placeholder_row_hints(lines: list[str], ts: TableSnapshot) -> None:
+    """Flag placeholder-PK rows and list discover candidates; Orchestrator decides rename."""
+    placeholders = []
+    for row in ts.rows:
+        missing = _placeholder_pk_fields(ts, row)
+        if not missing:
+            continue
+        pk = [row.key_values.get(attr, "") for attr in ts.primary_key]
+        candidates = _discover_candidates_for_placeholder(ts, row, missing)
+        placeholders.append({
+            "row": pk,
+            "placeholder_fields": missing,
+            "discover_candidates": candidates,
+        })
+    if not placeholders:
+        return
+    lines.append(
+        "Placeholder primary-key rows (use edit_entities rename when a discover "
+        "candidate is the same product; do not auto-merge distinct specs):"
+    )
+    lines.append(json.dumps(placeholders, ensure_ascii=False))
+
+
 def _render_orch_table(
     lines: list[str], ts: TableSnapshot, *, reader: str = "inspect_table",
 ) -> None:
@@ -108,6 +168,7 @@ def _render_orch_table(
     lines.append("Cell totals: " + json.dumps({k: v for k, v in summary.items()
                   if k not in {"total_rows", "filled_rows", "unresolved_rows", "by_attribute"}}))
     lines.append("Fields: " + json.dumps(summary["by_attribute"], ensure_ascii=False))
+    _render_placeholder_row_hints(lines, ts)
     _render_gap_window(lines, ts, reader=reader)
 
 

@@ -70,6 +70,7 @@ class WorkspaceManager:
         # (keyed by id). Read by LoopSensor to avoid declaring a stall while an
         # agent is productively buffering observations it hasn't flushed yet.
         self._extraction_pending: dict[int, int] = {}
+        self._extraction_rejections: dict[str, int] = {}
 
     def report_extraction_pending(self, owner: Any, count: int) -> None:
         self._extraction_pending[id(owner)] = max(0, int(count))
@@ -77,6 +78,17 @@ class WorkspaceManager:
     @property
     def extraction_pending_total(self) -> int:
         return sum(self._extraction_pending.values())
+
+    def report_extraction_rejections(self, owner: Any, counts: dict[str, int]) -> None:
+        for reason, count in (counts or {}).items():
+            key = str(reason or "unknown")
+            self._extraction_rejections[key] = self._extraction_rejections.get(key, 0) + max(
+                0, int(count)
+            )
+
+    @property
+    def extraction_rejection_counts(self) -> dict[str, int]:
+        return dict(self._extraction_rejections)
 
     # ---- Lifecycle ----
 

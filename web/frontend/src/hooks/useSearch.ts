@@ -9,6 +9,8 @@ export interface SearchSession {
   status: "idle" | "running" | "reconnecting" | "completed" | "error";
   result: SearchResult | null;
   liveState: SearchState | null;
+  /** In-flight extraction buffer size from live state polls (not in search_state). */
+  extractionPendingTotal: number;
   events: WSEvent[];
   workers: WorkerInfo[];
   error: string | null;
@@ -16,6 +18,10 @@ export interface SearchSession {
   liveAnswer: string | null;
   startedAt?: number;
 }
+
+export type LiveStateExtras = {
+  extractionPendingTotal?: number;
+};
 
 const RECONNECT_DELAYS_MS = [500, 1000, 2000, 4000, 8000, 15000];
 
@@ -29,6 +35,7 @@ export function useSearch() {
     status: "idle",
     result: null,
     liveState: null,
+    extractionPendingTotal: 0,
     events: [],
     workers: [],
     error: null,
@@ -89,7 +96,14 @@ export function useSearch() {
     };
   }, [clearRuntime]);
 
-  const applyLiveState = useCallback((sessionId: string, generation: number, request: number, state: SearchState | null | undefined, revision?: string) => {
+  const applyLiveState = useCallback((
+    sessionId: string,
+    generation: number,
+    request: number,
+    state: SearchState | null | undefined,
+    revision?: string,
+    extras?: LiveStateExtras,
+  ) => {
     if (state === undefined || generation !== generationRef.current || terminalRef.current || request < appliedSnapshotRef.current) return;
     if (revision && olderRevision(revision, revisionRef.current)) return;
     if (revision) revisionRef.current = revision;
@@ -97,7 +111,15 @@ export function useSearch() {
     setSession((current) => {
       if (generation !== generationRef.current || terminalRef.current || current.sessionId !== sessionId || request !== appliedSnapshotRef.current) return current;
       // 后端快照允许清空单元格和撤销证据；顺序由请求编号控制。
-      return { ...current, liveState: state };
+      // extraction_pending_total lives beside search_state on REST polls; keep
+      // the last known value when websocket snapshots omit it.
+      return {
+        ...current,
+        liveState: state,
+        ...(typeof extras?.extractionPendingTotal === "number"
+          ? { extractionPendingTotal: Math.max(0, extras.extractionPendingTotal) }
+          : {}),
+      };
     });
   }, []);
 
@@ -114,7 +136,9 @@ export function useSearch() {
         if (generation !== generationRef.current || terminalRef.current) return "stale";
 
         if (result.status === "running") {
-          applyLiveState(sessionId, generation, request, result.search_state, result.revision);
+          applyLiveState(sessionId, generation, request, result.search_state, result.revision, {
+            extractionPendingTotal: result.extraction_pending_total,
+          });
           return "running";
         }
 
@@ -129,6 +153,9 @@ export function useSearch() {
             result,
             workers: finalizeWorkers(current.workers, result.status === "error" ? "error" : "completed"),
             liveState: result.search_state ?? null,
+            extractionPendingTotal: typeof result.extraction_pending_total === "number"
+              ? Math.max(0, result.extraction_pending_total)
+              : 0,
             elapsed: result.elapsed_s ?? (Date.now() - startTimeRef.current) / 1000,
             error: result.error || null,
           };
@@ -264,7 +291,25 @@ export function useSearch() {
         const request = ++snapshotRequestRef.current;
         const result = await getSearchState(sessionId, revisionRef.current);
         if (generation !== generationRef.current || terminalRef.current) return;
-        applyLiveState(sessionId, generation, request, result.search_state, result.revision);
+        if (result.not_modified) {
+          // search_state unchanged, but extraction backlog can still move.
+          if (typeof result.extraction_pending_total === "number") {
+            setSession((current) => {
+              if (generation !== generationRef.current || terminalRef.current
+                  || current.sessionId !== sessionId) {
+                return current;
+              }
+              const next = Math.max(0, result.extraction_pending_total!);
+              return current.extractionPendingTotal === next
+                ? current
+                : { ...current, extractionPendingTotal: next };
+            });
+          }
+        } else {
+          applyLiveState(sessionId, generation, request, result.search_state, result.revision, {
+            extractionPendingTotal: result.extraction_pending_total,
+          });
+        }
         if (result.status === "completed" || result.status === "error") {
           void reconcileStatus(sessionId, generation);
         }
@@ -309,6 +354,7 @@ export function useSearch() {
       status: "running",
       result: null,
       liveState: initialState,
+      extractionPendingTotal: 0,
       events: [],
       workers: [],
       error: null,
@@ -384,6 +430,7 @@ export function useSearch() {
         status: "running",
         result: null,
         liveState: seed?.searchState ?? null,
+        extractionPendingTotal: 0,
         events,
         workers: foldWorkers(events),
         error: null,
@@ -407,6 +454,7 @@ export function useSearch() {
       status: "idle",
       result: null,
       liveState: null,
+      extractionPendingTotal: 0,
       events: [],
       workers: [],
       error: null,

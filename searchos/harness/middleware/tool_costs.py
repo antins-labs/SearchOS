@@ -19,8 +19,8 @@ def tool_costs(name: str, args: Any) -> dict[str, int]:
         costs["open"] = 1
     if name in {"find", "browser_find", "local_find"}:
         costs["find"] = 1
-    if name.startswith("skill_"):
-        costs["skill"] = 1
+    if name == "exec":
+        costs["exec"] = 1
     if name == "explore_web" and isinstance(args, dict):
         queries = args.get("queries") or []
         count = max(1, len(queries) if isinstance(queries, (list, tuple)) else 1)

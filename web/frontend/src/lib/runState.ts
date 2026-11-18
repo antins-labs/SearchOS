@@ -151,6 +151,23 @@ export function deriveCoverage(state: SearchState | null): { filled: number; tot
   return { filled, total: cells.length };
 }
 
+/** Active vs candidate evidence counts for stall diagnosis. */
+export function deriveEvidenceBreakdown(state: SearchState | null): {
+  active: number;
+  candidate: number;
+  total: number;
+} {
+  const nodes = state?.evidence_graph?.nodes ?? [];
+  let active = 0;
+  let candidate = 0;
+  for (const node of nodes) {
+    const status = String(node.status ?? "");
+    if (status === "active") active += 1;
+    else if (status === "candidate") candidate += 1;
+  }
+  return { active, candidate, total: nodes.length };
+}
+
 export interface SkillExecutionInfo {
   executionId: string;
   parentCallId: string;

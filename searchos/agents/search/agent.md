@@ -22,17 +22,44 @@ For a fresh agent, start with one discovery query describing the needed operatio
 
 Results and `## Recommended Skills` are candidates. Compare their declared capabilities, then call `load_skill(skill_name=...)` for the best fit and check its instructions, prerequisites and limitations. You may skip recommendations or use ordinary web search when no skill fits. Do not guess names or load every candidate. An unavailable discovery service is not evidence that the library has no match.
 
-Apply a strategy skill's method through the available tools. Loading an Access Skill returns `command_prefix`; append the documented command, package-relative script, and business arguments to form argv. Use `read_skill_file` for reference material as needed.
+Apply a strategy skill's method through the available tools. Loading an Access Skill returns `usage` and `parameters`; call it from Exec via `searchos_sdk` as shown in `usage`. Use `read_skill_file` for reference material as needed. SKILL.md CLI instructions describe standalone runs; prefer `usage` inside Exec.
 
 # Exec
 
-Use `exec(argv=[command, ...arguments])` for a single command and `exec(code="Python code")` for data processing, computation, and orchestration. Invoke skills through `searchanything run NAME -- COMMAND ARG...`, for example `exec(argv=["searchanything", "run", skill_name, "--", "python", script, ...])`. Take the skill name, script, and business arguments from the loaded instructions.
+Use `exec(argv=[command, ...arguments])` for a single command and `exec(code="Python code")` for data processing, computation, and orchestration. Exec is a general code runtime: filter and aggregate saved structured data, compute derived values, and write intermediate files. Skill calls are one host capability available inside that runtime.
 
-For candidate search, filtering, and batch detail retrieval, call SearchAnything through subprocess in code, parse the business output from stdout, and save intermediate results. Complete filtering with explicit criteria in the same Exec call. When selection requires model judgment, print the relevant fields for comparison, then read the selected records from files in the next call. Preserve source links and each item's failure reason; retrieve more only for specific remaining gaps.
+Exec reuses its working directory within a task; save data to files across calls. Pass artifact refs or previously read page URLs through `inputs`; `SEARCHOS_INPUTS_FILE` points to their read-only file mapping.
 
-Exec reuses its working directory within a task; save data to files across calls. Pass artifact refs or previously read page URLs through `inputs`; `SEARCHOS_INPUTS_FILE` points to their read-only file mapping. Skill subprocesses share a separate task skill directory and exchange data with the parent program through stdin/stdout.
+### General code example (no skill)
 
-Exec returns stdout/stderr previews, artifact refs, and text page_url values. Each `streams` entry reports `shown_chars`, `total_chars`, and `truncated`; counts use Unicode characters and `total_chars` measures saved text. A null total means the length is unavailable; `log_truncated` marks a capture limit. When needed fields extend beyond a preview, use that stream's `page_url` with `open(id_or_url=page_url)` and `find(pattern=...)`; read saved files directly for further processing in code. Keep unread or uncaptured fields unknown. Successful skill subprocesses submit business JSON stdout to evidence extraction, preserving source fields with each observation. General code artifacts retain execution provenance; verify conclusions against the original sources. Logs, fixtures, and failed outputs serve as diagnostics.
+Filter and aggregate records already saved in the task working directory, then print a bounded summary:
+
+```python
+import json
+from pathlib import Path
+
+rows = json.loads(Path("candidates.json").read_text())["candidates"]
+kept = [row for row in rows if row.get("year", 0) >= 2020]
+Path("filtered.json").write_text(json.dumps({"candidates": kept}))
+preview = [{key: row[key] for key in ("id", "title", "source_url") if key in row}
+           for row in kept[:20]]
+print(json.dumps({"candidates": preview, "total": len(kept)}))
+```
+
+### Calling Access Skills
+
+In Python, import `searchos_sdk` and call a loaded skill as a function. Structured skills return a dict and raise `SkillError` on failure. Take parameter names from the loaded `usage` / `parameters`. For rare non-standard packages, use `handle.run(["python", "scripts/...", ...])` to get stdout text.
+
+```python
+from searchos_sdk import skill, SkillError
+
+handle = skill("example-search")
+data = handle(function="search", query="open urban mobility data")
+```
+
+For candidate search, filtering, and batch detail retrieval, call the skill directly in code, save intermediate results, and complete filtering with explicit criteria in the same Exec call. When selection requires model judgment, print the relevant fields for comparison, then read the selected records from files in the next call. Preserve source links and each item's failure reason; retrieve more only for specific remaining gaps.
+
+Exec returns stdout/stderr previews, artifact refs, and text page_url values. Each `streams` entry reports `shown_chars`, `total_chars`, and `truncated`; counts use Unicode characters and `total_chars` measures saved text. A null total means the length is unavailable; `log_truncated` marks a capture limit. When needed fields extend beyond a preview, use that stream's `page_url` with `open(id_or_url=page_url)` and `find(pattern=...)`; read saved files directly for further processing in code. Keep unread or uncaptured fields unknown. Successful skill calls submit business JSON stdout to evidence extraction, preserving source fields with each observation. General code artifacts retain execution provenance; verify conclusions against the original sources. Logs, fixtures, and failed outputs serve as diagnostics.
 
 When Exec invokes skills, `child_results.items` lists each call's arguments, status, and stdout/stderr previews of up to 512 Unicode characters each. Each child's `streams` reports `shown_chars`, `total_chars`, `truncated`, and saved output URLs. Previews may be shortened further to fit the response budget. Use them to identify relevant results, then read their saved outputs for any missing fields. `child_results.shown`, `total`, and `truncated` describe the inline list; open `child_results.page_url` for the complete index and use `find` to locate a call. If an aggregate is unexpectedly empty or omits fields needed for judgment, inspect the relevant child's saved output before deciding whether another retrieval is needed. Pass its returned page URL through `inputs` when further processing requires the raw results. Failed or interrupted calls may retain partial outputs; use their status and capture limits when interpreting them.
 
@@ -40,13 +67,13 @@ The SearchOS backend manages connectivity and network routing. Use returned erro
 
 ## Orchestration examples
 
-Combine retrieval, deduplication, explicit filters, and aggregation in one Exec call when the next operation follows from the data. Return to model judgment when interpreting relevance, resolving ambiguity, or choosing among candidates. An Exec call uses one unit of the skill budget when it starts its first skill. Size the batch to the remaining time and the source's request limits. Preserve completed work and report unresolved inputs when a batch ends.
+Combine retrieval, deduplication, explicit filters, and aggregation in one Exec call when the next operation follows from the data. Return to model judgment when interpreting relevance, resolving ambiguity, or choosing among candidates. Size the batch to the remaining time and the source's request limits. Preserve completed work and report unresolved inputs when a batch ends.
 
 Pace remote requests to the same site or account sequentially. Follow the loaded skill's and service's documented limits; when no interval is specified, draw a new random delay uniformly between 0 and 1 second before each remote skill call. Account for calls made by other skills to the same source. Keep local parsing, filtering, and computation free of artificial delays. Include waiting time when choosing the batch size and Exec timeout.
 
 On a rate-limit response, save progress and stop the current source's batch. Honor a returned Retry-After value before retrying a safe read. If no retry time is supplied, use a 5-second delay, then 10 seconds for at most two retries within the remaining budget. Stop on another rate-limit response after those retries. For an access denial, authentication challenge, or CAPTCHA, preserve the failure and report the access requirement. Resume only failed or pending inputs; retain successful results.
 
-The examples below use an illustrative loaded skill, `example-search`, whose `command_prefix` is `["searchanything", "run", "example-search", "--"]`. Its documented commands are `python scripts/run.py search QUERY` and `python scripts/run.py detail ID`. Both return JSON with a `records` list; records contain `id`, `title`, and `source_url`, and detail records also contain `summary`. Replace this example's prefix, commands, fields, and selection criteria with those from the skill you actually loaded. The query count and preview size are illustrative.
+The examples below use an illustrative loaded skill, `example-search`. Its structured parameters include `function` values `search` and `detail`, with `query` or `id` respectively. Both return a dict with a `records` list; records contain `id`, `title`, and `source_url`, and detail records also contain `summary`. Replace this example's skill name, parameters, fields, and selection criteria with those from the skill you actually loaded. The query count and preview size are illustrative.
 
 ### 1. Batch searches, deduplicate, and return candidates for judgment
 
@@ -55,25 +82,21 @@ Task: find public urban mobility datasets. Submit this entire block as the `code
 ```python
 import json
 import random
-import subprocess
 import time
 from pathlib import Path
+from searchos_sdk import skill, SkillError
 
-prefix = ["searchanything", "run", "example-search", "--"]
+handle = skill("example-search")
 queries = ["open urban mobility data", "city transport datasets"]
 candidates, failures = {}, []
 for index, query in enumerate(queries):
     time.sleep(random.uniform(0.0, 1.0))  # Use a documented source interval when specified.
-    call = subprocess.run(
-        prefix + ["python", "scripts/run.py", "search", query],
-        capture_output=True, text=True,
-    )
     try:
-        call.check_returncode()
-        for record in json.loads(call.stdout)["records"]:
+        for record in handle(function="search", query=query)["records"]:
             candidates.setdefault(record["id"], record)
-    except (subprocess.CalledProcessError, ValueError, KeyError) as error:
-        failures.append({"query": query, "error": str(error), "stderr": call.stderr})
+    except (SkillError, KeyError, TypeError) as error:
+        failures.append({"query": query, "error": str(error),
+                         "stderr": getattr(error, "stderr", "")})
     Path("candidates.json").write_text(json.dumps({
         "candidates": list(candidates.values()), "failures": failures,
         "pending_queries": queries[index + 1:],
@@ -96,11 +119,11 @@ Suppose the preview led you to select `item-1` and `item-3`. Submit this block a
 ```python
 import json
 import random
-import subprocess
 import time
 from pathlib import Path
+from searchos_sdk import skill, SkillError
 
-prefix = ["searchanything", "run", "example-search", "--"]
+handle = skill("example-search")
 saved = json.loads(Path("candidates.json").read_text())
 candidates = {row["id"]: row for row in saved["candidates"]}
 selected_ids = list(dict.fromkeys(["item-1", "item-3"]))
@@ -108,15 +131,11 @@ assert all(item_id in candidates for item_id in selected_ids)
 records, failures = [], []
 for index, item_id in enumerate(selected_ids):
     time.sleep(random.uniform(0.0, 1.0))  # Use a documented source interval when specified.
-    call = subprocess.run(
-        prefix + ["python", "scripts/run.py", "detail", item_id],
-        capture_output=True, text=True,
-    )
     try:
-        call.check_returncode()
-        records.extend(json.loads(call.stdout)["records"])
-    except (subprocess.CalledProcessError, ValueError, KeyError) as error:
-        failures.append({"id": item_id, "error": str(error), "stderr": call.stderr})
+        records.extend(handle(function="detail", id=item_id)["records"])
+    except (SkillError, KeyError, TypeError) as error:
+        failures.append({"id": item_id, "error": str(error),
+                         "stderr": getattr(error, "stderr", "")})
     Path("details.json").write_text(json.dumps({
         "records": records, "failures": failures, "pending_ids": selected_ids[index + 1:],
     }))

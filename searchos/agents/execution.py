@@ -66,6 +66,22 @@ class _BeforeModel(AgentMiddleware):
     async def awrap_model_call(self, request: Any, handler: Callable) -> Any:
         for resource in self.resources:
             await resource.drain_before_model()
+        if not hasattr(request, "messages"):
+            return await handler(request)
+        parts = []
+        for resource in self.resources:
+            take = getattr(resource, "take_pending_feedback", None)
+            if callable(take):
+                text = take()
+                if text:
+                    parts.append(text)
+        if parts:
+            return await call_with_context(
+                request,
+                handler,
+                content="\n\n".join(parts),
+                kind="extraction_drain",
+            )
         return await handler(request)
 
 
@@ -348,14 +364,24 @@ class _RecordingHooks(AgentMiddleware):
         return result
 
     async def awrap_tool_call(self, request, handler):
+        from searchos.tools.exec.bridge import host_call_recorder
+
         started = self.recorder.tool_started(request)
         token = None
         if extract_tool_name(request) == "exec":
-            from searchos.tools.exec.skill_bridge import nested_recording
+            from searchos.tools.skills.capability import OP as SKILL_CALL
 
-            async def record_child(identifier, arguments, parent_id, invoke):
-                fields = dict(execution_id=identifier, skill=arguments['skill'], argv=arguments['argv'],
-                              parent_execution_id=parent_id, parent_tool_call_id=request.tool_call['id'])
+            async def record_child(op, identifier, arguments, parent_id, invoke):
+                if op != SKILL_CALL:
+                    return await invoke()
+                fields = dict(
+                    execution_id=identifier,
+                    skill=arguments["skill"],
+                    argv=arguments.get("argv"),
+                    params=arguments.get("params"),
+                    parent_execution_id=parent_id,
+                    parent_tool_call_id=request.tool_call["id"],
+                )
                 self.recorder.skill_execution(**fields, status="running")
                 try:
                     result = await invoke()
@@ -365,10 +391,10 @@ class _RecordingHooks(AgentMiddleware):
                 except Exception as error:
                     self.recorder.skill_execution(**fields, status="error", error=str(error))
                     raise
-                self.recorder.skill_execution(**fields, status=result['status'], result=result)
+                self.recorder.skill_execution(**fields, status=result["status"], result=result)
                 return result
 
-            token = nested_recording.set(record_child)
+            token = host_call_recorder.set(record_child)
         try:
             result = await handler(request)
         except asyncio.CancelledError as error:
@@ -379,6 +405,6 @@ class _RecordingHooks(AgentMiddleware):
             raise
         finally:
             if token is not None:
-                nested_recording.reset(token)
+                host_call_recorder.reset(token)
         self.recorder.tool_completed(request, result, started)
         return result
