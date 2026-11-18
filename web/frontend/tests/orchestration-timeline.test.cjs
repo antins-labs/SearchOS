@@ -32,8 +32,8 @@ function load(name) {
 }
 const timeline = load('components/workbench/OrchestratorTimeline.tsx').default;
 const event = (data) => ({ type: 'trajectory', data });
-const start = (id, tool = 'inspect_table') => event({ type:'tool_call_started',agent:'orchestrator',tool,tool_call_id:id,args:{table_id:id},reasoning:'开始 '+id });
-const step = (id, tool = 'inspect_table') => event({ type:'step',agent:'orchestrator',tool_call_id:id,action:{name:tool,args:{table_id:id}},observation:'结果 '+id });
+const start = (id, tool = 'read_table') => event({ type:'tool_call_started',agent:'orchestrator',tool,tool_call_id:id,args:{table_id:id},reasoning:'开始 '+id });
+const step = (id, tool = 'read_table') => event({ type:'step',agent:'orchestrator',tool_call_id:id,action:{name:tool,args:{table_id:id}},observation:'结果 '+id });
 const html = (events) => renderToStaticMarkup(React.createElement(timeline,{events}));
 
 test('初始化和生成阶段随实际工具与结束事件更新', () => {
@@ -171,9 +171,9 @@ test('追问处拆开调用块，后续工具出现在追问下方', () => {
 });
 
 test('失败和取消结束对应调用，不使正在工作的子代理变成已结束', () => {
-  const error = event({type:'tool_call_failed',agent:'orchestrator',tool:'inspect_table',tool_call_id:'a',status:'cancelled',error:'已取消'});
+  const error = event({type:'tool_call_failed',agent:'orchestrator',tool:'read_table',tool_call_id:'a',status:'cancelled',error:'已取消'});
   const result = html([start('a'),start('b'),error]);
-  assert.match(result,/inspect_table · 已取消/);
+  assert.match(result,/read_table · 已取消/);
   assert.equal((result.match(/animate-spin/g)||[]).length,1);
   const { foldWorkers } = load('lib/runState.ts');
   const workers = foldWorkers([event({type:'dispatch',agent:'search_agent'}),event({type:'step',agent:'search_agent',status:'error'})]);

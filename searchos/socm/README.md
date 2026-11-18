@@ -44,7 +44,7 @@ workspace.atomic_update_state(apply)
 
 CoverageMap 保存完整数据。调度与写作概览每表最多展示 30 个缺口实体，统计覆盖全部数据字段；显式 Search 任务保留全部分配目标。完成状态要求值和证据比较均已确定，不可获取字段及待比较证据单列。默认窗口优先展示尚未分配的可处理字段，查询不会预留任务。
 
-Main Agent 优先使用最新 SOCM 更新。需要查看窗口外的行、字段或来源时，调用 `inspect_table`，返回 `{table_id, primary_key, columns, summary, rows, count, total_matched, next_cursor}`。每行按 `columns` 排列，前几列是按 `primary_key` 顺序排列的键值。`with_values=true` 返回页内完整原值，`false` 返回字段状态。需要引用时，传 `row` 和 `with_values=true`，可用 `attribute` 指定一列。每页默认 30 行，字符预算按整行分页。游标绑定筛选条件并按稳定实体键推进。任务改变表格后，需继续查询时从头扫描。Main Agent 负责规划批次，超大任务继续接受。相同分派范围的部分重叠会返回目标键及任务 ID。
+Main Agent 优先使用最新 SOCM 更新。需要查看窗口外的行、字段或来源时，调用 `read_table`，返回 `{table_id, primary_key, columns, summary, rows, count, total_matched, next_cursor}`；指定 `attribute` 时另含 `value_counts`。每行按 `columns` 排列，前几列是按 `primary_key` 顺序排列的键值。`with_values=true` 返回页内完整原值，`false` 返回字段状态；翻页时可改 `with_values`/`limit`。需要引用时，传 `row` 和 `with_values=true`。每页默认 30 行，字符预算按整行分页。游标绑定 status/row/attribute/unassigned_only 并按稳定实体键推进。任务改变表格后，需继续查询时从头扫描。Main Agent 负责规划批次，超大任务继续接受。相同分派范围的部分重叠会返回目标键及任务 ID。
 
 抽取根据任务目标生成最多 200 个实体的窗口，逐窗口提交证据；多个窗口共享已获取的来源内容。失败或取消保留已提交结果，并使用现有观测日志恢复。导出始终读取完整 CoverageMap，覆盖所有行及未完成字段。
 

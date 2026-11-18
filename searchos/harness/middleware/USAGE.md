@@ -127,7 +127,7 @@ mw.SOCMContextMiddleware(workspace, task=task)
 
 调度和写作视图保留全表统计，每表展示最多 30 个缺口实体，优先展示尚未分配的可处理目标；窗口注明展示数与匹配总数。调度视图展示运行中任务、最多 20 个待执行或阻塞任务及最近 5 个结束任务，各状态总数覆盖完整 Frontier。发现任务额外显示最近收集的 30 个实体。显式 Search 任务继续展示全部分配目标、值预览及未匹配目标。所有实体、字段和来源完整保存在 CoverageMap。完成统计要求值和证据比较均已确定，不可获取字段单列，待比较字段等待比较结果。
 
-Main Agent 先根据最新 SOCM 更新分派任务。需要窗口外的记录、完整值或引用时，再用 `inspect_table` 按行或字段查询。列表与 SOCM 使用同一列序，默认每页 30 行，字符预算按整行分页。用同一筛选条件和 `next_cursor` 继续读取。开启 `with_values` 可取页内完整原值，额外指定 `row` 可取其引用。所有查询都不占用目标。单批约 50 个实体或 200 个目标单元格仅作为分派建议。Writer 按需使用 `read_coverage` 和 `read_evidence`。
+Main Agent 先根据最新 SOCM 更新分派任务。需要窗口外的记录、完整值或引用时，再用 `read_table` 按行或字段查询。列表与 SOCM 使用同一列序，默认每页 30 行，字符预算按整行分页。用同一筛选条件和 `next_cursor` 继续读取。开启 `with_values` 可取页内完整原值，额外指定 `row` 可取其引用。所有查询都不占用目标。单批约 50 个实体或 200 个目标单元格仅作为分派建议。Writer 按需使用 `read_coverage` 和 `read_evidence`。
 
 抽取计划先解析观察记录和当前任务的目标交集，再将 FILL 的可处理实体划分成至多 200 行的窗口。双阶段遍历全部 FILL 窗口，无显式目标时追加 DISCOVER；原文驱动单阶段直接按 schema 和完整授权目标抽取候选。来源内容按预算分片复用，失败和取消保留已提交结果，并沿用观测日志重放。表头保留建表模式及当前已知行口径；列定义随 schema 更新。Web UI 的 CSV、Excel 和研究包继续从完整 CoverageMap 导出。
 
@@ -392,7 +392,7 @@ graph = create_search_agent_graph(
 
 `image_fallback=True` 在模型明确拒绝图片输入时，将图片工具结果转换为识别文本并重试一次，需要已有图片识别配置。默认值 `None` 遵循当前运行配置，仅在图片阅读开启且模式为 `auto` 时启用。
 
-调度 Agent 可在图入口设置 `drain_tools=frozenset({"inspect_table"})` 和 `finish_without_tools=False`，保留收尾工具。若装载 Budget，也需为它配置一致的 `drain_tools`。这些参数只规定停止后的执行方式。
+调度 Agent 可在图入口设置 `drain_tools=frozenset({"read_table"})` 和 `finish_without_tools=False`，保留收尾工具。若装载 Budget，也需为它配置一致的 `drain_tools`。这些参数只规定停止后的执行方式。
 
 探索轮次和运行池提醒属于角色策略，由默认 pipeline 装配；手写组合也可通过图入口的 `policy` 参数指定：
 

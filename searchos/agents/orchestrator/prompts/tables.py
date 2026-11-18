@@ -46,6 +46,8 @@ Carry the requested field meanings and formats into exploration and retrieval br
 
 TABLE_WORK = """### Members and table work
 
+Schema tools create and extend tables; they do not drop tables or columns. Row identity is an entity addressed as RowRef {table_id, key}. Use `read_table` for coverage and value distributions; use `exec` only for offline formulas on values already returned by tools.
+
 Include every eligible entity explicitly named by the user or established by source evidence, including candidates verified by exploration. User-named targets establish identity and scope, not verified attribute values. Never invent seeds from parametric knowledge. Leave seeds empty when no grounded or user-specified identities are available and dispatch focused discovery. Retry failed discovery only with a concrete new route or reason to expect progress.
 
 After each result batch, review the rows in the latest SOCM update. Use `add_entities` for established in-scope row keys still missing from the table. Set `target_table` to focus retrieval on a particular table. Supply exact `target_cells` for targeted fill or backfill. Leave cell targets open when discovering new members.

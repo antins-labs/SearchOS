@@ -262,7 +262,7 @@ async def enqueue_tasks(items: list[EnqueueTask]) -> str:
                         "index": i,
                         "reason": (
                             f"redundant — {reason}. Choose an unassigned gap in the latest SOCM update. "
-                            "For more rows, use inspect_table(status='actionable', unassigned_only=True)."
+                            "For more rows, use read_table(status='actionable', unassigned_only=True)."
                         ),
                     })
                     continue

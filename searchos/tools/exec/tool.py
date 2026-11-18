@@ -109,31 +109,30 @@ async def exec_code(
     stdin: str = "",
     timeout_s: float = 60,
 ):
-    """Run a command or Python program to retrieve data, compute results or generate files. Each
-    call starts a fresh process in the task's persistent working directory.
+    """Run a command or Python program. Each call starts a fresh process in the task's persistent
+    working directory. Supply exactly one of argv or code.
 
-    Supply exactly one of argv or code. Use code for loops, filtering, aggregation, parsing saved
-    inputs, and orchestration. Import searchos_sdk in Python to call loaded Access Skills as
-    functions; see load_skill for the skill's usage and parameters. Save files to retain data
-    across calls.
+    Orchestrator: offline only. Compute formulas or metrics from operands already returned by
+    read_table, read_evidence, or inputs, or write intermediate/deliverable files. Do not use exec
+    for table coverage, gap counts, or value distributions — call read_table. Do not call
+    searchos_sdk skills or expect network access. Persist derived table fields with edit_entities.
+
+    Search Agent: run commands or Python for filtering, aggregation, parsing saved inputs, and
+    skill orchestration. Import searchos_sdk to call loaded Access Skills; see load_skill for usage
+    and parameters. Network follows source permissions. Save files to retain data across calls.
 
     Returns status, exit_code, stdout/stderr previews and artifact refs. streams entries give
     shown_chars, total_chars, truncated and a page_url for saved text. Counts use Unicode
     characters. The total_chars field may be null when unavailable. log_truncated means the
-    capture limit was reached. Use open(id_or_url=page_url) to read beyond a preview and leave unavailable data
-    unknown.
-    child_results includes each reported skill's arguments, status and stdout/stderr previews (up
-    to 512 characters per stream). Per-child streams give the same counts and saved URLs. The
-    response budget may shorten previews or omit entries. Compare shown/total/truncated and use
-    open/find on the index page_url or a stream URL to inspect raw output, including results
-    filtered from the program's own stdout.
+    capture limit was reached. Use open(id_or_url=page_url) to read beyond a preview and leave
+    unavailable data unknown. child_results lists skill subcalls when present; use open/find on
+    stream or index page_url for full output.
 
     Args:
         tool_call_id: Execution identifier supplied by the tool runtime.
         argv: Command and arguments as separate strings for one invocation, without shell parsing.
             Omit when using code.
-        code: Python source up to 100000 UTF-8 bytes. Use for loops, filtering, aggregation or
-            skill orchestration via searchos_sdk. Omit when using argv.
+        code: Python source up to 100000 UTF-8 bytes. Omit when using argv.
         inputs: Existing artifact refs or previously read page URLs to expose as read-only files.
             SEARCHOS_INPUTS_FILE identifies the JSON mapping of each input to path, media_type and
             source. Defaults to no inputs.

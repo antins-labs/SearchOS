@@ -99,7 +99,8 @@ async def add_entities(rows: list[dict[str, Any]], table_id: str) -> str:
 
 @tool(parse_docstring=True)
 async def remove_entities(rows: list[RowRef], reason: str) -> str:
-    """Exclude rows when evidence shows they fall outside the requested scope. Returns removed and
+    """Soft-remove rows when evidence shows they fall outside the requested scope. Restore with
+    edit_entities(restore=true). Returns removed and
     not_found row references.
 
     Keep rows with missing attributes in the table. Exclusion preserves evidence for audit. Use
@@ -196,23 +197,24 @@ def _rename_references(state: Any, table_id: str, old: str, new: str) -> None:
 
 @tool(parse_docstring=True)
 async def edit_entities(edits: list[RowEdit]) -> str:
-    """Correct row keys, restore excluded rows, or set cell values in existing rows. Returns
-    updated rows, unchanged cells with their current status, and per-field errors.
+    """Correct row keys, restore soft-removed rows, or set cell values. Returns updated rows,
+    unchanged cells with their current status, and per-field errors.
 
-    A rename updates evidence and task references atomically. For sourced values, use read_evidence
-    to verify active, in-scope evidence, its original link and excerpt, including any formatting
-    change or calculation. Successful edits replace cell bindings and preserve source facts. Failed
-    fields keep their previous values.
+    Operations on each edit (combine as needed):
+    - rename: replace every primary-key value; updates evidence and task references atomically.
+    - restore=true: reinstate a row excluded by remove_entities.
+    - set: map non-key columns to {value, evidence_ids}. For requires_search=false, omit
+      evidence_ids to infer from established row facts. null, empty, or "/" clears a cell.
+
+    For sourced values, use read_evidence to verify active, in-scope evidence, its original link
+    and excerpt. Successful edits replace cell bindings and preserve source facts. Failed fields
+    keep their previous values.
 
     To set Size from evidence and clear Aroma in the same row, pass
     {"edits":[{"row":{"table_id":"products","key":["Classic"]},"set":{"Size":{"value":"500ml","evidence_ids":["f_size"]},"Aroma":null}}]}.
 
     Args:
-        edits: Array of row edits. Supply table_id and key in primary_key order for each row.
-            rename supplies all replacement key values. restore=true reinstates the row. set maps
-            each non-key column to {value,evidence_ids}. For requires_search=false, omit
-            evidence_ids to infer a value from established row facts. Keep ambiguous values empty.
-            A null entry, null or empty value, or "/" clears a cell.
+        edits: Array of row edits. Each row is RowRef with table_id and key in primary_key order.
     """
     workspace = _ctx.workspace
     if workspace is None:

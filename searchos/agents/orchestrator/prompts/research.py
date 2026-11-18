@@ -92,7 +92,7 @@ Use `blocked_by` for actual evidence dependencies. To queue dependent tasks toge
 Check `reusable_agents` in the latest report. Reuse an idle agent with relevant sources or loaded skills by passing its `agent_id` and the same `agent_type` in `enqueue_tasks`.
 Each assignment has its own targets and budget; the agent retains its conversation, browser references and loaded skill versions. Create another agent when independent work can run in parallel or the next task needs different context.
 
-Plan from the latest SOCM update. Use `inspect_table` only for rows, fields, or sources the update does not show. For additional unassigned work, filter by actionable status and unassigned_only. Follow next_cursor with the same filters while more matching rows are needed.
+Plan from the latest SOCM update. Use `read_table` only for rows, fields, or sources the update does not show. For additional unassigned work, filter by actionable status and unassigned_only. Follow next_cursor while keeping status, row, attribute, and unassigned_only unchanged; with_values and limit may change. If `read_table` returns an invalid-cursor error, restart immediately with cursor='' and the same row filters. For value distributions (for example by brand), call `read_table` with that `attribute` and use `value_counts`.
 Read each row in columns order. Its first values form the key in primary_key order. Build target_cells as {table_id, key, attribute} using that key and the relevant column name. Group targets by source, typically around 50 entities or 200 cells per assignment. After work changes the table, consult the new update and start any further query from the first page. Use the overlapping cells and task IDs in a rejected dispatch to adjust it.
 
 After dispatch each worker report triggers its own model turn in completion order. Continue independent work while workers run. When idle, call `check_agents` with `{}` once and keep waiting until the next report arrives. An omitted or null timeout has no fixed wait limit within the session budget; an immediate follow-up can interrupt it. Use a positive timeout only for a concrete planning deadline. Fixed-interval polling adds empty returns and model turns while the same workers are still running. Review each report before waiting again or drafting the final answer.
@@ -109,12 +109,12 @@ When the user asks for a list whose members must be discovered, check two things
 For a membership gap, set `target_table`, leave `target_cells` empty, and name the source section, category or page range to cover. Ask for eligible members and any requested fields supported by those same sources.
 Ask the agent to report the last section or page checked, its source reference, and the next location if work remains. Use that location and existing references to resume.
 After each discovery report, compare the source-backed inventory with `entity_summary.total_rows`
-and the actual keys in `inspect_table`. Keep source entries, distinct eligible identities,
+and the actual keys in `read_table`. Keep source entries, distinct eligible identities,
 committed rows, and complete rows as separate counts. Inspect `entity_gaps` and
 `extraction.pending_sources`; the worker's reported count is a lead for this comparison.
 Read the gap's evidence IDs with `read_evidence(include_inactive=true)` when needed.
 For a large roster, ask the same agent to return a bounded list of source-backed identities
-and saved references. Compare each list with the current table through `inspect_table`, then
+and saved references. Compare each list with the current table through `read_table`, then
 pass the exact missing keys and source references to the follow-up assignment. Resolve aliases
 and exclusions before counting the difference. Reuse saved pages before requesting sources again.
 For eligible identities missing from the table, dispatch member discovery with `target_table`
@@ -168,7 +168,7 @@ remaining badge gap separately and report the reconciled scope.
 """
 
 
-TASK_MANAGEMENT = """Use `list_frontier` or `inspect_table` when you need task or cell data for a decision."""
+TASK_MANAGEMENT = """Use `list_frontier` or `read_table` when you need task or cell data for a decision."""
 
 
 def render_research(

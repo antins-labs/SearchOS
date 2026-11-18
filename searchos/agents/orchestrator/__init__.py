@@ -20,7 +20,7 @@ def get_orchestrator_tools(*, source_mode: str = "") -> list:
         add_entities,
         create_schema,
         edit_entities,
-        inspect_table,
+        read_table,
         remove_entities,
     )
     from searchos.tools.socm_read import list_frontier, read_evidence
@@ -33,7 +33,7 @@ def get_orchestrator_tools(*, source_mode: str = "") -> list:
         add_entities,
         remove_entities,
         edit_entities,
-        inspect_table,
+        read_table,
         exec_code,
         enqueue_tasks,
         check_agents,

@@ -82,18 +82,35 @@ def _search_policy_error(table_id: str, columns: Iterable[tuple[str, Any]]) -> s
     return None
 
 
+def _schema_error(message: str, **extra: Any) -> str:
+    return json.dumps({"ok": False, "error": message, **extra}, ensure_ascii=False)
+
+
+def _schema_ok(payload: dict[str, Any]) -> str:
+    return json.dumps({"ok": True, **payload}, ensure_ascii=False)
+
+
+_TABLE_KEYS = {
+    "table_id", "attributes", "primary_key", "column_desc", "seed_entities",
+    "table_label", "row_label",
+}
+_RELATION_KEYS = {
+    "from_table", "to_table", "foreign_key", "kind", "target_columns", "label",
+}
+
+
 @tool(parse_docstring=True)
 async def create_schema(
     tables: list[dict[str, Any]],
     relations: list[dict[str, Any]] | None = None,
 ) -> str:
-    """Create result tables for a new entity type or level of detail. Returns table and cell counts
-    and any seed or exploration feedback.
+    """Create result tables for a new entity type or level of detail. Returns JSON with ok,
+    tables, relations, total_cells and any seed or exploration feedback.
 
     Use a new table_id for each table. Tables may share column names. Use add_columns to revise an
     existing table and add_entities, edit_entities or remove_entities to maintain its rows. Put
     each fact in the table whose primary key determines it and link related tables through foreign
-    keys.
+    keys. There is no drop-table or drop-column tool; extend with add_columns instead.
 
     For schools, set column_desc to
     {"省份":{"type":"str","desc":"学校本部所在省份","requires_search":false},"分数线":{"type":"int","desc":"当年复试总分线","requires_search":true}}.
@@ -121,13 +138,13 @@ async def create_schema(
             for one table.
     """
     if _ctx.workspace is None:
-        return "Error: workspace not initialized"
+        return _schema_error("workspace not initialized")
 
     if not isinstance(tables, list) or not tables:
-        return "Error: tables must be a non-empty array"
+        return _schema_error("tables must be a non-empty array")
     relations = relations or []
     if not isinstance(relations, list):
-        return "Error: relations must be a JSON array (or empty)"
+        return _schema_error("relations must be an array (or empty)")
 
     from searchos.socm import (
         ColumnCheck,
@@ -144,33 +161,39 @@ async def create_schema(
     parsed_tables: list[dict] = []
     for idx, t in enumerate(tables):
         if not isinstance(t, dict):
-            return f"Error: tables[{idx}] must be an object"
+            return _schema_error(f"tables[{idx}] must be an object")
+        unknown = set(t) - _TABLE_KEYS
+        if unknown:
+            return _schema_error(
+                f"tables[{idx}] has unknown keys {sorted(unknown)} "
+                f"(allowed: {sorted(_TABLE_KEYS)})"
+            )
         tid = str(t.get("table_id") or "").strip()
         if not tid:
-            return f"Error: tables[{idx}].table_id is required"
+            return _schema_error(f"tables[{idx}].table_id is required")
         if tid in seen_ids:
-            return f"Error: duplicate table_id {tid!r}"
+            return _schema_error(f"duplicate table_id {tid!r}")
         seen_ids.add(tid)
 
         attrs = t.get("attributes") or []
         if not isinstance(attrs, list) or not attrs:
-            return f"Error: tables[{idx}].attributes must be a non-empty array"
+            return _schema_error(f"tables[{idx}].attributes must be a non-empty array")
         attrs = [str(a) for a in attrs]
 
         pk = t.get("primary_key") or []
         if not isinstance(pk, list) or not pk:
-            return f"Error: tables[{idx}].primary_key must be an array"
+            return _schema_error(f"tables[{idx}].primary_key must be an array")
         pk = [str(k) for k in pk]
         bad_pk = [k for k in pk if k not in attrs]
         if bad_pk:
-            return f"Error: tables[{idx}].primary_key {bad_pk} not in attributes"
+            return _schema_error(f"tables[{idx}].primary_key {bad_pk} not in attributes")
 
         raw_col_desc = t.get("column_desc") or {}
         if not isinstance(raw_col_desc, dict):
-            return f"Error: tables[{idx}].column_desc must be an object"
+            return _schema_error(f"tables[{idx}].column_desc must be an object")
         data_cols = [a for a in attrs if a not in pk]
         if error := _search_policy_error(tid, ((col, raw_col_desc.get(col)) for col in data_cols)):
-            return f"Error: {error}"
+            return _schema_error(f"{error}")
         col_desc: dict[str, ColumnDesc] = {}
         for col, cd in raw_col_desc.items():
             if col not in attrs:
@@ -180,13 +203,13 @@ async def create_schema(
                 chk = cd.get("check")
                 if chk is not None:
                     if not isinstance(chk, dict):
-                        return (f"Error: tables[{idx}].column_desc[{col!r}]"
-                                ".check must be an object")
+                        return _schema_error(
+                            f"tables[{idx}].column_desc[{col!r}].check must be an object")
                     unknown = set(chk) - {"min", "max", "enum"}
                     if unknown:
-                        return (f"Error: tables[{idx}].column_desc[{col!r}]"
-                                f".check has unknown keys {sorted(unknown)} "
-                                "(allowed: min, max, enum)")
+                        return _schema_error(
+                            f"tables[{idx}].column_desc[{col!r}].check has unknown keys "
+                            f"{sorted(unknown)} (allowed: min, max, enum)")
                     try:
                         check = ColumnCheck(
                             min=float(chk["min"]) if chk.get("min") is not None else None,
@@ -195,11 +218,11 @@ async def create_schema(
                             if chk.get("enum") is not None else None,
                         )
                     except (TypeError, ValueError) as e:
-                        return (f"Error: tables[{idx}].column_desc[{col!r}]"
-                                f".check invalid: {e}")
+                        return _schema_error(
+                            f"tables[{idx}].column_desc[{col!r}].check invalid: {e}")
                 requires_search = cd.get("requires_search", True)
                 if not isinstance(requires_search, bool):
-                    return f"Error: column_desc[{col!r}].requires_search must be a boolean"
+                    return _schema_error(f"column_desc[{col!r}].requires_search must be a boolean")
                 col_desc[col] = ColumnDesc(
                     type=str(cd.get("type", "str")).strip(),
                     desc=str(cd.get("desc", "")).strip(),
@@ -212,25 +235,24 @@ async def create_schema(
                 continue
             conflict = _unit_gloss_conflict(f"{col}：{col_desc[col].desc}")
             if conflict:
-                return (
-                    f"Error: tables[{idx}].column_desc[{col!r}] unit "
-                    f"gloss contradicts arithmetic: {conflict}. Never gloss "
-                    "two magnitudes of different scale as equivalent — "
-                    "state the exact conversion instead (e.g. "
-                    "\"1 billion = 10亿\") or drop the foreign-unit gloss."
+                return _schema_error(
+                    f"tables[{idx}].column_desc[{col!r}] unit gloss contradicts "
+                    f"arithmetic: {conflict}. Never gloss two magnitudes of different "
+                    "scale as equivalent — state the exact conversion instead "
+                    "(e.g. \"1 billion = 10亿\") or drop the foreign-unit gloss."
                 )
 
         seeds = t.get("seed_entities") or []
         if not isinstance(seeds, list):
-            return f"Error: tables[{idx}].seed_entities must be an array"
+            return _schema_error(f"tables[{idx}].seed_entities must be an array")
         normalized_seeds: list[str] = []
         seed_key_values: dict[str, dict[str, str]] = {}
         seed_assertions: dict[str, dict[str, Any]] = {}
         for si, s in enumerate(seeds):
             if isinstance(s, dict):
                 if not pk:
-                    return (
-                        f"Error: tables[{idx}].seed_entities[{si}] is "
+                    return _schema_error(
+f"tables[{idx}].seed_entities[{si}] is "
                         "an object, but this table has no primary_key. "
                         "Use row-key strings instead."
                     )
@@ -243,8 +265,8 @@ async def create_schema(
                     else:
                         key_vals[key] = val
                 if missing_pk:
-                    return (
-                        f"Error: tables[{idx}].seed_entities[{si}] row "
+                    return _schema_error(
+f"tables[{idx}].seed_entities[{si}] row "
                         f"object missing primary key value(s) {missing_pk}. "
                         "Row objects must include every primary_key column."
                     )
@@ -253,7 +275,7 @@ async def create_schema(
                     continue
                 normalized_seeds.append(joined)
                 if joined in seed_key_values and seed_key_values[joined] != key_vals:
-                    return f"Error: conflicting primary-key fields for seed {joined!r}"
+                    return _schema_error(f"conflicting primary-key fields for seed {joined!r}")
                 seed_key_values[joined] = key_vals
                 inline = {
                     col: s[col]
@@ -267,13 +289,13 @@ async def create_schema(
                             source_fields.add(f"{tid}.{col}")
                             continue
                         if desc.check and (reason := desc.check.violation(raw)):
-                            return f"Error: {col}: {reason}"
+                            return _schema_error(f"{col}: {reason}")
                         seed_assertions.setdefault(joined, {})[col] = raw
             else:
-                return f"Error: tables[{idx}].seed_entities[{si}] must be a row object"
+                return _schema_error(f"tables[{idx}].seed_entities[{si}] must be a row object")
         bad_seed = [e for e in normalized_seeds if any(value.lower() in _PLACEHOLDERS for value in seed_key_values[e].values())]
         if bad_seed:
-            return f"Error: placeholder seed_entities rejected: {bad_seed}"
+            return _schema_error(f"placeholder seed_entities rejected: {bad_seed}")
 
         parsed_tables.append({
             "table_id": tid,
@@ -291,24 +313,30 @@ async def create_schema(
     parsed_relations: list[dict] = []
     for idx, r in enumerate(relations):
         if not isinstance(r, dict):
-            return f"Error: relations[{idx}] must be an object"
+            return _schema_error(f"relations[{idx}] must be an object")
+        unknown = set(r) - _RELATION_KEYS
+        if unknown:
+            return _schema_error(
+                f"relations[{idx}] has unknown keys {sorted(unknown)} "
+                f"(allowed: {sorted(_RELATION_KEYS)})"
+            )
         ft = str(r.get("from_table") or "").strip()
         tt = str(r.get("to_table") or "").strip()
         if ft not in seen_ids:
-            return f"Error: relations[{idx}].from_table {ft!r} not declared in tables"
+            return _schema_error(f"relations[{idx}].from_table {ft!r} not declared in tables")
         if tt not in seen_ids:
-            return f"Error: relations[{idx}].to_table {tt!r} not declared in tables"
+            return _schema_error(f"relations[{idx}].to_table {tt!r} not declared in tables")
         fk = r.get("foreign_key") or []
         if not isinstance(fk, list) or not fk:
-            return f"Error: relations[{idx}].foreign_key must be a non-empty array"
+            return _schema_error(f"relations[{idx}].foreign_key must be a non-empty array")
         fk = [str(c) for c in fk]
         ft_attrs = next(t["attributes"] for t in parsed_tables if t["table_id"] == ft)
         bad_fk = [c for c in fk if c not in ft_attrs]
         if bad_fk:
-            return f"Error: relations[{idx}].foreign_key {bad_fk} not in {ft}.attributes"
+            return _schema_error(f"relations[{idx}].foreign_key {bad_fk} not in {ft}.attributes")
         target_cols = r.get("target_columns") or []
         if not isinstance(target_cols, list):
-            return f"Error: relations[{idx}].target_columns must be an array"
+            return _schema_error(f"relations[{idx}].target_columns must be an array")
         target_cols = [str(c) for c in target_cols]
         if not target_cols:
             target_cols = list(next(t["primary_key"] for t in parsed_tables if t["table_id"] == tt))
@@ -371,9 +399,9 @@ async def create_schema(
     existing = state.coverage_map.tables
     for t in parsed_tables:
         if t["table_id"] in existing:
-            return (
-                f"Error: table_id {t['table_id']!r} already exists. Modify it "
-                "with add_columns / add_entities / remove_entities / edit_entities, or use a "
+            return _schema_error(
+                f"table_id {t['table_id']!r} already exists. Modify it with "
+                "add_columns / add_entities / remove_entities / edit_entities, or use a "
                 "new table_id for a genuinely different table."
             )
 
@@ -488,49 +516,40 @@ async def create_schema(
                 type(e).__name__, str(e).strip(), exc_info=True,
             )
 
-    summaries = []
+    tables_out = []
     for t in parsed_tables:
-        n_ent = len(state.coverage_map.tables[t["table_id"]].entities)
-        n_attr = len(state.coverage_map.tables[t["table_id"]].attributes)
-        summaries.append(f"{t['table_id']}({n_ent}×{n_attr})")
-    rel_summary = (
-        f", {len(parsed_relations)} relation(s)"
-        if parsed_relations else ""
-    )
-    replay_note = ""
+        schema = state.coverage_map.tables[t["table_id"]]
+        tables_out.append({
+            "table_id": t["table_id"],
+            "entities": len(schema.entities),
+            "attributes": len(schema.attributes),
+        })
+    payload = {
+        "tables": tables_out,
+        "relations": len(parsed_relations),
+        "total_cells": state.coverage_map.total_cells,
+    }
     if pending_count:
-        has_open_set = any(
-            ts.is_column_only for ts in state.coverage_map.tables.values()
+        payload["explore_replay"] = {
+            "items": pending_count,
+            "evidence_nodes": state.evidence_graph.node_count,
+            "coverage_score": state.coverage_map.coverage_score,
+        }
+    if source_fields:
+        payload["source_required"] = sorted(source_fields)
+        payload["next_step"] = (
+            "Inline values skipped; retrieve sources for "
+            + ", ".join(sorted(source_fields))
         )
-        if has_open_set:
-            n_rows = sum(
-                len(ts.entities) for ts in state.coverage_map.tables.values()
-            )
-            replay_note = (
-                f" Replayed {pending_count} explore summary item(s) — "
-                f"{n_rows} row(s) seeded so far, "
-                f"{state.evidence_graph.node_count} evidence nodes."
-            )
-        else:
-            replay_note = (
-                f" Replayed {pending_count} explore summary item(s) — "
-                f"cell fill rate now {state.coverage_map.coverage_score:.0%}, "
-                f"{state.evidence_graph.node_count} evidence nodes."
-            )
-    return (
-        f"Schema created: {len(parsed_tables)} table(s) — "
-        + ", ".join(summaries)
-        + f"{rel_summary}, total {state.coverage_map.total_cells} cells.{replay_note}"
-        + (f" Inline values skipped; retrieve sources for {', '.join(sorted(source_fields))}." if source_fields else "")
-    )
+    return _schema_ok(payload)
 
 
 @tool(parse_docstring=True)
-async def add_columns(table_id: str, columns_json: str) -> str:
-    """Add or revise non-key columns by exact name. Returns added_columns, updated_columns,
-    new_missing_cells and reopened_inferred_cells.
+async def add_columns(table_id: str, columns: list[dict[str, Any]]) -> str:
+    """Add or revise non-key columns by exact name. Returns JSON with added_columns,
+    updated_columns, new_missing_cells and reopened_inferred_cells.
 
-    For example, to add a column, pass columns_json containing
+    For example, to add a column, pass columns containing
     [{"name":"Rate","requires_search":true,"type":"int","desc":"Requests per minute","check":{"min":0}}].
     To revise only the search policy, pass [{"name":"院校层次","requires_search":false}]. Fill reliably
     inferable values with edit_entities. Enabling requires_search reopens inferred cells for source
@@ -538,10 +557,10 @@ async def add_columns(table_id: str, columns_json: str) -> str:
 
     Args:
         table_id: ID of the existing table.
-        columns_json: String encoding a non-empty JSON array of column definitions. New columns
-            require name and a boolean requires_search. Optional type defaults to str. For existing
-            columns, supply only the fields to change. desc explains the value. check replaces the
-            entire min/max/enum admission rule for future writes. Set check to null to clear it.
+        columns: Non-empty array of column definitions. New columns require name and a boolean
+            requires_search. Optional type defaults to str. For existing columns, supply only the
+            fields to change. desc explains the value. check replaces the entire min/max/enum
+            admission rule for future writes. Set check to null to clear it.
     """
     import math
 
@@ -549,13 +568,12 @@ async def add_columns(table_id: str, columns_json: str) -> str:
 
     workspace = _ctx.workspace
     if workspace is None:
-        return "Error: workspace not initialized"
+        return _schema_error("workspace not initialized")
     try:
-        rows = json.loads(columns_json)
-        if not isinstance(rows, list) or not rows:
-            raise ValueError("columns_json must be a non-empty JSON array")
+        if not isinstance(columns, list) or not columns:
+            raise ValueError("columns must be a non-empty array")
         specs = {}
-        for row in rows:
+        for row in columns:
             if not isinstance(row, dict) or set(row) - {"name", "type", "desc", "check", "requires_search"}:
                 raise ValueError("Allowed column fields: name, requires_search, type, desc, check")
             name = row.get("name")
@@ -565,7 +583,7 @@ async def add_columns(table_id: str, columns_json: str) -> str:
                 raise ValueError(f"Duplicate column: {name}")
             specs[name] = row
     except (ValueError, TypeError) as exc:
-        return f"Error: {exc}"
+        return _schema_error(str(exc))
 
     def commit(state):
         schema = state.coverage_map.get_table(table_id)
@@ -575,7 +593,7 @@ async def add_columns(table_id: str, columns_json: str) -> str:
                     if name not in schema.attributes or "requires_search" in row)
         if error := _search_policy_error(table_id, policies):
             raise ValueError(error)
-        columns = {}
+        column_defs = {}
         for name, row in specs.items():
             check = row.get("check")
             if check is not None and (not isinstance(check, dict) or set(check) - {"min", "max", "enum"}):
@@ -590,8 +608,8 @@ async def add_columns(table_id: str, columns_json: str) -> str:
             conflict = _unit_gloss_conflict(f"{name}：{description.desc}")
             if conflict:
                 raise ValueError(f"Column unit gloss contradicts arithmetic: {conflict}")
-            columns[name] = description
-        added, updated, reopened = state.coverage_map.upsert_columns(table_id, columns)
+            column_defs[name] = description
+        added, updated, reopened = state.coverage_map.upsert_columns(table_id, column_defs)
         receipt.update(added_columns=added, updated_columns=updated, reopened_inferred_cells=reopened,
                        new_missing_cells=len(added) * len(schema.entities))
         return state
@@ -601,36 +619,64 @@ async def add_columns(table_id: str, columns_json: str) -> str:
     try:
         workspace.atomic_update_state(commit)
     except (ValueError, TypeError) as exc:
-        return f"Error: {exc}"
-    return json.dumps(receipt, ensure_ascii=False)
+        return _schema_error(str(exc))
+    return _schema_ok(receipt)
+
+
+_CURSOR_QUERY_FIELDS = ("table_id", "status", "row", "attribute", "unassigned_only")
+_VALUE_COUNTS_TOP = 50
+
+
+def _cursor_error(*, decoded: dict | None = None, expected: list | None = None) -> str:
+    payload = {
+        "error": "Invalid cursor or changed filters; restart with cursor=''.",
+        "hint": "Keep status, row, attribute, and unassigned_only unchanged across pages. "
+                "with_values and limit may change. After table edits, restart from the first page.",
+    }
+    if decoded is not None and expected is not None and isinstance(decoded.get("query"), list):
+        got = decoded["query"]
+        changed = [
+            name for index, name in enumerate(_CURSOR_QUERY_FIELDS)
+            if index >= len(got) or got[index] != expected[index]
+        ]
+        if decoded.get("version") != STATE_FORMAT_VERSION:
+            changed.append("version")
+        if changed:
+            payload["changed_filters"] = changed
+    return json.dumps(payload, ensure_ascii=False)
 
 
 @tool(parse_docstring=True)
-async def inspect_table(
+async def read_table(
     table_id: str = "", status: str = "all", with_values: bool = True,
     row: RowRef | None = None, attribute: str = "", unassigned_only: bool = False,
     limit: int = 30, cursor: str = "",
 ) -> str:
-    """Read full-table coverage statistics and one page of rows. To inspect citations and
-    citation gaps, supply an exact row and set with_values=true.
+    """Read table coverage statistics and one page of rows. Row identity uses RowRef
+    {table_id, key} with key values in primary_key order.
 
     Returns table_id, primary_key, columns, summary, rows, count, total_matched and next_cursor.
-    Row arrays follow column order, starting with their key values. Cell objects flag comparisons,
-    conflicts, unavailable values or active_task_ids. Pages keep each row intact and target 12,000
-    characters.
+    When attribute is set, also returns value_counts for that column over all matched rows.
+    Row arrays follow column order, starting with key values. Cell objects flag comparisons,
+    conflicts, unavailable values or active_task_ids. Pages keep each row intact and target
+    12,000 characters. For citations, supply an exact row and set with_values=true.
 
     Args:
-        table_id: Table to inspect. Defaults to the row's table or the active table.
-        status: Row filter: all, filled, partial, empty, unresolved, actionable, conflict or
-            unavailable. Filled rows have settled cells. Pending comparisons await review.
+        table_id: Table to read. Defaults to the row's table or the active table.
+        status: Row filter applied to the selected columns: all, filled, partial, empty,
+            unresolved, actionable, conflict or unavailable. Filled means every selected cell
+            is settled. Pending comparisons await review.
         with_values: True returns full values and null for missing cells. False returns cell
-            states.
-        row: Optional exact RowRef or known alias. For primary_key=["brand","product"] and a row starting ["A","B"], use {"table_id":"products","key":["A","B"]} in edit_entities. Add "attribute":"size" for a CellRef in target_cells or read_evidence.
-        attribute: Exact non-key column name. Applies status and the row filter to that column.
-        unassigned_only: Show actionable cells without a pending, running or blocked search task. Other fields appear as {"status":"excluded"}. Reading reserves no work.
-        limit: Maximum complete rows per page, default 30, capped at 200.
-        cursor: Pass next_cursor with the same filters to continue. Omit to start a fresh scan
-            after a work batch.
+            states. May change between pages; does not invalidate the cursor.
+        row: Optional exact RowRef or known alias.
+        attribute: Exact non-key column name. Applies status and the row filter to that column
+            and includes value_counts for its display values.
+        unassigned_only: Show actionable cells without a pending, running or blocked search
+            task. Other fields appear as status excluded. Reading reserves no work.
+        limit: Maximum complete rows per page, default 30, capped at 200. May change between
+            pages.
+        cursor: Pass next_cursor while keeping status, row, attribute and unassigned_only the
+            same. Restart with cursor='' after table mutations or when filters change.
     """
     if _ctx.workspace is None:
         return json.dumps({"error": "workspace not initialized"})
@@ -658,18 +704,20 @@ async def inspect_table(
     selected_attr = ts.attribute_aliases.get(attribute, attribute)
     if attribute and selected_attr not in ts.data_columns:
         return json.dumps({"error": f"unknown data column {attribute!r}"})
-    query = [tid, status, row.model_dump() if row else None, selected_attr, unassigned_only, with_values]
+    query = [tid, status, row.model_dump() if row else None, selected_attr, unassigned_only]
     after = None
     if cursor:
+        decoded = None
         try:
             decoded = json.loads(base64.urlsafe_b64decode(cursor.encode()))
-            if decoded.get("version") != STATE_FORMAT_VERSION or decoded["query"] != query or not isinstance(decoded["after"], str):
+            if (decoded.get("version") != STATE_FORMAT_VERSION
+                    or decoded.get("query") != query
+                    or not isinstance(decoded.get("after"), str)):
                 raise ValueError("cursor filter mismatch")
             after = decoded["after"]
         except (ValueError, KeyError, TypeError, UnicodeError):
-            return json.dumps({
-                "error": "Invalid cursor or changed filters; restart with cursor=''.",
-            })
+            return _cursor_error(decoded=decoded if isinstance(decoded, dict) else None,
+                                 expected=query)
     snapshot = next(t for t in SearchStateSnapshot.from_state(state).tables if t.table_id == tid)
     primary_key = snapshot.primary_key or ["Entity"]
     attributes = [selected_attr] if attribute else snapshot.data_columns
@@ -701,6 +749,28 @@ async def inspect_table(
         summary["inferred_columns"] = snapshot.inferred_columns
     out = dict(table_id=tid, primary_key=primary_key, columns=primary_key + attributes,
                summary=summary, rows=[], count=0, total_matched=len(matched), next_cursor=None)
+    if attribute:
+        from collections import Counter
+        counts: Counter[str] = Counter()
+        for ent, cells in matched:
+            info = next((c for c in cells if c.attr == selected_attr), None)
+            cell = cmap.cells.get(cmap.cell_key(tid, ent, selected_attr))
+            value = cell.value if cell and cell.value != "" else None
+            if value is None:
+                label = "_missing_"
+            elif with_values:
+                label = str(value)
+            else:
+                label = info.status if info else "_missing_"
+            counts[label] += 1
+        top = counts.most_common(_VALUE_COUNTS_TOP)
+        out["value_counts"] = {
+            "attribute": selected_attr,
+            "total_matched": len(matched),
+            "counts": {key: value for key, value in top},
+            "truncated": len(counts) > len(top),
+            "distinct": len(counts),
+        }
     page_chars = len(json.dumps(out, ensure_ascii=False))
     page = remaining[:max(1, min(int(limit), 200))]
     for ent, cells in page:
@@ -732,5 +802,5 @@ async def inspect_table(
     return json.dumps(out, ensure_ascii=False)
 
 
-inspect_table.args_schema.model_config["extra"] = "forbid"
-inspect_table.args_schema.model_rebuild(force=True)
+read_table.args_schema.model_config["extra"] = "forbid"
+read_table.args_schema.model_rebuild(force=True)

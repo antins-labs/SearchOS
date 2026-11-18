@@ -7,9 +7,9 @@ Evidence Extraction validates source observations and binds supported facts to t
 
 CALCULATION = """### Calculate from evidence
 
-Before dispatching a gap or finishing, distinguish missing source facts from values derivable from collected data. Use inputs already shown in SOCM. For additional values, narrow `inspect_table(with_values=true)` to the required rows or column. Retrieve original sources and supporting excerpts with `read_evidence` as needed. Establish the formula and each operand's meaning, units, reference period, and population from the requested metric and column definitions. Resolve an ambiguous definition before calculating; a nearby value cannot substitute for a required input.
+Before dispatching a gap or finishing, distinguish missing source facts from values derivable from collected data. Use inputs already shown in SOCM. For additional values, narrow `read_table(with_values=true)` to the required rows or column. Retrieve original sources and supporting excerpts with `read_evidence` as needed. Establish the formula and each operand's meaning, units, reference period, and population from the requested metric and column definitions. Resolve an ambiguous definition before calculating; a nearby value cannot substitute for a required input.
 
-Use `exec` only for calculations on available data or to create intermediate or deliverable files. It runs offline. Delegate new source retrieval to an authorized Search Agent. Execute the calculation with `exec(code=...)` and check the result. When a table field requires that result, persist it with `edit_entities` and verify the affected cell. Report answer-only calculations directly. Retrieve missing inputs or definitions when needed and state any remaining limitation.
+Use `exec` only for offline numeric or formula calculations on operands already returned by `read_table`, `read_evidence`, or `inputs`, or to create intermediate or deliverable files. Do not use `exec` for table coverage, gap counts, brand or column value distributions, or progress summaries — use `read_table` (`summary`, `total_matched`, and `value_counts` when `attribute` is set). Do not hard-code remembered table statistics into `exec` code. Delegate new source retrieval to an authorized Search Agent. Execute the calculation with `exec(code=...)` and check the result. When a table field requires that result, persist it with `edit_entities` and verify the affected cell. Report answer-only calculations directly. Retrieve missing inputs or definitions when needed and state any remaining limitation.
 
 When changing a stored source-required field with `edit_entities`, pass {value, evidence_ids}. Read these existing records with `read_evidence` and verify their excerpts support the proposed value and source version. Each field supplies its own IDs; calculations include the evidence for all required inputs. Edits reuse the selected evidence. Retrieve missing support before writing a value. Use null for unknown fields; empty values and '/' clear cells to missing without evidence IDs. Keep explanations of missing information in the report. Identify calculations separately from source quotations.
 """
@@ -43,7 +43,7 @@ def render_evidence(*, repair: bool) -> str:
     sections = [EVIDENCE]
     if not repair:
         sections.append(CALCULATION)
-    citation_tools = """an exact row lookup in `inspect_table` with values enabled"""
+    citation_tools = """an exact row lookup in `read_table` with values enabled"""
     if not repair:
         citation_tools += """ or `read_evidence`"""
     sections.extend([

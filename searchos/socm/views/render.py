@@ -151,7 +151,7 @@ def _render_placeholder_row_hints(lines: list[str], ts: TableSnapshot) -> None:
 
 
 def _render_orch_table(
-    lines: list[str], ts: TableSnapshot, *, reader: str = "inspect_table",
+    lines: list[str], ts: TableSnapshot, *, reader: str = "read_table",
 ) -> None:
     incomplete = [r for r in ts.rows if _has_unresolved_attributes(r)]
     mode = "discovery" if ts.is_open_set else "seeded"
@@ -280,7 +280,7 @@ def render_discovery_view(
 
     lines.append(f"""Table totals: {json.dumps(ts.summary(), ensure_ascii=False)}""")
     gap_entities = {row.entity for row in
-                    _render_gap_window(lines, ts, reader="""Main Agent via inspect_table""")}
+                    _render_gap_window(lines, ts, reader="""Main Agent via read_table""")}
     by_entity = {r.entity: r for r in ts.rows}
     recent = [by_entity[e] for e in ts.recent_entities if e not in gap_entities]
     lines.append(f"""Additional recent rows shown: {len(recent)}; latest window: {len(ts.recent_entities)}/{len(ts.rows)}.""")

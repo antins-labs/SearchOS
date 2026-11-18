@@ -2,14 +2,14 @@
 
 from .cells import project_evidence
 from .rows import add_entities, edit_entities, remove_entities
-from .tables import add_columns, create_schema, inspect_table
+from .tables import add_columns, create_schema, read_table
 
 __all__ = [
     "add_columns",
     "add_entities",
     "create_schema",
     "edit_entities",
-    "inspect_table",
+    "read_table",
     "project_evidence",
     "remove_entities",
 ]

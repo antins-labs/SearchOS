@@ -254,7 +254,7 @@ class SearchSession:
                 "enqueue_tasks",
                 "check_agents",
                 "stop_task",
-                "inspect_table",
+                "read_table",
             }
             orchestrator_tools = [
                 tool for tool in orchestrator_tools
