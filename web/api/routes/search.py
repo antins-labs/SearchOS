@@ -31,6 +31,22 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
 
 
+def _resolve_max_time(req: SearchRequest | RepairRequest) -> float | None:
+    """Wall-clock budget for a run: request → effort tier → stored default → settings."""
+    from searchos.config.effort import EFFORT_LEVELS
+    from searchos.config.settings import settings as sf_settings
+
+    store = settings_store.store
+    if req.max_time is not None:
+        return req.max_time
+    if req.effort:
+        return float(EFFORT_LEVELS[req.effort]["default_max_time_s"])
+    if store.run_defaults.max_time_s is not None:
+        return float(store.run_defaults.max_time_s)
+    value = sf_settings.default_max_time_s
+    return float(value) if value else None
+
+
 @router.post("/search", response_model=SearchResponse)
 async def create_search(req: SearchRequest):
     response = await launch_search_request(req)
@@ -87,19 +103,6 @@ async def launch_search_request(req: SearchRequest, session_id_override: str | N
         local_history = [turn.model_dump() if same_local_selection
                          else {"query": turn.query, "answer": ""}
                          for turn in (req.history or [])]
-        from searchos.config.settings import settings as sf_settings
-
-        store = settings_store.store
-        if req.max_time is not None:
-            local_max_time = req.max_time
-        elif req.effort:
-            local_max_time = sf_settings.default_max_time_s
-        else:
-            local_max_time = (
-                store.run_defaults.max_time_s
-                if store.run_defaults.max_time_s is not None
-                else sf_settings.default_max_time_s
-            )
         return await launch_local_search(
             session_id=session_id,
             query=req.query,
@@ -107,7 +110,7 @@ async def launch_search_request(req: SearchRequest, session_id_override: str | N
             document_ids=req.sources.local.document_ids,
             history=local_history,
             selection=req.sources.local.selection,
-            max_time=local_max_time,
+            max_time=_resolve_max_time(req),
         )
     if source_mode == "web" and req.sources and req.sources.local is not None:
         raise HTTPException(422, "Web 模式不能夹带本地资料范围")
@@ -284,16 +287,7 @@ async def _launch_search(
         effort_snapshot = {key: getattr(sf_settings, key) for key in EFFORT_KEYS}
         apply_effort(req.effort)
 
-    if req.max_time is not None:
-        max_time = req.max_time
-    elif req.effort:
-        max_time = sf_settings.default_max_time_s
-    else:
-        max_time = (
-            store.run_defaults.max_time_s
-            if store.run_defaults.max_time_s is not None
-            else sf_settings.default_max_time_s
-        )
+    max_time = _resolve_max_time(req)
 
     run_config = EffectiveRunConfig.from_settings()
     workspace = WorkspaceManager(WORKSPACE_ROOT, session_id)

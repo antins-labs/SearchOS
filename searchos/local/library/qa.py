@@ -139,6 +139,7 @@ async def answer_query(
     on_read=None,
     on_round_end=None,
     steer_queue=None,
+    trajectory_logger=None,
 ) -> LocalAnswer:
     from searchos.agents.local_search.qa import run_document_qa
 
@@ -192,6 +193,7 @@ async def answer_query(
         preload_blocks=[] if library_scope else verified,
         library_scope=library_scope,
         steer_queue=steer_queue,
+        trajectory_logger=trajectory_logger,
     )
     stream.push("", final=True)
     bound_answer = bind_numbered_citations(

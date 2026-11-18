@@ -45,6 +45,7 @@ Required evidence:
     agent_id = ""
     worker = None
     info = {}
+    steering = None
 
     if source_mode == "local":
         source_instructions = """Use only the authorized local library through local_catalog, local_find and local_open. Preserve the complete versioned local:// reference returned by the tool. Missing information does not authorize Web access."""
@@ -79,10 +80,9 @@ You are answering the user directly within the allotted search time. {source_ins
             steer_queue=steer_queue,
         )
         info = _ctx.agent_graphs[agent_id]
-        if on_steer_delivery is not None:
-            steering = find_follow_up_turns(info["graph"].middleware)
-            if steering is not None:
-                steering.on_delivery = on_steer_delivery
+        steering = find_follow_up_turns(info["graph"].middleware)
+        if on_steer_delivery is not None and steering is not None:
+            steering.on_delivery = on_steer_delivery
         worker = _ctx.task_pool[agent_id]
         report = await worker
         answer = report.last_message.strip()
@@ -102,7 +102,6 @@ You are answering the user directly within the allotted search time. {source_ins
             await asyncio.gather(worker, return_exceptions=True)
         if agent_id:
             _ctx.task_pool.pop(agent_id, None)
-        steering = find_follow_up_turns(getattr(info.get("graph"), "middleware", ()))
         if steering is not None:
             outcome.delivered = list(steering.delivered)
         for var, token in reversed(tokens):

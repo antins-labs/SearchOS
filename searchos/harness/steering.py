@@ -132,38 +132,23 @@ class SteeringQueue(queue.Queue[str | SteeringMessage]):
                 self._waiters.discard(registration)
 
 
-SteerQueue = SteeringQueue | asyncio.Queue[str] | queue.Queue[str]
+SteerQueue = SteeringQueue
 
 
 def steering_pending(inbox: SteerQueue | None, *, immediate_only: bool = False) -> bool:
-    if isinstance(inbox, SteeringQueue):
-        return inbox.has_pending(immediate_only=immediate_only)
-    return inbox is not None and not inbox.empty()
+    return inbox is not None and inbox.has_pending(immediate_only=immediate_only)
 
 
 def drain_steering(
     inbox: SteerQueue | None, *, immediate_only: bool = False,
 ) -> list[SteeringMessage]:
-    if isinstance(inbox, SteeringQueue):
-        return inbox.drain(immediate_only=immediate_only)
-    items = []
-    if inbox is not None:
-        while True:
-            try:
-                items.append(SteeringMessage(inbox.get_nowait()))
-            except (asyncio.QueueEmpty, queue.Empty):
-                break
-    return items
+    if inbox is None:
+        return []
+    return inbox.drain(immediate_only=immediate_only)
 
 
 async def wait_for_steering(inbox: SteerQueue, *, immediate_only: bool = False) -> None:
-    if isinstance(inbox, SteeringQueue):
-        await inbox.wait(immediate_only=immediate_only)
-    else:
-        # Compatibility for external callers supplying ordinary queues.
-        # Never consume here: only the harness may inject at a safe boundary.
-        while inbox.empty():
-            await asyncio.sleep(0.05)
+    await inbox.wait(immediate_only=immediate_only)
 
 
 def take_follow_ups(

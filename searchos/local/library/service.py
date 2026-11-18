@@ -50,7 +50,6 @@ from .qa import (
 )
 from .qa import (
     LocalAnswer,
-    bind_numbered_citations,
 )
 
 _CATALOG_VERSION = 1
@@ -588,6 +587,7 @@ class LocalLibraryService:
         on_read=None,
         on_round_end=None,
         steer_queue=None,
+        trajectory_logger=None,
     ) -> LocalAnswer:
         return await qa_service.answer_query(
             self,
@@ -601,11 +601,8 @@ class LocalLibraryService:
             on_read=on_read,
             on_round_end=on_round_end,
             steer_queue=steer_queue,
+            trajectory_logger=trajectory_logger,
         )
-
-    @staticmethod
-    def _bind_numbered_citations(answer: str, ordered_refs: list[str]) -> str:
-        return bind_numbered_citations(answer, ordered_refs)
 
     def resolve_citation(self, ref_id: str) -> dict[str, Any]:
         reference = parse_ref_id(ref_id)

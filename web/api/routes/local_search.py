@@ -9,9 +9,10 @@ import logging
 import mimetypes
 import tempfile
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Literal
 
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile
@@ -32,7 +33,6 @@ from api.local.index_jobs import (
     retry_background_index,
     schedule_background_index,
 )
-from searchos.agents.local_search.qa import QABudget
 from searchos.config.settings import settings
 from searchos.harness.answer_stream import AnswerStreamEmitter
 from searchos.harness.telemetry.usage import start_tracking
@@ -615,6 +615,19 @@ def _append_trajectory(path: Path, payload: dict[str, Any]) -> None:
         stream.write(json.dumps(payload, ensure_ascii=False, default=str) + "\n")
 
 
+def _local_traj(path: Path, agent: str, **payload: Any) -> None:
+    _append_trajectory(
+        path,
+        {
+            **payload,
+            "agent": agent,
+            "agent_name": agent,
+            "source_mode": "local",
+            "timestamp": datetime.now(UTC).isoformat(),
+        },
+    )
+
+
 def _write_conversation(path: Path, query: str, answer: str) -> None:
     from searchos.harness.telemetry.conversation import ConversationLogger, ConversationMessage
 
@@ -672,20 +685,18 @@ async def launch_local_search(
         usage = start_tracking(
             usage_path=workspace.path / settings.output_dir / "llm_usage.jsonl",
         )
-        budget = QABudget()
-        _append_trajectory(
-            workspace.trajectory_path,
-            {
-                "type": "task_start",
-                "agent": agent,
-                "agent_name": agent,
-                "session_id": session_id,
-                "query": query,
-                "source_mode": "local",
-                "selection": selection,
-                "document_count": len(document_ids),
-                "timestamp": datetime.now(UTC).isoformat(),
-            },
+        traj = workspace.trajectory_path
+        steer_logger = SimpleNamespace(
+            _append_raw=lambda payload: _local_traj(traj, agent, **payload),
+        )
+        _local_traj(
+            traj,
+            agent,
+            type="task_start",
+            session_id=session_id,
+            query=query,
+            selection=selection,
+            document_count=len(document_ids),
         )
         streamed_answer = ""
         try:
@@ -695,44 +706,25 @@ async def launch_local_search(
             def record_read(observation: dict[str, Any]) -> None:
                 nonlocal read_count
                 read_count += 1
-                _append_trajectory(
-                    workspace.trajectory_path,
-                    {
-                        "type": "local_read_observed",
-                        "agent": agent,
-                        "agent_name": agent,
-                        "source_mode": "local",
-                        "read_count": read_count,
-                        "observation": json.dumps(observation, ensure_ascii=False),
-                        "timestamp": datetime.now(UTC).isoformat(),
-                    },
+                _local_traj(
+                    traj,
+                    agent,
+                    type="local_read_observed",
+                    read_count=read_count,
+                    observation=json.dumps(observation, ensure_ascii=False),
                 )
 
             def record_tool(name: str, arguments: dict[str, Any], result: dict[str, Any]) -> None:
-                _append_trajectory(
-                    workspace.trajectory_path,
-                    {
-                        "type": "step",
-                        "agent": agent,
-                        "agent_name": agent,
-                        "source_mode": "local",
-                        "action": {"name": name, "args": arguments},
-                        "observation": json.dumps(result, ensure_ascii=False),
-                        "timestamp": datetime.now(UTC).isoformat(),
-                    },
+                _local_traj(
+                    traj,
+                    agent,
+                    type="step",
+                    action={"name": name, "args": arguments},
+                    observation=json.dumps(result, ensure_ascii=False),
                 )
 
             answer_stream = AnswerStreamEmitter(
-                lambda event: _append_trajectory(
-                    workspace.trajectory_path,
-                    {
-                        **event,
-                        "agent": agent,
-                        "agent_name": agent,
-                        "source_mode": "local",
-                        "timestamp": datetime.now(UTC).isoformat(),
-                    },
-                ),
+                lambda event: _local_traj(traj, agent, **event),
                 stream_prefix=f"local-{session_id}",
             )
 
@@ -741,7 +733,6 @@ async def launch_local_search(
                 streamed_answer += delta
                 answer_stream.push(delta)
 
-            local_answer = None
             try:
                 async with asyncio.timeout(wall_clock):
                     local_answer = await service.answer(
@@ -754,6 +745,7 @@ async def launch_local_search(
                         on_round_end=answer_stream.finish,
                         on_delta=record_delta,
                         steer_queue=steer_queue,
+                        trajectory_logger=steer_logger,
                     )
             except TimeoutError:
                 from searchos.local.library.qa import LocalAnswer
@@ -764,7 +756,6 @@ async def launch_local_search(
                 )
             finally:
                 answer_stream.finish()
-            assert local_answer is not None
 
             # Reading observations and bound citations are not grounded findings.
             observations = list(local_answer.read_observations)
@@ -801,7 +792,6 @@ async def launch_local_search(
                 "read_observations": observations,
                 "answer_citations": local_answer.citations,
                 "executor": agent,
-                "reading_budget": asdict(budget),
                 "input_tokens_estimate": local_answer.input_tokens_estimate,
                 "token_usage": token_usage,
                 "model_calls": local_answer.model_calls,
@@ -819,27 +809,22 @@ async def launch_local_search(
                 query,
                 local_answer.answer,
             )
-            _append_trajectory(
-                workspace.trajectory_path,
-                {
-                    "type": "task_complete",
-                    "reading_stop_reason": local_answer.reading_stop_reason,
-                    "agent": agent,
-                    "agent_name": agent,
-                    "session_id": session_id,
-                    "source_mode": "local",
-                    "selection": selection,
-                    "document_count": len(document_ids),
-                    "read_count": len(observations),
-                    "citation_count": local_answer.citation_count,
-                    "input_tokens_estimate": local_answer.input_tokens_estimate,
-                    "evidence_count": state.evidence_graph.node_count,
-                    "elapsed_s": elapsed,
-                    "total_queries": 0,
-                    "total_steps": total_steps,
-                    "tool_counts": tool_counts,
-                    "timestamp": datetime.now(UTC).isoformat(),
-                },
+            _local_traj(
+                traj,
+                agent,
+                type="task_complete",
+                reading_stop_reason=local_answer.reading_stop_reason,
+                session_id=session_id,
+                selection=selection,
+                document_count=len(document_ids),
+                read_count=len(observations),
+                citation_count=local_answer.citation_count,
+                input_tokens_estimate=local_answer.input_tokens_estimate,
+                evidence_count=state.evidence_graph.node_count,
+                elapsed_s=elapsed,
+                total_queries=0,
+                total_steps=total_steps,
+                tool_counts=tool_counts,
             )
             workspace.save_turn_snapshot(
                 query,
