@@ -75,6 +75,10 @@ def test_search_backend_guard_and_set(clean_overlay, app, monkeypatch):
     assert clean_overlay.store.models.search_provider == "serper"
     assert item.get() == "serper"
 
+    assert "parallel" in item.choices()
+    assert item.set("parallel") is None
+    assert clean_overlay.store.models.search_provider == "parallel"
+
     assert item.set("auto") is None                 # auto = 清除显式配置
     assert clean_overlay.store.models.search_provider is None
 

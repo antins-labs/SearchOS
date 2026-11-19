@@ -37,7 +37,7 @@ def _allowed_key_envs() -> set[str]:
     allowed = {p.api_key_env for p in PRESETS.values()}
     allowed |= {p.api_key_env for p in settings.profiles.values()}
     allowed |= {e for c in store.models.provider_connections.values() for e in c.api_key_envs}
-    allowed |= {info["api_key_env"] for info in SEARCH_PROVIDER_INFO.values()}
+    allowed |= {i["api_key_env"] for i in SEARCH_PROVIDER_INFO.values() if i["api_key_env"]}
     # Proxy is no longer a .env key — it lives in the overlay's `advanced` section
     # (PUT /api/settings/advanced), applied to os.environ at runtime.
     allowed |= {"SF_JINA_API_KEY", "JINA_API_KEY"}

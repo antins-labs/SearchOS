@@ -42,7 +42,8 @@ function roleReady(models: ModelsView, role: string): boolean {
 
 function searchReady(models: ModelsView): boolean {
   const provider = models.search.providers.find((item) => item.name === models.search.resolved);
-  return models.search.resolved === "ragflow" || Boolean(provider?.key_set);
+  return models.search.resolved === "ragflow"
+    || Boolean(provider && (!provider.api_key_env || provider.key_set));
 }
 
 function StatusItem({

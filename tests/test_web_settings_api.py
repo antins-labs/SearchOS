@@ -60,6 +60,24 @@ def _env_text(tmp_path) -> str:
     return env.read_text() if env.exists() else ""
 
 
+def test_keyless_search_backend_can_be_saved_and_reset(client, monkeypatch):
+    c, tmp_path = client
+    monkeypatch.delenv("SF_SEARCH_PROVIDER", raising=False)
+
+    response = c.put("/api/settings/search-backend", json={"provider": "parallel"})
+    assert response.status_code == 200, response.text
+    search = response.json()
+    assert search["configured"] == search["resolved"] == "parallel"
+    parallel = next(provider for provider in search["providers"] if provider["name"] == "parallel")
+    assert parallel["api_key_env"] == ""
+    assert _env_text(tmp_path) == ""
+
+    response = c.put("/api/settings/search-backend", json={"provider": None})
+    assert response.status_code == 200, response.text
+    assert response.json()["configured"] is None
+    assert response.json()["resolved"] != "parallel"
+
+
 # ---------------------------------------------------------------------------
 # GET /providers
 # ---------------------------------------------------------------------------

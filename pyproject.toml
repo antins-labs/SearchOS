@@ -51,6 +51,7 @@ dependencies = [
     "pillow>=10.1.0",
     "PyYAML>=6.0.0",
     "httpx>=0.28.0",
+    "mcp>=1.30.0,<2",
     "requests>=2.32.0",
     "tiktoken>=0.7.0",
     "rich>=14.2.0",

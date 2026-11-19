@@ -34,6 +34,7 @@ _SEARCH_BACKENDS: list[tuple[str, str, str]] = [
     ("serper", "Serper.dev（Google 结果，推荐；serper.dev 注册）", "SERPER_API_KEY"),
     ("tavily", "Tavily（tavily.com；需 pip install 'searchos[tavily]'）", "TAVILY_API_KEY"),
     ("ragflow", "RagFlow（蚂蚁内网接口，外部不可用）", "RAGFLOW_USER_ID"),
+    ("parallel", "Parallel（无需密钥，搜索查询会发送给 Parallel）", ""),
 ]
 
 # 分组数据在 providers.PRESET_GROUPS；这里只保留向导表格的中文组名。
