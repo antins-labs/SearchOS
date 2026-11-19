@@ -42,6 +42,27 @@ def _frontier_progress(state: SearchState) -> float:
     return state.frontier.resolved_count / total
 
 
+def follow_up_inspect_message(state: SearchState):
+    """Remind a follow-up turn to read tables only when needed values are missing."""
+    tables = getattr(getattr(state, "coverage_map", None), "tables", None) or {}
+    if not tables:
+        return None
+    from langchain_core.messages import HumanMessage
+
+    names = ", ".join(list(tables)[:2])
+    return HumanMessage(
+        content=(
+            f"Follow-up over existing tables ({names}): if this question needs specific "
+            "rows or fields not clearly present in the latest SOCM update or recent tool "
+            "results, call read_table (with_values=true; attribute/value_counts/cursor as "
+            "needed) before answering. Use read_evidence for citations or contested values. "
+            "If SOCM/tool results already contain the needed values, answer directly. "
+            "Dispatch search only for missing source facts."
+        ),
+        additional_kwargs={"sf_synthetic": True, "sf_kind": "follow_up_inspect"},
+    )
+
+
 def _premature_end_reason(workspace: WorkspaceManager, control: Any) -> str | None:
     """Decide whether the orchestrator's no-tool-call exit left work behind.
 
@@ -680,6 +701,10 @@ You own the repair plan and dispatch. Split these cells into focused retrieval t
                         content=repair_context,
                         additional_kwargs={"sf_synthetic": True, "sf_kind": "targeted_repair"},
                     ))
+                elif follow_up or conversation_history:
+                    inspect = follow_up_inspect_message(state)
+                    if inspect is not None:
+                        input_payload["messages"].append(inspect)
                 resume_attempts = 0
                 # Same thread_id on every astream call → each resume continues
                 # the checkpointed conversation instead of starting over.

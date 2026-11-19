@@ -349,10 +349,14 @@ export function buildCards(
 
     if (t === "task_complete" || t === "task_error") {
       finishPending();
+      const hadTools = out.some((card) => card.action?.toolCall);
       out.push({ k: i, reasoning: "", action: {
         icon: t === "task_complete" ? CheckCircle2 : TriangleAlert,
         tone: t === "task_complete" ? CHIP.ok : CHIP.error,
-        label: t === "task_complete" ? "Finished & synthesized" : "运行未完成",
+        label: t === "task_error" ? "运行未完成"
+          : hadTools ? "Finished & synthesized"
+            : "基于已有证据作答",
+        detail: t === "task_complete" && !hadTools ? "本轮无新的工具调用" : undefined,
       } });
       return;
     }

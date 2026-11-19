@@ -326,3 +326,18 @@ test('Exec 卡片展示代码摘要与 exit meta，而不是整包 JSON 预览',
   assert.match(result, /exit 0/);
   assert.doesNotMatch(result, /execution_id/);
 });
+
+test('无工具追问轮显示基于已有证据作答，而不是空的 Finished', () => {
+  const {buildCards} = load('components/workbench/OrchestratorTimeline.tsx');
+  const empty = buildCards([event({type: 'task_complete'})], 'completed', []);
+  assert.equal(empty.length, 1);
+  assert.equal(empty[0].action.label, '基于已有证据作答');
+  assert.equal(empty[0].action.detail, '本轮无新的工具调用');
+  const withTools = buildCards([
+    start('a', 'read_table'),
+    step('a', 'read_table'),
+    event({type: 'task_complete'}),
+  ], 'completed', []);
+  assert.equal(withTools.at(-1).action.label, 'Finished & synthesized');
+  assert.equal(withTools.at(-1).action.detail, undefined);
+});

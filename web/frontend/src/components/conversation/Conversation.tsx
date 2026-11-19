@@ -87,6 +87,7 @@ export default function Conversation({ turns, running, reconnecting = false, sto
             <TurnView
               key={t.id}
               turn={t}
+              latest={index === turns.length - 1}
               onOpen={() => onOpenDrawer(t.id)}
               onRerun={() => onRerun(t)}
               onRepairCells={!running && repairSource?.id === t.id
@@ -125,6 +126,7 @@ export default function Conversation({ turns, running, reconnecting = false, sto
 
 function TurnView({
   turn,
+  latest = false,
   onOpen,
   onRerun,
   onContinue,
@@ -134,6 +136,7 @@ function TurnView({
   onOpenLocalSource,
 }: {
   turn: Turn;
+  latest?: boolean;
   onOpen: () => void;
   onRerun: () => void;
   onContinue?: () => void;
@@ -211,7 +214,7 @@ function TurnView({
 
         <SkillChanges sessionId={turn.sessionId} generationId={turn.skillGenerationId} />
 
-        {done && hasTable && (
+        {done && hasTable && latest && (
           <div className="mb-4 overflow-hidden rounded-xl border border-line">
             <div className="flex items-center justify-between gap-3 border-b border-line bg-surface-2 px-3.5 py-2">
               <span className="font-serif text-[14px] font-semibold text-ink">Final table</span>
@@ -230,6 +233,9 @@ function TurnView({
               />
             </div>
           </div>
+        )}
+        {done && hasTable && !latest && (
+          <p className="mb-4 text-[12px] text-ink-faint">本轮沿用会话表格；交互表见最新一轮。</p>
         )}
 
         {done && (

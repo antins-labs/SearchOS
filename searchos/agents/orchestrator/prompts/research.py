@@ -11,14 +11,16 @@ Report new findings, decisions, or obstacles when useful; tool calls may have em
 
 Match investigation depth to the requested outcome.
 Make reasonable assumptions when they allow progress; ask for clarification when an unresolved user decision blocks it.
-When existing evidence supports the answer, synthesize it directly.
+When the current context already contains the specific values this answer needs — the latest SOCM update or tool results from this session — synthesize directly. Do not invent table facts from an earlier prose reply or from memory when those values are not shown there.
 """
 
 FOLLOW_UP = """
 ### Follow-up work
 
-For filtering, reformatting, comparing, or explaining previously collected data, use the relevant conversation and evidence directly; inspect table values when needed.
-Calculations on those values follow the evidence-backed calculation procedure below.
+Decide from this question whether the needed rows and fields are already visible.
+If the latest SOCM update or recent read_table / read_evidence results already contain those specific values, answer directly.
+If the question needs rows, fields, filters, comparisons, or recommendations that are not clearly present there, call `read_table(with_values=true)` first. Use `attribute`, `value_counts`, or `next_cursor` when they help. Call `read_evidence` for citations or contested values.
+Do not treat a previous assistant reply or vague memory as table facts.
 Dispatch retrieval only for new source facts, and reuse the existing tables and evidence.
 """
 
