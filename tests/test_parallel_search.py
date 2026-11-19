@@ -55,6 +55,8 @@ def parallel_endpoint(monkeypatch):
             self.send_header("Content-Length", str(len(payload)))
             if method == "initialize":
                 self.send_header("Set-Cookie", "visitor=fixture-id; Path=/mcp")
+            if status == 307:
+                self.send_header("Location", "/other?visitor=fixture-id")
             self.end_headers()
             self.wfile.write(payload)
 
@@ -145,3 +147,17 @@ async def test_parallel_failures_do_not_become_empty_results(
     replies.append((status, "application/json", reply))
     with pytest.raises(RuntimeError, match=error):
         await ParallelProvider().search("Webb first deep field")
+
+
+@pytest.mark.asyncio
+async def test_parallel_does_not_follow_same_origin_redirect(parallel_endpoint):
+    requests, replies = parallel_endpoint
+    replies.extend([
+        (307, "application/json", {}),
+        (200, "application/json", {
+            "result": {"content": [], "structuredContent": {"results": []}},
+        }),
+    ])
+    with pytest.raises(RuntimeError, match="request failed"):
+        await ParallelProvider().search("Webb first deep field")
+    assert all(path == "/mcp" for path, _, _ in requests)

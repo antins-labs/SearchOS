@@ -86,6 +86,7 @@ class ParallelProvider(SearchProvider):
                     headers={"User-Agent": user_agent, "Accept-Encoding": "identity"},
                     timeout=httpx.Timeout(5.0, read=_SEARCH_TIMEOUT),
                     follow_redirects=False,
+                    max_redirects=0,  # The MCP transport follows same-origin redirects itself.
                     event_hooks={"request": [_omit_cookies], "response": [_bound_response]},
                 ) as http,
                 streamable_http_client(self.ENDPOINT, http_client=http) as (rx, tx, _),
