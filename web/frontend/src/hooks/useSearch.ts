@@ -135,7 +135,7 @@ export function useSearch() {
         const result = await getSearchResult(sessionId);
         if (generation !== generationRef.current || terminalRef.current) return "stale";
 
-        if (result.status === "running") {
+        if (result.status === "running" || result.status === "waiting_user") {
           applyLiveState(sessionId, generation, request, result.search_state, result.revision, {
             extractionPendingTotal: result.extraction_pending_total,
           });

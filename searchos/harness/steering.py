@@ -205,9 +205,31 @@ class FollowUpTurns(AgentMiddleware):
             trajectory_logger=self.trajectory_logger,
         )
 
+    def _clarify_messages(self) -> list[HumanMessage]:
+        """澄清回答单独注入，不从追问队列取走用户消息。"""
+        from searchos.agents.runtime import _ctx
+
+        gate = _ctx.clarify_gate
+        if gate is None:
+            return []
+        messages = []
+        for text in gate.take_guidance():
+            messages.append(HumanMessage(
+                content=text,
+                id=f"clarify-{uuid4().hex}",
+                additional_kwargs={"sf_synthetic": True, "sf_kind": "clarify_answer"},
+            ))
+            if self.trajectory_logger is not None:
+                self.trajectory_logger._append_raw({
+                    "type": "harness",
+                    "kind": "clarify_answered",
+                    "text": text,
+                })
+        return messages
+
     async def abefore_model(self, state, runtime):
         # LangGraph arrives here only after every parallel ToolMessage is saved.
-        messages = self.take_messages()
+        messages = [*self.take_messages(), *self._clarify_messages()]
         return {"messages": messages} if messages else None
 
     async def awrap_model_call(self, request, handler):
@@ -243,7 +265,7 @@ class FollowUpTurns(AgentMiddleware):
     async def aafter_model(self, state, runtime):
         # A queued follow-up must not be lost when generation ends without tools.
         if not getattr(state["messages"][-1], "tool_calls", None):
-            messages = self.take_messages()
+            messages = [*self.take_messages(), *self._clarify_messages()]
             if messages:
                 return {"messages": messages, "jump_to": "model"}
 

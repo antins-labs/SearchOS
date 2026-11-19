@@ -39,10 +39,10 @@ def build_orchestrator_prompt(
         render_sources(mode, local_sources=local_sources, limitations=source_limitations),
     ]
     planning = {
-        1: "Resolve only the choices needed for the first useful tool call, then act immediately.",
-        2: "Briefly identify the scope, first sources, and independent tasks, then start gathering evidence.",
-        3: "Assess meaningful source alternatives and task dependencies before choosing the first actions.",
-        4: "Work through consequential ambiguities, source alternatives, and dependencies before acting; stop planning once the first actions are well supported.",
+        1: "On the first turn, resolve only the minimum table structure and the first dispatch, then act immediately. Leave longer analysis until evidence arrives.",
+        2: "On the first turn, identify the scope and the minimum table structure, then dispatch. Do not write a long plan before the first tool call.",
+        3: "Note the source choice that changes the first dispatch, then set the minimum table structure and dispatch. Defer detailed comparison until evidence arrives.",
+        4: "Settle only the consequential ambiguity that blocks the first dispatch, then use the minimum table structure and dispatch. Stop planning once that action is supported.",
     }[initial_planning_effort]
     sections.append(f"""## Initial planning
 

@@ -45,6 +45,18 @@ MODEL_PURPOSE_GROUPS = (
                 "main",
             ),
             ModelPurpose(
+                "route_classifier",
+                Copy("检索路径分类", "Search route classification"),
+                Copy(
+                    "在简单搜和研究搜之间做一次有界分类",
+                    "Makes one bounded simple-versus-research classification",
+                ),
+                Copy(
+                    "可改绑更快的模型以缩短首响；分类规则不变",
+                    "Rebind a faster model to shorten the first response",
+                ),
+            ),
+            ModelPurpose(
                 "sub_agent",
                 Copy("检索与阅读", "Search and reading"),
                 Copy(

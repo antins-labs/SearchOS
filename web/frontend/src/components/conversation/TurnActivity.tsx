@@ -1,19 +1,32 @@
 "use client";
 
 import { Fragment, type ReactNode } from "react";
-import { turnActivitySegments, type Turn } from "@/lib/conversation";
+import {
+  clarifyForSegment,
+  clarifyState,
+  turnActivitySegments,
+  type Turn,
+} from "@/lib/conversation";
 import { foldWorkers } from "@/lib/runState";
+import ClarifyCard from "./ClarifyCard";
 import OrchestrationCard from "./OrchestrationCard";
 
-export default function TurnActivity({ turn, onOpen, children }: {
+export default function TurnActivity({ turn, onOpen, onClarify, children }: {
   turn: Turn;
   onOpen: () => void;
+  onClarify?: (
+    sessionId: string,
+    questionId: string,
+    answers: { id: string; selected: string[]; custom?: string }[],
+  ) => Promise<void>;
   children?: ReactNode;
 }) {
   const segments = turnActivitySegments(turn.events, turn.followUps);
+  const clarify = clarifyState(turn.events);
   return <>{segments.map((segment, index) => {
     const latest = index === segments.length - 1;
     const showTrace = segment.events.length > 0 || (latest && turn.status === "running");
+    const segmentClarify = clarifyForSegment(segment.events, clarify);
     return <Fragment key={segment.key}>
       {segment.followUp && (
         <div className="my-6 flex justify-end">
@@ -25,7 +38,7 @@ export default function TurnActivity({ turn, onOpen, children }: {
           </div>
         </div>
       )}
-      {(showTrace || latest) && (
+      {(showTrace || latest || segmentClarify) && (
         <div className="flex gap-2.5 sm:gap-3.5">
           <div className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent font-serif text-[12px] font-semibold text-white sm:h-7 sm:w-7 sm:text-[14px]">S</div>
           <div className="min-w-0 flex-1">
@@ -37,6 +50,14 @@ export default function TurnActivity({ turn, onOpen, children }: {
                 workers={latest ? turn.workers : foldWorkers([...segment.priorEvents, ...segment.events])}
                 sourceMode={turn.sourceMode} sessionId={turn.sessionId} onOpen={onOpen} />
             </div>}
+            {segmentClarify && (
+              <ClarifyCard
+                key={`${segmentClarify.questionId}:${segmentClarify.answers ? "done" : "open"}`}
+                pending={segmentClarify}
+                sessionId={turn.sessionId}
+                onSubmit={onClarify}
+              />
+            )}
             {latest && children}
           </div>
         </div>

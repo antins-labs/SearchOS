@@ -47,12 +47,13 @@ export interface Turn {
 }
 
 /** Missing terminal output is an interrupted run, not a completed answer. */
-export function restoredRunState(status: "running" | "completed" | "incomplete" | "error"):
+export function restoredRunState(status: "running" | "completed" | "incomplete" | "error" | "waiting_user"):
   { status: Turn["status"]; error: string | null } {
   if (status === "incomplete") return {
     status: "error",
     error: "这次运行已中断，尚未生成最终回答。下方保留的是中间输出和运行记录，可重新运行该问题。",
   };
+  if (status === "waiting_user") return { status: "running", error: null };
   return { status, error: status === "error" ? "这次运行失败，请查看运行记录。" : null };
 }
 
@@ -97,6 +98,48 @@ export function historyEventSegments(events: WSEvent[], turnCount: number): WSEv
   );
 }
 
+export interface ClarifyQuestion {
+  id: string;
+  prompt: string;
+  options: string[];
+  allowMultiple: boolean;
+}
+
+export interface ClarifyAnswer {
+  id: string;
+  selected: string[];
+  custom?: string;
+}
+
+export interface PendingClarify {
+  questionId: string;
+  questions: ClarifyQuestion[];
+  answers?: ClarifyAnswer[];
+}
+
+/** 研究对话里的选择题。已回答的卡片保留选择并禁用。 */
+export function clarifyState(events: WSEvent[]): PendingClarify | null {
+  let pending: PendingClarify | null = null;
+  const answered = new Map<string, ClarifyAnswer[]>();
+  for (const event of events) {
+    const data = event.type === "trajectory" && event.data && typeof event.data === "object"
+      ? event.data as Record<string, unknown> : null;
+    if (!data) continue;
+    if (data.type === "question" && typeof data.question_id === "string" && Array.isArray(data.questions)) {
+      pending = {
+        questionId: data.question_id,
+        questions: data.questions as ClarifyQuestion[],
+      };
+    }
+    if (data.type === "question_answered" && typeof data.question_id === "string" && Array.isArray(data.answers)) {
+      answered.set(data.question_id, data.answers as ClarifyAnswer[]);
+    }
+  }
+  if (!pending) return null;
+  const selection = answered.get(pending.questionId);
+  return selection ? { ...pending, answers: selection } : pending;
+}
+
 export interface ActivitySegment {
   key: string;
   events: WSEvent[];
@@ -104,11 +147,13 @@ export interface ActivitySegment {
   followUp?: { text: string; mode?: string };
 }
 
-/** 以真正注入模型的事件为界；队列回执比轨迹先到时只追加临时分界。 */
+/** 以真正注入模型的事件与澄清作答为界；队列回执比轨迹先到时只追加临时分界。
+ *  AskUserQuestion 作答后切分工具体，澄清卡落在前一段助手列内（对齐 JobSeeker）。 */
 export function turnActivitySegments(events: WSEvent[], followUps: string[] = []): ActivitySegment[] {
   const segments: ActivitySegment[] = [{ key: "initial", events: [], priorEvents: [] }];
   const prior: WSEvent[] = [];
   let injected = 0;
+  let clarifies = 0;
   for (const event of events) {
     const data = (event.data ?? {}) as Record<string, unknown>;
     if (event.type === "trajectory" && data.type === "harness" && data.kind === "steer_injected") {
@@ -119,6 +164,14 @@ export function turnActivitySegments(events: WSEvent[], followUps: string[] = []
       });
     } else {
       segments[segments.length - 1].events.push(event);
+      if (event.type === "trajectory" && data.type === "question_answered") {
+        const questionId = typeof data.question_id === "string" ? data.question_id : String(clarifies);
+        segments.push({
+          key: `after-clarify-${questionId}-${clarifies++}`,
+          events: [],
+          priorEvents: [...prior, event],
+        });
+      }
     }
     prior.push(event);
   }
@@ -127,4 +180,18 @@ export function turnActivitySegments(events: WSEvent[], followUps: string[] = []
       followUp: { text: followUps[index] } });
   }
   return segments;
+}
+
+/** 澄清卡挂在含对应 question 事件的那一段工具块之后。 */
+export function clarifyForSegment(
+  events: WSEvent[],
+  clarify: PendingClarify | null,
+): PendingClarify | null {
+  if (!clarify) return null;
+  for (const event of events) {
+    const data = event.type === "trajectory" && event.data && typeof event.data === "object"
+      ? event.data as Record<string, unknown> : null;
+    if (data?.type === "question" && data.question_id === clarify.questionId) return clarify;
+  }
+  return null;
 }

@@ -139,6 +139,18 @@ export async function stopSearch(sessionId: string): Promise<void> {
   return request(`/api/search/${sessionId}/stop`, { method: "POST" }, { noContent: true, errorPrefix: "Stop failed" });
 }
 
+export async function answerClarify(
+  sessionId: string,
+  questionId: string,
+  answers: { id: string; selected: string[]; custom?: string }[],
+): Promise<{ accepted: boolean; resumed?: boolean; session_id?: string; status?: string }> {
+  return request(`/api/search/${sessionId}/clarify/${encodeURIComponent(questionId)}/answer`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ answers }),
+  });
+}
+
 export async function steerSearch(sessionId: string, message: string, mode: SteeringMode = "immediate"): Promise<SteeringSubmission> {
   return request(`/api/search/${sessionId}/steer`, {
     method: "POST",
@@ -194,7 +206,7 @@ export async function getSearchState(sessionId: string, revision = ""): Promise<
 export interface HistoryItem {
   session_id: string;
   title: string;
-  status: "running" | "completed" | "incomplete" | "error";
+  status: "running" | "waiting_user" | "completed" | "incomplete" | "error";
   coverage_score: number | null;
   updated_at: number;
   project: string;
@@ -236,7 +248,7 @@ export interface HistoryTurn {
 export interface HistoryDetail {
   session_id: string;
   query: string;
-  status: "running" | "completed" | "incomplete";
+  status: "running" | "waiting_user" | "completed" | "incomplete" | "error";
   turns: HistoryTurn[];
   coverage_score: number | null;
   evidence_count: number | null;

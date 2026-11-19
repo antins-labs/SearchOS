@@ -17,6 +17,7 @@ from api.deps import session_directory, WORKSPACE_ROOT, init_search_provider, se
 from api.research.contracts import (
     LocalSourceRequest,
     SourcesRequest,
+    ClarifyAnswerRequest,
     SearchRequest,
     SearchResponse,
     RepairCellRequest,
@@ -91,7 +92,7 @@ async def launch_search_request(req: SearchRequest, session_id_override: str | N
         # available as conversational context and history.
         session_id = req.follow_up_to or session_id_override or new_session_id()
         prior = sessions.get(session_id)
-        if prior and prior["status"] == "running":
+        if prior and prior["status"] in {"running", "waiting_user"}:
             raise HTTPException(409, f"Session {session_id} is still running")
         previous_state = _load_prior_state(session_id) if req.follow_up_to else None
         previous_scope = previous_state.source_scope if previous_state else None
@@ -159,7 +160,7 @@ async def launch_search_request(req: SearchRequest, session_id_override: str | N
         # coverage table carries over), retaining the original conversation roles.
         session_id = req.follow_up_to
         prior = sessions.get(session_id)
-        if prior and prior["status"] == "running":
+        if prior and prior["status"] in {"running", "waiting_user"}:
             raise HTTPException(409, f"Session {session_id} is still running")
         state = _load_prior_state(session_id) or SearchState(intent=req.query)
         # 选择方式决定下一轮如何取快照；本轮证据可见性由实际文档及版本决定。
@@ -295,7 +296,14 @@ async def _launch_search(
     workspace.save_state(state)
     progress = TrajectoryLogger(workspace.trajectory_path)
     progress.log_phase("initializing")
+    from searchos.harness.clarify import ClarifyGate
+
     steer_queue = SteeringQueue()
+    clarify_gate = ClarifyGate(
+        query=query,
+        launch=req.model_dump(mode="json"),
+        on_status=lambda status, pending, sid=session_id: _set_clarify_status(sid, status, pending),
+    )
     sessions[session_id] = {
         "status": "running",
         "result": None,
@@ -303,6 +311,8 @@ async def _launch_search(
         "harness": None,
         "initial_state": state,
         "steer_queue": steer_queue,
+        "clarify_gate": clarify_gate,
+        "pending_question": None,
     }
 
     async def _run():
@@ -328,6 +338,7 @@ async def _launch_search(
                 initial_state=state,
                 conversation_history=conversation_history,
                 steer_queue=steer_queue,
+                clarify_gate=clarify_gate,
                 follow_up=follow_up,
                 targeted_repair_task_ids=targeted_repair_task_ids,
                 targeted_repair_cells=targeted_repair_cells,
@@ -698,7 +709,7 @@ async def stop_search(session_id: str):
     session = sessions.get(session_id)
     if not session:
         raise HTTPException(404, f"Session {session_id} not found")
-    if session["status"] != "running":
+    if session["status"] not in _LIVE_STATUSES:
         raise HTTPException(409, f"Session {session_id} is not running")
     task = session.get("task")
     if task is None or task.done():
@@ -733,7 +744,7 @@ def _live_steering_queue(session_id: str, *, require_running: bool = False):
     session = sessions.get(session_id)
     if session is None:
         raise HTTPException(404, f"Session {session_id} not found")
-    if require_running and session["status"] != "running":
+    if require_running and session["status"] not in _LIVE_STATUSES:
         raise HTTPException(409, "研究已结束，无法修改待处理追问")
     queue = session.get("steer_queue")
     if not isinstance(queue, SteeringQueue):
@@ -762,17 +773,122 @@ async def remove_steering_message(session_id: str, message_id: str):
     return queue.snapshot()
 
 
+_LIVE_STATUSES = {"running", "waiting_user"}
+
+
+def _set_clarify_status(session_id: str, status: str, pending) -> None:
+    session = sessions.get(session_id)
+    if session is None or session.get("status") in {"completed", "error"}:
+        return
+    session["status"] = status
+    session["pending_question"] = pending
+
+
+@router.post("/search/{session_id}/clarify/{question_id}/answer")
+async def answer_clarify(session_id: str, question_id: str, req: ClarifyAnswerRequest):
+    """提交结构化澄清。活进程唤醒等待中的工具；进程已退出则用补充条件续跑同一会话。"""
+    from searchos.harness.clarify import (
+        ClarifyClosed,
+        ClarifyInvalid,
+        cold_resume_payload,
+        load_clarify,
+    )
+    from searchos.harness.telemetry.conversation import conversation_turns
+    from searchos.harness.telemetry.trajectory import TrajectoryLogger
+
+    session_id = session_directory(WORKSPACE_ROOT, session_id).name
+    session = sessions.get(session_id)
+    gate = session.get("clarify_gate") if session else None
+    payload = req.model_dump()
+    if gate is not None and gate.matches(question_id):
+        try:
+            return gate.submit(question_id, payload)
+        except ClarifyInvalid as exc:
+            raise HTTPException(422, str(exc)) from exc
+        except ClarifyClosed as exc:
+            raise HTTPException(409, str(exc)) from exc
+    task = session.get("task") if session else None
+    if session and session.get("status") in _LIVE_STATUSES and task is not None and not task.done():
+        raise HTTPException(409, "当前问题已结束或不存在")
+
+    workspace = session_directory(WORKSPACE_ROOT, session_id)
+    record = await asyncio.to_thread(load_clarify, workspace)
+    if not record or record.get("status") != "waiting_user":
+        raise HTTPException(409, "当前问题已结束或不存在")
+    pending = record.get("pending_question") or {}
+    if pending.get("id") != question_id:
+        raise HTTPException(409, "当前问题已结束或不存在")
+    try:
+        from searchos.harness.clarify import normalize_answers
+
+        answers = normalize_answers(pending.get("questions") or [], payload)
+    except ClarifyInvalid as exc:
+        raise HTTPException(422, str(exc)) from exc
+    record["status"] = "answered"
+    record["answers"] = answers
+    await asyncio.to_thread(_write_clarify, workspace, record)
+    TrajectoryLogger(workspace / "trajectory.jsonl")._append_raw({
+        "type": "question_answered",
+        "agent": "orchestrator",
+        "question_id": question_id,
+        "answers": answers,
+        "resumed": True,
+    })
+    history = await asyncio.to_thread(conversation_turns, workspace)
+    if not history:
+        history = list((record.get("launch") or {}).get("history") or [])
+    previous = session
+    if previous is not None:
+        previous["status"] = "completed"
+        previous["pending_question"] = None
+    try:
+        resumed = cold_resume_payload(session_id, record, answers, history)
+        request = SearchRequest.model_validate(resumed)
+        response = await launch_search_request(request)
+    except Exception:
+        record["status"] = "waiting_user"
+        record.pop("answers", None)
+        await asyncio.to_thread(_write_clarify, workspace, record)
+        if previous is not None and sessions.get(session_id) is previous:
+            previous["status"] = "waiting_user"
+            previous["pending_question"] = record.get("pending_question")
+        raise
+    session_id = response["session_id"] if isinstance(response, dict) else response.session_id
+    return {"accepted": True, "resumed": True, "session_id": session_id, "status": "running"}
+
+
+def _write_clarify(workspace, record: dict) -> None:
+    import json
+
+    path = workspace / "clarify.json"
+    temporary = path.with_suffix(".json.tmp")
+    temporary.write_text(json.dumps(record, ensure_ascii=False), encoding="utf-8")
+    temporary.replace(path)
+
+
 @router.get("/search/{session_id}")
 async def get_search_result(session_id: str):
     """Get the final search result (or current status if still running)."""
     session_id = session_directory(WORKSPACE_ROOT, session_id).name
     session = sessions.get(session_id)
     if not session:
+        from searchos.harness.clarify import load_clarify
+
+        record = await asyncio.to_thread(
+            load_clarify, session_directory(WORKSPACE_ROOT, session_id),
+        )
+        if record and record.get("status") == "waiting_user":
+            live = await asyncio.to_thread(_get_live_state, session_id)
+            live["status"] = "waiting_user"
+            live["pending_question"] = record.get("pending_question")
+            return live
         raise HTTPException(404, f"Session {session_id} not found")
 
-    if session["status"] == "running":
+    if session["status"] in _LIVE_STATUSES:
         # Return intermediate state from workspace
-        return await asyncio.to_thread(_get_live_state, session_id)
+        live = await asyncio.to_thread(_get_live_state, session_id)
+        live["pending_question"] = session.get("pending_question")
+        return live
 
     if session["status"] == "error":
         return {"status": "error", "error": session["error"]}

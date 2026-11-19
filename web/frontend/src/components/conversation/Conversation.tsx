@@ -12,7 +12,7 @@ import AnswerActions from "./AnswerActions";
 import SkillChanges from "./SkillChanges";
 import CoverageTable from "@/components/coverage/CoverageTable";
 import ResultExportMenu from "@/components/coverage/ResultExportMenu";
-import type { Turn } from "@/lib/conversation";
+import { clarifyState, type Turn } from "@/lib/conversation";
 import type { CoverageCell, RepairCellTarget } from "@/lib/types";
 import type { LocalLibraryController } from "@/hooks/useLocalLibrary";
 import type { LiveFollowUpController } from "@/hooks/useLiveFollowUps";
@@ -34,9 +34,14 @@ interface Props {
   focusRequest?: number;
   localLibrary: LocalLibraryController;
   onOpenLocalSource?: (refId: string) => void;
+  onClarify?: (
+    sessionId: string,
+    questionId: string,
+    answers: { id: string; selected: string[]; custom?: string }[],
+  ) => Promise<void>;
 }
 
-export default function Conversation({ turns, running, reconnecting = false, stopping = false, onSubmit, liveFollowUps, onStop, onRerun, onRepair, onOpenDrawer, registerTurnRef, focusRequest = 0, localLibrary, onOpenLocalSource }: Props) {
+export default function Conversation({ turns, running, reconnecting = false, stopping = false, onSubmit, liveFollowUps, onStop, onRerun, onRepair, onOpenDrawer, registerTurnRef, focusRequest = 0, localLibrary, onOpenLocalSource, onClarify }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const scrollContentRef = useRef<HTMLDivElement>(null);
@@ -98,12 +103,19 @@ export default function Conversation({ turns, running, reconnecting = false, sto
                 : undefined}
               runDisabled={running}
               onOpenLocalSource={onOpenLocalSource}
+              onClarify={onClarify}
               registerRef={registerTurnRef ? (el) => registerTurnRef(t.id, el) : undefined}
             />
           ))}
           <div ref={bottomRef} />
         </div>
       </div>
+
+      {clarifyState(turns[turns.length - 1]?.events ?? []) && !clarifyState(turns[turns.length - 1]?.events ?? [])?.answers && (
+        <div role="status" className="border-t border-warn/30 bg-warn/5 px-3 py-2 text-[12.5px] text-ink-dim sm:px-5">
+          <div className="mx-auto max-w-[712px]">研究已暂停，请在对话中选择后继续。引导消息仍可单独发送。</div>
+        </div>
+      )}
 
       {reconnecting && (
         <div role="status" aria-live="polite" className="border-t border-warn/30 bg-warn/5 px-3 py-2 text-[12.5px] text-ink-dim sm:px-5">
@@ -134,6 +146,7 @@ function TurnView({
   runDisabled,
   registerRef,
   onOpenLocalSource,
+  onClarify,
 }: {
   turn: Turn;
   latest?: boolean;
@@ -144,6 +157,7 @@ function TurnView({
   runDisabled: boolean;
   registerRef?: (el: HTMLDivElement | null) => void;
   onOpenLocalSource?: (refId: string) => void;
+  onClarify?: Props["onClarify"];
 }) {
   const [answerCollapsed, setAnswerCollapsed] = useState(false);
   const done = turn.status === "completed";
@@ -161,7 +175,6 @@ function TurnView({
       .filter((source) => source.startsWith("local://")),
   ));
   const sourceLabels = localCitationLabels(turn.events, turn.searchState?.evidence_graph?.nodes);
-
   return (
     <div ref={registerRef} className="mb-10 scroll-mt-6 last:mb-2">
       {/* user message */}
@@ -171,7 +184,7 @@ function TurnView({
         </div>
       </div>
 
-      <TurnActivity turn={turn} onOpen={onOpen}>
+      <TurnActivity turn={turn} onOpen={onOpen} onClarify={onClarify}>
         {turn.error && (
           <div role="alert" className="mb-4 rounded-lg border border-err/30 bg-err/5 px-3 py-2 text-[13px] text-err">
             <p>{turn.error}</p>

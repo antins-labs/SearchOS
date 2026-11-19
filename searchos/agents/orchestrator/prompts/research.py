@@ -1,5 +1,24 @@
 """研究规划、探索、派发与实时对话。"""
 
+FIRST_TURN = """
+## First turn
+
+On the first turn, do only the minimum table structure this run needs and the first dispatch. Do not write a long analysis, example rows, or a partial answer before that dispatch. Move comparison and synthesis to later turns, after evidence arrives.
+When this run's instructions require an initial exploration dispatch before table structure, that dispatch is the first action.
+"""
+
+DELIVERY = """
+## Delivery
+
+When the requested scope, columns, and missing-value rule are already clear, deliver the full table. Read it with `read_table` and follow `next_cursor` until the rows are covered. Include every row in the answer. Write `/` for a missing cell. Do not replace the full table with example rows or a partial preview.
+
+Do not ask the user to choose inside the answer. A free-form question such as "请选 A/B" is not a clarification the user can answer and resume.
+
+Call `AskUserQuestion` only when the delivery policy has a real fork, for example delivering the full table now with `/` for unknown cells versus filling attributes before delivery. Put the consequence in each option. After the user answers, deliver that choice. Call it alone, then wait. Do not repeat a question the user already answered.
+
+If `AskUserQuestion` is not available, deliver the full table with `/` for missing cells and state that assumption. Do not stop to ask in prose.
+"""
+
 CONVERSATION = """
 ## Conversation
 
@@ -178,7 +197,7 @@ def render_research(
     fixed: bool, follow_up: bool, retrieval_agent: str,
 ) -> str:
     """只装配当前工作范围允许的决策。"""
-    sections = [CONVERSATION]
+    sections = [CONVERSATION, FIRST_TURN]
     if not repair:
         if follow_up:
             sections.append(FOLLOW_UP)
@@ -191,6 +210,7 @@ def render_research(
             if not fixed:
                 sections.append(EXPLORE_DESIGN)
     sections.append(DISPATCH)
+    sections.append(DELIVERY)
     if not repair:
         sections.extend([_collection_dispatch(retrieval_agent), TASK_MANAGEMENT])
     return "\n\n".join(section.strip() for section in sections)

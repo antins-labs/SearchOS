@@ -357,6 +357,7 @@ class _RecordingHooks(AgentMiddleware):
 
     async def awrap_model_call(self, request, handler):
         log = self.recorder.logger
+        log.log_generation_started(agent=self.recorder.agent_id, phase="generating")
         log.log_phase("generating", agent=self.recorder.agent_id)
         try:
             result = await handler(request)

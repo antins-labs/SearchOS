@@ -7,10 +7,11 @@ import { useState, useEffect, useCallback, useRef, useMemo, type CSSProperties }
 import { Activity, Database, History, Menu, MessageSquare, Plus, Settings2, X } from "lucide-react";
 import useDialogFocus from "@/hooks/useDialogFocus";
 
+import { clarifyState } from "@/lib/conversation";
 import { useSearch } from "@/hooks/useSearch";
 import { useLocalLibrary } from "@/hooks/useLocalLibrary";
 import { useLiveFollowUps } from "@/hooks/useLiveFollowUps";
-import { branchHistoryTurn, getWorkspaceFiles, listHistory, loadHistory, updateHistoryAssets, deleteHistory, resolveEvidence, stopSearch, type HistoryAssetPatch, type HistoryItem, type HistoryTurn } from "@/lib/api";
+import { answerClarify, branchHistoryTurn, getWorkspaceFiles, listHistory, loadHistory, updateHistoryAssets, deleteHistory, resolveEvidence, stopSearch, type HistoryAssetPatch, type HistoryItem, type HistoryTurn } from "@/lib/api";
 import { deriveAnswer, foldWorkers } from "@/lib/runState";
 import type { FileNode, RepairCellTarget, SearchState, SourceSelection, WSEvent } from "@/lib/types";
 import { sourceSelectionForTurn } from "@/lib/sourceSelection";
@@ -23,7 +24,7 @@ import {
 import type { SubmitOpts } from "@/components/shell/Composer";
 
 import MobileAssistant from "@/components/mobile/MobileAssistant";
-import HistoryRail from "@/components/shell/HistoryRail";
+import HistoryRail, { type HistoryRailItem } from "@/components/shell/HistoryRail";
 import KnowledgeBasePanel from "@/components/local/KnowledgeBasePanel";
 import Landing from "@/components/conversation/Landing";
 import Conversation from "@/components/conversation/Conversation";
@@ -422,6 +423,16 @@ export default function ResearchWorkspace({ mobile = false }: { mobile?: boolean
     }
   }, [session.sessionId, session.status, notify]);
 
+  const handleClarify = useCallback(async (
+    sessionId: string,
+    questionId: string,
+    answers: { id: string; selected: string[]; custom?: string }[],
+  ) => {
+    const result = await answerClarify(sessionId, questionId, answers);
+    if (result.resumed) attach(sessionId);
+    void refreshHistory();
+  }, [attach, refreshHistory]);
+
   const handleNew = useCallback(() => {
     reset();
     setTurns([]);
@@ -443,6 +454,11 @@ export default function ResearchWorkspace({ mobile = false }: { mobile?: boolean
   // Currently-open session id (live turn's sessionId or a loaded session id).
   const openTurn = turns[turns.length - 1] ?? null;
   const openId = openTurn ? openTurn.sessionId ?? openTurn.id : null;
+  const openClarify = clarifyState(openTurn?.events ?? []);
+  useEffect(() => {
+    if (!openClarify) return;
+    void refreshHistory();
+  }, [openClarify?.questionId, openClarify?.answers, refreshHistory]);
 
   const handleSelect = useCallback(
     async (id: string) => {
@@ -458,7 +474,7 @@ export default function ResearchWorkspace({ mobile = false }: { mobile?: boolean
       try {
         const data = await loadHistory(id);
         const events: WSEvent[] = data.events ?? [];
-        const isRunning = data.status === "running";
+        const isRunning = data.status === "running" || data.status === "waiting_user";
         // Restore the full dialogue: one Turn per reconstructed turn. Each
         // run appends a `task_start` trajectory event, so the flat event log
         // splits into per-turn segments. Only segments that reached
@@ -640,10 +656,10 @@ export default function ResearchWorkspace({ mobile = false }: { mobile?: boolean
   // Rail = disk history; prepend the live run if it isn't on disk yet.
   const railItems = useMemo(() => {
     const source = historySearchResults ?? history;
-    const items = source.map((h) => ({
+    const items: HistoryRailItem[] = source.map((h): HistoryRailItem => ({
       id: h.session_id,
       title: h.title,
-      status: restoredRunState(h.status).status,
+      status: h.status === "waiting_user" ? "waiting_user" : restoredRunState(h.status).status,
       coverageScore: h.coverage_score,
       updatedAt: h.updated_at,
       project: h.project,
@@ -826,6 +842,7 @@ export default function ResearchWorkspace({ mobile = false }: { mobile?: boolean
             registerTurnRef={(id, el) => { turnRefs.current[id] = el; }}
             localLibrary={localLibrary}
             onOpenLocalSource={setLocalSourceRef}
+            onClarify={handleClarify}
           />
         )}
       </main>

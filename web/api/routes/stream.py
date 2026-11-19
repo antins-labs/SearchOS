@@ -11,12 +11,20 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from api.deps import WORKSPACE_ROOT, session_directory, sessions
 from api.research.events import StateStream, file_events, report_journal, timeline_events
+from searchos.harness.telemetry.trajectory import watch_trajectory
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Poll interval for file changes (seconds)
+# 空闲时的文件轮询。生成或澄清等待中缩短间隔，并在轨迹落盘时立刻唤醒。
 POLL_INTERVAL = 0.5
+GENERATING_POLL = 0.15
+
+
+def poll_timeout(status: str | None) -> float:
+    if status in {None, "running", "waiting_user"}:
+        return GENERATING_POLL
+    return POLL_INTERVAL
 
 
 @router.websocket("/api/ws/{session_id}")
@@ -31,6 +39,8 @@ async def search_stream(ws: WebSocket, session_id: str):
 
     ws_path = session_directory(WORKSPACE_ROOT, session_id)
     session_id = ws_path.name
+    wake = asyncio.Event()
+    close_watch = watch_trajectory(ws_path / "trajectory.jsonl", asyncio.get_running_loop(), wake)
 
     # Track file positions for incremental reads
     file_positions: dict[str, int] = {}
@@ -110,12 +120,19 @@ async def search_stream(ws: WebSocket, session_id: str):
                     )
                 break
 
-            await asyncio.sleep(POLL_INTERVAL)
+            timeout = poll_timeout(session["status"] if session else None)
+            try:
+                await asyncio.wait_for(wake.wait(), timeout)
+            except TimeoutError:
+                pass
+            wake.clear()
 
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected: session=%s", session_id)
     except Exception:
         logger.error("WebSocket error: session=%s", session_id, exc_info=True)
+    finally:
+        close_watch()
 
 
 async def _stream_jsonl(

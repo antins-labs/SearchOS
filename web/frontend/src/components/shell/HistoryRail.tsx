@@ -36,7 +36,7 @@ import Select from "@/components/ui/Select";
 export interface HistoryRailItem {
   id: string;
   title: string;
-  status: "running" | "completed" | "incomplete" | "error";
+  status: "running" | "waiting_user" | "completed" | "incomplete" | "error";
   coverageScore: number | null;
   updatedAt: number;
   project: string;
@@ -75,6 +75,7 @@ type EditDraft = { title: string; project: string; tags: string };
 
 const DOT: Record<string, string> = {
   running: "bg-accent glow-pulse",
+  waiting_user: "bg-warn glow-pulse",
   completed: "bg-ok",
   incomplete: "bg-warn",
   error: "bg-err",
@@ -250,10 +251,11 @@ export default function HistoryRail({
           <button onClick={() => onSelect(item.id)} disabled={busy} aria-busy={itemLoading}
             className={`flex min-w-0 flex-1 items-start gap-2 pl-2.5 text-left disabled:cursor-wait disabled:opacity-70 ${density === "compact" ? "py-1.5" : "py-2"}`}>
             {itemLoading ? <Loader2 className="mt-1 shrink-0 animate-spin text-accent-ink" size={12} />
-              : <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${DOT[item.status] ?? "bg-ink-faint"}`} />}
+              : <span title={item.status === "waiting_user" ? "等待补充" : undefined} className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${DOT[item.status] ?? "bg-ink-faint"}`} />}
             <span className="min-w-0 flex-1">
               <span className={`block truncate text-[13px] ${item.id === activeId ? "text-ink" : "text-ink-dim group-hover:text-ink"}`}>{item.title}</span>
               <span className={`${density === "compact" ? "hidden" : "mt-0.5 flex"} min-w-0 items-center gap-1.5 text-[10.5px] text-ink-faint`}>
+                {item.status === "waiting_user" && <span>等待补充</span>}
                 {item.project && <span className="max-w-24 truncate">{item.project}</span>}
                 {item.project && coverage !== null && <span>·</span>}
                 {coverage !== null && <span>{coverage}%</span>}

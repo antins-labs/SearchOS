@@ -129,6 +129,8 @@ async def select_route(*, model, query, state, execution_path="auto", follow_up=
     else:
         timeout = min(30.0, remaining_time_s) if remaining_time_s is not None else 30.0
         try:
+            if trajectory_logger is not None:
+                trajectory_logger.log_generation_started(agent="orchestrator", phase="routing")
             response = await asyncio.wait_for(model.ainvoke([
                 SystemMessage(content=f"""{_ROUTER_PROMPT}
 

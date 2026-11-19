@@ -35,7 +35,7 @@ interface Props {
   onOpenSource: (ref: string) => void; children?: ReactNode;
 }
 const SOURCE_LABELS = { web: "网络", local: "我的资料", hybrid: "网络与资料" };
-const STATE_LABELS = { running: "进行中", completed: "已完成", error: "执行失败", incomplete: "已中断" };
+const STATE_LABELS = { running: "进行中", waiting_user: "等待补充", completed: "已完成", error: "执行失败", incomplete: "已中断" };
 
 export default function MobileAssistant(props: Props) {
   const { turns, history, historyStatus, localLibrary: library, running, reconnecting, stopping } = props;

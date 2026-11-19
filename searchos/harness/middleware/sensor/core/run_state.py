@@ -38,7 +38,7 @@ class ControlState:
         self.summarizing = self.forced = True
         self.summary_id = str(uuid4())
         self.reason = reason
-        self.stop_message = f"""Research has stopped ({reason}). Stop using tools and stop delegating work. Summarize the supported findings from the sources and tool results already available in this conversation. Answer the current user request in the user's language, include original source links or evidence citations, and state any unresolved gaps. Return the final answer now."""
+        self.stop_message = f"""Research has stopped ({reason}). Stop using tools and stop delegating work. Summarize the supported findings from the sources and tool results already available in this conversation. When the scope and columns are already defined, include the full table and write / for missing cells. Do not substitute sample rows or ask the user to choose inside the answer. Answer the current user request in the user's language, include original source links or evidence citations, and state any unresolved gaps. Return the final answer now."""
 
 
 class BudgetState:
@@ -83,6 +83,27 @@ class BudgetState:
         self.current_iteration = 0
         self.evaluator_tokens = 0
         self._start_ts: float | None = None
+        self._paused_at: float | None = None
+        self._paused_total = 0.0
+        self._pause_depth = 0
+
+    def pause(self) -> None:
+        """冻结墙钟。澄清等待不消耗会话时限。"""
+        self._pause_depth += 1
+        if self._pause_depth == 1 and self._start_ts is not None and self._paused_at is None:
+            import time
+
+            self._paused_at = time.time()
+
+    def resume(self) -> None:
+        if self._pause_depth <= 0:
+            return
+        self._pause_depth -= 1
+        if self._pause_depth == 0 and self._paused_at is not None:
+            import time
+
+            self._paused_total += time.time() - self._paused_at
+            self._paused_at = None
 
     def _ensure_started(self) -> None:
         if self._start_ts is None:
@@ -116,7 +137,8 @@ class BudgetState:
             return 0.0
         import time
 
-        return time.time() - self._start_ts
+        now = self._paused_at if self._paused_at is not None else time.time()
+        return max(0.0, now - self._start_ts - self._paused_total)
 
     @property
     def consumption_ratio(self) -> float:

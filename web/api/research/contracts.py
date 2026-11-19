@@ -114,3 +114,13 @@ class ResolveEvidenceResponse(BaseModel):
 class SteerRequest(BaseModel):
     message: str
     mode: Literal["immediate", "after_tool"] = "immediate"
+
+
+class ClarifySelection(BaseModel):
+    id: str
+    selected: list[str] = Field(default_factory=list)
+    custom: str | None = None
+
+
+class ClarifyAnswerRequest(BaseModel):
+    answers: list[ClarifySelection] = Field(min_length=1, max_length=3)

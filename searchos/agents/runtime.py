@@ -275,6 +275,7 @@ _scheduler_var: ContextVar[Any] = ContextVar("so_orch_scheduler", default=None)
 _budget_exhausted_var: ContextVar[list[bool] | None] = ContextVar(
     "so_orch_budget_exhausted", default=None
 )
+_clarify_gate_var: ContextVar[Any] = ContextVar("so_orch_clarify_gate", default=None)
 
 
 def _scheduler():
@@ -397,8 +398,17 @@ class _Ctx:
         if box:
             box[0] = True
 
+    @property
+    def clarify_gate(self) -> Any:
+        return _clarify_gate_var.get()
+
 
 _ctx = _Ctx()
+
+
+def set_clarify_gate(gate: Any) -> None:
+    """绑定本轮研究的 AskUserQuestion 等待点。无回调的评测运行传 None。"""
+    _clarify_gate_var.set(gate)
 
 
 def set_orchestrator_context(

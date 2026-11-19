@@ -26,6 +26,7 @@ from textual.widgets import Input, OptionList, RichLog, Static
 from textual.widgets.option_list import Option
 
 from searchos.config.effort import EFFORT_LEVELS
+from searchos.harness.clarify import ClarifyClosed, ClarifyGate, ClarifyInvalid, parse_tui_selection
 from searchos.harness.steering import SteeringMessage, SteeringQueue
 from searchos.harness.telemetry.conversation import build_history
 from searchos.tui.config_modal import ConfigModal, build_model_menu, build_root_menu
@@ -490,6 +491,8 @@ class SearchOSApp(App):
         self._turns: list[dict] = []
         # Thread-safe (the engine loop drains it; the UI thread fills it).
         self._steer_queue: SteeringQueue | None = None
+        self._clarify_gate: ClarifyGate | None = None
+        self._pending_clarify: dict | None = None
         # Transient slash-command hint shown in the status bar while typing.
         self._cmd_hint: str = ""
         # Config state is seeded from the shared web_settings.json overlay (loaded
@@ -753,7 +756,9 @@ class SearchOSApp(App):
             # so e.g. /stop and /verbose work mid-run.
             self._dispatch_command(text)
             return
-        if self._mode == "running":
+        if self._mode == "running" and self._pending_clarify is not None:
+            self._submit_clarify(text)
+        elif self._mode == "running":
             # Live follow-up: inject into the running orchestrator (sub-agents
             # keep running) rather than queueing for after completion.
             if self._steer_queue is not None:
@@ -1545,6 +1550,8 @@ class SearchOSApp(App):
         # here, on the UI thread, before the engine future is scheduled.
         self._session._active_workspace = None
         self._steer_queue = SteeringQueue()
+        self._pending_clarify = None
+        self._clarify_gate = ClarifyGate(query=query, on_asked=self._on_clarify_asked)
         if follow_up:
             self._write_marker(f"\n──────  追问：{query}  ──────", f"bold {ACCENT}")
         else:
@@ -1571,6 +1578,7 @@ class SearchOSApp(App):
                 session_id=session_id,
                 initial_state=initial_state,
                 steer_queue=self._steer_queue,
+                clarify_gate=self._clarify_gate,
                 access_only=self._access_only,
                 access_deny=self._access_deny or None,
                 strategy_deny=self._strategy_deny or None,
@@ -1585,6 +1593,41 @@ class SearchOSApp(App):
             self.call_from_thread(self._on_run_done, query, None, e)
         finally:
             self._engine_task = None
+
+    def _on_clarify_asked(self, pending: dict) -> None:
+        """Engine thread → UI thread. 打印题目并等下一次输入，不占用 Textual 的 stdin。"""
+        self.call_from_thread(self._present_clarify, pending)
+
+    def _present_clarify(self, pending: dict) -> None:
+        self._pending_clarify = pending
+        lines = ["需要补充条件（研究已暂停，等待选择）"]
+        for index, question in enumerate(pending.get("questions") or [], 1):
+            kind = "多选" if question.get("allowMultiple") else "单选"
+            lines.append(f"{index}. {question.get('prompt', '')}（{kind}）")
+            for option_index, option in enumerate(question.get("options") or [], 1):
+                lines.append(f"   {option_index}) {option}")
+        lines.append("输入编号，多选用逗号；补充文字写在 | 之后。多题用分号分隔。")
+        lines.append("例如 1 | 只看上市白酒")
+        self._write_marker("\n".join(lines), WARN)
+        self._note = "等待补充条件"
+        self._update_statusbar()
+
+    def _submit_clarify(self, text: str) -> None:
+        pending = self._pending_clarify
+        gate = self._clarify_gate
+        if pending is None or gate is None:
+            return
+        try:
+            payload = parse_tui_selection(text, pending.get("questions") or [])
+            gate.submit(pending["id"], payload)
+        except (ClarifyInvalid, ClarifyClosed) as exc:
+            self._note = str(exc)
+            self._update_statusbar()
+            return
+        self._pending_clarify = None
+        self._write_marker(f"❯ {text}", f"bold {ACCENT}")
+        self._note = "已提交选择，研究继续"
+        self._update_statusbar()
 
     def _on_run_done(self, query: str, result, error) -> None:
         """UI-thread completion handler — the final answer is already streamed
@@ -1606,6 +1649,8 @@ class SearchOSApp(App):
                 "session_id": result.session_id,
                 "state": result.search_state,
             })
+        self._pending_clarify = None
+        self._clarify_gate = None
         self._set_mode("done")
         if self._queue:
             self._start_run(self._queue.popleft())

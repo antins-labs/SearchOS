@@ -18,13 +18,17 @@ export function deriveRunPhase(events: WSEvent[], agent = "orchestrator"): strin
     } else if (["tool_call_started", "agent_final", "agent_complete", "agent_error"].includes(type)) {
       phase = null;
     }
+    if (type === "generation_started") phase = String(data.phase || "generating");
+    if (type === "question") phase = "waiting_user";
+    if (type === "question_answered") phase = "generating";
   }
   return phase;
 }
 
 export function runPhaseLabel(phase: string | null): string | null {
   return ({ initializing: "正在初始化…", loading_skills: "正在准备检索能力…",
-    routing: "正在选择检索方式…", generating: "正在生成下一步行动或回答…" } as Record<string, string>)[phase ?? ""] ?? null;
+    routing: "正在选择检索方式…", generating: "正在生成下一步行动或回答…",
+    waiting_user: "等待你的选择…" } as Record<string, string>)[phase ?? ""] ?? null;
 }
 
 export interface LocalRunProgress {

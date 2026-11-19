@@ -308,6 +308,20 @@ def _turn_views(
     return views
 
 
+def _public_status(ws: Path, mem: dict[str, Any] | None, result_file: Path) -> str:
+    """研究会话状态。技能登录的 waiting_user 不走这里。"""
+    if mem and mem.get("status") in {"running", "waiting_user", "error"}:
+        return str(mem["status"])
+    from searchos.harness.clarify import load_clarify
+
+    record = load_clarify(ws)
+    if record and record.get("status") == "waiting_user":
+        return "waiting_user"
+    if result_file.exists():
+        return "completed"
+    return "incomplete"
+
+
 def _session_meta(ws: Path) -> dict[str, Any] | None:
     sid = ws.name
     state_file = ws / "search_state.json"
@@ -328,14 +342,7 @@ def _session_meta(ws: Path) -> dict[str, Any] | None:
         title = _read_intent_fast(state_file)
 
     mem = sessions.get(sid)
-    if mem and mem.get("status") == "running":
-        status = "running"
-    elif mem and mem.get("status") == "error":
-        status = "error"
-    elif result_file.exists():
-        status = "completed"
-    else:
-        status = "incomplete"
+    status = _public_status(ws, mem, result_file)
 
     return {
         "session_id": sid,
@@ -431,9 +438,7 @@ async def load_history(session_id: str):
     events = timeline_events(ws, {})
 
     mem = sessions.get(session_id)
-    status = "running" if (mem and mem.get("status") == "running") else (
-        "completed" if result_file.exists() else "incomplete"
-    )
+    status = _public_status(ws, mem, result_file)
 
     # Full user↔AI dialogue so a reload shows every turn, not title + last answer.
     from searchos.harness.telemetry.conversation import conversation_turns

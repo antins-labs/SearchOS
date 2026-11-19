@@ -43,6 +43,18 @@ class Scheduler:
         # other registers its spawns — both see free slots and the pool
         # oversells past max_parallel_agents.
         self._tick_lock = asyncio.Lock()
+        self._dispatch_pause_depth = 0
+
+    def pause_dispatch(self) -> None:
+        """澄清等待期间不再派发新任务。已经跑起来的子 Agent 继续做完当前批次。"""
+        self._dispatch_pause_depth += 1
+
+    def resume_dispatch(self) -> None:
+        self._dispatch_pause_depth = max(0, self._dispatch_pause_depth - 1)
+
+    @property
+    def dispatch_paused(self) -> bool:
+        return self._dispatch_pause_depth > 0
 
     def allow_tasks(self, task_ids: list[str] | set[str]) -> None:
         """Extend a targeted run's dynamic task allowlist.
@@ -208,6 +220,8 @@ class Scheduler:
         from searchos.config.settings import settings as _settings
         from searchos.socm import FrontierTask, FrontierTaskStatus
 
+        if self.dispatch_paused:
+            return {"action": "clarify_waiting"}
         if not _settings.enable_writer_agent:
             return {"action": "disabled"}
         if _find_writer_id() is not None:
@@ -274,6 +288,8 @@ Coverage crossed {trigger.removeprefix('coverage_stage_')}% ({filled}/{total} ce
             _writer_last_evidence_count_var,
         )
 
+        if self.dispatch_paused:
+            return {"action": "clarify_waiting"}
         writer_id = _find_writer_id()
         if writer_id is None:
             return {"action": "no_writer"}
@@ -330,6 +346,8 @@ Proceed with write_section / edit_section + new citations."""
         from searchos.config.settings import settings
         from searchos.socm import FrontierTaskStatus
 
+        if self.dispatch_paused:
+            return {"spawned": 0, "reason": "clarify_waiting"}
         if not settings.enable_scheduler:
             return {"spawned": 0, "reason": "disabled"}
 

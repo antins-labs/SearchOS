@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -96,6 +98,14 @@ class TrajectoryLogger:
         self._append_raw({"type": "harness", "kind": "run_phase", "phase": phase,
                           "status": status, "agent": agent})
 
+    def log_generation_started(self, *, agent: str = "orchestrator", phase: str = "generating") -> None:
+        """模型调用一开始就留下可见信号，避免长生成期间界面空白。"""
+        self._append_raw({
+            "type": "generation_started",
+            "agent": agent,
+            "phase": phase,
+        })
+
     def log_step(self, step: TrajectoryStep) -> None:
         """Append a single search step to the trajectory file."""
         if self._path is None:
@@ -140,6 +150,7 @@ class TrajectoryLogger:
         self._path.parent.mkdir(parents=True, exist_ok=True)
         with open(self._path, "a", encoding="utf-8") as f:
             f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+        notify_trajectory(self._path)
         for cb in self._listeners:
             try:
                 cb(record)
@@ -179,3 +190,34 @@ class TrajectoryLogger:
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+_flush_lock = threading.Lock()
+_flush_waiters: dict[str, list[tuple[asyncio.AbstractEventLoop, asyncio.Event]]] = {}
+
+
+def watch_trajectory(path: str | Path, loop: asyncio.AbstractEventLoop, event: asyncio.Event):
+    """轨迹落盘后唤醒 WebSocket，避免只靠固定轮询。"""
+    key = str(path)
+    with _flush_lock:
+        _flush_waiters.setdefault(key, []).append((loop, event))
+
+    def close() -> None:
+        with _flush_lock:
+            waiters = _flush_waiters.get(key, [])
+            _flush_waiters[key] = [item for item in waiters if item[1] is not event]
+
+    return close
+
+
+def notify_trajectory(path: str | Path | None) -> None:
+    if path is None:
+        return
+    key = str(path)
+    with _flush_lock:
+        waiters = list(_flush_waiters.get(key, ()))
+    for loop, event in waiters:
+        try:
+            loop.call_soon_threadsafe(event.set)
+        except RuntimeError:
+            pass

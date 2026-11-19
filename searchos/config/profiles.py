@@ -107,6 +107,7 @@ def builtin_profiles() -> dict[str, ModelProfile]:
 def builtin_roles() -> dict[str, str]:
     return {
         "orchestrator":   "glm5-strong",
+        "route_classifier": "glm5-strong",
         "sub_agent":      "glm5-strong",
         "synthesis":      "qwen3.5-synthesis",
         "skill_evolver":  "glm5-strong",

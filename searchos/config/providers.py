@@ -22,7 +22,7 @@ deep-merged on top by ``Settings``).
 
 Each preset expands into five tier profiles::
 
-    main       orchestrator / sub_agent / skill_evolver / post_mortem / skill_router
+    main       orchestrator / sub_agent / skill_evolver / post_mortem / skill_router / route_classifier
     judge      judge                              (temperature 0)
     fast       extraction / local_vision          (temperature 0)
     synthesis  synthesis / local_recap            (temperature 0.3)
@@ -340,6 +340,7 @@ _TIERS: dict[str, tuple[float, int]] = {
 
 _ROLE_TIERS: dict[str, str] = {
     "orchestrator":     "main",
+    "route_classifier": "main",
     "sub_agent":        "main",
     "skill_evolver":    "main",
     "post_mortem":      "main",

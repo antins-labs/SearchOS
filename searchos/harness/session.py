@@ -182,6 +182,13 @@ class SearchSession:
             return overrides.get(role) or get_model_for(role)
 
         self._model = _resolve("orchestrator")
+        if "route_classifier" in overrides:
+            self._route_model = overrides["route_classifier"]
+        else:
+            try:
+                self._route_model = get_model_for("route_classifier")
+            except ValueError:
+                self._route_model = self._model
         self._judge_model = _resolve("judge")
         self._extraction_model = _resolve("extraction")
         self._synthesis_model = _resolve("synthesis")
@@ -192,6 +199,7 @@ class SearchSession:
 
         role_models = {
             "orchestrator": self._model,
+            "route_classifier": self._route_model,
             "judge": self._judge_model,
             "extraction": self._extraction_model,
             "synthesis": self._synthesis_model,
@@ -253,7 +261,7 @@ class SearchSession:
     def _build_research_graph(
         self, *, state, workspace, query, fixed_schema, targeted_repair_mode,
         orchestrator_deny, follow_up, conversation_history, traj_logger, conv_logger,
-        orch_budget, orch_control, steer_queue,
+        orch_budget, orch_control, steer_queue, clarify_gate=None,
     ):
         """Build the research graph on demand, leaving simple searches without an orchestrator."""
         from datetime import datetime as _dt
@@ -264,7 +272,10 @@ class SearchSession:
             generate_agent_catalog_text,
         )
         from searchos.agents.orchestrator.prompt import build_orchestrator_prompt
-        orchestrator_tools = get_orchestrator_tools(source_mode=(state.source_scope or {}).get("mode", ""))
+        orchestrator_tools = get_orchestrator_tools(
+            source_mode=(state.source_scope or {}).get("mode", ""),
+            ask_user=clarify_gate is not None,
+        )
         if fixed_schema:
             orchestrator_tools = [
                 tool for tool in orchestrator_tools
@@ -276,6 +287,7 @@ class SearchSession:
                 "check_agents",
                 "stop_task",
                 "read_table",
+                "AskUserQuestion",
             }
             orchestrator_tools = [
                 tool for tool in orchestrator_tools
@@ -394,6 +406,7 @@ Readable documents: {len(documents)}.
         fixed_schema: bool = False,
         targeted_repair_task_ids: "set[str] | None" = None,
         targeted_repair_cells: "list[str] | None" = None,
+        clarify_gate: Any | None = None,
     ) -> SearchResult:
         """Execute a complete search session via Orchestrator pattern.
 
@@ -565,6 +578,16 @@ Readable documents: {len(documents)}.
         # Router, simple worker and research share this session deadline.
         orch_budget._start_ts = start_time
         orch_control = ControlState()
+        from searchos.agents.runtime import _scheduler, set_clarify_gate
+
+        if clarify_gate is not None:
+            clarify_gate.bind(
+                workspace=workspace,
+                trajectory_logger=traj_logger,
+                budget=orch_budget,
+                scheduler=_scheduler(),
+            )
+        set_clarify_gate(clarify_gate)
         steering = None
         graph = None
 
@@ -599,11 +622,13 @@ Readable documents: {len(documents)}.
             from searchos.harness.simple_search import run_simple_search
 
             def remaining_time():
-                return max(0.0, orch_budget.max_time_s - (time.time() - start_time)) if orch_budget.max_time_s else None
+                if not orch_budget.max_time_s:
+                    return None
+                return max(0.0, orch_budget.max_time_s - orch_budget.elapsed_s_live)
 
             traj_logger.log_phase("routing")
             route = await select_route(
-                model=self._model, query=query, state=state,
+                model=self._route_model, query=query, state=state,
                 execution_path=self._run_config.execution_path,
                 follow_up=follow_up or bool(conversation_history), fixed_schema=fixed_schema,
                 targeted_repair=targeted_repair_mode, table_export=self._skip_synthesis,
@@ -650,6 +675,7 @@ Readable documents: {len(documents)}.
                     follow_up=follow_up, conversation_history=conversation_history,
                     traj_logger=traj_logger, conv_logger=conv_logger,
                     orch_budget=orch_budget, orch_control=orch_control, steer_queue=steer_queue,
+                    clarify_gate=clarify_gate,
                 )
                 if targeted_repair_mode:
                     from searchos.agents.runtime import _scheduler

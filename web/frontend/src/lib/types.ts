@@ -675,7 +675,7 @@ export interface SearchResult {
   skill_generation_id?: string | null;
   revision?: string;
   not_modified?: boolean;
-  status: "running" | "completed" | "error";
+  status: "running" | "waiting_user" | "completed" | "error";
   session_id: string;
   /** Full final answer (event-stream previews are truncated server-side). */
   answer?: string;
