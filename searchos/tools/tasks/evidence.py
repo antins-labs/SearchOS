@@ -65,9 +65,12 @@ async def extract_observation(
         return json.dumps({"error": "Source-support review is unavailable"})
 
     async def invoke(prompt):
+        from searchos.harness.middleware.extraction.core.tables.prompts import prompt_text
+
         if _ctx.budget_exhausted:
             raise ValueError("Research budget exhausted")
-        if len(prompt) > settings.hybrid_observation_review_max_chars:
+        text = prompt_text(prompt)
+        if len(text) > settings.hybrid_observation_review_max_chars:
             raise ValueError("Source review exceeds the input budget; request a smaller window")
         response = await model.ainvoke(prompt)
         if _ctx.budget_exhausted:

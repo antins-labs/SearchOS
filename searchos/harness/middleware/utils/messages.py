@@ -104,19 +104,38 @@ def append_feedback(result: Any, text: str) -> Any:
 
 
 def inject_context(request: Any, content: str, kind: str) -> Any:
-    """替换同类旧提示，不修改图中保存的原始消息。"""
+    """替换同类旧提示为尾部合成 Human，不修改图中保存的原始消息。"""
     messages = [
         message
         for message in request.messages
         if (getattr(message, "additional_kwargs", {}) or {}).get("sf_kind") != kind
     ]
     messages.append(
-        SystemMessage(
+        HumanMessage(
             content=content,
             additional_kwargs={"sf_synthetic": True, "sf_kind": kind},
         )
     )
     return replace(request, messages=messages)
+
+
+def promote_synthetic_systems(messages: list[Any]) -> list[Any]:
+    """把仍残留的合成 SystemMessage 升格为 Human，避免折进 request.system_message。"""
+    promoted: list[Any] = []
+    for message in messages:
+        kwargs = getattr(message, "additional_kwargs", {}) or {}
+        if isinstance(message, SystemMessage) and kwargs.get("sf_synthetic"):
+            promoted.append(
+                HumanMessage(
+                    content=message.content,
+                    id=getattr(message, "id", None),
+                    name=getattr(message, "name", None),
+                    additional_kwargs=kwargs,
+                )
+            )
+        else:
+            promoted.append(message)
+    return promoted
 
 
 async def call_with_context(
@@ -125,10 +144,10 @@ async def call_with_context(
     *,
     content: str,
     kind: str,
-    user: bool = False,
+    user: bool = True,
     message_id: str | None = None,
 ) -> ModelResponse:
-    """在末尾追加变化后的控制消息，成功后按发送顺序写回历史。"""
+    """在末尾追加变化后的合成 Human，成功后按发送顺序写回历史。"""
     previous = next(
         (m for m in reversed(request.messages) if m.additional_kwargs.get("sf_kind") == kind),
         None,
@@ -136,6 +155,8 @@ async def call_with_context(
     if (previous is not None and previous.content == content
             and (message_id is None or previous.id == message_id)):
         return await handler(request)
+    # Runtime context always lands as Human so the backbone system prefix stays cacheable.
+    # ``user=False`` is retained only for callers that still opt into System; prefer Human.
     message = (HumanMessage if user else SystemMessage)(
         content=content,
         id=message_id or str(uuid4()),

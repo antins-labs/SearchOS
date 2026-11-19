@@ -248,7 +248,9 @@ def _ingest_rows(
         if row_status == "excluded":
             rejected.append({"row": raw_entity, "column": "", "reason": "excluded_entity"})
             continue
-        new_entity = entity is None
+        # An active resolve is the same row. Discover must reuse it (no second
+        # entity) and may still commit newly supported attributes.
+        new_entity = entity is None and not (mode == "discover" and row_status == "active")
         if new_entity:
             if mode == "fill":
                 rejected.append(

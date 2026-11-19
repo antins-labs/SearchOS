@@ -8,6 +8,7 @@ import useDialogFocus from "@/hooks/useDialogFocus";
 import { getFileContent } from "@/lib/api";
 import { highlightCode } from "@/lib/codeHighlight";
 import { isCodeTool, parseExecArgs, summarizeExecResult } from "@/lib/execPreview";
+import { prettyToolPayload } from "@/lib/tableCursor";
 
 export interface ToolCallDetail {
   tool: string;
@@ -18,15 +19,6 @@ export interface ToolCallDetail {
   status?: "running" | "completed" | "error" | "cancelled";
   kind?: "skill";
   executionId?: string;
-}
-
-function prettyPayload(value: string): string {
-  if (!value.trim()) return "No data recorded";
-  try {
-    return JSON.stringify(JSON.parse(value), null, 2);
-  } catch {
-    return value;
-  }
 }
 
 type CopyKind = "arguments" | "output" | "code" | "stdout" | "stderr" | "raw";
@@ -53,7 +45,7 @@ function PayloadPane({
     ? "工具执行中，结果尚未返回…"
     : highlight
       ? highlightCode(value || "")
-      : prettyPayload(value);
+      : prettyToolPayload(value);
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col border-b border-line last:border-b-0 md:basis-1/2 md:border-b-0 md:border-r md:last:border-r-0">
       <div className="flex items-center justify-between border-b border-line px-4 py-2.5">

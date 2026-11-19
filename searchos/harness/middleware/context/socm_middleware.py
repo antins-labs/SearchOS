@@ -8,7 +8,7 @@ from datetime import date
 from typing import Any, Literal
 
 from langchain.agents.middleware.types import AgentMiddleware, ModelResponse
-from langchain_core.messages import RemoveMessage, SystemMessage
+from langchain_core.messages import HumanMessage, RemoveMessage
 
 from searchos.harness.middleware.context.core.task_view import TaskProjection
 from searchos.harness.middleware.models import TaskContext
@@ -17,6 +17,12 @@ from searchos.socm.failure_memory.projection import render_failure_memory
 from searchos.socm.planning.research_plan import render_research_plan
 from searchos.socm.views.render import render_compact_summary, render_orchestrator_view
 from searchos.socm.views.snapshot import SearchStateSnapshot
+
+
+_CONTINUE_PRIOR = (
+    "[Runtime state — not a new user task. Continue from your previous reasoning "
+    "and the latest tool results.]"
+)
 
 
 class SOCMContextMiddleware(AgentMiddleware):
@@ -78,7 +84,12 @@ class SOCMContextMiddleware(AgentMiddleware):
         text = "\n\n".join(block for block in (text, failure_memory) if block)
         if not text:
             return ""
-        return f"Current date (runtime local date): {date.today().isoformat()}\n\n{text}"
+        # Latest-turn user snapshot. The closing line marks it as runtime state,
+        # not a new task, so the model continues the prior tool loop.
+        return (
+            f"Current date (runtime local date): {date.today().isoformat()}\n\n{text}"
+            f"\n\n{_CONTINUE_PRIOR}"
+        )
 
     async def awrap_model_call(self, request: Any, handler: Callable) -> ModelResponse:
         # 此处位于抽取 drain 之后，读取本次调用前已提交的最新研究状态。
@@ -97,7 +108,7 @@ class SOCMContextMiddleware(AgentMiddleware):
         if content:
             changed = previous is None or previous.content != content
             snapshot = (
-                SystemMessage(
+                HumanMessage(
                     content=content,
                     id="socm-current",
                     additional_kwargs={"sf_synthetic": True, "sf_kind": "socm_update"},

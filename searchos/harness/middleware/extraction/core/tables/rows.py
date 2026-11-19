@@ -6,13 +6,15 @@ import asyncio
 import json
 import logging
 import re
-from typing import Any
+from typing import Any, Sequence
+
+from langchain_core.messages import BaseMessage, HumanMessage
 
 from searchos.harness.middleware.extraction.core.models import ExtractionConfig
 from searchos.harness.middleware.extraction.core.tables.prompts import (
-    build_coverage_aware_row_prompt,
-    build_discover_row_prompt,
-    build_fill_row_prompt,
+    build_coverage_aware_row_messages,
+    build_discover_row_messages,
+    build_fill_row_messages,
 )
 from searchos.socm.evidence.missing_values import (
     _NULL_VALUES,
@@ -160,36 +162,38 @@ class RowExtractor:
             pages=pages,
         )
         if mode == "fill":
-            prompt = build_fill_row_prompt(
+            messages = build_fill_row_messages(
                 **common, global_task=global_task, coverage_snapshot=view
             )
         elif mode == "discover":
-            prompt = build_discover_row_prompt(
+            messages = build_discover_row_messages(
                 **common, global_task=global_task, known_pk_list=view
             )
         else:
-            prompt = build_coverage_aware_row_prompt(
+            messages = build_coverage_aware_row_messages(
                 **common,
                 global_task=global_task,
                 coverage_snapshot=view,
             )
+        system = messages[0]
+        human = messages[1]
         scoped_targets = [item.get("task_target_cells") for item in items
                           if item.get("task_target_cells")]
         if scoped_targets:
             scoped_targets = sorted(target_cells) if target_cells is not None else scoped_targets
-            prompt += f"""
+            human = HumanMessage(content=human.content + f"""
 
 ## Explicit task write scope
 Only return values for these target cells: {json.dumps(scoped_targets, ensure_ascii=False)}.
 Do not reinterpret requirement IDs or fill other rows/columns. These explicit targets constrain
 every extraction mode. A page about another requirement cannot fill these cells;
-return [] when unsupported."""
+return [] when unsupported.""")
         item = items[0] if items else {}
         ok = True
         for attempt in range(3):
-            retry_prompt = prompt
+            human_content = human.content
             if attempt:
-                retry_prompt += f"""
+                human_content += f"""
 
 [JSON format correction] Return one JSON array of objects. Primary-key fields:
 {json.dumps(schema.primary_key, ensure_ascii=False)}. At least one primary-key field must be a
@@ -197,7 +201,7 @@ non-null page-supported value; unknown primary-key fields may be null (they norm
 Quote strings, including values containing units or symbols. Preserve all supported rows, source
 values and excerpts. Return [] only when the sources support no rows."""
             try:
-                raw = await self.invoke(retry_prompt)
+                raw = await self.invoke([system, HumanMessage(content=human_content)])
             except Exception:  # noqa: BLE001
                 logger.warning("row extraction (%s) raised", mode, exc_info=True)
                 return [], False
@@ -301,9 +305,10 @@ values and excerpts. Return [] only when the sources support no rows."""
                 }
             )
 
-    async def invoke(self, prompt: str) -> str:
+    async def invoke(self, prompt: str | Sequence[BaseMessage]) -> str:
         """最多三次同协议调用；保留 findings、支持核验或表格抽取的完整输入。
 
+        接受稳定 System + 动态 Human 的消息列表（或兼容旧的单字符串）。
         输出解析和证据校验仍由各自调用方负责。有效空结果不触发额外调用；
         失败时不改用其他字段或截断原文，避免生成下游无法接收的候选。
         单次 ainvoke 受 ``extraction_invoke_timeout_s`` 约束。

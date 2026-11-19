@@ -18,17 +18,24 @@ from searchos.harness.middleware.utils.messages import (
     call_with_context,
     extract_tool_name,
     merge_system_messages,
+    promote_synthetic_systems,
     unwrap_ai_message,
 )
 
 
 async def call_model(request: Any, handler: Callable, *, image_fallback: bool = True) -> Any:
+    # Synthetic System leftovers must not rewrite the backbone system prefix.
+    original = list(request.messages)
+    messages = promote_synthetic_systems(original)
+    if messages != original:
+        request = replace(request, messages=messages)
     if any(isinstance(message, SystemMessage) for message in request.messages):
-        messages = merge_system_messages([
+        # Only non-synthetic System messages remain; merge those for provider quirks.
+        merged = merge_system_messages([
             *([request.system_message] if request.system_message is not None else []),
             *request.messages,
         ])
-        request = replace(request, system_message=messages[0], messages=messages[1:])
+        request = replace(request, system_message=merged[0], messages=merged[1:])
     if not image_fallback:
         return await handler(request)
     try:

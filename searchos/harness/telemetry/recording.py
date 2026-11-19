@@ -302,7 +302,8 @@ class ContextRecorder:
             try:
                 self.conversation.log(
                     ConversationMessage(
-                        role="user" if kind == "budget_summary" else "system",
+                        # Runtime context is synthetic Human at the message tail.
+                        role="user",
                         content=content,
                         agent_name=self.agent_id,
                         metadata={"synthetic": kind},

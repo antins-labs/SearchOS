@@ -4,7 +4,7 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
-from langchain_core.messages import AIMessage, BaseMessage, SystemMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 
 from searchos.socm.refs import cell_parts
 
@@ -54,10 +54,10 @@ def _compact_json(value: Any) -> str:
 
 def insert_history(
     preamble: list[BaseMessage],
-    history: SystemMessage,
+    history: BaseMessage,
     current: list[BaseMessage],
 ) -> list[BaseMessage]:
-    """Keep system messages at the front for strict model providers."""
+    """Insert episode history after any leading system messages."""
     index = 0
     while index < len(preamble) and getattr(preamble[index], "type", "") == "system":
         index += 1
@@ -91,9 +91,12 @@ class SearchEpisodeHistory:
                         coverage_delta=dict(record.get("coverage_delta", {})),
                     )
                 )
-            history = SystemMessage(
+            history = HumanMessage(
                 content=self._render_history(episodes),
-                additional_kwargs={"sf_kind": "search_episode_history"},
+                additional_kwargs={
+                    "sf_synthetic": True,
+                    "sf_kind": "search_episode_history",
+                },
             )
             # User corrections and existing compaction handoffs survive folding.
             preamble = messages[: starts[0]] + [

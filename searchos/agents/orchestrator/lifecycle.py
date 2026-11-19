@@ -1062,21 +1062,23 @@ async def _spawn_sub_agent(
     if extra_tools:
         tools.extend(extra_tools)
 
-    # Build system prompt: agent.md first (persona), then SOCM context
+    # Static system: persona + toolset + image + day-level temporal grounding.
+    # Dynamic dispatch blocks go in a separate synthetic Human after the task so
+    # same-role sub-agents can share a cacheable system prefix.
     state = _ctx.workspace.load_state()
-    prompt_parts: list[str] = []
-    static_assembly_parts: list[str] = []
+    static_parts: list[str] = []
+    dispatch_parts: list[str] = []
     if agent_type == _local_search.AGENT_TYPE and source_scope is not None:
         paths = "\n".join(
             f"""{r['relative_path']}: documents/{r['document_id']}.md"""
             for r in source_scope.get("documents", [])
         )
         if source_scope.get("selection") == "library":
-            prompt_parts.append(
+            dispatch_parts.append(
                 """For this turn, explore the readable document snapshot in the current library. Search catalogs with local_catalog(query=...) or browse the scope with local_catalog(), then follow relevant document catalogs to locate and read source content. Search summaries and aliases when filenames do not match. Stay within relevant material."""
             )
         else:
-            prompt_parts.append(f"""This turn allows only the selected documents below. Start directly from their catalogs:
+            dispatch_parts.append(f"""This turn allows only the selected documents below. Start directly from their catalogs:
 {paths}""")
     assigned = next((q for q in state.frontier.questions if q.id == assigned_task_id), None)
     if assigned and assigned.blocked_by:
@@ -1085,7 +1087,7 @@ async def _spawn_sub_agent(
                if b.task_id in assigned.blocked_by}
         supporting = [{"id": n.id, "finding": n.finding, "source": n.source}
                       for n in answer_evidence(state) if n.id in ids]
-        prompt_parts.append(f"""Verified findings from prerequisite tasks (check against the current question):
+        dispatch_parts.append(f"""Verified findings from prerequisite tasks (check against the current question):
 {json.dumps(supporting, ensure_ascii=False)}""")
 
     from pathlib import Path
@@ -1103,24 +1105,18 @@ async def _spawn_sub_agent(
         persona = agent_md_path.read_text(encoding="utf-8")
         rendered = render_toolset(tools, header="## Available Tools")
         persona = persona.replace("{toolset}", rendered)
-        prompt_parts.append(persona)
-        static_assembly_parts.append(persona)
+        static_parts.append(persona)
         if agent_type == _search.AGENT_TYPE and any(
             getattr(tool, "name", "") == "read_visual" for tool in tools
         ):
             image_prompt = agent_md_path.with_name("image_reading.md")
             if image_prompt.exists():
-                image_instructions = image_prompt.read_text(encoding="utf-8")
-                prompt_parts.append(image_instructions)
-                static_assembly_parts.append(image_instructions)
+                static_parts.append(image_prompt.read_text(encoding="utf-8"))
 
-    # After the persona and date-only: dynamic content at the top of the
-    # system prompt forks the prompt-cache prefix on every dispatch, so
-    # same-type sub-agents could never share the cached persona/toolset.
     from datetime import datetime as _dt
 
     from searchos.agents.date_context import render_temporal_grounding
-    prompt_parts.append(render_temporal_grounding(
+    static_parts.append(render_temporal_grounding(
         _dt.now().strftime("%Y-%m-%d"),
         agent_type,
     ))
@@ -1130,7 +1126,7 @@ async def _spawn_sub_agent(
         from searchos.socm.planning.retry_routes import retry_route_prompt
         route_prompt = retry_route_prompt(route_task)
         if route_prompt:
-            prompt_parts.append(route_prompt)
+            dispatch_parts.append(route_prompt)
 
     scope_entities = _detect_scope_entities(
         task, state.coverage_map.table_schema.entities,
@@ -1139,7 +1135,7 @@ async def _spawn_sub_agent(
     if agent_type != "explore_agent":
         socm_block = _build_sub_agent_context(state, agent_type=agent_type)
         if socm_block:
-            prompt_parts.append(socm_block)
+            dispatch_parts.append(socm_block)
 
     missing_skills: list[str] = []
     if skill_names and _ctx.skill_registry and any(getattr(t, 'name', '') == 'load_skill' for t in tools):
@@ -1172,21 +1168,23 @@ async def _spawn_sub_agent(
                 )
         if skill_parts:
             recommendations = "\n\n".join(skill_parts)
-            prompt_parts.append(f"""## Recommended Skills
+            dispatch_parts.append(f"""## Recommended Skills
 {recommendations}""")
 
     if assigned and assigned.kind == "search":
-        prompt_parts.append(
+        dispatch_parts.append(
             """Read original sources for the assigned question. Preserve their references and report any unresolved gaps. Evidence Extraction links supported facts to this task. It uses the current schema to update rows and cells, or records independent findings when no table exists."""
         )
     strategy_guidance_applied = bool(strategy_guidance and agent_type in {"search_agent", "local_search_agent"})
     if strategy_guidance_applied:
-        prompt_parts.append(f"""## Candidate retrieval methods for this subtask
+        dispatch_parts.append(f"""## Candidate retrieval methods for this subtask
 Follow the existing permissions, source scope, and budgets.
 {strategy_guidance}""")
     if prompt_suffix:
-        prompt_parts.append(prompt_suffix)
-    system_prompt = "\n\n".join(prompt_parts)
+        dispatch_parts.append(prompt_suffix)
+    system_prompt = "\n\n".join(static_parts)
+    dispatch_context = "\n\n".join(dispatch_parts)
+    static_assembly_parts = list(static_parts)
 
     # Enforce budgets independently of optional trajectory logging.
     from searchos.config.settings import settings
@@ -1351,7 +1349,7 @@ Follow the existing permissions, source scope, and budgets.
             agent_name=thread_id,
             parent="orchestrator",
             task=task,
-            system_prompt="\n\n".join(prompt_parts),
+            system_prompt=system_prompt,
             agent_type=agent_type,
         )
 
@@ -1429,6 +1427,7 @@ Continue with your retained conversation, browser references and loaded skills. 
         "task_kind": assigned.kind if assigned else _KIND_FROM_AGENT[agent_type],
         "task": task,
         "wrapped_task": wrapped_task,
+        "dispatch_context": dispatch_context,
         "skill_names": list(skill_names),
         "strategy_guidance_applied": strategy_guidance_applied,
         "missing_skills": missing_skills,
@@ -1477,6 +1476,7 @@ async def _collect_sub_agent_result(
     graph = info["graph"]
     thread_id = info["thread_id"]
     wrapped_task = info["wrapped_task"]
+    dispatch_context = info.get("dispatch_context") or ""
     task_desc = info["task"]
     pre_snapshot = info["pre_snapshot"]
     missing_skills = info["missing_skills"]
@@ -1501,8 +1501,23 @@ async def _collect_sub_agent_result(
     try:
         prev_msg_count = 0
         logged_message_ids = info.setdefault("logged_message_ids", set())
+        from langchain_core.messages import HumanMessage as _HumanMessage
+
+        start_messages: list[Any] = [
+            {"role": "user", "content": wrapped_task},
+        ]
+        if dispatch_context:
+            # Consecutive user messages are OK; keep dispatch context off the
+            # task body and out of the static system prefix.
+            start_messages.append(_HumanMessage(
+                content=dispatch_context,
+                additional_kwargs={
+                    "sf_synthetic": True,
+                    "sf_kind": "subagent_dispatch_context",
+                },
+            ))
         async for event in graph.astream(
-            {"messages": [{"role": "user", "content": wrapped_task}]},
+            {"messages": start_messages},
             config={"configurable": {"thread_id": thread_id}},
             stream_mode="values",
         ):

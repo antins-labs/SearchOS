@@ -315,7 +315,7 @@ def langchain_msg_to_conversation_msgs(msg: Any) -> list[ConversationMessage]:
             key: extras[f"sf_{key}"]
             for key in ("steer_id", "steer_mode", "steer_text") if f"sf_{key}" in extras
         }
-        if msg_type == "system":
+        if extras.get("sf_kind") or (msg_type == "system" and extras.get("sf_synthetic")):
             metadata["synthetic"] = extras.get("sf_kind", "runtime_context")
         results.append(ConversationMessage(
             role="system" if msg_type == "system" else "user", content=content, metadata=metadata,

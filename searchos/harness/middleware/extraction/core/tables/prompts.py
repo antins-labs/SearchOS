@@ -2,15 +2,32 @@ from __future__ import annotations
 
 import json
 from datetime import date
+from typing import Sequence
+
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 
 __all__ = [
     "COVERAGE_AWARE_ROW_PROMPT",
     "FILL_ROW_PROMPT",
     "DISCOVER_ROW_PROMPT",
     "build_coverage_aware_row_prompt",
-    "build_fill_row_prompt",
     "build_discover_row_prompt",
+    "build_fill_row_prompt",
+    "build_coverage_aware_row_messages",
+    "build_discover_row_messages",
+    "build_fill_row_messages",
+    "prompt_text",
 ]
+
+
+def prompt_text(prompt: str | Sequence[BaseMessage | str]) -> str:
+    """Flatten a string or chat messages for tests / length checks."""
+    if isinstance(prompt, str):
+        return prompt
+    return "\n".join(
+        part if isinstance(part, str) else str(getattr(part, "content", part))
+        for part in prompt
+    )
 
 
 def _render_row_key_example(primary_key: list[str], data_columns: list[str]) -> str:
@@ -174,46 +191,61 @@ _DYNAMIC = """\
 {current_date}
 """
 
-FILL_ROW_PROMPT = _SCHEMA + _OUTPUT + _RULES + """\
+_MODE_FILL = """\
 ## FILL MODE
 Output only listed existing identities with a page-supported value for at least one eligible
 fill target. Copy each primary-key field exactly from its coverage column; set other data columns
 to null. Return [] when no listed target is supported.
 Coverage columns define row-array order; cell objects give values and unresolved status.
 Fill targets use zero-based row and column indices.
-""" + _DYNAMIC + """\
-## Rows needing data
-{coverage_snapshot}
-## Pages
-{pages_block}
 """
 
-DISCOVER_ROW_PROMPT = _SCHEMA + _OUTPUT + _RULES + """\
+_MODE_DISCOVER = """\
 ## DISCOVER MODE
 Output only new primary keys absent from the known inventory. Date formatting, casing and
 punctuation variants of a known identity remain known. Copy each new key's own value from the
 page; fill supported attributes and keep others null. Identity-only rows qualify. Return [] if
 all supported identities are already known.
-""" + _DYNAMIC + """\
-## Known rows
-{known_pk_list}
-## Pages
-{pages_block}
 """
 
-COVERAGE_AWARE_ROW_PROMPT = _SCHEMA + _OUTPUT + _RULES + """\
+_MODE_COVERAGE = """\
 ## Source-driven extraction
 Use source-driven extraction: read the pages using the schema and task scope. Emit supported
 candidates for existing and new identities; evaluate every field independently. The commit layer
 resolves canonical identities and table updates. Optional canonical identity hints assist a clear
 match; they impose no inventory or completion requirement. Explicit task write targets constrain
 all candidates.
-""" + _DYNAMIC + """\
+"""
+
+_HUMAN_FILL = _DYNAMIC + _MODE_FILL + """\
+## Rows needing data
+{coverage_snapshot}
+## Pages
+{pages_block}
+"""
+
+_HUMAN_DISCOVER = _DYNAMIC + _MODE_DISCOVER + """\
+## Known rows
+{known_pk_list}
+## Pages
+{pages_block}
+"""
+
+_HUMAN_COVERAGE = _DYNAMIC + _MODE_COVERAGE + """\
 ## Optional canonical identity hints
 {coverage_snapshot}
 ## Pages
 {pages_block}
 """
+
+_SYSTEM_FILL = _SCHEMA + _OUTPUT + _RULES
+_SYSTEM_DISCOVER = _SCHEMA + _OUTPUT + _RULES
+_SYSTEM_COVERAGE = _SCHEMA + _OUTPUT + _RULES
+
+# Concatenated templates kept for callers/tests that still inspect a single string.
+FILL_ROW_PROMPT = _SYSTEM_FILL + _HUMAN_FILL
+DISCOVER_ROW_PROMPT = _SYSTEM_DISCOVER + _HUMAN_DISCOVER
+COVERAGE_AWARE_ROW_PROMPT = _SYSTEM_COVERAGE + _HUMAN_COVERAGE
 
 
 def _render_pages_block(pages: list[dict[str, str]]) -> str:
@@ -239,20 +271,47 @@ def _render_pages_block(pages: list[dict[str, str]]) -> str:
     return "\n\n".join(parts)
 
 
+def _format_kwargs(
+    *, global_task: str, sub_agent_task: str,
+    primary_key: list[str], data_columns: list[str], column_desc: dict | None,
+    pages: list[dict[str, str]], **view: str,
+) -> dict[str, str]:
+    return dict(
+        current_date=date.today().isoformat(),
+        global_task=global_task or sub_agent_task,
+        sub_agent_task=sub_agent_task,
+        primary_key=list(primary_key),
+        data_columns=list(data_columns),
+        column_desc_block=_render_column_desc_block(primary_key, data_columns, column_desc),
+        pages_block=_render_pages_block(pages),
+        key_example=_render_row_key_example(primary_key, data_columns),
+        **view,
+    )
+
+
+def _build_parts(
+    system_template: str, human_template: str, *, global_task: str, sub_agent_task: str,
+    primary_key: list[str], data_columns: list[str], column_desc: dict | None,
+    pages: list[dict[str, str]], **view: str,
+) -> tuple[str, str]:
+    fields = _format_kwargs(
+        global_task=global_task, sub_agent_task=sub_agent_task,
+        primary_key=primary_key, data_columns=data_columns, column_desc=column_desc,
+        pages=pages, **view,
+    )
+    return system_template.format(**fields), human_template.format(**fields)
+
+
 def _build_prompt(
     template: str, *, global_task: str, sub_agent_task: str,
     primary_key: list[str], data_columns: list[str], column_desc: dict | None,
     pages: list[dict[str, str]], **view: str,
 ) -> str:
-    return template.format(
-        current_date=date.today().isoformat(),
-        global_task=global_task or sub_agent_task,
-        sub_agent_task=sub_agent_task,
-        primary_key=list(primary_key), data_columns=list(data_columns),
-        column_desc_block=_render_column_desc_block(primary_key, data_columns, column_desc),
-        pages_block=_render_pages_block(pages),
-        key_example=_render_row_key_example(primary_key, data_columns), **view,
-    )
+    return template.format(**_format_kwargs(
+        global_task=global_task, sub_agent_task=sub_agent_task,
+        primary_key=primary_key, data_columns=data_columns, column_desc=column_desc,
+        pages=pages, **view,
+    ))
 
 
 def build_fill_row_prompt(
@@ -290,3 +349,42 @@ def build_coverage_aware_row_prompt(
         primary_key=primary_key, data_columns=data_columns, column_desc=column_desc, pages=pages,
         coverage_snapshot=coverage_snapshot or "(none)",
     )
+
+
+def build_fill_row_messages(
+    *, global_task: str, sub_agent_task: str, primary_key: list[str],
+    data_columns: list[str], column_desc: dict | None, pages: list[dict[str, str]],
+    coverage_snapshot: str,
+) -> list[BaseMessage]:
+    system, human = _build_parts(
+        _SYSTEM_FILL, _HUMAN_FILL, global_task=global_task, sub_agent_task=sub_agent_task,
+        primary_key=primary_key, data_columns=data_columns, column_desc=column_desc, pages=pages,
+        coverage_snapshot=coverage_snapshot or "(no eligible fill targets; return [])",
+    )
+    return [SystemMessage(content=system), HumanMessage(content=human)]
+
+
+def build_discover_row_messages(
+    *, global_task: str, sub_agent_task: str, primary_key: list[str],
+    data_columns: list[str], column_desc: dict | None, pages: list[dict[str, str]],
+    known_pk_list: str,
+) -> list[BaseMessage]:
+    system, human = _build_parts(
+        _SYSTEM_DISCOVER, _HUMAN_DISCOVER, global_task=global_task, sub_agent_task=sub_agent_task,
+        primary_key=primary_key, data_columns=data_columns, column_desc=column_desc, pages=pages,
+        known_pk_list=known_pk_list or "(empty inventory)",
+    )
+    return [SystemMessage(content=system), HumanMessage(content=human)]
+
+
+def build_coverage_aware_row_messages(
+    *, global_task: str = "", sub_agent_task: str, primary_key: list[str],
+    data_columns: list[str], column_desc: dict | None, pages: list[dict[str, str]],
+    coverage_snapshot: str,
+) -> list[BaseMessage]:
+    system, human = _build_parts(
+        _SYSTEM_COVERAGE, _HUMAN_COVERAGE, global_task=global_task, sub_agent_task=sub_agent_task,
+        primary_key=primary_key, data_columns=data_columns, column_desc=column_desc, pages=pages,
+        coverage_snapshot=coverage_snapshot or "(none)",
+    )
+    return [SystemMessage(content=system), HumanMessage(content=human)]

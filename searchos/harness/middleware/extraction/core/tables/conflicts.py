@@ -6,8 +6,10 @@ import asyncio
 import json
 import time
 import weakref
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
+
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 
 from searchos.socm.coverage.conflicts import (
     EvidencePair,
@@ -35,7 +37,7 @@ class ConflictReviewer:
     def __init__(
         self,
         store: Any,
-        invoke: Callable[[str], Awaitable[str]],
+        invoke: Callable[[str | Sequence[BaseMessage]], Awaitable[str]],
         *,
         trajectory_logger: Any = None,
         batch_chars: int = 16_000,
@@ -154,12 +156,13 @@ class ConflictReviewer:
             if reverse:
                 item["a"], item["b"] = item["b"], item["a"]
             payload.append(item)
-        review = _REVIEW if reverse else ""
-        prompt = f"""{_PROMPT}{review}
-INPUT_JSON:
-{json.dumps(payload, ensure_ascii=False)}"""
+        system = f"{_PROMPT}{_REVIEW if reverse else ''}"
+        human = f"INPUT_JSON:\n{json.dumps(payload, ensure_ascii=False)}"
         try:
-            raw = await asyncio.wait_for(self.invoke(prompt), self.timeout_s)
+            raw = await asyncio.wait_for(
+                self.invoke([SystemMessage(content=system), HumanMessage(content=human)]),
+                self.timeout_s,
+            )
             # 只接受完整 JSON，不从说明文字中猜测判定结果。
             if raw.strip().startswith("```"):
                 raw = "\n".join(raw.strip().splitlines()[1:-1])

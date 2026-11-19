@@ -659,7 +659,7 @@ Readable documents: {len(documents)}.
                         "model": str(model_name),
                     },
                 }
-                from langchain_core.messages import SystemMessage
+                from langchain_core.messages import HumanMessage
 
                 history_messages = [
                     {**message, "id": f"history-{index}"}
@@ -676,7 +676,7 @@ Readable documents: {len(documents)}.
                     targets = json.dumps([cell_ref(key) for key in targeted_repair_cells or []], ensure_ascii=False)
                     repair_context = f"""Repair only these coverage cells: {targets}.
 You own the repair plan and dispatch. Split these cells into focused retrieval tasks with enqueue_tasks using the current Agent Catalog; set target_table and target_cells on every task as CellRef objects {{table_id, key: [PK values], attribute}}. Do not create or change schemas, add entities, or expand beyond this allowlist. Keep dispatching and reviewing incoming reports until the selected cells are repaired or the available evidence is exhausted, then summarize what changed."""
-                    input_payload["messages"].append(SystemMessage(
+                    input_payload["messages"].append(HumanMessage(
                         content=repair_context,
                         additional_kwargs={"sf_synthetic": True, "sf_kind": "targeted_repair"},
                     ))
@@ -793,7 +793,7 @@ You own the repair plan and dispatch. Split these cells into focused retrieval t
                     })
                     input_payload = {
                         "messages": [
-                            SystemMessage(
+                            HumanMessage(
                                 content=_premature_end_nudge(reason),
                                 additional_kwargs={"sf_synthetic": True, "sf_kind": "pending_work"},
                             ),
