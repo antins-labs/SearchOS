@@ -187,6 +187,13 @@ the model provider.
 | `serper` | Serper.dev | `SERPER_API_KEY` | Recommended Google results backend |
 | `tavily` | Tavily | `TAVILY_API_KEY` | Requires `pip install 'searchos[tavily]'` |
 | `ragflow` | RagFlow | — | Ant Group internal backend; unavailable to external users |
+| `parallel` | Parallel Search MCP | — | Opt-in public web search with no search API key |
+
+Choose `parallel` in Web Settings or the setup wizard, run `/search parallel`
+in the TUI, or set `SF_SEARCH_PROVIDER=parallel` when no provider has been saved.
+When selected, research agents send their web search queries to
+[Parallel](https://mcp.parallel.ai/mcp) and receive excerpts with the original
+source links. Anonymous requests are rate limited.
 
 Without `SF_SEARCH_PROVIDER`, SearchOS infers Serper and then Tavily from the
 available keys. If neither key exists, it falls back to RagFlow for backward

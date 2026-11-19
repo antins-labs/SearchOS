@@ -91,7 +91,9 @@ export default function SearchSection() {
       description={zh ? "配置联网检索与网页读取服务。密钥保存在 .env 中，界面不会显示原文。" : "Configure web search and page reading. Provider keys are stored in .env and never shown."}>
       <Card>
         <Row label={zh ? "检索服务" : "Search provider"}
-          hint={models.search.configured ? undefined : (zh ? `自动选择为 ${models.search.resolved}` : `Automatically resolved to ${models.search.resolved}`)}>
+          hint={models.search.resolved === "parallel"
+            ? (zh ? "搜索查询会发送给 Parallel。匿名使用受限流约束。" : "Search queries go to Parallel. Anonymous requests are rate limited.")
+            : models.search.configured ? undefined : (zh ? `自动选择为 ${models.search.resolved}` : `Automatically resolved to ${models.search.resolved}`)}>
           <Select
             value={models.search.configured ?? "auto"}
             disabled={disabled}
@@ -100,8 +102,10 @@ export default function SearchSection() {
               { value: "auto", label: `${zh ? "自动" : "Auto"} (${models.search.resolved})` },
               ...models.search.providers.map((pr) => ({
                 value: pr.name,
-                label: pr.key_set || pr.name === "ragflow" ? pr.name : `${pr.name} (${zh ? "未配置密钥" : "no key"})`,
-                disabled: !pr.key_set && pr.name !== "ragflow",
+                label: !pr.api_key_env
+                  ? `${pr.name} (${zh ? "无需密钥" : "no key required"})`
+                  : pr.key_set || pr.name === "ragflow" ? pr.name : `${pr.name} (${zh ? "未配置密钥" : "no key"})`,
+                disabled: Boolean(pr.api_key_env) && !pr.key_set && pr.name !== "ragflow",
               })),
             ]}
             onChange={setSearchBackend}
@@ -119,7 +123,7 @@ export default function SearchSection() {
           </button>
           {searchKeysOpen && (
             <div className="rise-in mt-2 space-y-2">
-              {models.search.providers.map((pr) => (
+              {models.search.providers.filter((pr) => pr.api_key_env).map((pr) => (
                 <div key={pr.name} className="flex items-center justify-between gap-3">
                   <span className="flex min-w-0 items-center gap-2">
                     <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${pr.key_set ? "bg-ok" : "bg-line-strong"}`} />

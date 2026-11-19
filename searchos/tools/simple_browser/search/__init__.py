@@ -21,6 +21,11 @@ SEARCH_PROVIDER_INFO: dict[str, dict[str, str]] = {
         "api_key_env": "RAGFLOW_USER_ID",
         "doc_url": "",
     },
+    "parallel": {
+        "label": "Parallel（无需密钥，搜索查询会发送给 Parallel）",
+        "api_key_env": "",
+        "doc_url": "https://docs.parallel.ai/integrations/mcp/search-mcp",
+    },
 }
 
 
@@ -64,6 +69,10 @@ def build_search_provider(name: str = "") -> SearchProvider:
         return TavilyProvider(
             api_key=os.environ.get("TAVILY_API_KEY", "") or settings.tavily_api_key,
         )
+    if name == "parallel":
+        from searchos.tools.simple_browser.search.parallel import ParallelProvider
+
+        return ParallelProvider()
     from searchos.tools.simple_browser.search.ragflow import RagFlowProvider
 
     return RagFlowProvider()

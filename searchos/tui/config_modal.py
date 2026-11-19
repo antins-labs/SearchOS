@@ -625,7 +625,7 @@ def _search_section_items(app) -> list[Item]:
         Item("choice", "搜索后端",
              get=_get_backend,
              set=lambda v: _set_search_backend(app, v),
-             choices=lambda: ["auto", "serper", "tavily", "ragflow"],
+             choices=lambda: ["auto", "serper", "tavily", "ragflow", "parallel"],
              help=lambda: f"auto = 按已有 key 推断（当前生效：{_resolved()}）"),
         _secret_item("Serper key", "SERPER_API_KEY"),
         _secret_item("Tavily key", "TAVILY_API_KEY"),

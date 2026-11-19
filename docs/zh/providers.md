@@ -148,6 +148,12 @@ SF_ROLES__SKILL_ROUTER=myprof
 | `serper` | Serper.dev | `SERPER_API_KEY` | Google 结果，推荐；serper.dev 注册 |
 | `tavily` | Tavily | `TAVILY_API_KEY` | 需 `pip install 'searchos[tavily]'` |
 | `ragflow` | RagFlow | — | 蚂蚁内网接口，外部不可用 |
+| `parallel` | Parallel Search MCP | — | 手动启用，无需 API key 的公开网页搜索 |
+
+在 Web 设置或安装向导中选择 `parallel`，在 TUI 中运行 `/search parallel`，
+或在没有已保存的搜索后端时设置 `SF_SEARCH_PROVIDER=parallel`。
+选用后，研究代理会将网页搜索查询发送给 [Parallel](https://mcp.parallel.ai/mcp)，
+并返回附有原始来源链接的网页摘录。匿名请求有频率限制。
 
 不设 `SF_SEARCH_PROVIDER` 时按已有 key 自动推断（serper → tavily），都没有则回落 ragflow（向后兼容内部用法）。页面抓取后端另由 `SF_BROWSER_BACKEND` 控制（默认 `jina`，建议配 `SF_JINA_API_KEY`）。
 
