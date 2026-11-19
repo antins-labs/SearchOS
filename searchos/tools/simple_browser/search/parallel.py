@@ -35,6 +35,11 @@ class _BoundedStream(httpx.AsyncByteStream):
         await self._stream.aclose()
 
 
+async def _omit_cookies(request: httpx.Request) -> None:
+    # This client uses MCP session headers without replaying server-issued cookies.
+    request.headers.pop("Cookie", None)
+
+
 async def _bound_response(response: httpx.Response) -> None:
     # Count uncompressed bytes before the SDK buffers JSON or an SSE event.
     if response.headers.get("content-encoding", "identity").lower() != "identity":
@@ -81,7 +86,7 @@ class ParallelProvider(SearchProvider):
                     headers={"User-Agent": user_agent, "Accept-Encoding": "identity"},
                     timeout=httpx.Timeout(5.0, read=_SEARCH_TIMEOUT),
                     follow_redirects=False,
-                    event_hooks={"response": [_bound_response]},
+                    event_hooks={"request": [_omit_cookies], "response": [_bound_response]},
                 ) as http,
                 streamable_http_client(self.ENDPOINT, http_client=http) as (rx, tx, _),
                 ClientSession(rx, tx, client_info=client_info) as session,

@@ -53,6 +53,8 @@ def parallel_endpoint(monkeypatch):
             self.send_response(status)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(payload)))
+            if method == "initialize":
+                self.send_header("Set-Cookie", "visitor=fixture-id; Path=/mcp")
             self.end_headers()
             self.wfile.write(payload)
 
