@@ -218,6 +218,7 @@ class Settings(BaseSettings):
     # --- Search API (keys read via env; see docs/configuration.md) ---
     search_max_results: int = 10
     tavily_api_key: str = ""
+    specstream_api_key: str = ""
     serper_api_key: str = ""
 
     # --- Browser ---

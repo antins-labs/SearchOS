@@ -479,9 +479,13 @@ async def put_search_backend(req: SearchBackendUpdate):
         if req.provider not in SEARCH_PROVIDER_INFO:
             raise HTTPException(
                 400, f"Unknown search provider: {req.provider!r}. Valid: {list(SEARCH_PROVIDER_INFO)}")
-        if req.provider in ("serper", "tavily"):
+        if req.provider in ("serper", "tavily", "specstream"):
             env_name = SEARCH_PROVIDER_INFO[req.provider]["api_key_env"]
-            fallback = settings.serper_api_key if req.provider == "serper" else settings.tavily_api_key
+            fallback = {
+                "serper": settings.serper_api_key,
+                "tavily": settings.tavily_api_key,
+                "specstream": settings.specstream_api_key,
+            }[req.provider]
             if not key_set(env_name, fallback):
                 raise HTTPException(400, f"{env_name} not set in .env — add it before switching")
 

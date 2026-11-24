@@ -16,6 +16,11 @@ SEARCH_PROVIDER_INFO: dict[str, dict[str, str]] = {
         "api_key_env": "TAVILY_API_KEY",
         "doc_url": "https://tavily.com",
     },
+    "specstream": {
+        "label": "SpecStream（实时网页搜索，内置 httpx）",
+        "api_key_env": "SPECSTREAM_API_KEY",
+        "doc_url": "https://specstream.ai",
+    },
     "ragflow": {
         "label": "RagFlow（蚂蚁内网接口，外部不可用）",
         "api_key_env": "RAGFLOW_USER_ID",
@@ -42,6 +47,8 @@ def resolve_search_provider_name(name: str = "") -> str:
         return "serper"
     if os.environ.get("TAVILY_API_KEY") or settings.tavily_api_key:
         return "tavily"
+    if os.environ.get("SPECSTREAM_API_KEY") or settings.specstream_api_key:
+        return "specstream"
     return "ragflow"
 
 
@@ -63,6 +70,12 @@ def build_search_provider(name: str = "") -> SearchProvider:
 
         return TavilyProvider(
             api_key=os.environ.get("TAVILY_API_KEY", "") or settings.tavily_api_key,
+        )
+    if name == "specstream":
+        from searchos.tools.simple_browser.search.specstream import SpecStreamProvider
+
+        return SpecStreamProvider(
+            api_key=os.environ.get("SPECSTREAM_API_KEY", "") or settings.specstream_api_key,
         )
     from searchos.tools.simple_browser.search.ragflow import RagFlowProvider
 
